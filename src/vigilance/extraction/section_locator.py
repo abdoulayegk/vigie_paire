@@ -235,6 +235,7 @@ SECTION_PATTERNS = {
         # Termes qui indiquent que ce n'est PAS la bonne section
         "exclude_patterns": [
             r"risque\s+de",  # Eviter confusion avec sections risques
+            r"rendement\s+des?\s+capitaux\s+propres",
         ],
     },
     "gestion_risques": {
@@ -354,6 +355,14 @@ SECTION_PATTERNS = {
             r"third[-\s]party\s+risk",
             r"cloud\s+risk",
             r"operational\s+resilience",
+        ],
+        "exclude_patterns": [
+            r"chef\s+des?\s+risques",
+            r"chef\s+de\s+la\s+gestion\s+des?\s+risques?",
+            r"comit[ée]\s+de\s+gestion\s+des?\s+risques?",
+            r"structure\s+de\s+gestion\s+des?\s+risques?",
+            r"gestion\s+du\s+risque\s+d['e]\s*entreprise",
+            r"gestion\s+du\s+risque\s+li[eé]",
         ],
     },
     "gestion_reglementation": {
@@ -658,7 +667,11 @@ class SectionLocator:
                 if followed_by:
                     # Ajouter ces patterns en priorite
                     for name in followed_by:
-                        pattern = re.compile(re.escape(name), re.IGNORECASE)
+                        escaped = re.escape(name)
+                        pattern = re.compile(
+                            rf"^\s*{escaped}(?:$|\b|\s|[:;,.–—-])",
+                            re.IGNORECASE,
+                        )
                         if internal_name in self.following_patterns:
                             self.following_patterns[internal_name].insert(0, pattern)
                         else:
@@ -994,6 +1007,8 @@ class SectionLocator:
         Usage:
         - page_ranges dans bank_profiles.json utilisent la numerotation DOCUMENT
         - L'offset est ajoute automatiquement: page_physique = page_document + offset
+        - page_number_offsets peut definir un offset plus precis par periode
+          (ex. t4_2025) sans modifier l'offset par defaut des autres trimestres
 
         Returns:
             Offset (ex. 3 pour CIBC) ou 0 si pas de decalage.
@@ -1001,6 +1016,18 @@ class SectionLocator:
         if not self.bank_code or not self.bank_config:
             return 0
         bank_data = self.bank_config.get("banks", {}).get(self.bank_code, {})
+        period_offsets = bank_data.get("page_number_offsets", {})
+        if isinstance(period_offsets, dict):
+            quarter_key = str(self.quarter or "").strip().lower()
+            period_keys = []
+            if quarter_key and self.year:
+                period_keys.append(f"{quarter_key}_{self.year}")
+            if quarter_key:
+                period_keys.append(quarter_key)
+            for key in period_keys:
+                if key in period_offsets:
+                    offset = period_offsets.get(key, 0)
+                    return int(offset) if offset else 0
         offset = bank_data.get("page_number_offset", 0)
         return int(offset) if offset else 0
 
@@ -1033,6 +1060,9 @@ class SectionLocator:
             return []
 
         section_name_map = {
+            "capital_management": "capital_management",
+            "risk_management": "risk_management",
+            "regulatory_updates": "regulatory_updates",
             "gestion_capital": "capital_management",
             "gestion_risques": "risk_management",
             "gestion_reglementation": "regulatory_updates",
@@ -1045,6 +1075,23 @@ class SectionLocator:
         section_cfg = bank_data.get("sections", {}).get(config_name, {})
         names = section_cfg.get("names", [])
         return [n for n in names if isinstance(n, str) and n.strip()]
+
+    def _section_alias_keys(self, section_type: str) -> list[str]:
+        """Retourner les cles d'alias compatibles avec la taxonomie courante."""
+        keys: list[str] = []
+        for key in (
+            section_type,
+            canonicalize_section(section_type),
+            {
+                "capital_management": "gestion_capital",
+                "risk_management": "gestion_risques",
+                "regulatory_updates": "gestion_reglementation",
+            }.get(canonicalize_section(section_type), ""),
+        ):
+            key = str(key or "").strip()
+            if key and key not in keys:
+                keys.append(key)
+        return keys
 
     def _line_matches_section_title(self, line: str, section_names: list[str]) -> bool:
         """Verifier si une ligne correspond a un des titres de section attendus.
@@ -1207,13 +1254,17 @@ class SectionLocator:
                 adjusted.append(section)
                 continue
 
-            section_names = self._get_config_section_names(section.section_type)
-            found_start = self._find_section_start_in_window(
-                estimated_page=section.start_page,
-                text_by_page=text_by_page,
-                section_names=section_names,
-                total_pages=total_pages,
-            )
+            found_start = None
+            if not section.detection_method.startswith(
+                ("manual_override", "scan_exact")
+            ):
+                section_names = self._get_config_section_names(section.section_type)
+                found_start = self._find_section_start_in_window(
+                    estimated_page=section.start_page,
+                    text_by_page=text_by_page,
+                    section_names=section_names,
+                    total_pages=total_pages,
+                )
 
             new_start = found_start if found_start else section.start_page
             detection_method = section.detection_method
@@ -1245,14 +1296,20 @@ class SectionLocator:
         capital = by_type.get("gestion_capital")
         risk = by_type.get("gestion_risques")
 
-        if capital and risk and risk.start_page > capital.start_page:
+        if (
+            capital
+            and risk
+            and risk.start_page > capital.start_page
+            and not capital.detection_method.startswith("manual_override")
+            and capital.end_detection_method != "following_section_scan"
+        ):
             capital.end_page = risk.start_page - 1
             capital.end_detection_method = "cibc_next_section_start"
             self._apply_section_length_constraints(
                 capital, total_pages, source="cibc_recalibration"
             )
 
-        if risk:
+        if risk and not risk.detection_method.startswith("manual_override"):
             next_header = self._find_next_header_page(
                 section_type="gestion_risques",
                 start_page=risk.start_page,
@@ -1282,7 +1339,65 @@ class SectionLocator:
         """
         if not self.bank_code or not self.bank_config:
             return False
+        if str(self.quarter or "").strip().lower() == "t4":
+            return False
         return self.bank_code in self.bank_config.get("banks_with_regulatory", [])
+
+    def _is_t4_quarter(self) -> bool:
+        """Indiquer si le rapport courant est un T4."""
+        return str(self.quarter or "").strip().lower() == "t4"
+
+    def _score_toc_candidate_page(self, page_num: int, page_text: str) -> float:
+        """Scorer une page candidate TDM pour les rapports T4.
+
+        Les rapports annuels placent souvent la TDM plus loin que les rapports
+        trimestriels. Le score favorise la zone observee 15-20 sans rendre cette
+        plage obligatoire.
+        """
+        if not page_text:
+            return 0.0
+
+        normalized = normalize_text(page_text)
+        score = 0.0
+
+        strong_markers = [
+            r"table\s+des\s+matieres",
+            r"table\s+of\s+contents",
+            r"\bcontents\b",
+        ]
+        soft_markers = [
+            r"\bsommaire\b",
+            r"rapport\s+de\s+gestion",
+            r"guide\s+du\s+lecteur",
+        ]
+
+        if any(re.search(pattern, normalized, re.IGNORECASE) for pattern in strong_markers):
+            score += 50.0
+        if any(re.search(pattern, normalized, re.IGNORECASE) for pattern in soft_markers):
+            score += 20.0
+
+        if 10 <= page_num <= 25:
+            score += 10.0
+        if 15 <= page_num <= 20:
+            score += 20.0
+
+        toc_like_lines = 0
+        for raw_line in page_text.splitlines():
+            line = raw_line.strip()
+            if len(line) < 5 or len(line) > 160:
+                continue
+            if re.search(r"\d{1,3}\s*$", line) or re.match(r"^\d{1,3}\s+", line):
+                toc_like_lines += 1
+        score += min(toc_like_lines, 12) * 3.0
+
+        for section_type in ("gestion_capital", "gestion_risques"):
+            for name in self._get_config_section_names(section_type):
+                name_norm = normalize_text(name)
+                if name_norm and name_norm in normalized:
+                    score += 20.0
+                    break
+
+        return score
 
     def _needs_genai_fallback(self, sections: list[LocatedSection]) -> bool:
         """Determiner si le fallback GenAI est necessaire.
@@ -1472,6 +1587,25 @@ class SectionLocator:
         # Ensuite scanner le PDF pour les sections non trouvees dans la TDM
         scanned_sections = self._scan_section_titles(text_by_page)
         for scanned in scanned_sections:
+            if self._is_t4_quarter() and scanned.detection_method == "scan_exact":
+                existing_index = next(
+                    (
+                        index
+                        for index, section in enumerate(sections)
+                        if section.section_type == scanned.section_type
+                        and section.detection_method.startswith("toc")
+                    ),
+                    None,
+                )
+                if existing_index is not None and scanned.start_page > 5:
+                    sections[existing_index] = scanned
+                    found_types.add(scanned.section_type)
+                    logger.info(
+                        f"Section {scanned.section_type}: scan_exact priorise sur "
+                        f"TDM T4 page {scanned.start_page}"
+                    )
+                    continue
+
             if scanned.section_type not in found_types:
                 # Valider que la page est raisonnable (pas dans les 5 premieres pages)
                 if scanned.start_page > 5:
@@ -1520,6 +1654,11 @@ class SectionLocator:
                             f"Section {genai_section.section_type}: GenAI fallback "
                             f"page {genai_section.start_page} (conf={genai_section.confidence:.2f})"
                         )
+
+        if self._is_t4_quarter():
+            t4_target_types = {"gestion_capital", "gestion_risques"}
+            sections = [s for s in sections if s.section_type in t4_target_types]
+            found_types = {s.section_type for s in sections}
 
         # ETAPE 3: Determiner les pages de fin avec la logique hybride
         sections = self._determine_end_pages(
@@ -1964,12 +2103,13 @@ class SectionLocator:
         if title_found:
             candidates.append(title_found)
 
-        for alias in SECTION_TITLE_ALIASES.get(section.section_type, []):
-            alias = str(alias or "").strip()
-            if alias and normalize_text(alias) not in {
-                normalize_text(existing) for existing in candidates
-            }:
-                candidates.append(alias)
+        for alias_key in self._section_alias_keys(section.section_type):
+            for alias in SECTION_TITLE_ALIASES.get(alias_key, []):
+                alias = str(alias or "").strip()
+                if alias and normalize_text(alias) not in {
+                    normalize_text(existing) for existing in candidates
+                }:
+                    candidates.append(alias)
 
         for alias in self._get_config_section_names(section.section_type):
             alias = str(alias or "").strip()
@@ -2007,11 +2147,11 @@ class SectionLocator:
             )
 
         for candidate_text in candidates:
-            normalized_candidate = normalize_text(candidate_text)
+            candidate_variants = self._title_match_variants(candidate_text)
             matches = [
                 elem
                 for elem in page_elements
-                if normalize_text(elem.text) == normalized_candidate
+                if candidate_variants & self._title_match_variants(elem.text)
             ]
             if not matches:
                 continue
@@ -2046,6 +2186,12 @@ class SectionLocator:
                     anchored.section_type,
                     anchored.anchor_page,
                     anchored.anchor_text,
+                )
+            elif section.detection_method.startswith("manual_override"):
+                logger.debug(
+                    "Ancre section non resolue pour override manuel: %s page %s",
+                    section.section_type,
+                    section.start_page,
                 )
             else:
                 logger.warning(
@@ -2115,30 +2261,47 @@ class SectionLocator:
         """
         entries = []
 
-        # Chercher la TDM dans les 6 premieres pages (BNC: souvent page 2-3)
+        # Chercher la TDM dans les 6 premieres pages pour les rapports
+        # trimestriels. Les T4 sont des rapports annuels: la TDM est souvent
+        # autour des pages PDF 15-20, donc on scanne plus large uniquement
+        # pour T4.
         toc_page = None
         toc_text = ""
 
-        for page_num in range(1, min(7, len(text_by_page) + 1)):
-            page_text = text_by_page.get(page_num, "")
+        if self._is_t4_quarter():
+            candidates: list[tuple[float, int]] = []
+            for page_num in range(1, min(26, len(text_by_page) + 1)):
+                page_text = text_by_page.get(page_num, "")
+                marker_found = any(
+                    pattern.search(page_text) for pattern in self.toc_patterns
+                )
+                score = self._score_toc_candidate_page(page_num, page_text)
+                if marker_found or score >= 35.0:
+                    candidates.append((score, page_num))
 
-            for pattern in self.toc_patterns:
-                if pattern.search(page_text):
-                    toc_page = page_num
-                    # Prendre aussi les pages suivantes (TDM peut s'etendre sur 2-3 pages)
-                    toc_text = page_text
-                    for next_page in range(
-                        page_num + 1, min(page_num + 4, len(text_by_page) + 1)
-                    ):
-                        toc_text += "\n" + text_by_page.get(next_page, "")
+            if candidates:
+                candidates.sort(reverse=True)
+                _, toc_page = candidates[0]
+        else:
+            for page_num in range(1, min(7, len(text_by_page) + 1)):
+                page_text = text_by_page.get(page_num, "")
+
+                for pattern in self.toc_patterns:
+                    if pattern.search(page_text):
+                        toc_page = page_num
+                        break
+
+                if toc_page:
                     break
-
-            if toc_page:
-                break
 
         if not toc_page:
             logger.debug("Table des matieres non trouvee")
             return entries
+
+        # Prendre aussi les pages suivantes (TDM peut s'etendre sur 2-3 pages)
+        toc_text = text_by_page.get(toc_page, "")
+        for next_page in range(toc_page + 1, min(toc_page + 4, len(text_by_page) + 1)):
+            toc_text += "\n" + text_by_page.get(next_page, "")
 
         logger.info(f"Table des matieres trouvee page {toc_page}")
         logger.debug(
@@ -2554,6 +2717,15 @@ class SectionLocator:
                                 next_entry.level == 0
                                 and next_entry.page >= min_end_page
                             ):
+                                if self._matches_section(
+                                    next_entry.title, section_type
+                                ):
+                                    logger.debug(
+                                        f"TDM: Section suivante ignoree "
+                                        f"(meme famille {section_type}): "
+                                        f"'{next_entry.title}' page {next_entry.page}"
+                                    )
+                                    continue
                                 if (
                                     section_type == "gestion_risques"
                                     and self._is_risk_subsection(next_entry.title)
@@ -2726,6 +2898,97 @@ class SectionLocator:
 
         return False
 
+    def _unstutter_pdf_text(self, text: str) -> str:
+        """Corriger les mots dont chaque caractere est double par l'extraction PDF."""
+
+        def _unstutter_token(token: str) -> str:
+            if len(token) < 4 or len(token) % 2 != 0:
+                return token
+            if all(token[i] == token[i + 1] for i in range(0, len(token), 2)):
+                return "".join(token[i] for i in range(0, len(token), 2))
+            return token
+
+        return " ".join(_unstutter_token(token) for token in str(text or "").split())
+
+    def _title_match_variants(self, text: str) -> set[str]:
+        """Retourner des variantes normalisees pour matcher un titre exact."""
+        variants: set[str] = set()
+        for value in {str(text or ""), self._unstutter_pdf_text(text)}:
+            normalized = normalize_text(value).strip()
+            if not normalized:
+                continue
+            variants.add(normalized)
+            compact = re.sub(r"[^a-z0-9]+", "", normalized)
+            if compact:
+                variants.add(compact)
+        return variants
+
+    def _strict_section_title_match(self, line: str, section_type: str) -> str | None:
+        """Matcher uniquement un vrai titre de section configure, pas une phrase."""
+        line_variants = self._title_match_variants(line)
+        if not line_variants:
+            return None
+
+        aliases: list[str] = []
+        for alias_key in self._section_alias_keys(section_type):
+            aliases.extend(SECTION_TITLE_ALIASES.get(alias_key, []))
+        aliases.extend(self._get_config_section_names(section_type))
+        for alias in aliases:
+            alias = str(alias or "").strip()
+            if not alias:
+                continue
+            if line_variants & self._title_match_variants(alias):
+                return alias
+        return None
+
+    def _is_section_scan_noise_page(self, page_text: str) -> bool:
+        """Identifier les pages qui ne doivent pas servir d'ancre de section."""
+        page_lower = normalize_text(page_text)
+        page_top = normalize_text("\n".join(str(page_text or "").splitlines()[:25]))
+
+        toc_markers = [
+            r"table\s+des\s+matieres",
+            r"table\s+of\s+contents",
+            r"guide\s+du\s+lecteur",
+        ]
+        if any(re.search(pattern, page_lower, re.IGNORECASE) for pattern in toc_markers):
+            return True
+
+        noise_markers = [
+            "rapport de l auditeur independant",
+            "etats financiers consolides",
+            "notes afferentes aux etats financiers",
+            "notes aux etats financiers",
+            "bilans consolides",
+            "etats consolides du resultat",
+        ]
+        return any(marker in page_top for marker in noise_markers)
+
+    def _is_weak_section_scan_line(self, line: str, section_type: str) -> bool:
+        """Ecarter les phrases qui contiennent les mots cibles sans etre la section."""
+        line_lower = normalize_text(line)
+        weak_patterns = {
+            "gestion_capital": [
+                r"actif\s+pond[eé]r[eé]\s+en\s+fonction\s+des?\s+risques?",
+                r"rendement\s+des?\s+capitaux\s+propres",
+                r"capitaux\s+propres\s+attribuables",
+                r"variation\s+des?\s+capitaux\s+propres",
+                r"[eé]tat\s+.*capitaux\s+propres",
+            ],
+            "gestion_risques": [
+                r"chef\s+des?\s+risques",
+                r"chef\s+de\s+la\s+gestion\s+des?\s+risques?",
+                r"comit[ée]\s+de\s+gestion\s+des?\s+risques?",
+                r"structure\s+de\s+gestion\s+des?\s+risques?",
+                r"gestion\s+du\s+risque\s+d['e]\s*entreprise",
+                r"gestion\s+du\s+risque\s+li[eé]",
+            ],
+        }
+        return any(
+            re.search(pattern, line_lower, re.IGNORECASE)
+            for pattern in weak_patterns.get(section_type, [])
+        )
+
     def _scan_section_titles(
         self, text_by_page: dict[int, str]
     ) -> list[LocatedSection]:
@@ -2744,11 +3007,103 @@ class SectionLocator:
         # On commence apres les premieres pages (TDM, intro) - typiquement page 5+
         start_page = 5
 
+        # Passe stricte: chercher d'abord les vrais titres configures/connus,
+        # puis retenir le meilleur candidat par section. Cette passe evite les
+        # faux positifs dans les phrases de gouvernance ou les tableaux qui
+        # contiennent "gestion du risque" / "fonds propres".
+        strict_candidates: dict[str, list[tuple[LocatedSection, float]]] = {}
         for page_num in sorted(text_by_page.keys()):
             if page_num < start_page:
                 continue
 
             page_text = text_by_page[page_num]
+            lines = [
+                line.strip()
+                for line in page_text.split("\n")
+                if line.strip()
+            ]
+            page_is_noise = self._is_section_scan_noise_page(page_text)
+
+            for line_index, line_stripped in enumerate(lines, start=1):
+                if self._is_risk_subsection(line_stripped):
+                    continue
+
+                for section_type in self.compiled_patterns:
+                    if (
+                        section_type == "gestion_reglementation"
+                        and not self._bank_has_regulatory_section()
+                    ):
+                        continue
+                    if section_type in found_types:
+                        continue
+                    matched_title = self._strict_section_title_match(
+                        line_stripped, section_type
+                    )
+                    if not matched_title:
+                        continue
+                    if page_is_noise or self._is_weak_section_scan_line(
+                        line_stripped, section_type
+                    ):
+                        continue
+                    section = LocatedSection(
+                        section_type=section_type,
+                        title_found=matched_title,
+                        start_page=page_num,
+                        end_page=min(page_num + 10, max(text_by_page.keys())),
+                        confidence=1.0,
+                        detection_method="scan_exact",
+                    )
+                    configured_names = {
+                        normalize_text(name)
+                        for name in self._get_config_section_names(section_type)
+                    }
+                    score = 100.0
+                    if normalize_text(matched_title) in configured_names:
+                        score += 25.0
+                    if line_index <= 5:
+                        score += 10.0
+                    elif line_index <= 20:
+                        score += 5.0
+                    score -= page_num / 100.0
+                    section.end_page = None
+                    strict_candidates.setdefault(section_type, []).append(
+                        (section, score)
+                    )
+                    logger.debug(
+                        "Candidat titre exact: %s -> page %s score=%.2f",
+                        matched_title,
+                        page_num,
+                        score,
+                    )
+
+        for section_type, candidates in strict_candidates.items():
+            if not candidates:
+                continue
+            candidates.sort(
+                key=lambda item: (
+                    item[1],
+                    -item[0].start_page,
+                ),
+                reverse=True,
+            )
+            section, score = candidates[0]
+            sections.append(section)
+            found_types.add(section_type)
+            logger.debug(
+                "Section retenue par titre exact: %s -> page %s score=%.2f",
+                section.title_found,
+                section.start_page,
+                score,
+            )
+
+        for page_num in sorted(text_by_page.keys()):
+            if page_num < start_page:
+                continue
+
+            page_text = text_by_page[page_num]
+            if self._is_section_scan_noise_page(page_text):
+                continue
+
             lines = page_text.split("\n")
 
             for line in lines:
@@ -2798,6 +3153,10 @@ class SectionLocator:
 
                 # Si un pattern correspond, on peut bypasser le filtre de longueur strict
                 if matches_pattern:
+                    if self._is_weak_section_scan_line(
+                        line_stripped, matching_section_type
+                    ):
+                        continue
                     # Un pattern correspond: verifier que c'est quand meme un titre valide
                     # mais avec limite de longueur etendue
                     if not self._is_likely_section_title(
@@ -2847,6 +3206,8 @@ class SectionLocator:
                                 break
 
                         if should_exclude:
+                            continue
+                        if self._is_weak_section_scan_line(line_stripped, section_type):
                             continue
 
                         # Verifier si un pattern correspond
@@ -2901,6 +3262,9 @@ class SectionLocator:
                 continue
 
             page_text = text_by_page[page_num]
+            if self._is_section_scan_noise_page(page_text):
+                continue
+
             lines = page_text.split("\n")
 
             for line in lines:
@@ -3038,27 +3402,31 @@ class SectionLocator:
             end_page = None
             end_method = ""
 
-            # Niveau 2: Utiliser la TDM
-            if toc_entries and not end_page:
-                end_page, end_method = self._find_end_from_toc(
-                    section.section_type, section.start_page, toc_entries
-                )
-
-            # Niveau 3: Scanner pour la section suivante
+            # Niveau 2: Scanner pour la section suivante explicite. Les titres
+            # "followed_by" bornent mieux les sections vigie que la prochaine
+            # section cible quand des blocs intermediaires existent.
             if not end_page:
                 end_page, end_method = self._detect_section_end(
                     section.section_type, section.start_page, text_by_page, total_pages
                 )
 
-            # Niveau 4: Fallback - utiliser la section suivante ou estimation
+            # Niveau 3: utiliser la prochaine section cible detectee quand elle
+            # existe et qu'aucun titre de fin plus precis n'a ete trouve.
+            if not end_page and i + 1 < len(sections):
+                end_page = sections[i + 1].start_page - 1
+                end_method = "next_target_section"
+
+            # Niveau 4: Utiliser la TDM si aucune borne locale n'a ete trouvee.
+            if toc_entries and not end_page:
+                end_page, end_method = self._find_end_from_toc(
+                    section.section_type, section.start_page, toc_entries
+                )
+
+            # Niveau 5: Fallback - estimation contextuelle
             if not end_page:
-                if i + 1 < len(sections):
-                    end_page = sections[i + 1].start_page - 1
-                    end_method = "next_target_section"
-                else:
-                    # Estimation contextuelle bornee par contraintes de la section
-                    end_page = min(section.start_page + default_length - 1, total_pages)
-                    end_method = "estimation"
+                # Estimation contextuelle bornee par contraintes de la section
+                end_page = min(section.start_page + default_length - 1, total_pages)
+                end_method = "estimation"
 
             section.end_page = end_page
             section.end_detection_method = end_method
@@ -3717,6 +4085,13 @@ class SectionLocator:
 
         for entry in sorted(entries_after, key=lambda e: e.page):
             if entry.level == 0:
+                if self._matches_section(entry.title, section_type):
+                    logger.debug(
+                        f"_find_end_from_toc: Entree ignoree "
+                        f"(meme famille {section_type}): "
+                        f"'{entry.title}' page {entry.page}"
+                    )
+                    continue
                 end_page = entry.page - 1
                 logger.debug(
                     f"_find_end_from_toc: Fin trouvee par section principale: "
@@ -3782,14 +4157,22 @@ class SectionLocator:
 
             for line in lines:
                 line_stripped = line.strip()
+                line_unstuttered = self._unstutter_pdf_text(line_stripped)
 
                 # Verifier si c'est un titre potentiel
-                if not self._is_likely_section_title(line_stripped, page_text):
+                if not (
+                    self._is_likely_section_title(line_stripped, page_text)
+                    or self._is_likely_section_title(line_unstuttered, page_text)
+                ):
+                    continue
+                if self._is_weak_section_scan_line(
+                    line_stripped, section_type
+                ) or self._is_weak_section_scan_line(line_unstuttered, section_type):
                     continue
 
                 # Verifier contre les patterns des sections suivantes
                 for pattern in following_patterns:
-                    if pattern.search(line_stripped):
+                    if pattern.search(line_stripped) or pattern.search(line_unstuttered):
                         # Verifier que ce n'est pas une sous-section
                         if self._is_risk_subsection(line_stripped):
                             continue

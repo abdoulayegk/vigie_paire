@@ -24,15 +24,10 @@ from typing import Literal
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 THEMES_AMF_DESCRIPTIONS: dict[str, str] = {
-    "DIVULGATION_AJOUT": (
-        "Ajout d'une nouvelle divulgation absente du rapport précédent."
-    ),
-    "DIVULGATION_RETRAIT": (
-        "Retrait d'une divulgation présente au rapport précédent."
-    ),
+    "DIVULGATION_AJOUT": ("Ajout d'une nouvelle divulgation absente du rapport précédent."),
+    "DIVULGATION_RETRAIT": ("Retrait d'une divulgation présente au rapport précédent."),
     "MODIFICATION_TEXTE_RISQUE": (
-        "Modification substantielle d'un texte décrivant un risque "
-        "(hors simple variation chiffrée propre à la banque)."
+        "Modification substantielle d'un texte décrivant un risque (hors simple variation chiffrée propre à la banque)."
     ),
     "MODIFICATION_METHODOLOGIE": (
         "Changement de méthodologie ou d'approche de gestion des risques "
@@ -52,8 +47,7 @@ THEMES_AMF_DESCRIPTIONS: dict[str, str] = {
         "financement, sources de liquidité, plans de contingence)."
     ),
     "FONDS_PROPRES_REGLEMENTAIRES": (
-        "Changement lié aux fonds propres réglementaires (composition, "
-        "déductions, ajustements prudentiels)."
+        "Changement lié aux fonds propres réglementaires (composition, déductions, ajustements prudentiels)."
     ),
     "EXIGENCES_REGLEMENTAIRES": (
         "Changement dans les exigences réglementaires applicables (seuils "
@@ -183,19 +177,16 @@ EXCLUSION_REASONS_DESCRIPTIONS: dict[str, str] = {
         "exposition, profits, montants d'actifs) sans dimension réglementaire."
     ),
     "reformulation_mineure": (
-        "Texte reformulé sans changement de fond (synonymes, ordre des mots, "
-        "tournure équivalente)."
+        "Texte reformulé sans changement de fond (synonymes, ordre des mots, tournure équivalente)."
     ),
     "deplacement_texte": (
-        "Texte déplacé d'une section à une autre sans modification de contenu."
+        "Texte déplacé d'une section à une autre sans modification de contenu, "
+        "de contexte, de visibilité ou de rattachement métier."
     ),
     "formatage_visuel": (
-        "Changement purement visuel (gras, italique, ponctuation, casse, "
-        "espacement, retour à la ligne)."
+        "Changement purement visuel (gras, italique, ponctuation, casse, espacement, retour à la ligne)."
     ),
-    "non_pertinent_autre": (
-        "Autre changement non pertinent pour la vigie AMF."
-    ),
+    "non_pertinent_autre": ("Autre changement non pertinent pour la vigie AMF."),
 }
 
 ExclusionReason = Literal[
@@ -340,11 +331,7 @@ def missing_labeled_analysis_sections(
 ) -> list[str]:
     """Retourne les rubriques absentes ou sans contenu analytique suffisant."""
     sections = extract_labeled_analysis(text, labels)
-    return [
-        label
-        for label in labels
-        if len(sections.get(label, "").strip()) < min_content_length
-    ]
+    return [label for label in labels if len(sections.get(label, "").strip()) < min_content_length]
 
 
 def _count_substantive_sentences(text: str) -> int:
@@ -359,9 +346,7 @@ def _count_substantive_sentences(text: str) -> int:
     if not text:
         return 0
     parts = _SENTENCE_BOUNDARY_RE.split(text)
-    return sum(
-        1 for part in parts if len(part.strip()) >= _JUSTIFICATION_MIN_SENTENCE_LENGTH
-    )
+    return sum(1 for part in parts if len(part.strip()) >= _JUSTIFICATION_MIN_SENTENCE_LENGTH)
 
 
 def _missing_justification_sections(text: str) -> list[str]:
@@ -453,8 +438,7 @@ class TriageAMFResult(BaseModel):
             )
         if len(justification) < _JUSTIFICATION_MIN_TOTAL_LENGTH:
             raise ValueError(
-                f"nouvelle_idee_justification exige au moins "
-                f"{_JUSTIFICATION_MIN_TOTAL_LENGTH} caractères au total"
+                f"nouvelle_idee_justification exige au moins {_JUSTIFICATION_MIN_TOTAL_LENGTH} caractères au total"
             )
         expected_prefix = "OUI" if self.nouvelle_idee else "NON"
         if not justification.upper().startswith(expected_prefix):
@@ -465,20 +449,15 @@ class TriageAMFResult(BaseModel):
         missing_sections = _missing_justification_sections(justification)
         if missing_sections:
             raise ValueError(
-                "nouvelle_idee_justification doit contenir les rubriques "
-                f"obligatoires : {', '.join(missing_sections)}"
+                f"nouvelle_idee_justification doit contenir les rubriques obligatoires : {', '.join(missing_sections)}"
             )
 
         # ---------- Cohérence pertinent / non pertinent ----------
         if self.is_relevant:
             if not self.themes_amf:
-                raise ValueError(
-                    "is_relevant=True exige au moins un thème AMF dans themes_amf"
-                )
+                raise ValueError("is_relevant=True exige au moins un thème AMF dans themes_amf")
             if self.exclusion_reason is not None:
-                raise ValueError(
-                    "is_relevant=True interdit exclusion_reason renseigné"
-                )
+                raise ValueError("is_relevant=True interdit exclusion_reason renseigné")
             if len(self.explanation.strip()) < _EXPLANATION_MIN_LENGTH:
                 raise ValueError(
                     "is_relevant=True exige une explanation d'au moins "
@@ -486,70 +465,36 @@ class TriageAMFResult(BaseModel):
                 )
         else:
             if self.themes_amf:
-                raise ValueError(
-                    "is_relevant=False interdit themes_amf non vide"
-                )
+                raise ValueError("is_relevant=False interdit themes_amf non vide")
             if self.exclusion_reason is None:
-                raise ValueError(
-                    "is_relevant=False exige exclusion_reason renseigné"
-                )
+                raise ValueError("is_relevant=False exige exclusion_reason renseigné")
             if self.nouvelle_idee:
-                raise ValueError(
-                    "is_relevant=False interdit nouvelle_idee=True"
-                )
+                raise ValueError("is_relevant=False interdit nouvelle_idee=True")
             if self.impact_level != "MINEUR":
-                raise ValueError(
-                    "is_relevant=False exige impact_level=MINEUR"
-                )
+                raise ValueError("is_relevant=False exige impact_level=MINEUR")
             if self.impact_it != "INDETERMINE":
-                raise ValueError(
-                    "is_relevant=False exige impact_it=INDETERMINE"
-                )
+                raise ValueError("is_relevant=False exige impact_it=INDETERMINE")
             if self.impact_it_justification.strip():
-                raise ValueError(
-                    "is_relevant=False exige impact_it_justification vide"
-                )
+                raise ValueError("is_relevant=False exige impact_it_justification vide")
             if self.changement_posture != "AUCUN":
-                raise ValueError(
-                    "is_relevant=False exige changement_posture=AUCUN"
-                )
+                raise ValueError("is_relevant=False exige changement_posture=AUCUN")
             if self.justification_posture.strip():
-                raise ValueError(
-                    "is_relevant=False exige justification_posture vide"
-                )
+                raise ValueError("is_relevant=False exige justification_posture vide")
             if self.statut_mise_en_oeuvre != "INDETERMINE":
-                raise ValueError(
-                    "is_relevant=False exige statut_mise_en_oeuvre=INDETERMINE"
-                )
+                raise ValueError("is_relevant=False exige statut_mise_en_oeuvre=INDETERMINE")
             if self.confiance_posture != "INDETERMINE":
-                raise ValueError(
-                    "is_relevant=False exige confiance_posture=INDETERMINE"
-                )
+                raise ValueError("is_relevant=False exige confiance_posture=INDETERMINE")
             if self.action_requise != "aucune":
-                raise ValueError(
-                    "is_relevant=False exige action_requise='aucune'"
-                )
+                raise ValueError("is_relevant=False exige action_requise='aucune'")
             if self.explanation.strip():
-                raise ValueError(
-                    "is_relevant=False exige explanation vide"
-                )
+                raise ValueError("is_relevant=False exige explanation vide")
             if self.change_segments:
-                raise ValueError(
-                    "is_relevant=False exige change_segments vide"
-                )
+                raise ValueError("is_relevant=False exige change_segments vide")
 
         if self.action_requise == "revue_prioritaire" and self.impact_level != "MAJEUR":
-            raise ValueError(
-                "action_requise='revue_prioritaire' exige impact_level='MAJEUR'"
-            )
-        if (
-            self.impact_it != "INDETERMINE"
-            and len(self.impact_it_justification.strip()) < 20
-        ):
-            raise ValueError(
-                "impact_it_justification exige au moins 20 caractères quand "
-                "impact_it est évalué"
-            )
+            raise ValueError("action_requise='revue_prioritaire' exige impact_level='MAJEUR'")
+        if self.impact_it != "INDETERMINE" and len(self.impact_it_justification.strip()) < 20:
+            raise ValueError("impact_it_justification exige au moins 20 caractères quand impact_it est évalué")
         if self.impact_it != "INDETERMINE":
             missing_impact_sections = missing_labeled_analysis_sections(
                 self.impact_it_justification,
@@ -560,14 +505,8 @@ class TriageAMFResult(BaseModel):
                     "impact_it_justification doit contenir les rubriques "
                     f"détaillées : {', '.join(missing_impact_sections)}"
                 )
-        if (
-            self.impact_it == "INDETERMINE"
-            and self.impact_it_justification.strip()
-        ):
-            raise ValueError(
-                "impact_it_justification doit être vide quand "
-                "impact_it=INDETERMINE"
-            )
+        if self.impact_it == "INDETERMINE" and self.impact_it_justification.strip():
+            raise ValueError("impact_it_justification doit être vide quand impact_it=INDETERMINE")
         posture_evaluee = self.changement_posture in {
             "RENFORCEMENT",
             "ALLEGEMENT",
@@ -576,8 +515,7 @@ class TriageAMFResult(BaseModel):
         }
         if posture_evaluee and len(self.justification_posture.strip()) < 20:
             raise ValueError(
-                "justification_posture exige au moins 20 caractères quand "
-                "un changement de posture est évalué"
+                "justification_posture exige au moins 20 caractères quand un changement de posture est évalué"
             )
         if posture_evaluee:
             missing_posture_sections = missing_labeled_analysis_sections(
@@ -590,10 +528,7 @@ class TriageAMFResult(BaseModel):
                     f"détaillées : {', '.join(missing_posture_sections)}"
                 )
         if posture_evaluee and self.confiance_posture == "INDETERMINE":
-            raise ValueError(
-                "confiance_posture doit être évaluée quand un changement "
-                "de posture est identifié"
-            )
+            raise ValueError("confiance_posture doit être évaluée quand un changement de posture est identifié")
 
         return self
 
@@ -625,26 +560,17 @@ class TriageAMFBatch(BaseModel):
 
 def format_themes_for_prompt() -> str:
     """Formate la taxonomie AMF pour injection dans le prompt GPT-4o."""
-    return "\n".join(
-        f"- {code} : {description}"
-        for code, description in THEMES_AMF_DESCRIPTIONS.items()
-    )
+    return "\n".join(f"- {code} : {description}" for code, description in THEMES_AMF_DESCRIPTIONS.items())
 
 
 def format_theme_subjects_for_prompt() -> str:
     """Formate les libellés analyste associés aux codes AMF."""
-    return "\n".join(
-        f"- {code} -> {subject}"
-        for code, subject in THEMES_AMF_ANALYST_SUBJECTS.items()
-    )
+    return "\n".join(f"- {code} -> {subject}" for code, subject in THEMES_AMF_ANALYST_SUBJECTS.items())
 
 
 def format_exclusion_reasons_for_prompt() -> str:
     """Formate les raisons d'exclusion pour injection dans le prompt GPT-4o."""
-    return "\n".join(
-        f"- {code} : {description}"
-        for code, description in EXCLUSION_REASONS_DESCRIPTIONS.items()
-    )
+    return "\n".join(f"- {code} : {description}" for code, description in EXCLUSION_REASONS_DESCRIPTIONS.items())
 
 
 def empty_triage_skeleton() -> dict:
@@ -711,10 +637,7 @@ class TriageValidationError(RuntimeError):
             raw_payload: Réponse brute reçue avant validation.
             validation_error: Erreur de validation à l'origine du rejet.
         """
-        message = (
-            f"Triage AMF invalide [section={section_key}, "
-            f"change_index={change_index}] : {validation_error}"
-        )
+        message = f"Triage AMF invalide [section={section_key}, change_index={change_index}] : {validation_error}"
         super().__init__(message)
         self.section_key = section_key
         self.change_index = change_index

@@ -35,6 +35,7 @@ from vigilance.amf_taxonomy import (
     format_themes_for_prompt,
 )
 from vigilance.cli.quarter_logic import normalize_quarter, resolve_previous_quarter
+from vigilance.config.loader import load_config
 from vigilance.extraction.section_locator import locate_sections_in_pdf
 from vigilance.extraction.section_taxonomy import canonicalize_section
 from vigilance.text_comparison.text_comparison_writer import (
@@ -82,12 +83,15 @@ _TARGET_SECTIONS_BY_BANK: dict[str, set[str]] = {
     "td": {"gestion_capital", "gestion_risques"},
     "bmo": {"gestion_capital", "gestion_risques", "gestion_reglementation"},
 }
+_T4_TEXT_TARGET_SECTIONS = {"gestion_capital", "gestion_risques"}
 
 _MODEL_MAX_OUTPUT_TOKENS: list[tuple[re.Pattern[str], int]] = [
     (re.compile(r"^gpt-4o(?:$|-)", flags=re.IGNORECASE), 16_384),
     (re.compile(r"^gpt-4\.1(?:$|-)", flags=re.IGNORECASE), 32_768),
     (re.compile(r"^gpt-4(?:$|-)", flags=re.IGNORECASE), 8_192),
 ]
+_OPENAI_TIMEOUT_SECONDS = 300.0
+_TRIAGE_BATCH_SIZE = 1
 
 _REGULATORY_REF_RE = re.compile(
     r"\b(?:OSFI|BSIF|Bâle|Basel|TLAC|LCR|NSFR|CET1|Tier\s*1|Tier\s*2|Pilier\s*[123]|IFRS|IAS|NIIF|BISM|VaR)\b",
@@ -450,7 +454,9 @@ def _infer_table_footnote_bboxes(
     """
     footnote_bboxes_by_page: dict[int, list[list[float]]] = {}
     for page, boxes in table_bboxes_by_page.items():
-        ordered = sorted((list(box) for box in boxes if len(box) == 4), key=lambda bbox: (float(bbox[1]), float(bbox[0])))
+        ordered = sorted(
+            (list(box) for box in boxes if len(box) == 4), key=lambda bbox: (float(bbox[1]), float(bbox[0]))
+        )
         page_regions: list[list[float]] = []
         for idx, bbox in enumerate(ordered):
             top = max(0.0, min(1.0, float(bbox[3])))
@@ -579,11 +585,7 @@ def _section_window_for_page(
     """
     top = 0.0
     bottom = 1.0
-    if (
-        page_number == section.start_page
-        and section.anchor_page == section.start_page
-        and section.anchor_bbox_norm
-    ):
+    if page_number == section.start_page and section.anchor_page == section.start_page and section.anchor_bbox_norm:
         top = max(top, float(section.anchor_bbox_norm[3]))
     if (
         next_section is not None
@@ -647,9 +649,7 @@ def _extract_docling_page_blocks(
 
     opts = PdfPipelineOptions()
     opts.do_ocr = False
-    converter = DocumentConverter(
-        format_options={InputFormat.PDF: PdfFormatOption(pipeline_options=opts)}
-    )
+    converter = DocumentConverter(format_options={InputFormat.PDF: PdfFormatOption(pipeline_options=opts)})
     start_page = min(page_numbers)
     end_page = max(page_numbers)
     result = converter.convert(str(pdf_path), page_range=(start_page, end_page))
@@ -679,7 +679,9 @@ def _extract_docling_page_blocks(
             if not text:
                 continue
             label = str(getattr(item, "label", "") or "").lower()
-            item_provs = [prov for prov in list(getattr(item, "prov", []) or []) if int(getattr(prov, "page_no", 0) or 0) == page]
+            item_provs = [
+                prov for prov in list(getattr(item, "prov", []) or []) if int(getattr(prov, "page_no", 0) or 0) == page
+            ]
             if not item_provs:
                 continue
             bbox_norm = _docling_bbox_to_norm(docling_doc, item_provs[0])
@@ -742,11 +744,7 @@ def _classify_block_type(
     digits = re.findall(r"\d", text)
     numeric_tokens = re.findall(r"\b\S*\d\S*\b", text)
     rating_tokens = re.findall(r"\b(?:[A-Z]{1,4}[+-]?|[A-Z][a-z]\d|[A-Z]{1,3}\s*\(hyb\)|FPUNV)\b", text)
-    short_word_ratio = (
-        sum(1 for word in words if len(word) <= 4) / max(1, len(words))
-        if words
-        else 0.0
-    )
+    short_word_ratio = sum(1 for word in words if len(word) <= 4) / max(1, len(words)) if words else 0.0
     digit_ratio = len(digits) / max(1, len(text))
     upper_ratio = sum(1 for ch in text if ch.isupper()) / max(1, sum(1 for ch in text if ch.isalpha()))
     repeated = repeated_text_counts.get(norm, 0)
@@ -767,8 +765,7 @@ def _classify_block_type(
         return "narrative"
     if (
         _looks_like_table_or_financial_grid(text)
-        or
-        (digit_ratio >= 0.12 and len(words) <= 16)
+        or (digit_ratio >= 0.12 and len(words) <= 16)
         or (len(numeric_tokens) >= 10 and len(words) <= 20)
         or len(rating_tokens) >= 6
         or (len(numeric_tokens) >= 4 and short_word_ratio >= 0.45)
@@ -904,7 +901,9 @@ def _build_section_audit(
             block_type = _classify_block_type(section_block, repeated_text_counts, page_tables, page_footnotes)
             section_block.block_type = block_type
             section_block.included = in_window and block_type == "narrative"
-            section_block.exclusion_reason = "" if section_block.included else _exclusion_reason_for_block(block_type, in_window)
+            section_block.exclusion_reason = (
+                "" if section_block.included else _exclusion_reason_for_block(block_type, in_window)
+            )
             if section_block.included:
                 included_blocks.append(section_block)
             else:
@@ -956,7 +955,67 @@ def _markdown_blocks_for_section(section: SectionAudit) -> list[PDFBlock]:
     return sorted(selected, key=lambda block: (block.page, block.line_number, block.y0))
 
 
-def _build_text_extraction_markdown(section_audits: list[SectionAudit]) -> str:
+def _get_page_number_offset_for_period(
+    bank_code: str,
+    *,
+    year: int,
+    quarter: str,
+) -> int:
+    """Retourne l'offset page imprimée -> page PDF physique pour une période."""
+    try:
+        cfg = load_config("configs/bank_profiles.yaml")
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("Impossible de charger les offsets de pages (%s); offset=0", exc)
+        return 0
+
+    bank_data = (cfg.get("banks") or {}).get(str(bank_code or "").lower(), {})
+    if not isinstance(bank_data, dict):
+        return 0
+
+    quarter_key = normalize_quarter(quarter)
+    period_offsets = bank_data.get("page_number_offsets", {})
+    if isinstance(period_offsets, dict):
+        for key in (f"{quarter_key}_{year}", quarter_key):
+            if key in period_offsets:
+                try:
+                    return int(period_offsets.get(key) or 0)
+                except (TypeError, ValueError):
+                    return 0
+
+    try:
+        return int(bank_data.get("page_number_offset") or 0)
+    except (TypeError, ValueError):
+        return 0
+
+
+def _format_page_marker(physical_page: int, *, page_number_offset: int = 0) -> str:
+    """Formate le marqueur markdown: page imprimée visible, page PDF conservée."""
+    page = int(physical_page)
+    if page_number_offset <= 0:
+        return f"[p.{page}]"
+    printed_page = max(1, page - int(page_number_offset))
+    if printed_page == page:
+        return f"[p.{page}]"
+    return f"[p.{printed_page} | pdf.{page}]"
+
+
+def _rewrite_page_markers_for_display(md_content: str, *, page_number_offset: int) -> str:
+    """Réécrit les marqueurs existants pour afficher la page imprimée."""
+    if page_number_offset <= 0:
+        return md_content
+
+    def _replace_marker(match: re.Match[str]) -> str:
+        physical_page = int(match.group(2) or match.group(1))
+        return _format_page_marker(physical_page, page_number_offset=page_number_offset)
+
+    return _PAGE_MARKER_RE.sub(_replace_marker, md_content)
+
+
+def _build_text_extraction_markdown(
+    section_audits: list[SectionAudit],
+    *,
+    page_number_offset: int = 0,
+) -> str:
     """Convertit une liste d'audits de sections en markdown source de vérité.
 
     Chaque section devient un bloc ``## Titre``. Les sous-titres détectés deviennent
@@ -965,11 +1024,13 @@ def _build_text_extraction_markdown(section_audits: list[SectionAudit]) -> str:
     sont supprimés. Chaque bloc (titre, sous-titre, paragraphe) est précédé d'un
     marqueur ``[p.N]`` indiquant sa page d'origine ; ces marqueurs sont strippés
     avant tout appel GPT (cf ``_extract_section_text_from_markdown``) et servent
-    à reconstruire l'index page→texte lors de la réutilisation du .md.
+    à reconstruire l'index page→texte lors de la réutilisation du .md. Quand un
+    offset est connu, le marqueur affiche la page imprimée et conserve la page
+    physique sous la forme ``[p.58 | pdf.60]``.
     """
     lines: list[str] = []
     for section in section_audits:
-        lines.append(f"[p.{section.start_page}]")
+        lines.append(_format_page_marker(section.start_page, page_number_offset=page_number_offset))
         lines.append(f"## {section.section_title}")
         lines.append("")
         seen_heading_norms: set[str] = set()
@@ -988,11 +1049,11 @@ def _build_text_extraction_markdown(section_audits: list[SectionAudit]) -> str:
                 continue
             if pending_heading is not None:
                 heading_text, heading_page = pending_heading
-                lines.append(f"[p.{heading_page}]")
+                lines.append(_format_page_marker(heading_page, page_number_offset=page_number_offset))
                 lines.append(f"### {heading_text}")
                 lines.append("")
                 pending_heading = None
-            lines.append(f"[p.{int(block.page)}]")
+            lines.append(_format_page_marker(int(block.page), page_number_offset=page_number_offset))
             lines.append(text)
             lines.append("")
     return "\n".join(lines).strip() + "\n"
@@ -1061,7 +1122,7 @@ def _build_openai_client():
     api_key = get_openai_api_key()
     if not api_key:
         raise RuntimeError("OPENAI_API_KEY absent: le pipeline texte GPT-first ne peut pas s'exécuter.")
-    return OpenAI(api_key=api_key)
+    return OpenAI(api_key=api_key, timeout=_OPENAI_TIMEOUT_SECONDS, max_retries=1)
 
 
 def _strip_markdown_fences(text: str) -> str:
@@ -1274,22 +1335,18 @@ def _call_structured_completion(
 
     refusal = getattr(message, "refusal", None)
     if refusal:
-        raise RuntimeError(
-            f"OpenAI structured completion refused by model: {refusal}"
-        )
+        raise RuntimeError(f"OpenAI structured completion refused by model: {refusal}")
 
     finish_reason = getattr(choice, "finish_reason", None)
     if finish_reason == "length":
         raise RuntimeError(
-            "OpenAI structured completion truncated "
-            f"(finish_reason=length, max_completion_tokens={max_tokens})"
+            f"OpenAI structured completion truncated (finish_reason=length, max_completion_tokens={max_tokens})"
         )
 
     parsed = getattr(message, "parsed", None)
     if parsed is None:
         raise RuntimeError(
-            "OpenAI structured completion returned no parsed payload "
-            f"(finish_reason={finish_reason or 'unknown'})"
+            f"OpenAI structured completion returned no parsed payload (finish_reason={finish_reason or 'unknown'})"
         )
 
     return parsed
@@ -1331,8 +1388,7 @@ def _call_structured_completion_with_correction(
             if attempt >= max_retries:
                 raise
             logger.warning(
-                "Triage validation failed on attempt %d/%d, retrying with correction. "
-                "Error: %s",
+                "Triage validation failed on attempt %d/%d, retrying with correction. Error: %s",
                 attempt + 1,
                 max_retries + 1,
                 exc,
@@ -1367,14 +1423,27 @@ def _call_structured_completion_with_correction(
     raise RuntimeError("unreachable: retry loop exited without return or raise")
 
 
-def _resolve_sections(pdf_path: Path, bank_code: str) -> dict[str, ResolvedSection]:
+def _resolve_sections(
+    pdf_path: Path,
+    bank_code: str,
+    *,
+    quarter: str | None = None,
+    year: int | None = None,
+) -> dict[str, ResolvedSection]:
     """Localise et normalise les sections textuelles cibles d'un PDF.
 
     Le resultat est deja filtre selon les sections autorisees pour la banque,
     ce qui stabilise le flux de comparaison inter-trimestrielle.
     """
-    mapping = locate_sections_in_pdf(str(pdf_path), bank_code.lower())
+    mapping = locate_sections_in_pdf(
+        str(pdf_path),
+        bank_code=bank_code.lower(),
+        quarter=quarter,
+        year=year or 2025,
+    )
     allowed_sections = _allowed_target_sections(bank_code)
+    if quarter is not None and normalize_quarter(quarter) == "t4":
+        allowed_sections &= _T4_TEXT_TARGET_SECTIONS
     sections: dict[str, ResolvedSection] = {}
     for item in getattr(mapping, "sections", []) or []:
         canonical = canonicalize_section(getattr(item, "section_type", ""))
@@ -1395,8 +1464,6 @@ def _resolve_sections(pdf_path: Path, bank_code: str) -> dict[str, ResolvedSecti
             anchor_bbox_norm=list(getattr(item, "anchor_bbox_norm", []) or []) or None,
         )
     return sections
-
-
 
 
 def _extract_audits_for_pdf(
@@ -1430,18 +1497,26 @@ def _extract_audits_for_pdf(
     return audits
 
 
-_PAGE_MARKER_RE = re.compile(r"^\[p\.(\d+)\]\s*$")
+_PAGE_MARKER_RE = re.compile(
+    r"^\[p\.(\d+)(?:\s*\|\s*pdf\.(\d+))?\]\s*$",
+    flags=re.MULTILINE,
+)
 
 
 def _strip_page_markers(text: str) -> str:
-    """Supprime les marqueurs ``[p.N]`` (une ligne entière) d'un bloc de texte.
+    """Supprime les marqueurs ``[p.N]`` / ``[p.N | pdf.M]`` d'un bloc de texte.
 
     Utilisé exclusivement avant tout appel GPT : les marqueurs servent à
     l'audit humain et à la reconstruction de l'index page→texte, mais ne
     doivent jamais entrer dans les prompts pour éviter de biaiser la
     comparaison sémantique.
     """
-    return re.sub(r"^\[p\.\d+\]\s*\n?", "", text, flags=re.MULTILINE)
+    return re.sub(
+        r"^\[p\.\d+(?:\s*\|\s*pdf\.\d+)?\]\s*\n?",
+        "",
+        text,
+        flags=re.MULTILINE,
+    )
 
 
 def _extract_section_text_from_markdown(md_content: str, section_key: str) -> str:
@@ -1482,7 +1557,7 @@ def _parse_page_index_from_markdown(
     - ``index[section_key] = [(page, text), …]`` — même forme qu'attendue par
       ``_find_page_for_fragment``. Titres/sous-titres ``##``/``###`` exclus,
       comme dans la version basée sur ``SectionAudit``.
-    - ``section_start_pages[section_key] = N`` — le ``[p.N]`` qui précède
+    - ``section_start_pages[section_key] = N`` — la page PDF physique du marqueur qui précède
       immédiatement ``## Title``. Reproduit fidèlement ``ResolvedSection.start_page``
       même quand la page du header diffère de la première page narrative.
     """
@@ -1500,7 +1575,7 @@ def _parse_page_index_from_markdown(
             continue
         page_match = _PAGE_MARKER_RE.match(line)
         if page_match:
-            current_page = int(page_match.group(1))
+            current_page = int(page_match.group(2) or page_match.group(1))
             continue
         if line.startswith("## "):
             title = line[3:].strip()
@@ -1583,9 +1658,7 @@ def _pair_subsections(
     Retourne une liste de ``(heading_t1, body_t1, heading_t2, body_t2)``.
     ``None`` pour un heading signifie qu'il n'a pas de contrepartie dans l'autre trimestre.
     """
-    norm_to_t2: dict[str, tuple[str, str]] = {
-        _normalize_heading(h): (h, body) for h, body in subs_t2
-    }
+    norm_to_t2: dict[str, tuple[str, str]] = {_normalize_heading(h): (h, body) for h, body in subs_t2}
     matched_t2_norms: set[str] = set()
     pairs: list[tuple[str | None, str, str | None, str]] = []
     for h1, body1 in subs_t1:
@@ -1866,9 +1939,7 @@ def _compare_section_texts(
     # reconstruction de l'index page→texte. Ils DOIVENT avoir été strippés
     # avant d'arriver ici par ``_extract_section_text_from_markdown``.
     if "[p." in text_t1 or "[p." in text_t2:
-        raise TextAnalysisQualityError(
-            "Fuite de marqueurs de page vers le prompt GPT — strip manquant ?"
-        )
+        raise TextAnalysisQualityError("Fuite de marqueurs de page vers le prompt GPT — strip manquant ?")
     if not text_t1.strip() and not text_t2.strip():
         return []
 
@@ -2153,6 +2224,20 @@ def _triage_section_changes(
     """
     if not changes:
         return []
+
+    if len(changes) > _TRIAGE_BATCH_SIZE:
+        enriched_batches: list[dict[str, Any]] = []
+        for start in range(0, len(changes), _TRIAGE_BATCH_SIZE):
+            enriched_batches.extend(
+                _triage_section_changes(
+                    client=client,
+                    model=model,
+                    section_key=section_key,
+                    changes=changes[start : start + _TRIAGE_BATCH_SIZE],
+                )
+            )
+        return enriched_batches
+
     triage_inputs = []
     for idx, change in enumerate(changes, start=1):
         triage_inputs.append(
@@ -2222,6 +2307,19 @@ def _triage_section_changes(
         "   IMPORTANT : ces changements restent dans le batch de sortie. Tu les "
         "classes comme non pertinents, mais tu ne les supprimes jamais : "
         "la décision finale appartient à l'analyste.\n\n"
+        "2b. DEPLACEMENT DE TEXTE — nuance obligatoire :\n"
+        "   - Classer en 'deplacement_texte' UNIQUEMENT si le passage conserve "
+        "le même sens, le même niveau de détail et un contexte équivalent.\n"
+        "   - Si le déplacement change la section, le titre, la visibilité, "
+        "le rattachement à un thème AMF, la posture de risque ou le niveau de "
+        "mise en évidence, NE PAS l'exclure comme simple déplacement. Classer "
+        "plutôt avec 'STRUCTURE_RAPPORT' et les thèmes métier applicables "
+        "(ex. RISQUE_DONNEES, RISQUE_TIERS_CLOUD, EXIGENCES_REGLEMENTAIRES, "
+        "FACTEUR_RISQUE_CHANGEMENT).\n"
+        "   - Un paragraphe déplacé d'une rubrique générale vers une rubrique "
+        "dédiée aux risques, à la réglementation, aux données, aux tiers, à "
+        "l'infonuagique ou à la cybersécurité peut être une nouvelle idée si "
+        "ce nouveau contexte change la lecture analyste.\n\n"
         "3. INCLUSION EXPLICITE — les MONTANTS RÉGLEMENTAIRES (seuils "
         "prudentiels, planchers Bâle, exigences pilier 2, lignes directrices "
         "BSIF chiffrées) sont EN scope. Ajouter le marqueur 'MONTANT_REGLEMENTAIRE' "
@@ -2276,7 +2374,13 @@ def _triage_section_changes(
         "émergent introduit ou retiré.\n"
         "   - MODERE : modification de posture, croisement multi-thèmes notable.\n"
         "   - MINEUR : changement modeste mais substantif.\n\n"
-        "6b. impact_it est un axe distinct de impact_level :\n"
+        "6b. impact_it est un axe distinct de impact_level et doit rester "
+        "INDETERMINE par défaut :\n"
+        "   - Règle de prudence : ne JAMAIS inférer un impact IT indirectement. "
+        "Évalue impact_it seulement si le changement contient un signal explicite "
+        "lié aux systèmes, à la technologie, aux données, aux fournisseurs, au cloud, "
+        "à la cybersécurité, à l'IA, aux modèles, à l'automatisation, à l'infrastructure, "
+        "à une migration ou à des contrôles technologiques.\n"
         "   - ELEVE : migration ou changement d'architecture, remplacement ou "
         "sortie d'un fournisseur, contrôles technologiques majeurs, localisation "
         "ou déplacement de données, continuité ou résilience structurante.\n"
@@ -2284,10 +2388,12 @@ def _triage_section_changes(
         "diligence ou exigences contractuelles nécessitant un effort IT.\n"
         "   - FAIBLE : clarification ou ajustement limité sans transformation "
         "technologique apparente, mais avec un effet IT identifiable.\n"
-        "   - INDETERMINE : information insuffisante. Ne déduis jamais qu'un "
-        "changement IT est réalisé si le rapport décrit seulement une intention. "
-        "Utilise aussi INDETERMINE lorsqu'aucun lien IT crédible n'est démontré; "
-        "FAIBLE ne signifie pas absence d'impact IT. "
+        "   - INDETERMINE : information insuffisante ou absence de signal IT explicite. "
+        "Utilise INDETERMINE pour les changements de capital, ratio, crédit, liquidité, "
+        "réglementation ou gouvernance générale qui ne mentionnent pas clairement "
+        "une dimension technologique. Ne déduis jamais qu'un changement IT est réalisé "
+        "si le rapport décrit seulement une intention. FAIBLE ne signifie pas absence "
+        "d'impact IT : si le lien IT n'est pas explicite, choisis INDETERMINE. "
         "Renseigne impact_it_justification avec exactement trois rubriques "
         "séparées par \\n\\n : Éléments observés, Conséquence probable, Limite "
         "de l'analyse. Laisse ce champ vide si impact_it=INDETERMINE.\n\n"
@@ -2315,8 +2421,8 @@ def _triage_section_changes(
         "(citer la raison d'exclusion en langage métier, pas seulement le code).\n\n"
         "9. CHANGE_SEGMENTS — détection sémantique fine (pour highlight UI) :\n"
         "   Si is_relevant=true, identifie les SEGMENTS précis qui changent. "
-        "Format : liste d'objets `{\"kind\":\"added|removed|modified\", "
-        "\"text_t1\":\"...\", \"text_t2\":\"...\"}`. Règles :\n"
+        'Format : liste d\'objets `{"kind":"added|removed|modified", '
+        '"text_t1":"...", "text_t2":"..."}`. Règles :\n'
         "   - kind='added'    → text_t1=\"\", text_t2=fragment AJOUTÉ verbatim de T2 (présent dans T2, absent de T1).\n"
         "   - kind='removed'  → text_t1=fragment SUPPRIMÉ verbatim de T1 (présent dans T1, absent de T2), text_t2=\"\".\n"
         "   - kind='modified' → text_t1 et text_t2 sont les fragments correspondants modifiés (ex: '4,5 %' → '5,0 %').\n"
@@ -2399,9 +2505,7 @@ def _triage_section_changes(
     except RuntimeError:
         raise
     except Exception as exc:
-        raise RuntimeError(
-            f"Section triage failed for {section_key}: {exc}"
-        ) from exc
+        raise RuntimeError(f"Section triage failed for {section_key}: {exc}") from exc
 
     triage_map: dict[int, dict[str, Any]] = {}
     relevant_count = 0
@@ -2417,8 +2521,7 @@ def _triage_section_changes(
         if triage_obj.nouvelle_idee:
             nouvelle_idee_count += 1
         logger.info(
-            "triage validated section=%s change_index=%d is_relevant=%s "
-            "themes=%s impact=%s nouvelle_idee=%s action=%s",
+            "triage validated section=%s change_index=%d is_relevant=%s themes=%s impact=%s nouvelle_idee=%s action=%s",
             section_key,
             triage_obj.change_index,
             triage_obj.is_relevant,
@@ -2454,11 +2557,7 @@ def _build_global_summary(section_comparisons: list[dict[str, Any]]) -> dict[str
     majeurs. Utilisé pour les deux champs ``global_summary`` et ``all_changes_summary``
     du payload final.
     """
-    all_changes = [
-        block
-        for section in section_comparisons
-        for block in (section.get("block_comparisons") or [])
-    ]
+    all_changes = [block for section in section_comparisons for block in (section.get("block_comparisons") or [])]
     by_impact: dict[str, int] = {}
     by_category: dict[str, int] = {}
     by_action: dict[str, int] = {}
@@ -2486,10 +2585,7 @@ def _build_global_summary(section_comparisons: list[dict[str, Any]]) -> dict[str
     if not all_changes:
         overview = "Aucun changement textuel détecté."
     elif relevant_count == len(all_changes):
-        overview = (
-            f"{len(all_changes)} changement(s) textuel(s) substantiel(s) "
-            "retenu(s) pour revue experte."
-        )
+        overview = f"{len(all_changes)} changement(s) textuel(s) substantiel(s) retenu(s) pour revue experte."
     else:
         overview = (
             f"{len(all_changes)} changement(s) textuel(s) détecté(s), "
@@ -2525,6 +2621,7 @@ def _prepare_period_extraction(
     quarter: str,
     project_root: Path,
     allowed_section_keys: set[str] | None,
+    force_extraction: bool = False,
 ) -> tuple[str, dict[str, list[tuple[int, str]]], dict[str, tuple[int | None, int | None]], set[str]]:
     """Retourne (md, page_idx_by_key, section_range_by_key, available_keys).
 
@@ -2532,19 +2629,29 @@ def _prepare_period_extraction(
     Sinon, Docling s'exécute, construit le .md et l'écrit au chemin canonique
     ``outputs/text_extractions/{bank}/{year}/{q}/text_extraction.md``.
 
-    Pour forcer une ré-extraction, supprimer ce fichier.
+    Avec ``force_extraction=True``, le .md existant est ignoré et réécrit.
     """
     md_path = get_canonical_text_extraction_md_path(project_root, bank_code, year, quarter)
+    page_number_offset = _get_page_number_offset_for_period(
+        bank_code,
+        year=year,
+        quarter=quarter,
+    )
 
-    if md_path.exists():
+    if md_path.exists() and not force_extraction:
         try:
-            md = md_path.read_text(encoding="utf-8")
+            original_md = md_path.read_text(encoding="utf-8")
+            md = _rewrite_page_markers_for_display(
+                original_md,
+                page_number_offset=page_number_offset,
+            )
+            if md != original_md:
+                md_path.write_text(md, encoding="utf-8")
+                logger.info("Migration des marqueurs de pages du .md canonique: %s", md_path)
             page_idx_by_key, section_start_pages = _parse_page_index_from_markdown(md)
             if any(page_idx_by_key.values()):
                 section_range_by_key = {
-                    key: _section_page_range_from_index(
-                        idx, start_page_hint=section_start_pages.get(key)
-                    )
+                    key: _section_page_range_from_index(idx, start_page_hint=section_start_pages.get(key))
                     for key, idx in page_idx_by_key.items()
                 }
                 available_keys = set(page_idx_by_key.keys())
@@ -2556,29 +2663,159 @@ def _prepare_period_extraction(
                 return md, page_idx_by_key, section_range_by_key, available_keys
             logger.warning(".md canonique vide — ré-extraction: %s", md_path)
         except Exception as exc:  # noqa: BLE001
-            logger.warning(
-                ".md canonique illisible (%s) — ré-extraction: %s", exc, md_path
-            )
+            logger.warning(".md canonique illisible (%s) — ré-extraction: %s", exc, md_path)
+    elif md_path.exists():
+        logger.info("Ré-extraction forcée, .md canonique ignoré: %s", md_path)
 
-    sections = _resolve_sections(pdf_path, bank_code)
+    sections = _resolve_sections(
+        pdf_path,
+        bank_code,
+        quarter=quarter,
+        year=year,
+    )
     filtered_sections = (
         {k: v for k, v in sections.items() if k in allowed_section_keys}
         if allowed_section_keys is not None
         else sections
     )
     audits = _extract_audits_for_pdf(pdf_path=pdf_path, sections=filtered_sections)
-    md = _build_text_extraction_markdown(audits)
+    md = _build_text_extraction_markdown(
+        audits,
+        page_number_offset=page_number_offset,
+    )
 
     md_path.parent.mkdir(parents=True, exist_ok=True)
     md_path.write_text(md, encoding="utf-8")
     logger.info("Écriture du .md canonique: %s", md_path)
 
     page_idx_by_key = {a.section_key: _build_block_page_index(a) for a in audits}
-    section_range_by_key = {
-        a.section_key: (a.start_page, a.end_page) for a in audits
-    }
+    section_range_by_key = {a.section_key: (a.start_page, a.end_page) for a in audits}
     available_keys = {a.section_key for a in audits}
     return md, page_idx_by_key, section_range_by_key, available_keys
+
+
+def _resolve_text_project_root(out_root: Path) -> Path:
+    """Déduit la racine projet à partir du répertoire de sortie texte."""
+    if out_root.name == "resultats" and out_root.parent.name == "outputs":
+        return out_root.parent.parent
+    if out_root.name == "outputs":
+        return out_root.parent
+    return out_root.parent
+
+
+def _effective_text_allowed_sections(
+    bank_code: str,
+    quarter_current: str,
+    allowed_section_keys: set[str] | None,
+) -> set[str] | None:
+    effective_allowed = allowed_section_keys
+    if effective_allowed is None:
+        effective_allowed = _allowed_target_sections(bank_code) or None
+    if quarter_current == "t4":
+        effective_allowed = set(effective_allowed or set(_SECTION_LABELS)) & _T4_TEXT_TARGET_SECTIONS
+    return effective_allowed
+
+
+def run_text_extraction_pipeline(
+    *,
+    bank_code: str,
+    year_current: int,
+    quarter_current: str,
+    pdf_previous: Path,
+    pdf_current: Path,
+    out_root: Path,
+    allowed_section_keys: set[str] | None = None,
+    project_root: Path | None = None,
+    force_extraction: bool = False,
+) -> dict[str, Any]:
+    """Exécute seulement l'extraction texte et écrit les artefacts markdown."""
+    quarter_current = normalize_quarter(quarter_current)
+    year_previous, quarter_previous = resolve_previous_quarter(year_current, quarter_current)
+    bank_code = bank_code.lower()
+
+    if project_root is None:
+        project_root = _resolve_text_project_root(out_root)
+
+    effective_allowed = _effective_text_allowed_sections(
+        bank_code,
+        quarter_current,
+        allowed_section_keys,
+    )
+
+    md_previous, _page_idx_prev, _range_prev, keys_prev = _prepare_period_extraction(
+        pdf_path=pdf_previous,
+        bank_code=bank_code,
+        year=year_previous,
+        quarter=quarter_previous,
+        project_root=project_root,
+        allowed_section_keys=effective_allowed,
+        force_extraction=force_extraction,
+    )
+    md_current, _page_idx_curr, _range_curr, keys_curr = _prepare_period_extraction(
+        pdf_path=pdf_current,
+        bank_code=bank_code,
+        year=year_current,
+        quarter=quarter_current,
+        project_root=project_root,
+        allowed_section_keys=effective_allowed,
+        force_extraction=force_extraction,
+    )
+
+    if not (keys_prev | keys_curr):
+        raise TextAnalysisQualityError("Aucune section texte ciblée localisée dans les rapports.")
+
+    out_path = get_text_comparison_path(
+        out_root=out_root,
+        bank_code=bank_code,
+        year_t2=year_current,
+        quarter_t2=quarter_current,
+        year_t1=year_previous,
+        quarter_t1=quarter_previous,
+    )
+    out_dir = out_path.parent
+    previous_artifact = get_text_extraction_markdown_path(
+        out_dir,
+        f"{year_previous}_{quarter_previous}",
+    )
+    current_artifact = get_text_extraction_markdown_path(
+        out_dir,
+        f"{year_current}_{quarter_current}",
+    )
+    write_text_extraction_markdown(md_previous, previous_artifact)
+    write_text_extraction_markdown(md_current, current_artifact)
+
+    return {
+        "schema_version": UNIFIED_TEXT_SCHEMA_VERSION,
+        "artifact_type": "text_extraction",
+        "pipeline": "gpt4o_markdown_source_of_truth",
+        "bank_code": bank_code,
+        "year_previous": year_previous,
+        "quarter_previous": f"{year_previous}_{quarter_previous}",
+        "year_current": year_current,
+        "quarter_current": f"{year_current}_{quarter_current}",
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "force_extraction": force_extraction,
+        "sections_previous": sorted(keys_prev),
+        "sections_current": sorted(keys_curr),
+        "extraction_artifact_t1": str(previous_artifact),
+        "extraction_artifact_t2": str(current_artifact),
+        "canonical_extraction_t1": str(
+            get_canonical_text_extraction_md_path(
+                project_root,
+                bank_code,
+                year_previous,
+                quarter_previous,
+            )
+        ),
+        "canonical_extraction_t2": str(
+            get_canonical_text_extraction_md_path(
+                project_root,
+                bank_code,
+                year_current,
+                quarter_current,
+            )
+        ),
+    }
 
 
 def run_text_analysis_pipeline(
@@ -2592,6 +2829,7 @@ def run_text_analysis_pipeline(
     model: str = "gpt-4o",
     allowed_section_keys: set[str] | None = None,
     project_root: Path | None = None,
+    force_extraction: bool = False,
 ) -> tuple[dict[str, Any], Path]:
     """Exécute le pipeline texte complet avec le markdown comme source de vérité.
 
@@ -2604,7 +2842,7 @@ def run_text_analysis_pipeline(
     Notes opérationnelles :
 
     * Le .md canonique vit dans ``outputs/text_extractions/{bank}/{year}/{q}/text_extraction.md`` et sert d'artefact d'audit ET d'entrée réutilisable pour les runs suivants.
-    * Supprimer ce .md force une ré-extraction Docling au prochain run.
+    * ``force_extraction=True`` ignore ce cache et force une ré-extraction Docling.
     * Les marqueurs ``[p.N]`` présents dans le .md sont strippés avant tout appel GPT (gatekeeper unique : ``_extract_section_text_from_markdown``).
     * Les appels GPT du flux texte n'envoient pas de limite de complétion explicite par défaut, afin de privilégier l'arrêt naturel du modèle.
     """
@@ -2613,20 +2851,13 @@ def run_text_analysis_pipeline(
     bank_code = bank_code.lower()
 
     if project_root is None:
-        # Layouts supportés :
-        #   <project>/outputs/resultats  → project = parent.parent  (standard)
-        #   <project>/outputs            → project = parent         (tests)
-        #   autre                        → project = parent         (sûr par défaut)
-        if out_root.name == "resultats" and out_root.parent.name == "outputs":
-            project_root = out_root.parent.parent
-        elif out_root.name == "outputs":
-            project_root = out_root.parent
-        else:
-            project_root = out_root.parent
+        project_root = _resolve_text_project_root(out_root)
 
-    effective_allowed: set[str] | None = allowed_section_keys
-    if effective_allowed is None:
-        effective_allowed = _allowed_target_sections(bank_code) or None
+    effective_allowed = _effective_text_allowed_sections(
+        bank_code,
+        quarter_current,
+        allowed_section_keys,
+    )
 
     md_previous, page_idx_prev, range_prev, keys_prev = _prepare_period_extraction(
         pdf_path=pdf_previous,
@@ -2635,6 +2866,7 @@ def run_text_analysis_pipeline(
         quarter=quarter_previous,
         project_root=project_root,
         allowed_section_keys=effective_allowed,
+        force_extraction=force_extraction,
     )
     md_current, page_idx_curr, range_curr, keys_curr = _prepare_period_extraction(
         pdf_path=pdf_current,
@@ -2643,6 +2875,7 @@ def run_text_analysis_pipeline(
         quarter=quarter_current,
         project_root=project_root,
         allowed_section_keys=effective_allowed,
+        force_extraction=force_extraction,
     )
 
     section_keys = sorted(keys_prev | keys_curr)
@@ -2654,9 +2887,7 @@ def run_text_analysis_pipeline(
         text_t1 = _extract_section_text_from_markdown(md_previous, section_key)
         text_t2 = _extract_section_text_from_markdown(md_current, section_key)
         if not text_t1.strip() and not text_t2.strip():
-            raise TextAnalysisQualityError(
-                f"Section vide dans les deux rapports: {section_key}"
-            )
+            raise TextAnalysisQualityError(f"Section vide dans les deux rapports: {section_key}")
 
     # GPT comparison on .md sections
     client = _build_openai_client()

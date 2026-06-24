@@ -8,6 +8,7 @@ from vigilance.extraction.section_locator import (
     SECTION_PATTERNS,
     LocatedSection,
     SectionLocator,
+    VisualTextElement,
 )
 
 
@@ -111,3 +112,87 @@ def test_risk_subsection_fallback_is_accent_insensitive() -> None:
 
     assert section is not None
     assert section.section_type == "gestion_risques"
+
+
+def _visual_title(text: str, page: int) -> VisualTextElement:
+    return VisualTextElement(
+        text=text,
+        page=page,
+        x0=40.0,
+        y0=50.0,
+        x1=240.0,
+        y1=70.0,
+        font_size=14.0,
+        is_bold=True,
+        line_number=1,
+        page_width=600.0,
+        page_height=800.0,
+    )
+
+
+def test_anchor_resolution_matches_bmo_titles_without_spaces() -> None:
+    locator = SectionLocator(bank_code="bmo", quarter="t4", year=2025)
+    sections = [
+        LocatedSection(
+            section_type="capital_management",
+            title_found="Gestion globale du capital",
+            start_page=60,
+            end_page=66,
+            confidence=0.95,
+            detection_method="scan_exact",
+        ),
+        LocatedSection(
+            section_type="risk_management",
+            title_found="Gestion globale des risques",
+            start_page=69,
+            end_page=109,
+            confidence=0.95,
+            detection_method="scan_exact",
+        ),
+    ]
+    visual_elements = {
+        60: [_visual_title("Gestionglobaleducapital", 60)],
+        69: [_visual_title("Gestionglobaledesrisques", 69)],
+    }
+
+    resolved = locator._resolve_section_anchors(sections, visual_elements)
+
+    assert [section.anchor_found for section in resolved] == [True, True]
+    assert [section.anchor_text for section in resolved] == [
+        "Gestionglobaleducapital",
+        "Gestionglobaledesrisques",
+    ]
+
+
+def test_anchor_resolution_matches_bnc_titles_with_doubled_characters() -> None:
+    locator = SectionLocator(bank_code="bnc", quarter="t4", year=2025)
+    sections = [
+        LocatedSection(
+            section_type="capital_management",
+            title_found="Gestion du capital",
+            start_page=62,
+            end_page=71,
+            confidence=0.95,
+            detection_method="scan_exact",
+        ),
+        LocatedSection(
+            section_type="risk_management",
+            title_found="Gestion des risques",
+            start_page=72,
+            end_page=118,
+            confidence=0.95,
+            detection_method="scan_exact",
+        ),
+    ]
+    visual_elements = {
+        62: [_visual_title("GGeessttiioonn  dduu  ccaappiittaall", 62)],
+        72: [_visual_title("GGeessttiioonn  ddeess  rriissqquueess", 72)],
+    }
+
+    resolved = locator._resolve_section_anchors(sections, visual_elements)
+
+    assert [section.anchor_found for section in resolved] == [True, True]
+    assert [section.anchor_text for section in resolved] == [
+        "GGeessttiioonn  dduu  ccaappiittaall",
+        "GGeessttiioonn  ddeess  rriissqquueess",
+    ]

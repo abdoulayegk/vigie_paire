@@ -22,6 +22,7 @@ from vigilance.text_analysis_pipeline import (
     _extract_audits_for_pdf,
     _extract_section_text_from_markdown,
     _FEW_SHOT_TRIAGE_AMF,
+    _format_page_marker,
     _gpt_match_orphan_headings,
     _is_new_major_or_allowed_moderate,
     _is_non_cosmetic_change,
@@ -29,8 +30,10 @@ from vigilance.text_analysis_pipeline import (
     _max_output_tokens_for_model,
     _normalize_heading,
     _pair_subsections,
+    _parse_page_index_from_markdown,
     _parse_subsections,
     _resolve_sections,
+    _rewrite_page_markers_for_display,
     _sanitize_semantic_text,
     _section_window_for_page,
     run_text_analysis_pipeline,
@@ -145,11 +148,66 @@ def test_resolve_sections_ignores_regulatory_for_bnc(monkeypatch, tmp_path: Path
 
     monkeypatch.setattr(
         "vigilance.text_analysis_pipeline.locate_sections_in_pdf",
-        lambda pdf_path, bank_code: _FakeMapping(),
+        lambda pdf_path, bank_code=None, quarter=None, year=2025: _FakeMapping(),
     )
 
     resolved = _resolve_sections(tmp_path / "dummy.pdf", "bnc")
 
+    assert set(resolved) == {"gestion_capital", "gestion_risques"}
+
+
+def test_resolve_sections_passes_t4_context_and_filters_regulatory(
+    monkeypatch, tmp_path: Path
+) -> None:
+    captured: dict[str, object] = {}
+
+    class _FakeItem:
+        def __init__(self, section_type: str, start_page: int, end_page: int):
+            self.section_type = section_type
+            self.start_page = start_page
+            self.end_page = end_page
+            self.anchor_page = start_page
+            self.anchor_text = section_type
+            self.anchor_bbox_norm = [0.1, 0.2, 0.8, 0.25]
+
+    class _FakeMapping:
+        sections = [
+            _FakeItem("capital_management", 10, 20),
+            _FakeItem("risk_management", 21, 40),
+            _FakeItem("regulatory_updates", 41, 43),
+        ]
+
+    def fake_locate_sections_in_pdf(
+        pdf_path: str,
+        bank_code: str | None = None,
+        quarter: str | None = None,
+        year: int = 2025,
+    ) -> _FakeMapping:
+        captured.update(
+            {
+                "pdf_path": pdf_path,
+                "bank_code": bank_code,
+                "quarter": quarter,
+                "year": year,
+            }
+        )
+        return _FakeMapping()
+
+    monkeypatch.setattr(
+        "vigilance.text_analysis_pipeline.locate_sections_in_pdf",
+        fake_locate_sections_in_pdf,
+    )
+
+    resolved = _resolve_sections(
+        tmp_path / "dummy.pdf",
+        "bmo",
+        quarter="t4",
+        year=2025,
+    )
+
+    assert captured["bank_code"] == "bmo"
+    assert captured["quarter"] == "t4"
+    assert captured["year"] == 2025
     assert set(resolved) == {"gestion_capital", "gestion_risques"}
 
 
@@ -379,7 +437,7 @@ def test_pipeline_retains_non_cosmetic_changes_and_discards_cosmetic(monkeypatch
     monkeypatch.setattr("vigilance.text_analysis_pipeline._build_openai_client", lambda: object())
     monkeypatch.setattr(
         "vigilance.text_analysis_pipeline._resolve_sections",
-        lambda pdf_path, bank_code: {"gestion_risques": section},
+        lambda pdf_path, bank_code, quarter=None, year=None: {"gestion_risques": section},
     )
     monkeypatch.setattr(
         "vigilance.text_analysis_pipeline._extract_audits_for_pdf",
@@ -830,6 +888,72 @@ def test_build_text_extraction_markdown_keeps_headings_and_narrative_only() -> N
     assert "TABLEAU 5" not in markdown
 
 
+def test_build_text_extraction_markdown_displays_printed_page_and_keeps_pdf_page() -> None:
+    audit = SectionAudit(
+        section_key="gestion_capital",
+        section_title="Gestion du capital",
+        start_page=60,
+        end_page=60,
+        anchor_page=60,
+        anchor_text="Gestion du capital",
+        anchor_bbox_norm=[0.1, 0.2, 0.8, 0.25],
+        included_blocks=[
+            PDFBlock(
+                "p060_d002",
+                60,
+                [0.1, 0.33, 0.9, 0.36],
+                "La banque maintient un niveau prudent de fonds propres.",
+                2,
+                "narrative",
+                True,
+                "",
+                "paragraph",
+            ),
+        ],
+        excluded_blocks=[],
+        semantic_units=[],
+    )
+
+    markdown = _build_text_extraction_markdown([audit], page_number_offset=2)
+    page_index, section_start_pages = _parse_page_index_from_markdown(markdown)
+
+    assert markdown.startswith("[p.58 | pdf.60]\n## Gestion du capital")
+    assert "[p.58 | pdf.60]\nLa banque maintient" in markdown
+    assert page_index["gestion_capital"] == [
+        (60, "La banque maintient un niveau prudent de fonds propres.")
+    ]
+    assert section_start_pages["gestion_capital"] == 60
+
+
+def test_page_marker_without_offset_keeps_legacy_format() -> None:
+    assert _format_page_marker(62, page_number_offset=0) == "[p.62]"
+
+
+def test_extract_section_text_from_markdown_strips_printed_and_pdf_page_marker() -> None:
+    md = (
+        "[p.58 | pdf.60]\n"
+        "## Gestion du capital\n\n"
+        "[p.58 | pdf.60]\n"
+        "La banque maintient un niveau prudent de fonds propres.\n"
+    )
+
+    capital = _extract_section_text_from_markdown(md, "gestion_capital")
+
+    assert capital == "La banque maintient un niveau prudent de fonds propres."
+
+
+def test_rewrite_page_markers_for_display_migrates_legacy_markers() -> None:
+    md = "[p.60]\n## Gestion du capital\n\n[p.61]\nUn paragraphe.\n"
+
+    rewritten = _rewrite_page_markers_for_display(md, page_number_offset=2)
+    page_index, section_start_pages = _parse_page_index_from_markdown(rewritten)
+
+    assert rewritten.startswith("[p.58 | pdf.60]\n## Gestion du capital")
+    assert "[p.59 | pdf.61]\nUn paragraphe." in rewritten
+    assert section_start_pages["gestion_capital"] == 60
+    assert page_index["gestion_capital"] == [(61, "Un paragraphe.")]
+
+
 def test_build_text_extraction_markdown_drops_orphan_heading_without_body() -> None:
     audit = SectionAudit(
         section_key="gestion_capital",
@@ -894,7 +1018,7 @@ def test_run_text_analysis_pipeline_writes_md_as_source_of_truth(monkeypatch, tm
     monkeypatch.setattr("vigilance.text_analysis_pipeline._build_openai_client", lambda: object())
     monkeypatch.setattr(
         "vigilance.text_analysis_pipeline._resolve_sections",
-        lambda pdf_path, bank_code: {"gestion_risques": section},
+        lambda pdf_path, bank_code, quarter=None, year=None: {"gestion_risques": section},
     )
     monkeypatch.setattr(
         "vigilance.text_analysis_pipeline._extract_audits_for_pdf",
@@ -1818,6 +1942,52 @@ def test_triage_section_changes_propagates_runtime_error_unwrapped() -> None:
         )
 
     assert client.call_count == 1
+
+
+def test_triage_section_changes_processes_changes_one_by_one() -> None:
+    def valid_response(**_kwargs):
+        return _make_parsed_response(
+            TriageAMFBatch(
+                triages=[
+                    TriageAMFResultWithIndex(
+                        change_index=1,
+                        is_relevant=False,
+                        exclusion_reason="reformulation_mineure",
+                        nouvelle_idee_justification=_valid_justification_non(),
+                    )
+                ]
+            )
+        )
+
+    client = _FakeStructuredClient(valid_response)
+
+    changes = [
+        {
+            "diff_type": "modified",
+            "semantic_text_t1": "Ancien texte A.",
+            "semantic_text_t2": "Nouveau texte A.",
+        },
+        {
+            "diff_type": "modified",
+            "semantic_text_t1": "Ancien texte B.",
+            "semantic_text_t2": "Nouveau texte B.",
+        },
+    ]
+
+    enriched = _triage_section_changes(
+        client=client,
+        model="gpt-4o",
+        section_key="gestion_risques",
+        changes=changes,
+    )
+
+    assert len(enriched) == 2
+    assert client.call_count == 2
+    user_prompts = [
+        call["messages"][1]["content"] for call in client._completions.calls
+    ]
+    assert all('"change_index": 1' in prompt for prompt in user_prompts)
+    assert all('"change_index": 2' not in prompt for prompt in user_prompts)
 
 
 def test_triage_section_changes_requests_posture_and_it_impact() -> None:

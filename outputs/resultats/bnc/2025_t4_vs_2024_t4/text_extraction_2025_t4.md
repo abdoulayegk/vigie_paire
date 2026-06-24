@@ -1,518 +1,1853 @@
-[p.11]
-## Gestion des risques
-
-[p.11]
-### Pierre Blouin
-
-[p.11]
-Québec, Canada Président du conseil d'administration, Banque Nationale du Canada Administrateur depuis avril 2018
-
-[p.11]
-### Sarah Morgan-Silvester
-
-[p.11]
-Colombie-Britannique, Canada Administratrice de sociétés Administratrice depuis février 2025
-
-[p.11]
-### Pierre Pomerleau
-
-[p.11]
-Québec, Canada Président exécutif du conseil d'administration, Pomerleau inc. Administrateur depuis avril 2023
-
-[p.11]
-### Scott Burrows
-
-[p.11]
-Québec, Canada Vice-président du conseil consultatif et conseiller spécial, Claridge inc. Administrateur depuis avril 2013
-
-[p.11]
-Alberta, Canada Président et chef de la direction, Pembina Pipeline Corporation Administrateur depuis août 2024
-
-[p.11]
-### Laurent Ferreira
-
-[p.11]
-Québec, Canada Président et chef de la direction, Banque Nationale du Canada Administrateur depuis février 2021
-
-[p.11]
-### Irfhan Rawji
-
-[p.11]
-Alberta, Canada Cofondateur et associé directeur, Realize Capital Partners et Associé directeur, Relay Ventures Administrateur depuis
-
-[p.11]
-### Arielle Meloul-Wechsler
-
-[p.11]
-Québec, Canada Vice-présidente générale et chef des Ressources humaines et des Affaires publiques, Air Canada Administratrice depuis
-
-[p.11]
-### Macky Tall
-
-[p.11]
-Floride, États-Unis Administrateur de sociétés Administrateur depuis avril 2021
-
-[p.11]
-### Comité de technologie
-
-[p.11]
-Pierre Blouin ( président ) Patricia Curadeau-Grou Annick Guérard Lynn Loewen Rebecca McKillican Irfhan Rawji
-
-[p.12]
-### L 'humain d'abord.
-
-[p.12]
-Nous existons pour avoir un impact positif dans la vie des gens.
-
-[p.12]
-En bâtissant des relations à long terme avec notre clientèle, nos équipes et la communauté.
-
-[p.12]
-### Pourquoi une mission commune ?
-
-[p.12]
-Notre mission commune s'inscrit dans la continuité de nos efforts pour demeurer un moteur du développement économique et social prépondérant. Elle est la réponse à un besoin collectif de faire évoluer les habitudes bancaires vers une mission humaine qui nous permettra d'atteindre nos objectifs et de mieux collaborer avec l'ensemble de nos parties prenantes.
-
-[p.12]
-### Comment se traduit concrètement notre mission commune ?
-
-[p.12]
-Par les expériences que nous voulons faire vivre à notre clientèle, à nos équipes et à la communauté.
-
-[p.12]
-Par nos comportements qui reflètent nos valeurs : complicité, pouvoir d'agir et agilité.
-
-[p.12]
-Par la manière dont le personnel travaille ensemble afin d'augmenter la satisfaction de notre clientèle, l'engagement des équipes et notre implication dans la communauté.
-
-[p.12]
-Par les initiatives que nous priorisons pour avoir un impact positif.
-
-[p.13]
-### Durabilité
-
-[p.13]
-La durabilité constitue un pilier essentiel de notre stratégie. Cette année, nos équipes ont intégré davantage de pratiques durables dans nos activités afin de continuer à créer un impact positif pour notre clientèle, notre personnel, nos investisseurs et les communautés que nous servons.
-
-[p.13]
-### Environnement
-
-[p.13]
-La Banque s'est fixé un objectif ambitieux : atteindre un engagement total de 20 G$ de prêts pour l'énergie renouvelable d'ici 2030. Grâce à la croissance continue de ces prêts, la Banque affirme son soutien à ce secteur et déploie des capitaux pour favoriser une économie faible en carbone.
-
-[p.13]
-Pour améliorer la connaissance globale des occasions et risques liés aux changements climatiques, nous avons élaboré une nouvelle formation obligatoire destinée à tout notre personnel. Cette formation propose des mesures concrètes que nous pouvons prendre pour réduire notre empreinte carbone dans nos activités quotidiennes.
-
-[p.13]
-La Banque est fière d'avoir rejoint l'Alliance des bâtiments exemplaires, une initiative d'Hydro-Québec qui vise à rassembler les gestionnaires de grands bâtiments à Montréal et à Québec afin de mettre en place les meilleures pratiques énergétiques. La Banque s'est engagée à réduire activement sa consommation d'électricité pendant les périodes de pointe hivernales, notamment au moyen de la régulation centralisée de ses 138 succursales du Québec.
-
-[p.13]
-### Nouveaux bureaux à Edmonton et Calgary
-
-[p.13]
-En avril, la Banque Nationale a officiellement inauguré son nouveau bureau des Marchés des capitaux à Calgary ainsi que le nouveau Centre Banque Nationale à Edmonton. Le bureau d'Edmonton détient de multiples certifications, dont LEED® Or , Gold Wired , FITWEL Niveau 2 , FITWEL Viral Response , BOMA BEST Platine , ENERGY STAR et WELL Or , ce qui contribuera à réduire l'empreinte carbone globale de la Banque. Ces nouveaux bureaux témoignent de notre stratégie de croissance et de notre engagement envers l'Ouest canadien alors que nous unissons nos forces à celles de CWB.
-
-[p.13]
-### Place Banque Nationale
-
-[p.13]
-Notre siège social de Montréal a récemment obtenu la certification LEED® Or dans la catégorie nouvelle construction, soulignant ainsi notre engagement à bâtir des environnements durables et inspirants ayant un impact positif sur la communauté.
-
-[p.14]
-### Social
-
-[p.14]
-La Banque a lancé la campagne « À bas l'inégalité », qui met en lumière les inégalités persistantes dans le tennis, notamment en matière d'équité des genres. Cette action symbolique s'inscrit dans un ensemble plus large de mesures concrètes mises en place par la Banque Nationale et Tennis Canada :
-
-[p.14]
-égalité des bourses lors de l'Omnium Banque Nationale à compter de 2027;
-
-[p.14]
-plus de 200 000 $ investis dans des programmes pour soutenir la rétention des filles dans le tennis, ce qui contribuera à une augmentation de la participation féminine.
-
-[p.14]
-La Banque est également fière d'avoir terminé avec succès la troisième et dernière année du programme Attestation de partenariat en relations avec les Autochtones (APRA). Pour ce faire, la Banque a mis en place plusieurs initiatives, telles que :
-
-[p.14]
-engagement à l'égard du programme Restructurer l'approvisionnement du Conseil canadien pour l'entreprise autochtone;
-
-[p.14]
-mise sur pied d'un programme de recrutement consacré aux Autochtones.
-
-[p.14]
-La Banque s'est classée première au Canada et troisième à l'échelle mondiale dans la cinquième édition du classement Forbes des 400 meilleures entreprises pour les femmes. Cette reconnaissance reflète l'engagement de la Banque à offrir des conditions gagnantes et équitables aux femmes en matière d'emploi, de développement et de bien-être.
-
-[p.14]
-En 2025, la Banque a aussi reçu le prix or de MoneySense pour la meilleure banque pour les nouveaux arrivants au Canada pour la troisième année consécutive, en plus d'obtenir la première place au Canada et la 24 e position parmi les 100 meilleures entreprises pour l'égalité des genres dans les marchés développés, dans un classement établi par Equileap .
-
-[p.15]
-### Gouvernance
-
-[p.15]
-Tout au long de l'année, la Banque a proposé une série d'activités à ses employées et employés afin de renforcer leurs connaissances sur la fraude et la cybersécurité afin de mieux se protéger et de mieux protéger notre clientèle. Des conférences et de la nouvelle documentation, notamment sur l'intelligence artificielle et la limitation des abus envers les personnes vulnérables, ont été produites.
-
-[p.15]
-La Banque a rejoint la Coalition canadienne antifraude, qui regroupe plusieurs grandes entreprises de services financiers, de télécommunications et de technologies dans le but de lutter contre la menace croissante de la fraude visant les consommateurs canadiens. Une campagne nationale de sensibilisation a été lancée pour susciter une réponse collective dans la lutte contre la fraude.
-
-[p.15]
-### Acquisition de CWB
-
-[p.15]
-Depuis l'acquisition de CWB, nos équipes ont travaillé résolument afin de rendre l'intégration des produits, services et systèmes de la Banque Nationale aussi fluide que possible pour le personnel et notre clientèle. Tout au long de l'année, nos employées et employés de l'ensemble du Canada ont collaboré pour :
-
-[p.15]
-→ assurer une transition harmonieuse pour plus de 65 000 clientes et clients
-
-[p.15]
-→ ouvrir 35 centres de conseils Banque Nationale et 35 nouveaux guichets automatiques dans l'Ouest canadien
-
-[p.15]
-→ former près de 2 300 employées et employés de CWB sur les systèmes et processus de la Banque Nationale
-
-[p.15]
-### Programme de parrainage
-
-[p.15]
-Un programme de parrainage a été mis en place afin que les collègues des deux organisations soient jumelés avec des personnes de secteurs d'activité et de niveaux d'emploi semblables, ce qui a représenté plus de 2 000 binômes et des milliers de connexions durant la période d'intégration. Le rôle des parrains et marraines BNC était d'être un point de contact pour offrir un accueil chaleureux et aider nos collègues de CWB à découvrir notre culture et nos valeurs, tout en partageant les conseils, astuces et pratiques exemplaires qui contribuent à la réussite de la Banque Nationale. Ce programme a permis à nos collègues de se constituer un réseau de contacts au sein de l'organisation et d'accéder efficacement aux outils et ressources disponibles pour faciliter la transition.
-
-[p.16]
+[p.62]
 ## Gestion du capital
 
-[p.17]
-### Rapport de gestion
+[p.62]
+La Gestion du capital assume le double rôle d'assurer un rendement concurrentiel aux actionnaires de la Banque tout en préservant de solides assises financières afin de couvrir les risques inhérents aux activités de la Banque, de soutenir les secteurs d'exploitation et de protéger la clientèle.
 
-[p.17]
-Le Rapport de gestion qui suit présente l'analyse par la direction de la situation financière et des résultats d'exploitation de la Banque Nationale du Canada (la Banque). Cette analyse a été préparée conformément aux exigences prévues au Règlement 51-102 sur les obligations d'information continue des Autorités canadiennes en valeurs mobilières (ACVM). Ce Rapport de gestion doit être lu en parallèle avec les états financiers annuels consolidés audités (les états financiers consolidés) et les notes y afférant pour l'exercice terminé le 31 octobre 2025 préparés selon les Normes internationales d'information financière (IFRS) telles que publiées par l' International Accounting Standards Board (IASB), sauf indication contraire. Les IFRS représentent les principes comptables généralement reconnus (PCGR) du Canada. Les symboles M$ et G$ désignent respectivement les millions et les milliards de dollars canadiens. On peut obtenir de l'information additionnelle sur la Banque, y compris la notice annuelle, sur le site Internet de la Banque, à l'adresse bnc.ca, ou celui de SEDAR+, à l'adresse sedarplus.ca. Les informations comprises dans les différents documents ou rapports publiés par la Banque ou disponibles sur le site Internet de la Banque et étant mentionnées dans le présent document ne sont pas et ne doivent pas être considérées comme incorporées par référence dans le Rapport annuel 2025, le Rapport de gestion ou les états financiers consolidés, à moins d'une mention expresse à l'effet contraire.
+[p.62]
+### Cadre de gestion du capital
 
-[p.17]
-### Mise en garde à propos des déclarations prospectives
+[p.62]
+La politique de gestion du capital de la Banque définit les principes directeurs ainsi que les rôles et responsabilités à l'égard de son processus interne d'évaluation de l'adéquation des fonds propres. Ce processus vise à déterminer le niveau des fonds propres dont la Banque doit disposer afin de poursuivre ses activités d'affaires et de faire face aux pertes non prévues découlant de conditions économiques et opérationnelles extrêmement difficiles. La Banque a mis en place un processus interne rigoureux d'évaluation de l'adéquation des fonds propres qui se définit comme suit :
 
-[p.17]
-Certaines déclarations faites dans ce document sont des déclarations prospectives. Ces déclarations sont faites conformément à la législation en valeurs mobilières applicable au Canada et aux États-Unis. Les déclarations prospectives figurant dans le présent document peuvent comprendre, entre autres, des déclarations faites dans les messages de la direction, de même que d'autres déclarations à l'égard de l'économie, des objectifs, des perspectives et des priorités de la Banque pour les exercices 2026 et suivants, de ses stratégies et des mesures qu'elle prendra pour les réaliser, des attentes quant à la situation financière de la Banque, de ses opérations, du cadre réglementaire dans lequel elle évolue, des potentiels impacts de l'incertitude géopolitique accrue sur la Banque et sa clientèle, de ses cibles et engagements en matière environnementale, sociale et de gouvernance, des impacts et bénéfices de l'acquisition de la Banque canadienne de l'Ouest (CWB), et de certains risques auxquels la Banque est exposée. La Banque peut également faire des déclarations prospectives dans d'autres documents et dépôts réglementaires, de même qu'oralement. Ces déclarations prospectives sont habituellement marquées par l'emploi de verbes ou d'expressions verbales comme « prévoir », « croire », « estimer », « projeter », « planifier », « s'attendre à », « avoir l'intention de », par l'emploi de la forme future ou conditionnelle, notamment des verbes tels que « être », « devoir » et « pouvoir », et par l'emploi d'autres termes ou expressions similaires.
+[p.62]
+ mesurer les risques importants et les exigences de capital relativement à la planification financière de la Banque pour le prochain exercice ainsi que les profils de risque actuels et prospectifs;
 
-[p.17]
-Ces déclarations prospectives visent à aider les actionnaires de la Banque à comprendre la situation financière et les résultats d'exploitation de la Banque aux dates indiquées et pour les périodes alors terminées, ainsi que la vision, les objectifs stratégiques et les cibles de performance de la Banque, et peuvent ne pas convenir à d'autres fins. Ces déclarations prospectives sont basées sur les attentes, estimations, hypothèses et intentions actuelles que la Banque considère comme raisonnables à cette date, et sont sujettes à de l'incertitude et à des risques, dont bon nombre sont indépendants de la volonté de la Banque. Il est fort possible que les prévisions, projections, attentes ou conclusions expresses ou implicites de la Banque ne se révèlent pas exactes, que ses hypothèses ne soient pas confirmées et que sa vision, ses objectifs stratégiques et ses cibles de performance ne soient pas réalisés. La Banque met en garde les actionnaires que ces déclarations prospectives ne sont pas des garanties de performances futures et que les événements ou résultats réels peuvent différer significativement des attentes, des estimations ou des intentions exprimées dans ces déclarations prospectives en raison d'un certain nombre de facteurs. Ainsi, la Banque recommande de ne pas se fier indûment à ces déclarations prospectives. Les actionnaires et autres personnes qui se fondent sur les déclarations prospectives de la Banque doivent considérer soigneusement les facteurs mentionnés ci-dessous, de même que d'autres incertitudes et événements potentiels, ainsi que les risques qu'ils comportent. À moins que la législation ne l'y oblige, la Banque ne prévoit pas mettre à jour quelque déclaration prospective que ce soit, verbale ou écrite, qu'elle peut faire ou qui peut de temps à autre être faite en son nom.
+[p.62]
+ intégrer des simulations de crises à l'échelle de l'entreprise et effectuer une analyse de sensibilité pour déterminer une réserve de capital au-delà des seuils réglementaires minimaux (pour de plus amples renseignements sur les simulations de crises à l'échelle de l'entreprise, se reporter à la section « Gestion des risques » du présent Rapport de gestion);
 
-[p.17]
-Les hypothèses qui ont trait à la performance des économies du Canada et des États-Unis en 2026, notamment dans le contexte d'incertitude géopolitique accrue, et à leur incidence sur les activités de la Banque figurent parmi les facteurs pris en considération au moment de déterminer les objectifs, les perspectives et les priorités de la Banque. Ces hypothèses figurent à la section Survol et perspectives économiques, et pour chaque secteur d'exploitation, à la section Revue de l'économie et du marché du Rapport annuel 2025 et elles peuvent être mises à jour dans les rapports trimestriels aux actionnaires déposés par la suite.
+[p.62]
+ procéder à une agrégation du capital et à des analyses du caractère raisonnable du capital interne par rapport au capital réglementaire;
 
-[p.17]
-Les déclarations prospectives contenues dans le présent document reposent sur un certain nombre d'hypothèses et leurs résultats futurs sont assujettis à certains facteurs dont bon nombre sont indépendants de la volonté de la Banque et dont les effets sont difficilement prévisibles, y compris, entre autres : la conjoncture économique générale et les conditions du marché au Canada, aux États-Unis et dans les autres pays où la Banque exerce des activités, incluant les risques de récession; l'incertitude géopolitique et sociopolitique; les mesures affectant les relations commerciales entre le Canada et ses partenaires, incluant l'imposition de tarifs et les mesures prises en réponse, ainsi que les impacts possibles sur notre clientèle, nos opérations, et plus généralement, sur l'économie; les fluctuations des taux de change et des taux d'intérêt; l'inflation; la perturbation des chaînes d'approvisionnement mondiales; l'augmentation des coûts de financement et la volatilité des marchés; les modifications apportées aux politiques budgétaires et monétaires et à d'autres politiques publiques; la supervision réglementaire et les modifications apportées à la réglementation touchant les activités de la Banque; la capacité de la Banque à intégrer avec succès CWB et les coûts ou passifs éventuels non divulgués liés à l'acquisition; les changements climatiques, incluant les risques physiques et liés à la transition vers une économie à faibles émissions de carbone; la participation des parties prenantes et la capacité de la Banque à répondre à leurs attentes concernant les enjeux environnementaux et sociaux; la disponibilité d'information complète et de haute qualité de notre clientèle et autres tiers, incluant sur les émissions de gaz à effet de serre; la capacité de la Banque à identifier les occasions liées au climat ainsi qu'à évaluer et gérer les risques liés au climat; les changements importants dans le comportement des consommateurs; la situation du logement, le marché de l'immobilier et l'endettement des ménages au Canada; la capacité de la Banque à réaliser ses principales priorités à court terme et ses stratégies à long terme; la mise au point et le lancement de nouveaux produits et services en temps opportun; la capacité de la Banque à recruter des ressources clés et à les maintenir en poste; l'innovation technologique, incluant le système bancaire ouvert et l'usage de l'intelligence artificielle; la concurrence accrue exercée par les sociétés établies et les entreprises concurrentes offrant des services non traditionnels; le risque lié aux modèles, les variations de la performance et de la solvabilité de la clientèle et des contreparties de la Banque; l'exposition de la Banque à des enjeux réglementaires et à des litiges importants; les modifications apportées aux conventions et méthodes comptables que la Banque utilise à des fins de présentation de sa situation financière, y compris les incertitudes liées aux hypothèses et aux principales estimations comptables; les modifications apportées à la législation fiscale en vigueur dans les pays où la Banque exerce des activités; les modifications apportées aux lignes directrices sur le capital, les fonds propres et la liquidité, ainsi qu'aux instructions relatives à leur présentation et à leur interprétation; les changements aux notations attribuées à la Banque par les agences de notation financière et extra-financière; les perturbations potentielles chez les principaux fournisseurs de biens et de services de la Banque; le risque lié aux tiers, incluant le manquement de tiers à leurs obligations envers la Banque; les effets potentiels de perturbations des systèmes de technologie de l'information de la Banque, y compris en raison de cyberattaques, de vols ou de divulgation de données, incluant des renseignements personnels et le vol d'identité; l'exposition à des activités frauduleuses; et l'incidence possible d'événements importants sur l'économie, sur les conditions de marché ou sur les perspectives de la Banque, y compris les conflits internationaux, les catastrophes naturelles et les urgences de santé publique, et les mesures prises en réponse à ces événements; et la capacité de la Banque à anticiper et à gérer avec succès les risques provenant des facteurs précédemment mentionnés.
+[p.62]
+ comparer le capital interne projeté avec les seuils de capital réglementaire, les cibles d'exploitation internes et les banques concurrentes;
 
-[p.17]
-La liste des facteurs de risque qui précède n'est pas exhaustive, et les déclarations prospectives contenues dans le présent document sont également assujetties aux risques détaillés dans la section Gestion des risques du Rapport annuel 2025 et pouvant être mis à jour dans les rapports aux actionnaires trimestriels déposés par la suite.
+[p.62]
+ fournir une attestation du caractère suffisant des niveaux de capital de la Banque.
 
-[p.18]
-### Mode de présentation de l'information
+[p.62]
+L'évaluation de l'adéquation des fonds propres fait partie intégrante de la planification et de la stratégie en matière de capital. La Banque établit des cibles d'exploitation internes, incluant une réserve discrétionnaire en surplus des exigences réglementaires minimales, qui lui permettent de disposer d'une structure financière solide et de suffisamment de capital pour satisfaire les besoins d'affaires établis par la direction selon son appétit pour le risque, tout en assurant un rendement concurrentiel à ses actionnaires, dans des conditions normales ainsi que selon diverses simulations de crises rigoureuses et vraisemblables. Le processus interne d'évaluation de l'adéquation des fonds propres joue un rôle important dans l'établissement de la stratégie de capital de la Banque et fait l'objet d'examens trimestriels ainsi que de modifications périodiques.
 
-[p.18]
-Les états financiers consolidés de la Banque sont préparés conformément aux IFRS, telles que publiées par l'IASB, et représentent les PCGR du Canada.
+[p.62]
+La mesure du rendement du capital ajusté en fonction du risque et la valeur ajoutée pour l'actionnaire (VAA) découlant de l'évaluation du capital économique requis sont calculées trimestriellement pour chacun des secteurs d'exploitation de la Banque. Les résultats servent ensuite de guide à la direction pour la répartition du capital entre les différents secteurs d'exploitation.
 
-[p.18]
-Le 1 er novembre 2024, la Banque a cessé la présentation des revenus et de la charge d'impôts selon la méthode de l'équivalent imposable. L'utilisation de la méthode de l'équivalent imposable est moins pertinente depuis l'introduction des règles du Pilier 2 (impôt minimum mondial) au cours du premier trimestre de 2025 et du projet de loi C-59 en lien avec l'imposition de certains dividendes canadiens au cours de l'exercice 2024. Ce changement n'a aucun impact sur le résultat net divulgué précédemment. Les données pour les périodes de 2024 ont été ajustées afin de refléter ce changement.
+[p.62]
+### Structure et gouvernance
 
-[p.18]
-### Mesures financières non conformes aux PCGR et d'autres mesures financières
+[p.62]
+L'équipe de Gestion du capital est, avec ses partenaires de Gestion des risques, de Financement d'actifs et trésorerie et des Finances, responsable du maintien des processus et des moyens de contrôle intégrés permettant l'évaluation globale de l'adéquation des fonds propres.
 
-[p.18]
-La Banque a recours à diverses mesures financières pour évaluer les résultats et mesurer sa performance globale. Certaines de ces mesures financières ne sont pas calculées selon les PCGR. Le Règlement 52-112 sur l'information concernant les mesures financières non conformes aux PCGR et d'autres mesures financières (le Règlement 52-112) prévoit des obligations d'information s'appliquant aux mesures suivantes utilisées par la Banque :
+[p.62]
+Le Conseil supervise la structure et l'élaboration de la politique de gestion du capital de la Banque et veille à ce que celle-ci maintienne un capital suffisant, conformément aux exigences réglementaires et en tenant compte de la situation de marché. Le Conseil délègue certaines responsabilités au comité de gestion des risques (CGR), qui recommande ensuite des politiques en matière de gestion du capital et en surveille l'application. Toutefois, le Conseil, sur recommandation du CGR, doit assumer les responsabilités suivantes :
 
-[p.18]
-### Mesures financières non conformes aux PCGR
+[p.62]
+ examiner et approuver la politique de gestion du capital;
 
-[p.18]
-La Banque utilise des mesures financières non conformes aux PCGR qui n'ont pas de définition normalisée en vertu des PCGR et il pourrait donc être impossible de les comparer avec des mesures similaires utilisées par d'autres entreprises. Le fait de recourir à des mesures financières non conformes aux PCGR donne aux lectrices et aux lecteurs une meilleure compréhension de la façon dont la direction analyse les résultats, en plus de leur permettre d'apprécier l'incidence d'éléments particuliers sur les résultats des périodes visées et de mieux évaluer les résultats en ne tenant pas compte de ces éléments s'ils considèrent que ceux-ci ne reflètent pas la performance financière sous-jacente des activités d'exploitation de la Banque.
+[p.62]
+ examiner et approuver l'appétit pour le risque de la Banque, y compris les principales cibles en termes de capital et de risque et les limites correspondantes;
 
-[p.18]
-Les principales mesures financières non conformes aux PCGR utilisées par la Banque afin d'analyser ses résultats sont décrites ci-dessous et le rapprochement quantitatif de certaines mesures est présenté dans les tableaux de la section « Rapprochement des mesures financières non conformes aux PCGR » aux pages 22 et 23 ainsi que dans le tableau « Résultats consolidés » à la page 31. À noter que pour l'exercice terminé le 31 octobre 2025, dans le cadre de la transaction avec CWB, plusieurs éléments en lien avec cette acquisition ont été exclus des résultats puisque de l'avis de la direction, ils ne représentent pas la performance financière sous-jacente des activités d'exploitation de la Banque, notamment l'amortissement des frais d'émission des reçus de souscription, le gain résultant de la réévaluation à la juste valeur des actions ordinaires que la Banque détenait dans CWB, l'impact de la gestion des variations de la juste valeur représentant une perte, les charges d'acquisition et d'intégration, l'amortissement des immobilisations incorporelles liées à l'acquisition de CWB, les dotations aux pertes de crédit initiales enregistrées sur les prêts non dépréciés acquis de CWB et l'économie d'impôts liée à un changement de traitement fiscal. Pour l'exercice terminé le 31 octobre 2024, plusieurs éléments en lien avec cette acquisition avaient été exclus des résultats, notamment l'amortissement des frais d'émission des reçus de souscription, le gain résultant de la réévaluation à la juste valeur des actions ordinaires que la Banque détenait dans CWB, l'impact de la gestion des variations de la juste valeur représentant une perte et les charges d'acquisition et d'intégration.
+[p.62]
+ examiner et approuver le plan et la stratégie de capital sur une base annuelle, y compris le processus interne d'évaluation de l'adéquation des fonds propres de la Banque;
 
-[p.18]
-### Revenu net d'intérêts ajusté
+[p.62]
+ examiner et approuver l'exécution des mesures importantes concernant le capital, y compris les mesures d'urgence;
 
-[p.18]
-Représente le revenu net d'intérêts excluant les éléments particuliers. Les éléments particuliers sont exclus afin de mieux évaluer le revenu net d'intérêts en ne tenant pas compte d'éléments qui, selon la direction, ne reflètent pas la performance financière sous-jacente des activités d'exploitation de la Banque.
+[p.62]
+ examiner les informations importantes à communiquer se rapportant au capital, y compris les ratios d'adéquation des fonds propres selon l'Accord de Bâle;
 
-[p.18]
-### Revenus autres que d'intérêts ajustés
+[p.62]
+ s'assurer du caractère approprié de l'évaluation de l'adéquation des fonds propres réglementaires.
 
-[p.18]
-Représentent les revenus autres que d'intérêts excluant les éléments particuliers. Les éléments particuliers sont exclus afin de mieux évaluer les revenus autres que d'intérêts en ne tenant pas compte d'éléments qui, selon la direction, ne reflètent pas la performance financière sous-jacente des activités d'exploitation de la Banque.
+[p.62]
+L'équipe de direction est chargée de définir la stratégie de la Banque et elle joue un rôle clé dans l'orientation des mesures et des décisions à prendre à l'égard du capital. Le comité de gestion intégrée des risques supervise la gestion du capital trimestriellement en vertu des pouvoirs délégués par le comité des risques globaux, ce qui consiste à examiner la stratégie et le plan en matière de capital et à surveiller sa mise en œuvre et l'exécution de toutes les mesures importantes touchant au capital, y compris les mesures d'urgence, ainsi qu'à faire des recommandations relatives à ces mesures.
 
-[p.18]
-### Revenu total ajusté
+[p.63]
+### Accord de Bâle
 
-[p.18]
-Représente le revenu total excluant les éléments particuliers. Il est composé du revenu net d'intérêts ajusté et des revenus autres que d'intérêts ajustés. Les éléments particuliers sont exclus afin de mieux évaluer le revenu total en ne tenant pas compte d'éléments qui, selon la direction, ne reflètent pas la performance financière sous-jacente des activités d'exploitation de la Banque.
+[p.63]
+L'Accord de Bâle propose un éventail d'approches comportant différents degrés de complexité et dont le choix détermine la sensibilité des fonds propres aux risques. Une approche moins complexe, telle que la méthode standardisée, utilise des pondérations réglementaires, alors qu'une approche plus complexe utilise les estimations internes de la Banque à l'égard des composantes du risque pour établir l'actif pondéré en fonction des risques et calculer les fonds propres réglementaires.
 
-[p.18]
-### Frais autres que d'intérêts ajustés
+[p.63]
+Comme l'exige l'Accord de Bâle, l'actif pondéré en fonction des risques est calculé pour chacun des risques de crédit, de marché et opérationnel. La Banque utilise les approches de notation interne (NI) pour le risque de crédit afin de fixer les limites minimales réglementaires en matière de fonds propres pour la plupart de ses portefeuilles. La Banque doit utiliser l'approche fondée sur les notations internes-fondation (approche NI fondation) pour certains types précis d'expositions, comme les expositions aux grandes sociétés ou aux institutions financières. Pour tous les autres types d'expositions traités selon une approche NI, la Banque utilise l'approche NI avancée. Selon l'approche NI fondation, la Banque peut utiliser sa propre estimation de la probabilité de défaut (PD), mais elle doit se fier aux estimations du BSIF pour les pertes en cas de défaut (PCD) et l'exposition en cas de défaut (ECD). Selon l'approche NI avancée, la Banque peut utiliser sa propre estimation pour tous les paramètres de risque : PD, PCD et ECD. Selon les deux approches NI, les paramètres de risque sont assujettis à des limites plancher. Le risque de crédit de certains portefeuilles considérés comme étant de moindre importance est pondéré conformément à l'approche standardisée révisée, qui utilise des pondérations réglementaires prescrites. L'exposition aux titres de participation du portefeuille bancaire est également pondérée en fonction de l'approche standardisée révisée.
 
-[p.18]
-Représentent les frais autres que d'intérêts excluant les éléments particuliers. Les éléments particuliers sont exclus afin de mieux évaluer les frais autres que d'intérêts en ne tenant pas compte d'éléments qui, selon la direction, ne reflètent pas la performance financière sous-jacente des activités d'exploitation de la Banque.
+[p.63]
+Pour ce qui est des risques liés aux opérations de titrisation, le traitement des fonds propres dépend du type d'expositions sous-jacentes et des informations disponibles sur ces expositions. La Banque doit utiliser l'approche de titrisation fondée sur les notations internes ( Securitization : Internal-Ratings-Based-Approach ou SEC-IRBA) si elle est en mesure d'appliquer un modèle fondé sur les notations internes approuvé et a suffisamment d'informations pour calculer les exigences de fonds propres pour toutes les expositions sous-jacentes du portefeuille titrisé. Selon cette approche, l'actif pondéré en fonction des risques est dérivé d'une combinaison d'intrants réglementaires et d'intrants spécifiques à l'exposition de titrisation, tels que l'exigence implicite de fonds propres liée aux expositions sous-jacentes, le niveau de rehaussement de crédit, l'échéance effective, le nombre d'expositions et la perte moyenne en cas de défaut (PCD) pondérée.
 
-[p.19]
-### Résultat avant dotations aux pertes de crédit et charge d'impôts ajusté
+[p.63]
+Si la Banque ne peut pas utiliser l'approche SEC-IRBA, elle doit se servir de l'approche de la titrisation fondée sur les notations externes ( Securitization : External Ratings-Based Approach ou SEC-ERBA) pour les expositions de titrisation dont les notations sont établies à l'externe. Cette approche établit la pondération en fonction des risques sur la base de notations déterminées à l'externe. La Banque utilise les notations établies par Moody's, Standard & Poor's (S&P), Fitch, Kroll Bond Rating Agency, ou DBRS , ou une combinaison de ces notations. La Banque utilise l'approche basée sur les évaluations internes ( Securitization : Internal Assessment Approach ou SEC-IAA) pour les expositions de titrisation non notées liées aux structures d'émission de papier commercial adossé à des actifs dont elle est le promoteur. Les méthodes utilisées dans le cadre de l'approche SECIAA s'appuient principalement sur les critères publiés par les agences de notation mentionnées précédemment et tiennent compte des facteurs de risque que la Banque juge pertinents pour évaluer la qualité de crédit des expositions. L'approche SEC-IAA utilisée par la Banque comprend une évaluation de la mesure pour laquelle le rehaussement du crédit disponible pour la protection contre les pertes fournit une couverture pour les pertes attendues. Les niveaux simulés de couverture dont la Banque a besoin pour chaque cote interne de risque cadrent avec les exigences publiées par les agences de notation pour des cotes externes équivalentes par catégorie d'actifs. Si la Banque ne peut pas appliquer l'approche SEC-ERBA ou l'approche SEC-IAA, elle doit utiliser la formule réglementaire en vertu de l'approche de titrisation standardisée ( Securitization : Standardized Approach ou SEC-SA). Selon cette approche, l'actif pondéré en fonction des risques est dérivé d'intrants spécifiques à l'exposition de titrisation, tels que l'exigence implicite de fonds propres liée aux expositions sous-jacentes calculées à l'aide de la méthode standardisée pour risque de crédit et le niveau de rehaussement de crédit et des défaillances.
 
-[p.19]
-Représente le résultat avant dotations aux pertes de crédit et charge d'impôts excluant les éléments particuliers. Il représente également la différence entre le revenu total ajusté et les frais autres que d'intérêts ajustés. Les éléments particuliers sont exclus afin de mieux évaluer le résultat avant dotations aux pertes de crédit et charge d'impôts en ne tenant pas compte d'éléments qui, selon la direction, ne reflètent pas la performance financière sous-jacente des activités d'exploitation de la Banque.
+[p.63]
+Si aucune des approches ci-dessus ne peut être utilisée, il faut attribuer une pondération des risques de 1 250 % à l'exposition de titrisation. La Banque peut appliquer une diminution des exigences de fonds propres pour les expositions de titrisation qui respectent les critères du dispositif de titrisations simples, transparentes et comparables (STC).
 
-[p.19]
-### Dotations aux pertes de crédit ajustées
+[p.63]
+En ce qui concerne le risque opérationnel, la Banque applique l'approche standardisée révisée, qui tient compte de son expérience en matière de pertes internes liées au risque opérationnel pour le calcul de l'actif pondéré en fonction des risques. Tant pour le risque de marché que pour le risque lié à l'ajustement de l'évaluation de crédit (CVA), la Banque utilise la méthode des sensibilités standard pour calculer l'actif pondéré en fonction des risques.
 
-[p.19]
-Représentent les dotations aux pertes de crédit excluant les éléments particuliers. Les éléments particuliers sont exclus afin de mieux évaluer les dotations aux pertes de crédit en ne tenant pas compte d'éléments qui, selon la direction, ne reflètent pas la performance financière sous-jacente des activités d'exploitation de la Banque.
+[p.63]
+La Banque doit également respecter les exigences du plancher des fonds propres afin que le total de l'actif pondéré en fonction des risques ne soit pas inférieur à 72,5 % du total de l'actif pondéré en fonction des risques calculé selon les approches standardisées de Bâle III. Le BSIF avait prévu l'adoption progressive du coefficient de plancher dont la valeur initiale était de 65,0 % au deuxième trimestre de 2023, puis qui augmentait pour atteindre 72,5 % à l'exercice 2027. Le 12 février 2025, le BSIF a reporté toute augmentation supplémentaire jusqu'à nouvel ordre. En conséquence, le coefficient de plancher, actuellement fixé à 67,5 %, restera à ce niveau pour une période indéterminée. Si l'exigence de fonds propres est inférieure à l'exigence liée au plancher des fonds propres après l'application du coefficient de plancher, la différence est ajoutée au total de l'actif pondéré en fonction des risques.
 
-[p.19]
-### Charge (économie) d'impôts ajustée
+[p.64]
+Les ratios des fonds propres sont obtenus en divisant les fonds propres par l'actif pondéré en fonction des risques. Les risques de crédit, de marché et opérationnel sont pris en compte dans le calcul de l'actif pondéré en fonction des risques à des fins réglementaires. Les règles de l'Accord de Bâle s'appliquent au niveau consolidé de la Banque. Les actifs des entités non consolidées à des fins réglementaires sont ainsi exclus du calcul de l'actif pondéré en fonction des risques.
 
-[p.19]
-Représente la charge (économie) d'impôts excluant la charge (économie) d'impôts liée aux éléments particuliers.
+[p.64]
+La définition adoptée par le Comité de Bâle sur le contrôle bancaire (CBCB) distingue trois catégories de fonds propres. Les « fonds propres de catégorie 1 sous forme d'actions ordinaires (CET1) » comprennent les capitaux propres attribuables aux actionnaires ordinaires moins le goodwill, les immobilisations incorporelles et d'autres déductions au titre des fonds propres CET1. Les « autres éléments de fonds propres de catégorie 1 (AT1) » comprennent les actions privilégiées à dividendes non cumulatifs admissibles, les billets de capital à recours limité (BCRL) et d'autres ajustements aux fonds propres AT1. La somme des fonds propres CET1 et des AT1 représente les « fonds propres de catégorie 1 ». Les « fonds propres de catégorie 2 » comprennent les dettes subordonnées admissibles et certaines provisions pour pertes de crédit. Le « total des fonds propres réglementaires » représente la somme des fonds propres de catégorie 1 et de catégorie 2.
 
-[p.19]
-### Résultat net ajusté
+[p.64]
+Le BSIF est responsable de l'application de l'Accord de Bâle au Canada. Tel que requis par l'Accord de Bâle, le BSIF exige que les instruments des fonds propres réglementaires autres que les actions ordinaires soient assortis d'une clause de fonds propres d'urgence en cas de non-viabilité (FPUNV) afin de veiller à ce que les investisseurs assument les pertes avant les contribuables lorsque le gouvernement détermine qu'il y va de l'intérêt public de contribuer à la survie d'une institution financière non viable. Au 31 octobre 2025, l'ensemble des instruments des fonds propres réglementaires de la Banque autres que les actions ordinaires sont assortis d'une clause de FPUNV. De plus, dans les règlements de la Loi sur la Société d'assurance-dépôts du Canada (SADC) et de la Loi sur les banques (Canada), le gouvernement du Canada détaille les régimes de conversion, d'émission et d'indemnisation pour les instruments de recapitalisation interne émis par les banques d'importance systémique intérieure (BISI) (collectivement, les « règlements sur la recapitalisation interne »). En vertu de la Loi sur la SADC , lorsque le BSIF a déterminé que la Banque a cessé d'être viable, ou est sur le point de l'être, le gouverneur en conseil peut, suivant une recommandation du ministre des Finances si ce dernier est d'avis qu'il est dans l'intérêt public de le faire, prendre un décret exigeant que la SADC convertisse la totalité ou une partie de certaines actions et certains éléments du passif de la Banque en actions ordinaires (une « conversion aux fins de recapitalisation interne »).
 
-[p.19]
-Représente le résultat net excluant les éléments particuliers. Les éléments particuliers sont exclus afin de mieux évaluer le résultat net en ne tenant pas compte d'éléments qui, selon la direction, ne reflètent pas la performance financière sous-jacente des activités d'exploitation de la Banque.
+[p.64]
+Les règlements sur la recapitalisation interne qui régissent la conversion et l'émission des instruments de recapitalisation interne sont entrés en vigueur le 23 septembre 2018, et ceux qui régissent l'indemnisation des détenteurs d'instruments convertis sont entrés en vigueur le 27 mars 2018. Les actions et les éléments du passif émis avant la date d'entrée en vigueur des règlements sur la recapitalisation interne ne sont pas soumis à une conversion aux fins de recapitalisation interne, sauf si, dans le cas d'un élément du passif, les modalités de cet élément du passif sont, à cette date ou par la suite, modifiées afin d'accroître le montant du principal ou de prolonger son échéance et que l'élément du passif modifié respecte les exigences afin d'être soumis à une conversion aux fins de recapitalisation interne.
 
-[p.19]
-### Résultat net attribuable aux actionnaires ordinaires ajusté
+[p.64]
+Les règlements sur la recapitalisation interne prescrivent les types d'actions et d'éléments de passif qui peuvent faire l'objet d'une conversion aux fins de la recapitalisation interne. En règle générale, tout titre de créance de premier rang qui comporte un terme initial ou modifié de plus de quatre cents jours, qui n'est pas garanti, ou ne l'est qu'en partie, et qui porte un numéro Committee on Uniform Securities Identification Procedures (CUSIP), un numéro International Securities Identification Number (ISIN) ou un numéro d'identification semblable peut faire l'objet d'une conversion aux fins de la recapitalisation interne. Toutefois, certains autres titres de créance de la Banque, comme les obligations structurées (définies dans les règlements sur la recapitalisation interne), les obligations sécurisées, les dépôts et certains instruments financiers dérivés ne seront pas soumis à une conversion aux fins de la recapitalisation interne.
 
-[p.19]
-Représente le résultat net attribuable aux actionnaires ordinaires excluant les éléments particuliers. Les éléments particuliers sont exclus afin de mieux évaluer le résultat net attribuable aux actionnaires ordinaires en ne tenant pas compte d'éléments qui, selon la direction, ne reflètent pas la performance financière sous-jacente des activités d'exploitation de la Banque.
+[p.64]
+La Banque ainsi que toutes les autres grandes banques canadiennes doivent maintenir des ratios minimaux de fonds propres établis par le BSIF, soit un ratio des fonds propres CET1 d'au moins 11,5 %, un ratio des fonds propres de catégorie 1 d'au moins 13,0 % et un ratio du total des fonds propres d'au moins 15,0 %. Tous ces ratios incluent une réserve de conservation des fonds propres de 2,5 % établie par le CBCB et le BSIF, ainsi qu'une surcharge uniquement relative aux BISI de 1,0 % et la réserve pour stabilité intérieure (RSI) de 3,5 % établies par le BSIF. La RSI, dont le niveau varie entre 0 % et 4,0 % de l'actif pondéré en fonction des risques, est constituée exclusivement de fonds propres CET1. Une BISI qui ne respecte pas cette réserve n'est pas automatiquement contrainte de réduire ses distributions de fonds propres, mais devra fournir un plan de mesures correctives au BSIF. En outre, le BSIF exige que les BISI respectent un ratio de levier selon Bâle III d'au moins 3,5 %, qui comprend une réserve de fonds propres de catégorie 1 de 0,5 % applicable uniquement aux BISI. Le ratio de levier est une mesure indépendante du risque qui se calcule en divisant le montant des fonds propres de catégorie 1 par l'exposition totale. L'exposition totale est définie par la somme des actifs au bilan (y compris les expositions sur instruments financiers dérivés et sur opérations de financement par titres) et des éléments hors bilan. Les actifs déduits des fonds propres de catégorie 1 sont aussi déduits de l'exposition totale.
 
-[p.19]
-### Résultat de base par action ajusté
+[p.65]
+La ligne directrice Capacité totale d'absorption des pertes ( Total Loss Absorbing Capacity ou TLAC) du BSIF, qui s'applique à toutes les BISI dans le cadre des règlements sur la recapitalisation interne du gouvernement fédéral, vise à faire en sorte qu'une BISI dispose d'une capacité d'absorption des pertes suffisante pour soutenir sa recapitalisation interne dans le cas peu probable où elle deviendrait non viable. La TLAC disponible comprend le total des fonds propres ainsi que certaines dettes de premier rang non garanties qui satisfont tous les critères d'admissibilité à la ligne directrice TLAC du BSIF. Le BSIF exige des BISI qu'elles maintiennent un ratio TLAC fondé sur les risques d'au moins 25,0 % (incluant la RSI) de l'actif pondéré en fonction des risques et un ratio de levier TLAC d'au moins 7,25 %. Le ratio TLAC se calcule en divisant la TLAC disponible par l'actif pondéré en fonction des risques et le ratio de levier TLAC se calcule en divisant la TLAC disponible par l'exposition totale. Au 31 octobre 2025, la valeur des éléments de passif en circulation faisant l'objet de la conversion dans le cadre des règlements sur la recapitalisation interne s'élève à 26,1 G$ (23,5 G$ au 31 octobre 2024).
 
-[p.19]
-Représente le résultat de base par action excluant les éléments particuliers. Les éléments particuliers sont exclus afin de mieux évaluer le résultat de base par action en ne tenant pas compte d'éléments qui, selon la direction, ne reflètent pas la performance financière sous-jacente des activités d'exploitation de la Banque.
+[p.65]
+La Banque se conforme au Cadre de capacité totale d'absorption des pertes par établissement des sociétés mères de banques d'importance systémique intérieure du BSIF, qui met l'accent sur la capacité d'absorption des pertes des banques mères canadiennes, indépendamment de leurs activités consolidées. Ce cadre permet au BSIF d'évaluer la résilience financière d'une banque mère et sa capacité à soutenir ses filiales et ses succursales. Il complète les exigences actuelles en matière de TLAC à l'échelle du groupe et renforce les protections des déposants, des titulaires de police et des créanciers.
 
-[p.19]
-### Résultat dilué par action ajusté
+[p.65]
+### Exigences - Ratios des fonds propres (1) , de levier (1) et TLAC (2) réglementaires
 
-[p.19]
-Représente le résultat dilué par action excluant les éléments particuliers. Les éléments particuliers sont exclus afin de mieux évaluer le résultat dilué par action en ne tenant pas compte d'éléments qui, selon la direction, ne reflètent pas la performance financière sous-jacente des activités d'exploitation de la Banque.
+[p.65]
+La Banque veille à ce que ses niveaux de fonds propres excèdent en tout temps les limites minimales relatives aux capitaux propres établies par le BSIF, y compris la réserve pour stabilité intérieure. Une structure solide de capital permet à la Banque de couvrir les risques inhérents à ses activités, de soutenir ses secteurs d'exploitation et de protéger sa clientèle.
 
-[p.19]
-La Banque utilise également les mesures décrites ci-dessous pour évaluer ses résultats et le rapprochement quantitatif de ces mesures financières non conformes aux PCGR est présenté dans le tableau 5 à la page 130 et dans le document intitulé « Informations financières complémentaires Quatrième trimestre 2025 » aux pages 7 et 28, disponible sur le site Internet de la Banque, à l'adresse bnc.ca.
+[p.65]
+D'autres exigences de divulgation en vertu du Pilier 3 de l'Accord de Bâle, assorties d'un ensemble de recommandations définies par le groupe de travail EDTF, sont présentées dans le document intitulé « Informations complémentaires sur les fonds propres réglementaires et informations du Pilier 3 » publié trimestriellement et disponible sur le site Internet de la Banque à l'adresse bnc.ca. De plus, une liste complète des instruments de fonds propres et de leurs principales caractéristiques est également disponible sur le site Internet de la Banque.
 
-[p.19]
-### Revenu net d'intérêts autre que de négociation ajusté
+[p.65]
+### Contexte réglementaire
 
-[p.19]
-Représente le revenu net d'intérêts autre que de négociation excluant les éléments particuliers. Il comprend les revenus liés aux actifs et passifs financiers associés aux activités autres que de négociation, déduction faite des frais d'intérêts et des revenus d'intérêts liés au financement de ces actifs et passifs financiers, et est utilisé dans le calcul de la marge nette d'intérêts autre que de négociation ajustée. Les éléments particuliers sont exclus afin de mieux évaluer le revenu net d'intérêts autre que de négociation en ne tenant pas compte d'éléments qui, selon la direction, ne reflètent pas la performance financière sous-jacente des activités d'exploitation de la Banque.
+[p.65]
+La Banque surveille de près l'évolution de la réglementation et participe activement aux divers processus de consultation. Depuis le 1 er novembre 2024, aucun fait nouveau en matière de réglementation n'est à considérer, à l'exception du report jusqu'à nouvel ordre de l'augmentation du plancher des fonds propres, tel que mentionné précédemment.
 
-[p.19]
-La Banque exclut les prêts dépréciés dès leur acquisition ou leur création (DAC) ou les dotations aux pertes de crédit sur les prêts DAC de la filiale Credigy Ltd. dans les mesures financières non conformes aux PCGR suivantes, étant donné la nature des activités de cette filiale, qui met l'accent sur le financement spécialisé.
+[p.66]
+### Activités de gestion
 
-[p.19]
-### Dotations aux pertes de crédit sur prêts dépréciés excluant les prêts DAC de Credigy
+[p.66]
+Le 13 janvier 2025, la Banque a émis des billets à moyen terme pour un montant de 1,0 G$ portant intérêt à 4,260 % et échéant le 15 février 2035. Comme les billets à moyen terme respectent les exigences relatives aux FPUNV, ils sont admissibles aux fins du calcul des fonds propres réglementaires selon les règles de Bâle III.
 
-[p.19]
-Représentent le montant imputé au résultat en vue de porter les provisions pour pertes de crédit au niveau jugé approprié par la direction et ce montant est composé des dotations aux pertes de crédit sur actifs financiers dépréciés excluant les prêts DAC de la filiale Credigy.
+[p.66]
+Le 3 février 2025, lors de la clôture de l'acquisition de CWB, la Banque a émis un total de 50 272 878 actions ordinaires, pour un produit brut de 6,3 G$.
 
-[p.19]
-### Prêts dépréciés bruts excluant les prêts DAC de Credigy
+[p.66]
+Le 3 février 2025, dans le cadre de l'acquisition de CWB, la Banque a acquis les obligations liées aux dettes subordonnées de CWB pour un montant total de 525 M$, qui incluait des débentures subordonnées de 125 M$ portant intérêt à 4,840 % et échéant le 29 juin 2030 (rachetées par la Banque le 29 juin 2025), des débentures subordonnées de 150 M$ portant intérêt à 5,937 % et échéant le 22 décembre 2032 et des débentures subordonnées de 250 M$ portant intérêt à 5,949 % et échéant le 29 janvier 2034. Comme les débentures respectent les exigences relatives aux FPUNV, elles sont admissibles aux fins du calcul des fonds propres réglementaires selon les règles de Bâle III.
 
-[p.19]
-Représentent tous les prêts classés en phase 3 et les prêts DAC selon le modèle de détermination des pertes de crédit attendues, excluant les prêts DAC de la filiale Credigy.
+[p.66]
+Le 17 février 2025, soit le premier jour ouvrable suivant la date de rachat du 15 février 2025, la Banque a terminé le rachat de la totalité des actions privilégiées de premier rang à dividende non cumulatif à taux rajusté tous les cinq ans, série 32, émises et en circulation. Tel que prévu dans les conditions relatives aux actions, le prix de rachat était de 25,00 $ l'action, plus les dividendes périodiques déclarés et impayés. La Banque a racheté 12 000 000 d'actions privilégiées série 32 pour un prix total de 300 M$.
 
-[p.19]
-### Prêts dépréciés nets excluant les prêts DAC de Credigy
+[p.66]
+Le 20 février 2025, il y a eu un échange de la totalité des actions privilégiées de premier rang, série 5 et série 9, émises et en circulation de CWB, contre des actions privilégiées de premier rang essentiellement équivalentes de la Banque Nationale, série 47 et série 49, donnant droit à un dividende non cumulatif à taux rajusté tous les cinq ans, portant intérêt à 6,371 % et 7,651 %. La Banque a échangé 10 000 000 d'actions privilégiées pour un montant total de 264 M$. Comme les actions privilégiées, série 47 et série 49, respectent les exigences relatives aux FPUNV, elles sont admissibles aux fins du calcul des fonds propres réglementaires selon les règles de Bâle III.
 
-[p.19]
-Représentent les prêts dépréciés bruts excluant les prêts DAC de la filiale Credigy présentés déduction faite des provisions pour pertes de crédit sur les montants utilisés des prêts octroyés par la Banque classés dans la phase 3 et dans les prêts DAC excluant les prêts DAC de la filiale Credigy.
+[p.66]
+Le 26 juin 2025, la Banque a émis des billets à moyen terme pour un montant de 750 M$ portant intérêt à 4,333 % et échéant le 15 août 2035. Comme les billets à moyen terme respectent les exigences relatives aux FPUNV, ils sont admissibles aux fins du calcul des fonds propres réglementaires selon les règles de Bâle III.
 
-[p.20]
-La Banque utilise des ratios non conformes aux PCGR qui n'ont pas de définition normalisée en vertu des PCGR et il pourrait donc être impossible de les comparer avec des mesures similaires utilisées par d'autres entreprises. Un ratio dont une mesure financière non conforme aux PCGR est au moins une composante constitue un ratio non conforme aux PCGR. La Banque utilise des ratios non conformes aux PCGR pour présenter des aspects de sa performance financière ou de sa situation financière.
+[p.66]
+Le 25 septembre 2025, la Banque a débuté un programme d'offre publique de rachat à des fins d'annulation dans le cours normal de ses activités, visant jusqu'à concurrence de 8 000 000 d'actions ordinaires (représentant environ 2,04 % des actions ordinaires alors en circulation) au cours de la période de 12 mois se terminant au plus tard le 24 septembre 2026. Au cours de l'exercice terminé le 31 octobre 2025, la Banque a complété le rachat de 1 385 400 actions ordinaires.
 
-[p.20]
-Les principaux ratios non conformes utilisés par la Banque sont décrits ci-dessous.
+[p.66]
+Le 17 novembre 2025, après la date de clôture de l'exercice, la Banque a terminé le rachat de la totalité des BCRL - Série 1, émis et en circulation. Tel que prévu dans les conditions relatives aux BCRL - Série 1, le prix de rachat était de 1 000 $ chacun, plus les intérêts courus et impayés. La Banque a racheté 500 000 BCRL - Série 1 pour un prix total de 500 M$. Dans le cadre du rachat des BCRL - Série 1, la Banque a terminé le rachat de la totalité des actions privilégiées de premier rang à dividende non cumulatif à taux rajusté tous les cinq ans, série 44, émises par la Banque, parallèlement aux BCRL - Série 1 et qui étaient détenues par un fiduciaire indépendant dans une fiducie à recours limité consolidée. Ces instruments ont été exclus du calcul des ratios de fonds propres au 31 octobre 2025.
 
-[p.20]
-### Rendement de l'actif moyen ajusté
+[p.66]
+Au 31 octobre 2025, la Banque compte 391 065 541 actions ordinaires émises et en circulation comparativement à 340 743 876 un an plus tôt. Elle compte également 64 000 000 actions privilégiées émises et en circulation (excluant les actions privilégiées série 44, série 45 et série 46 émises par la Banque, parallèlement aux BCRL; pour de plus amples renseignements, se reporter à la note 19 afférente aux présents états financiers consolidés), comparativement à 66 000 000 au 31 octobre 2024. De plus, elle compte 1 500 000 BCRL émis et en circulation, inchangé par rapport au 31 octobre 2024. Pour de plus amples renseignements sur les instruments de fonds propres, se reporter aux notes 15, 16 et 19 afférentes aux états financiers consolidés.
 
-[p.20]
-Représente le rendement de l'actif moyen excluant les éléments particuliers. Il correspond au résultat net ajusté exprimé en pourcentage de l'actif moyen. Ce ratio permet d'évaluer l'efficacité avec laquelle la Banque utilise l'ensemble de ses actifs pour générer du profit. Les éléments particuliers sont exclus afin de mieux évaluer le rendement de l'actif moyen en ne tenant pas compte d'éléments qui, selon la direction, ne reflètent pas la performance financière sous-jacente des activités d'exploitation de la Banque.
-
-[p.20]
-### Rendement des capitaux propres attribuables aux détenteurs d'actions ordinaires (RCP) ajusté
-
-[p.20]
-Représente le RCP excluant les éléments particuliers. Il correspond au résultat net attribuable aux actionnaires ordinaires ajusté exprimé en pourcentage des capitaux propres attribuables aux détenteurs d'actions ordinaires moyens. Il s'agit d'une mesure générale de l'efficience de la Banque quant à l'utilisation des capitaux propres. Les éléments particuliers sont exclus afin de mieux évaluer le RCP en ne tenant pas compte d'éléments qui, selon la direction, ne reflètent pas la performance financière sous-jacente des activités d'exploitation de la Banque.
-
-[p.20]
-### Ratio de versement des dividendes ajusté
-
-[p.20]
-Représente le ratio de versement des dividendes excluant les éléments particuliers. Il correspond aux dividendes sur actions ordinaires (montant par action) exprimés en pourcentage du résultat de base par action ajusté. Ce ratio est une mesure qui précise la proportion des résultats qui est versée aux actionnaires sous forme de dividendes. Les éléments particuliers sont exclus afin de mieux évaluer le ratio de versement des dividendes en ne tenant pas compte d'éléments qui, selon la direction, ne reflètent pas la performance financière sous-jacente des activités d'exploitation de la Banque.
-
-[p.20]
-### Levier opérationnel ajusté
-
-[p.20]
-Représente le levier opérationnel excluant les éléments particuliers. Il correspond à la différence entre le taux de croissance du revenu total ajusté et le taux de croissance des frais autres que d'intérêts ajustés, et mesure la sensibilité des résultats de la Banque à la variation de ses revenus. Les éléments particuliers sont exclus afin de mieux évaluer le levier opérationnel en ne tenant pas compte d'éléments qui, selon la direction, ne reflètent pas la performance financière sous-jacente des activités d'exploitation de la Banque.
-
-[p.20]
-### Ratio d'efficience ajusté
-
-[p.20]
-Représente le ratio d'efficience excluant les éléments particuliers. Ce ratio représente les frais autres que d'intérêts ajustés exprimés en pourcentage du revenu total ajusté et mesure l'efficience des activités de la Banque. Les éléments particuliers sont exclus afin de mieux évaluer le ratio d'efficience en ne tenant pas compte d'éléments qui, selon la direction, ne reflètent pas la performance financière sous-jacente des activités d'exploitation de la Banque.
-
-[p.20]
-### Marge nette d'intérêts autre que de négociation ajustée
-
-[p.20]
-Représente la marge nette d'intérêts autre que de négociation excluant les éléments particuliers. Elle se calcule en divisant le revenu net d'intérêts autre que de négociation ajusté par l'actif moyen portant intérêts autre que de négociation. Ce ratio est une mesure de la rentabilité des activités autres que de négociation. Les éléments particuliers sont exclus afin de mieux évaluer la marge nette d'intérêts autre que de négociation en ne tenant pas compte d'éléments qui, selon la direction, ne reflètent pas la performance financière sous-jacente des activités d'exploitation de la Banque.
-
-[p.20]
-La Banque exclut les prêts dépréciés dès leur acquisition ou leur création (DAC) ou les dotations aux pertes de crédit sur les prêts DAC de la filiale Credigy Ltd. dans les ratios non conformes aux PCGR suivants, étant donné la nature des activités de cette filiale, qui met l'accent sur le financement spécialisé.
-
-[p.20]
-### Dotations aux pertes de crédit sur les prêts dépréciés excluant les prêts DAC de Credigy en pourcentage des prêts moyens ou ratio des dotations aux pertes de crédit sur les prêts dépréciés excluant les prêts DAC de Credigy
-
-[p.20]
-Représentent les dotations aux pertes de crédit sur prêts dépréciés excluant les prêts DAC de la filiale Credigy exprimées en pourcentage des prêts moyens.
-
-[p.20]
-### Prêts dépréciés bruts excluant les prêts DAC de Credigy en pourcentage du total des prêts
-
-[p.20]
-Représentent les prêts dépréciés bruts excluant les prêts DAC de la filiale Credigy exprimés en pourcentage du solde des prêts.
-
-[p.21]
-### Prêts dépréciés nets excluant les prêts DAC de Credigy en pourcentage du total des prêts
-
-[p.21]
-Représentent les prêts dépréciés nets excluant les prêts DAC de la filiale Credigy exprimés en pourcentage du solde des prêts.
-
-[p.21]
-### Radiations nettes excluant les prêts DAC de Credigy en pourcentage des prêts moyens
-
-[p.21]
-Représentent les radiations nettes excluant les prêts DAC de la filiale Credigy (déduction faite des recouvrements) exprimées en pourcentage des prêts moyens.
-
-[p.21]
-### Taux de provisionnement excluant les prêts DAC de Credigy
-
-[p.21]
-Représente les provisions pour pertes de crédit sur prêts dépréciés excluant les prêts DAC de la filiale Credigy exprimées en pourcentage du solde des prêts dépréciés bruts excluant les prêts DAC de la filiale Credigy.
-
-[p.21]
-### Mesures financières supplémentaires
-
-[p.21]
-Une mesure financière supplémentaire désigne une mesure financière qui a) n'est pas présentée dans les états financiers consolidés de la Banque et b) est, ou est censée être, communiquée périodiquement en vue de représenter la performance financière, la situation financière ou les flux de trésorerie historiques ou attendus. La composition de ces mesures financières supplémentaires est présentée en note de bas de tableau ou dans le « Glossaire » aux pages 136 à 139 du présent Rapport de gestion.
-
-[p.21]
-### Mesures de gestion du capital
-
-[p.21]
-Le référentiel d'information financière appliqué pour établir les états financiers exige la communication d'information permettant d'évaluer les objectifs, procédures et processus de gestion du capital de la Banque, tel que prévu dans les IFRS à l'IAS 1 Présentation des états financiers . La façon dont la Banque gère son capital et ses liquidités lui est propre et les IFRS ne prescrivent pas un mode de calcul en particulier. Ces mesures sont calculées selon différentes lignes directrices ou préavis du Bureau du surintendant des institutions financières (Canada) (BSIF), lesquels se fondent sur les normes, recommandations et bonnes pratiques du Comité de Bâle sur le contrôle bancaire (CBCB), telles que présentées dans le tableau suivant.
-
-[p.22]
-### Présentation des résultats - ajustés
-
-[p.23]
-Au cours de l'exercice terminé le 31 octobre 2025, la Banque a comptabilisé une perte de 23 M$ (17 M$ déduction faite des impôts) liée à la réévaluation à la juste valeur des swaps de taux d'intérêt utilisés pour la gestion des variations de la juste valeur des actifs et passifs de CWB qui donnaient lieu à la volatilité du goodwill et des fonds propres à la clôture de la transaction (2024 : 3 M$, 2 M$ déduction faite des impôts).
-
-[p.24]
-### Contrôles et procédures de communication de l'information
-
-[p.24]
-La préparation des informations importantes de la Banque s'est appuyée sur des contrôles et des procédures de communication de l'information (CPCI) mis en place par le président et chef de la direction (le chef de la direction) et par la cheffe des Finances et première vice-présidente à la direction, Finances (la cheffe des Finances). Au cours de l'exercice terminé le 31 octobre 2025, la conception et le fonctionnement de ces contrôles et procédures ont fait l'objet d'une évaluation visant à en établir l'efficacité, conformément au Règlement 52-109 sur l'attestation de l'information présentée dans les documents annuels et intermédiaires des émetteurs (le Règlement 52-109) des ACVM.
-
-[p.24]
-Au 31 octobre 2025, le chef de la direction et la cheffe des Finances confirment l'efficacité des CPCI. Ces contrôles sont conçus pour fournir l'assurance raisonnable que l'information présentée dans les documents annuels, les documents intermédiaires ou d'autres rapports déposés ou transmis en vertu de la législation en valeurs mobilières est enregistrée, traitée, condensée et présentée dans les délais prescrits par cette législation. Ces contrôles et procédures sont également conçus pour garantir que cette information est rassemblée puis communiquée à la direction de la Banque, y compris ses dirigeantes et ses dirigeants signataires, selon ce qui convient pour prendre des décisions en temps opportun en matière de communication de l'information.
-
-[p.24]
-Le présent Rapport annuel a été révisé par le comité de divulgation, le comité d'audit ainsi que par le conseil d'administration de la Banque (le Conseil), qui l'ont approuvé avant sa publication.
-
-[p.24]
-### Contrôle interne à l'égard de l'information financière
-
-[p.24]
-Le contrôle interne à l'égard de l'information financière (CIIF) est conçu pour fournir une assurance raisonnable que l'information financière présentée est fiable et que les états financiers consolidés ont été établis en conformité avec les PCGR, lesquels sont fondés sur les IFRS, sauf indication contraire tel que mentionné aux pages 18 à 23 du présent Rapport de gestion. En raison des limites intrinsèques des systèmes de contrôle, le CIIF ne peut éviter ou déceler toutes les inexactitudes en temps opportun.
-
-[p.24]
-Le chef de la direction et la cheffe des Finances ont supervisé les travaux d'évaluation de la conception et du fonctionnement du CIIF de la Banque, conformément au Règlement 52-109. L'évaluation du CIIF a été effectuée selon le cadre de contrôle du Committee of Sponsoring Organizations of the Treadway Commission (COSO - 2013) pour les contrôles financiers et selon le cadre de contrôle Control Objectives for Information and Related Technologies (COBIT) pour les contrôles généraux des technologies de l'information.
-
-[p.24]
-### Changements apportés au contrôle interne à l'égard de l'information financière
-
-[p.24]
-Le chef de la direction et la cheffe des Finances ont également procédé à des travaux qui leur ont permis de conclure qu'au cours de l'exercice terminé le 31 octobre 2025, le CIIF n'a subi aucun changement qui a eu, ou dont on pourrait raisonnablement penser qu'il aurait, une incidence importante sur sa conception et son fonctionnement.
-
-[p.24]
-À la suite de l'acquisition de CWB le 3 février 2025, la Banque a mis en œuvre et modifié certains processus liés au contrôle interne à l'égard de l'information financière. Ces modifications n'ont pas eu d'incidence importante sur le contrôle interne à l'égard de l'information financière.
-
-[p.24]
-### Comité de divulgation
-
-[p.24]
-Le comité de divulgation assiste le chef de la direction ainsi que la cheffe des Finances, en s'assurant de la conception, de la mise en place et du bon fonctionnement des contrôles et procédures de communication de l'information et du contrôle interne à l'égard de l'information financière. C'est ainsi qu'il peut vérifier que la Banque respecte les obligations de communication de l'information prévues dans la réglementation en vigueur et que le chef de la direction et la cheffe des Finances produisent les attestations requises.
-
-[p.26]
-### La Banque en bref
-
-[p.26]
-La Banque exerce ses activités dans quatre secteurs d'exploitation : Particuliers et Entreprises, Gestion de patrimoine, Marchés des capitaux (anciennement Marchés financiers) et Financement spécialisé aux États-Unis et International (FSEU&I) qui regroupe les activités des filiales Credigy Ltd. (Credigy) et Advanced Bank of Asia Limited (ABA Bank). Les autres activités opérationnelles, certains éléments particuliers ainsi que les activités de trésorerie et de la filiale Flinks Technologie inc. (Flinks) sont regroupés à des fins de présentation dans la rubrique Autres des informations sectorielles . Chaque secteur se distingue par le service offert, le type de clientèle visé et la stratégie de commercialisation mise en place. Pour de plus amples renseignements, se reporter à la section « Analyse sectorielle » du présent Rapport de gestion.
-
-[p.26]
-Les objectifs de la Banque sont fixés de manière à constituer un défi réaliste dans le contexte qui prévaut en tenant compte de l'évolution des résultats financiers de l'industrie bancaire et du plan de développement des affaires de la Banque. Lorsque la Banque établit ses objectifs à moyen terme, elle ne tient pas compte des éléments particuliers, le cas échéant, qui ne reflètent pas la performance financière sous-jacente des activités d'exploitation de celle-ci. La direction examine le rendement de la Banque par rapport à ses objectifs en excluant les éléments particuliers.
-
-[p.26]
-La Banque a enregistré un résultat net de 4 017 M$ pour l'exercice 2025, en comparaison de 3 816 M$ pour l'exercice 2024. Le résultat dilué par action atteint 10,07 $ en 2025, contre 10,68 $ à l'exercice 2024. De plus, le rendement des capitaux propres attribuables aux détenteurs d'actions ordinaires (RCP) s'établit à 13,7 % pour l'exercice 2025, comparativement à 17,2 % en 2024. Les baisses du résultat dilué par action et du RCP s'expliquent principalement par l'impact des éléments particuliers (2) en lien avec l'acquisition de CWB (1) . Le résultat dilué par action ajusté de l'exercice 2025 de 11,28 $ est en hausse de 9 % par rapport à 10,39 $ en 2024. De plus, le RCP ajusté de 15,3 % en 2025 se compare à 16,7 % en 2024.
-
-[p.26]
-Le tableau ci-dessous compare les objectifs à moyen terme de la Banque aux résultats obtenus en 2025.
-
-[p.26]
-La Banque a enregistré des résultats conformes à tous ses objectifs à moyen terme. Le résultat dilué par action ajusté de l'exercice 2025 est en croissance de 9 % par rapport à l'exercice 2024, ce qui se situe dans le haut de la cible fixée, en raison de la forte croissance des revenus de tous les secteurs d'exploitation (incluant CWB). Malgré l'augmentation des actions ordinaires en circulation à la suite de l'acquisition de CWB, le RCP ajusté de l'exercice 2025 se situe dans la cible fixée. Le ratio de versement des dividendes ajusté se situe dans la borne inférieure de la fourchette cible de distribution, notamment en raison de l'augmentation des dividendes versés au cours de l'exercice. De plus, le ratio des fonds propres CET1 et le LCR, respectivement à 13,8 % et 173 %, atteignent également les objectifs fixés.
-
-[p.26]
-La Banque utilise également le ratio d'efficience et le levier opérationnel afin d'analyser son rendement. Pour l'exercice 2025, le ratio d'efficience est de 54,4 % et se compare à 53,1 % pour l'exercice 2024, une détérioration notamment attribuable à l'effet négatif des éléments particuliers enregistrés en 2025 comparativement à un effet positif en 2024. Le ratio d'efficience ajusté pour l'exercice 2025 est de 51,2 % et se compare à 53,7 % pour l'exercice précédent, ce qui s'explique par une forte croissance des revenus et une gestion des dépenses pour l'ensemble des secteurs d'exploitation. De plus, pour l'exercice 2025, le levier opérationnel se chiffre à (2,9) %, alors que le levier opérationnel ajusté est positif et se chiffre à 5,9 %.
-
-[p.27]
+[p.66]
 ### Dividendes
 
-[p.27]
-Pour l'exercice 2025, la Banque a déclaré un dividende sur actions ordinaires de 4,64 $ par action (2024 : 4,32 $ par action), ce qui représente un ratio de versement des dividendes de 45,6 % (2024 : 40,1 %). Le montant de dividendes sur actions ordinaires s'élève à 1 763 M$ pour l'exercice 2025 (2024 : 1 468 M$). En excluant les éléments particuliers, le ratio de versement de dividendes s'établit à 40,7 % (2024 : 41,2 %).
+[p.66]
+La stratégie en matière de dividende sur les actions ordinaires de la Banque est de cibler un ratio de versement des dividendes de 40 % à 50 % du résultat net attribuable aux détenteurs d'actions ordinaires, en considérant la situation financière, les besoins de trésorerie, les exigences réglementaires ainsi que tout autre facteur jugé pertinent par les membres du Conseil.
 
-[p.27]
-### Niveau de fonds propres élevés (1)
+[p.66]
+Pour l'exercice 2025, la Banque a déclaré un dividende sur actions ordinaires de 4,64 $ par action (2024 : 4,32 $ par action), ce qui représente un ratio de versement des dividendes de 45,6 % (2024 : 40,1 %). Le montant de dividendes sur actions ordinaires s'élève à 1 763 M$ pour l'exercice 2025 (2024 : 1 468 M$). En excluant les éléments particuliers, le ratio de versement de dividendes s'établit à 40,7 % (2024 : 41,2 %). Le ratio de versement des dividendes se situe à l'intérieur de la fourchette cible de distribution, notamment en raison de l'augmentation des dividendes versés au cours de l'exercice. Compte tenu de la conjoncture économique de l'exercice 2025, la Banque fait preuve de prudence dans la gestion de ses fonds propres réglementaires et elle demeure confiante en sa capacité de faire croître ses résultats pour les années à venir.
 
-[p.27]
+[p.67]
+### Actions, autres instruments de capitaux propres et options d'achat d'actions
+
+[p.67]
+Au 28 novembre 2025, le nombre d'actions ordinaires en circulation se chiffre à 390 304 313 et le nombre d'options en cours est de 10 479 900. Le nombre d'actions ordinaires et le nombre d'options en circulation reflètent la clôture de la transaction avec CWB. Les clauses relatives aux FPUNV exigent la conversion des instruments de fonds propres en un nombre variable d'actions ordinaires lorsque le BSIF considère une banque comme non viable ou que le gouvernement annonce publiquement qu'une banque a accepté ou a convenu d'accepter une injection de capitaux. Si un événement déclencheur faisant intervenir les clauses FPUNV devait se produire, toutes les actions privilégiées et les BCRL de la Banque ainsi que les billets à moyen terme et les débentures subordonnées, qui sont des instruments de fonds propres assortis d'une clause FPUNV, seraient convertis en actions ordinaires de la Banque selon une formule de conversion automatique, à un prix de conversion correspondant au plus élevé des montants suivants : i) un prix plancher contractuel de 5,00 $; ii) le cours du marché des actions ordinaires de la Banque à la date de l'événement déclencheur (cours moyen pondéré sur 10 jours). Selon un prix-plancher de 5,00 $ et en tenant compte des dividendes et intérêts cumulés estimés, ces instruments de fonds propres assortis d'une clause FPUNV se convertiraient en un maximum de 1 560 millions d'actions ordinaires de la Banque, d'où un effet dilutif de 80,0 % selon le nombre d'actions ordinaires de la Banque en circulation au 31 octobre 2025. Les BCRL - Série 1 rachetés le 17 novembre 2025 pour un prix total de 500 M$ ont été exclus du calcul.
+
+[p.68]
+### Ratios des fonds propres réglementaires, de levier et TLAC
+
+[p.68]
 Le ratio des fonds propres CET1, le ratio des fonds propres de catégorie 1 et le ratio du total des fonds propres s'établissent, respectivement, à 13,8 %, à 15,1 % et à 17,3 % au 31 octobre 2025, comparativement à des ratios de 13,7 %, de 15,9 % et de 17,0 %, respectivement, au 31 octobre 2024. Le ratio des fonds propres CET1 et le ratio du total des fonds propres ont augmenté depuis le 31 octobre 2024, tandis que le ratio des fonds propres de catégorie 1 a diminué. L'émission d'actions ordinaires relative à l'acquisition de CWB et le résultat net, déduction faite des dividendes, ont eu un effet favorable sur les ratios, en partie contrebalancé par le rachat d'actions ordinaires, ainsi que par la croissance de l'actif pondéré en fonction des risques due principalement à l'inclusion de CWB. Le ratio du total des fonds propres a également bénéficié de l'émission nette de dettes subordonnées. De plus, le rachat d'actions privilégiées effectué le 17 février 2025 ainsi que le rachat de la totalité des BCRL - Série 1 effectué le 17 novembre 2025, atténué par l'échange des actions privilégiées de CWB contre des actions privilégiées de la Banque le 20 février 2025, a eu un impact défavorable sur le ratio des fonds propres de catégorie 1.
 
-[p.27]
-### Portefeuille de prêts de qualité
+[p.68]
+Le ratio de levier en date du 31 octobre 2025 s'établit à 4,5 %, comparativement à 4,4 % au 31 octobre 2024. L'augmentation du ratio de levier s'explique par la croissance des fonds propres de catégorie 1 en raison des mêmes éléments que ceux décrits ci-dessus, en partie contrebalancée par l'augmentation de l'exposition totale.
 
-[p.27]
-Les prêts, déduction faite des provisions pour pertes de crédit, comptent pour 52 % de l'actif total de la Banque et s'élèvent à 302,6 G$ au 31 octobre 2025. Les dotations aux pertes de crédit de l'exercice 2025 se chiffrent à 1 246 M$ par rapport à 569 M$ en 2024. Cette augmentation considérable provient en partie des dotations aux pertes de crédit initiales de 230 M$ enregistrées sur les prêts non dépréciés acquis de CWB. De plus, cette hausse s'explique par l'augmentation des dotations aux pertes de crédit sur les prêts non dépréciés principalement en raison de la recalibration de certains paramètres de risque et des incertitudes entourant l'imposition de nouveaux droits de douane. Les dotations aux pertes de crédit sur les prêts dépréciés affichent une hausse de 316 M$ qui provient des Services aux particuliers (incluant les créances sur cartes de crédit) et des Services aux entreprises (incluant les portefeuilles de CWB), du secteur des Marchés des capitaux ainsi que de la filiale ABA Bank. Les dotations aux pertes de crédit sur les prêts dépréciés de 2025 représentent 0,28 % des prêts moyens, contre 0,20 % pour l'exercice précédent. Les prêts dépréciés bruts totalisent 3 712 M$ au 31 octobre 2025, comparativement à 2 043 M$ au 31 octobre 2024, et représentent 1,22 % du total des prêts, une hausse en partie attribuable à l'inclusion des prêts dépréciés de CWB et de l'augmentation des prêts dépréciés de la filiale ABA Bank.
+[p.68]
+Au 31 octobre 2025, le ratio TLAC et le ratio de levier TLAC s'établissent, respectivement, à 29,7 % et à 8,8 %, comparativement à 31,2 % et à 8,6 %, respectivement, au 31 octobre 2024. L'augmentation du ratio de levier TLAC s'explique principalement par les émissions nettes d'instruments qui satisfont tous les critères d'admissibilité TLAC au cours de l'exercice. Cependant, la croissance de l'actif pondéré en fonction des risques, attribuable principalement à l'inclusion de CWB, a plus que compensé ces émissions, ce qui a entraîné une diminution du ratio TLAC.
 
-[p.27]
-### Dividende annuel par action ordinaire
+[p.68]
+Au cours de l'exercice terminé le 31 octobre 2025, la Banque a respecté toutes les exigences réglementaires imposées par le BSIF en matière de capital, de levier et de TLAC.
 
-[p.27]
-Prêts dépréciés bruts en % du total des prêts
+[p.70]
+### Actif pondéré en fonction des risques selon les principaux facteurs de risque
 
-[p.28]
-### Économie mondiale
+[p.70]
+L'actif pondéré en fonction des risques a augmenté de 47,8 G$ pour s'établir à 188,8 G$ au 31 octobre 2025, comparativement à 141,0 G$ au 31 octobre 2024. Cette augmentation découle principalement de l'inclusion de CWB, ainsi que de la croissance organique de l'actif pondéré en fonction des risques et de la détérioration de la qualité de crédit du portefeuille de prêts. La variation de l'actif pondéré en fonction des risques de la Banque par type de risque est présentée dans le tableau suivant.
 
-[p.28]
-Sur le front du commerce international, les dernières semaines ont été plutôt positives, les États-Unis ayant signé des accords sectoriels avec plusieurs pays asiatiques, notamment la Corée du Sud, le Cambodge, le Vietnam, la Malaisie, et, surtout, avec la Chine. L'incertitude commerciale mondiale s'est donc significativement atténuée, ce qui, du point de vue de la croissance économique, ne peut être que positif. Cependant, des défis structurels demeurent. Dans la plupart des pays avancés, la situation budgétaire s'est détériorée ces dernières années et, à en juger par les dernières prévisions du Fonds monétaire international (FMI), cette tendance pourrait se poursuivre à l'avenir. Même si certains pays disposeront probablement d'une plus grande marge de manœuvre que d'autres en matière de gestion de la dette, les impératifs budgétaires des économies avancées devraient néanmoins peser sur la croissance mondiale au cours des prochaines années, soit directement en raison de la réduction des dépenses et de l'augmentation des impôts, soit indirectement par le biais de taux d'intérêt plus élevés qu'ils ne l'auraient été autrement. Le ralentissement de la croissance de la population à l'échelle mondiale est un autre élément qui est susceptible de maintenir la croissance plus faible au cours des prochaines années. Cela devrait être particulièrement vrai dans les économies les plus riches, où la Banque mondiale prévoit une stagnation de la croissance démographique au cours des 20 prochaines années. Mais si ces tendances structurelles vont sans aucun doute freiner la croissance sur un horizon à plus long terme, des facteurs conjoncturels, notamment les mesures de relance budgétaire aux États-Unis et en Allemagne, vont avoir l'effet inverse au cours des prochains mois. Il en résultera une croissance mondiale qui devrait osciller autour de son potentiel au cours des deux prochaines années.
+[p.70]
+### Variation de l'actif pondéré en fonction des risques selon les principaux facteurs (1)
 
-[p.28]
-L'arrêt des services gouvernementaux américains s'est terminé après 43 jours, ce qui constitue un record dans l'histoire des États-Unis. Selon les estimations du Congressional Budget Office (CBO), cette suspension pourrait réduire la croissance annualisée du produit intérieur brut (PIB) de 1,5 point de pourcentage au dernier trimestre (1) de 2025. Puisque la faiblesse attendue au quatrième trimestre est largement attribuable à la diminution des dépenses gouvernementales et à la baisse de consommation des employées et employés qui ont vu leur versement salarial suspendu, il est attendu que celle-ci soit largement renversée au trimestre suivant. Ce rebond après la paralysie pourrait d'ailleurs être accentué par une myriade d'autres facteurs, au premier rang desquels figure une politique budgétaire plus laxiste que prévu après l'adoption du One Big Beautiful Bill (OBBB) en juillet dernier. Les conditions financières favorables, si elles persistent, devraient également supporter la croissance. À cela s'ajoute l'emballement actuel entourant l'intelligence artificielle qui stimule les investissements dans ce secteur. Si nous ne sommes pas trop inquiets pour les perspectives de croissance aux États-Unis, nous le sommes davantage pour l'évolution de l'inflation. En effet, les éléments mentionnés précédemment stimulent la croissance à un moment où les capacités sont déjà utilisées presque à leur maximum et où l'inflation demeure nettement supérieure à l'objectif de la Réserve fédérale américaine. Il est vrai que le rapport de l'Indice des prix à la consommation (IPC) de septembre contenait certains éléments positifs, mais il a également mis en évidence l'impact croissant des droits de douane sur les prix des biens de base, qui sont en hausse d'environ 1,5 % sur une base annuelle. Ce pourcentage peut sembler faible, mais il faut savoir que, par le passé, l'atteinte de l'objectif de 2 % a presque toujours été conditionnelle à une déflation des biens de base. Dans ce contexte, nous anticipons que l'inflation de base pourrait continuer d'osciller autour de 3 % jusqu'à la fin de l'année 2026, ce qui pourrait empêcher la banque centrale de réduire les taux d'intérêt autant que le marché l'anticipe actuellement. Après les soubresauts liés à la fermeture de l'administration fédérale, la croissance devrait quant à elle rester légèrement au-dessus de son potentiel en 2026 (notons que ce dernier sera plus faible l'an prochain, en raison d'un ralentissement important de la croissance de la population). Selon notre scénario de base, cela devrait se traduire par une croissance du PIB de 2,0 % (2) cette année et de 2,2 % (2) l'an prochain.
+[p.70]
+Le tableau ci-dessus présente la variation de l'actif pondéré en fonction des risques selon les principaux facteurs sous-jacents aux différentes catégories de risques.
 
-[p.28]
-### Économie du Canada
+[p.70]
+La rubrique « Taille du portefeuille » comprend les changements internes relatifs à la taille et à la composition du portefeuille (y compris les nouveaux prêts et les prêts venant à échéance). Les fluctuations de l'actif pondéré en fonction des risques attribuables à la taille du portefeuille comprennent l'augmentation ou la diminution des expositions, évaluée pour chaque exposition en cas de défaut, en supposant un profil de risque stable.
 
-[p.28]
-Le dénouement des tensions commerciales entre le Canada et les États-Unis demeure hautement incertain, alors que les discussions pour parvenir à un accord commercial sont en suspens. Entretemps, l'économie canadienne en subit les contrecoups, telle qu'en témoigne la hausse cumulative de trois dixièmes de point de pourcentage du taux de chômage (2) depuis février 2025. Les données semblent indiquer une reprise de la vigueur sur le marché du travail au cours des derniers mois, mais considérant la volatilité élevée des résultats de cette enquête, il serait prématuré d'en conclure que le pire est passé. Les perspectives à court terme semblent d'ailleurs moroses à en croire les sondages faits auprès des entreprises, qui signalent une faible intention d'embauche. Du côté du PIB, après une importante contraction au deuxième trimestre de 2025, un rebond modeste est attendu au troisième trimestre, marqué par des exportations qui demeurent faibles et des investissements qui pourraient à nouveau fléchir. Compte tenu du ralentissement de l'économie, la Banque du Canada a annoncé deux baisses de taux en septembre et en octobre, portant le taux directeur à 2,25 %. Toutefois, en raison de l'inflation qui demeure plus élevée que la cible de la banque centrale et des derniers développements sur le marché de l'emploi, la Banque a signalé qu'elle considérait le niveau de son taux directeur approprié pour le moment, semblant passer le relais à la politique budgétaire pour peaufiner le stimulus injecté à l'économie. À ce sujet, le budget du gouvernement fédéral publié le 4 novembre 2025 chiffrait les mesures contribuant à une résilience de la consommation des ménages, dont une baisse d'impôts, la suppression de la taxe sur le carbone et la volteface concernant la taxation des gains en capital. Le gouvernement a également annoncé des investissements supplémentaires dans les secteurs du logement et des infrastructures, ainsi que des mesures pour stimuler l'investissement des entreprises. Le budget indiquait que le déficit de l'année financière 2025-2026 atteindrait 78 G$ (2,5 % du PIB), soit bien plus que les 42 G$ prévus il y a un an. Dans un contexte de très faible croissance démographique, nous prévoyons une croissance du PIB limitée à 1,1 % (2) en 2026, après 1,2 % (2) en 2025. Cette prévision intègre des faiblesses économiques qui perdureraient jusqu'à la fin de l'année en cours, ainsi qu'une embellie graduelle l'an prochain, sous réserve d'une désescalade des tensions commerciales avec les États-Unis. Le taux de chômage devrait se situer en moyenne à 6,8 % (2) l'an prochain, contre 6,9 % (2) cette année.
+[p.70]
+La rubrique « Qualité du portefeuille » représente la meilleure estimation de la Banque des changements dans la qualité du portefeuille liés à l'expérience, tels que le comportement des clients sous-jacents ou les données démographiques, y compris les changements découlant de la calibration ou du réalignement des modèles ainsi que la prise en compte de facteurs d'atténuation du risque.
 
-[p.29]
-### Économie du Québec
+[p.70]
+La rubrique « Mises à jour des modèles » inclut la mise en œuvre des modèles, les changements à l'étendue des modèles ou tout autre changement visant à régler les dysfonctionnements liés aux modèles.
 
-[p.29]
-Les données afférentes à l'économie du Québec envoient des signaux quelque peu contradictoires sur l'impact qu'ont les tensions commerciales avec les États-Unis. D'un côté, en juillet, le PIB de la province se situait 1,1 % sous son niveau de janvier 2025, avant que les droits de douane s'intensifient. Il s'agit là d'une sous-performance par rapport à l'économie canadienne, qui affichait plutôt une stagnation sur la même période. D'un autre côté, après une hausse modérée au cours des derniers mois, le taux de chômage est retombé à 5,3 % en octobre, soit le même niveau qu'au début de la guerre commerciale et le plus bas au pays. Il faudra donc attendre quelques mois supplémentaires pour confirmer si l'activité économique s'est effectivement redressée depuis l'été, comme l'indiquent les données du marché du travail. Un tel revirement est surprenant dans la mesure où les exportations vers les États-Unis représentent une part importante du PIB (15,7 % contre 18,7 % au Canada) et compte tenu du fait que le Québec est l'objet du taux de tarifs le plus élevé de la fédération (9,4 % contre 5,5 % au Canada). Toutefois, nous continuons de croire que l'économie québécoise reste bien positionnée pour faire face aux défis actuels. D'abord, elle est moins vulnérable à des chocs sectoriels. En effet, en Amérique du Nord, le Québec est la quatrième économie la plus diversifiée après le Manitoba, la Pennsylvanie et le Texas. En matière d'exportations, le Québec est la province la plus diversifiée. De plus, les consommatrices et consommateurs ont été moins affectés par la lutte contre l'inflation depuis 2022 et la politique monétaire restrictive qui en a découlé, car ils sont moins endettés qu'ailleurs, alors que les prix des logements y sont plus abordables. D'ailleurs, malgré l'incertitude actuelle, nous dénotons une plus grande résilience du marché de l'immobilier au Québec par rapport notamment à l'Ontario et à la Colombie-Britannique. Les ménages québécois ont un taux d'épargne plus élevé qu'ailleurs au pays, ce qui pourrait leur permettre de mieux résister à de potentiels vents contraires. Nos prévisions de croissance pour la province sont de 0,9 % (1) en 2026, après 0,7 % (1) en 2025. La province devrait continuer d'afficher l'un des taux de chômage les plus bas de la fédération à 5,6 % (1) en moyenne en 2026 comparativement à 5,7 % (1) cette année (6,8 % (1) et 6,9 % (1) , respectivement au Canada).
+[p.70]
+La rubrique « Méthode et politique » présente les changements de méthode de calcul découlant de changements dans les politiques réglementaires ou d'une nouvelle réglementation.
+
+[p.71]
+### Allocation du capital économique et de l'actif pondéré en fonction du risque réglementaire
+
+[p.71]
+Le capital économique est la mesure interne utilisée par la Banque pour évaluer les fonds propres nécessaires à sa solvabilité et à la poursuite de ses activités commerciales. Le capital économique prend en compte les risques de crédit, de marché, opérationnel et d'affaires, ainsi que d'autres risques auxquels la Banque est exposée. De plus, le calcul du capital économique tient compte de l'effet de diversification de ces risques entre eux et entre les différents secteurs d'exploitation. Le capital économique permet ainsi à la Banque de déterminer le montant des fonds propres dont elle doit disposer pour se protéger contre ces risques et assurer sa pérennité. La ventilation par secteur d'exploitation du capital économique et de l'actif pondéré en fonction des risques réglementaires a été effectuée sur une base individuelle avant l'allocation du goodwill et des immobilisations incorporelles. La méthode d'évaluation du capital économique est révisée régulièrement afin de quantifier précisément ces risques.
+
+[p.71]
+La section « Gestion des risques » du présent Rapport de gestion fournit toutes les informations relatives aux principaux types de risques. Le regroupement « Autres risques » présenté ci-dessous comprend notamment le risque d'affaires, le risque de taux d'intérêt structurel et l'avantage de la diversification entre les types de risques.
+
+[p.71]
+### Banque Nationale du Canada
+
+[p.71]
+Consulter le « Mode de présentation de l'information » aux pages 18 à 23 pour de plus amples renseignements sur les mesures de gestion du capital.
+
+[p.72]
+## Gestion des risques
+
+[p.72]
+Les textes grisés et les tableaux identifiés d'un astérisque (*) de la présente section du rapport de gestion font partie intégrante des états financiers consolidés. Ils représentent les objectifs de la Banque, les politiques et procédures en matière de gestion des risques ainsi que les méthodes utilisées pour mesurer le risque de crédit, le risque de marché ainsi que les risques de liquidité et de financement tel qu'exigé par l'IFRS 7 Instruments financiers : Informations à fournir .
+
+[p.72]
+La prise de risques fait partie intégrante des activités d'une institution financière et la Banque considère le risque comme un élément indissociable de son développement et de la diversification de ses activités. Elle préconise une gestion des risques harmonisée à sa stratégie d'affaires. La Banque s'expose volontairement à certaines catégories de risques, plus particulièrement aux risques de crédit et de marché, dans le but de dégager des revenus. Elle assume certains risques inhérents à ses activités, auxquels elle ne choisit pas de s'exposer et qui ne produisent pas de revenus, principalement les risques opérationnels. L'objectif d'une gestion saine et efficace des risques est de donner l'assurance raisonnable que les risques encourus n'excèdent pas les seuils acceptables, de contrôler la volatilité des résultats de la Banque et de s'assurer que la prise de risques contribue à la création de valeur pour les actionnaires.
+
+[p.72]
+### Cadre de la gestion des risques
+
+[p.72]
+Les risques sont gérés de façon rigoureuse. Ils sont identifiés, mesurés et contrôlés afin d'atteindre un juste équilibre entre le rendement obtenu et les risques assumés. Par conséquent, les processus de prise de décisions sont guidés par une évaluation et une gestion des risques en phase avec l'appétit pour le risque de la Banque et par des niveaux prudents de fonds propres et de liquidités. Quelle que soit la rigueur accordée à la gestion des risques et aux mesures d'atténuation mises en place, les risques ne peuvent pas être éliminés en totalité et ceux qui subsistent peuvent parfois entraîner des pertes.
+
+[p.72]
+La Banque s'est dotée de principes directeurs pour soutenir une gestion saine et efficace des risques et contribue ainsi à préserver sa réputation, sa marque de commerce et sa pérennité :
+
+[p.72]
+ le risque est l'affaire de tous : les unités d'affaires, les fonctions liées à la gestion des risques et à la supervision, de même que l'Audit interne jouent un rôle important pour assurer la mise en place du cadre de gestion des risques; les transformations et simplifications des activités sont réalisées sans compromis sur la gestion rigoureuse des risques;
+
+[p.72]
+ centrée client : la qualité des données est la clé pour connaître les clientes et les clients, bien gérer les risques et offrir un excellent service à la clientèle;
+
+[p.72]
+ à l'échelle de l'entreprise : une bonne compréhension et une vision intégrée des risques sont à la base d'une gestion saine et efficace des risques et d'une prise de décisions éclairée par la direction;
+
+[p.72]
+ capital humain : les membres du personnel sont engagés, expérimentés et possèdent une grande expertise; leur curiosité contribue à leur perfectionnement continu et leur rigueur favorise l'intégration de la gestion des risques à la culture organisationnelle; des programmes de rémunération incitative sont structurés de façon à respecter la tolérance aux risques de la Banque et à encourager les comportements attendus;
+
+[p.72]
+ basée sur des faits : une bonne gestion des risques repose sur un discernement rigoureux et un bon jugement ainsi que sur des modèles et des systèmes perfectionnés.
+
+[p.72]
+### Appétit pour le risque
+
+[p.72]
+L'appétit pour le risque représente le niveau de risque qu'une entreprise est prête à assumer afin de réaliser sa stratégie d'affaires. La Banque définit son appétit pour le risque par des seuils de tolérance, par l'alignement sur sa stratégie d'affaires et par l'intégration de la gestion des risques à sa culture d'entreprise. L'appétit pour le risque est intégré aux processus de prise de décisions ainsi que de planification stratégique et financière et de gestion du capital. En établissant son appétit pour le risque, la Banque considère également sa posture de risque et tous les impacts pouvant découler d'un changement stratégique, d'un changement d'objectif, de risques émergents ou de facteurs externes, tels que les impacts de l'acquisition récente de CWB.
+
+[p.72]
+Le cadre de l'appétit pour le risque repose sur des principes, des énoncés, des mesures ainsi que des cibles, et il est renforcé par des politiques et des limites. Les cibles d'appétit pour le risque sont établies en tenant compte des contraintes réglementaires de la Banque et des attentes de nos parties prenantes, notamment la clientèle, le personnel, la communauté, les actionnaires, les organismes de réglementation, les gouvernements et les agences de notation. Le cadre de l'appétit pour le risque est défini par les principes et énoncés suivants :
+
+[p.72]
+La réputation, la marque de commerce et la pérennité de la Banque sont au cœur de nos décisions, ce qui requiert :
+
+[p.72]
+ une position solide en capital et en liquidités;
+
+[p.72]
+ une gestion rigoureuse des risques incluant la sécurité de l'information, la non-conformité à la réglementation et les pratiques de vente;
+
+[p.72]
+ l'atteinte des objectifs environnementaux, sociaux et de gouvernance.
+
+[p.72]
+Nous comprenons les risques encourus; ils sont alignés sur notre stratégie d'affaires et se traduisent par :
+
+[p.72]
+ un juste équilibre entre le risque et le rendement;
+
+[p.72]
+ un niveau stratégique de concentration aligné sur les cibles approuvées.
+
+[p.72]
+Notre transformation et notre simplification sont réalisées sans compromettre la gestion rigoureuse des risques, ce qui se reflète dans :
+
+[p.72]
+ une tolérance peu élevée aux risques opérationnels et de réputation;
+
+[p.72]
+ la stabilité des opérations et des systèmes informatiques en temps normal ainsi qu'en temps de crise.
+
+[p.73]
+La direction de la Banque et les unités d'affaires sont impliquées dans le processus de détermination de l'appétit pour le risque et doivent suivre adéquatement les indicateurs de risques identifiés. L'évaluation de ces besoins s'effectue au moyen du processus de planification stratégique d'entreprise. Les indicateurs de risques font l'objet d'une diffusion régulière, ce qui assure que le profil de risque de la Banque est aligné sur le niveau déterminé d'appétit pour le risque, à défaut de quoi des mesures correctrices pourraient être prises. Pour de plus amples renseignements sur les principaux indicateurs de risque suivis par la direction de la Banque pour le risque de crédit, le risque de marché et le risque de liquidité et de financement, se reporter aux pages suivantes.
+
+[p.73]
+### Simulations de crises à l'échelle de l'entreprise
+
+[p.73]
+Un programme de simulation de crises à l'échelle de l'entreprise est en place à la Banque. Il fait partie d'un processus plus exhaustif visant à s'assurer que la Banque maintienne des niveaux adéquats de fonds propres, conformément à ses stratégies d'affaires et à son appétit pour le risque. La simulation de crises est un mécanisme de gestion des risques consistant à évaluer les effets potentiels, sur la situation financière de la Banque, ses fonds propres et sa liquidité, d'un ensemble de changements précis dans les facteurs de risque correspondant à des événements exceptionnels, mais plausibles. Ce programme soutient le processus de décision de la direction, en identifiant les domaines de vulnérabilité potentielle pour la Banque dans son ensemble qui sont reflétés dans l'établissement des limites ainsi que dans la planification d'affaires à plus long terme. Les scénarios de même que les résultats des simulations sont approuvés par le groupe de surveillance des simulations de crises et font l'objet d'une révision par le comité des risques globaux (CRG) et par le comité de gestion des risques (CGR). Pour de plus amples renseignements, se reporter à la section « Simulations de crises » du présent Rapport de gestion pour les risques de crédit, de marché et de liquidité et de financement.
+
+[p.73]
+### Intégration de la gestion des risques à la culture organisationnelle
+
+[p.73]
+La gestion des risques est intégrée à l'évolution culturelle de la Banque par l'entremise, notamment, des axes suivants :
+
+[p.73]
+ Ton donné par la direction : la direction de la Banque fait la promotion de la gestion des risques dans ses communications internes et le démontre par des actions et des décisions alignées avec l'appétit pour le risque, ainsi que par les valeurs et la culture souhaitées.
+
+[p.73]
+ Responsabilité partagée : un modèle équilibré est préconisé où les initiatives de développement des affaires sont combinées avec la préoccupation constante d'une gestion des risques saine et efficace. À cet égard, le risque est considéré notamment dans les plans d'affaires des secteurs d'exploitation, dans l'analyse d'initiatives stratégiques et lors du lancement de nouveaux produits.
+
+[p.73]
+ Transparence : intégrée dans les valeurs de l'entreprise, la transparence nous permet de communiquer rapidement nos préoccupations sans crainte de représailles. La Banque se positionne comme une organisation apprenante où les membres du personnel ont droit à l'erreur.
+
+[p.73]
+ Comportements : des pratiques de gestion des talents et du rendement, incluant des programmes de rémunération incitative tenant compte du rendement et des comportements, renforcent la gestion des risques et favorisent les comportements souhaités.
+
+[p.73]
+ Développement en continu : tous les membres du personnel doivent suivre annuellement une formation obligatoire sur la conformité à la réglementation, qui porte notamment sur le Code de conduite de la Banque et la lutte contre le recyclage des produits de la criminalité et de financement des activités terroristes (RPCFAT) ainsi que des formations en lien avec la cybersécurité. Des programmes de formation sur la gestion des risques sont également offerts à l'ensemble des unités d'affaires de la Banque.
+
+[p.73]
+En plus des cinq axes identifiés, l'Audit interne effectue une évaluation de la culture organisationnelle dans le cadre de ses mandats. Enfin, en vue d'assurer l'efficacité du cadre de la gestion des risques en place, la Banque a clairement défini les rôles et responsabilités en renforçant le concept de trois lignes de défense. La section « Structure de gouvernance » présentée aux pages suivantes définit ce concept ainsi que les rôles et responsabilités de ces trois lignes de défense.
+
+[p.73]
+ Identifier, gérer, mesurer et atténuer les risques inhérents aux activités quotidiennes.
+
+[p.73]
+ Veiller à ce que les activités soient alignées avec l'appétit pour le risque et les politiques de gestion des risques.
+
+[p.73]
+ Encadrer la gestion des risques en établissant des politiques et des normes.
+
+[p.73]
+ Assurer une surveillance indépendante des pratiques de gestion des risques et un examen critique indépendant de la première ligne de défense.
+
+[p.73]
+ Promouvoir une gestion saine et efficace des risques à la Banque.
+
+[p.73]
+ Fournir au Conseil et à la direction l'assurance indépendante de l'efficacité des principaux processus et systèmes de gouvernance, de gestion des risques et de contrôle interne afin de les soutenir dans la promotion de la solidité financière à long terme de la Banque.
+
+[p.73]
+ Formuler des recommandations et des conseils visant à améliorer l'efficacité et l'efficience des processus et systèmes.
+
+[p.74]
+### Structure de gouvernance (1) *
+
+[p.74]
+Le graphique ci-dessous présente l'architecture de gouvernance globale de la Banque ainsi que les relations de gouvernance établies pour la gestion des risques.
+
+[p.74]
+### Le conseil d'administration (Conseil)
+
+[p.74]
+Le Conseil a la responsabilité d'approuver et de superviser la gestion des affaires commerciales et internes de la Banque et établit, de concert avec la direction, les orientations stratégiques. Il approuve et supervise également la philosophie de risque global et l'appétit de la Banque pour le risque, reconnaît et comprend les principaux risques auxquels la Banque fait face et s'assure que les systèmes appropriés sont en place afin de permettre une gestion et un contrôle efficaces de ces risques. De plus, il veille à ce que la Banque exerce ses activités conformément aux pratiques et stratégies en matière de responsabilité environnementale, sociale et de gouvernance (ESG). Il remplit son mandat à la fois directement et par l'entremise de ses comités : le comité d'audit, le comité de gestion des risques, le comité de ressources humaines, le comité de révision et de gouvernance ainsi que le comité de technologie.
+
+[p.74]
+### Le comité d'audit
+
+[p.74]
+Le comité d'audit assure une surveillance fonctionnelle de l'Audit interne, garantissant ainsi son indépendance, et en définit les responsabilités. Le comité d'audit supervise le travail de l'auditeur interne et de l'auditeur indépendant, veille à la solidité financière de la Banque, encadre la présentation de l'information financière, les processus d'analyse et les contrôles internes de la Banque et examine tout signalement d'irrégularités liées à la comptabilité, aux contrôles internes ou à l'audit. Il examine également les déclarations sur les facteurs ESG, y compris les informations relatives au climat faisant partie des rapports financiers.
+
+[p.74]
+### Le comité de gestion des risques (CGR)
+
+[p.74]
+Le comité de gestion des risques examine le cadre de l'appétit pour le risque et en recommande l'approbation par le Conseil. Il approuve les principales politiques de gestion des risques, ainsi que les limites de tolérance au risque. Il s'assure que les ressources et les processus appropriés sont en place pour gérer les risques adéquatement et efficacement, et ce, de manière continue. Le comité surveille les risques principaux et émergents, incluant les risques financiers et non financiers. Il reçoit régulièrement le profil de risque et les tendances liées aux activités de la Banque et s'assure de leur cohérence avec l'appétit pour le risque.
+
+[p.74]
+### Le comité de ressources humaines
+
+[p.74]
+Le comité de ressources humaines examine les risques liés à la rémunération en plus de revoir et d'approuver les politiques et programmes de rémunération globale de la Banque en tenant compte du cadre d'appétit pour le risque et des stratégies ESG, et en recommande l'approbation au Conseil. Il recommande au Conseil l'approbation de la rémunération du président et chef de la direction, des membres de l'équipe de direction et des responsables des fonctions de supervision. Ce comité s'intéresse à l'ensemble des pratiques en ressources humaines, notamment la santé, la sécurité et le bien-être des membres du personnel, la gestion des talents dont le plan de relève de la direction et des fonctions de supervision ainsi que la diversité, l'équité, l'inclusion et l'accessibilité. Enfin, il surveille les régimes de retraite et les avantages sociaux.
+
+[p.74]
+### Le comité de révision et de gouvernance
+
+[p.74]
+Le comité de révision et de gouvernance veille à ce que les pratiques de la Banque soient saines et conformes à la législation et aux meilleures pratiques, incluant les responsabilités ESG, et veille à ce qu'elles soient alignées sur la mission commune de la Banque. Il examine et approuve les normes de comportement éthique et de conduite des affaires, y compris le Code de conduite et la politique sur les lanceurs d'alertes. Le comité surveille l'application des mécanismes d'examen des plaintes et veille à la mise en place de ceux qui permettent d'assurer le respect des dispositions visant les consommatrices et les consommateurs. Enfin, il s'assure de la compétence des membres du Conseil en procédant à l'évaluation de leur performance et de l'efficacité du Conseil, et planifie leur relève et la composition du Conseil.
+
+[p.74]
+### Le comité de technologie
+
+[p.74]
+Le comité de technologie surveille les différentes composantes du programme de technologie de la Banque. Il examine, entre autres, la stratégie technologique de la Banque et supervise les risques technologiques, notamment en ce qui a trait aux cyberrisques, à la cybercriminalité, à la protection des renseignements personnels et à l'utilisation de l'IA.
+
+[p.74]
+Des renseignements additionnels sur la structure de gouvernance de la Banque se trouvent dans la circulaire de sollicitation de procurations de la direction relative à l'assemblée annuelle des actionnaires de 2026 qui sera disponible en mars 2026 sur le site Internet de la Banque, à l'adresse bnc.ca, ou sur celui de SEDAR+, à l'adresse sedarplus.ca. Le texte intégral des mandats du Conseil et de ses comités est disponible sur le site Internet de la Banque, à l'adresse bnc.ca.
+
+[p.75]
+### L'équipe de direction de la Banque
+
+[p.75]
+Composée du président et chef de la direction et des dirigeantes et dirigeants responsables des principales fonctions et unités d'affaires de la Banque, l'équipe de direction de la Banque veille à l'exercice d'une gestion saine et efficace des risques alignée sur l'atteinte des objectifs et les stratégies d'affaires de la Banque. Elle promeut l'intégration de la gestion des risques à sa culture organisationnelle et gère les principaux risques auxquels la Banque est exposée.
+
+[p.75]
+### La fonction de supervision de l'audit interne
+
+[p.75]
+Le service de l'Audit interne constitue la troisième ligne de défense du cadre de la gestion des risques. Il est responsable de fournir de façon objective, au Conseil et à la direction de la Banque, une assurance indépendante sur l'efficacité des principaux processus et systèmes de gouvernance, de gestion des risques et de contrôle interne et de formuler des recommandations et des conseils pour promouvoir la solidité à long terme de la Banque.
+
+[p.75]
+### La fonction de supervision des finances
+
+[p.75]
+Le service des Finances est responsable de la gestion optimale des ressources financières et de la gouvernance adéquate de l'information financière. Il aide les secteurs d'exploitation et les fonctions de soutien à l'égard de leur rendement financier, veille au respect d'exigences réglementaires et s'occupe de la présentation de l'information de la Banque aux actionnaires ainsi que de la présentation de l'information à l'externe des diverses unités, entités et filiales de la Banque. Il est responsable de la gestion du capital et participe activement aux activités du comité de gestion de l'appariement du bilan.
+
+[p.75]
+### La fonction de supervision de la gestion des risques
+
+[p.75]
+Le service de la Gestion des risques a pour responsabilité d'identifier, de mesurer et de superviser, de manière indépendante et selon une approche intégrée, les divers risques auxquels sont exposées la Banque et ses filiales et de promouvoir l'intégration de la gestion des risques à la culture organisationnelle de la Banque. Le groupe de Gestion des risques appuie la direction et le Conseil dans la compréhension et la supervision des principaux risques. De plus, ce service développe, maintient et communique le cadre d'appétit pour le risque tout en s'assurant de l'intégrité et de la fiabilité des mesures de risque.
+
+[p.75]
+### La fonction de supervision de la conformité
+
+[p.75]
+Le service de la Conformité est responsable de la mise en place d'un cadre de gestion du risque de non-conformité à la réglementation à l'échelle de la Banque, en s'appuyant sur une structure organisationnelle qui prévoit des liens fonctionnels avec les principaux secteurs d'exploitation. Il exerce aussi une surveillance et une évaluation indépendantes de la conformité de la Banque et de ses filiales aux politiques et normes portant sur la gestion du risque de non-conformité à la réglementation.
+
+[p.75]
+### Le comité des risques globaux (CRG)
+
+[p.75]
+Le comité des risques globaux constitue l'instance supérieure de tous les comités de risque internes de la Banque et il surveille tous les aspects se rapportant à la gestion globale des risques de celle-ci. Il a la responsabilité de définir les paramètres des politiques qui déterminent la tolérance et la stratégie globale en matière de risque, à l'échelle de la Banque et de ses filiales, et de fixer les limites ainsi que les seuils de tolérance et d'intervention permettant à la Banque de gérer adéquatement les principaux risques auxquels elle est exposée. Le comité approuve et surveille notamment tous les crédits d'envergure, à l'intérieur de ses latitudes définies dans la politique de gestion du risque de crédit. Il rend compte au Conseil et lui recommande l'approbation de la philosophie de risque, de l'appétit pour le risque à l'échelle organisationnelle et de la gestion du profil de risque. Le comité de gestion des risques opérationnels, le comité de risque des Marchés des capitaux et le comité de gestion intégrée des risques présentés dans le graphique de la structure de gouvernance sont les principaux comités qui relèvent du CRG. Le CRG remplit également son mandat par l'entremise du comité senior d'évaluation des transactions complexes, du comité de supervision des modèles et des comités d'examen des risques.
+
+[p.75]
+### Le groupe de travail sur la surveillance des risques liés à la rémunération
+
+[p.75]
+Le groupe de travail sur la surveillance des risques liés à la rémunération soutient le comité de ressources humaines dans son rôle de surveillance des risques liés à la rémunération. Il se compose d'au moins trois membres, soit le premier vice-président à la direction et chef de la gestion des risques, la cheffe des Finances et première vice-présidente à la direction, Finances, et la première vice-présidente à la direction, Expérience et Performance Humaines. Le groupe de travail aide à s'assurer que les politiques et les programmes de rémunération n'incitent pas indûment les membres de la haute direction, les dirigeantes et dirigeants, les personnes qui prennent des risques importants et l'ensemble des membres du personnel à prendre des risques qui outrepasseraient les balises de tolérance au risque de la Banque. À cet égard, il s'assure que la Banque respecte la ligne directrice sur la gouvernance d'entreprise publiée par le BSIF et les principes et normes en matière de saines pratiques de rémunération émis par le Conseil de stabilité financière, dont le suivi et la mise en œuvre sont assurés au Canada par le BSIF. Le CGR prend également connaissance des rapports présentés par ce groupe.
+
+[p.75]
+### Le comité ESG
+
+[p.75]
+Sous le leadership de la cheffe des Finances et première vice-présidente à la direction, Finances, et composé d'expertes et d'experts représentant les différents secteurs de la Banque, incluant plusieurs membres de l'équipe de direction, le comité ESG a pour principale fonction d'établir et de soutenir la stratégie et les engagements en matière de durabilité de la Banque, tout en étant un ambassadeur pour les promouvoir à travers l'organisation. Appuyé par un comité de gestion, par des groupes de travail spécialisés et par une équipe entièrement consacrée à la durabilité, le comité ESG supervise la mise en œuvre des règlementations en place et la divulgation selon les bonnes pratiques (pour de plus amples renseignements, se reporter au Rapport de durabilité à la section Engagements et impact sur le site Internet de la Banque, à l'adresse bnc.ca). Au minimum deux fois par année, des membres du comité ESG font rapport au comité de révision et de gouvernance de l'avancement de ses priorités et engagements ESG. Des présentations sont également faites ponctuellement au comité d'audit et au CGR sur des sujets d'intérêt particulier, tels que la divulgation extrafinancière et le risque climatique.
+
+[p.76]
+### Le comité stratégique de gestion des risques technologiques (CSGRT)
+
+[p.76]
+La haute direction de la Banque et le premier vice-président, Gestion intégrée des risques, confient au CSGRT la responsabilité de la gouvernance du risque lié aux technologies et cyber. Le CSGRT, sous le leadership de la vice-présidente, Gestion des risques technologiques, cyber et de données, a pour mandat d'assurer que les stratégies liées aux technologies (incluant la cybersécurité et la résilience technologique) sont alignées avec l'appétit pour le risque de la Banque. Ce comité suit les indicateurs de risques technologiques clés, surveille l'évolution des risques technologiques significatifs, s'assure qu'une vigie des risques technologiques émergents est réalisée et en suit les principales tendances. Finalement, il contribue au développement d'une saine culture de risque en favorisant l'appropriation de la gestion des risques technologiques à travers la Banque.
+
+[p.76]
+### L'équipe de la protection des renseignements personnels et de l'intelligence artificielle responsable
+
+[p.76]
+L'équipe de la protection des renseignements personnels et de l'intelligence artificielle responsable élabore et met en œuvre le programme et la stratégie de la Banque en matière de protection des renseignements personnels, ainsi que les documents qui les soutiennent, tels que les politiques, normes et procédures. Elle supervise également le cadre de gouvernance des risques liés à la protection des renseignements personnels. Elle appuie les unités d'affaires de la Banque dans l'exécution des orientations stratégiques et veille au respect des meilleures pratiques en matière de protection des renseignements personnels. Enfin, elle participe aux travaux pour élaborer et mettre en œuvre le programme visant à encadrer l'IA de façon responsable au sein de l'organisation.
+
+[p.76]
+### Les unités d'affaires
+
+[p.76]
+À titre de première ligne de défense, les unités d'affaires gèrent les risques liés à leurs propres activités, dans les limites fixées et conformément aux politiques de gestion des risques, en s'assurant d'identifier, d'évaluer, de gérer et de comprendre les risques auxquels elles sont exposées et de mettre en place des mécanismes d'atténuation de ces risques. La direction de ces unités doit s'assurer du respect par le personnel des politiques et des limites en vigueur.
+
+[p.76]
+### Le comité de gestion de l'appariement du bilan
+
+[p.76]
+Composé de membres de l'équipe de direction de la Banque, de dirigeantes et dirigeants du service de la Gestion des risques, du service des Finances et des unités d'affaires, le comité assure une surveillance et fournit une orientation stratégique concernant le risque de taux d'intérêt structurel, le risque de change structurel et le risque de liquidité. Il assure aussi la coordination stratégique du plan budgétaire annuel en lien avec le bilan, le capital et le financement.
+
+[p.76]
+### Le comité des risques de réputation, de culture, d'intégrité et de sécurité (CRRCIS)
+
+[p.76]
+Le comité des risques de réputation, de culture, d'intégrité et de sécurité (CRRCIS) assure une gouvernance transversale des risques non financiers liés à la réputation, à la culture organisationnelle, à l'intégrité et à la sécurité. Il veille à renforcer la visibilité de ces risques au sein de la Banque et à en assurer une gestion rigoureuse et cohérente. Il supervise les cadres de gestion afférents, définit les niveaux d'appétit pour le risque et s'assure que les stratégies, mesures et contrôles en place permettent une gestion efficace et proactive. Il évalue régulièrement la posture de risque de la Banque, formule des recommandations d'alignement stratégique et veille à la mise à jour des politiques encadrant ces domaines. Le CRRCIS rend compte de ses activités à l'équipe de direction et au CGR.
+
+[p.76]
+### Politiques de gestion des risques
+
+[p.76]
+Les politiques de gestion des risques, ainsi que les normes et les procédures qui les accompagnent, établissent les responsabilités, identifient et décrivent les principaux risques découlant des activités, précisent les exigences auxquelles sont soumises les unités d'affaires dans l'évaluation et la gestion de ces risques, stipulent la procédure d'autorisation de la prise de risque et fixent les limites de risque à respecter. Elles déterminent également la reddition qui doit en être faite aux diverses instances, incluant le CGR. Ces politiques, qui couvrent les principaux risques de la Banque, sont révisées régulièrement afin d'en valider la pertinence compte tenu de l'évolution des marchés, des changements réglementaires et des plans d'affaires des unités de la Banque et s'appliquent à l'ensemble de la Banque et de ses filiales, le cas échéant. D'autres politiques, normes et procédures viennent se greffer aux politiques principales et couvrent certains aspects plus précis de la gestion des risques, tels que la poursuite des activités de la Banque, le lancement de nouveaux produits et le démarrage de nouvelles initiatives ou activités, ou encore l'évaluation des instruments financiers.
+
+[p.76]
+### Gouvernance de la gestion du risque de modèles
+
+[p.76]
+La Banque a recours à de nombreux modèles qui soutiennent la gestion des risques à l'échelle de l'entreprise et contribuent à la prise de décisions stratégiques et à l'orientation des activités de la Banque. L'étendue de ces modèles est vaste, incluant notamment les modèles d'octroi de crédit, les modèles d'estimation des paramètres réglementaires de risque de crédit, les modèles d'évaluation des pertes de crédit attendues, les modèles de détection de la fraude, les modèles de capital économique, les modèles de simulation de crises, les modèles relatifs au risque de taux d'intérêt dans le portefeuille bancaire, les modèles d'évaluation des instruments financiers, les modèles de tarification fondée sur le risque et les modèles de risque de marché.
+
+[p.76]
+Le cadre de gouvernance de la gestion du risque de modèles repose sur trois piliers clés : une politique qui établit les principes et responsabilités applicables à toutes les étapes du cycle de vie (conception, développement, validation, approbation, déploiement, utilisation, suivi, mise à jour et décommissionnement) et qui est soutenue par des normes associées; la validation indépendante, assurée par des équipes spécialisées distinctes des équipes de développement afin de garantir une évaluation objective; et la supervision exercée par le comité de supervision des modèles, chargé de veiller à ce que la gouvernance réponde aux attentes réglementaires tout en soutenant l'orientation stratégique de la Banque.
+
+[p.76]
+Une des pierres angulaires de ce cadre est la classification des modèles selon leur niveau de risque. En fonction de cette classification, la Banque applique des exigences rigoureuses, adaptées au niveau de risque présenté par chaque modèle, concernant le développement et la documentation des modèles, leur validation indépendante, le suivi de leur performance ainsi que la fréquence minimale de leur révision.
+
+[p.77]
+### Surveillance indépendante par le service de la Conformité
+
+[p.77]
+La Conformité constitue une fonction de supervision indépendante au sein de la Banque. La première vice-présidente, cheffe de la Conformité et la vice-présidente, cheffe de Lutte au blanchiment d'argent bénéficient d'un accès direct au CGR ainsi qu'au président et chef de la direction et peuvent communiquer directement avec les dirigeantes, dirigeants et membres du conseil d'administration de la Banque, de ses filiales et de ses centres étrangers. La première vice-présidente, cheffe de la Conformité et la vice-présidente, cheffe de Lutte au blanchiment d'argent rencontrent régulièrement, dans le cadre de leurs fonctions, la présidente du CGR en l'absence de la direction afin, notamment, d'examiner avec elle les questions liées aux relations entre la fonction de conformité et la direction de la Banque ainsi qu'à l'accès à l'information requise.
+
+[p.77]
+Les gestionnaires des unités d'affaires doivent veiller à la mise en place de mécanismes de contrôle quotidiens des risques de non-conformité à la réglementation découlant des activités dont ils ont la responsabilité. La Conformité exerce une surveillance indépendante afin d'aider les gestionnaires à gérer ces risques efficacement et d'obtenir l'assurance raisonnable que la Banque se conforme aux exigences réglementaires qui s'appliquent à ses activités, tant au Canada qu'à l'échelle internationale.
+
+[p.77]
+### Évaluation indépendante par le service de l'Audit interne
+
+[p.77]
+L'Audit interne constitue une fonction de supervision indépendante établie par le comité d'audit du Conseil de la Banque. Sa première vice-présidente dispose d'un accès direct à la présidente du comité d'audit et au président et chef de la direction et peut communiquer directement avec les dirigeantes, dirigeants et membres du conseil d'administration de la Banque, de ses filiales et de ses centres étrangers. La première vice-présidente, Audit interne rencontre régulièrement la présidente du comité d'audit en l'absence de la direction afin, notamment, d'examiner avec elle les questions liées aux relations entre la fonction d'Audit interne et la direction de la Banque. Elle rencontre également le comité d'audit de façon trimestrielle.
+
+[p.77]
+L'Audit interne constitue la troisième ligne de défense du cadre de gestion des risques de la Banque et fournit une assurance indépendante quant à l'efficacité des principaux processus et systèmes de gouvernance, de gestion des risques et de contrôle interne. Il formule des recommandations et des conseils visant à améliorer l'efficacité et l'efficience des processus et systèmes. La direction et les gestionnaires des unités d'affaires doivent veiller à l'efficacité des principaux processus et systèmes de gouvernance, de gestion des risques et de contrôle interne et mettre en œuvre les actions correctives lorsque requises.
+
+[p.77]
+### Risques principaux et risques émergents
+
+[p.77]
+La gestion des risques exige une bonne compréhension de tous les risques significatifs présents à l'échelle de la Banque, puisque ceux-ci pourraient avoir une incidence défavorable importante sur les activités, les résultats d'exploitation, la situation financière et la réputation de la Banque. Dans le cadre de son approche en matière de gestion des risques, la Banque identifie, évalue, passe en revue et surveille l'éventail des risques principaux et des risques émergents auxquels elle s'expose, et ce, afin de les gérer de façon proactive et de mettre en œuvre les stratégies appropriées pour les atténuer. Les risques principaux et les risques émergents cernés sont présentés à la haute direction, et ensuite communiqués au CGR.
+
+[p.77]
+La Banque applique une taxonomie des risques qui catégorise en deux groupes les principaux risques auxquels elle est exposée dans le cours normal de ses affaires :
+
+[p.77]
+ les risques financiers : directement associés à ses activités principales et généralement plus quantifiables ou prévisibles;
+
+[p.77]
+ les risques non financiers : inhérents à ses activités et auxquels la Banque ne choisit pas de s'exposer.
+
+[p.77]
+La Banque qualifie de façon distincte les risques auxquels elle est exposée : un « risque principal » est un risque qui a été identifié, qui est clairement défini et qui pourrait influencer fortement les activités, les résultats d'exploitation, la situation financière et la réputation de la Banque, alors qu'un « risque émergent » est un risque qui, bien qu'il puisse également avoir un impact pour la Banque, n'est pas encore bien compris sur le plan de ses probabilités, de ses conséquences, du moment où il surviendra ou de l'étendue de ses répercussions éventuelles.
+
+[p.77]
+Dans le cours normal de ses affaires, la Banque est exposée aux risques principaux suivants.
+
+[p.77]
+La Banque peut aussi être exposée à d'autres nouveaux risques dits « émergents » ou jugés importants, qui sont définis ci-après.
+
+[p.77]
+### Sécurité de l'information
+
+[p.77]
+La Banque évolue dans un contexte numérique complexe, marqué par une intensification des cybermenaces et une accélération des risques liés à l'adoption de nouvelles technologies. Pour y faire face, une approche intégrée a été déployée, combinant renforcement technologique, mobilisation humaine, optimisation des processus et partenariats stratégiques.
+
+[p.77]
+Les comportements humains demeurent le principal vecteur d'incident. La sensibilisation à la cybersécurité et la formation du personnel sont des piliers essentiels de notre stratégie : des contenus évolutifs, des mises en situation réalistes et des exercices de simulation sont intégrés aux formations continues. Ces initiatives instaurent une vigilance collective et une culture forte de sécurité.
+
+[p.77]
+Les attaques par rançongiciels ciblent de plus en plus les environnements infonuagiques, en exploitant des vecteurs humains. La Banque renforce en continu ses capacités de détection, de surveillance et de contrôle des accès, tout en mettant l'accent sur la protection des données sensibles, en assurant une veille constante des tendances émergentes telles que l'ingénierie sociale, les attaques par rançongiciels et la fraude liée à l'IA.
+
+[p.78]
+L'écosystème technologique de la Banque s'appuie sur de nombreux partenaires et fournisseurs externes, ce qui accroît l'exposition aux risques liés à des tiers. La Banque a instauré un processus rigoureux pour sélectionner et encadrer ses fournisseurs. Sa gouvernance des tiers est conçue pour réduire les risques tout en favorisant une collaboration étroite avec ses partenaires.
+
+[p.78]
+La Banque investit activement dans la recherche universitaire pour anticiper les menaces émergentes et adapter ses défenses aux évolutions technologiques. Des partenariats stratégiques, notamment pour la cybersécurité post-quantique, la menace interne et la prévention de la cyberfraude sont développés. Ces collaborations renforcent l'innovation, alimentent nos stratégies de protection et favorisent le transfert de connaissances vers les équipes internes.
+
+[p.78]
+Face aux défis actuels, la Banque adopte une approche proactive : elle mobilise les ressources et les efforts requis pour assurer la robustesse de ses opérations, en poursuivant ses investissements dans la modernisation des infrastructures, le perfectionnement des compétences, la recherche appliquée et la collaboration intersectorielle. Ces initiatives renforcent la résilience de la Banque, lui permettant d'anticiper les risques, de protéger sa réputation et ses actifs ainsi que de maintenir la confiance de sa clientèle, de ses partenaires et de ses investisseurs.
+
+[p.78]
+### Risque de fraude
+
+[p.78]
+Le risque de fraude fait référence aux actes intentionnels de tromperie, qu'ils soient internes ou externes. Ce risque peut provenir de diverses sources, notamment de la clientèle, des tiers, des sous-traitants et du personnel, et peut entraîner des pertes financières, des atteintes à la réputation et des impacts négatifs sur notre clientèle.
+
+[p.78]
+La Banque évolue dans un paysage de fraude de plus en plus complexe, influencé par la volatilité macroéconomique, la transformation numérique rapide et l'adoption de technologies émergentes par les réseaux criminels. À l'échelle de l'industrie, le risque de fraude s'intensifie, en particulier avec l'avancement accéléré de l'IA. Cette évolution permet des stratagèmes plus sophistiqués tels que la création d'identités synthétiques, l'usurpation via des hypertrucages ( deepfakes ), le phishing automatisé et la fraude en tant que service ( Fraud-as-a-Service ), tout en représentant une menace potentielle pour les systèmes de paiement émergents comme le Système de paiement en temps réel (RTP).
+
+[p.78]
+En réponse, la Banque continue de renforcer ses capacités de prévention et de détection de la fraude. La Banque améliore également les mécanismes de gouvernance et de supervision liés à la fraude, notamment par des initiatives de sensibilisation et des programmes de formation ciblés afin d'assurer une gestion efficace du risque.
+
+[p.78]
+### Risques de données et de protection des renseignements personnels
+
+[p.78]
+Pour les fins de cette section, le terme « données » englobe les données de façon générale, ainsi que les renseignements personnels de la clientèle et du personnel de la Banque.
+
+[p.78]
+La Banque évolue dans un environnement où les données représentent à la fois un levier stratégique et une source potentielle de risque. Le volume croissant et la sensibilité des données créées, recueillies, utilisées, communiquées et transformées par l'ensemble des secteurs de la Banque pourraient générer des risques opérationnels, financiers, réputationnels et réglementaires. Une mauvaise qualité ou une utilisation non autorisée des données peut entraîner des conséquences importantes, telles que des pertes financières, des impacts réglementaires, des poursuites judiciaires ou des atteintes à la réputation. Ces situations peuvent également engendrer des coûts liés à la conformité et à l'adaptation des infrastructures technologiques.
+
+[p.78]
+L'importance d'une gouvernance et d'une gestion responsable des données est devenue essentielle dans un contexte d'évolution législative et de transformations technologiques rapides, marquées par l'essor de l'IA, de l'infonuagique et des systèmes bancaires ouverts. Ces innovations, tout en offrant des opportunités d'optimisation, soulèvent également des enjeux éthiques, de qualité, de sécurité et de protection des données. La Banque reconnaît que ces risques pourraient survenir à toutes les étapes du cycle de vie des données, en particulier lorsque des fournisseurs externes sont impliqués dans leur traitement . La Banque reconnaît également que ces risques pourraient survenir dans le cadre de la migration des données de CWB vers la Banque.
+
+[p.78]
+Consciente de ces enjeux, la Banque considère les données comme des actifs stratégiques et elle s'est fixée comme objectif d'en rehausser la qualité et l'intégrité pour en libérer la pleine valeur stratégique, améliorer la prise de décision et se conformer aux exigences réglementaires. Elle s'appuie sur les meilleures pratiques de l'industrie, notamment les principes du Comité de Bâle et d'autres cadres reconnus à l'échelle internationale, pour structurer sa gouvernance et sa gestion des risques. À cet égard, l'équipe de données et l'équipe de protection des renseignements personnels ont respectivement mis en place un cadre de gouvernance des données et un cadre de gouvernance des renseignements personnels, axés sur la qualité, la sécurité, la transparence, la protection et la gestion responsable des données. Les données de CWB migrées vers la Banque sont soumises à ces cadres de gouvernance.
+
+[p.78]
+Par ailleurs, les régulateurs du secteur financier comme le BSIF et l'Autorité des marchés financiers (AMF) s'intéressent davantage à la surveillance des risques opérationnels, notamment ceux liés à l'intégrité et à la sécurité des données. De plus, les récentes évolutions législatives au Canada et au Québec en matière de protection des renseignements personnels ont renforcé les obligations des institutions financières. Pour en savoir plus sur les récents changements législatifs, se reporter à la section « Risque de non-conformité à la réglementation » du présent Rapport de gestion.
+
+[p.78]
+La Banque poursuit ses efforts pour supporter ses initiatives stratégiques, suivre l'évolution des exigences réglementaires et maintenir la confiance de ses parties prenantes en bonifiant continuellement sa gouvernance des données et en investissant dans des solutions technologiques innovantes adaptées à l'évolution de ses activités et du cadre réglementaire.
+
+[p.79]
+### Innovation technologique et concurrence
+
+[p.79]
+L'évolution rapide des technologies, combinée à l'émergence de fournisseurs non bancaires proposant des produits spécialisés, continue de façonner l'industrie des services financiers. Ces acteurs, moins contraints par les exigences réglementaires, accentuent la concurrence face aux institutions financières qui doivent répondre à des obligations réglementaires croissantes. Dans ce contexte, la Banque pourrait devoir investir davantage dans ses stratégies et cadres d'innovation pour rester compétitive et agile face aux changements rapides du marché. De nouveaux modèles d'affaires font également leur entrée au Canada et aux États-Unis, où le GENIUS Act , récemment adopté par le Congrès américain, introduit un cadre réglementaire fédéral pour l'offre bancaire de produits de « stablecoin », des cryptoactifs adossés à une valeur monétaire fixe et destinés aux paiements. La Banque doit ainsi faire preuve d'agilité pour se distinguer et demeurer à l'affût face à une éventuelle demande de cryptomonnaie, tout en se préparant à l'évolution du cadre réglementaire qui encadrera leur usage. Que ce soit en valorisant différents modèles de partenariats pour plus de complémentarité ou en intégrant davantage de services financiers à ses plateformes, la Banque s'efforce de mieux répondre aux besoins de sa clientèle.
+
+[p.79]
+Toujours dans un souci d'offrir une expérience client de qualité, la Banque poursuit ses efforts d'intégration de l'IA pour améliorer ses processus d'affaires et les rendre plus efficaces. L'utilisation croissante de l'IA dans les processus opérationnels de la Banque l'expose à de nouveaux risques, notamment de biais discriminatoires, d'informations erronées, d'attaques adverses, d'atteintes à la propriété intellectuelle ou en matière de protection des renseignements personnels. L'innovation par l'IA possède également son contrepoids de sophistication des fraudes. Pensons ici aux hypertrucages et à l'hameçonnage automatisé. La Banque doit rester vigilante face à ces nouvelles menaces. L'utilisation ambitieuse et responsable de l'IA est non seulement une occasion de croissance pour la Banque, mais également une occasion d'affirmer nos valeurs et de préserver la confiance de notre clientèle et de notre personnel face à l'utilisation de cette technologie.
+
+[p.79]
+Dans ce contexte, la Banque poursuit ses efforts pour la mise en place d'un cadre de gouvernance concernant le développement et l'utilisation responsable de l'IA. Cette démarche s'appuie sur plusieurs autres cadres de gestion des risques, tels que la gestion des risques de modèles, la gestion des risques de données, la gestion des risques liés à la sécurité de l'information et la gestion intégrée des risques.
+
+[p.79]
+Ces cadres sont conçus de manière agnostique à la technologie, ce qui permet une application cohérente et robuste, quel que soit le type de solution technologique utilisée. Étant donné le lien étroit entre les modèles et l'IA, la Banque a revu sa politique sur la gestion des risques de modèles pour y intégrer les principes reconnus d'IA responsable. Les principes qui encadrent le développement, l'acquisition et l'utilisation de l'IA, définis dans le cadre de la gestion du risque de modèles, impliquent des équipes multidisciplinaires et établissent les rôles et les responsabilités de chaque secteur. Ces principes visent à assurer une exécution et un encadrement de qualité ainsi que des règles et positionnements communs pour une utilisation responsable de l'IA à la Banque. Un ensemble de directives et de bonnes pratiques comme l'encadrement de l'usage de l'IA générative permet à la Banque d'optimiser ses opérations par l'usage de ces outils tout en gérant les risques associés, incluant ceux liés à la confidentialité et à la qualité d'exécution. Un programme de sensibilisation et de formations obligatoires à l'intention de l'ensemble du personnel a par ailleurs été amorcé en 2025, portant notamment sur les bonnes pratiques d'utilisation de l'IA générative et visant à renforcer la sensibilisation aux enjeux de sécurité, d'éthique et de conformité liés à l'usage de l'IA.
+
+[p.79]
+La Banque demeure proactive face aux risques que la transformation des services financiers pourrait engendrer et continue d'investir dans le développement de ses capacités opérationnelles et technologiques malgré l'incertitude économique créée par les différentes tensions géopolitiques. Sur le plan technologique, elle réaffirme son engagement fort en faveur de l'innovation en collaborant étroitement avec l'industrie financière et les organismes de réglementation pour établir le cadre réglementaire du système bancaire ouvert. Elle le fait également par l'entremise de son groupe spécialisé en capital de risque NA Capital de risque MC , qui prend des participations dans des sociétés en démarrage ou en développement dans le but d'établir des partenariats solides qui façonneront l'institution financière du futur.
+
+[p.79]
+### Dépendance envers les tiers et les modèles
+
+[p.79]
+Face à un écosystème de tiers plus vaste à travers l'industrie, le BSIF a publié sa nouvelle version de la ligne directrice B-10 - Gestion du risque lié aux tiers qui est entrée en vigueur le 1 er mai 2024. Consciente de l'importance des risques liés aux tiers, la Banque s'assure de l'évolution de ses pratiques et politiques de gestion des tiers en collaboration avec ses partenaires du secteur financier et des autorités réglementaires.
+
+[p.79]
+Des tiers fournissent des composantes essentielles de l'infrastructure technologique de la Banque, comme les connexions Internet, l'accès aux réseaux et d'autres services de communication. La Banque utilise également les services de tiers pour le soutien de plusieurs processus d'affaires et la gestion de certaines activités TI. Une interruption de ces services ou un bris de sécurité pourrait avoir une incidence défavorable sur la capacité de la Banque à fournir des produits et services à sa clientèle et sur sa résilience opérationnelle, sans compter l'impact de tels événements sur sa réputation. La concentration systémique des tiers et des sous-traitants de nos tiers augmente également le risque de perturbation à travers l'industrie bancaire et la concentration géographique des tiers pourrait engendrer des perturbations attribuables à d'autres risques comme les désastres naturels et les événements climatiques ou géopolitiques. Afin d'atténuer ces risques, la Banque dispose d'un cadre de gestion des risques liés aux tiers qui comprend diverses validations en matière de sécurité de l'information, de santé financière, de filtrage des bénéficiaires et entités, de conformité réglementaire, de continuité des affaires, de concentration interne et systémique, d'exécution, de protection des renseignements personnels, etc., qui sont effectuées avant de conclure une entente et tout au long de sa durée de vie. L'étendue de la vérification diligente tient compte des particularités de l'entente et est proportionnelle au niveau de risque de l'entente. Le cadre exige aussi des plans de continuité des affaires, de relève technologique, des plans de sortie ou de contingence afin d'assurer l'efficacité en cas de non-disponibilité des fournisseurs critiques. Une structure de gouvernance et de reddition de comptes est également en place afin de soutenir la prise de décisions basée sur une saine gestion des risques.
+
+[p.80]
+Malgré ces mesures préventives et les efforts déployés par la Banque pour gérer les tiers, il est possible que certains risques se matérialisent. Si cela devait se produire, la Banque compterait alors sur des mécanismes d'atténuation élaborés en collaboration avec les différents propriétaires d'entente et les tiers concernés.
+
+[p.80]
+En outre, les modèles jouent un rôle déterminant dans la prise de décision et la gestion des risques de la Banque. Leur nombre croissant, leurs interdépendances et l'intégration de l'IA amplifient à la fois leurs possibilités et les risques associés. Des résultats inexacts ou mal encadrés peuvent compromettre la qualité des décisions et entraîner des conséquences financières, opérationnelles et réglementaires.
+
+[p.80]
+Pour faire face à ces enjeux, la Banque s'appuie sur son cadre de gestion du risque de modèle, aligné sur la ligne directrice E-23 Gestion du risque de modélisation du BSIF, dont la version révisée entrera en vigueur le 1 er mai 2027. Ce cadre précise les attentes en matière de développement rigoureux, de validation indépendante, de contrôle du déploiement de surveillance de la performance et de qualité des données de modélisation, renforçant ainsi la discipline de gouvernance. Si la complexité et l'évolution rapide des modèles impliquent que certains risques demeurent, les efforts continus de la Banque visent à protéger sa résilience opérationnelle, à respecter les exigences réglementaires et à préserver la confiance dans l'utilisation de ses modèles.
+
+[p.80]
+### Risques géopolitiques
+
+[p.80]
+L'intensification des tensions géopolitiques et la complexité mondiale marquée présentent des risques importants pour les activités de la Banque. Les décisions gouvernementales et les relations internationales peuvent avoir une incidence importante sur l'environnement dans lequel la Banque, ses filiales et sa clientèle exercent leurs activités, à l'échelle régionale et mondiale.
+
+[p.80]
+Les événements géopolitiques, comme l'instabilité politique, les tensions entre les États et les conflits armés peuvent créer de l'incertitude, entraîner une détérioration de la conjoncture économique mondiale et peser sur la croissance globale. De tels événements peuvent avoir une incidence sur la stabilité des marchés financiers, générer de la volatilité et entraîner des pressions inflationnistes, des perturbations des marchés du travail, des chaînes d'approvisionnement et même des risques de récession. Ils peuvent aussi avoir une incidence sur les politiques monétaires et fiscales, déclencher l'imposition de sanctions économique ou de droits de douane et entraîner des fluctuations des taux de change et une diminution de l'activité commerciale. Tous ces facteurs peuvent influencer directement ou indirectement les activités bancaires par leurs répercussions potentielles sur la Banque et sa clientèle.
+
+[p.80]
+Bien que le moment, la nature et l'ampleur des perturbations géopolitiques soient difficiles à prévoir, la Banque maintient une approche proactive. La Banque surveille de près les secteurs présentant une instabilité existante ou historique afin de détecter les signes d'escalade, tout en étant à l'affût de l'émergence de nouveaux événements perturbateurs. Une équipe géopolitique spécialisée évalue ces risques et leurs implications potentielles, ce qui permet à la Banque de demeurer résiliente, tant sur le plan opérationnel que financier.
+
+[p.80]
+### Intégrité et sécurité
+
+[p.80]
+Dans un contexte géopolitique marqué par une intensification des menaces à la sécurité nationale et une sophistication croissante des tactiques d'ingénierie sociale et d'ingérence étrangère, la Banque reconnaît l'importance stratégique de renforcer sa protection face aux risques liés à son intégrité et à sa sécurité. Ces risques peuvent découler d'activités malveillantes, d'influence indue ou d'ingérence étrangère et englobent les menaces internes et externes susceptibles de compromettre la solidité, la résilience et la réputation de la Banque.
+
+[p.80]
+L'intégrité renvoie à des comportements et décisions conformes aux lois, aux attentes réglementaires et aux principes éthiques de la Banque. La sécurité, quant à elle, englobe la protection des actifs physiques, technologiques et informationnels contre toute menace susceptible de compromettre leur intégrité, leur disponibilité ou leur confidentialité.
+
+[p.80]
+L'ingérence étrangère désigne toute action menée par un pays ou une entité étrangère ou pour son compte visant à influencer, à manipuler ou à perturber les affaires internes de la Banque ou du système financier canadien. Elle peut prendre la forme de cyberattaques, de transmission d'informations sensibles, de campagnes de désinformation ou de pressions politiques visant à orienter les décisions de la Banque en vue de favoriser les intérêts de cet état étranger au détriment du Canada.
+
+[p.80]
+La Banque a mis en place un cadre de gestion intégrée des risques liés à la culture, à l'intégrité et à la sécurité, aligné sur les principes directeurs de la ligne directrice sur l'intégrité et la sécurité du BSIF. Ce cadre repose sur une gouvernance robuste, des rôles et responsabilités clairement définis et des mécanismes de supervision assurés par des comités de la haute direction et du Conseil dont le CRRCIS et le CGR. Plusieurs contrôles spécifiques sont mis en place afin de prévenir et d'atténuer les risques. Cela inclut la mise en œuvre de formations et d'outils visant à renforcer les comportements éthiques et moraux attendus du personnel, des dirigeantes et dirigeants, des administratrices et des administrateurs, tout en soutenant la culture organisationnelle et le respect de la conformité à la réglementation. Des mesures sont également déployées pour protéger les actifs technologiques et les infrastructures physiques, effectuer des vérifications périodiques des antécédents du personnel, des consultantes et consultants, des dirigeantes et dirigeants, des administratrices et administrateurs, et assurer une gouvernance rigoureuse des tiers avec lesquels la Banque fait affaire. La Banque continue de renforcer sa capacité de gestion des risques grâce à la mise en place de contrôles rigoureux visant à détecter, prévenir et gérer les menaces internes, renforçant ainsi sa sécurité globale et sa résilience opérationnelle.
+
+[p.80]
+Afin de contribuer à la protection de la stabilité et de la sécurité du système financier canadien, les menaces internes ou externes à l'intégrité et à la sécurité de la Banque, incluant l'ingérence étrangère, sont détectées, examinées et signalées rapidement aux autorités telles que le Service canadien du renseignement de sécurité (SCRS), la Gendarmerie royale du Canada (GRC) et le BSIF.
+
+[p.81]
+### Risques économiques
+
+[p.81]
+La croissance économique mondiale reste relativement solide, malgré les mesures tarifaires prises par les États-Unis à l'encontre de leurs partenaires commerciaux. Peu de pays ont jusqu'à présent répliqué aux droits de douane américains, ce qui limite les répercussions économiques et les perturbations des chaînes d'approvisionnement. L'impact négatif des tensions commerciales est par ailleurs atténué par des politiques budgétaires expansionnistes, notamment aux États-Unis. La fermeture temporaire du gouvernement américain devrait toutefois freiner la croissance temporairement au quatrième trimestre dans ce pays, mais le contexte économique reste favorable, malgré un ralentissement observé sur le marché du travail. La Réserve fédérale américaine a procédé à des baisses de taux d'intérêt, qui devraient néanmoins rester restrictifs en raison de la montée des risques de surchauffe. Le programme One Big Beautiful Bill devrait stimuler l'activité économique de manière significative en 2026, tout comme les conditions financières actuelles très accommodantes. L'inflation pourrait également être accentuée par la faiblesse du dollar et par l'effet des mesures tarifaires dont les répercussions se feront sentir à retardement. Parmi les risques identifiés figure une possible déception liée aux promesses de l'IA, qui alimentent actuellement des investissements massifs aux États-Unis. Les valorisations élevées des marchés boursiers traduisent des attentes de rendements particulièrement ambitieuses à court terme grâce à cette révolution technologique. Les investisseurs semblent également s'attendre à des gains de productivité importants, qui apaiseraient les pressions inflationnistes et permettraient à la Réserve fédérale américaine de poursuivre ses baisses de taux d'intérêt.
+
+[p.81]
+La situation économique est plus difficile au Canada. Certains secteurs directement affligés par des tarifs connaissent des difficultés, mais la faiblesse outrepasse ces entreprises. La contraction du PIB au deuxième trimestre de 2025 a confirmé que l'activité économique est freinée par l'incertitude liée aux droits de douane, et aucun rebond significatif n'est prévu pour le troisième trimestre de 2025. Le manque de visibilité paralyse les entreprises, qui ont suspendu de nombreux projets d'investissement, et le marché du travail s'est affaibli. L'inflation étant moins préoccupante et les droits de douane de rétorsion ayant été retirés, la Banque du Canada a de nouveau abaissé son taux directeur. Le gouvernement fédéral prend également des mesures pour stabiliser l'économie, notamment en adoptant une politique budgétaire accommodante et différentes mesures visant à stimuler l'investissement. La stabilisation de l'économie et des investissements en 2026 dépendra de l'issue du conflit commercial avec les États-Unis et du renouvellement de l'Accord Canada-États-Unis-Mexique (ACEUM) à la mi-année.
+
+[p.81]
+Alors que les risques économiques énumérés jusqu'à présent sont davantage à court terme, d'autres risques pèsent à plus long terme. Notons la détérioration importante de la situation budgétaire dans plusieurs pays. Alors que le niveau d'endettement de plusieurs gouvernements a augmenté considérablement pendant la pandémie, ceux-ci font face à un choc de paiements d'intérêt au fur et à mesure que leurs obligations arrivent à échéance. Les besoins de financement des gouvernements seront considérables dans les années à venir dans un contexte de changements démographiques, de lutte aux changements climatiques et de réindustrialisation qui pourrait exacerber la pression sur les finances publiques. Il y a lieu de penser que les investisseurs pourraient exiger d'être compensés pour financer des gouvernements plus fragiles. Cela pourrait limiter leur pouvoir d'action advenant une faiblesse économique.
+
+[p.81]
+Enfin, les questions climatiques représentent un risque supplémentaire dans le contexte actuel. Si trop peu de mesures sont adoptées sur ce front, les événements météorologiques graves pourraient s'intensifier et entraîner des difficultés économiques à long terme. À l'inverse, une transition trop rapide pourrait entraîner d'autres risques, notamment des coûts économiques à court et moyen terme et une pression à la hausse sur les coûts de production.
+
+[p.81]
+En résumé, dans cet environnement économique toujours incertain, la Banque reste vigilante face à de nombreux facteurs et continue de s'appuyer sur son solide cadre de gestion des risques pour identifier, mesurer et atténuer les impacts négatifs dans les limites de son appétit pour le risque.
+
+[p.81]
+### Immobilier et endettement des ménages
+
+[p.81]
+Alors que les taux d'intérêt sont en baisse mais demeurent élevés sur une base historique et que les banques centrales continuent de se préoccuper de l'inflation, il est normal de se questionner sur les impacts pour les ménages canadiens dont le niveau d'endettement est élevé. Dans les comparaisons internationales, les ménages au Canada ont un endettement élevé par rapport au revenu disponible, comme c'est le cas dans d'autres pays qui ont un généreux filet de sécurité sociale. Au cours des dernières années, les responsables politiques ont mis en place de nombreuses mesures de stabilité financière pour limiter l'endettement des ménages canadiens. Cela a porté fruit comme en témoignent le ratio d'endettement en diminution depuis 2016 et la résilience des ménages dans la foulée du choc de taux d'intérêt des dernières années. Pour l'instant, les licenciements sur le marché du travail sont demeurés limités, ce qui a amorti les retards de paiement sur les prêts, mais la Banque n'est pas à l'abri d'une potentielle récession qui pourrait aggraver les choses. La Banque offre des prêts hypothécaires à taux variables/paiements variables. Cela signifie que les clientes et clients dans cette situation ont pu adapter progressivement leur budget depuis le début des nombreuses hausses de taux et éviter un choc de paiements lors du renouvellement du terme hypothécaire, comme c'est le cas pour celles et ceux qui détiennent des prêts hypothécaires à taux variables/paiements fixes dans d'autres institutions de prêt. Au cours des derniers 12 mois, nos clientes et nos clients qui ont des prêts à taux variables/paiements variables ont pu bénéficier des baisses de taux et d'un allègement de leurs paiements hypothécaires.
+
+[p.81]
+L'une des causes de l'endettement élevé du pays est l'envolée des prix des logements depuis le début des années 2000. Ces dernières années, les prix des propriétés ont généralement résisté aux hausses des taux d'intérêt, car ces dernières ont été compensées par une croissance démographique record. Toutefois, la détérioration de l'abordabilité limite l'accès à la propriété pour plusieurs Canadiennes et Canadiens, ce qui provoque un ralentissement de l'activité et des baisses de prix à Toronto et à Vancouver, entre autres. Le marché du travail moins porteur pour les jeunes joue également un rôle dans cette faiblesse. Une récession sévère pourrait entraîner une baisse significative des prix des logements et provoquer une augmentation des défauts de paiement sur certains emprunts. L'endettement plus faible au Québec par rapport au reste du Canada, en raison des prix plus abordables des logements, combiné au fait que la province compte un pourcentage plus élevé de ménages où les deux conjoints travaillent, contribue à limiter l'exposition de la Banque à une augmentation importante du risque de crédit.
+
+[p.81]
+La Banque tient compte de l'ensemble de ces risques lorsqu'elle établit les critères d'octroi de crédit et qu'elle estime ses provisions pour pertes de crédit. Il est à noter qu'un suivi étroit des dossiers d'emprunt est effectué en continu et que des simulations de crises sur les portefeuilles sont produites périodiquement, permettant de détecter d'éventuels emprunteuses et emprunteurs vulnérables. Celles et ceux identifiés sont contactés proactivement par la Banque et des solutions adaptées sont proposées pour leur permettre de continuer à respecter leurs engagements.
+
+[p.82]
+### Autres facteurs pouvant avoir une incidence sur les activités, les résultats d'exploitation, la situation financière et la réputation de la Banque Capacité de recruter des ressources clés et de les maintenir en poste
+
+[p.82]
+Le rendement actuel et futur de la Banque repose en grande partie sur sa capacité à recruter des talents clés, à les développer et à les maintenir à leur emploi. La Banque poursuit ses efforts pour renforcer l'attraction et la rétention des talents dans un contexte économique incertain et lors de l'intégration du personnel de CWB. Dans l'ensemble, le taux de roulement global s'est amélioré par rapport à 2024. La rétention des anciens membres du personnel de CWB demeure solide avec un taux de roulement stable. Quelques défis d'attraction et de rétention subsistent pour certains postes clés, surtout ceux en contact direct avec la clientèle et dans les fonctions de conseil spécialisées. La Banque poursuit la vigie du risque de talent, avec des comptes rendus trimestriels au comité de ressources humaines du Conseil. La Banque veille également à bonifier l'expérience d'accueil et le développement en déployant pour l'ensemble du personnel une plateforme d'apprentissage visant à soutenir le développement des compétences et en y intégrant un parcours d'intégration des nouveaux talents.
+
+[p.82]
+### Risques internationaux
+
+[p.82]
+Par le truchement des opérations de certaines de ses unités (principalement ses bureaux de New York et de Londres) et filiales au Canada et à l'étranger (notamment Credigy Ltd., NBC Global Finance Limited et Advanced Bank of Asia Limited), la Banque est exposée à certains risques liés à sa présence sur les marchés internationaux et dans des juridictions étrangères. Bien que ces risques n'affectent pas une proportion significative des portefeuilles de la Banque, leur impact ne doit pas être négligé, surtout s'ils sont d'ordre juridique ou réglementaire. Le risque peut être particulièrement élevé lorsqu'il s'agit d'une exposition dans un territoire où le caractère exécutoire des conventions ou ententes conclues par la Banque n'est pas certain, ou encore dans des pays ou régions soumis à des perturbations de nature politique ou socio-économique, ou des pays pouvant faire l'objet de sanctions internationales. De façon générale, la Banque peut être exposée de multiples façons aux risques posés par ses activités dans d'autres pays, ne serait-ce que par le biais de la législation ou de la réglementation étrangère. Dans toutes ces situations, il y a lieu de considérer ce qu'il est convenu d'appeler un « risque pays ». Le risque pays, en effet, vise non seulement les activités que la Banque exerce à l'étranger, mais aussi les affaires qu'elle conduit avec la clientèle non-résidente, de même que les services qu'elle propose à sa clientèle active à l'étranger, comme les télévirements ou les produits internationaux, et les opérations qu'elle effectue à partir du Canada en devises étrangères.
+
+[p.82]
+Dans le cadre de ses activités, la Banque est tenue de respecter les exigences réglementaires en matière de lutte contre le RPCFAT en vigueur dans chacune des juridictions où elle fait affaire. Elle est également tenue de respecter les exigences réglementaires liées aux sanctions en vigueur dans ces différentes juridictions. Le risque de RPCFAT est un risque financier, réglementaire et de réputation. Pour de plus amples renseignements, se reporter à la section « Risque de non-conformité à la réglementation » du présent Rapport de gestion.
+
+[p.82]
+La Banque est exposée financièrement aux risques à l'extérieur du Canada et des États-Unis via sa filiale ABA Bank au Cambodge et par le biais de ses opérations interbancaires sur les marchés financiers internationaux ou de ses activités de financement du commerce international. Cette exposition géographique représente une proportion modérée du montant global du risque encouru. La répartition géographique des prêts fait l'objet d'une divulgation trimestrielle dans le document intitulé « Informations financières complémentaires » disponible sur le site Internet de la Banque à l'adresse bnc.ca. Afin de contrôler le degré de risque pays qu'elle encourt, la Banque fixe des limites de concentration de crédit par pays, qu'elle revoit et fait approuver par le Conseil lors du renouvellement de la politique de gestion du risque de crédit. Ces limites sont établies en pourcentage du capital réglementaire de la Banque, en fonction du niveau de risque que représente chaque pays, particulièrement les pays émergents. Le risque est gradué au moyen d'un mécanisme de classement semblable à celui qui prévaut pour le risque de défaut de crédit. En plus des limites-pays, des plafonds et des limites d'autorisation sont établis, en pourcentage des fonds propres, pour les régions du monde considérées à haut risque, qui couvrent en fait toutes les régions à l'exception de l'Amérique du Nord, de l'Europe de l'Ouest et des pays développés d'Asie.
+
+[p.82]
+### Acquisitions
+
+[p.82]
+La capacité de la Banque à réaliser avec succès une acquisition est souvent conditionnelle à l'approbation des organismes de réglementation. La Banque ne peut être certaine ni du moment ni des modalités entourant la décision de ces organismes. Les acquisitions peuvent avoir une incidence sur les résultats futurs selon la difficulté qu'a la Banque à intégrer l'entreprise acquise. Si la Banque a de la difficulté à intégrer l'entreprise acquise, à maintenir un niveau de gouvernance approprié sur celle-ci ou à retenir les personnes clés au sein de ladite entreprise, les hausses de revenus, les économies de coûts, l'accroissement des parts de marché et les autres avantages attendus de l'acquisition pourraient ne pas se matérialiser.
+
+[p.83]
+### Propriété intellectuelle
+
+[p.83]
+La Banque adopte diverses stratégies pour protéger ses droits de propriété intellectuelle. Toutefois, les mesures de protection qu'elle peut obtenir ou mettre en place ne garantissent pas qu'elle puisse dissuader ou empêcher quiconque de porter atteinte à ses droits ni obtenir une réparation lorsqu'une atteinte se concrétise. Par ailleurs, les produits et services développés par la Banque sont déployés dans un marché compétitif où des tiers peuvent détenir des droits de propriété intellectuelle antérieurs à ceux de la Banque. De plus, les technologies financières font l'objet de développements en matière de propriété intellectuelle et de demandes de brevets, tant au Canada qu'à l'international. Ainsi, dans certaines situations, la Banque pourrait être limitée dans sa capacité à acquérir des droits de propriété intellectuelle, à développer des outils ou encore à mettre en marché certains produits et services. Elle pourrait aussi porter atteinte à des droits de tiers, ce qui pourrait mener à une action en justice intentée contre elle.
+
+[p.83]
+### Risque fiscal
+
+[p.83]
+Les lois fiscales applicables à la Banque sont nombreuses, complexes et peuvent être modifiées en tout temps. Cette complexité peut entraîner des interprétations juridiques différentes entre la Banque et les autorités fiscales respectives avec lesquelles elle traite. De plus, les changements législatifs et les changements de politiques fiscales, y compris leur interprétation par les autorités fiscales et les tribunaux, peuvent avoir une incidence sur le résultat net de la Banque. Les initiatives internationales et domestiques peuvent entraîner des changements dans les lois et politiques fiscales, y compris les efforts internationaux du G20 et de l'Organisation de coopération et de développement économiques (OCDE) pour élargir la base fiscale. Pour de plus amples renseignements sur les impôts sur le résultat, se reporter aux sections « Impôts sur le résultat » et « Méthodes comptables significatives et estimations comptables » du présent Rapport de gestion et à la note 24 afférente aux états financiers consolidés.
+
+[p.83]
+### Conventions, méthodes et estimations comptables utilisées par la Banque
+
+[p.83]
+Les conventions et les méthodes comptables utilisées par la Banque établissent la façon dont la Banque présente sa situation financière et ses résultats d'exploitation, et exigent que la direction fasse des estimations ou qu'elle ait recours à des hypothèses portant sur des questions qui sont, par nature, incertaines. Toute modification à ces estimations et ces hypothèses pourrait avoir une incidence importante sur les résultats d'exploitation et la situation financière de la Banque.
+
+[p.83]
+### Facteurs additionnels
+
+[p.83]
+Enfin, plusieurs autres facteurs peuvent avoir une incidence sur les activités, les résultats d'exploitation, la situation financière et la réputation de la Banque, dont : des changements imprévus dans les habitudes de consommation et d'épargne des consommatrices et consommateurs; les modifications apportées à la réglementation touchant les activités de la Banque; la mise au point et le lancement de nouveaux produits et services au moment opportun; la capacité d'aligner avec succès sa structure organisationnelle, ses ressources et ses processus; la capacité d'activer son plan de relève dans un délai raisonnable; les répercussions sur les activités de la Banque de conflits internationaux, de catastrophes naturelles ou d'urgences de santé publique comme des pandémies; et la capacité de la Banque de prévoir et de bien gérer les risques associés à ces facteurs dans un contexte de gestion rigoureuse des risques.
+
+[p.84]
+### Risque de crédit
+
+[p.84]
+Le risque de crédit représente la possibilité de subir une perte financière si un débiteur n'honore pas entièrement ses engagements contractuels envers la Banque. Ce débiteur peut être une partie emprunteuse, une partie émettrice, une partie garante ou encore une contrepartie. Le risque de crédit représente le risque le plus important auquel la Banque doit faire face dans le cours normal de ses affaires. La Banque y est exposée non seulement par le biais de ses activités et opérations de prêts directs, mais également par celui des engagements de crédit, des lettres de garantie, des lettres de crédit, des opérations sur instruments financiers dérivés négociés hors bourse, des titres de créance, des valeurs mobilières acquises en vertu de conventions de revente, des dépôts auprès d'institutions financières, de ses activités de courtage, et des opérations comportant un risque de règlement pour la Banque tels les virements de fonds irrévocables à des tiers par l'intermédiaire des systèmes électroniques de paiement.
+
+[p.84]
+### Gouvernance
+
+[p.84]
+Une politique-cadre régit de manière centralisée les activités générant un risque de crédit pour la Banque et ses filiales et est complétée par une série de politiques et normes internes qui lui sont subordonnées. Ces dernières traitent d'aspects particuliers de la gestion telles les limites de concentration par groupe d'emprunteuses et emprunteurs et secteurs d'activité, les latitudes de crédit, les exigences en matière de sûretés ou la quantification des risques, ou encore couvrent plus en profondeur des secteurs d'exploitation donnés.
+
+[p.84]
+Par exemple, les activités institutionnelles de la Banque et de ses filiales sur les marchés financiers et les opérations commerciales internationales sont encadrées par des directives élaborées à l'intention de ces unités d'affaires, dont l'énoncé est adapté au contexte précis de ces activités. C'est également le cas pour les filiales de courtage offrant des services aux particuliers. Exceptionnellement, certaines unités d'affaires ou filiales disposent de leur propre politique de crédit, qui doit respecter en tout temps l'esprit de la politique-cadre de la Banque. La direction de Gestion des risques définit l'univers des filiales comportant des risques de crédit importants ainsi que l'ampleur des risques encourus.
+
+[p.84]
+La gestion du risque de crédit est soumise à un processus rigoureux comportant les étapes suivantes :
+
+[p.84]
+### Limites de concentration
+
+[p.84]
+La répartition de l'appétit pour le risque est appuyée par l'établissement de limites de concentration. La Banque établit des limites de concentration de crédit et de règlement par groupe de débiteurs, par secteur d'activité, par pays et par région qui sont soumises pour approbation au CGR. Certains types de financement ou programmes de financement font aussi l'objet de limites spécifiques. Les dépassements de limites de concentration par groupe de débiteurs ou région sont rapportés trimestriellement au CGR. De plus, tous les secteurs d'activité, les pays et les régions dont l'exposition est équivalente à un pourcentage prédéterminé de la limite autorisée correspondante sont signalés à la direction de Gestion des risques de la Banque. Au moins une fois par année, la Banque révise ces expositions par secteur d'activité, par pays et par région afin de déterminer la pertinence des limites de concentration correspondantes.
+
+[p.84]
+### Reddition de comptes
+
+[p.84]
+Un rapport de gestion intégrée des risques est présenté trimestriellement à la haute direction et au CGR faisant état de l'évolution du portefeuille de crédit et des faits saillants couvrant les éléments suivants :
+
+[p.84]
+ la croissance du volume du portefeuille de crédit par secteur d'exploitation;
+
+[p.84]
+ la répartition du portefeuille de crédit, selon les différents critères pour lesquels des limites de concentration sont établies;
+
+[p.84]
+ la variation des provisions et des dotations pour pertes de crédit;
+
+[p.84]
+ l'impact des risques émergents sur le risque des portefeuilles;
+
+[p.84]
+ toute autre analyse pertinente en lien avec le risque de crédit.
+
+[p.85]
+La juste évaluation du risque que représente un débiteur ou une contrepartie est préalable à toute décision saine et prudente en matière de crédit. Il s'agit là de l'étape initiale du traitement des demandes de crédit, dont chacune est analysée au moyen d'un système de cotes de risque de crédit mis au point par la Banque et basé sur une échelle graduée de 1 à 10 comportant 19 échelons, pour tous ses portefeuilles incluant un risque de crédit. À chaque échelon correspond une probabilité de défaut du débiteur, de la contrepartie ou du tiers visé, ce qui permet d'estimer le risque de crédit pour la Banque. Les méthodes d'évaluation du risque de crédit varient en fonction du type de portefeuille. Deux méthodes peuvent principalement être utilisées pour l'évaluation du risque de crédit afin de fixer les limites minimales réglementaires en matière de fonds propres pour la plupart de ses portefeuilles, soit l'approche fondée sur les notations internes (NI) ou l'approche standardisée révisée, telles que définies par l'Accord de Bâle. L'approche NI s'applique pour la plupart de ses portefeuilles de crédit. Depuis la mise en œuvre des réformes de Bâle III en avril 2023, la Banque doit utiliser l'approche fondée sur les notations internes-fondation (approche NI fondation) pour certains types précis d'expositions, comme les expositions aux grandes sociétés appartenant à un groupe dont le chiffre d'affaires consolidé annuel est supérieur à 750 M$ ou aux institutions financières, y compris les sociétés d'assurances. Pour tous les autres types d'expositions traités selon une approche NI, la Banque utilise l'approche NI avancée.
+
+[p.85]
+Les principaux paramètres utilisés dans la mesure du risque de crédit, selon l'approche NI sont les suivants :
+
+[p.85]
+ la probabilité de défaut (PD), qui représente la probabilité que survienne une situation de défaut du débiteur, sur l'ensemble du cycle pour les 12 mois à venir, fondée sur la moyenne à long terme sur un cycle économique complet;
+
+[p.85]
+ la perte en cas de défaut (PCD), qui représente l'ampleur de la perte en raison du défaut du débiteur qui serait attendue lors d'un ralentissement économique et soumise à certains planchers réglementaires, exprimée en pourcentage de l'exposition en cas de défaut;
+
+[p.85]
+ l'exposition en cas de défaut (ECD), qui représente l'estimation de l'encours tiré majoré de l'utilisation attendue de la portion inutilisée avant le moment du défaut et qui ne peut être inférieure au solde courant.
+
+[p.85]
+Dans l'approche NI fondation, la Banque fournit ses propres estimations de la PD et applique les estimations du BSIF pour la PCD et l'ECD. Selon les deux approches NI, les paramètres de risque sont assujettis à des limites plancher.
+
+[p.85]
+La méthodologie ainsi que les données et les périodes de ralentissement utilisées pour estimer la PCD selon l'approche NI avancée sont décrites dans le tableau suivant.
+
+[p.86]
+### Portefeuilles de crédit aux particuliers
+
+[p.86]
+Cette catégorie comprend les portefeuilles de prêts hypothécaires résidentiels, de prêts à la consommation ainsi que de prêts à certaines petites entreprises. Pour évaluer le risque de crédit, des modèles NI avancés sont en place pour les principaux portefeuilles, notamment les prêts hypothécaires, les marges de crédit hypothécaires, les cartes de crédit, les prêts budgétaires, les marges de crédit et les PME de détail. La gestion globale des portefeuilles de crédit aux particuliers s'appuie sur une analyse des risques des prêts par regroupements (lots) constitués sur la base de profils communs des débiteurs et des produits. Cette approche est éprouvée en matière d'évaluation des risques propres aux particuliers, notamment pour estimer les défauts et les pertes de crédit. Plusieurs facteurs sont pris en compte pour cette évaluation, particulièrement :
+
+[p.86]
+ les attributs des agences d'évaluation de crédit relatifs au comportement;
+
+[p.86]
+ l'ancienneté de l'engagement au bilan de la Banque;
+
+[p.86]
+ le statut du prêt (productif, en retard ou en défaut).
+
+[p.86]
+L'utilité d'un tel mécanisme pour mesurer adéquatement le risque repose sur sa capacité de différencier les niveaux de risque de façon efficace en fonction des lots. Par conséquent, les résultats font l'objet d'examens périodiques et donnent lieu, si nécessaire, à des ajustements aux modèles. Les déplacements de débiteurs d'un lot à un autre font partie des éléments pris en considération dans l'évaluation du risque de crédit.
+
+[p.86]
+Les modèles d'évaluation par pointage servent aussi à des fins d'octroi de crédit. Ces modèles font appel à des méthodes statistiques éprouvées mesurant, à partir de données historiques internes et externes, les caractéristiques de la demande et du débiteur ainsi que de ses antécédents, afin d'estimer le comportement futur du débiteur en matière de crédit et de lui attribuer une probabilité de défaut. Les données sur lesquelles s'appuie cette analyse comprennent des renseignements relatifs au débiteur lui-même, notamment sa situation d'emploi actuelle et passée, des données historiques sur les prêts dans les systèmes de gestion de la Banque et, enfin, des informations provenant de sources externes comme celles des agences de notation de crédit.
+
+[p.86]
+À des fins de gestion et du suivi des engagements courants, la Banque a également recours à des modèles d'évaluation du comportement par pointage. L'évaluation du risque se fonde sur des analyses statistiques portant sur le comportement passé des débiteurs avec lesquels la Banque entretient une relation durable, dans le but de tenter de prévoir leur comportement futur. Les renseignements nécessaires à une telle analyse portent, entre autres, sur les flux monétaires propres au débiteur et les tendances des activités d'emprunt. Les informations sur les caractéristiques qui déterminent le comportement dans ces modèles proviennent, elles aussi, tant de sources internes sur les engagements courants que de sources externes. Le tableau à la page suivante présente le regroupement de PD et la qualité du crédit du portefeuille de crédit aux particuliers qui y est associé.
+
+[p.86]
+### Souscription des prêts hypothécaires
+
+[p.86]
+Afin d'atténuer les impacts d'un ralentissement économique et d'assurer à long terme la qualité de son portefeuille, la Banque préconise une saine gestion du risque au moment de l'octroi des prêts hypothécaires résidentiels qui vise à confirmer : i) la volonté du débiteur de rembourser ses obligations financières, ii) la capacité du débiteur de rembourser ses dettes et iii) la qualité du bien immobilier pris en garantie. De plus, conformément aux règles applicables, la Banque adopte une approche prudente lors de la qualification des débiteurs et elle utilisera, par exemple, un taux d'intérêt plus élevé afin d'atténuer le risque d'une hausse des taux d'intérêt à court et à moyen terme.
+
+[p.86]
+Malgré tout, les risques d'un ralentissement économique pourraient nuire à la rentabilité du portefeuille hypothécaire. Dans ses analyses de simulations de crises, la Banque envisage différents scénarios pour mesurer l'impact d'une conjoncture défavorable. Dans de telles circonstances, les résultats des analyses démontrent une hausse des pertes de crédit. Ceci contribuerait à une baisse de la rentabilité et entraînerait une diminution des ratios des fonds propres de la Banque. Cela dit, rappelons que nos titulaires d'emprunts hypothécaires ont démontré une grande résilience face aux hausses de taux d'intérêt.
+
+[p.87]
+La Banque surveille aussi de près l'évolution de la réglementation et participe activement aux divers processus de consultation. Depuis le 1 er novembre 2024, les faits nouveaux en matière de réglementation ci-dessous sont à considérer.
+
+[p.87]
+Depuis le 21 novembre 2024, le BSIF n'exige plus l'application d'un test de résistance pour les demandes de transferts hypothécaires non assurés entre institutions financières fédérales règlementées (IFFR). Plus précisément, les titulaires d'hypothèques conventionnelles n'ont plus à établir de nouveau leur acceptabilité en vertu du taux minimal d'admissibilité lorsqu'ils changent de prêteur au moment du renouvellement de leur hypothèque.
+
+[p.87]
+Depuis le 15 décembre 2024, les acheteuses et acheteurs d'une première propriété neuve peuvent bénéficier d'une période d'amortissement de leur prêt assuré allant jusqu'à 30 ans (au lieu de 25 ans) à la suite d'une mesure du gouvernement du Canada annoncée le 1 er août 2024 pour faciliter l'accès à la propriété.
+
+[p.87]
+Le 1 er janvier 2025, la limite associée au ratio prêt-revenu (RPR) mise en place par le BSIF est entrée en vigueur. Elle s'applique aux nouveaux prêts hypothécaires non assurés avec pour objectif de restreindre l'exposition des banques aux ménages avec un niveau élevé d'endettement.
+
+[p.87]
+Depuis le 15 janvier 2025, le refinancement hypothécaire assuré est possible pour la construction d'unités secondaires, avec un RPV maximal de 90 %, et une valeur de la propriété résidentielle inférieure à 2 M$.
+
+[p.87]
+### Portefeuilles de crédit aux entreprises et aux administrations publiques
+
+[p.87]
+Cette catégorie comprend les portefeuilles de crédit aux entreprises autres que certaines petites entreprises classées dans les portefeuilles de crédit aux particuliers, et les portefeuilles de crédit aux administrations publiques et aux institutions financières.
+
+[p.87]
+Ces portefeuilles de crédit se font attribuer une cote de risque fondée sur l'examen individuel détaillé du débiteur. Cet examen englobe les dimensions financière et non financière de ce dernier, et couvre entre autres sa solidité financière, son secteur d'activité économique, sa capacité concurrentielle, son accès à des fonds et son nombre d'années en affaires. La Banque dispose d'outils et de modèles de notation du risque qui permettent d'évaluer spécifiquement le risque propre à un débiteur par rapport à son secteur et à ses pairs. Les modèles utilisés sont adaptés au grand secteur d'activité auquel appartient le débiteur. Ainsi, des modèles sont en place pour 10 différents secteurs : entreprises commerciales, grandes entreprises, institutions financières, États souverains, fonds d'investissement, énergie, immobilier, agricole, assurances et financement de projets - partenariats public-privé.
+
+[p.87]
+Cette évaluation du risque conduit à l'attribution d'une cote de risque de défaut liée au débiteur qui traduit la qualité du crédit de ce dernier. À chaque niveau de cote de risque de défaut (voir le tableau ci-dessous) correspond une PD. Cette classification du risque de crédit que représente un débiteur permet à la Banque de différencier d'une manière appropriée les évaluations respectives de la capacité du débiteur de satisfaire ses obligations contractuelles. L'attribution des cotes de risque de défaut repose sur l'évaluation des risques d'ordre commercial et financier propres à un débiteur, à partir d'un examen de sa solvabilité. Cette évaluation s'effectue au moyen de divers modèles de quantification du risque décrits un peu plus loin.
+
+[p.87]
+L'échelle des cotes de risque de défaut des entreprises et des administrations publiques préconisée par la Banque présente quelques similitudes avec les systèmes utilisés par les principales agences de notation externes. Le tableau ci-dessous présente un regroupement des cotes par grandes catégories de risque et compare ces cotes avec celles de deux grandes agences de notation.
+
+[p.87]
+### Cotes internes de risque de défaut *
+
+[p.88]
+La Banque dispose également de modèles d'évaluation spécifiques par grand secteur d'activité qui attribuent une cote de risque à la facilité de crédit en fonction des sûretés et des garanties que le débiteur est en mesure de fournir et, dans certains cas, d'autres facteurs. Ainsi, la Banque dispose d'un système de cotes de risque bidimensionnel qui, à partir de modèles et s'appuyant sur un historique de données internes et externes, établit pour chaque débiteur une cote de risque de défaut. De plus, des modèles attribuent à chaque facilité de crédit une cote de risque de PCD indépendante de la cote de risque de défaut qui est attribuée au débiteur.
+
+[p.88]
+Les cotes de risque de défaut de la Banque et de risque de PCD, ainsi que les paramètres de risque s'y rapportant, contribuent directement à éclairer les décisions d'octroi, de renouvellement et de suivi de crédit. Ils servent également à établir et analyser la tarification basée sur le risque. Par ailleurs, d'un point de vue de gestion de portefeuille de crédit, ils sont aussi utilisés dans l'établissement des limites de concentration par contrepartie, des limites de concentration sectorielles et des limites de pouvoirs décisionnels ainsi que dans la détermination de l'appétit pour le risque de crédit de ces portefeuilles. En outre, ils représentent une composante importante pour l'estimation des pertes anticipées, des pertes non anticipées, de la mesure du capital économique minimal requis ainsi que de la mesure du niveau des fonds propres minimal requis prescrit par les autorités réglementaires.
+
+[p.88]
+L'évaluation du risque de crédit des débiteurs et de leurs facilités, via les paramètres PD et PCD, est effectuée au moins une fois l'an ou plus régulièrement si des changements notables (déclencheurs) sont observés lors d'une mise à jour de l'information financière ou si un autre élément qualitatif indicateur d'une détérioration de la solvabilité du débiteur ou d'une détérioration des garanties associées aux facilités dudit débiteur est constaté. Une liste de comptes sous surveillance existe également permettant à la Banque de suivre de façon plus dynamique la situation financière des débiteurs dont la cote de risque de défaut est supérieure ou égale à 7,0. Ce processus vise à réduire au maximum le risque de défaut de paiement du débiteur et permet une gestion proactive du risque de crédit.
+
+[p.88]
+### Évaluation de performance
+
+[p.88]
+Le groupe de Gestion des risques assure la surveillance de l'efficacité des systèmes de cotes de risque et des paramètres connexes, qui est également soumise à une revue régulière, conformément aux politiques de la Banque. Des tests rétroactifs sont effectués à intervalles réguliers afin de valider l'efficacité des modèles utilisés pour estimer la PD, la PCD et l'ECD. Pour la PD plus particulièrement, ces tests rétroactifs prennent la forme de diverses mesures appliquées sur un mode séquentiel afin d'évaluer les critères suivants :
+
+[p.88]
+ la stabilité des intrants et des résultats du modèle.
+
+[p.88]
+Les modèles de quantification du risque de crédit sont élaborés et testés par une équipe spécialisée, et font l'objet d'un suivi de performance par les unités d'affaires concernées et les services connexes de gestion du risque de crédit. La validation des modèles est effectuée par une unité qui est indépendante à la fois des spécialistes ayant développé le modèle et des unités d'affaires concernées. L'approbation des nouveaux modèles ou des modifications aux modèles existants est soumise à un processus d'escalade établi par la politique de gestion du risque de modèle. De plus, tout nouveau modèle ou tout changement à un modèle existant ayant une incidence marquée sur les fonds propres réglementaires doit faire l'objet d'une approbation du Conseil avant d'être soumis aux instances réglementaires.
+
+[p.88]
+Les systèmes, méthodes et modèles servant à déterminer les cotes de risque de défaut et de facilité font également l'objet d'une validation périodique, qui est une responsabilité partagée entre les équipes de développement et de validation, dont la fréquence est définie en fonction du niveau de risque de modèle. L'obligation de revoir régulièrement les modèles ayant une incidence notable sur les fonds propres réglementaires accroît la certitude que ces mécanismes de quantification remplissent leur fonction conformément aux attentes.
+
+[p.88]
+Les aspects les plus déterminants à valider sont les facteurs de risque permettant le juste classement du risque de défaut par niveau, la quantification adéquate des expositions et l'emploi de techniques d'évaluation prenant en considération des facteurs externes comme la conjoncture économique et la situation du crédit et, enfin, la concordance avec les politiques internes et les dispositions réglementaires.
+
+[p.88]
+Les systèmes d'évaluation et de notation du risque de crédit de la Banque sont supervisés par le comité de supervision des modèles, le CRG et le CGR, et font partie intégrante d'un encadrement exhaustif de surveillance du risque de crédit à l'échelle de la Banque. À l'instar des éléments mentionnés ci-dessus, les politiques et normes, la définition des responsabilités, l'allocation des ressources et les processus en place sont documentés et soumis à un examen périodique.
+
+[p.89]
+L'évaluation du capital économique minimal requis de la Banque s'effectue à partir de l'évaluation du risque de crédit des divers débiteurs. Ces deux activités sont donc indissociables. Les divers modèles utilisés pour évaluer le risque de crédit d'un type de portefeuille donné permettent en outre de déterminer la corrélation du risque de défaut entre les débiteurs. Ce paramètre représente une donnée centrale dans l'estimation des pertes potentielles de l'ensemble des portefeuilles comportant un risque de crédit. L'estimation des pertes potentielles, anticipées ou non, s'appuie sur l'historique des pertes subies, sur la supervision des portefeuilles, ainsi que sur des données relatives aux marchés et sur la modélisation statistique. Les pertes anticipées et non anticipées entrent dans l'évaluation du capital économique minimal requis pour l'ensemble des portefeuilles de crédit de la Banque. L'estimation du capital économique prend également en considération les anticipations de migrations potentielles de cote de risque de défaut des débiteurs durant le terme résiduel de leurs engagements de crédit. Les principaux facteurs de risque ayant un impact sur le capital économique sont les suivants :
+
+[p.89]
+ la corrélation entre les défauts des divers débiteurs;
+
+[p.89]
+ l'incidence des cycles économiques et sectoriels sur la qualité de l'actif.
+
+[p.89]
+### Simulations de crises
+
+[p.89]
+La Banque procède à des simulations de crises dans l'évaluation de sa sensibilité aux situations de crises dans certains secteurs d'activité et portefeuilles clés. Une méthodologie globale de simulations de crises couvre la majorité des portefeuilles de crédit aux particuliers, aux entreprises et aux administrations publiques afin de fournir à la Banque un portrait d'ensemble de la situation. Ces simulations permettent de mesurer, à partir de scénarios précis, la provision pour pertes de crédit selon la norme IFRS 9 Instruments financiers (IFRS 9) et le niveau de capital réglementaire nécessaire pour absorber les pertes potentielles et aussi d'évaluer l'impact sur la solvabilité de la Banque. De plus, ces simulations contribuent à la gestion des portefeuilles en influençant l'établissement des limites de concentration par débiteur, par produit ou par secteur d'activité. Au cours de l'exercice 2025, plusieurs simulations ont été effectuées pour évaluer l'impact des tarifs douaniers sur la situation financière des titulaires d'emprunts. Ces simulations ont permis à la Banque de tester la résilience de la clientèle, et ainsi, celle du portefeuille de prêts de la Banque.
+
+[p.89]
+### Processus d'octroi de crédit
+
+[p.89]
+Les décisions relatives à l'octroi de crédit s'appuient en premier lieu sur les résultats de l'évaluation du risque. Outre la solvabilité de la cliente ou du client, la décision repose sur des facteurs comme les sûretés et garanties disponibles, la conformité de la transaction aux politiques, normes et procédures, et l'objectif de rendement global compte tenu du risque de la Banque. Chaque décision d'octroi de crédit relève d'instances différentes au sein des équipes de Gestion des risques et de la direction, indépendantes des unités d'affaires, selon l'envergure et le degré de risque de l'opération de crédit envisagée. Les pouvoirs décisionnels à cet égard sont déterminés conformément à la délégation de pouvoirs stipulée dans la politique de gestion du risque de crédit. Les crédits d'envergure ou représentant un niveau de risque plus élevé pour la Banque sont approuvés par un membre d'un niveau hiérarchique supérieur. Le CRG approuve et surveille tous les crédits d'envergure. Les demandes de crédit dépassant les latitudes de la direction sont soumises à l'approbation du Conseil. Le processus d'octroi de crédit exige, de la part des gestionnaires, un degré élevé de responsabilité personnelle et un mode dynamique de gestion de portefeuille.
+
+[p.89]
+### Processus de révision et renouvellement
+
+[p.89]
+La Banque révise périodiquement les dossiers de crédit. Le processus de révision lui permet d'actualiser les renseignements sur la qualité des facilités émises et couvre, entre autres, les cotes de risque, le respect des conditions de crédit, les sûretés et le comportement du débiteur. Dans le cas des portefeuilles de crédit aux entreprises, le risque de crédit de tous les débiteurs est révisé au moins une fois par année. À la suite de cette révision périodique, pour les crédits à demande ou inutilisés, la Banque décide si elle veut poursuivre sa relation d'affaires avec le débiteur et, s'il y a lieu, révise les conditions de crédit. Pour les portefeuilles de crédit aux particuliers, le risque de crédit de tous les débiteurs est révisé de façon continue.
+
+[p.89]
+### Atténuation du risque
+
+[p.89]
+La Banque contrôle également le risque de crédit au moyen de diverses techniques d'atténuation du risque. Outre la pratique usuelle consistant à réclamer des sûretés pour garantir le remboursement des crédits octroyés, la Banque a recours à des mécanismes de protection tels que les instruments financiers dérivés de crédit, la syndication, les cessions de prêts, ainsi qu'à des réductions ordonnées du montant de crédit accordé.
+
+[p.89]
+L'obtention par la Banque de sûretés de qualité du débiteur constitue la forme la plus courante d'atténuation du risque de crédit. Ce mécanisme n'est pas un substitut à l'évaluation rigoureuse de la capacité du débiteur à faire face à ses obligations financières. Il en constitue toutefois un complément essentiel au-delà d'un certain seuil de risque. La prise de sûretés dépend du niveau de risque que représente le débiteur ainsi que du type de prêt consenti. La validité et le caractère exécutoire, sur le plan juridique, des sûretés obtenues ainsi que la capacité d'en mesurer correctement et régulièrement la valeur sont des critères de première importance pour que ce mécanisme d'atténuation du risque remplisse adéquatement son rôle.
+
+[p.90]
+La Banque a adopté dans ses politiques et normes internes des exigences précises en matière de documentation juridique appropriée et d'évaluation pour les sûretés que peuvent réclamer les unités d'affaires en garantie de prêts octroyés. Les catégories de sûretés admissibles en garantie ainsi que la valeur d'emprunt des biens donnés en garantie sont également définies par la Banque. Elles comprennent principalement les catégories d'actifs suivantes, de même que des cautionnements (garantis ou non par des sûretés sur les actifs des cautions) ainsi que des garanties gouvernementales et bancaires :
+
+[p.90]
+ immeubles résidentiels, commerciaux, de bureaux et établissements industriels;
+
+[p.90]
+### Diversification et gestion de portefeuille
+
+[p.90]
+La Banque est exposée au risque de crédit non seulement par l'encours de ses prêts et par les montants des engagements non utilisés envers un débiteur donné, mais également en raison de la répartition par secteur d'activité de l'encours des prêts et des montants non utilisés, et de l'exposition de ses divers portefeuilles de crédit au risque géographique, au risque de concentration et au risque lié au règlement des opérations.
+
+[p.90]
+La Banque contrôle ces divers risques d'abord au moyen d'une approche de diversification de ses expositions. Les critères de gestion établis dans ses politiques, normes et procédures visent, entre autres, à maintenir une saine diversification du risque de crédit dans ses portefeuilles. Ces directives se traduisent principalement par l'application de diverses limites au chapitre des expositions : limites de concentration de crédit par contrepartie, limites de concentration par secteur d'activité, par pays, par région, par produit et par type d'instrument financier. L'établissement de ces limites repose sur le cadre d'appétit pour le risque de crédit de la Banque et elles sont revues périodiquement. Le suivi de ces limites, particulièrement des dérogations, fait l'objet de rapports périodiques au Conseil par la direction du groupe de Gestion des risques.
+
+[p.90]
+Des analyses sont menées en continu afin de déceler les difficultés d'un secteur d'activité ou d'un débiteur avant qu'elles ne se matérialisent, notamment par des paiements en souffrance.
+
+[p.90]
+### Autres méthodes d'atténuation
+
+[p.90]
+Les mécanismes d'atténuation du risque de crédit propres aux opérations sur instruments financiers dérivés, qui sont couramment utilisés par la Banque, sont décrits en détail à la section portant sur le risque de contrepartie.
+
+[p.90]
+### Instruments financiers dérivés de crédit et contrats de garantie financière
+
+[p.90]
+La Banque réduit également son risque de crédit en recourant à la protection offerte par les instruments financiers dérivés de crédit, soit les swaps sur défaillance de crédit. Lorsque la Banque acquiert une protection de crédit, elle verse à la contrepartie une prime sur le swap en échange de la promesse par celle-ci d'un paiement dans le cas où surviendrait un défaut de l'entité sous-jacente ou un autre événement impliquant la contrepartie et couvert par la convention juridique. Comme les fournisseurs de protection de crédit doivent se voir attribuer une cote de risque de défaut au même titre que les débiteurs, la Banque définit dans ses normes l'ensemble des critères pour qu'une contrepartie soit jugée admissible à servir à l'atténuation du risque de crédit de la Banque. La Banque peut également réduire son risque de crédit en contractant une garantie financière dans laquelle une garante ou un garant indemnise la Banque pour une perte subie à la suite d'une défaillance d'un débiteur à effectuer un paiement en vertu des dispositions contractuelles de l'instrument d'emprunt.
+
+[p.90]
+### Syndication de prêts
+
+[p.90]
+La Banque énonce des directives précises quant aux objectifs, aux responsabilités et aux exigences documentaires pour la syndication des prêts.
+
+[p.90]
+### Suivi des comptes sous surveillance et recouvrement
+
+[p.90]
+Les crédits octroyés et les débiteurs font l'objet d'un suivi permanent, qui varie en fonction du degré de risque couru. Les gestionnaires de prêts exercent, à l'aide de diverses méthodes d'intervention, un suivi rigoureux des dossiers présentant un risque de défaut élevé. Ils évaluent (à l'exception des dossiers de petites entreprises évaluées avec un modèle comportemental qui sont pris en charge par une des unités spécialisées en intervention) chacun des titulaires d'emprunts identifiés sur la liste des comptes sous surveillance dont ils sont responsables. Un rapport consolidé de cette information est ensuite présenté à la direction des groupes de Gestion du risque de crédit sur une base trimestrielle. S'il arrive que les prêts subissent une détérioration supplémentaire et une augmentation du risque au point qu'une intensification du suivi devienne nécessaire, un des groupes spécialisés intervient. Ces groupes sont chargés de maximiser la récupération des sommes déboursées et d'élaborer des stratégies adaptées à ces comptes.
+
+[p.91]
+Pour les comptes de plus grande envergure, un rapport de surveillance est soumis à un comité de surveillance formé de membres de la direction des groupes de Gestion du risque de crédit sur une base trimestrielle et l'Audit interne agit à titre d'observateur du comité. Le rapport permet de suivre la situation des dossiers à risque et les mesures correctives qui ont été formulées. À la demande du comité de surveillance, certains dossiers soumis feront l'objet d'une présentation. Le pouvoir d'autoriser des provisions pour pertes de crédit est attribué, au moyen de latitudes déléguées en fonction du palier hiérarchique, dans la politique de gestion du risque de crédit.
+
+[p.91]
+Des renseignements relatifs à la comptabilisation des prêts dépréciés et des provisions pour pertes de crédit sont présentés aux notes 1 et 8 afférentes aux états financiers consolidés.
+
+[p.91]
+### Tolérance et restructuration
+
+[p.91]
+L'identification des situations où un débiteur, qu'il s'agisse d'une entreprise ou d'un particulier, commence à démontrer des signes évidents d'un problème de solvabilité est traitée au cas par cas et requiert du jugement. La norme régissant l'intervention en matière de prêts énonce les principes qu'il convient d'appliquer dans de tels cas, dans le but d'orienter la prise de décision en matière de restructuration de prêts et de déterminer les cas d'application d'une restructuration en urgence. Une situation de restructuration en urgence prévaut lorsque la Banque, pour des raisons économiques ou juridiques liées aux difficultés financières du débiteur, offre à ce dernier une concession particulière matérielle qui est contraire aux politiques de la Banque. Ces concessions pourraient inclure la réduction du taux d'intérêt original de sorte que la nouvelle tarification soit inférieure à son coût des fonds, la renonciation à une portion du capital ou des intérêts courus en arrérage ainsi que la prorogation des versements d'une partie importante du prêt ou des intérêts de telle manière que la nouvelle date d'échéance ou les modalités de paiement seront plus raisonnables compte tenu de la vie utile des actifs donnés en garantie pour le prêt.
+
+[p.91]
+La Banque a établi un cadre de gestion pour les entreprises débitrices représentant un risque de défaut plus élevé que la normale. On y définit entre autres les rôles et responsabilités des gestionnaires de prêts dans la gestion des crédits à haut risque, de même que les responsabilités des unités spécialisées en intervention et autres parties prenantes dans le processus. Enfin, la politique de gestion du risque de crédit et un cadre de gestion fixent les pouvoirs d'autorisation en matière de restructuration en urgence. Au cours des exercices 2025 et 2024, le montant des prêts restructurés en urgence n'était pas significatif.
+
+[p.91]
+### Évaluation du risque de contrepartie
+
+[p.91]
+Le risque de contrepartie est un risque de crédit que la Banque encourt relativement à divers types de transactions portant sur des instruments financiers. Les risques les plus élevés sont ceux qui surviennent lorsque la Banque négocie de gré à gré des instruments financiers dérivés avec des contreparties, ou encore lorsqu'elle acquiert des valeurs mobilières en vertu de conventions de revente ou vend des valeurs mobilières en vertu de conventions de rachat. Les opérations de prêts de titres ainsi que les activités de courtage de valeurs mobilières sont également sources de risque de contrepartie. La note 17 afférente aux états financiers consolidés présente une description du risque de crédit relatif aux instruments financiers dérivés par type de produit négocié.
+
+[p.91]
+Le groupe de Gestion des risques dispose de modèles par type de contreparties, qui lui permettent d'utiliser, le cas échéant, une méthodologie avancée pour le calcul du risque de crédit et du capital économique auxquels la Banque est exposée. Les expositions sont assujetties à des limites. Ces limites sont établies en tenant compte de la cote interne de risque de défaut de la contrepartie ainsi que de la volatilité potentielle des actifs sous-jacents jusqu'à l'échéance du contrat.
+
+[p.91]
+Les engagements des contreparties liés à la négociation de contrats sur instruments financiers dérivés ainsi qu'à des opérations d'emprunt et de prises en pension de titres font fréquemment l'objet de mesures d'atténuation du risque de crédit. Les techniques d'atténuation diffèrent quelque peu de celles utilisées pour les prêts et les avances et varient selon la nature de l'instrument ou du type de contrat négocié. La première d'entre elles, et la plus courante, est la conclusion avec les parties concernées de conventions-cadres de l' International Swaps & Derivatives Association, Inc . (ISDA), du Global Master Repurchase Agreement (GMRA) et du Global Master Securities Lending Agreement (GMSLA). Ces conventions permettent d'effectuer, en cas de défaillance, d'insolvabilité ou de faillite d'une des parties contractantes, la pleine compensation des montants bruts de l'évaluation au prix du marché de chacune des transactions visées par la convention en vigueur au moment de la défaillance. Le montant du règlement final représente par conséquent le solde net des gains et pertes sur chaque transaction, ce qui diminue l'exposition en situation de défaut de la contrepartie. Les politiques de la Banque requièrent qu'une convention ISDA, GMRA ou GMSLA soit conclue avec ses contreparties négociant des instruments financiers dérivés, des contrats de change à terme et des opérations d'emprunt ou des prises en pension de titres.
+
+[p.91]
+Un mécanisme additionnel de réduction du risque de crédit pour les instruments financiers dérivés et les contrats de change à terme complète dans plusieurs cas la convention ISDA, et donne le droit à la Banque et à sa contrepartie, ou à l'une ou l'autre des deux parties le cas échéant, de réclamer des actifs en garantie de l'autre partie lorsque le solde net des gains et des pertes sur chaque opération dépasse un certain seuil défini dans l'entente. Ces ententes sur les marges initiales et les marges de variation constituent une exigence réglementaire lorsque les institutions financières transigent entre elles ou avec des gouvernements et banques centrales sur les marchés financiers internationaux, parce qu'elles limitent l'ampleur du risque de crédit et réduisent le risque idiosyncratique associé à la négociation des instruments financiers dérivés ainsi que des contrats de change à terme, tout en accordant une marge de manœuvre additionnelle aux négociateurs pour continuer de négocier avec la contrepartie. La Banque a toujours recours, lorsque la réglementation l'exige (notamment, par le BSIF), à ce type de convention juridique dans le cadre de ses opérations avec des institutions financières. Pour les opérations avec les entreprises, la Banque préconise plutôt l'utilisation de mécanismes internes, notamment au niveau des sûretés et des hypothèques, prévus dans les conventions de crédit. Enfin, lorsque cela est possible, la Banque passe par des contreparties centrales de compensation comme méthode de réduction du risque de crédit de contrepartie. Les politiques internes de la Banque fixent les conditions régissant la mise en place de telles méthodes d'atténuation.
+
+[p.92]
+De plus, la réclamation d'actifs en garantie dans le cadre des opérations d'emprunt et de prise en pension de titres ne résulte pas uniquement d'une décision interne de crédit. De fait, il s'agit d'une obligation pour répondre aux exigences en matière de comptabilité, de bilan et de traitement des fonds propres réglementaires conformément aux règles comptables applicables et aux règles imposées par les organismes d'autoréglementation du secteur des services financiers, tel l'Organisme canadien de réglementation des investissements (OCRI).
+
+[p.92]
+La Banque a identifié les circonstances où elle est susceptible d'être exposée à une transaction avec risque significatif de corrélation ( Wrong-Way Risk ). Il y a deux types de risque significatif de corrélation : le risque significatif de corrélation général ( General Wrong-Way Risk ) et le risque significatif de corrélation spécifique ( Specific Wrong-Way Risk ). Le risque général survient lorsque la probabilité de défaut des contreparties est positivement corrélée aux facteurs de risque généraux du marché. Le risque spécifique survient lorsque l'exposition à une contrepartie spécifique est positivement corrélée avec la probabilité de défaut de la contrepartie en raison de la nature des transactions avec cette contrepartie.
+
+[p.92]
+### Évaluation du risque de règlement
+
+[p.92]
+Le risque de règlement vise potentiellement toute opération qui comporte une réciprocité simultanée de paiement ou de règlement entre la Banque et une contrepartie. Les contrats de change sont un exemple de transaction pouvant comporter de grands risques de règlement. Cependant, l'implantation de systèmes de règlements multilatéraux permettant la compensation des règlements entre institutions participantes a grandement contribué à la réduction des risques découlant du règlement de transactions de change entre les banques. La Banque a également recours à des intermédiaires financiers, qui lui donnent accès aux services de chambres de compensation reconnues dans le but de minimiser le risque de règlement découlant d'opérations sur instruments financiers dérivés. Dans certains cas, la Banque a un accès direct aux chambres de compensation pour le règlement de transactions financières, notamment celles sur les valeurs mobilières liées à des conventions de rachat ou de revente. De plus, certains instruments financiers dérivés négociés hors bourse sont compensés par des contreparties centrales, directement ou indirectement. Pour de plus amples renseignements, se reporter au tableau présentant les montants nominaux de référence à la note 18 afférente aux états financiers consolidés.
+
+[p.92]
+Plusieurs autres types d'opérations sont susceptibles de présenter un risque de règlement, particulièrement l'utilisation de certains services de transfert électronique de fonds. Ce risque est lié à la possibilité que la Banque effectue le paiement ou le règlement d'une transaction sans recevoir en retour celui qui lui est dû par la contrepartie, et sans qu'il lui soit possible de récupérer les sommes livrées (règlement irrévocable).
+
+[p.92]
+Le moyen ultime d'éliminer un tel risque pour la Banque est de ne pas effectuer des paiements ni des règlements avant d'avoir reçu les sommes attendues de la contrepartie. Cependant, cette méthode ne peut être utilisée de manière systématique. Pour plusieurs services de paiement électronique, la Banque peut mettre en place des mécanismes permettant de rendre révocables ses virements ou de débiter les règlements à la contrepartie avant d'effectuer son propre virement. Par contre, la nature des opérations sur des instruments des marchés financiers rend impossible la généralisation de telles pratiques. Par exemple, les décalages horaires imposent aux parties des échéances strictes au chapitre des paiements des devises sur les opérations de change impliquant une devise autre que le dollar américain. Or, compte tenu de l'importance des montants en cause, la Banque ne pourrait retarder indûment un règlement sans s'exposer à des pénalités.
+
+[p.92]
+Le moyen le plus efficace pour la Banque de contrôler les risques de règlement, pour les transactions sur les marchés financiers comme pour les virements irrévocables, consiste à imposer des limites internes de risque basées sur la capacité de payer de la contrepartie.
+
+[p.92]
+### Évaluation du risque environnemental
+
+[p.92]
+Le risque environnemental concerne les impacts sur le risque de crédit qui peuvent se traduire par une diminution de la capacité de remboursement ou de la valeur de l'actif donné en sûreté liée à des événements de nature environnementale, tels que la contamination des sols, la gestion de déchets ou un déversement de matières jugées dangereuses, à la transition énergétique ou à des phénomènes météorologiques extrêmes. En conséquence, le risque environnemental pourrait se traduire à la fois par des probabilités de défaut plus élevées et par des dotations aux pertes de crédit plus élevées en cas de défaut des contreparties. En complément aux mesures et aux directives adoptées par les divers paliers de gouvernement, la Banque dispose d'un ensemble de mesures de protection à suivre pour identifier et réduire des risques environnementaux potentiels, réels ou futurs auxquels elle s'expose lorsqu'elle octroie des crédits à sa clientèle, notamment via une norme régissant la gestion du risque environnemental dans le cadre des activités de financement.
+
+[p.92]
+De plus, au cours des dernières années, le cadre de gestion des risques a été élargi afin d'inclure de nouvelles mesures d'identification, d'évaluation, de contrôle et de surveillance du risque climatique. À cet effet, la Banque développe et met en œuvre progressivement un processus d'évaluation et de quantification des impacts des changements climatiques sur sa stratégie et ses résultats. Pour les clientes et clients œuvrant au sein d'industries spécifiques, le cadre d'analyse du risque prévoit notamment la collecte d'informations sur l'empreinte carbone, une classification face aux risques climatiques (physiques et de transition) selon le secteur d'activité et l'industrie, leur positionnement stratégique et l'existence d'un plan de transition énergétique (engagements, cibles de réduction, diversification des activités). Ces différents sujets sont abordés, au moins une fois par année, dans le cadre des processus d'octroi de crédit, de révision et de renouvellement.
+
+[p.92]
+L'exposition au risque de crédit environnemental de la Banque est aussi évaluée à travers divers mécanismes de contrôle et de surveillance. Par exemple, des analyses de vulnérabilité aux risques physiques et de transition du portefeuille de prêts sont effectuées pour des activités de financement. De plus, des analyses d'impacts des risques climatiques, basées sur des scénarios recommandés par le Réseau des banques centrales et des superviseurs pour le verdissement du système financier ( Network for Greening the Financial System ou NGFS) sont réalisées depuis quelques années et ont permis à la Banque de quantifier les pertes anticipées liées à son portefeuille de prêts. La Banque participe également à des exercices standardisés de scénarios climatiques afin de renforcer ses capacités et de raffiner son expertise. Ces analyses permettent de mesurer l'impact potentiel du climat sur les activités et les performances financières des actifs, en tenant compte de plusieurs scénarios plausibles. En outre, l'impact du risque environnemental sur le risque de concentration du portefeuille de prêts est évalué périodiquement afin de s'assurer qu'il n'y a pas d'impact significatif sur ce risque. Une matrice des secteurs d'activité du portefeuille de prêts a également été développée afin de permettre au groupe de Gestion des risques d'avoir une vision claire des secteurs les plus touchés par le risque climatique. Ces diverses initiatives permettent de prendre des mesures concrètes dans le processus de révision des limites sectorielles, chaque secteur d'activité ou industrie ayant une section ESG détaillant le risque environnemental.
+
+[p.93]
+### Exposition maximale au risque de crédit
+
+[p.93]
+Les montants des tableaux suivants représentent l'exposition maximale au risque de crédit à la date de présentation de l'information financière, sans tenir compte d'aucune garantie détenue ni d'aucun autre rehaussement de crédit. Les montants ne tiennent pas compte des provisions pour pertes de crédit, ni des montants donnés en garantie. De plus, les tableaux excluent les titres de participation.
+
+[p.94]
+### Risque de marché
+
+[p.94]
+Le risque de marché est le risque de pertes financières liées à la variation des prix de marché. Le risque de marché provient d'un certain nombre de facteurs, notamment des modifications des variables de marché telles que les taux d'intérêt, les écarts de crédit, les taux de change, les cours des actions, les prix des produits de base et les volatilités implicites. La Banque est exposée au risque de marché en raison de sa participation à des activités de négociation, d'investissement et de gestion de l'appariement du bilan. Les activités de négociation comprennent la prise de positions, sur divers instruments tels que des obligations, des actions, des devises, des produits de base ou des instruments financiers dérivés. La Banque est exposée au risque de marché lié à des activités autres que de négociation découlant de sa gestion de l'appariement du bilan, ainsi que dans ses portefeuilles d'investissement.
+
+[p.94]
+Les portefeuilles de négociation comprennent des positions sur des instruments financiers et des produits de base détenus soit à des fins de négociation, soit afin de couvrir d'autres éléments du portefeuille de négociation. Les positions détenues à des fins de négociation sont celles détenues à des fins de revente à court terme ou dans le but de profiter des variations de prix réelles ou prévues à court terme ou de fixer les profits tirés des activités d'arbitrage, ainsi que de couvrir les risques découlant des instruments financiers. Les objectifs stratégiques des activités de négociation sont notamment la tenue de marché, le traitement des opérations des clientes et clients et la gestion des risques liés à ces activités.
+
+[p.94]
+Les portefeuilles autres que de négociation comprennent les instruments financiers destinés à être détenus jusqu'à leur échéance ainsi que ceux détenus soit à des fins de gestion de la liquidité quotidienne, soit pour le maintien d'un rendement cible ou pour la gestion de l'appariement du bilan de la Banque.
+
+[p.94]
+La Banque dispose d'un cadre lui permettant de superviser le risque de marché ainsi que de maintenir une gouvernance forte et d'assurer la conformité avec les pratiques et la réglementation sectorielles. La politique de gestion du risque de marché régit la gestion globale du risque de marché dans l'ensemble des unités d'affaires et des filiales de la Banque exposées à ce risque. Elle est approuvée par le CRG. Elle présente les principes de la gestion du risque de marché et le cadre qui définit les mesures de risques, les activités de contrôle et de surveillance, l'établissement des limites de risque de marché ainsi que le signalement et les recours en cas de dépassements. Le cadre de la gestion des risques de la Banque comprend également des principes directeurs pour l'attribution des transactions dans le portefeuille de négociation ou dans le portefeuille bancaire ainsi que les exigences relatives à la détermination et à la surveillance des positions prolongées.
+
+[p.94]
+Le comité de risque des Marchés des capitaux supervise tous les risques du secteur des Marchés des capitaux qui pourraient avoir un impact négatif sur les résultats de la Banque, sur la liquidité ou sur le capital. Ce comité assure la surveillance du cadre de risque du secteur des Marchés des capitaux afin d'assurer que les contrôles soient en place afin de contenir le risque conformément au cadre d'appétit pour le risque de la Banque.
+
+[p.94]
+Le cadre de limitation du risque de marché préserve le lien et la cohérence entre les cibles d'appétit pour le risque de marché de la Banque et la gestion quotidienne du risque de marché par l'ensemble des parties intéressées, notamment la haute direction et les unités d'affaires, ainsi que les équipes des Risques de marché dans leur fonction de contrôle indépendant. Le processus de surveillance et de signalement de la Banque consiste à comparer l'exposition au risque de marché aux niveaux d'alerte et aux limites du risque de marché déterminés pour l'ensemble des niveaux d'autorisation et d'approbation de limites.
+
+[p.94]
+### Évaluation du risque de marché
+
+[p.94]
+Le groupe de Gestion des risques a recours à diverses mesures de risque pour estimer l'ampleur des pertes financières pouvant être subies dans des scénarios plus ou moins pessimistes, sur des horizons à court et à long terme. Pour ce qui est des horizons à court terme, les mesures de risque de la Banque comprennent la valeur à risque (VaR) et des mesures de sensibilité. En ce qui a trait aux horizons à long terme ou aux changements importants et soudains du marché, notamment ceux découlant d'un manque de liquidités sur le marché, les mesures de risque comprennent des simulations de crises selon un large éventail de scénarios.
+
+[p.94]
+### Modèles de la VaR
+
+[p.94]
+La VaR est une mesure statistique du risque permettant de quantifier les risques de marché par activité et par type de risque. La VaR représente la perte maximale pouvant être subie à un niveau de confiance précis sur un certain horizon et dans des conditions de marché normales. La VaR présente l'avantage de fournir une mesure homogène des risques de marché liés aux divers instruments financiers, basée sur un même niveau de confiance statistique et un même horizon temporel.
+
+[p.94]
+Pour la VaR, la Banque utilise une répartition historique des prix afin de calculer les pertes probables à un niveau de confiance de 99 %, suivant l'évolution quotidienne des facteurs de risque sur des périodes historiques de deux ans. La VaR représente la perte quotidienne maximale que la Banque pourrait, dans 99 cas sur 100, subir dans un portefeuille donné. Autrement dit, la perte subie pourrait dépasser ce montant dans un cas seulement sur 100.
+
+[p.94]
+La VaR liée à un portefeuille de négociation est mesurée en supposant une période de détention d'un jour pour la gestion continue du risque de marché. La VaR est calculée quotidiennement à la fois pour les grandes catégories d'instruments financiers, y compris les instruments financiers dérivés, et pour l'ensemble des portefeuilles de négociation du secteur des Marchés des capitaux et du groupe de Financement d'actifs et trésorerie de la Banque.
+
+[p.95]
+La méthode de la VaR est appropriée pour mesurer le risque dans une conjoncture normale, particulièrement en ce qui a trait aux positions de négociation dans les marchés financiers liquides. Cependant, cette méthode présente des faiblesses pour mesurer le risque lorsque des événements extrêmes et soudains liés au risque de marché ont lieu et, par conséquent, le risque de marché de la Banque pourrait vraisemblablement être sousestimé. Les faiblesses de la méthode de la VaR sont notamment les éléments suivants :
+
+[p.95]
+ les variations antérieures des facteurs du risque de marché ne permettent pas toujours d'obtenir des prédictions exactes de la distribution et des corrélations relatives aux variations futures des marchés;
+
+[p.95]
+ une VaR à un jour n'intègre pas complètement le risque de marché lié aux positions qui ne peuvent pas être liquidées ou couvertes dans une journée;
+
+[p.95]
+ la base de données historiques sur les facteurs du risque de marché utilisée dans le calcul de la VaR peut ne pas refléter les pertes pouvant découler d'une conjoncture inhabituelle (par exemple : une période d'extrême illiquidité) en lien avec la période utilisée pour estimer la VaR;
+
+[p.95]
+ l'utilisation d'un niveau de confiance de 99 % ne reflète pas les pertes potentielles au-delà de ce centile.
+
+[p.95]
+Compte tenu des faiblesses de la VaR, cette mesure ne représente pour la Banque qu'une composante de son processus de surveillance en matière de gestion des risques, qui comprend également les simulations de crises, l'analyse de sensibilité ainsi que l'analyse et l'établissement de limites en ce qui a trait à la concentration et aux liquidités, entre autres.
+
+[p.95]
+La Banque effectue également des tests rétroactifs du modèle de la VaR qui consistent à comparer les profits et les pertes aux résultats statistiques de la VaR. Les tests rétroactifs sont essentiels pour vérifier la capacité du modèle de la VaR à prévoir adéquatement le risque maximal de pertes de marché et pour valider ainsi, rétroactivement, la qualité et la précision des résultats obtenus au moyen de ce modèle. Si les résultats des tests rétroactifs présentent des écarts importants, le modèle de la VaR peut être révisé conformément au cadre de gestion du risque de modèles de la Banque. Tous les modèles de risque de marché et leur performance font l'objet d'une validation périodique indépendante par le groupe de validation des modèles.
+
+[p.95]
+### Contrôle du risque de marché
+
+[p.95]
+Un ensemble complet de limites est appliqué à l'égard des mesures de risque de marché, et ces limites font l'objet d'un suivi et d'un signalement réguliers. Tout dépassement est signalé au niveau de direction approprié. Les profils de risque des activités de la Banque demeurent conformes à son degré d'appétit pour le risque et aux limites qui en découlent, et sont suivis et communiqués aux négociateurs, aux dirigeantes et dirigeants des unités d'affaires concernées, à la haute direction et aux comités du Conseil. Afin de maintenir le risque de marché à l'intérieur des limites de son appétit pour le risque, la Banque couvre les expositions en utilisant de la trésorerie et des instruments financiers dérivés, selon le cas.
+
+[p.95]
+Dans certaines conditions, les risques de marché, comme les risques de taux d'intérêt, de crédit ou sur actions, peuvent être atténués en effectuant des transactions sur des instruments financiers dérivés dans le portefeuille de négociation au moyen d'un transfert de risque interne (TRI). Les transferts internes du risque de taux d'intérêt sont traités par un pupitre de TRI spécialisé et approuvé par le BSIF, tandis que les transferts internes du risque de crédit et du risque sur actions sont effectués directement entre les portefeuilles de négociation et autres que de négociation. La Banque a établi un cadre décrivant en détail la gouvernance des TRI et les exigences connexes pour faire en sorte que ces transactions respectent la ligne directrice sur les normes de fonds propres du BSIF au début du processus et de façon permanente par la suite.
+
+[p.95]
+La Banque utilise également le capital économique pour le risque de marché à titre d'indicateur de l'appétit pour le risque et aux fins de l'établissement de limites. Cet indicateur mesure le montant de capital requis pour absorber les pertes imprévues attribuables à des événements liés au risque de marché sur un horizon d'un an et selon un niveau de confiance déterminé. Pour de plus amples renseignements liés au capital économique, se reporter à la section « Gestion du capital » du présent Rapport de gestion.
+
+[p.96]
+Les tableaux suivants présentent le total des actifs et des passifs au bilan consolidé de la Banque, ventilé entre les actifs et passifs financiers qui comportent un risque de marché et ceux qui ne sont pas assujettis au risque de marché. On y distingue les positions liées aux activités de négociation pour lesquelles la principale mesure de risque est la VaR, ainsi que les positions liées aux activités autres que de négociation pour lesquelles d'autres mesures de risque sont utilisées.
+
+[p.96]
+### Conciliation du risque de marché avec les éléments du bilan consolidé *
+
+[p.97]
+Positions liées aux activités de négociation pour lesquelles la mesure de risque est la VaR totale. Pour de plus amples renseignements, se reporter au tableau illustrant la distribution de la VaR des portefeuilles de négociation par catégorie de risque et leur effet de diversification présenté à la page suivante.
+
+[p.97]
+Positions liées aux activités autres que de négociation pour lesquelles d'autres mesures de risque sont utilisées.
+
+[p.97]
+Pour de plus amples renseignements, se reporter au tableau illustrant la distribution de la VaR des portefeuilles de négociation par catégorie de risque et leur effet de diversification, et au tableau illustrant la sensibilité aux taux d'intérêt, présentés aux pages suivantes.
+
+[p.97]
+Pour de plus amples renseignements, se reporter à la note 7 afférente aux états financiers consolidés.
+
+[p.97]
+La juste valeur des titres de participation désignés à la juste valeur par le biais des autres éléments du résultat global est présentée aux notes 4 et 7 afférentes aux états financiers consolidés.
+
+[p.97]
+Ces instruments sont comptabilisés au coût amorti et assujettis au risque de crédit à des fins de gestion de capital. Le risque de taux d'intérêt sur des transactions ayant une échéance de plus d'un jour est inclus dans la mesure de la VaR lorsqu'elles sont afférentes à des activités de négociation.
+
+[p.97]
+Pour de plus amples renseignements, se reporter aux notes 17 et 18 afférentes aux états financiers consolidés.
+
+[p.97]
+Pour de plus amples renseignements, se reporter à la note 23 afférente aux états financiers consolidés.
+
+[p.98]
+### Activités de négociation
+
+[p.98]
+Le tableau présenté ci-dessous illustre la VaR des portefeuilles de négociation par catégorie de risque et leur effet de diversification.
+
+[p.98]
+### VaR des portefeuilles de négociation (1) (2) *
+
+[p.98]
+Consulter le « Glossaire » aux pages 136 à 139 pour plus de détails sur la composition de ces mesures.
+
+[p.98]
+Les montants sont présentés avant impôts et représentent la VaR quotidienne, selon un niveau de confiance de 99 %.
+
+[p.98]
+La VaR totale de négociation est inférieure à la somme des VaR individuelles par facteur de risque, en raison de l'effet de diversification.
+
+[p.98]
+La VaR totale de négociation moyenne a augmenté, passant de 9,5 M$ à 13,0 M$ entre les exercices 2024 et 2025. La hausse est principalement attribuable à l'augmentation du risque de taux d'intérêt.
+
+[p.98]
+Les revenus tirés des activités de négociation sont comparés à la VaR, représentant une évaluation rétroactive de la pertinence de cette mesure de risque, de même que le rendement financier des activités de négociation par rapport aux risques courus.
+
+[p.98]
+Le graphique présenté ci-dessous illustre les revenus de négociation et de souscription ainsi que la VaR sur une base quotidienne. Les revenus de négociation et de souscription quotidiens ont été positifs pendant 94 % des jours de l'exercice terminé le 31 octobre 2025. De plus, 13 jours ont été marqués par des pertes nettes de négociation et de souscription quotidiennes supérieures à 1 M$. Aucune de ces pertes n'excédaient la VaR.
+
+[p.98]
+### Revenus de négociation et de souscription quotidiens
+
+[p.99]
+Les simulations de crises représentent une méthode de gestion du risque qui consiste à estimer les pertes potentielles dans des conditions de marché et de variations des facteurs de risque anormales. Cette méthode permet d'augmenter la transparence des données en explorant une gamme de scénarios graves mais plausibles.
+
+[p.99]
+Ces simulations de crises donnent les résultats que dégageraient les portefeuilles si les hypothèses de ces scénarios extrêmes devaient se réaliser. Actuellement, le cadre de simulations de crises de la Banque, qui est appliqué à toutes les positions comportant un risque de marché, se compose notamment des catégories de scénarios chocs suivants :
+
+[p.99]
+ scénarios historiques basés sur des situations passées de perturbations majeures;
+
+[p.99]
+ scénarios hypothétiques conçus pour être prospectifs face aux tensions potentielles sur les marchés;
+
+[p.99]
+o augmentation/diminution parallèle marquée des taux d'intérêt; variations non parallèles des taux d'intérêt (aplatissement et accentuation) et augmentation/diminution des écarts de crédit;
+
+[p.99]
+o effondrement soudain des marchés boursiers combiné à une hausse importante de la structure à terme de la volatilité; augmentation des cours des actions combinée à une diminution de la volatilité;
+
+[p.99]
+o augmentation/diminution importante des prix des produits de base combinée à une hausse/baisse de la volatilité; augmentation/diminution des prix des produits de base à court terme et à long terme;
+
+[p.99]
+o dépréciation/appréciation du dollar américain et des autres devises par rapport au dollar canadien.
+
+[p.99]
+### Ajustement de l'évaluation de crédit ( Credit Valuation adjustment ou CVA)
+
+[p.99]
+Le risque lié au CVA est une considération importante pour l'évaluation et la gestion des instruments financiers dérivés hors bourse et autres instruments financiers lorsqu'il y a un risque de contrepartie. La Banque maintient un cadre de gouvernance solide et prudent pour la gestion du risque lié au CVA qui définit et documente clairement les objectifs, la portée et les contrôles indépendants qui concernent ces activités. La détection et l'évaluation du risque lié au CVA se font grâce à des outils analytiques avancés et à des modèles quantitatifs; le risque est surveillé et contrôlé en continu par une unité indépendante de la deuxième ligne de défense. De plus, des limites de risque sont établies pour le risque lié au CVA et celles-ci sont définies par les autorités approbatrices telles que définies dans les politiques de la Banque.
+
+[p.99]
+### Risque de taux d'intérêt dans le portefeuille bancaire (RTIPB)
+
+[p.99]
+Dans le cadre de ses activités bancaires de base, par exemple l'octroi de prêts et la collecte de dépôts, la Banque s'expose à un risque de taux d'intérêt. Le RTIPB se rapporte à l'incidence éventuelle négative des fluctuations des taux d'intérêt sur le revenu net d'intérêts annuel et la valeur économique des capitaux propres de la Banque. Les activités liées aux opérations de couverture, aux placements et au financement à terme sont également exposées au risque de taux d'intérêt. Les principaux risques de taux d'intérêt auxquels la Banque est exposée proviennent des diverses sources suivantes :
+
+[p.99]
+ le risque lié à la courbe de taux d'intérêt, lequel se rapporte aux variations du niveau, de la pente et de la forme de la courbe de taux d'intérêt;
+
+[p.99]
+ le risque lié à la réévaluation, lequel découle des écarts d'échéance et de périodes de réévaluation des éléments du bilan et hors bilan;
+
+[p.99]
+ le risque lié aux options, qu'il soit implicite (par exemple, le remboursement anticipé de prêts hypothécaires) ou explicite (par exemple, les hypothèques à taux plafonné ou les garanties de taux), relativement aux produits inscrits au bilan;
+
+[p.99]
+ le risque de base résultant d'une corrélation imparfaite entre différentes courbes de taux d'intérêt.
+
+[p.99]
+L'exposition de la Banque au RTIPB est évaluée et contrôlée principalement au moyen de l'impact de simulations de crises et de chocs de marché sur la valeur économique des capitaux propres de la Banque et sur le revenu net d'intérêts prévu pour les 12 prochains mois. Ces deux mesures sont calculées quotidiennement. Elles reposent sur des projections de flux de trésorerie établies en fonction d'un certain nombre d'hypothèses. La Banque a notamment élaboré des hypothèses clés concernant le niveau des remboursements anticipés de prêts, le remboursement des dépôts et le comportement des clientes et clients auxquels des garanties de taux ont été accordées, ainsi que le profil de durée et de taux des dépôts sans échéance. Ces hypothèses spécifiques ont été élaborées à partir d'analyses historiques et sont revues sur une base régulière. L'établissement des prix de cession interne des fonds est un processus selon lequel les unités d'affaires de la Banque sont facturées ou rémunérées en fonction des fonds qu'elles reçoivent ou qu'elles fournissent. Au moyen de ce système, toutes les activités de financement ainsi que le risque de taux d'intérêt et le risque de liquidité liés à ces activités sont centralisés au sein du groupe de Financement d'actifs et trésorerie.
+
+[p.99]
+La gestion active du RTIPB peut constituer une source importante de rentabilité pour la Banque et de plus-value pour les actionnaires. L'objectif de la Banque est de maximiser son revenu net d'intérêts annuel et la valeur économique de ses capitaux propres, compte tenu de son appétit pour le risque. Cet objectif doit être atteint dans les limites de risque prescrites et se réalise notamment par la mise en œuvre d'une politique-cadre, approuvée par le CRG et soumise pour information au CGR, qui fixe un seuil de tolérance au risque, des structures de surveillance sous le contrôle de divers comités, des indicateurs de risque, des procédures de reddition de comptes, une délégation de responsabilités et une séparation des fonctions. De plus, la Banque prépare un plan de financement annuel prenant en considération la croissance anticipée de l'actif et du passif.
+
+[p.99]
+La gestion du RTIPB de la Banque relève du groupe de Financement d'actifs et trésorerie. À cet égard, les dirigeantes et dirigeants et le personnel de ce groupe sont responsables de la gestion au jour le jour des risques inhérents aux décisions concernant la couverture du RTIPB et des opérations qui en découlent. Ils représentent le premier niveau d'examen critique en ce qui a trait à l'exécution de ces activités. Le CRG approuve et appuie les degrés d'exposition et les stratégies en matière de RTIPB. Le comité de gestion de l'appariement du bilan ( Asset and Liability Committee ou ALCO), composé de membres de la haute direction, assure une surveillance en continu du RTIPB. Ce comité passe en revue l'exposition au RTIPB, l'utilisation des limites et les changements apportés aux hypothèses. Le groupe de Gestion des risques est responsable de l'évaluation du RTIPB, de la surveillance des activités et de la conformité à la politique de gestion du RTIPB. Le groupe de Gestion des risques s'assure qu'un cadre de gestion du risque approprié est en place et veille au respect du cadre d'appétit pour le risque et de la politique.
+
+[p.100]
+Des simulations de crises sont effectuées sur une base régulière pour évaluer l'incidence de divers scénarios sur le revenu net d'intérêts annuel et sur la valeur économique des capitaux propres afin de guider la gestion du RTIPB. En plus des limites formelles en place, nous utilisons des scénarios précis pour couvrir tous les facteurs de risque et soutenir la surveillance du risque de taux d'intérêt dans les portefeuilles bancaires.
+
+[p.100]
+Des simulations dynamiques sont également appliquées pour estimer le revenu net d'intérêts futur de la Banque, sa valeur économique future et son exposition future au RTIPB dans le cadre de l'exercice de planification budgétaire. Ces simulations permettent d'établir des projections de flux monétaires au niveau des actifs, des passifs et des produits hors bilan sur un horizon de placement donné. En raison de leur nature dynamique, elles reposent sur des hypothèses quant aux variations des volumes, des préférences des clientes et clients à l'égard des modalités, des remboursements anticipés de dépôts et de prêts et de la courbe de taux d'intérêt.
+
+[p.100]
+Le tableau suivant illustre l'incidence potentielle avant impôts d'une augmentation immédiate et soutenue de 100 points de base ou d'une diminution immédiate et soutenue de 100 points de base des taux d'intérêt sur la valeur économique des capitaux propres et sur le revenu net d'intérêts pour les 12 prochains mois des portefeuilles autres que de négociation, en supposant qu'aucune opération de couverture supplémentaire ne soit effectuée et en utilisant un bilan constant.
+
+[p.100]
+### Lignes de gouvernance en matière d'investissement
+
+[p.100]
+La Banque a constitué des portefeuilles de valeurs mobilières composés de valeurs liquides et de valeurs moins liquides servant à des fins de placement à long terme, d'investissement stratégique et de gestion des liquidités. Ces investissements comportent des risques de marché, de crédit, de liquidité et de concentration.
+
+[p.100]
+Les lignes de gouvernance en matière d'investissement établissent les principes directeurs et les normes générales de gestion que doivent suivre tous les gestionnaires de portefeuille de ces titres dans les portefeuilles de la Banque et de ses filiales. Ces lignes de gouvernance requièrent que les unités d'affaires actives dans la gestion de ces types de portefeuilles adoptent des politiques internes d'investissement fixant, entre autres, des cibles et des limites pour la répartition des actifs dans les portefeuilles visés, et des mécanismes d'approbation interne. L'objectif principal recherché est de réduire le risque de concentration par secteur industriel, par entité émettrice, par emplacement géographique, par instrument et par niveau de qualité du crédit.
+
+[p.100]
+Des limites globales en valeur et en proportion des fonds propres de la Banque sont fixées à l'encours des actions privilégiées liquides, des titres de participation liquides excluant les actions privilégiées, ainsi que des instruments classés comme non liquides dans les portefeuilles de valeurs mobilières. L'exposition globale en actions ordinaires à l'égard d'une entité émettrice individuelle ainsi que l'encours total investi dans des souscriptions privées, pour les services de banque d'affaires, sont également assujettis à des limites. Certaines restrictions sont également établies sur les placements définis comme spéciaux. Enfin, la Banque s'est dotée d'une politique spécifique approuvée par le CGR pour des investissements en titres de participation et de créance incluant les investissements stratégiques. Ceux-ci y sont définis comme les achats d'actifs d'entreprise de même que les acquisitions de participations jugées importantes dans une entité, dans le but d'acquérir le contrôle ou simplement de créer une relation durable.
+
+[p.100]
+### Risque de change structurel
+
+[p.100]
+Le risque de change structurel de la Banque découle des investissements effectués dans des établissements à l'étranger et libellés en devises autres que le dollar canadien. Ce risque, principalement en dollars américains, est mesuré en évaluant l'incidence de la fluctuation des devises sur les résultats non distribués. La Banque utilise des instruments financiers (dérivés et non dérivés) pour couvrir ce risque. Un changement défavorable dans les taux de change peut en outre se répercuter sur ses ratios des fonds propres, en raison du montant de l'actif pondéré en fonction des risques libellé en monnaie étrangère. Lorsque le dollar canadien se déprécie par rapport à d'autres monnaies, les gains de change non réalisés sur l'investissement net dans un établissement à l'étranger de la Banque, ainsi que l'impact sur les opérations de couverture, sont présentés dans les autres éléments du résultat global dans les capitaux propres. En outre, l'équivalent en dollars canadiens de l'actif pondéré en fonction des risques libellé en dollars américains et des déductions réglementaires au titre des fonds propres augmente. La situation inverse se produit lorsque le dollar canadien s'apprécie par rapport au dollar américain. La gestion du risque de change structurel vise à s'assurer que les incidences possibles sur les ratios des fonds propres et sur le résultat net sont dans la limite de tolérance établie par les politiques en matière de risque.
+
+[p.101]
+### Risque de liquidité et de financement
+
+[p.101]
+Le risque de liquidité et de financement représente le risque que la Banque ne puisse honorer ses obligations quotidiennes financières et de trésorerie sans devoir recourir à des mesures coûteuses ou inopportunes. Ce risque survient lorsque les sources de fonds deviennent insuffisantes pour respecter les versements prévus dans le cadre des engagements de la Banque. Le risque de liquidité désigne la possibilité qu'une institution ne soit pas en mesure de respecter ses obligations financières lorsqu'elles deviennent exigibles, en raison de la non-concordance entre les entrées et les sorties de trésorerie, sans subir des pertes inacceptables.
+
+[p.101]
+L'objectif premier de la Banque, en tant qu'institution financière, est de gérer la liquidité de manière à soutenir sa stratégie d'affaires et à lui permettre d'honorer ses engagements lorsqu'ils deviennent exigibles, et ce, même dans des conditions extrêmes. Cela se réalise notamment par la mise en œuvre d'une politique-cadre approuvée par le CGR qui fixe un appétit pour le risque, des structures de surveillance sous le contrôle de divers comités, des indicateurs de risque, des procédures de reddition de comptes, une délégation de responsabilités et une séparation des fonctions. De plus, la Banque prépare un plan de financement annuel prenant en considération la croissance anticipée de l'actif et du passif.
+
+[p.101]
+### Contexte réglementaire
+
+[p.101]
+La Banque travaille étroitement avec les organismes de réglementation nationaux et internationaux en vue de la mise en œuvre de normes réglementaires en matière de liquidités. La Banque adapte ses processus et ses politiques de sorte qu'ils reflètent son appétit pour le risque en matière de liquidités en ce qui concerne ces nouvelles exigences.
+
+[p.101]
+Les Normes de liquidité (NL) sont revues périodiquement afin de refléter les changements réglementaires aux niveaux national et international; elles constituent le cadre de référence en matière de liquidités proposé par le BSIF et comprennent sept chapitres :
+
+[p.101]
+ ratio de liquidité à court terme ( Liquidity Coverage Ratio ou LCR);
+
+[p.101]
+ ratio de liquidité à long terme ( Net Stable Funding Ratio ou NSFR);
+
+[p.101]
+ flux de trésorerie nets cumulatifs ( Net Cumulative Cash Flow ou NCCF);
+
+[p.101]
+Le LCR a pour but de veiller à ce que les banques puissent surmonter de graves difficultés à court terme tandis que le NSFR est un ratio qui est déterminé sur un horizon d'un an. La mesure des NCCF est définie comme un outil de supervision calculant une période de survie. Elle repose sur les hypothèses d'une simulation de crise définie par le BSIF, lesquelles visent à représenter la situation combinée d'une crise propre à une banque et d'une crise systémique. La Banque publie la moyenne du LCR et le NSFR à la fin de chaque trimestre, alors que le relevé NCCF est produit mensuellement et communiqué au BSIF.
+
+[p.101]
+Le 7 novembre 2022, le BSIF a publié la nouvelle ligne directrice Assurance fournie par les relevés de capital/fonds propres, de levier et de liquidité . Le BSIF se fonde en grande partie sur les relevés réglementaires produits par les institutions financières pour évaluer leur sûreté et leur solidité. Cette ligne directrice a donc pour but de mieux informer les auditeurs et les institutions des vérifications à effectuer sur leurs relevés réglementaires, afin de clarifier et d'harmoniser les attentes du BSIF en matière d'assurance pour l'ensemble des institutions financières. La ligne directrice porte notamment sur l'assurance que doit fournir un audit externe, l'attestation de la haute direction, l'assurance que doit fournir un audit interne et les dates d'entrée en vigueur. Pour les BISI, les exigences relatives à l'assurance que doit fournir l'Audit interne à l'égard des relevés de capital/fonds propres, de levier et de liquidité débutaient à compter de l'exercice 2023, les exigences relatives à l'examen interne et à l'attestation de la haute direction s'appliquaient à compter de l'exercice 2024 et les exigences relatives à l'assurance que doit fournir l'auditeur externe s'appliquent à compter de l'exercice 2025.
+
+[p.101]
+La Banque participe activement au processus de consultation lancé le 22 mai 2025 par le BSIF concernant le document de discussion sur le processus interne d'évaluation de l'adéquation des liquidités (PIEAL), qui vise à améliorer l'approche du BSIF en matière de supervision des liquidités du Pilier 2, tout en tenant compte des meilleures pratiques internationales et des particularités du secteur financier canadien. La Banque prend également part à la consultation publique du BSIF sur les révisions proposées à la ligne directrice NL.
+
+[p.101]
+Dans son rapport Regard annuel sur le risque - Exercice 2025-2026 , le BSIF a désigné le risque de liquidité et de financement comme l'un des quatre principaux risques à surveiller. L'approche du BSIF couvrira des sujets importants, notamment l'état de préparation des banques canadiennes à l'éventualité où elles devraient composer avec des tensions résultant des flux de liquidités transfrontières et une asymétrie de devises. De plus, le BSIF continuera d'approfondir son analyse des aspects opérationnels des plans de financement d'urgence afin de mieux comprendre les décisions de monétiser des actifs pendant les événements de crise.
+
+[p.101]
+Par ailleurs, le BSIF procède également à la révision du chapitre 7 Outils de suivi des liquidités intrajournalières de la ligne directrice NL. Le BSIF mettra en place des outils de suivi adaptés pour les adhérents et les sous-adhérents, en tenant compte de l'importance de la mesure des liquidités intrajournalières dans le contexte des récents épisodes de tension. La version révisée de la ligne directrice et les exigences connexes en matière de déclaration sont entrées en vigueur le 1 er novembre 2025.
+
+[p.101]
+La Banque continue de surveiller de près l'évolution de la réglementation et participe activement aux divers processus de consultation.
+
+[p.102]
+Le groupe de Financement d'actifs et trésorerie est responsable de la gestion du risque de liquidité et de financement. Bien que la gestion quotidienne et stratégique des risques liés à la gestion des liquidités et aux activités de financement et de nantissement soit assumée par le groupe de Financement d'actifs et trésorerie, le groupe de Gestion des risques a la responsabilité d'évaluer le risque de liquidité et de surveiller la conformité à la politique qui en découle. Le groupe de Gestion des risques s'assure qu'un cadre de gestion du risque approprié est en place et veille au respect du cadre d'appétit pour le risque. Cette structure assure ainsi une fonction d'examen critique efficace et indépendante à l'égard des décisions, de la stratégie et de l'exposition aux risques de liquidité, de financement et de nantissement.
+
+[p.102]
+La Politique de gestion des risques de liquidité et de nantissement de la Banque est soumise à l'examen et à l'approbation du CGR, selon les recommandations du CRG. La Banque a établi quatre niveaux de limites. Les deux premiers niveaux de limites comprennent la situation de trésorerie globale de la Banque et sont respectivement approuvés par le Conseil et le CRG, le troisième niveau de limites est davantage axé sur des éléments précis du risque de liquidité et est approuvé par l'ALCO ou par le comité de risque des Marchés des capitaux, tandis que le quatrième niveau représente les limites opérationnelles. Le Conseil approuve l'encadrement de gestion au jour le jour et la gouvernance de ce risque, ainsi que les plans de relève destinés à gérer les situations d'exception et de crise de liquidité. Le groupe de Gestion des risques, soutenu par le groupe de Financement d'actifs et trésorerie, soumet toute demande de révision de limite proposée au comité approbateur.
+
+[p.102]
+La supervision du risque de liquidité est confiée principalement à l'ALCO, qui réunit des représentants des Marchés des capitaux, du groupe de Financement d'actifs et trésorerie, de Finances et du groupe de Gestion des risques. L'Audit interne agit à titre d'observateur du comité. L'ALCO assure une surveillance en continu par la haute direction du risque de liquidité et de financement.
+
+[p.102]
+La Banque s'est également dotée de politiques et de lignes directrices pour régir les sûretés sur ses propres actifs en faveur de contreparties, en raison de l'impact que ces transferts d'actifs peuvent avoir sur sa liquidité. Conformément aux dispositions de sa Politique de gestion des risques de liquidité et de nantissement , la Banque procède à des simulations du montant potentiel de sûretés pouvant lui être réclamées par ses contreparties dans l'éventualité d'une décote de la Banque ou d'autres événements de faible probabilité, comme une grande fluctuation des marchés.
+
+[p.102]
+Par l'entremise de l'ALCO, le groupe de Gestion des risques présente, sur une base régulière, un rapport sur l'évolution des indicateurs de liquidité, de financement et de nantissement et la conformité aux limites réglementaires et celles approuvées par le Conseil et le CRG. Lorsque les rapports de contrôle signalent une non-conformité aux limites et, de façon générale, une détérioration du niveau des indicateurs de liquidité, le groupe de Financement d'actifs et trésorerie intervient pour rectifier la situation. Conformément au processus d'escalade, les situations problématiques sont signalées à la direction ainsi qu'au CRG et au CGR. Un rapport exécutif sur la gestion du risque de liquidité et de financement de la Banque, soumis trimestriellement au CGR, présente la position de liquidité de la Banque et les situations de non-conformité aux limites et autres règles constatées durant la période de référence ainsi que les mesures correctives adoptées.
+
+[p.102]
+### Gestion des liquidités
+
+[p.102]
+La Banque effectue des opérations de gestion des liquidités, du financement et du nantissement non seulement à partir de son siège social et de ses bureaux régionaux au Canada, mais également par l'entremise de certains de ses centres à l'étranger. Quoique le volume des opérations à l'étranger représente une part appréciable de la gestion globale des liquidités, la Banque gère celles-ci de façon centralisée. Cette organisation des activités de gestion des liquidités, du financement et du nantissement au sein du groupe de Financement d'actifs et trésorerie permet à la Banque de mieux coordonner l'ensemble de ses activités de financement et de surveillance des risques. Toutes les opérations de financement interne entre entités de la Banque sont contrôlées par le groupe de Financement d'actifs et trésorerie.
+
+[p.102]
+La structure centralisée des activités simplifie le processus d'attribution et de contrôle des limites applicables à la gestion des liquidités, au financement et au nantissement. Néanmoins, la Politique de gestion des risques de liquidité et de nantissement comporte des dispositions particulières pour les centres financiers dont la taille ou l'importance stratégique les rendent plus susceptibles de contribuer au risque de liquidité de la Banque. Conséquemment, une structure de gestion du risque de liquidité et de financement existe pour chacun de ces centres financiers. Celle-ci impose un ensemble de limites de différents niveaux, allant jusqu'à des limites approuvées par le CGR, sur des paramètres de liquidités diversifiées, incluant des simulations de crises de liquidité ainsi que de simples mesures de concentration.
+
+[p.102]
+Le système d'établissement des prix de cession interne des fonds de la Banque attribue une tarification à la liquidité en imputant le coût aux divers secteurs d'exploitation ou en les rémunérant, selon le cas. Les coûts de liquidité sont imputés aux activités utilisatrices de liquidités, principalement les prêts à long terme et les engagements de crédit ou les valeurs mobilières moins liquides, ainsi que les investissements stratégiques. La tarification des liquidités est créditée aux fournisseurs de fonds, principalement le financement sous forme de dépôts stables des différents canaux de distribution de la Banque.
+
+[p.103]
+Les décisions quotidiennes de financement à court terme s'appuient sur la position d'encaisse nette cumulative quotidienne, qui est contrôlée au moyen de limites fixées aux ratios de liquidité. Parmi ces ratios et paramètres, la Banque porte une attention particulière aux fonds obtenus sur le marché institutionnel et aux flux de trésorerie cumulatifs en fonction d'horizons temporels divers.
+
+[p.103]
+De plus, les activités de garantie de sûretés de la Banque sont suivies en fonction des diverses limites fixées par la Banque, et elles sont soumises à une simulation de crise mensuelle. Plus particulièrement, la Banque utilise différents scénarios pour estimer les montants potentiels de sûretés additionnelles qui pourraient lui être réclamés dans l'éventualité d'une dégradation de son évaluation de crédit.
+
+[p.103]
+Le risque de liquidité peut être évalué de nombreuses façons. Par conséquent, la Banque utilise diverses mesures à cette fin. L'un des principaux outils de suivi du risque de liquidité est le résultat sur une période de trois mois d'une simulation de crise, basée sur les hypothèses en matière d'échéance contractuelle et de comportement appliquées aux éléments du bilan et aux engagements hors bilan.
+
+[p.103]
+Le résultat sur une période de trois mois d'une simulation de crise mesure le profil de liquidité de la Banque en vérifiant non seulement sa capacité de survivre à une crise de trois mois mais aussi le coussin de liquidité qu'elle peut générer en disposant de ses actifs liquides. Ce résultat est mesuré sur une base hebdomadaire à l'aide de trois scénarios qui sont élaborés de manière à évaluer la sensibilité à une crise spécifique à la Banque et/ou d'ordre systémique. Parmi les hypothèses derrière ces scénarios, des simulations de pertes de dépôts sont effectuées en fonction de leur degré de stabilité, tandis que la valeur de certains actifs est grevée d'un montant qui tient compte de la capacité à les liquider en situation de crise. Les scénarios et les limites appropriées sont inclus dans la Politique de gestion des risques de liquidité et de nantissement de la Banque.
+
+[p.103]
+La Banque tient à jour un plan global de continuité des affaires et de relève post-crise financière qui décrit les mesures à suivre en cas de situation critique de la liquidité. Ce plan est revu et approuvé annuellement par le Conseil dans le cadre de la planification de la relève et de la continuité des affaires. Pour de plus amples renseignements, se reporter à la section « Risque de non-conformité à la réglementation » du présent Rapport de gestion.
+
+[p.103]
+### Appétit pour le risque de liquidité
+
+[p.103]
+La Banque surveille et gère son appétit pour le risque au moyen de limites relatives aux liquidités, de ratios et de simulations de crises. L'appétit pour le risque de liquidité de la Banque repose sur les trois principes suivants :
+
+[p.103]
+ s'assurer que la Banque dispose d'un montant d'actifs liquides non grevés suffisant pour couvrir ses exigences financières, dans des conditions normales et sous tension;
+
+[p.103]
+ s'assurer que la Banque maintient une réserve de liquidités supérieure à l'exigence réglementaire minimale;
+
+[p.103]
+ s'assurer que la Banque maintient des sources de financement diversifiées et stables.
+
+[p.103]
+### Actifs liquides
+
+[p.103]
+Dans le but de protéger les personnes qui font des dépôts et les titulaires de créances des situations de crises imprévues, la Banque maintient un portefeuille d'actifs liquides non grevés pouvant être facilement liquidés, afin de respecter ses obligations financières. La majorité des actifs liquides non grevés sont libellés en dollars canadiens ou en dollars américains. Par ailleurs, tous les actifs qui peuvent être rapidement titrisés sont considérés comme des actifs liquides. Les réserves de liquidités de la Banque ne tiennent pas compte de la disponibilité des facilités de liquidités d'urgence des banques centrales. Les tableaux suivants fournissent de l'information sur les actifs grevés et non grevés de la Banque.
+
+[p.105]
+### Ratio de liquidité à court terme
+
+[p.105]
+Le ratio de liquidité à court terme ( Liquidity Coverage Ratio ou LCR) a été mis en place principalement pour s'assurer que les banques puissent surmonter de graves difficultés à court terme. Le LCR se calcule en divisant le montant total des actifs liquides de haute qualité ( high-quality liquid assets ou HQLA) par le montant total des sorties nettes de trésorerie. Le BSIF exige que les banques canadiennes maintiennent un LCR minimal de 100 %. Ainsi, un LCR supérieur à 100 % permet de garantir que les banques disposent de suffisamment d'actifs liquides de haute qualité pour couvrir les sorties nettes de trésorerie lors d'une crise sévère de liquidité d'une durée de 30 jours. Les hypothèses relatives au scénario du LCR sont établies par le CBCB et la ligne directrice NL du BSIF.
+
+[p.105]
+Le tableau de la page suivante présente les positions moyennes du LCR calculées à partir des observations quotidiennes du trimestre. Le LCR moyen de la Banque au cours du trimestre terminé le 31 octobre 2025 est de 173 %, bien au-delà de l'exigence réglementaire de 100 %, ce qui démontre que la position de liquidité à court terme de la Banque est solide.
+
+[p.106]
+### Exigences de déclaration relatives au ratio de liquidité à court terme (1) (2) *
+
+[p.106]
+Au 31 octobre 2025, les actifs liquides de niveau 1 représentent 85 % des HQLA de la Banque, qui comprennent la trésorerie, les dépôts auprès des banques centrales et les obligations émises ou garanties par le gouvernement du Canada et les gouvernements provinciaux du Canada. Les sorties de trésorerie découlent de l'application d'hypothèses, définies par le BSIF, sur les dépôts, la dette, le financement garanti, les engagements et les exigences de garanties supplémentaires. Les sorties de trésorerie sont en partie contrebalancées par les entrées de trésorerie, qui proviennent principalement de prêts garantis et de prêts performants. La Banque s'attend à ce que les LCR présentés varient d'un trimestre à l'autre, sans que ces variations ne représentent nécessairement une tendance. La variation entre le trimestre terminé le 31 octobre 2025 et le trimestre précédent découle du cours normal des activités. Les réserves de liquidités de la Banque dépassent largement le total des sorties nettes de trésorerie. Les hypothèses à l'égard du LCR diffèrent de celles utilisées pour les informations à fournir au sujet de la liquidité présentées dans les tableaux aux pages précédentes ou pour les règles internes de gestion de la liquidité. Alors que le cadre de l'information à fournir au sujet de la liquidité est établi par le groupe EDTF, les mesures de liquidité internes de la Banque font appel à des hypothèses qui sont calibrées en fonction de son modèle d'affaires et de son expérience.
+
+[p.106]
+### Liquidité intrajournalière
+
+[p.106]
+La Banque gère sa liquidité intrajournalière de façon à ce que le montant des liquidités disponibles excède ses exigences de liquidité intrajournalière maximales. La Banque surveille sa liquidité intrajournalière toutes les heures et présente son évolution tous les mois à l'ALCO.
+
+[p.106]
+### Ratio de liquidité à long terme
+
+[p.106]
+Le CBCB a élaboré le ratio de liquidité à long terme ( Net Stable Funding Ratio ou NSFR) afin de promouvoir la résilience du secteur bancaire. Le NSFR exige que les institutions maintiennent un profil de financement stable par rapport à la composition de leurs actifs et de leurs activités hors bilan. Une structure de financement viable vise à réduire la probabilité que des difficultés qui perturberaient les sources de financement régulières d'une banque érodent sa position de liquidité au point d'accroître le risque d'une défaillance et, potentiellement, engendrent des tensions systémiques de plus grande envergure. Le NSFR se calcule en divisant le montant du financement stable disponible par le montant du financement stable exigé. Le BSIF exige que les banques canadiennes maintiennent un NSFR minimal de 100 %.
+
+[p.107]
+Le tableau suivant présente les positions calibrées du NSFR calculées selon la stabilité des passifs et la liquidité des actifs conformément à la ligne directrice Normes de liquidité du BSIF. Le NSFR de la Banque au 31 octobre 2025 est de 124 %, bien au-delà de l'exigence réglementaire de 100 %, ce qui démontre que la position de liquidité à long terme de la Banque est solide.
+
+[p.107]
+### Exigences de déclaration relatives au ratio de liquidité à long terme (1) (2) *
+
+[p.108]
+Le NSFR représente le montant du FSD par rapport à celui du FSE. Le montant du FSD désigne la part des fonds propres et des passifs censés être fiables dans un horizon temporel pris en compte aux fins du NSFR, à savoir jusqu'à un an. Le montant du FSE d'une institution est fonction des caractéristiques de liquidité et de la durée résiduelle des actifs qu'elle détient et de celles de ses positions hors bilan. Les montants du FSD et du FSE sont pondérés en fonction du degré de stabilité des passifs et de la liquidité des actifs. La Banque s'attend à ce que les NSFR présentés varient d'un trimestre à l'autre, sans que ces variations ne représentent nécessairement une tendance à long terme.
+
+[p.108]
+Les hypothèses à l'égard du NSFR diffèrent de celles utilisées pour les informations à fournir au sujet de la liquidité présentées dans les tableaux aux pages précédentes ou pour les règles internes de gestion de la liquidité. Alors que le cadre de l'information à fournir au sujet de la liquidité est établi par le groupe EDTF, les mesures de liquidité internes de la Banque font appel à des hypothèses qui sont calibrées en fonction de son modèle d'affaires et de son expérience.
+
+[p.108]
+### Risque de financement
+
+[p.108]
+Le risque de financement correspond au risque lié à la capacité continue de la Banque à mobiliser suffisamment de fonds pour financer les activités commerciales réelles ou proposées sur une base garantie ou non, à un prix acceptable. La Banque maintient un bon équilibre entre ses sources de financement au moyen d'une diversification appropriée de ses véhicules de financement non garantis, de programmes de titrisation et de financement garanti. La Banque diversifie également son financement par source, par secteur géographique, par devise, par instrument et par échéance. La priorité en matière de gestion du financement consiste à atteindre l'équilibre optimal entre les dépôts, la titrisation, le financement garanti et le financement non garanti, ce qui donne lieu à une stabilité optimale de financement et une sensibilité moindre aux événements imprévisibles.
+
+[p.108]
+Les niveaux de financement et de liquidité sont demeurés sains et robustes au cours de l'exercice et la Banque ne prévoit pas d'événement, d'engagement ou d'exigence qui pourrait avoir une incidence importante sur sa position en matière de risque de liquidité et de financement. Pour de plus amples renseignements, se reporter au tableau « Échéances contractuelles résiduelles des éléments du bilan et des engagements hors bilan » à la note 29 afférente aux états financiers consolidés.
+
+[p.108]
+### Notations de crédit
+
+[p.108]
+Les notations de crédit attribuées par les agences de notation représentent leur évaluation de la qualité du crédit de la Banque à partir de l'information qualitative et quantitative qui leur est fournie. Les notations de crédit peuvent être révisées en tout temps en fonction de divers facteurs, dont le contexte macroéconomique, les méthodologies utilisées par les agences de notation ou la situation financière actuelle et anticipée de la Banque. Les notations de crédit sont un des principaux facteurs qui influencent la capacité de la Banque à accéder aux marchés des capitaux à un coût raisonnable. Une révision à la baisse des notations de crédit de la Banque pourrait avoir une incidence défavorable sur le coût, la taille et l'échéance du financement futur et pourrait également entraîner une obligation accrue de nantissement de garanties ou une diminution de la capacité d'exercer certaines activités commerciales garanties à un coût raisonnable, y compris des opérations de couverture et des instruments financiers dérivés.
+
+[p.108]
+Les niveaux de financement et de liquidité demeurent sains et robustes et la Banque continue d'avoir un excellent accès au marché pour ses besoins de financement. Les notations de crédit de la Banque sont favorables auprès de toutes les agences, ce qui témoigne de la grande qualité de ses instruments d'emprunt, et la Banque a pour objectif de maintenir ces notations de crédit élevées. Au 31 octobre 2025, la perspective des agences de notation demeurait inchangée à « Stable ». Le tableau suivant présente les notations de crédit de la Banque de quatre agences en date du 31 octobre 2025.
+
+[p.109]
+### Garanties
+
+[p.109]
+Conformément au cadre global de gestion des liquidités, la Banque s'assure d'examiner régulièrement ses contrats qui stipulent qu'une garantie supplémentaire pourrait être exigée dans l'éventualité d'une diminution de sa notation de crédit. La gestion de la situation de trésorerie de la Banque tient déjà compte des exigences de garanties supplémentaires advenant la diminution de sa notation de crédit de un à trois crans. Le tableau ci-après présente les exigences de garanties supplémentaires advenant la diminution de sa notation de crédit de un, de deux ou de trois crans.
+
+[p.109]
+### Stratégie de financement
+
+[p.109]
+Le principal objectif de la stratégie de financement est de soutenir la croissance interne de la Banque, tout en lui permettant de survivre à des crises sévères prolongées et de respecter les obligations réglementaires et les cibles financières.
+
+[p.109]
+Le cadre de financement de la Banque se résume de la façon suivante :
+
+[p.109]
+ poursuivre une stratégie de dépôts diversifiés en vue de financer les activités bancaires de base au moyen de dépôts stables provenant des réseaux de chacun des principaux secteurs d'exploitation;
+
+[p.109]
+ maintenir une saine gestion du risque de liquidité grâce à une expertise centralisée et une gestion des mesures de liquidité dans le cadre d'un appétit pour le risque prédéfini;
+
+[p.109]
+ maintenir un accès actif à divers marchés afin d'assurer la diversification du financement sur le marché institutionnel par source, par emplacement géographique, par devise, par instrument et par échéance, que le financement soit garanti ou non.
+
+[p.109]
+La stratégie de financement est mise en œuvre conformément aux objectifs globaux qui visent à renforcer la vigueur de la franchise de la Banque auprès des participants du marché et à consolider son excellente réputation. La Banque surveille et analyse de façon continue les tendances de marché et les possibilités d'accès à un financement moins coûteux et plus souple en tenant compte des risques et des occasions observés. La stratégie de dépôts demeure une priorité pour la Banque, et nous continuons de privilégier les dépôts plutôt que le financement sur le marché institutionnel.
+
+[p.109]
+La Banque contrôle et surveille de façon active les expositions au risque de liquidité et les besoins de financement au sein des entités, des secteurs d'exploitation et par devise. Le processus comprend l'évaluation de la situation de trésorerie de chaque secteur d'exploitation et celle de l'ensemble de la Banque ainsi que le risque de liquidité découlant de l'obtention de financement non garanti et garanti en devises. La stratégie de financement est mise en œuvre au moyen du plan de financement et de la stratégie de dépôts, qui sont surveillés, mis à jour pour refléter les résultats réels et évalués régulièrement.
+
+[p.109]
+### Sources de financement diversifiées
+
+[p.109]
+La diversification par source, par emplacement géographique, par devise, par instrument, par échéance et par déposant vise principalement à atténuer le risque de liquidité et de financement en faisant en sorte que la Banque maintienne d'autres sources de financement qui renforcent sa capacité à survivre à des chocs majeurs mais réalistes propres à une institution financière et affectant l'ensemble du marché. À cette fin, la Banque prend les mesures suivantes :
+
+[p.109]
+ prendre en compte la diversification du financement dans le processus de planification des activités;
+
+[p.109]
+ maintenir divers programmes de financement permettant d'accéder à différents marchés;
+
+[p.109]
+ appliquer les limites sur la concentration du financement;
+
+[p.109]
+ maintenir des relations solides avec les fournisseurs de fonds;
+
+[p.109]
+ être active dans différents marchés de financement à différentes échéances et pour divers instruments;
+
+[p.109]
+ déterminer et surveiller les principaux facteurs qui ont une incidence sur la capacité à mobiliser des fonds.
+
+[p.109]
+La Banque est active sur les plateformes de financement et de titrisation suivantes :
+
+[p.109]
+ dette de premier rang non garantie libellée en dollars canadiens;
+
+[p.109]
+ programmes de dette de premier rang non garantie libellée en dollars américains;
+
+[p.109]
+ placement de billets à moyen terme canadiens au moyen d'un prospectus préalable;
+
+[p.109]
+ programme de papier commercial libellé en dollars américains;
+
+[p.109]
+ programme de titrisation de la Société canadienne d'hypothèques et de logement;
+
+[p.110]
+Le tableau ci-dessous présente les échéances contractuelles résiduelles du financement institutionnel de la Banque. Les informations présentées sont harmonisées avec les catégories recommandées par le groupe EDTF pour fins de comparaison avec d'autres banques.
+
+[p.110]
+### Risque opérationnel
+
+[p.110]
+Le risque opérationnel représente le risque de pertes attribuables au personnel, à une inadéquation ou à une défaillance des processus et des systèmes, ou à des événements extérieurs. Le risque opérationnel est présent dans toutes les activités de la Banque. Ainsi, le vol, la fraude, les cyberattaques, les transactions non autorisées, les erreurs de systèmes, les erreurs humaines, l'interprétation erronée de lois et règlements, les litiges ou différends avec la clientèle, les comportements inappropriés de pratiques de vente ou les dommages matériels ne sont que quelques exemples d'événements susceptibles d'occasionner des pertes financières, de porter atteinte à la réputation de la Banque ou d'entraîner des pénalités ou des sanctions réglementaires.
+
+[p.110]
+Bien que l'on ne puisse éliminer complètement tous les risques opérationnels, ils peuvent être gérés de manière rigoureuse et transparente afin d'être maintenus à un niveau acceptable. Le cadre de gestion des risques opérationnels de la Banque repose sur le concept de trois lignes de défense et favorise l'attribution claire de responsabilités aux divers paliers d'intervention, tel que mentionné ci-dessous.
+
+[p.110]
+### Cadre de gestion du risque opérationnel
+
+[p.110]
+Le cadre de gestion du risque opérationnel est décrit dans la politique de gestion des risques opérationnels qui découle de la politique de gestion des risques. Le cadre de gestion du risque opérationnel est aligné sur l'appétit pour le risque de la Banque et est complété par des politiques, normes et procédures spécifiques à chaque risque opérationnel, qui sont sous la responsabilité de groupes spécialisés. La gestion efficace du risque opérationnel contribue à la résilience opérationnelle de la Banque qui assure la mise en œuvre d'une approche efficiente à cet égard.
+
+[p.110]
+Le comité de gestion des risques opérationnels (CGRO), un sous-comité du CRG, est le principal comité de gouvernance des enjeux de risques opérationnels. Sa mission est d'assurer la supervision du risque opérationnel auquel toute la Banque est exposée afin qu'il soit aligné avec les cibles d'appétit pour le risque déterminées.
+
+[p.110]
+Les secteurs utilisent plusieurs outils et méthodes de gestion du risque opérationnel pour identifier, évaluer, gérer et surveiller leurs risques opérationnels ainsi que les mesures de contrôle. Ces outils et méthodes leurs permettent notamment :
+
+[p.110]
+ de reconnaître et de comprendre les risques inhérents et résiduels auxquels leurs activités et opérations sont exposées;
+
+[p.110]
+ d'identifier les moyens à mettre en œuvre pour gérer et surveiller les risques identifiés en vue de les maintenir à un niveau acceptable;
+
+[p.110]
+ de gérer les risques proactivement et de façon continue;
+
+[p.110]
+ d'obtenir une vue intégrée de la posture de risque ainsi que des plans d'action qui doivent être mis en place pour atteindre les cibles d'appétit pour le risque, par la combinaison des résultats de ces différents outils dans le profil de risque.
+
+[p.110]
+### Taxonomie du risque opérationnel
+
+[p.110]
+Dans le but de développer un langage commun pour l'univers des risques opérationnels de la Banque, une taxonomie des risques opérationnels comparable à celle de l'Accord de Bâle et basée sur huit catégories de risque ainsi que deux thèmes de risque est en place.
+
+[p.111]
+### Collecte et analyse des données sur les événements opérationnels internes
+
+[p.111]
+Le service des Risques opérationnels dispose d'un processus d'identification, de collecte et d'analyse des données sur les événements opérationnels internes de la Banque et de ses filiales. Ce processus permet notamment de déterminer l'exposition de la Banque au risque opérationnel ainsi que les pertes opérationnelles subies, et d'évaluer l'efficacité des contrôles internes. Il contribue également à la réduction des événements opérationnels, au maintien des pertes à un niveau acceptable et, par conséquent, à la diminution des charges potentielles de capital et à la réduction de la probabilité d'atteinte à la réputation de la Banque. Les données sur les événements opérationnels internes sont traitées et sauvegardées dans une base de données centralisée et font l'objet d'un exercice d'assurance qualité.
+
+[p.111]
+### Autoévaluation des risques opérationnels
+
+[p.111]
+L'autoévaluation des risques opérationnels permet à chaque unité d'affaires et service centralisé d'agir de manière proactive pour identifier et évaluer les risques opérationnels importants ou nouveaux auxquels ils sont exposés, d'évaluer l'efficacité des mesures de contrôle et de surveillance en place pour atténuer ces risques et d'élaborer des plans d'action en vue de maintenir ces risques à un niveau acceptable. L'autoévaluation s'effectue en continu par l'entremise de suivis trimestriels et d'analyses approfondies ou lorsque des changements importants sont apportés aux produits, services, activités, marchés, systèmes technologiques et processus d'affaires, ce qui permet ainsi d'anticiper certains facteurs pouvant nuire à la performance ou à l'atteinte des objectifs.
+
+[p.111]
+### Indicateurs de risques clés
+
+[p.111]
+Les indicateurs de risques clés permettent de surveiller les facteurs d'exposition aux risques opérationnels importants et de suivre l'évolution des risques afin de les gérer de façon proactive. Les unités d'affaires et les services centralisés établissent les indicateurs clés associés à leurs principaux risques opérationnels et leur attribuent des seuils de tolérance. Ces indicateurs sont surveillés périodiquement et lorsqu'ils démontrent une augmentation significative du risque ou que leur seuil de tolérance est dépassé, ils sont transmis au niveau hiérarchique approprié et des plans d'action sont mis en place au besoin.
+
+[p.111]
+### Analyse de scénarios
+
+[p.111]
+L'analyse de scénarios, qui fait partie du programme de simulations de crises à l'échelle de la Banque, est un outil important et pertinent pour évaluer les impacts liés à des événements potentiellement graves. Elle permet de définir l'appétit pour le risque, les limites d'exposition au risque et la planification d'affaires. Plus précisément, elle confère à la direction une meilleure compréhension des risques auxquels la Banque fait face et l'aide à prendre les décisions de gestion adéquates en vue d'atténuer les risques opérationnels potentiels qui ne cadrent pas avec l'appétit pour le risque.
+
+[p.111]
+### Programme d'assurance
+
+[p.111]
+Afin de se prémunir contre toute perte financière importante liée à une exposition imprévisible aux risques opérationnels, la Banque souscrit aussi des assurances dont la nature et les montants répondent à ses besoins de couverture.
+
+[p.111]
+### Rapports et communication sur les risques opérationnels
+
+[p.111]
+Les événements opérationnels ayant un impact financier excédant les seuils de tolérance ou un impact non financier significatif sont soumis aux paliers décisionnels concernés. La direction a l'obligation de rendre compte de sa gestion et de rester attentive aux enjeux courants et futurs. Des rapports sur le profil de risque de la Banque, les faits saillants et les risques émergents sont soumis périodiquement et en temps opportun au CGRO et au CGR. Cette communication rehausse la transparence et la gestion proactive des principaux facteurs de risque opérationnel.
+
+[p.111]
+### Risque de non-conformité à la réglementation
+
+[p.111]
+Le risque de non-conformité à la réglementation a trait au risque découlant de la possibilité que la Banque, ou que son personnel ou qu'un de ses partenaires d'affaires ne se conforment pas aux exigences réglementaires en vigueur là où elle exerce ses activités, tant au Canada qu'à l'échelle internationale. Ce risque se retrouve dans toutes les activités quotidiennes de chaque secteur de la Banque.
+
+[p.111]
+La Banque fait face à une complexité croissante en matière d'exigences réglementaires, alors que les gouvernements et les organismes de réglementation continuent de mettre en œuvre des réformes majeures visant à renforcer la stabilité du système financier et à protéger les principaux marchés et participants. De nombreux facteurs créent une pression notable sur les ressources humaines et le besoin d'innovation technologique, notamment, l'expansion des activités à l'international de la Banque, les sanctions internationales de plus en plus complexes dans un environnement géopolitique qui évolue constamment, l'interconnectivité grandissante des risques réglementaires et l'évolution des attentes des nombreux organismes de réglementation. Dans le cadre de ses activités, la Banque fait également l'objet d'enquêtes, d'examens et d'audits menés par différents organismes de réglementation ou d'autorités chargés de l'application des lois, ainsi que de poursuites judiciaires.
+
+[p.111]
+Bien que la Banque prenne des mesures raisonnables pour se conformer aux exigences réglementaires, les décisions prises à la suite de ces enquêtes, de ces examens ou de ces audits et l'issue défavorable de litiges contre la Banque pourraient exposer la Banque à des amendes, à des pénalités, à des sanctions, à des dommages-intérêts ou à des interdictions d'exercer ses activités qui pourraient avoir un effet négatif significatif sur ses résultats d'exploitation. De plus, les décisions défavorables à l'égard de la Banque sont susceptibles de porter atteinte à sa réputation, ce qui pourrait influer sur ses perspectives commerciales futures. Une situation de non-conformité pourrait également mener à une surveillance accrue de la part des autorités réglementaires.
+
+[p.111]
+### Structure organisationnelle de la Conformité
+
+[p.111]
+L'environnement réglementaire étant en constante évolution et les exigences des régulateurs en matière de lutte au blanchiment d'argent étant en hausse croissante, un nouveau rôle de vice-présidente et cheffe de Lutte au blanchiment d'argent a été créé avec entrée en fonction le 1 er novembre 2025. Ceci s'inscrit dans notre engagement à poursuivre nos efforts face à la lutte au blanchiment d'argent. Ce nouveau rôle relève directement de la première vice-présidente, cheffe de la Conformité.
+
+[p.112]
+La Conformité constitue une fonction de supervision indépendante au sein de la Banque. La première vice-présidente, cheffe de la Conformité agit à titre d'agente principale de la conformité (APC) pour la Banque, y compris la supervision de ses filiales et ses centres étrangers. Elle est responsable de mettre en place et de tenir à jour les programmes de gestion de la conformité à la règlementation. La vice-présidente, cheffe de Lutte au blanchiment d'argent (communément appelée CLRPC), relevant de l'APC, veille au respect des exigences réglementaires relatives à la lutte contre le RPCFAT, aux sanctions internationales et à la lutte contre la corruption. L'APC et la CLRPC ont un lien direct avec la présidente du CGR et la rencontre au moins trimestriellement. Elles peuvent également communiquer directement avec la haute direction, les dirigeantes et dirigeants et les membres du Conseil de la Banque, de ses filiales et de ses centres étrangers.
+
+[p.112]
+### Cadre de gestion de la conformité à la réglementation
+
+[p.112]
+La Banque mène ses activités dans un secteur hautement réglementé. Elle met tout en œuvre pour assurer une saine gestion de la conformité à la réglementation en privilégiant une approche proactive et en mettant l'accent sur l'intégration des exigences réglementaires dans ses activités courantes.
+
+[p.112]
+Cette gestion proactive permet ainsi d'obtenir l'assurance raisonnable que la Banque se conforme, à tous égards importants, aux exigences réglementaires qui s'appliquent là où elle exerce ses activités, autant au Canada qu'à l'échelle internationale.
+
+[p.112]
+La mise en place d'un cadre de gestion de la conformité à la réglementation à l'échelle de la Banque relève de la Conformité, qui a le mandat suivant :
+
+[p.112]
+ veiller à la mise en place de politiques et normes permettant de respecter les exigences réglementaires en vigueur, y compris celles relatives à la lutte contre le RPCFAT, aux sanctions internationales ainsi qu'à la lutte contre la corruption;
+
+[p.112]
+ élaborer des programmes de formation en matière de conformité et de lutte contre le RPCFAT à l'intention du personnel, des dirigeantes et dirigeants et des membres du Conseil de la Banque;
+
+[p.112]
+ exercer une supervision indépendante et un suivi des programmes, politiques et procédures mis en place par la direction de la Banque, ses filiales et ses centres étrangers afin de s'assurer que les mécanismes de contrôle sont suffisants, respectés et efficaces;
+
+[p.112]
+ faire rapport au Conseil de la Banque sur les questions pertinentes en matière de conformité et de lutte contre le RPCFAT et lui indiquer tout changement important quant à l'efficacité du cadre de gestion des risques.
+
+[p.112]
+La Banque s'impose des normes élevées en matière de gestion de la conformité à la réglementation afin de mériter la confiance que lui accordent ses clientes et clients, ses actionnaires, le marché et le public en général.
+
+[p.112]
+De plus, la Banque est dotée, à l'échelle de l'organisation, d'un Programme de lutte contre le RPCFAT visant à empêcher l'utilisation de ses produits et services à des fins de blanchiment d'argent et de financement du terrorisme. La Banque applique également un Programme de sanctions internationales conçu pour assurer que tout produit ou activité financière est conforme aux sanctions économiques applicables ainsi qu'un Programme anticorruption qui vise à prévenir les actes de corruption au sein de l'organisation. Les contrôles en place permettent de surveiller et de détecter les opérations financières soupçonnées d'être liées à du blanchiment d'argent, au financement d'activités terroristes, ou à l'encontre des sanctions internationales, et de les déclarer aux autorités réglementaires applicables.
+
+[p.112]
+Les principaux développements réglementaires ayant fait l'objet d'un suivi au cours de la dernière année sont décrits ci-après.
+
+[p.112]
+### Réforme sur les langues officielles (fédéral)
+
+[p.112]
+Le projet de loi C-13 Loi modifiant la Loi sur les langues officielles, édictant la Loi sur l'usage du français au sein des entreprises privées de compétence fédérale et apportant des modifications connexes à d'autres lois a pour but de fournir un nouveau cadre juridique afin d'appuyer les langues officielles au Canada. Il modernise la Loi sur les langues officielles en donnant notamment de nouveaux pouvoirs au commissaire (accords de conformité, ordonnances, sanctions, etc.) pour permettre de protéger les droits linguistiques des Canadiennes et des Canadiens. Il introduit aussi une nouvelle loi conférant des droits et des obligations aux entreprises fédérales en matière de langue de services (consommateurs) et de langue de travail, au Québec et dans les régions à forte présence francophone ailleurs au Canada. Le projet de loi a été sanctionné le 20 juin 2023. Les modifications à la Loi sur les langues officielles sont alors entrées en vigueur, alors que la nouvelle loi entrera en vigueur par décret ultérieurement. Une consultation a été initiée par Patrimoine canadien afin d'obtenir les commentaires de l'industrie sur l'application de la nouvelle loi. Les commentaires obtenus serviront à définir les règles d'un nouveau règlement, pour notamment arrimer les nouvelles obligations dans les régions à forte présence francophone.
+
+[p.112]
+Loi protégeant les consommateurs contre les pratiques commerciales abusives et offrant une meilleure transparence en matière de prix et de crédit Le projet de loi 72 modifie la Loi sur la protection du consommateur du Québec principalement en ce qui concerne les prix, le crédit, le louage à long terme et le commerce itinérant. Les mesures qui touchent la Banque concernent principalement la limitation de la responsabilité des consommateurs en cas de fraude sur leur compte de dépôt à vue, les contrats de crédit et la signature électronique. Certaines dispositions sont entrées en vigueur le 7 novembre 2024 et le 7 août 2025. D'autres dispositions, notamment celles concernant la responsabilité en cas de fraude, entreront en vigueur avec la publication d'un règlement, possiblement en 2025 ou en 2026.
+
+[p.112]
+### Engagement à fournir des comptes à frais modiques et des comptes sans frais
+
+[p.112]
+Le 16 avril 2024 via le budget fédéral, le gouvernement a annoncé prendre des mesures pour réduire les frais bancaires des Canadiennes et des Canadiens. À la suite de négociations, treize institutions financières, dont les six grandes banques canadiennes, ont accepté l' Engagement à fournir des comptes à frais modiques et des comptes sans frais de 2024, qui est entré en vigueur le 1 er décembre 2025. Selon cet engagement, les consommateurs pourront accéder à des comptes à frais modiques au coût mensuel de 4 $, offrant au moins 18 transactions de débit par mois. L'engagement élargit également l'admissibilité aux comptes sans frais à certains groupes de consommateurs, notamment aux nouveaux arrivants lors de leur première année au Canada.
+
+[p.113]
+### Règlement modifiant le Règlement sur le régime de protection des consommateurs en matière financière
+
+[p.113]
+Le 12 mars 2025, le Règlement modifiant le Règlement sur le régime de protection des consommateurs en matière financière a été adopté et entrera en vigueur le 12 mars 2026. La modification vise à plafonner les frais d'insuffisance de fonds à 10 $ pour les comptes de dépôt personnels. Ces frais ne pourront pas être imposés plus d'une fois dans une période de 2 jours ouvrables à l'égard d'un même compte de dépôt ou à l'égard d'un compte de dépôt personnel dont le découvert non autorisé est inférieur à 10 $.
+
+[p.113]
+### Loi n o 1 d'exécution du budget de 2023 et Règlement sur le taux d'intérêt criminel
+
+[p.113]
+Le 23 décembre 2023, le gouvernement fédéral a publié son Règlement sur le taux d'intérêt criminel aux fins de consultation publique. Ce projet de réglementation vise à mettre en œuvre les modifications au Code criminel proposées dans la Loi n o 1 d'exécution du budget de 2023, lesquelles feront passer la méthode de calcul basée sur le taux annuel effectif à une méthode basée sur le taux annuel en pourcentage et abaisseront le taux d'intérêt criminel d'un taux annuel en pourcentage de 45 % à 35 %. La loi est entrée en vigueur le 1 er janvier 2025.
+
+[p.113]
+### Recyclage des produits de la criminalité et financement des activités terroristes (RPCFAT)
+
+[p.113]
+Les modifications à la Politique et aux Normes de la Banque découlant des amendements aux règlements pris en vertu de la Loi sur le recyclage des produits de la criminalité et le financement des activités terroristes (LRPCFAT) ont été déployées conformément aux exigences du Centre d'analyse des opérations et déclarations financières du Canada (CANAFE). Une vigie est exercée en continu sur les directives et amendements à venir, notamment ceux concernant le projet de loi C-2 Loi concernant certaines mesures liées à la sécurité de la frontière entre le Canada et les États-Unis et d'autres mesures connexes liées à la sécurité .
+
+[p.113]
+### Protection des renseignements personnels
+
+[p.113]
+En raison de l'évolution des technologies et du contexte sociétal, la protection des renseignements personnels demeure un sujet d'actualité au Canada. Des mesures réglementaires à l'échelle mondiale témoignent d'une volonté de mettre en place un cadre législatif renforcé lorsqu'il est question de confidentialité et d'utilisation de renseignements personnels. Au Québec, la majorité des obligations de la Loi 25 Loi modernisant des dispositions législatives en matière de protection des renseignements personnels est entrée en vigueur en 2023, alors que le dernier volet de la Loi 25 concernant le droit à la portabilité est entré en vigueur en 2024, tout comme le Règlement sur l'anonymisation des renseignements personnels. Au niveau fédéral, la Loi sur les services bancaires axés sur les consommateurs a été promulguée le 20 juin 2024. Cette loi établit le premier cadre législatif du Canada pour un système bancaire ouvert, qui vise à permettre aux consommateurs et aux petites entreprises de transférer leurs données financières entre des institutions financières et des applications financières accréditées d'une manière sûre et conviviale.
+
+[p.113]
+### Loi sur l'équité en matière d'emploi
+
+[p.113]
+Les modifications au Règlement sur l'équité en matière d'emploi ont introduit, entre autres, de nouvelles obligations de déclaration de « transparence salariale » en vertu de la Loi sur l'équité en matière d'emploi . Les modifications sont entrées en vigueur le 1 er janvier 2021 et ont créé de nouvelles obligations de déclaration des écarts salariaux pour les employeurs concernés, informations qui devaient figurer dans les rapports annuels de l'employeur (et être remises avant le 1 er juin 2022). Les données globales sur l'écart salarial pour chaque employeur ont été publiées pour la première fois à l'hiver 2023 et sont depuis mises à jour annuellement. La Loi sur l'équité en matière d'emploi a pour objet de réaliser l'égalité en milieu de travail de façon que nul ne se voie refuser d'avantages ou de chances en matière d'emploi pour des motifs étrangers à sa compétence et, à cette fin, de corriger les désavantages subis, dans le domaine de l'emploi, par les femmes, les Autochtones, les personnes handicapées et les personnes qui font partie des minorités visibles, conformément au principe selon lequel l'équité en matière d'emploi ne se limite pas à traiter les personnes de la même façon, mais exige également des mesures spéciales et l'adaptation aux différences.
+
+[p.113]
+### Loi sur l'équité salariale
+
+[p.113]
+En vertu de la Loi sur l'équité salariale fédérale, en vigueur depuis le 31 août 2021, les employeurs comptant plus de 10 employés étaient tenus d'élaborer un plan d'équité salariale qui identifie et corrige les écarts salariaux fondés sur le sexe dans un délai de trois ans (c'est-à-dire au plus tard le 3 septembre 2024). L'objectif de cette loi est de réaliser l'équité salariale par des moyens proactifs en corrigeant la discrimination systémique fondée sur le sexe qui entache les pratiques et les systèmes de rémunération des employeurs et que subissent les employés qui occupent des postes dans des catégories d'emploi à prédominance féminine. Cette loi vise à assurer que les employés reçoivent une rémunération égale pour l'exécution d'un travail de valeur égale, tout en tenant compte des divers besoins des employeurs, puis de maintenir l'équité salariale par des moyens proactifs. Les employeurs comptant plus de 100 employés doivent préparer (et maintenir) leur plan d'équité salariale au sein d'un comité conjoint employeuremployés sur l'équité salariale.
+
+[p.113]
+### Plans de redressement et de règlement
+
+[p.113]
+Dans le cadre des mesures réglementaires visant à gérer les risques systémiques, les BISI sont tenues d'établir des plans de redressement et de règlement. Un plan de redressement est essentiellement une feuille de route comportant des directives pour le redressement d'une banque en cas de difficultés financières importantes, alors qu'un plan de règlement donne des directives pour une cessation ordonnée des activités en cas d'échec, lorsqu'un redressement n'est plus possible. La Banque améliore et met à jour régulièrement ses plans de redressement et de règlement dans l'éventualité de ces événements à haut risque mais à faible probabilité d'occurrence conformément aux lignes d'orientation de la SADC mises à jour fréquemment. De plus, la Banque et les autres BISI continuent de travailler en collaboration avec la SADC pour maintenir un plan de règlement complet qui permettrait d'assurer une cessation ordonnée des activités de la Banque. Ces plans sont approuvés par le Conseil et présentés aux organismes de réglementation nationaux.
+
+[p.114]
+### Code fiscal américain (Alinéa 871(m) - Versements d'équivalents de dividendes)
+
+[p.114]
+L'alinéa 871(m) du code fiscal américain ( Internal Revenue Code ou IRC) vise à s'assurer que les personnes non américaines s'acquittent d'un impôt sur des paiements pouvant être assimilés à des dividendes sur des actions américaines, lorsque ces paiements sont versés sur certains instruments dérivés. Les instruments dérivés dont les sous-jacents sont des actions américaines (incluant les fonds négociés en bourses américaines) ou des « indices non admissibles » sont ainsi visés par l'obligation de retenue à la source et de déclaration. La date prévue d'entrée en vigueur de certains volets de cette réglementation, de même que de certaines des obligations du Qualified Derivatives Dealer , en vertu de l'alinéa 871(m) de l'IRC et de l'accord intermédiaire qualifié ( Qualified intermediary ), avait été reportée au 1 er janvier 2027, mais des précisions sont toujours attendues de la part de l' Internal Revenue Service (IRS) pour permettre aux institutions de se conformer à ces exigences.
+
+[p.114]
+### Loi américaine sur la conformité fiscale des comptes étrangers et norme commune de déclaration
+
+[p.114]
+La loi américaine sur la conformité fiscale des comptes étrangers ( Foreign Account Tax Compliance Act ou FATCA) et la norme commune de déclaration ( Common Reporting Standard ou CRS), toutes deux intégrées à la Loi de l'impôt sur le revenu du Canada, visent à contrer l'évasion fiscale à l'échelle internationale par l'échange automatique de renseignements fiscaux, déclarés annuellement par les institutions financières canadiennes à l'Agence du revenu du Canada (ARC), qui s'assure ensuite de relayer l'information aux autorités fiscales concernées.
+
+[p.114]
+L'ARC publie également des documents d'orientation concernant les obligations en matière de diligence raisonnable et de déclaration imposées par la FATCA et le CRS. Ces documents sont modifiés périodiquement pour refléter tout changement au niveau de la réglementation. Des projets de loi visant à mettre en œuvre les modifications apportées au CRS par l'OCDE, ainsi que le cadre de déclaration des cryptoactifs (CDC), ont été publiés en 2025. Ces mesures s'appliqueraient aux années civiles 2026 et suivantes, permettant ainsi que la première déclaration et le premier échange de renseignements en vertu du CDC et du CRS modifié aient lieu en 2027 pour l'année civile 2026.
+
+[p.114]
+### Proposition de réglementation sur les ventes et les échanges d'actifs numériques par les courtiers
+
+[p.114]
+En juin 2024, le département du Trésor des États-Unis a publié la réglementation finale concernant les ventes et les échanges d'actifs numériques par les courtiers. Les courtiers sont tenus de déclarer le produit brut des ventes d'actifs numériques effectuées depuis le 1 er janvier 2025. Une déclaration indiquant le prix de base ajusté sera requise pour les ventes effectuées à compter du 1 er janvier 2026. Un rapport de la Maison-Blanche déposé en juillet 2025 recommande de modifier les politiques et la réglementation qui modifieraient de manière significative les exigences de déclaration pour les transactions d'actifs numériques.
+
+[p.114]
+### Cycle de règlement d'un jour
+
+[p.114]
+La Commission européenne propose de raccourcir le cycle de règlement pour les transactions sur valeurs mobilières intra-Union européenne. La modification législative proposée raccourcirait le cycle de règlement des transactions sur valeurs mobilières, telles que les actions ou les obligations exécutées sur des plateformes de négociation de l'Union européenne, de deux jours ouvrables (T+2) à un jour ouvrable après la négociation (T+1). La Commission européenne propose une modification ciblée du Règlement sur les dépositaires centraux de titres et fixe la date appropriée pour le passage au règlement à T+1 au 11 octobre 2027, ce qui est en alignement avec le Royaume-Uni et la Suisse.
+
+[p.114]
+### Modifications aux règles sur la compensation obligatoire des titres du Trésor américain et des opérations de mise en pension
+
+[p.114]
+Le 13 décembre 2023, la Securities and Exchange Commission (SEC) a approuvé de nouvelles règles sur la compensation obligatoire des titres du Trésor américain et des opérations de mise en pension et de prise en pension qui comprennent des titres du Trésor américain afin d'améliorer les pratiques de gestion des risques. Les règles finales ordonnent aux contreparties centrales du Trésor d'exiger que les participants directs soumettent pour compensation et règlement toutes les transactions éligibles sur le marché secondaire auxquelles ils sont contreparties. Ces changements devaient initialement être mis en œuvre par phases d'ici juin 2026. La SEC a indiqué, le 25 février 2025, qu'elle prolongeait les échéances clés des règles de compensation du Trésor américain. Les nouvelles dates de mise en œuvre seront donc le 31 décembre 2026 pour la compensation obligatoire des opérations au comptant et le 30 juin 2027 pour la compensation obligatoire des opérations de pension.
+
+[p.114]
+### Refonte des règles de l'Organisme canadien de réglementation des investissements (OCRI)
+
+[p.114]
+La refonte des règles de l'OCRI est en cours depuis octobre 2023 et elle s'est effectuée en cinq phases de consultation. Les phases 1 à 5 ont été publiées pour commentaires. L'entrée en vigueur de cette nouvelle série de règles reste à confirmer par l'OCRI. Ces règles s'appliqueront aux courtiers en valeurs mobilières et ceux en épargne collective.
+
+[p.114]
+### Loi canadienne sur l'accessibilité
+
+[p.114]
+La Loi a été adoptée en juin 2019. Elle vise à faire du Canada un pays exempt d'obstacles d'ici le 1 er janvier 2040. La Banque a publié son plan d'accessibilité le 31 mai 2023 et son deuxième rapport d'étape le 28 mai 2025 sur le site Internet de la Banque à l'adresse bnc.ca. Le 21 décembre 2024, le gouvernement fédéral a publié un projet de modification du règlement proposant d'ajouter de nouvelles exigences au Règlement canadien sur l'accessibilité . Si ce projet est adopté, les organisations fédérales du secteur privé devront se conformer aux exigences d'accessibilité de la norme CAN/ASC - EN 301 549:2024 Exigences d'accessibilité pour les produits et services de TIC . À partir du 1 er juin 2028, toutes les pages Internet destinées au public et aux employés (incluant leur contenu), toutes les applications mobiles destinées au public et tout document numérique téléchargeable à partir des pages Internet publiques qui seront publiés devront être conformes à la norme CAN/ASC-EN.
+
+[p.115]
+### Modifications au Règlement 31-103 sur les obligations et dispenses d'inscription et les obligations continues des personnes inscrites - Modèle de relation client-conseiller (phase 3)
+
+[p.115]
+En avril 2023, les ACVM ont publié la version finale des changements visant à rehausser les obligations d'information sur le coût des fonds d'investissement et à imposer de nouvelles obligations d'information sur le coût et le rendement des contrats individuels à capital variable (contrats de fonds distincts). L'ensemble des courtiers, conseillers, gestionnaires de fonds d'investissement inscrits et les assureurs offrant des contrats de fonds distincts sont visés par ces nouvelles exigences, lesquelles entreront en vigueur le 1 er janvier 2026.
+
+[p.115]
+### Règlement 91-507 sur les référentiels centraux et la déclaration de données sur les dérivés
+
+[p.115]
+Les modifications au Règlement 91-507 de l'AMF (et aux règles équivalentes des autres ACVM) visant à standardiser la déclaration des données sur les dérivés de gré à gré et à l'harmoniser avec les normes mondiales sont entrées en vigueur le 25 juillet 2025.
+
+[p.115]
+Ce règlement, entré en vigueur le 28 septembre 2024, énonce les obligations des courtiers et des conseillers en dérivés de gré à gré. Ce régime satisfait aux normes internationales, notamment en matière de traitement équitable, de conflits d'intérêts, d'évaluation de la convenance, de déclaration des manquements et de tenue de dossiers. Le règlement sur la conduite commerciale vise à contribuer à la protection des participants au marché en accroissant la transparence et la responsabilisation et en promouvant une conduite commerciale responsable sur les marchés de dérivés de gré à gré.
+
+[p.115]
+### Règlement sur le traitement des plaintes et le règlement des différends dans le secteur financier
+
+[p.115]
+Le 27 janvier 2025, l'AMF a publié la version finale du règlement. Les courtiers en placement membres de l'OCRI sont temporairement dispensés de l'application de certains articles du règlement pour leurs activités au Québec. Le règlement est entré en vigueur le 1 er juillet 2025 et les changements ont été effectués.
+
+[p.115]
+### Identification des clients et des ordres
+
+[p.115]
+Le 7 décembre 2023, la Bourse de Montréal a publié la version finale des changements visant l'identification des clients et des ordres. Ces règles visent à instaurer un identifiant de client ainsi que des marqueurs identifiant les ordres lorsqu'ils sont saisis dans le système de négociation électronique. La Bourse a offert une extension aux participants afin de se conformer aux exigences relatives à l'identification des clients et des ordres, et a établi la date limite de conformité au 31 mars 2025. Les nouvelles exigences ont été implantées le 31 mars 2025.
+
+[p.115]
+### Changements au modèle d'assurance des compétences (OCRI)
+
+[p.115]
+Le 17 avril 2025, l'OCRI a publié la version finale des changements liés au modèle d'assurance des compétences. Les changements visent la refonte des examens et la formation des personnes inscrites. Les changements entreront en vigueur le 1 er janvier 2026 et concerneront toutes les divisions de la Financière Banque Nationale.
+
+[p.115]
+### Risque de réputation
+
+[p.115]
+Le risque de réputation représente la possibilité qu'une activité ou une pratique de la Banque soit jugée de manière négative par le public, que ce jugement soit fondé ou non, et que cela puisse porter atteinte à la perception, à l'image ou aux marques de commerce de la Banque, ce qui pourrait entraîner des poursuites ou des pertes de revenus. Le risque de réputation découle généralement d'un manquement à la gestion d'un autre risque. Il en est ainsi d'incidents de non-conformité aux lois et règlements ou de défaillances de processus. Tous les risques doivent donc être gérés efficacement afin de protéger la réputation de la Banque.
+
+[p.115]
+La Banque, par sa culture d'entreprise, fait la promotion en continu des comportements et des valeurs à adopter comme membres du personnel. L'éthique est au cœur de toutes nos actions. Pour réaliser notre mission, prioriser l'humain et continuer à bâtir une banque solide, nous devons maintenir une éthique de travail des plus élevée. Notre Code de conduite précise ce qui est attendu de chacune et chacun des employés dans le cadre de ses fonctions en matière de règles à suivre et de comportements éthiques.
+
+[p.115]
+### Politique de gestion du risque de réputation
+
+[p.115]
+Approuvée par le CRG, cette politique à l'égard du risque de réputation couvre toutes les activités et pratiques de la Banque. Elle fixe les principes et les règles de gestion du risque de réputation en accord avec nos limites d'appétit pour le risque pour les cinq dimensions suivantes : clientèle, personnel, communauté, actionnaire et gouvernance, toutes des parties prenantes de la Banque. La politique est complétée par les dispositions particulières de plusieurs politiques et normes telles que la politique de gestion des risques liés aux changements importants, la politique de continuité des affaires et gestion de crise et la politique de gouvernance en matière d'investissement.
+
+[p.116]
+### Risque stratégique
+
+[p.116]
+Le risque stratégique découle de la possibilité de subir une perte financière ou une atteinte à la réputation à la suite d'une orientation inappropriée des stratégies, d'une mauvaise exécution ou d'une adaptation inefficace aux changements économiques, financiers ou réglementaires. Le plan stratégique d'entreprise est élaboré par l'équipe de direction et approuvé par le Conseil, en considérant l'appétit global de la Banque pour le risque. Les initiatives du plan stratégique, une fois approuvées, font l'objet d'un suivi régulier permettant de vérifier leur avancement. Dans le cas où un écart existe, des stratégies peuvent être revues et ajustées, s'il est jugé pertinent de le faire.
+
+[p.116]
+De plus, la Banque s'est dotée d'une politique spécifique approuvée par le Conseil pour les investissements stratégiques définis comme des achats d'actifs d'entreprise ou des acquisitions de participations jugées importantes dans une entité, dans le but d'acquérir le contrôle ou simplement de créer une relation durable. Ainsi, les projets d'acquisitions et autres investissements stratégiques sont examinés par le biais d'un processus de diligence raisonnable visant à s'assurer que ces investissements sont alignés sur le plan stratégique d'entreprise et l'appétit pour le risque de la Banque.
+
+[p.116]
+### Risque environnemental et social
+
+[p.116]
+Le risque environnemental et social représente la possibilité que des enjeux environnementaux et sociaux entraînent une perte financière pour la Banque ou affectent ses activités. Le risque environnemental et social peut avoir une incidence sur les risques traditionnels inhérents aux activités d'une institution financière, tels que des effets sur le risque de crédit, le risque de marché, le risque de liquidité et de financement et le risque opérationnel.
+
+[p.116]
+Le risque environnemental touche de nombreux aspects, notamment l'utilisation de l'énergie, de l'eau et d'autres ressources, les changements climatiques et la biodiversité. Le risque social comprend par exemple les considérations liées aux droits de la personne, à l'accessibilité, la diversité, l'équité et l'inclusion, et celles liées à nos pratiques de gestion du capital humain, notamment les conditions de travail et la santé, la sécurité et le bien-être de notre personnel.
+
+[p.116]
+De plus, l'évolution rapide de l'environnement réglementaire à l'échelle mondiale, les attentes et la surveillance accrues de la part des organismes de réglementation et autres associations, ainsi que le possible déséquilibre entre leurs exigences, constituent un défi auquel s'ajoutent les attentes des parties prenantes et la divergence de leurs points de vue sur les priorités et les actions de la Banque. De ce fait, la réputation de la Banque pourrait également être affectée par l'action ou l'inaction de la Banque, ou encore par la perception d'inaction ou d'insuffisance en matière environnementale et sociale, notamment quant au progrès réalisé. Ainsi, tous ces facteurs peuvent se traduire par une exposition accrue au risque de réputation, au risque de non-conformité à la réglementation et au risque stratégique, ou encore entraîner des répercussions sur les activités et la situation financière de nos clientes et clients. Nous surveillons l'évolution de ces facteurs, les analysons et mettons à jour nos façons de faire en continu.
+
+[p.116]
+Notre structure de gouvernance en lien avec la durabilité repose sur le fait que tous les niveaux de l'organisation participent à la réalisation de nos objectifs et engagements. Le Conseil exerce son rôle de surveillance de notre stratégie de durabilité en veillant à ce que les enjeux de durabilité soient intégrés dans les objectifs stratégiques à long terme, et en suivant l'évolution et l'intégration des initiatives de durabilité dans nos activités courantes. Les différents comités du Conseil surveillent les risques environnementaux et sociaux en fonction de leur mandat respectif. Ils sont appuyés par la direction dans l'exercice de leurs fonctions. L'intégration des facteurs ESG aux processus de la Banque continue de progresser conformément à la mise en œuvre de sa stratégie. Des indicateurs de durabilité ont été ajoutés dans divers tableaux de bord et sont intégrés progressivement au cadre d'appétit pour le risque. Des rapports sur les suivis de ces indicateurs et les engagements de la Banque sont présentés périodiquement aux comités internes et aux comités du Conseil chargés de les superviser. La Banque a également une politique environnementale qui exprime sa détermination à préserver l'environnement face aux activités humaines, et ce, à l'égard de nos propres activités et des retombées pour la collectivité.
+
+[p.116]
+La Banque considère la gouvernance comme un exercice collaboratif, fondé sur un dialogue ouvert, transparent et continu avec ses parties prenantes. Dans un contexte où les enjeux de durabilité évoluent rapidement, ces échanges permettent de mieux comprendre les attentes de ces dernières et d'y répondre de manière durable. La croissance de la Banque repose sur ces relations, qui sont au cœur de sa mission commune centrée sur l'humain et l'action.
+
+[p.116]
+Le Code de conduite de la Banque précise ce qui est attendu de chacune et chacun des employés dans le cadre de leurs interactions professionnelles, d'affaires et communautaires. Il balise également le cadre pour le respect des valeurs de la Banque et guide les actions au quotidien dans la conduite de ses affaires et la relation tant avec les tiers que le personnel et la clientèle pour créer un environnement propice à la réalisation de la mission.
+
+[p.117]
+De plus, notre déclaration des droits de la personne présente l'application des principes auxquels la Banque adhère dans l'exercice de ses activités et dans ses relations avec ses différentes parties prenantes. L'engagement de la Banque à l'égard de l'esclavage moderne fait état de la structure de gouvernance, de la gestion des risques et des mesures de contrôles déployées par la Banque à ce sujet.
+
+[p.117]
+Pour de plus amples renseignements sur notre gouvernance et les politiques et règles qui encadrent nos activités, veuillez consulter la section « Codes et engagements » disponible sur le site Internet de la Banque à l'adresse bnc.ca.
+
+[p.117]
+### Gestion du risque
+
+[p.117]
+L'identification, l'évaluation, l'atténuation et la surveillance du risque environnemental et social font partie du cadre de la gestion des risques et du cadre d'appétit pour le risque de la Banque. Depuis quelques années déjà, la Banque a intégré le risque environnemental et social dans sa politique cadre de gestion des risques en plus d'avoir ajouté un énoncé dans son appétit pour le risque sur son engagement à atteindre ses objectifs de durabilité à travers des indicateurs cibles. D'autres politiques et normes en matière de gestion des risques viennent également appuyer la gestion plus globale du risque environnemental et social. En raison de son importance, le risque climatique a été intégré de manière plus approfondie. Une norme de gestion spécifique a été développée et la notion de risque climatique a été incorporée dans le registre d'inventaire des risques, en lien avec le processus interne d'évaluation de l'adéquation des fonds propres. Nous poursuivons nos avancées en intégrant les considérations liées aux risques climatiques dans nos processus et en renforçant notre capacité à intégrer les risques climatiques dans les analyses de scénarios, conformément aux attentes réglementaires.
+
+[p.117]
+Pour ses propres activités, la Banque a notamment adopté un Code des fournisseurs qui décrit ses attentes en matière de pratiques d'affaires responsables. En adoptant ce code, la Banque affirme son intention de faire affaire avec des fournisseurs qui tiennent compte des questions environnementales, sociales et de gouvernance dans l'exercice de leurs activités ainsi que dans l'ensemble de leur chaîne d'approvisionnement. Avant de s'engager dans une relation avec un tiers, le secteur d'affaires évalue les risques en effectuant une vérification diligente.
+
+[p.117]
+Autrement, la Banque poursuit la quantification des émissions de gaz à effet de serre (GES), autant pour ses activités que pour ses financements, y compris l'intégration des émissions liées à l'acquisition de CWB. La Banque poursuit ses travaux relatifs à l'évolution de sa stratégie en matière de durabilité qui vise notamment à quantifier les impacts financiers du risque environnemental et social et affirme sa volonté de communiquer régulièrement et en toute transparence les progrès réalisés.
+
+[p.117]
+La Banque est soucieuse de l'exactitude des renseignements qu'elle fournit dans le contexte où la communication d'information est accrue et les risques associés à l'écoblanchiment et au socioblanchiment sont présents. Elle reconnaît que la gestion efficace des risques environnementaux et sociaux repose sur la qualité des données et des méthodologies utilisées. Toutefois, des limites persistantes en matière de disponibilité et de fiabilité peuvent nuire à l'évaluation complète de ces risques. La Banque poursuit ses efforts pour optimiser son architecture de données et de contrôle, en y intégrant les données liées à la durabilité, notamment grâce à la collaboration avec des expertes et des experts internes et externes. Ces initiatives visent à améliorer la surveillance, l'analyse et la production de rapports sur ces risques. Néanmoins, nous reconnaissons que ces mesures ne permettront pas d'éliminer entièrement les risques. De plus, notre capacité à établir et à atteindre nos objectifs, nos priorités et nos cibles en matière environnementale et sociale repose sur un certain nombre d'hypothèses, de scénarios et de facteurs, dont bon nombre sont indépendants de la volonté de la Banque et dont les effets sont difficilement prévisibles. Ces hypothèses, données, indicateurs, mesures, méthodologies, scénarios et autres normes continuent d'évoluer et peuvent différer considérablement de ceux utilisés par d'autres, de ceux que nous pourrions utiliser à l'avenir ou qui pourraient être ultérieurement imposés par les autorités gouvernementales ou d'autres autorités en la matière. Nous pourrions alors être contraints de redéfinir certains objectifs, priorités ou cibles, ou réviser certaines données suivant l'évolution des méthodologies utilisées ou de la qualité des données disponibles. Il est également possible que les prévisions, cibles ou projections de la Banque ne se révèlent pas exactes, que ses hypothèses ne soient pas confirmées et que ses objectifs stratégiques et ses cibles de performance ne soient pas réalisés dans les délais annoncés.
+
+[p.117]
+Ayant comme objectif de veiller proactivement au positionnement stratégique de l'ensemble de son portefeuille, la Banque continue de soutenir la transition vers une économie à faibles émissions de carbone et continue à suivre les développements et les implications qui pourront en résulter. Ses efforts impliquent une adaptation continue et renforcée de même que des mesures d'atténuation additionnelles en cas d'interruption ou de perturbation de ses activités liées à des crises majeures telles des catastrophes naturelles ou des crises sanitaires : mentionnons à cet effet le plan de continuité des affaires, le programme de gestion des risques opérationnels et le programme de gestion des risques de catastrophe. Afin d'assurer la conformité avec la réglementation et une saine gestion du risque, la Banque a mis en place de nouveaux processus et poursuit l'amélioration de ses processus existants en plus de travailler à optimiser son architecture de données et de contrôles pour y inclure les données liées à la durabilité.
+
+[p.118]
+Le 18 décembre 2024, le Conseil canadien des normes d'information sur la durabilité (CCNID) a publié ses premières Normes canadiennes d'information sur la durabilité (NCID). La norme NCID 1 Obligations générales en matière d'informations financières liées à la durabilité , et la norme NCID 2 Informations à fournir en lien avec les changements climatiques , se fondent largement sur les normes IFRS S1 Obligations générales en matière d'informations financières liées à la durabilité et IFRS S2 Informations à fournir en lien avec les changements climatiques , reprennent les propositions énoncées dans les exposés-sondages publiés le 13 mars 2024 et incluent des allègements transitoires additionnels pour certaines exigences en matière d'informations à fournir. Les NCID s'appliqueront aux BISI à la fin de l'exercice 2026, et les mesures d'allègements transitoires entraîneront le report de plusieurs exigences à la fin de l'exercice 2029. La présentation des informations selon les NCID se fera de façon volontaire jusqu'à ce que les ACVM la rendent obligatoire. Le 23 avril 2025, les ACVM ont annoncé la suspension de leurs travaux sur les projets concernant la communication obligatoire d'information liée au changement climatique et les modifications des obligations d'information existantes sur la diversité. Les ACVM suivront l'évolution de la réglementation et revisiteront ces deux projets au cours des prochaines années.
+
+[p.118]
+Le 7 mars 2025, le BSIF a publié une mise à jour de la ligne directrice B-15 intitulée Gestion des risques climatiques . Les principales modifications comprennent le report de l'exigence de divulgation des émissions de GES de portée trois et une clarification des attentes concernant les activités de gestion d'actifs.
+
+[p.118]
+Le 16 décembre 2022, l'Union européenne a publié la directive relative à la publication d'informations en matière de durabilité par les entreprises ( Corporate Sustainability Reporting Directive ou CSRD) qui s'applique progressivement à partir du 1 er janvier 2024. La directive européenne CSRD impose aux entreprises visées l'utilisation des normes européennes d'information sur la durabilité ( European Sustainability Reporting Standards ou ESRS), qui précisent les exigences de divulgation ainsi que, le cas échéant, la structure de présentation des informations. Ces obligations s'appliquent selon un calendrier défini, en fonction de la taille et du statut de chaque organisation.
+
+[p.118]
+En 2024, la Banque a amorcé une évaluation approfondie de ses obligations réglementaires afin de se préparer à cette nouvelle exigence. Une structure de gouvernance spécialisée a été mise en place pour encadrer le projet et assure une coordination efficace et une supervision stratégique.
+
+[p.118]
+En 2025, les travaux se sont poursuivis avec l'élaboration d'un plan de conformité, l'identification des écarts à combler et la mobilisation des équipes internes. Des consultations ciblées ont été menées avec les parties prenantes, et des mécanismes de suivi ont été instaurés pour assurer une mise en œuvre progressive et rigoureuse. En février 2025, la Commission européenne a présenté une proposition de législation « Omnibus » relative aux règles en matière de durabilité au Groupe consultatif européen sur l'information financière ( European Financial Reporting Advisory Group ou EFRAG) dans le but de simplifier les normes ESRS. Le projet prévoit plusieurs modifications à la CSRD, avec un allégement ciblé de certaines exigences et un ajustement de calendrier pour certains volets.
+
+[p.118]
+### Resserrement des règles sur l'écoblanchiment (C-59)
+
+[p.118]
+Le projet de loi C-59 a modifié la Loi sur la concurrence en y intégrant des dispositions interdisant les déclarations environnementales trompeuses. Ces dispositions visent à interdire les déclarations sur les avantages environnementaux d'un produit ou d'une entreprise qui ne seraient pas fondées sur une épreuve suffisante et appropriée. Le droit d'accès privé annoncé l'année dernière est entré en vigueur en juin 2025 et permet à toute personne ou organisation de demander l'accès au Tribunal de la concurrence afin d'obtenir des mesures de redressement à l'égard de pratiques commerciales trompeuses, dont l'écoblanchiment. Ces nouvelles dispositions accentuent les risques réglementaire, légal et d'atteinte à la réputation encourus par la Banque, qui continue de faire preuve d'une attention accrue dans son exercice de divulgation en matière de durabilité.
+
+[p.118]
+Le 4 novembre 2025, dans le cadre de son budget de 2025, le gouvernement canadien a annoncé un examen législatif du projet de loi C-59. Nous continuerons de surveiller les développements à ce sujet et à faire progresser nos pratiques en matière de présentation de l'information et de divulgation sur la durabilité.

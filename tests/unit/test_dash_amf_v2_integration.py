@@ -18,6 +18,7 @@ from vigilance.dash_app.components.review_detail_v2 import (
     _build_themes_amf_chips,
 )
 from vigilance.dash_app.components.review_queue_v2 import _build_genai_summary_row
+from vigilance.dash_app.layouts.page_changements_communs import _build_signal_card
 from vigilance.dash_app.layouts.page_text_analysis import _build_change_card
 
 
@@ -336,6 +337,40 @@ def test_review_detail_renders_posture_evidence_and_implementation_status() -> N
     assert "Confiance posture élevée" in text
     assert "Posture de gestion" in text
     assert "surveillance des fournisseurs" in text
+
+
+def test_review_detail_hides_impact_it_without_justification() -> None:
+    table = {
+        "genai_analysis": {
+            "is_relevant": True,
+            "themes_amf": ["RISQUE_DONNEES"],
+            "impact_level": "MODERE",
+            "impact_it": "FAIBLE",
+            "impact_it_justification": "",
+            "changement_posture": "AUCUN",
+            "nouvelle_idee": False,
+            "nouvelle_idee_justification": "NON - aucun signal IT explicite.",
+            "action_requise": "information",
+        }
+    }
+
+    text = _flatten_text(_build_genai_section(table))
+
+    assert "Impact IT" not in text
+
+
+def test_changements_communs_hides_indeterminate_impact_it() -> None:
+    signal = {
+        "theme": "Signal commun",
+        "summary": "Synthèse du signal.",
+        "impact_it": "INDETERMINE",
+        "banks": ["bmo", "td"],
+        "min_banks_met": False,
+    }
+
+    text = _flatten_text(_build_signal_card(signal))
+
+    assert "Impact IT" not in text
 
 
 def test_text_analysis_shows_observed_change_before_fold() -> None:

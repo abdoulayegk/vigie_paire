@@ -48,6 +48,7 @@ DEFAULT_COMPARISON_ROOT = "outputs/resultats"
 # ---------------------------------------------------------------------------
 
 def build_parser() -> argparse.ArgumentParser:
+    """Construit le parseur CLI du pipeline texte."""
     p = argparse.ArgumentParser(
         description="Vigilance — Pipeline Texte Batch (Extraction + Comparaison sémantique).",
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -55,6 +56,7 @@ def build_parser() -> argparse.ArgumentParser:
             "Exemples:\n"
             "  python run_text_pipeline.py --bank BNS --year 2025 --T2\n"
             "  python run_text_pipeline.py --bank RBC --year 2025 --T2\n"
+            "  python run_text_pipeline.py --bank BMO --year 2025 --T4 --extract-only --force-extraction\n"
         ),
     )
     p.add_argument("--bank", required=True, help="Code de la banque (ex: BNS, BNC, RBC)")
@@ -78,7 +80,17 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument(
         "--skip-comparison",
         action="store_true",
-        help="Sauter l'analyse texte finale",
+        help="Faire seulement l'extraction texte, sans comparaison GPT",
+    )
+    p.add_argument(
+        "--extract-only",
+        action="store_true",
+        help="Alias explicite de --skip-comparison",
+    )
+    p.add_argument(
+        "--force-extraction",
+        action="store_true",
+        help="Ignorer les text_extraction.md existants et régénérer les artefacts",
     )
     return p
 
@@ -95,6 +107,7 @@ def _step_compare_text(
     current_pdf: Path,
     out_root: Path,
     model: str,
+    force_extraction: bool,
 ) -> Path:
     """Lance l'analyse texte canonique. Retourne le chemin text_comparison.json."""
     from vigilance.text_analysis_pipeline import run_text_analysis_pipeline
@@ -108,6 +121,7 @@ def _step_compare_text(
         pdf_current=current_pdf,
         out_root=out_root,
         model=model,
+        force_extraction=force_extraction,
     )
     generate_text_comparison_excel(payload, out_path.with_suffix(".xlsx"))
     if not out_path.exists():
@@ -117,11 +131,35 @@ def _step_compare_text(
     return out_path
 
 
+def _step_extract_text(
+    bank: str,
+    year_current: int,
+    quarter_current: str,
+    previous_pdf: Path,
+    current_pdf: Path,
+    out_root: Path,
+    force_extraction: bool,
+) -> dict[str, object]:
+    """Lance l'extraction texte seule et retourne le manifeste d'artefacts."""
+    from vigilance.text_analysis_pipeline import run_text_extraction_pipeline
+
+    return run_text_extraction_pipeline(
+        bank_code=bank,
+        year_current=year_current,
+        quarter_current=quarter_current,
+        pdf_previous=previous_pdf,
+        pdf_current=current_pdf,
+        out_root=out_root,
+        force_extraction=force_extraction,
+    )
+
+
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 
 def main(argv: list[str] | None = None) -> int:
+    """Point d'entrée du pipeline texte batch."""
     args = build_parser().parse_args(argv)
 
     bank = args.bank.upper()
@@ -162,11 +200,33 @@ def main(argv: list[str] | None = None) -> int:
         )
         return 1
 
-    print(f"  T1 : {previous_pdf}")
-    print(f"  T2 : {current_pdf}")
+    print(f"  Période précédente : {previous_pdf}")
+    print(f"  Période courante   : {current_pdf}")
 
-    if args.skip_comparison:
-        print("\n⏭️  Comparaison ignorée (--skip-comparison).")
+    extraction_only = bool(args.skip_comparison or args.extract_only)
+    if extraction_only:
+        print(
+            f"\n🧾 Extraction texte seule "
+            f"({q_current.upper()}-{year_current} vs {q_previous.upper()}-{year_previous})..."
+        )
+        t0 = time.time()
+        try:
+            extraction_payload = _step_extract_text(
+                bank=bank_lower,
+                year_current=year_current,
+                quarter_current=q_current,
+                previous_pdf=previous_pdf,
+                current_pdf=current_pdf,
+                out_root=out_root,
+                force_extraction=args.force_extraction,
+            )
+            elapsed = time.time() - t0
+            print(f"  ✓ Extraction texte terminée ({elapsed:.1f}s)")
+            print(f"  Artefact précédent : {extraction_payload['extraction_artifact_t1']}")
+            print(f"  Artefact courant   : {extraction_payload['extraction_artifact_t2']}")
+        except Exception as exc:
+            print(f"\n  ERREUR extraction : {exc}")
+            return 1
     else:
         print(f"\n🔍 Analyse texte canonique ({q_current.upper()}-{year_current} vs {q_previous.upper()}-{year_previous})...")
         t0 = time.time()
@@ -179,6 +239,7 @@ def main(argv: list[str] | None = None) -> int:
                 current_pdf=current_pdf,
                 out_root=out_root,
                 model=args.model,
+                force_extraction=args.force_extraction,
             )
             elapsed = time.time() - t0
             print(f"  ✓ Comparaison texte terminée ({elapsed:.1f}s) : {comparison_path}")

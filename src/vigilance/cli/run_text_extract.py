@@ -61,6 +61,18 @@ _CANONICAL_TO_TEXT_KEY: dict[str, str] = {
 }
 
 
+def _is_t4(quarter: str) -> bool:
+    """Indiquer si le libelle correspond au T4."""
+    return str(quarter or "").strip().lower() in {"t4", "q4"}
+
+
+def _filter_t4_target_ranges(ranges: list[dict]) -> list[dict]:
+    """Conserver uniquement les sections cibles T4, sans combler les trous."""
+    target_sections = {"gestion_capital", "gestion_risques"}
+    target_ranges = [item for item in ranges if item.get("section") in target_sections]
+    return target_ranges or ranges
+
+
 def _get_section_ranges_from_locator(
     pdf_path: Path,
     bank_code: str,
@@ -107,6 +119,8 @@ def _get_section_ranges_from_locator(
                     "anchor_bbox_norm": getattr(located, "anchor_bbox_norm", None),
                     "anchor_found": bool(getattr(located, "anchor_found", False)),
                 })
+        if _is_t4(quarter):
+            return _filter_t4_target_ranges(ranges)
         return ranges
     except Exception as exc:
         logger.error("Erreur lors de la localisation des sections : %s", exc)

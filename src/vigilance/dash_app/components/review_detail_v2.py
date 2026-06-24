@@ -452,7 +452,7 @@ def _build_genai_section(table: dict) -> html.Div:
                 className="me-2",
             )
         )
-    if impact_it in _IMPACT_IT_DISPLAY:
+    if impact_it in _IMPACT_IT_DISPLAY and impact_it_justification:
         header_badges.append(
             dbc.Badge(
                 _IMPACT_IT_DISPLAY[impact_it],
