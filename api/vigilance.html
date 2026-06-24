@@ -1180,75 +1180,53 @@ Pydantic après désérialisation.</p>
 </dd></dl>
 
 <dl class="py class">
-<dt class="sig sig-object py" id="vigilance.amf_taxonomy.TriageAMFResult">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">TriageAMFResult</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.amf_taxonomy.TriageAMFResult" title="Lien vers cette définition"></a></dt>
+<dt class="sig sig-object py" id="vigilance.amf_taxonomy.TriageAMFLLMBatch">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">TriageAMFLLMBatch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.amf_taxonomy.TriageAMFLLMBatch" title="Lien vers cette définition"></a></dt>
 <dd><p>Bases : <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
-<p>Sortie validée d’un triage GPT-4o pour un changement.</p>
-<p>Invariants garantis (toute violation lève <code class="docutils literal notranslate"><span class="pre">pydantic.ValidationError</span></code>).</p>
-<p><strong>Cohérence pertinent / non pertinent</strong></p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">is_relevant=True</span></code> implique <code class="docutils literal notranslate"><span class="pre">themes_amf</span></code> non vide, <code class="docutils literal notranslate"><span class="pre">exclusion_reason=None</span></code>, <code class="docutils literal notranslate"><span class="pre">explanation</span></code> ≥ 50 caractères (3 phrases attendues), <code class="docutils literal notranslate"><span class="pre">nouvelle_idee_justification</span></code> ≥ 3 phrases complètes commençant par <code class="docutils literal notranslate"><span class="pre">OUI</span></code> ou <code class="docutils literal notranslate"><span class="pre">NON</span></code> selon <code class="docutils literal notranslate"><span class="pre">nouvelle_idee</span></code>.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">is_relevant=False</span></code> implique <code class="docutils literal notranslate"><span class="pre">themes_amf=[]</span></code>, <code class="docutils literal notranslate"><span class="pre">exclusion_reason</span></code> renseigné, <code class="docutils literal notranslate"><span class="pre">nouvelle_idee=False</span></code>, <code class="docutils literal notranslate"><span class="pre">impact_level=&quot;MINEUR&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">impact_it=&quot;INDETERMINE&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">changement_posture=&quot;AUCUN&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">action_requise=&quot;aucune&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">explanation=&quot;&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">nouvelle_idee_justification</span></code> détaillée.</p></li>
-</ul>
-<p><strong>Cohérence sémantique</strong></p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">action_requise=&quot;revue_prioritaire&quot;</span></code> implique <code class="docutils literal notranslate"><span class="pre">impact_level=&quot;MAJEUR&quot;</span></code>.</p></li>
-</ul>
-<p>Pas de fallback silencieux : un triage invalide doit remonter en exception
-et être traité explicitement par l’appelant.</p>
+<p>Lot de triages AMF retourné par le LLM sans <code class="docutils literal notranslate"><span class="pre">change_segments</span></code>.</p>
 <dl class="py attribute">
-<dt class="sig sig-object py" id="vigilance.amf_taxonomy.TriageAMFResult.action_requise">
-<span class="sig-name descname"><span class="pre">action_requise</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'revue_prioritaire'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'investigation'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'confirmation'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'information'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'aucune'</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#vigilance.amf_taxonomy.TriageAMFResult.action_requise" title="Lien vers cette définition"></a></dt>
+<dt class="sig sig-object py" id="vigilance.amf_taxonomy.TriageAMFLLMBatch.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></span><a class="headerlink" href="#vigilance.amf_taxonomy.TriageAMFLLMBatch.model_config" title="Lien vers cette définition"></a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="vigilance.amf_taxonomy.TriageAMFLLMBatch.triages">
+<span class="sig-name descname"><span class="pre">triages</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#vigilance.amf_taxonomy.TriageAMFLLMResultWithIndex" title="vigilance.amf_taxonomy.TriageAMFLLMResultWithIndex"><span class="pre">TriageAMFLLMResultWithIndex</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#vigilance.amf_taxonomy.TriageAMFLLMBatch.triages" title="Lien vers cette définition"></a></dt>
 <dd></dd></dl>
 
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="vigilance.amf_taxonomy.TriageAMFLLMResultWithIndex">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">TriageAMFLLMResultWithIndex</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.amf_taxonomy.TriageAMFLLMResultWithIndex" title="Lien vers cette définition"></a></dt>
+<dd><p>Bases : <code class="xref py py-class docutils literal notranslate"><span class="pre">_TriageAMFResultBase</span></code></p>
+<p>Triage AMF demandé au LLM, sans preuve de surlignage.</p>
+<p>Les segments verbatim sont calculés localement depuis les textes T1/T2 pour
+éviter de mélanger jugement métier et extraction mécanique de preuve.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="vigilance.amf_taxonomy.TriageAMFLLMResultWithIndex.change_index">
+<span class="sig-name descname"><span class="pre">change_index</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#vigilance.amf_taxonomy.TriageAMFLLMResultWithIndex.change_index" title="Lien vers cette définition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="vigilance.amf_taxonomy.TriageAMFLLMResultWithIndex.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></span><a class="headerlink" href="#vigilance.amf_taxonomy.TriageAMFLLMResultWithIndex.model_config" title="Lien vers cette définition"></a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="vigilance.amf_taxonomy.TriageAMFResult">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">TriageAMFResult</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.amf_taxonomy.TriageAMFResult" title="Lien vers cette définition"></a></dt>
+<dd><p>Bases : <code class="xref py py-class docutils literal notranslate"><span class="pre">_TriageAMFResultBase</span></code></p>
+<p>Triage AMF complet persisté dans les artefacts texte.</p>
+<p><code class="docutils literal notranslate"><span class="pre">change_segments</span></code> est rattaché hors LLM par le pipeline, afin que les
+preuves verbatim restent déterministes et auditables.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="vigilance.amf_taxonomy.TriageAMFResult.change_segments">
 <span class="sig-name descname"><span class="pre">change_segments</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#vigilance.amf_taxonomy.ChangeSegment" title="vigilance.amf_taxonomy.ChangeSegment"><span class="pre">ChangeSegment</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#vigilance.amf_taxonomy.TriageAMFResult.change_segments" title="Lien vers cette définition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vigilance.amf_taxonomy.TriageAMFResult.changement_posture">
-<span class="sig-name descname"><span class="pre">changement_posture</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'RENFORCEMENT'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'ALLEGEMENT'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'NOUVEAU_DISPOSITIF'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'RETRAIT_DISPOSITIF'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'AUCUN'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'INDETERMINE'</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#vigilance.amf_taxonomy.TriageAMFResult.changement_posture" title="Lien vers cette définition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vigilance.amf_taxonomy.TriageAMFResult.confiance_posture">
-<span class="sig-name descname"><span class="pre">confiance_posture</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'ELEVEE'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'MOYENNE'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'FAIBLE'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'INDETERMINE'</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#vigilance.amf_taxonomy.TriageAMFResult.confiance_posture" title="Lien vers cette définition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vigilance.amf_taxonomy.TriageAMFResult.exclusion_reason">
-<span class="sig-name descname"><span class="pre">exclusion_reason</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'variation_numerique_propre_banque'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'reformulation_mineure'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'deplacement_texte'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'formatage_visuel'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'non_pertinent_autre'</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#vigilance.amf_taxonomy.TriageAMFResult.exclusion_reason" title="Lien vers cette définition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vigilance.amf_taxonomy.TriageAMFResult.explanation">
-<span class="sig-name descname"><span class="pre">explanation</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#vigilance.amf_taxonomy.TriageAMFResult.explanation" title="Lien vers cette définition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vigilance.amf_taxonomy.TriageAMFResult.impact_it">
-<span class="sig-name descname"><span class="pre">impact_it</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'ELEVE'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'MOYEN'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'FAIBLE'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'INDETERMINE'</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#vigilance.amf_taxonomy.TriageAMFResult.impact_it" title="Lien vers cette définition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vigilance.amf_taxonomy.TriageAMFResult.impact_it_justification">
-<span class="sig-name descname"><span class="pre">impact_it_justification</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#vigilance.amf_taxonomy.TriageAMFResult.impact_it_justification" title="Lien vers cette définition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vigilance.amf_taxonomy.TriageAMFResult.impact_level">
-<span class="sig-name descname"><span class="pre">impact_level</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'MAJEUR'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'MODERE'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'MINEUR'</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#vigilance.amf_taxonomy.TriageAMFResult.impact_level" title="Lien vers cette définition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vigilance.amf_taxonomy.TriageAMFResult.is_relevant">
-<span class="sig-name descname"><span class="pre">is_relevant</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><a class="headerlink" href="#vigilance.amf_taxonomy.TriageAMFResult.is_relevant" title="Lien vers cette définition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vigilance.amf_taxonomy.TriageAMFResult.justification_posture">
-<span class="sig-name descname"><span class="pre">justification_posture</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#vigilance.amf_taxonomy.TriageAMFResult.justification_posture" title="Lien vers cette définition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
@@ -1256,26 +1234,6 @@ et être traité explicitement par l’appelant.</p>
 <span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></span><a class="headerlink" href="#vigilance.amf_taxonomy.TriageAMFResult.model_config" title="Lien vers cette définition"></a></dt>
 <dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
 </dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vigilance.amf_taxonomy.TriageAMFResult.nouvelle_idee">
-<span class="sig-name descname"><span class="pre">nouvelle_idee</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><a class="headerlink" href="#vigilance.amf_taxonomy.TriageAMFResult.nouvelle_idee" title="Lien vers cette définition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vigilance.amf_taxonomy.TriageAMFResult.nouvelle_idee_justification">
-<span class="sig-name descname"><span class="pre">nouvelle_idee_justification</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#vigilance.amf_taxonomy.TriageAMFResult.nouvelle_idee_justification" title="Lien vers cette définition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vigilance.amf_taxonomy.TriageAMFResult.statut_mise_en_oeuvre">
-<span class="sig-name descname"><span class="pre">statut_mise_en_oeuvre</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'ANNONCE'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'PLANIFIE'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'EN_COURS'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'MIS_EN_OEUVRE'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'INDETERMINE'</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#vigilance.amf_taxonomy.TriageAMFResult.statut_mise_en_oeuvre" title="Lien vers cette définition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vigilance.amf_taxonomy.TriageAMFResult.themes_amf">
-<span class="sig-name descname"><span class="pre">themes_amf</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'DIVULGATION_AJOUT'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'DIVULGATION_RETRAIT'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'MODIFICATION_TEXTE_RISQUE'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'MODIFICATION_METHODOLOGIE'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'FACTEUR_RISQUE_CHANGEMENT'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'CAPITAL_REGLEMENTAIRE'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'LIQUIDITE'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'FONDS_PROPRES_REGLEMENTAIRES'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'EXIGENCES_REGLEMENTAIRES'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'RATIOS_REGLEMENTAIRES'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'STRUCTURE_RAPPORT'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'HYPOTHESES_EXPLICATIONS_RISQUES'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'ESG_CLIMATIQUE'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'RISQUE_EMERGENT'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'RISQUE_DONNEES'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'RISQUE_TIERS_CLOUD'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'RISQUE_MACRO_GEOPOLITIQUE'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'GOUVERNANCE_RISQUES'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'CONTROLE_CONFORMITE'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'NOUVELLE_MENTION_REGLEMENTAIRE'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'MONTANT_REGLEMENTAIRE'</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#vigilance.amf_taxonomy.TriageAMFResult.themes_amf" title="Lien vers cette définition"></a></dt>
-<dd></dd></dl>
 
 </dd></dl>
 
@@ -3812,7 +3770,7 @@ et l’entrée directe du GPT de comparaison — garantissant leur cohérence.</
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.text_analysis_pipeline.run_text_analysis_pipeline">
-<span class="sig-name descname"><span class="pre">run_text_analysis_pipeline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Séparateur de paramètres par mot-clé uniquement (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">bank_code</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">year_current</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quarter_current</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pdf_previous</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pdf_current</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_root</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'gpt-4o'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allowed_section_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">project_root</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.text_analysis_pipeline.run_text_analysis_pipeline" title="Lien vers cette définition"></a></dt>
+<span class="sig-name descname"><span class="pre">run_text_analysis_pipeline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Séparateur de paramètres par mot-clé uniquement (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">bank_code</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">year_current</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quarter_current</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pdf_previous</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pdf_current</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_root</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'gpt-4o'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allowed_section_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">project_root</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_extraction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.text_analysis_pipeline.run_text_analysis_pipeline" title="Lien vers cette définition"></a></dt>
 <dd><p>Exécute le pipeline texte complet avec le markdown comme source de vérité.</p>
 <p>Déroulement :</p>
 <ol class="arabic simple">
@@ -3823,13 +3781,24 @@ et l’entrée directe du GPT de comparaison — garantissant leur cohérence.</
 <p>Notes opérationnelles :</p>
 <ul class="simple">
 <li><p>Le .md canonique vit dans <code class="docutils literal notranslate"><span class="pre">outputs/text_extractions/{bank}/{year}/{q}/text_extraction.md</span></code> et sert d’artefact d’audit ET d’entrée réutilisable pour les runs suivants.</p></li>
-<li><p>Supprimer ce .md force une ré-extraction Docling au prochain run.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">force_extraction=True</span></code> ignore ce cache et force une ré-extraction Docling.</p></li>
 <li><p>Les marqueurs <code class="docutils literal notranslate"><span class="pre">[p.N]</span></code> présents dans le .md sont strippés avant tout appel GPT (gatekeeper unique : <code class="docutils literal notranslate"><span class="pre">_extract_section_text_from_markdown</span></code>).</p></li>
 <li><p>Les appels GPT du flux texte n’envoient pas de limite de complétion explicite par défaut, afin de privilégier l’arrêt naturel du modèle.</p></li>
 </ul>
 <dl class="field-list simple">
 <dt class="field-odd">Type renvoyé<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.text_analysis_pipeline.run_text_extraction_pipeline">
+<span class="sig-name descname"><span class="pre">run_text_extraction_pipeline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Séparateur de paramètres par mot-clé uniquement (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">bank_code</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">year_current</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quarter_current</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pdf_previous</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pdf_current</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_root</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allowed_section_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">project_root</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_extraction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.text_analysis_pipeline.run_text_extraction_pipeline" title="Lien vers cette définition"></a></dt>
+<dd><p>Exécute seulement l’extraction texte et écrit les artefacts markdown.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]</span></p>
 </dd>
 </dl>
 </dd></dl>
