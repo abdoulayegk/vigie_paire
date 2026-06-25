@@ -235,13 +235,7 @@
           "tables"
         ],
         "visual_sanity_render_mode": "full",
-        "visual_sanity_render_status": "skipped_missing_anchor",
-        "_analyst_review": {
-          "status": "approved",
-          "notes": "",
-          "at": "2026-04-19T00:11:04.168490+00:00",
-          "by": "analyst"
-        }
+        "visual_sanity_render_status": "skipped_missing_anchor"
       }
     ],
     "artifacts_confirmed_previous": [],
@@ -689,7 +683,7 @@
             "_analyst_review": {
               "status": "approved",
               "notes": "",
-              "at": "2026-04-19T00:10:15.112415+00:00",
+              "at": "2026-06-25T15:31:27.421677+00:00",
               "by": "analyst"
             }
           }
@@ -705,12 +699,6 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "La note de bas de page n°3 a été supprimée du tableau des actions en circulation et des titres convertibles en actions ordinaires au T2 2025. Cette note expliquait les conditions de conversion des billets avec remboursement de capital à recours limité en actions ordinaires, en précisant les séries d'actions privilégiées concernées.\n\nLa suppression de cette note pourrait avoir un impact sur la transparence des informations fournies aux investisseurs et aux régulateurs concernant les mécanismes de conversion des instruments financiers. Cela pourrait également affecter la compréhension des conditions de non-viabilité associées à ces instruments, qui sont cruciales pour l'évaluation des risques de capital selon les normes de Bâle III et les directives du BSIF.\n\nIl s'agit d'une mise à jour structurelle importante. L'analyste devrait confirmer si cette suppression est compensée par une divulgation ailleurs dans le rapport ou si elle nécessite une clarification supplémentaire pour maintenir la conformité réglementaire."
-            },
-            "_analyst_review": {
-              "status": "approved",
-              "notes": "",
-              "at": "2026-04-19T00:11:43.591641+00:00",
-              "by": "analyst"
             }
           }
         ],
@@ -724,12 +712,6 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "La note de bas de page n°2 a subi une révision matérielle dans le tableau des actions en circulation et des titres convertibles en actions ordinaires au T2 2025. Le texte précédent mentionnait simplement le nombre d'actions ordinaires déduction faite des actions propres, tandis que le texte révisé détaille les conditions de conversion des billets avec remboursement de capital à recours limité en actions ordinaires.\n\nCette révision est significative car elle introduit des informations cruciales sur les mécanismes de conversion et les clauses de non-viabilité, qui sont essentielles pour l'évaluation des risques de capital et la conformité aux exigences de Bâle III. Les investisseurs et les régulateurs s'appuient sur ces informations pour comprendre les implications des instruments financiers sur la structure du capital de la banque.\n\nIl s'agit d'une mise à jour structurelle importante. L'analyste devrait confirmer que cette révision est cohérente avec les autres divulgations du rapport et s'assurer que toutes les implications réglementaires sont correctement adressées."
-            },
-            "_analyst_review": {
-              "status": "approved",
-              "notes": "",
-              "at": "2026-04-19T00:11:18.100025+00:00",
-              "by": "analyst"
             }
           }
         ],
@@ -1318,12 +1300,6 @@
             "analyst_assessment": {
               "relevance_level": 1,
               "justification": "La note de bas de page n°3 a subi une modification significative dans le tableau de répartition de la période d’amortissement des prêts hypothécaires. Le montant total des prêts hypothécaires à taux variables à amortissement négatif est passé de 2,6 milliards de dollars à 0,1 milliard de dollars, ce qui représente une réduction drastique de l'exposition à ce type de produit financier risqué.\n\nCette modification a un impact direct sur l'évaluation du risque de crédit et la gestion des risques de la banque. Les prêts à amortissement négatif sont souvent considérés comme plus risqués, car ils peuvent entraîner une augmentation du solde du prêt si les paiements ne couvrent pas les intérêts dus. Une réduction aussi importante pourrait indiquer une amélioration de la qualité du portefeuille ou une modification de la stratégie de gestion des risques. Selon les normes de Bâle III, une telle réduction pourrait également influencer les exigences de fonds propres réglementaires, car elle affecte le profil de risque global de la banque.\n\nIl s'agit d'une divulgation critique qui nécessite une attention particulière. L'analyste devrait confirmer la raison de cette réduction et s'assurer que les ajustements sont correctement reflétés dans les autres sections du rapport financier. Une enquête plus approfondie pourrait être nécessaire pour comprendre les implications de cette réduction sur la stratégie de gestion des risques de la banque."
-            },
-            "_analyst_review": {
-              "status": "approved",
-              "notes": "",
-              "at": "2026-04-19T00:10:59.190392+00:00",
-              "by": "analyst"
             }
           }
         ],
@@ -2622,12 +2598,6 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "La note de bas de page n-3 a été modifiée dans le tableau des échéances du financement de gros. Le texte précédent mentionnait que les titrisations comprenaient les créances de cartes de crédit, de prêts automobiles et de prêts au financement de matériel de transport. Dans la version actuelle, seules les créances de cartes de crédit sont mentionnées.\n\nCe changement réduit le périmètre des actifs titrisés inclus dans le calcul, ce qui peut avoir un impact sur la perception du risque associé à ces actifs. En termes de gestion des risques et de conformité réglementaire, cela pourrait affecter les ratios de capital et les exigences de divulgation selon les normes de Bâle III, notamment en ce qui concerne la pondération des actifs par le risque.\n\nIl s'agit d'un changement structurel important qui pourrait indiquer une révision de la stratégie de titrisation de la banque. L'analyste devrait confirmer la raison de cette modification et s'assurer qu'elle est cohérente avec les autres divulgations financières et les stratégies de gestion des risques de la banque."
-            },
-            "_analyst_review": {
-              "status": "approved",
-              "notes": "",
-              "at": "2026-04-19T00:10:36.694576+00:00",
-              "by": "analyst"
             }
           },
           {
@@ -2940,12 +2910,6 @@
             "analyst_assessment": {
               "relevance_level": 3,
               "justification": "L'indicateur \"Pour le trimestre clos le 31 octobre 2024 – Total des sorties nettes de trésorerie\" a été retiré du tableau de gestion des risques au T2 2025, alors qu'il était présent au T1 2025.\n\nCe retrait semble être une simplification de la présentation des données historiques, probablement pour éviter la redondance avec les nouvelles lignes ajoutées. Cela n'affecte pas directement les exigences réglementaires mais peut influencer la clarté des rapports pour les utilisateurs finaux.\n\nIl s'agit d'une mise à jour cosmétique. L'analyste devrait vérifier que les informations pertinentes sont toujours disponibles ailleurs dans le rapport."
-            },
-            "_analyst_review": {
-              "status": "approved",
-              "notes": "",
-              "at": "2026-04-19T00:10:18.738993+00:00",
-              "by": "analyst"
             }
           }
         ],
@@ -3285,12 +3249,6 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "L'indicateur \"Instruments financiers inscrits au bilan\" a été supprimé du tableau des échéances des actifs d’instruments financiers inscrits au bilan au T2 2025, alors qu'il était présent au T1 2025.\n\nCette suppression peut indiquer un changement dans la manière dont les actifs financiers sont présentés ou catégorisés dans le rapport. L'indicateur servait probablement de titre ou de catégorie englobante pour les actifs financiers inscrits au bilan, et son absence pourrait refléter une simplification ou une réorganisation de la présentation des données.\n\nIl s'agit d'un changement structurel qui pourrait affecter la compréhension globale du tableau par les parties prenantes. L'analyste devrait confirmer que cette suppression n'entraîne pas de perte d'information critique et que les autres indicateurs du tableau couvrent adéquatement les informations précédemment englobées par cet indicateur."
-            },
-            "_analyst_review": {
-              "status": "approved",
-              "notes": "",
-              "at": "2026-04-19T00:10:46.154438+00:00",
-              "by": "analyst"
             }
           }
         ],
@@ -3463,12 +3421,6 @@
             "analyst_assessment": {
               "relevance_level": 3,
               "justification": "La note de bas de page n°1 a subi une légère modification de formulation, passant de 'Sans échéance' à 'Sans échéance spécifique'. Cette modification concerne le tableau des échéances des passifs et capitaux propres, qui est un élément clé de la gestion des risques de liquidité.\n\nCette reformulation n'a pas d'impact significatif sur les exigences réglementaires ou les ratios prudentiels, car elle ne modifie pas la méthodologie de calcul ou la classification des prêts à vue. Elle semble viser à clarifier la terminologie utilisée, potentiellement pour aligner le langage avec d'autres sections du rapport ou avec des normes internes de présentation.\n\nIl s'agit d'une mise à jour cosmétique. L'analyste peut confirmer que cette modification n'entraîne pas de changement dans les pratiques de divulgation ou de calcul, mais aucune action supplémentaire n'est nécessaire."
-            },
-            "_analyst_review": {
-              "status": "approved",
-              "notes": "",
-              "at": "2026-04-19T00:10:35.396521+00:00",
-              "by": "analyst"
             }
           },
           {
@@ -3954,12 +3906,6 @@
             "analyst_assessment": {
               "relevance_level": 3,
               "justification": "La note de bas de page n°1 a subi une légère modification de texte, passant de 'Sans échéance' à 'Sans échéance spécifique'. Cette modification concerne le tableau des échéances des passifs et capitaux propres, qui est un élément clé de la gestion des risques de liquidité de la banque.\n\nL'impact de ce changement est principalement cosmétique, car il ne modifie pas la méthodologie de classification des prêts à vue. Cependant, l'ajout du terme 'spécifique' pourrait être interprété comme une clarification visant à renforcer la précision du langage utilisé dans les rapports financiers, ce qui est conforme aux bonnes pratiques de divulgation.\n\nIl s'agit d'une mise à jour ordinaire qui ne nécessite pas d'action immédiate. L'analyste peut confirmer que cette modification n'a pas d'impact sur les calculs ou les ratios prudentiels, mais il n'est pas nécessaire d'escalader ce changement."
-            },
-            "_analyst_review": {
-              "status": "approved",
-              "notes": "",
-              "at": "2026-04-19T00:10:38.577736+00:00",
-              "by": "analyst"
             }
           },
           {
@@ -4196,9 +4142,9 @@
     "high_priority_items_total": 7
   },
   "review_decisions_summary": {
-    "matched": 10,
+    "matched": 1,
     "unmatched": 0,
-    "pending": 8,
-    "updated_at": "2026-04-19T00:11:43+00:00"
+    "pending": 17,
+    "updated_at": "2026-06-25T15:31:27+00:00"
   }
 }

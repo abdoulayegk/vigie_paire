@@ -3,15 +3,15 @@
   "compare_path": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bmo/2025_t2_vs_2025_t1/comparison.json",
   "comparison_run_id": "20260418_195141",
   "review_items_signature": "e6cac4f921c60ecddb367bbafbd3c6993869833eadba527f645d0e89f146a01e",
-  "saved_at": "2026-04-19T00:11:43+00:00",
+  "saved_at": "2026-06-25T15:31:27+00:00",
   "source": "on_validate_change_v2",
   "preferred_store": "review_queue",
   "review_selection": {
     "review_id": "bmo::capital_management::tbl_p022_i01|tbl_p025_i01",
-    "change_id": "chg_00006"
+    "change_id": "chg_00005"
   },
   "review_current_idx": 0,
-  "current_change_idx": 2,
+  "current_change_idx": 1,
   "current_indicator_idx": 0,
   "review_items": [
     {
@@ -30,7 +30,7 @@
       "review_status": "approved",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-19T00:11:43.591641+00:00",
+      "review_timestamp": "2026-06-25T15:31:27.421677+00:00",
       "edited_value": "",
       "confidence": 0.95,
       "proof_image_path": "",
@@ -40,7 +40,7 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "TABLEAU 13",
-      "table_status": "completed",
+      "table_status": "partial",
       "indicators": [
         {
           "name": "Série N – première tranche",
@@ -50,12 +50,12 @@
         {
           "name": "[3] Convertible en actions ordinaires. Les billets avec remboursement de capital à recours limité sont convertibles en actio",
           "type": "modified",
-          "review_status": "approved"
+          "review_status": "pending"
         },
         {
           "name": "[2] Le nombre d’actions ordinaires est présenté déduction faite  -> Convertible en actions ordinaires. Les billets avec rembours",
           "type": "modified",
-          "review_status": "approved"
+          "review_status": "pending"
         }
       ],
       "match_method": "Indicators and headers are nearly identical; row_count 25 vs 24; footnote_count 3 vs 4; title and table_summary match exactly.",
@@ -107,8 +107,8 @@
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bmo/2025_t2_vs_2025_t1/current_report.pdf",
       "review_status": "pending",
       "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-04-19T00:10:35.396521+00:00",
+      "review_user": "",
+      "review_timestamp": "",
       "edited_value": "",
       "confidence": 0.99,
       "proof_image_path": "",
@@ -118,12 +118,12 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "TABLEAU 39",
-      "table_status": "partial",
+      "table_status": "pending",
       "indicators": [
         {
           "name": "[1] Les prêts à vue sont inclus dans la colonne Sans échéance. -> Les prêts à vue sont inclus dans la colonne Sans échéance sp",
           "type": "modified",
-          "review_status": "approved"
+          "review_status": "pending"
         },
         {
           "name": "[2] Les dépôts à vue et à préavis sont inclus dans la colonne Sa -> Les dépôts à vue et à préavis sont inclus dans la colonne Sa",
@@ -185,8 +185,8 @@
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bmo/2025_t2_vs_2025_t1/current_report.pdf",
       "review_status": "pending",
       "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-04-19T00:10:36.694576+00:00",
+      "review_user": "",
+      "review_timestamp": "",
       "edited_value": "",
       "confidence": 0.99,
       "proof_image_path": "",
@@ -196,12 +196,12 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "TABLEAU 34",
-      "table_status": "partial",
+      "table_status": "pending",
       "indicators": [
         {
           "name": "[3] Comprennent les titrisations de créances de cartes de crédit -> Comprennent les titrisations de créances de cartes de crédit",
           "type": "modified",
-          "review_status": "approved"
+          "review_status": "pending"
         },
         {
           "name": "[4] Le total du financement de gros était constitué de 52,3 mill -> Le total du financement de gros était constitué de 53,0 mill",
@@ -256,10 +256,10 @@
       "page_t2": 51,
       "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bmo/2025_t2_vs_2025_t1/previous_report.pdf",
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bmo/2025_t2_vs_2025_t1/current_report.pdf",
-      "review_status": "approved",
+      "review_status": "pending",
       "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-04-19T00:10:18.738993+00:00",
+      "review_user": "",
+      "review_timestamp": "",
       "edited_value": "",
       "confidence": 0.99,
       "proof_image_path": "",
@@ -269,12 +269,12 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "TABLEAU 36",
-      "table_status": "partial",
+      "table_status": "pending",
       "indicators": [
         {
           "name": "Pour le trimestre clos le 31 octobre 2024 – Total des sorties nettes de trésorerie",
           "type": "removed",
-          "review_status": "approved"
+          "review_status": "pending"
         },
         {
           "name": "[2] 2 Les valeurs sont calculées en fonction de la moyenne simpl -> 2 Les valeurs sont calculées en fonction de la moyenne simpl",
@@ -331,8 +331,8 @@
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bmo/2025_t2_vs_2025_t1/current_report.pdf",
       "review_status": "pending",
       "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-04-19T00:10:38.577736+00:00",
+      "review_user": "",
+      "review_timestamp": "",
       "edited_value": "",
       "confidence": 0.99,
       "proof_image_path": "",
@@ -342,12 +342,12 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "TABLEAU 42",
-      "table_status": "partial",
+      "table_status": "pending",
       "indicators": [
         {
           "name": "[1] Les prêts à vue sont inclus dans la colonne Sans échéance. -> Les prêts à vue sont inclus dans la colonne Sans échéance sp",
           "type": "modified",
-          "review_status": "approved"
+          "review_status": "pending"
         },
         {
           "name": "[2] Les dépôts à vue et à préavis sont inclus dans la colonne Sa -> Les dépôts à vue et à préavis sont inclus dans la colonne Sa",
@@ -470,10 +470,10 @@
       "page_t2": 53,
       "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bmo/2025_t2_vs_2025_t1/previous_report.pdf",
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bmo/2025_t2_vs_2025_t1/current_report.pdf",
-      "review_status": "approved",
+      "review_status": "pending",
       "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-04-19T00:10:46.154438+00:00",
+      "review_user": "",
+      "review_timestamp": "",
       "edited_value": "",
       "confidence": 0.95,
       "proof_image_path": "",
@@ -483,12 +483,12 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "TABLEAU 38",
-      "table_status": "completed",
+      "table_status": "pending",
       "indicators": [
         {
           "name": "Instruments financiers inscrits au bilan",
           "type": "removed",
-          "review_status": "approved"
+          "review_status": "pending"
         }
       ],
       "match_method": "Indicators and headers are identical; row_count 19 vs 20; footnote_count 0 vs 0; title and table_summary match exactly.",
@@ -606,10 +606,10 @@
       "page_t2": 44,
       "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bmo/2025_t2_vs_2025_t1/previous_report.pdf",
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bmo/2025_t2_vs_2025_t1/current_report.pdf",
-      "review_status": "approved",
+      "review_status": "pending",
       "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-04-19T00:10:59.190392+00:00",
+      "review_user": "",
+      "review_timestamp": "",
       "edited_value": "",
       "confidence": 0.99,
       "proof_image_path": "",
@@ -619,12 +619,12 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "tbl_p044_i04",
-      "table_status": "completed",
+      "table_status": "pending",
       "indicators": [
         {
           "name": "[3] À la suite des hausses des taux d’intérêt, le portefeuille c -> À la suite des hausses des taux d’intérêt, le portefeuille c",
           "type": "modified",
-          "review_status": "approved"
+          "review_status": "pending"
         }
       ],
       "match_method": "Indicators and headers are identical; row_count 3 vs 3; footnote_count 4 vs 4; table_summary matches.",
@@ -742,10 +742,10 @@
       "page_t2": null,
       "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bmo/2025_t2_vs_2025_t1/previous_report.pdf",
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bmo/2025_t2_vs_2025_t1/current_report.pdf",
-      "review_status": "approved",
+      "review_status": "pending",
       "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-04-19T00:11:04.168490+00:00",
+      "review_user": "",
+      "review_timestamp": "",
       "edited_value": "",
       "confidence": 1.0,
       "proof_image_path": "",
@@ -755,7 +755,7 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "TABLEAU 21",
-      "table_status": "completed",
+      "table_status": "pending",
       "indicators": [],
       "match_method": "",
       "all_indicators_t1": [],
@@ -829,7 +829,7 @@
           "is_required": true,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-19T00:10:15.112415+00:00",
+          "validated_at": "2026-06-25T15:31:27.421677+00:00",
           "validated_by": "analyst"
         },
         {
@@ -842,12 +842,12 @@
             "old_text": "Convertible en actions ordinaires. Les billets avec remboursement de capital à recours limité sont convertibles en actions ordinaires en vertu du recours aux actions privilégiées, série 49, aux actions privilégiées, série 51, aux actions privilégiées, série 53 et aux actions privilégiées, série 54 au titre des billets avec remboursement de capital à recours limité, série 3, série 4 et série 5, respectivement émises en même temps que les billets avec remboursement de capital à recours limité, qui comprennent actions privilégiées à recours limité.",
             "new_text": ""
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": false,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-19T00:11:43.591641+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         },
         {
           "change_id": "chg_00006",
@@ -859,15 +859,15 @@
             "old_text": "Le nombre d’actions ordinaires est présenté déduction faite de 95 889 actions propres.",
             "new_text": "Convertible en actions ordinaires. Les billets avec remboursement de capital à recours limité sont convertibles en actions ordinaires en vertu du recours aux actions privilégiées, série 49, aux actions privilégiées, série 51, aux actions privilégiées, série 53 et aux actions privilégiées, série 54 au titre des billets avec remboursement de capital à recours limité, série 3, série 4 et série 5, respectivement émises en même temps que les billets avec remboursement de capital à recours limité, qui comprennent actuellement une clause de non-viabilité limitée."
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": false,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-19T00:11:18.100025+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         }
       ],
-      "table_status": "completed",
+      "table_status": "partial",
       "confidence": 0.95,
       "match_method": "Indicators and headers are nearly identical; row_count 25 vs 24; footnote_count 3 vs 4; title and table_summary match exactly.",
       "genai_analysis": {
@@ -891,8 +891,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 2,
-        "validated": 3,
-        "pending": 0
+        "validated": 1,
+        "pending": 2
       }
     },
     {
@@ -935,12 +935,12 @@
             "old_text": "Les prêts à vue sont inclus dans la colonne Sans échéance.",
             "new_text": "Les prêts à vue sont inclus dans la colonne Sans échéance spécifique."
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": false,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-19T00:10:35.396521+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         },
         {
           "change_id": "chg_00014",
@@ -977,7 +977,7 @@
           "validated_by": ""
         }
       ],
-      "table_status": "partial",
+      "table_status": "pending",
       "confidence": 0.99,
       "match_method": "Indicators and headers are identical; row_count 15 vs 15; footnote_count 4 vs 4; title and table_summary match exactly.",
       "genai_analysis": {
@@ -1001,8 +1001,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 3,
-        "validated": 1,
-        "pending": 2
+        "validated": 0,
+        "pending": 3
       }
     },
     {
@@ -1045,12 +1045,12 @@
             "old_text": "Comprennent les titrisations de créances de cartes de crédit, de prêts automobiles et de prêts au financement de matériel de transport.",
             "new_text": "Comprennent les titrisations de créances de cartes de crédit."
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": false,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-19T00:10:36.694576+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         },
         {
           "change_id": "chg_00011",
@@ -1070,7 +1070,7 @@
           "validated_by": ""
         }
       ],
-      "table_status": "partial",
+      "table_status": "pending",
       "confidence": 0.99,
       "match_method": "Indicators and headers are identical; row_count 17 vs 17; footnote_count 4 vs 4; title and table_summary match exactly.",
       "genai_analysis": {
@@ -1094,8 +1094,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 2,
-        "validated": 1,
-        "pending": 1
+        "validated": 0,
+        "pending": 2
       }
     },
     {
@@ -1139,12 +1139,12 @@
               "justification": "L'indicateur \"Pour le trimestre clos le 31 octobre 2024 – Total des sorties nettes de trésorerie\" a été retiré du tableau de gestion des risques au T2 2025, alors qu'il était présent au T1 2025.\n\nCe retrait semble être une simplification de la présentation des données historiques, probablement pour éviter la redondance avec les nouvelles lignes ajoutées. Cela n'affecte pas directement les exigences réglementaires mais peut influencer la clarté des rapports pour les utilisateurs finaux.\n\nIl s'agit d'une mise à jour cosmétique. L'analyste devrait vérifier que les informations pertinentes sont toujours disponibles ailleurs dans le rapport."
             }
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": true,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-19T00:10:18.738993+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         },
         {
           "change_id": "chg_00012",
@@ -1164,7 +1164,7 @@
           "validated_by": ""
         }
       ],
-      "table_status": "partial",
+      "table_status": "pending",
       "confidence": 0.99,
       "match_method": "Indicators and headers are identical; row_count 29 vs 29; footnote_count 5 vs 5; title and table_summary match exactly.",
       "genai_analysis": {
@@ -1188,8 +1188,8 @@
         "indicators_removed": 1,
         "indicators_renamed": 0,
         "footnotes_changed": 1,
-        "validated": 1,
-        "pending": 1
+        "validated": 0,
+        "pending": 2
       }
     },
     {
@@ -1232,12 +1232,12 @@
             "old_text": "Les prêts à vue sont inclus dans la colonne Sans échéance.",
             "new_text": "Les prêts à vue sont inclus dans la colonne Sans échéance spécifique."
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": false,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-19T00:10:38.577736+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         },
         {
           "change_id": "chg_00017",
@@ -1257,7 +1257,7 @@
           "validated_by": ""
         }
       ],
-      "table_status": "partial",
+      "table_status": "pending",
       "confidence": 0.99,
       "match_method": "Indicators and headers are identical; row_count 15 vs 15; footnote_count 4 vs 4; title and table_summary match exactly.",
       "genai_analysis": {
@@ -1281,8 +1281,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 2,
-        "validated": 1,
-        "pending": 1
+        "validated": 0,
+        "pending": 2
       }
     },
     {
@@ -1402,15 +1402,15 @@
               "justification": "L'indicateur \"Instruments financiers inscrits au bilan\" a été supprimé du tableau des échéances des actifs d’instruments financiers inscrits au bilan au T2 2025, alors qu'il était présent au T1 2025.\n\nCette suppression peut indiquer un changement dans la manière dont les actifs financiers sont présentés ou catégorisés dans le rapport. L'indicateur servait probablement de titre ou de catégorie englobante pour les actifs financiers inscrits au bilan, et son absence pourrait refléter une simplification ou une réorganisation de la présentation des données.\n\nIl s'agit d'un changement structurel qui pourrait affecter la compréhension globale du tableau par les parties prenantes. L'analyste devrait confirmer que cette suppression n'entraîne pas de perte d'information critique et que les autres indicateurs du tableau couvrent adéquatement les informations précédemment englobées par cet indicateur."
             }
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": true,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-19T00:10:46.154438+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         }
       ],
-      "table_status": "completed",
+      "table_status": "pending",
       "confidence": 0.95,
       "match_method": "Indicators and headers are identical; row_count 19 vs 20; footnote_count 0 vs 0; title and table_summary match exactly.",
       "genai_analysis": {
@@ -1434,8 +1434,8 @@
         "indicators_removed": 1,
         "indicators_renamed": 0,
         "footnotes_changed": 0,
-        "validated": 1,
-        "pending": 0
+        "validated": 0,
+        "pending": 1
       }
     },
     {
@@ -1555,15 +1555,15 @@
             "old_text": "À la suite des hausses des taux d’intérêt, le portefeuille comprenait des prêts hypothécaires à taux variables à amortissement négatif totalisant 2,6 milliards de dollars (9,3 milliards au 31 octobre 2024) les paiements contractuels de la période considérée étant appliqués aux intérêts et la portion des intérêts exigibles non visée par des versements étant appliquée au capital.",
             "new_text": "À la suite des hausses des taux d’intérêt, le portefeuille comprenait des prêts hypothécaires à taux variables à amortissement négatif totalisant 0,1 milliard de dollars (2,6 milliards au 31 janvier 2025) les paiements contractuels de la période considérée étant appliqués aux intérêts et la portion des intérêts exigibles non visée par des versements étant appliquée au capital."
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": false,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-19T00:10:59.190392+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         }
       ],
-      "table_status": "completed",
+      "table_status": "pending",
       "confidence": 0.99,
       "match_method": "Indicators and headers are identical; row_count 3 vs 3; footnote_count 4 vs 4; table_summary matches.",
       "genai_analysis": {
@@ -1587,8 +1587,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 1,
-        "validated": 1,
-        "pending": 0
+        "validated": 0,
+        "pending": 1
       }
     },
     {
@@ -1699,15 +1699,15 @@
             "description": "Tableau entier supprimé",
             "table_status": "supprime"
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": true,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-19T00:11:04.168490+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         }
       ],
-      "table_status": "completed",
+      "table_status": "pending",
       "confidence": 1,
       "match_method": "",
       "genai_analysis": {
@@ -1727,8 +1727,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 0,
-        "validated": 1,
-        "pending": 0
+        "validated": 0,
+        "pending": 1
       }
     }
   ]
