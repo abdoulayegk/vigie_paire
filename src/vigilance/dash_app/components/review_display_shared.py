@@ -362,6 +362,7 @@ def build_proofs_section(
         bbox_norm=None,
         render_result=None,
         side: str = "t1",
+        expanded: bool = False,
     ):
         """Construit une carte image de preuve avec overlay bbox optionnel."""
         if not b64:
@@ -370,6 +371,7 @@ def build_proofs_section(
                 dbc.CardBody(html.P(msg, className="text-muted text-center small")),
                 className="h-100 bg-light border-0",
             )
+        max_height = "calc(76vh - 130px)" if expanded else "calc(50vh - 60px)"
         if mode_value == "full" and bbox_norm:
             left, top, right, bottom = bbox_norm
             overlay_style = {
@@ -386,7 +388,7 @@ def build_proofs_section(
                         src=f"data:image/png;base64,{b64}",
                         style={
                             "objectFit": "contain",
-                            "maxHeight": "calc(50vh - 60px)",
+                            "maxHeight": max_height,
                             "width": "100%",
                             "height": "auto",
                         },
@@ -415,7 +417,11 @@ def build_proofs_section(
                 dbc.CardImg(
                     src=f"data:image/png;base64,{b64}",
                     top=True,
-                    style={"objectFit": "contain", "maxHeight": "calc(50vh - 60px)"},
+                    style={
+                        "objectFit": "contain",
+                        "maxHeight": max_height,
+                        "width": "100%",
+                    },
                 ),
                 dbc.CardFooter(
                     html.Small(label, className="text-muted"),
@@ -440,66 +446,78 @@ def build_proofs_section(
         _bbox_normalized_for_overlay(item.get("bbox_t2")) if mode_t2 == "full" else None
     )
 
-    if change_type == CHANGE_TYPE_TABLE_ADDED:
-        card_t1 = _img_card(
-            None,
-            _proof_caption(previous_label, item.get("page_t1"), mode_t1),
-            mode_value=mode_t1,
-            placeholder=(
-                f"Aucun tableau en {previous_label}"
-                if has_period_labels
-                else t("no_table_added_t2", "Aucun tableau dans le trimestre précédent")
-            ),
-            render_result=proof_result_t1,
-        )
-        card_t2 = _img_card(
-            img_t2_b64,
-            _proof_caption(current_label, item.get("page_t2"), mode_t2),
-            mode_value=mode_t2,
-            bbox_norm=bbox_t2_norm,
-            render_result=proof_result_t2,
-            side="t2",
-        )
-    elif change_type == CHANGE_TYPE_TABLE_REMOVED:
-        card_t1 = _img_card(
-            img_t1_b64,
-            _proof_caption(previous_label, item.get("page_t1"), mode_t1),
-            mode_value=mode_t1,
-            bbox_norm=bbox_t1_norm,
-            render_result=proof_result_t1,
-            side="t1",
-        )
-        card_t2 = _img_card(
-            None,
-            _proof_caption(current_label, item.get("page_t2"), mode_t2),
-            mode_value=mode_t2,
-            placeholder=(
-                f"Aucun tableau en {current_label} (supprimé depuis {previous_label})"
-                if has_period_labels
-                else t(
-                    "no_table_removed_t2",
-                    "Aucun tableau au trimestre courant (supprimé depuis le trimestre précédent)",
-                )
-            ),
-            render_result=proof_result_t2,
-        )
-    else:
-        card_t1 = _img_card(
-            img_t1_b64,
-            _proof_caption(previous_label, item.get("page_t1"), mode_t1),
-            mode_value=mode_t1,
-            bbox_norm=bbox_t1_norm,
-            render_result=proof_result_t1,
-            side="t1",
-        )
-        card_t2 = _img_card(
-            img_t2_b64,
-            _proof_caption(current_label, item.get("page_t2"), mode_t2),
-            mode_value=mode_t2,
-            bbox_norm=bbox_t2_norm,
-            render_result=proof_result_t2,
-            side="t2",
-        )
+    def _build_proof_cards(*, expanded: bool = False):
+        """Construit les deux cartes de preuve pour la vue normale ou agrandie."""
+        if change_type == CHANGE_TYPE_TABLE_ADDED:
+            card_t1_local = _img_card(
+                None,
+                _proof_caption(previous_label, item.get("page_t1"), mode_t1),
+                mode_value=mode_t1,
+                placeholder=(
+                    f"Aucun tableau en {previous_label}"
+                    if has_period_labels
+                    else t("no_table_added_t2", "Aucun tableau dans le trimestre précédent")
+                ),
+                render_result=proof_result_t1,
+                expanded=expanded,
+            )
+            card_t2_local = _img_card(
+                img_t2_b64,
+                _proof_caption(current_label, item.get("page_t2"), mode_t2),
+                mode_value=mode_t2,
+                bbox_norm=bbox_t2_norm,
+                render_result=proof_result_t2,
+                side="t2",
+                expanded=expanded,
+            )
+        elif change_type == CHANGE_TYPE_TABLE_REMOVED:
+            card_t1_local = _img_card(
+                img_t1_b64,
+                _proof_caption(previous_label, item.get("page_t1"), mode_t1),
+                mode_value=mode_t1,
+                bbox_norm=bbox_t1_norm,
+                render_result=proof_result_t1,
+                side="t1",
+                expanded=expanded,
+            )
+            card_t2_local = _img_card(
+                None,
+                _proof_caption(current_label, item.get("page_t2"), mode_t2),
+                mode_value=mode_t2,
+                placeholder=(
+                    f"Aucun tableau en {current_label} (supprimé depuis {previous_label})"
+                    if has_period_labels
+                    else t(
+                        "no_table_removed_t2",
+                        "Aucun tableau au trimestre courant (supprimé depuis le trimestre précédent)",
+                    )
+                ),
+                render_result=proof_result_t2,
+                expanded=expanded,
+            )
+        else:
+            card_t1_local = _img_card(
+                img_t1_b64,
+                _proof_caption(previous_label, item.get("page_t1"), mode_t1),
+                mode_value=mode_t1,
+                bbox_norm=bbox_t1_norm,
+                render_result=proof_result_t1,
+                side="t1",
+                expanded=expanded,
+            )
+            card_t2_local = _img_card(
+                img_t2_b64,
+                _proof_caption(current_label, item.get("page_t2"), mode_t2),
+                mode_value=mode_t2,
+                bbox_norm=bbox_t2_norm,
+                render_result=proof_result_t2,
+                side="t2",
+                expanded=expanded,
+            )
+        return card_t1_local, card_t2_local
+
+    card_t1, card_t2 = _build_proof_cards(expanded=False)
+    modal_card_t1, modal_card_t2 = _build_proof_cards(expanded=True)
 
     proof_mode_toggle = dbc.Row(
         dbc.Col(
@@ -546,12 +564,76 @@ def build_proofs_section(
         className="mb-4 g-2",
         style={"height": "50vh", "minHeight": "400px"},
     )
+    zoom_modal_row = dbc.Row(
+        [
+            dbc.Col(
+                _proof_wrapper(
+                    modal_card_t2,
+                    flag_state["t2_class"],
+                    flag_state["badge_t2"],
+                    flag_state["badge_class_t2"],
+                ),
+                width=6,
+            ),
+            dbc.Col(
+                _proof_wrapper(
+                    modal_card_t1,
+                    flag_state["t1_class"],
+                    flag_state["badge_t1"],
+                    flag_state["badge_class_t1"],
+                ),
+                width=6,
+            ),
+        ],
+        className="g-3 proof-zoom-row",
+    )
+    zoom_modal = dbc.Modal(
+        [
+            dbc.ModalHeader(
+                dbc.ModalTitle(heading_label),
+                close_button=False,
+            ),
+            dbc.ModalBody(zoom_modal_row, className="proof-zoom-modal-body"),
+            dbc.ModalFooter(
+                dbc.Button(
+                    "Fermer",
+                    id="btn-proof-zoom-close",
+                    color="secondary",
+                    outline=True,
+                    size="sm",
+                )
+            ),
+        ],
+        id="proof-zoom-modal",
+        is_open=False,
+        centered=True,
+        scrollable=True,
+        size="xl",
+        className="proof-zoom-modal",
+    )
+    heading_row = html.Div(
+        [
+            html.H6(heading_label, className="mb-0"),
+            dbc.Button(
+                [
+                    html.I(className="bi bi-arrows-fullscreen me-1"),
+                    "Agrandir les preuves",
+                ],
+                id="btn-proof-zoom-open",
+                color="light",
+                size="sm",
+                className="border",
+            ),
+        ],
+        className="d-flex align-items-center justify-content-between gap-2 mb-2",
+    )
 
     return html.Div(
         [
-            html.H6(heading_label, className="mb-1"),
+            heading_row,
             proof_mode_toggle,
             proofs_row,
+            zoom_modal,
         ]
     )
 

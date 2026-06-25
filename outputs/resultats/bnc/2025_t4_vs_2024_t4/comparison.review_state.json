@@ -3,15 +3,15 @@
   "compare_path": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bnc/2025_t4_vs_2024_t4/comparison.json",
   "comparison_run_id": "20260624_015822",
   "review_items_signature": "ad4c306fc71e394fa182fcfde746ae4e823f06322f115e1138d770e8d18bfed6",
-  "saved_at": "2026-06-24T22:01:45+00:00",
+  "saved_at": "2026-06-25T15:06:40+00:00",
   "source": "on_validate_change_v2",
   "preferred_store": "review_queue",
   "review_selection": {
-    "review_id": "bnc::risk_management::tbl_p101_i02|tbl_p105_i02",
-    "change_id": "chg_00023"
+    "review_id": "bnc::capital_management::tbl_p064_i01|tbl_p069_i01",
+    "change_id": "chg_00005"
   },
-  "review_current_idx": 0,
-  "current_change_idx": 2,
+  "review_current_idx": 5,
+  "current_change_idx": 1,
   "current_indicator_idx": 0,
   "review_items": [
     {
@@ -27,10 +27,10 @@
       "page_t2": 105,
       "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bnc/2025_t4_vs_2024_t4/previous_report.pdf",
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bnc/2025_t4_vs_2024_t4/current_report.pdf",
-      "review_status": "approved",
+      "review_status": "pending",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-06-24T22:01:45.441911+00:00",
+      "review_timestamp": "2026-06-25T15:05:36.772173+00:00",
       "edited_value": "",
       "confidence": 0.95,
       "proof_image_path": "",
@@ -50,7 +50,7 @@
         {
           "name": "Participations dans des entreprises associées et des coentreprises",
           "type": "removed",
-          "review_status": "approved"
+          "review_status": "pending"
         },
         {
           "name": "[5] Certains montants ont été ajustés à la suite de modifications de méthodes comptables relatives à l’adoption de l’IFRS 17",
@@ -581,8 +581,8 @@
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bnc/2025_t4_vs_2024_t4/current_report.pdf",
       "review_status": "pending",
       "comment": "",
-      "review_user": "",
-      "review_timestamp": "",
+      "review_user": "analyst",
+      "review_timestamp": "2026-06-25T15:06:40.368064+00:00",
       "edited_value": "",
       "confidence": 0.9,
       "proof_image_path": "",
@@ -592,12 +592,12 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "Variation des fonds propres réglementaires (1)",
-      "table_status": "pending",
+      "table_status": "partial",
       "indicators": [
         {
           "name": "Émission d'actions ordinaires relatives à l'acquisition de CWB",
           "type": "added",
-          "review_status": "pending"
+          "review_status": "approved"
         },
         {
           "name": "Options de remplacement relatives à l'acquisition de CWB",
@@ -685,8 +685,8 @@
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bnc/2025_t4_vs_2024_t4/current_report.pdf",
       "review_status": "pending",
       "comment": "",
-      "review_user": "",
-      "review_timestamp": "",
+      "review_user": "analyst",
+      "review_timestamp": "2026-06-25T15:06:35.614092+00:00",
       "edited_value": "",
       "confidence": 0.95,
       "proof_image_path": "",
@@ -696,12 +696,12 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "Notations de crédit de la Banque",
-      "table_status": "pending",
+      "table_status": "partial",
       "indicators": [
         {
           "name": "[1] Le 17 octobre 2025, S&P Global Ratings (S&P) a révisé à la hausse la notation de la dette à long terme de premier rang n",
           "type": "modified",
-          "review_status": "pending"
+          "review_status": "approved"
         },
         {
           "name": "[4] Le 24 septembre 2024, Moody's a placé sous révision en vue d’une révision à la hausse toutes les notations et évaluation",
@@ -1047,10 +1047,10 @@
       "page_t2": 71,
       "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bnc/2025_t4_vs_2024_t4/previous_report.pdf",
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bnc/2025_t4_vs_2024_t4/current_report.pdf",
-      "review_status": "pending",
+      "review_status": "approved",
       "comment": "",
-      "review_user": "",
-      "review_timestamp": "",
+      "review_user": "analyst",
+      "review_timestamp": "2026-06-25T15:06:08.762819+00:00",
       "edited_value": "",
       "confidence": 1.0,
       "proof_image_path": "",
@@ -1060,7 +1060,7 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "tbl_p071_i03",
-      "table_status": "pending",
+      "table_status": "completed",
       "indicators": [],
       "match_method": "",
       "all_indicators_t1": [],
@@ -1284,10 +1284,10 @@
       "page_t2": 77,
       "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bnc/2025_t4_vs_2024_t4/previous_report.pdf",
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bnc/2025_t4_vs_2024_t4/current_report.pdf",
-      "review_status": "pending",
+      "review_status": "approved",
       "comment": "",
-      "review_user": "",
-      "review_timestamp": "",
+      "review_user": "analyst",
+      "review_timestamp": "2026-06-25T15:06:13.224370+00:00",
       "edited_value": "",
       "confidence": 1.0,
       "proof_image_path": "",
@@ -1297,7 +1297,7 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "tbl_p077_i01",
-      "table_status": "pending",
+      "table_status": "completed",
       "indicators": [],
       "match_method": "",
       "all_indicators_t1": [],
@@ -1548,10 +1548,10 @@
       "page_t2": 107,
       "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bnc/2025_t4_vs_2024_t4/previous_report.pdf",
       "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bnc/2025_t4_vs_2024_t4/current_report.pdf",
-      "review_status": "pending",
+      "review_status": "approved",
       "comment": "",
-      "review_user": "",
-      "review_timestamp": "",
+      "review_user": "analyst",
+      "review_timestamp": "2026-06-25T15:06:25.606724+00:00",
       "edited_value": "",
       "confidence": 0.95,
       "proof_image_path": "",
@@ -1561,12 +1561,12 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "Exigences de déclaration relatives au ratio de liquidité à long terme (1) (2) *",
-      "table_status": "pending",
+      "table_status": "completed",
       "indicators": [
         {
           "name": "[3] Les valeurs pondérées sont calculées après l’application des -> Les valeurs pondérées sont calculées après l’application des",
           "type": "modified",
-          "review_status": "pending"
+          "review_status": "approved"
         }
       ],
       "match_method": "Title identical: 'Exigences de déclaration relatives au ratio structurel de liquidité à long terme (1) (2) *'; indicators: same 36 rows; row_count 36 vs 36; headers identical.",
@@ -1752,7 +1752,7 @@
           "is_required": true,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-06-24T22:01:44.298197+00:00",
+          "validated_at": "2026-06-25T15:05:36.772173+00:00",
           "validated_by": "analyst"
         },
         {
@@ -1766,12 +1766,12 @@
               "justification": "L'indicateur \"Participations dans des entreprises associées et des coentreprises\" a été retiré du tableau des actifs grevés et non grevés au T2 2025, alors qu'il était présent au T1 2025.\n\nCe retrait peut avoir un impact sur la manière dont les actifs sont présentés et évalués, notamment en ce qui concerne la consolidation des participations dans des entités associées. Ces participations peuvent influencer la structure du capital et les ratios de levier, qui sont des éléments critiques dans l'évaluation de la santé financière d'une institution selon les normes de Bâle III.\n\nLe signal de vigie à retenir est que la banque pourrait avoir modifié sa stratégie de présentation ou de gestion de ses participations, ce qui pourrait refléter un changement dans sa structure d'investissement ou sa stratégie de gestion des risques. Il est important de surveiller si ce retrait est compensé par d'autres ajustements ou divulgations ailleurs dans les rapports financiers."
             }
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": true,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-06-24T22:01:45.441911+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         },
         {
           "change_id": "chg_00023",
@@ -1841,8 +1841,8 @@
         "indicators_removed": 1,
         "indicators_renamed": 0,
         "footnotes_changed": 1,
-        "validated": 2,
-        "pending": 1
+        "validated": 1,
+        "pending": 2
       }
     },
     {
@@ -2542,12 +2542,12 @@
               "justification": "L'indicateur \"Émission d'actions ordinaires relatives à l'acquisition de CWB\" a été ajouté dans le tableau de variation des fonds propres réglementaires au T2 2025. Cet indicateur n'était pas présent dans le tableau du T1 2025.\n\nCet ajout reflète une opération spécifique d'émission d'actions ordinaires liée à l'acquisition de CWB. Cela peut avoir un impact significatif sur la structure du capital de la banque, influençant potentiellement les ratios de fonds propres réglementaires tels que le CET1. Les exigences de Bâle III et les lignes directrices du BSIF sur la divulgation des fonds propres pourraient être concernées, car elles nécessitent une transparence accrue sur les transactions affectant le capital.\n\nLe signal de vigie à retenir est que la banque a réalisé une opération stratégique d'acquisition, ce qui pourrait indiquer une expansion ou une diversification de ses activités. Cela pourrait également signaler une gestion proactive du capital pour maintenir ou améliorer les ratios prudentiels."
             }
           },
-          "validation_status": "pending",
+          "validation_status": "approved",
           "is_required": true,
-          "validation_decision": "",
+          "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
+          "validated_at": "2026-06-25T15:06:40.368064+00:00",
+          "validated_by": "analyst"
         },
         {
           "change_id": "chg_00005",
@@ -2585,7 +2585,7 @@
           "validated_by": ""
         }
       ],
-      "table_status": "pending",
+      "table_status": "partial",
       "confidence": 0.9,
       "match_method": "Title identical: 'Variation des fonds propres réglementaires (1)'; indicators: similar structure with additional rows in CQ; row_count 43 vs 41; headers similar structure.",
       "genai_analysis": {
@@ -2635,8 +2635,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 1,
-        "validated": 0,
-        "pending": 3
+        "validated": 1,
+        "pending": 2
       }
     },
     {
@@ -2679,12 +2679,12 @@
             "old_text": "",
             "new_text": "Le 17 octobre 2025, S&P Global Ratings (S&P) a révisé à la hausse la notation de la dette à long terme de premier rang non assujettie au régime de recapitalisation interne des banques, la dette à long terme de premier rang, la dette subordonnée FPUNV, les billets de capital à recours limité FPUNV et les actions privilégiées FPUNV de la Banque."
           },
-          "validation_status": "pending",
+          "validation_status": "approved",
           "is_required": false,
-          "validation_decision": "",
+          "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
+          "validated_at": "2026-06-25T15:06:35.614092+00:00",
+          "validated_by": "analyst"
         },
         {
           "change_id": "chg_00026",
@@ -2704,7 +2704,7 @@
           "validated_by": ""
         }
       ],
-      "table_status": "pending",
+      "table_status": "partial",
       "confidence": 0.95,
       "match_method": "Title identical: 'Notations de crédit de la Banque'; indicators: same 11 rows; row_count 11 vs 11; headers identical.",
       "genai_analysis": {
@@ -2753,8 +2753,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 2,
-        "validated": 0,
-        "pending": 2
+        "validated": 1,
+        "pending": 1
       }
     },
     {
@@ -3083,15 +3083,15 @@
             "description": "Tableau entier ajouté",
             "table_status": "ajoute"
           },
-          "validation_status": "pending",
+          "validation_status": "approved",
           "is_required": true,
-          "validation_decision": "",
+          "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
+          "validated_at": "2026-06-25T15:06:08.762819+00:00",
+          "validated_by": "analyst"
         }
       ],
-      "table_status": "pending",
+      "table_status": "completed",
       "confidence": 1,
       "match_method": "",
       "genai_analysis": {
@@ -3137,8 +3137,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 0,
-        "validated": 0,
-        "pending": 1
+        "validated": 1,
+        "pending": 0
       }
     },
     {
@@ -3353,15 +3353,15 @@
             "description": "Tableau entier ajouté",
             "table_status": "ajoute"
           },
-          "validation_status": "pending",
+          "validation_status": "approved",
           "is_required": true,
-          "validation_decision": "",
+          "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
+          "validated_at": "2026-06-25T15:06:13.224370+00:00",
+          "validated_by": "analyst"
         }
       ],
-      "table_status": "pending",
+      "table_status": "completed",
       "confidence": 1,
       "match_method": "",
       "genai_analysis": {
@@ -3407,8 +3407,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 0,
-        "validated": 0,
-        "pending": 1
+        "validated": 1,
+        "pending": 0
       }
     },
     {
@@ -3652,15 +3652,15 @@
             "old_text": "Les valeurs pondérées sont calculées après l’application des pondérations prescrites par la ligne directrice NI du BSIF.",
             "new_text": "Les valeurs pondérées sont calculées après l’application des pondérations prescrites par la ligne directrice NL du BSIF."
           },
-          "validation_status": "pending",
+          "validation_status": "approved",
           "is_required": false,
-          "validation_decision": "",
+          "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "",
-          "validated_by": ""
+          "validated_at": "2026-06-25T15:06:25.606724+00:00",
+          "validated_by": "analyst"
         }
       ],
-      "table_status": "pending",
+      "table_status": "completed",
       "confidence": 0.95,
       "match_method": "Title identical: 'Exigences de déclaration relatives au ratio structurel de liquidité à long terme (1) (2) *'; indicators: same 36 rows; row_count 36 vs 36; headers identical.",
       "genai_analysis": {
@@ -3707,8 +3707,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 1,
-        "validated": 0,
-        "pending": 1
+        "validated": 1,
+        "pending": 0
       }
     },
     {

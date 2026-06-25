@@ -56,3 +56,25 @@
 .proof-img-with-bbox {
     display: block;
 }
+
+.proof-zoom-modal .modal-dialog {
+    max-width: min(90vw, 1500px);
+}
+
+.proof-zoom-modal-body {
+    max-height: 80vh;
+    overflow: auto;
+}
+
+.proof-zoom-row {
+    min-height: 62vh;
+}
+
+.proof-zoom-row .proof-card {
+    height: 100%;
+}
+
+.proof-zoom-row .card-img-top,
+.proof-zoom-row .proof-img-with-bbox img {
+    max-height: calc(76vh - 130px);
+}
