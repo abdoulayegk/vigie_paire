@@ -336,3 +336,53 @@ def test_text_analysis_tab_selects_first_auditable_section_by_default() -> None:
     assert "Nouveau" in text
     assert "capital" in text
     assert "Nouveau risque" not in text
+
+
+def test_text_analysis_replaces_t1_t2_aliases_with_selected_quarters() -> None:
+    text_data = {
+        "bank_code": "bnc",
+        "quarter_current": "2026_t4",
+        "quarter_previous": "2025_t4",
+        "global_summary": {"counts": {"total": 1, "total_relevant": 1, "by_impact": {"MAJEUR": 1}}},
+        "section_comparisons": [
+            {
+                "section_key": "gestion_risques",
+                "section_title": "Gestion des risques",
+                "all_block_comparisons": [
+                    {
+                        "change_id": "risk_t4",
+                        "diff_type": "modified",
+                        "source_text_t1": "Ancien libellé.",
+                        "source_text_t2": "Nouveau libellé.",
+                        "evidence_t1": {"pages": [18]},
+                        "evidence_t2": {"pages": [24]},
+                        "change_summary": "Le T2 précise une information qui était implicite au T1.",
+                        "genai_triage": {
+                            "is_relevant": True,
+                            "themes_amf": ["MODIFICATION_TEXTE_RISQUE"],
+                            "impact_level": "MAJEUR",
+                            "action_requise": "revue_prioritaire",
+                            "nouvelle_idee": True,
+                            "nouvelle_idee_justification": (
+                                "OUI — Nouvel élément à surveiller : Oui.\n\n"
+                                "Sujet détecté : Gestion des risques.\n\n"
+                                "Ce qui change : Le T2 ajoute une précision absente du T1.\n\n"
+                                "Pertinence métier : La mention au T2 modifie la lecture du risque.\n\n"
+                                "Point de surveillance : Comparer la posture entre T1 et T2."
+                            ),
+                        },
+                    }
+                ],
+            }
+        ],
+    }
+
+    view = build_text_analysis_tab(text_data)
+    rendered = _flat_text(view)
+
+    assert "BNC · T4 2026 vs T4 2025" in rendered
+    assert "Courant - T4 2026" in rendered
+    assert "Précédent - T4 2025" in rendered
+    assert "Le T4 2026 ajoute une précision absente du T4 2025" in rendered
+    assert "Comparer la posture entre T4 2025 et T4 2026" in rendered
+    assert "Le T2 ajoute une précision absente du T1" not in rendered
