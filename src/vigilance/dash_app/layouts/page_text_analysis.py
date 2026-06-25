@@ -173,6 +173,42 @@ def _plural_count(count: int, singular: str, plural: str) -> str:
     return f"{count} {singular if count == 1 else plural}"
 
 
+def _has_specific_quarter_label(label: str, generic_label: str) -> bool:
+    """Indique si un libelle de periode peut remplacer les alias T1/T2."""
+    value = str(label or "").strip()
+    return bool(value) and value != generic_label
+
+
+def _localize_period_aliases(
+    value: str,
+    *,
+    current_quarter_label: str,
+    previous_quarter_label: str,
+) -> str:
+    """Remplace les alias analytiques T2/T1 par les vrais trimestres affiches.
+
+    Le pipeline texte utilise T2 pour le rapport courant et T1 pour le rapport
+    precedent, meme lorsque la paire comparee est T4 vs T4 N-1 ou T1 vs T3.
+    Cette substitution reste limitee aux textes d'analyse, jamais aux extraits
+    sources du rapport.
+    """
+    if not value:
+        return ""
+
+    replacements: dict[str, str] = {}
+    if _has_specific_quarter_label(current_quarter_label, "Trimestre courant"):
+        replacements["2"] = str(current_quarter_label).strip()
+    if _has_specific_quarter_label(previous_quarter_label, "Trimestre précédent"):
+        replacements["1"] = str(previous_quarter_label).strip()
+    if not replacements:
+        return value
+
+    def _replace(match: re.Match[str]) -> str:
+        return replacements.get(match.group(1), match.group(0))
+
+    return re.sub(r"(?<![A-Za-z0-9])T([12])(?![A-Za-z0-9])", _replace, value, flags=re.IGNORECASE)
+
+
 def _build_executive_overview_text(
     global_summary: dict[str, Any],
     auditable_changes: int | None,
@@ -715,7 +751,21 @@ def _build_change_card(
     ).upper()
     action = (triage.get("action_requise") or "aucune").lower()
     nouvelle_idee = bool(triage.get("nouvelle_idee", False))
-    nouvelle_idee_justification = build_text_triage_justification(change)
+    nouvelle_idee_justification = _localize_period_aliases(
+        build_text_triage_justification(change),
+        current_quarter_label=current_quarter_label,
+        previous_quarter_label=previous_quarter_label,
+    )
+    impact_it_justification = _localize_period_aliases(
+        impact_it_justification,
+        current_quarter_label=current_quarter_label,
+        previous_quarter_label=previous_quarter_label,
+    )
+    justification_posture = _localize_period_aliases(
+        justification_posture,
+        current_quarter_label=current_quarter_label,
+        previous_quarter_label=previous_quarter_label,
+    )
     themes_amf = list(triage.get("themes_amf") or [])
     justification_sections = extract_labeled_analysis(
         nouvelle_idee_justification,
@@ -818,7 +868,11 @@ def _build_change_card(
         impact_level=impact_level,
         impact_domain=impact_domain,
         justification_sections=justification_sections,
-        change_summary=str(change.get("change_summary") or "").strip(),
+        change_summary=_localize_period_aliases(
+            str(change.get("change_summary") or "").strip(),
+            current_quarter_label=current_quarter_label,
+            previous_quarter_label=previous_quarter_label,
+        ),
     )
 
     posture_proof_block, ai_details = _build_ai_details(
