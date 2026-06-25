@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 
 import dash_bootstrap_components as dbc
-from dash import Input, Output, State, callback, html
+from dash import Input, Output, State, callback, ctx, html
 from dash.exceptions import PreventUpdate
 
 from vigilance.dash_app.components.review_detail_v2 import build_review_detail_v2
@@ -23,6 +23,23 @@ from vigilance.dash_app.services.review_navigation import (
 from vigilance.quarter_utils import quarter_label_from_payload
 
 logger = logging.getLogger(__name__)
+
+
+@callback(
+    Output("proof-zoom-modal", "is_open"),
+    Input("btn-proof-zoom-open", "n_clicks"),
+    Input("btn-proof-zoom-close", "n_clicks"),
+    State("proof-zoom-modal", "is_open"),
+    prevent_initial_call=True,
+)
+def toggle_proof_zoom_modal(open_clicks, close_clicks, is_open):
+    """Ouvrir ou fermer la vue agrandie des deux preuves visuelles."""
+    trigger = ctx.triggered_id
+    if trigger == "btn-proof-zoom-open" and open_clicks:
+        return True
+    if trigger == "btn-proof-zoom-close" and close_clicks:
+        return False
+    return bool(is_open)
 
 
 @callback(

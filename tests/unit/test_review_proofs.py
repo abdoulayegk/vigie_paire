@@ -31,6 +31,22 @@ def _flatten_text(node: object) -> str:
     return " ".join(parts)
 
 
+def _find_by_id(node: object, target_id: str) -> Component:
+    if isinstance(node, Component):
+        if getattr(node, "id", None) == target_id:
+            return node
+        children = getattr(node, "children", None)
+        if isinstance(children, list):
+            for child in children:
+                try:
+                    return _find_by_id(child, target_id)
+                except LookupError:
+                    pass
+        elif children is not None:
+            return _find_by_id(children, target_id)
+    raise LookupError(target_id)
+
+
 def test_build_proofs_section_shows_heading_and_visual_context() -> None:
     section = build_proofs_section(
         item={
@@ -48,6 +64,33 @@ def test_build_proofs_section_shows_heading_and_visual_context() -> None:
     assert "Page 10" in text
     assert "Page 12" in text
     assert "Mode page complète encadrée" in text
+
+
+def test_build_proofs_section_includes_single_side_by_side_zoom_modal() -> None:
+    section = build_proofs_section(
+        item={
+            "change_type": "modified",
+            "page_t1": 44,
+            "page_t2": 47,
+        },
+        img_t1_b64="abc",
+        img_t2_b64="def",
+        proof_display_mode="crop",
+        current_quarter_label="T3 2025",
+        previous_quarter_label="T2 2025",
+    )
+
+    text = _flatten_text(section)
+    modal = _find_by_id(section, "proof-zoom-modal")
+    open_button = _find_by_id(section, "btn-proof-zoom-open")
+    close_button = _find_by_id(section, "btn-proof-zoom-close")
+
+    assert "Agrandir les preuves" in text
+    assert getattr(modal, "is_open") is False
+    assert open_button is not None
+    assert close_button is not None
+    assert text.count("T3 2025 · Page 47 · Mode zoom tableau") == 2
+    assert text.count("T2 2025 · Page 44 · Mode zoom tableau") == 2
 
 
 def test_build_proofs_section_uses_dynamic_quarter_labels() -> None:

@@ -300,6 +300,12 @@
         },
         "genai_analysis": {
           "resume_metier": "Un nouveau tableau a été ajouté dans la section capital_management, présentant des indicateurs pour le Crédit, le Marché, l'Opérationnel et le Total. Cela indique une amélioration de la transparence dans la gestion du capital.\n\nCe changement est pertinent car il permet une meilleure compréhension des composantes du capital réglementaire, ce qui est crucial pour la conformité aux exigences prudentielles et pour la comparabilité entre pairs.\n\nIl est important de surveiller l'impact de ce nouveau tableau sur la divulgation des ratios de capital et de s'assurer qu'il est aligné avec les attentes réglementaires en matière de transparence et de gestion du capital."
+        },
+        "_analyst_review": {
+          "status": "approved",
+          "notes": "",
+          "at": "2026-06-25T15:06:08.762819+00:00",
+          "by": "analyst"
         }
       },
       {
@@ -514,6 +520,12 @@
         },
         "genai_analysis": {
           "resume_metier": "Un nouveau tableau a été ajouté dans la section gestion des risques, listant divers types de risques, y compris le risque de non-conformité à la réglementation et le risque environnemental et social. Ce changement met l'accent sur une approche plus holistique de la gestion des risques en incluant une gamme étendue de risques, tels que le risque environnemental et social, qui sont de plus en plus pertinents dans le contexte actuel de réglementation accrue et de préoccupations ESG. Cela reflète une volonté de la banque de renforcer sa gouvernance des risques en intégrant des facteurs de risque plus diversifiés.\n\nL'ajout de ce tableau indique un engagement clair envers une gestion des risques plus complète, ce qui pourrait nécessiter des ajustements dans les systèmes de gestion des risques pour inclure ces nouveaux indicateurs. Surveiller comment cette nouvelle divulgation influence la stratégie de gestion des risques de la banque et si elle entraîne des ajustements dans les processus de gouvernance des risques.\n\nL'impact exact sur les systèmes IT dépendra de la manière dont ces risques sont intégrés dans les processus existants, mais il est probable que cela nécessitera des mises à j"
+        },
+        "_analyst_review": {
+          "status": "approved",
+          "notes": "",
+          "at": "2026-06-25T15:06:13.224370+00:00",
+          "by": "analyst"
         }
       }
     ],
@@ -1261,6 +1273,12 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "L'indicateur \"Émission d'actions ordinaires relatives à l'acquisition de CWB\" a été ajouté dans le tableau de variation des fonds propres réglementaires au T2 2025. Cet indicateur n'était pas présent dans le tableau du T1 2025.\n\nCet ajout reflète une opération spécifique d'émission d'actions ordinaires liée à l'acquisition de CWB. Cela peut avoir un impact significatif sur la structure du capital de la banque, influençant potentiellement les ratios de fonds propres réglementaires tels que le CET1. Les exigences de Bâle III et les lignes directrices du BSIF sur la divulgation des fonds propres pourraient être concernées, car elles nécessitent une transparence accrue sur les transactions affectant le capital.\n\nLe signal de vigie à retenir est que la banque a réalisé une opération stratégique d'acquisition, ce qui pourrait indiquer une expansion ou une diversification de ses activités. Cela pourrait également signaler une gestion proactive du capital pour maintenir ou améliorer les ratios prudentiels."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-06-25T15:06:40.368064+00:00",
+              "by": "analyst"
             }
           },
           {
@@ -3618,7 +3636,7 @@
             "_analyst_review": {
               "status": "approved",
               "notes": "",
-              "at": "2026-06-24T22:01:44.298197+00:00",
+              "at": "2026-06-25T15:05:36.772173+00:00",
               "by": "analyst"
             }
           }
@@ -3630,12 +3648,6 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "L'indicateur \"Participations dans des entreprises associées et des coentreprises\" a été retiré du tableau des actifs grevés et non grevés au T2 2025, alors qu'il était présent au T1 2025.\n\nCe retrait peut avoir un impact sur la manière dont les actifs sont présentés et évalués, notamment en ce qui concerne la consolidation des participations dans des entités associées. Ces participations peuvent influencer la structure du capital et les ratios de levier, qui sont des éléments critiques dans l'évaluation de la santé financière d'une institution selon les normes de Bâle III.\n\nLe signal de vigie à retenir est que la banque pourrait avoir modifié sa stratégie de présentation ou de gestion de ses participations, ce qui pourrait refléter un changement dans sa structure d'investissement ou sa stratégie de gestion des risques. Il est important de surveiller si ce retrait est compensé par d'autres ajustements ou divulgations ailleurs dans les rapports financiers."
-            },
-            "_analyst_review": {
-              "status": "approved",
-              "notes": "",
-              "at": "2026-06-24T22:01:45.441911+00:00",
-              "by": "analyst"
             }
           }
         ],
@@ -4107,6 +4119,12 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "La note de bas de page n°3 a été modifiée dans le tableau des exigences de déclaration relatives au ratio de liquidité à long terme. Le texte a été ajusté pour remplacer la référence à la ligne directrice 'NI' du BSIF par 'NL'.\n\nCe changement indique une mise à jour potentiellement significative des directives réglementaires appliquées aux calculs des valeurs pondérées. Les lignes directrices du BSIF sont essentielles pour assurer la conformité réglementaire et l'uniformité des pratiques de divulgation dans le secteur bancaire. Un changement de référence peut impliquer des ajustements dans les méthodologies de calcul ou les exigences de divulgation.\n\nLe signal de vigie à retenir est que la banque doit s'assurer que les nouvelles directives 'NL' sont correctement intégrées dans ses processus de calcul et de divulgation. Cela pourrait avoir des implications sur la manière dont les ratios de liquidité sont calculés et présentés, et nécessite une attention particulière pour garantir la conformité continue avec les normes réglementaires."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-06-25T15:06:25.606724+00:00",
+              "by": "analyst"
             }
           }
         ],
@@ -4278,6 +4296,12 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "La note de bas de page n-1 a été ajoutée dans le tableau des notations de crédit de la Banque au T4 2025.\n\nCette note informe d'une révision à la hausse par S&P Global Ratings des notations de plusieurs instruments financiers de la Banque, y compris la dette à long terme de premier rang et les actions privilégiées. Ce changement est significatif car il peut influencer la perception du risque de crédit de la Banque par les investisseurs et les régulateurs. Une révision à la hausse des notations peut améliorer les conditions de financement de la Banque et renforcer sa position sur le marché.\n\nLe signal de vigie à retenir est que la Banque a obtenu une amélioration de ses notations, ce qui peut être perçu positivement par le marché et les parties prenantes. Cela pourrait également avoir un impact sur les ratios prudentiels et la gestion du capital, en ligne avec les exigences de Bâle III."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-06-25T15:06:35.614092+00:00",
+              "by": "analyst"
             }
           }
         ],
@@ -4811,9 +4835,9 @@
     "total_relevant": 16
   },
   "review_decisions_summary": {
-    "matched": 2,
+    "matched": 6,
     "unmatched": 0,
-    "pending": 35,
-    "updated_at": "2026-06-24T22:01:45+00:00"
+    "pending": 31,
+    "updated_at": "2026-06-25T15:06:40+00:00"
   }
 }
