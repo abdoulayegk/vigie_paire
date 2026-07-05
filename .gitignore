@@ -94,6 +94,7 @@ session.log
 /logs/
 /Documentation/
 /docs/_build/
+/data/
 /data/raw/
 /data/interim/
 /data/processed/
