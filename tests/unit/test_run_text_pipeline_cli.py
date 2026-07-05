@@ -70,11 +70,11 @@ def test_skip_comparison_runs_extraction_only_with_force(
             "extraction_artifact_t2": str(tmp_path / "text_extraction_2025_t4.md"),
         }
 
-    fake_pipeline = types.ModuleType("vigilance.text_analysis_pipeline")
+    fake_pipeline = types.ModuleType("vigilance.text_analysis")
     fake_pipeline.run_text_extraction_pipeline = fake_run_text_extraction_pipeline
 
     monkeypatch.setattr(run_text_pipeline, "find_pdf_pair", fake_find_pdf_pair)
-    monkeypatch.setitem(sys.modules, "vigilance.text_analysis_pipeline", fake_pipeline)
+    monkeypatch.setitem(sys.modules, "vigilance.text_analysis", fake_pipeline)
 
     rc = run_text_pipeline.main(
         [

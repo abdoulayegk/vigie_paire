@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from vigilance.dash_app.callbacks.vigie_dashboard_flow import _build_pdf_report
+from vigilance.dash_app.callbacks.vigie_dashboard_flow import _build_pdf_report, _text_metrics
 
 
 def test_build_pdf_report_generates_pdf_bytes() -> None:
@@ -66,3 +66,41 @@ def test_build_pdf_report_generates_pdf_bytes() -> None:
     assert pdf_bytes.startswith(b"%PDF")
     assert len(pdf_bytes) > 1_000
     assert pdf_bytes.count(b"/Type /Page") >= 8
+
+
+def test_text_metrics_prioritizes_objective_changes_in_top_list() -> None:
+    text_data = {
+        "section_comparisons": [
+            {
+                "section_title": "Gestion des risques",
+                "all_block_comparisons": [
+                    {
+                        "change_id": "ordinary",
+                        "diff_type": "modified",
+                        "change_summary": "Changement de gouvernance ordinaire.",
+                        "genai_triage": {
+                            "is_relevant": True,
+                            "impact_level": "MODERE",
+                            "themes_amf": ["GOUVERNANCE_RISQUES"],
+                        },
+                    },
+                    {
+                        "change_id": "objective",
+                        "diff_type": "modified",
+                        "change_summary": "Ajout d'un cadre IA.",
+                        "objective_matches": [{"label": "IA", "tag": "ia"}],
+                        "genai_triage": {
+                            "is_relevant": True,
+                            "impact_level": "MODERE",
+                            "themes_amf": ["RISQUE_EMERGENT"],
+                        },
+                    },
+                ],
+            }
+        ],
+        "global_summary": {"counts": {"by_impact": {"MODERE": 2}}},
+    }
+
+    metrics = _text_metrics(text_data)
+
+    assert metrics["top"][0]["summary"].startswith("Objectif vigie: IA -")

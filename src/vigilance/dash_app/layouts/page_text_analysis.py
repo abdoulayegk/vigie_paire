@@ -19,6 +19,7 @@ from vigilance.amf_taxonomy import (
     extract_labeled_analysis,
 )
 from vigilance.quarter_utils import quarter_label_from_payload
+from vigilance.text_comparison.change_segments import build_change_segments
 from vigilance.text_comparison.justification import build_text_triage_justification
 
 # ---------------------------------------------------------------------------
@@ -785,7 +786,8 @@ def _build_change_card(
 
     # Pages affichées dans la ligne meta (priorité T2 si disponible)
     page_label = page_t2_label or page_t1_label
-    change_segments = list(triage.get("change_segments") or [])
+    stored_change_segments = list(triage.get("change_segments") or [])
+    change_segments = build_change_segments(change) or stored_change_segments
 
     # Couleur border-left dérivée du niveau d'impact
     border_color = {"MAJEUR": "danger", "MODERE": "warning"}.get(impact_level, "secondary")
@@ -795,6 +797,15 @@ def _build_change_card(
     action_lbl, action_color = _ACTION_BADGE.get(action, (action.capitalize(), "secondary"))
 
     badge_children: list = []
+    consolidated_count = int(change.get("consolidated_change_count") or 1)
+    if consolidated_count > 1:
+        badge_children.append(
+            dbc.Badge(
+                f"{consolidated_count} changements regroupés",
+                color="info",
+                className="me-1",
+            )
+        )
     if nouvelle_idee:
         badge_children.append(
             dbc.Badge(
@@ -885,6 +896,30 @@ def _build_change_card(
         statut_mise_en_oeuvre=statut_mise_en_oeuvre,
         confiance_posture=confiance_posture,
     )
+    source_summaries = change.get("source_change_summaries") or []
+    consolidation_details = None
+    if consolidated_count > 1 and isinstance(source_summaries, list):
+        consolidation_details = html.Details(
+            [
+                html.Summary(
+                    "Voir les changements sources regroupés",
+                    className="small fw-semibold text-muted mb-2",
+                ),
+                html.Ul(
+                    [
+                        html.Li(
+                            str(item.get("change_summary") or item.get("change_id") or "").strip(),
+                            className="small mb-1",
+                        )
+                        for item in source_summaries
+                        if isinstance(item, dict)
+                        and str(item.get("change_summary") or item.get("change_id") or "").strip()
+                    ],
+                    className="mb-0 ps-3",
+                ),
+            ],
+            className="mb-3",
+        )
 
     review = change.get("_analyst_review") or {}
     review_status = str(review.get("status") or "").strip().lower()
@@ -954,6 +989,7 @@ def _build_change_card(
             text_block,
             evidence_block,
             observed_block,
+            consolidation_details,
             posture_proof_block,
             ai_details,
             review_controls,
@@ -1031,16 +1067,25 @@ def _count_auditable_text_changes(section_comparisons: list[dict[str, Any]]) -> 
     """Compte tous les changements textuels affichables pour revue analyste."""
     total = 0
     for sec in section_comparisons:
-        for change in sec.get("all_block_comparisons") or []:
+        for change in _display_text_changes(sec):
             if change.get("diff_type") == "unchanged":
                 continue
             total += 1
     return total
 
 
+def _display_text_changes(section: dict[str, Any]) -> list[dict[str, Any]]:
+    """Retourne les observations consolidées, avec repli sur les chunks bruts."""
+    observations = section.get("all_observation_comparisons")
+    if isinstance(observations, list):
+        return [item for item in observations if isinstance(item, dict)]
+    changes = section.get("all_block_comparisons") or []
+    return [item for item in changes if isinstance(item, dict)]
+
+
 def _section_has_auditable_text_changes(section: dict[str, Any]) -> bool:
     """Indique si une section contient au moins un changement texte affichable."""
-    for change in section.get("all_block_comparisons") or []:
+    for change in _display_text_changes(section):
         if change.get("diff_type") == "unchanged":
             continue
         return True
@@ -1088,7 +1133,7 @@ def build_filtered_text_cards(
         if filter_section and key != filter_section:
             continue
 
-        for change in sec.get("all_block_comparisons") or []:
+        for change in _display_text_changes(sec):
             diff_type = change.get("diff_type", "")
             if diff_type == "unchanged":
                 continue

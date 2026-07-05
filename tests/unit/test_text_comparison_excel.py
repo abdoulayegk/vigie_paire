@@ -5,7 +5,10 @@ import io
 from openpyxl import load_workbook
 
 from vigilance.text_comparison.justification import build_text_triage_justification
-from vigilance.text_comparison.text_comparison_excel import generate_text_comparison_excel
+from vigilance.text_comparison.text_comparison_excel import (
+    generate_text_comparison_excel,
+    generate_text_vigie_excel,
+)
 
 
 def test_generate_text_comparison_excel_creates_analysis_sheet() -> None:
@@ -137,6 +140,86 @@ def test_generate_text_comparison_excel_creates_analysis_sheet() -> None:
     assert ws["G4"].value == "Paragraphe exact ajouté"
     assert ws["F5"].value == "Paragraphe non substantif T1"
     assert ws["G5"].value == "Paragraphe non substantif T2"
+
+    raw_vigie = generate_text_vigie_excel(payload, output_path=None)
+    vigie_workbook = load_workbook(io.BytesIO(raw_vigie))
+    assert vigie_workbook.sheetnames == [
+        "Synthèse Vigie",
+        "Détail par topic",
+        "Preuves",
+        "À revoir",
+        "Analyse complète",
+    ]
+    ws_summary = vigie_workbook["Synthèse Vigie"]
+    summary_topics = [
+        ws_summary.cell(row=row, column=1).value for row in range(2, ws_summary.max_row + 1)
+    ]
+    assert "Risque ESG" in summary_topics
+    assert "Intelligence artificielle (IA)" in summary_topics
+
+
+def test_generate_text_comparison_excel_prefers_observations_when_available() -> None:
+    payload = {
+        "section_comparisons": [
+            {
+                "section_key": "gestion_risques",
+                "section_title": "Gestion des risques",
+                "all_observation_comparisons": [
+                    {
+                        "change_id": "obs-1",
+                        "diff_type": "modified",
+                        "subsection_heading": "Risque lie a l'intelligence artificielle",
+                        "source_text_t1": "Ancien texte consolide",
+                        "source_text_t2": "Nouveau texte consolide",
+                        "evidence_t1": {"pages": [99]},
+                        "evidence_t2": {"pages": [101]},
+                        "genai_triage": {
+                            "is_relevant": True,
+                            "category": "RISQUE",
+                            "impact_level": "MAJEUR",
+                            "action_requise": "revue_prioritaire",
+                            "nouvelle_idee": True,
+                            "nouvelle_idee_justification": "OUI - observation consolidee.",
+                        },
+                    }
+                ],
+                "all_block_comparisons": [
+                    {
+                        "change_id": "chunk-1",
+                        "diff_type": "modified",
+                        "source_text_t1": "Chunk brut T1",
+                        "source_text_t2": "Chunk brut T2",
+                        "genai_triage": {
+                            "is_relevant": True,
+                            "category": "RISQUE",
+                            "impact_level": "MAJEUR",
+                            "nouvelle_idee": True,
+                        },
+                    },
+                    {
+                        "change_id": "chunk-2",
+                        "diff_type": "modified",
+                        "source_text_t1": "Autre chunk brut T1",
+                        "source_text_t2": "Autre chunk brut T2",
+                        "genai_triage": {
+                            "is_relevant": True,
+                            "category": "RISQUE",
+                            "impact_level": "MAJEUR",
+                            "nouvelle_idee": True,
+                        },
+                    },
+                ],
+            }
+        ]
+    }
+
+    raw = generate_text_comparison_excel(payload, output_path=None)
+    workbook = load_workbook(io.BytesIO(raw))
+    ws = workbook["Analyse complète"]
+
+    assert ws.max_row == 2
+    assert ws["F2"].value == "Ancien texte consolide"
+    assert ws["G2"].value == "Nouveau texte consolide"
 
 
 def test_generate_text_comparison_excel_keeps_minor_date_and_reformulation_changes() -> None:

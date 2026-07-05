@@ -26,3 +26,32 @@ def test_build_change_segments_detects_modified_ratio() -> None:
     )
 
     assert segments == [{"kind": "modified", "text_t1": "4,5", "text_t2": "5,0"}]
+
+
+def test_build_change_segments_uses_word_groups_not_character_fragments() -> None:
+    text_t1 = (
+        "Le BSIF a annoncé des changements proposés à sa ligne directrice Normes de "
+        "liquidité (NL) qui devraient entrer en vigueur au cours de l'exercice 2025."
+    )
+    text_t2 = (
+        "Le BSIF a mené une consultation sectorielle sur les changements proposés à sa "
+        "ligne directrice Normes de liquidité (NL) qui devraient entrer en vigueur au "
+        "cours du troisième trimestre de l'exercice 2026."
+    )
+
+    segments = build_change_segments_from_texts(text_t1, text_t2, diff_type="modified")
+
+    assert segments == [
+        {
+            "kind": "modified",
+            "text_t1": "a annoncé des",
+            "text_t2": "a mené une consultation sectorielle sur les",
+        },
+        {
+            "kind": "modified",
+            "text_t1": "au cours de l'exercice 2025.",
+            "text_t2": "au cours du troisième trimestre de l'exercice 2026.",
+        },
+    ]
+    for segment in segments:
+        assert all(len(value) > 2 for value in segment.values() if value)

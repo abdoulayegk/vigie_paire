@@ -20,6 +20,7 @@ Architecture:
 from __future__ import annotations
 
 import argparse
+import logging
 import sys
 import time
 from pathlib import Path
@@ -110,8 +111,11 @@ def _step_compare_text(
     force_extraction: bool,
 ) -> Path:
     """Lance l'analyse texte canonique. Retourne le chemin text_comparison.json."""
-    from vigilance.text_analysis_pipeline import run_text_analysis_pipeline
-    from vigilance.text_comparison.text_comparison_excel import generate_text_comparison_excel
+    from vigilance.text_analysis import run_text_analysis_pipeline
+    from vigilance.text_comparison.text_comparison_excel import (
+        generate_text_comparison_excel,
+        generate_text_vigie_excel,
+    )
 
     payload, out_path = run_text_analysis_pipeline(
         bank_code=bank,
@@ -124,6 +128,7 @@ def _step_compare_text(
         force_extraction=force_extraction,
     )
     generate_text_comparison_excel(payload, out_path.with_suffix(".xlsx"))
+    generate_text_vigie_excel(payload, out_path.with_name("text_comparison_vigie.xlsx"))
     if not out_path.exists():
         raise FileNotFoundError(
             f"Analyse texte terminée mais text_comparison.json introuvable: {out_path}"
@@ -141,7 +146,7 @@ def _step_extract_text(
     force_extraction: bool,
 ) -> dict[str, object]:
     """Lance l'extraction texte seule et retourne le manifeste d'artefacts."""
-    from vigilance.text_analysis_pipeline import run_text_extraction_pipeline
+    from vigilance.text_analysis import run_text_extraction_pipeline
 
     return run_text_extraction_pipeline(
         bank_code=bank,
@@ -173,6 +178,11 @@ def main(argv: list[str] | None = None) -> int:
     inputs_root = project_root / args.inputs_root
     legacy_data = project_root / DEFAULT_LEGACY_DATA_ROOT
     out_root = project_root / args.out_root
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s %(levelname)s %(name)s - %(message)s",
+        datefmt="%H:%M:%S",
+    )
 
     print("=" * 70)
     print("  VIGILANCE — Pipeline Texte Batch")

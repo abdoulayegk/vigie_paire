@@ -592,6 +592,56 @@ def test_side_by_side_modified_highlights_diff_when_change_segments_do_not_match
     assert any("affrontements entre Israël et le Hamas" in text for text in removed_highlights)
 
 
+def test_text_analysis_card_recomputes_noisy_stored_change_segments() -> None:
+    """La vue texte ignore les anciens micro-segments et recalcule des groupes de mots."""
+    text_t1 = (
+        "Le BSIF a annoncé des changements proposés à sa ligne directrice Normes de "
+        "liquidité (NL) qui devraient entrer en vigueur au cours de l'exercice 2025."
+    )
+    text_t2 = (
+        "Le BSIF a mené une consultation sectorielle sur les changements proposés à sa "
+        "ligne directrice Normes de liquidité (NL) qui devraient entrer en vigueur au "
+        "cours du troisième trimestre de l'exercice 2026."
+    )
+    change = {
+        "change_id": "bsif_liquidite",
+        "diff_type": "modified",
+        "source_text_t1": text_t1,
+        "source_text_t2": text_t2,
+        "evidence_t1": {"pages": [97]},
+        "evidence_t2": {"pages": [95]},
+        "change_summary": "Changement de l'annonce à une consultation sectorielle.",
+        "genai_triage": {
+            "is_relevant": True,
+            "themes_amf": ["EXIGENCES_REGLEMENTAIRES", "LIQUIDITE"],
+            "impact_level": "MAJEUR",
+            "nouvelle_idee": True,
+            "action_requise": "revue_prioritaire",
+            "change_segments": [
+                {"kind": "modified", "text_t1": "a", "text_t2": "me"},
+                {"kind": "added", "text_t1": "", "text_t2": "é u"},
+                {"kind": "added", "text_t1": "", "text_t2": "e c"},
+            ],
+        },
+    }
+
+    card = _build_change_card(change, "Gestion des risques")
+    styled = _styled_texts(card)
+    highlighted = [
+        text
+        for text, style in styled
+        if style.get("backgroundColor") in {"#dcfce7", "#fef3c7"}
+    ]
+
+    assert "a mené une consultation sectorielle sur les" in highlighted
+    assert "au cours du troisième trimestre de l'exercice 2026." in highlighted
+    assert "a annoncé des" in highlighted
+    assert "au cours de l'exercice 2025." in highlighted
+    assert "me" not in highlighted
+    assert "é u" not in highlighted
+    assert "e c" not in highlighted
+
+
 def test_change_segment_pydantic_invariants() -> None:
     """Pydantic rejette les ChangeSegment incohérents."""
     from pydantic import ValidationError as _PydErr

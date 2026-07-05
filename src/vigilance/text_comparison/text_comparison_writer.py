@@ -64,7 +64,12 @@ def _normalize_text_comparison_payload(payload: dict[str, Any]) -> None:
     for section in payload.get("section_comparisons") or []:
         if not isinstance(section, dict):
             continue
-        for bucket in ("block_comparisons", "all_block_comparisons"):
+        for bucket in (
+            "block_comparisons",
+            "all_block_comparisons",
+            "observation_comparisons",
+            "all_observation_comparisons",
+        ):
             for change in section.get(bucket) or []:
                 if isinstance(change, dict):
                     _normalize_text_change(change)

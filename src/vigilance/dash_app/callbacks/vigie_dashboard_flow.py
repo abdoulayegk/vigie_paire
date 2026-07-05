@@ -244,7 +244,10 @@ def _text_changes(text_data: dict | None, *, relevant_only: bool = True) -> list
         if not isinstance(section, dict):
             continue
         section_title = str(section.get("section_title") or section.get("section_key") or "Section")
-        for change in section.get("all_block_comparisons") or []:
+        source_changes = section.get("all_observation_comparisons")
+        if not isinstance(source_changes, list):
+            source_changes = section.get("all_block_comparisons") or []
+        for change in source_changes:
             if not isinstance(change, dict):
                 continue
             triage = change.get("genai_triage") or {}
@@ -255,6 +258,39 @@ def _text_changes(text_data: dict | None, *, relevant_only: bool = True) -> list
                     continue
             rows.append((change, section_title))
     return rows
+
+
+def _objective_labels(change: dict) -> list[str]:
+    """Retourne les libellés d'objectifs de vigie déjà attachés au changement."""
+    labels: list[str] = []
+    for objective in change.get("objective_matches") or []:
+        label = str(objective.get("label") or "").strip()
+        if label and label not in labels:
+            labels.append(label)
+    triage = change.get("genai_triage") or {}
+    for objective in triage.get("objective_matches") or []:
+        label = str(objective.get("label") or "").strip()
+        if label and label not in labels:
+            labels.append(label)
+    return labels
+
+
+def _text_top_sort_key(item: dict[str, str]) -> tuple[int, int, str]:
+    """Priorise les changements à impact fort, puis ceux liés aux objectifs de vigie."""
+    impact_order = {"MAJEUR": 0, "MODERE": 1, "MINEUR": 2, "NON_PERTINENT": 3}.get(item["impact"], 9)
+    objective_order = 0 if item.get("objective_labels") else 1
+    return impact_order, objective_order, item.get("section", "")
+
+
+def _top_summary(change: dict, triage: dict) -> str:
+    """Construit un résumé court sans changer la structure du cockpit."""
+    summary = str(change.get("change_summary") or triage.get("explanation") or "Changement textuel détecté")
+    labels = _objective_labels(change)
+    if labels:
+        prefix = "Objectif vigie: " + ", ".join(labels)
+        if prefix not in summary:
+            summary = f"{prefix} - {summary}"
+    return summary
 
 
 def _text_metrics(text_data: dict | None) -> dict[str, Any]:
@@ -298,14 +334,13 @@ def _text_metrics(text_data: dict | None) -> dict[str, Any]:
             confidences.append(_safe_float(triage.get("confidence")))
         top.append(
             {
-                "summary": str(
-                    change.get("change_summary") or triage.get("explanation") or "Changement textuel détecté"
-                ),
+                "summary": _top_summary(change, triage),
                 "impact": str(triage.get("impact_level") if triage.get("is_relevant") else "NON_PERTINENT").upper(),
                 "section": section,
+                "objective_labels": ", ".join(_objective_labels(change)),
             }
         )
-    top.sort(key=lambda item: {"MAJEUR": 0, "MODERE": 1, "MINEUR": 2, "NON_PERTINENT": 3}.get(item["impact"], 9))
+    top.sort(key=_text_top_sort_key)
     return {
         "major": _safe_int(by_impact.get("MAJEUR")),
         "moderate": _safe_int(by_impact.get("MODERE")),

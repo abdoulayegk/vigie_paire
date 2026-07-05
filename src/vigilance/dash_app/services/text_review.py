@@ -10,7 +10,10 @@ from typing import Any
 
 from vigilance.comparison_io import _atomic_write_json
 from vigilance.quarter_utils import get_payload_quarter_context
-from vigilance.text_comparison.text_comparison_excel import generate_text_comparison_excel
+from vigilance.text_comparison.text_comparison_excel import (
+    generate_text_comparison_excel,
+    generate_text_vigie_excel,
+)
 from vigilance.ui_config import TEXT_COMPARISON_DIR
 
 logger = logging.getLogger(__name__)
@@ -76,10 +79,24 @@ def apply_text_review_decision(
         decision["nouvelle_idee_override"] = False
 
     found = False
+    source_change_ids: set[str] = set()
+    for section in updated.get("section_comparisons") or []:
+        for bucket in ("all_observation_comparisons", "observation_comparisons"):
+            for change in section.get(bucket) or []:
+                if isinstance(change, dict) and str(change.get("change_id") or "") == target_id:
+                    change["_analyst_review"] = dict(decision)
+                    source_change_ids.update(
+                        str(source_id)
+                        for source_id in change.get("source_change_ids") or []
+                        if str(source_id).strip()
+                    )
+                    found = True
+
+    ids_to_update = {target_id, *source_change_ids}
     for section in updated.get("section_comparisons") or []:
         for bucket in ("all_block_comparisons", "block_comparisons"):
             for change in section.get(bucket) or []:
-                if isinstance(change, dict) and str(change.get("change_id") or "") == target_id:
+                if isinstance(change, dict) and str(change.get("change_id") or "") in ids_to_update:
                     change["_analyst_review"] = dict(decision)
                     found = True
 
@@ -104,6 +121,7 @@ def write_text_review_to_disk(
         _atomic_write_json(path, text_data)
         if regenerate_excel:
             generate_text_comparison_excel(text_data, path.with_suffix(".xlsx"))
+            generate_text_vigie_excel(text_data, path.with_name("text_comparison_vigie.xlsx"))
     except Exception:
         logger.exception("[text_review] echec writeback texte: %s", path)
         return False

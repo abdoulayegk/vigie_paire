@@ -87,7 +87,7 @@ def main(argv: list[str] | None = None) -> int:
         normalize_quarter,
         resolve_previous_quarter,
     )
-    from vigilance.text_analysis_pipeline import TextAnalysisQualityError, run_text_analysis_pipeline
+    from vigilance.text_analysis import TextAnalysisQualityError, run_text_analysis_pipeline
 
     bank_code = args.bank.lower()
     year_t2 = args.year
@@ -128,7 +128,7 @@ def main(argv: list[str] | None = None) -> int:
         )
         return 1
 
-    from vigilance.text_comparison import generate_text_comparison_excel
+    from vigilance.text_comparison import generate_text_comparison_excel, generate_text_vigie_excel
     try:
         allowed_section_keys = None
         if args.strict_sections:
@@ -151,7 +151,10 @@ def main(argv: list[str] | None = None) -> int:
     retained = payload.get("global_summary", {}).get("counts", {}).get("total_relevant", 0)
     excel_path = out_path.with_suffix(".xlsx")
     generate_text_comparison_excel(payload, excel_path)
+    vigie_excel_path = out_path.with_name("text_comparison_vigie.xlsx")
+    generate_text_vigie_excel(payload, vigie_excel_path)
     logger.info("Excel analyste généré → %s", excel_path)
+    logger.info("Excel vigie généré → %s", vigie_excel_path)
     logger.info(
         "Analyse texte canonique terminée → %s\n  %d sections | %d changements retenus",
         out_path,

@@ -1,43 +1,58 @@
 from __future__ import annotations
 
-import json
 from pathlib import Path
 
 import pytest
 
-from vigilance.text_analysis_pipeline import (
-    PDFBlock,
-    ResolvedSection,
-    SectionAudit,
-    SemanticUnit,
-    _allowed_target_sections,
-    _build_section_audit,
-    _build_global_summary,
-    _build_text_extraction_markdown,
-    _call_json_completion,
-    _classify_block_type,
-    _compare_section_texts,
+from vigilance.text_analysis import run_text_analysis_pipeline
+from vigilance.text_analysis.amf_triage import (
+    _FEW_SHOT_TRIAGE_AMF,
     _default_triage,
     _derive_legacy_fields,
-    _extract_audits_for_pdf,
+    _triage_section_changes,
+)
+from vigilance.text_analysis.change_records import _build_unpaired_changes
+from vigilance.text_analysis.markdown_source import (
+    _build_text_extraction_markdown,
     _extract_section_text_from_markdown,
-    _FEW_SHOT_TRIAGE_AMF,
     _format_page_marker,
-    _gpt_match_orphan_headings,
+    _parse_page_index_from_markdown,
+    _rewrite_page_markers_for_display,
+)
+from vigilance.text_analysis.models import (
+    PDFBlock,
+    NarrativeUnit,
+    ResolvedSection,
+    SectionAudit,
+)
+from vigilance.text_analysis.openai_gateway import (
+    _call_json_completion,
+    _call_structured_completion,
+    _call_structured_completion_with_correction,
+    _max_output_tokens_for_model,
+)
+from vigilance.text_analysis.pdf_block_classification import (
+    _build_section_audit,
+    _classify_block_type,
+    _looks_like_footnote,
+    _section_window_for_page,
+)
+from vigilance.text_analysis.section_resolution import (
+    _allowed_target_sections,
+    _resolve_sections,
+)
+from vigilance.text_analysis.subsection_alignment import _build_comparison_tasks, _gpt_align_subsections
+from vigilance.text_analysis.subsection_units import _parse_subsections, _split_body_into_narrative_units
+from vigilance.text_analysis.text_change_detection import _compare_section_texts
+from vigilance.text_analysis.text_normalization import _normalize_heading, _sanitize_semantic_text
+from vigilance.text_analysis.text_summary import (
+    _build_global_summary,
     _is_new_major_or_allowed_moderate,
     _is_non_cosmetic_change,
-    _looks_like_footnote,
-    _max_output_tokens_for_model,
-    _normalize_heading,
-    _pair_subsections,
-    _parse_page_index_from_markdown,
-    _parse_subsections,
-    _resolve_sections,
-    _rewrite_page_markers_for_display,
-    _sanitize_semantic_text,
-    _section_window_for_page,
-    run_text_analysis_pipeline,
+    _is_retained_text_change,
+    _retained_change_sort_key,
 )
+from vigilance.text_analysis.vigie_objectives import _attach_vigie_objective_context
 
 
 class _FakeChoice:
@@ -147,7 +162,7 @@ def test_resolve_sections_ignores_regulatory_for_bnc(monkeypatch, tmp_path: Path
         ]
 
     monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline.locate_sections_in_pdf",
+        "vigilance.text_analysis.section_resolution.locate_sections_in_pdf",
         lambda pdf_path, bank_code=None, quarter=None, year=2025: _FakeMapping(),
     )
 
@@ -194,7 +209,7 @@ def test_resolve_sections_passes_t4_context_and_filters_regulatory(
         return _FakeMapping()
 
     monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline.locate_sections_in_pdf",
+        "vigilance.text_analysis.section_resolution.locate_sections_in_pdf",
         fake_locate_sections_in_pdf,
     )
 
@@ -337,6 +352,38 @@ def test_is_non_cosmetic_change_rejects_irrelevant_triage() -> None:
     assert _is_non_cosmetic_change(triage) is False
 
 
+def test_is_retained_text_change_keeps_minor_risk_limits_topic() -> None:
+    """La sous-section Limites de risque reste visible même si le triage IA est mineur."""
+    change = {
+        "subsection_heading": "Limites de risque",
+        "canonical_topic": "limites de risque",
+        "genai_triage": {
+            "is_relevant": False,
+            "themes_amf": [],
+            "exclusion_reason": "reformulation_mineure",
+        },
+    }
+
+    assert _is_retained_text_change(change) is True
+
+
+def test_is_retained_text_change_rejects_generic_objective_priority_minor_change() -> None:
+    """Un objectif détecté seul ne suffit pas à retenir toutes les reformulations."""
+    change = {
+        "subsection_heading": "Objectif",
+        "canonical_topic": "capital_reglementaire",
+        "genai_triage": {
+            "is_relevant": False,
+            "themes_amf": [],
+            "objective_priority": True,
+            "objective_tags": ["appetit_risque"],
+            "exclusion_reason": "reformulation_mineure",
+        },
+    }
+
+    assert _is_retained_text_change(change) is False
+
+
 def test_is_non_cosmetic_change_keeps_relevant_with_themes() -> None:
     """Un triage pertinent avec au moins un thème AMF est retenu."""
     triage = {"is_relevant": True, "themes_amf": ["DIVULGATION_AJOUT"]}
@@ -382,7 +429,7 @@ def test_call_json_completion_uses_model_max_by_default() -> None:
 
 def test_compare_section_texts_surfaces_section_key_on_json_failure(monkeypatch) -> None:
     monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline._call_json_completion",
+        "vigilance.text_analysis.text_change_detection._call_json_completion",
         lambda *args, **kwargs: (_ for _ in ()).throw(RuntimeError("invalid json from model")),
     )
 
@@ -434,17 +481,17 @@ def test_pipeline_retains_non_cosmetic_changes_and_discards_cosmetic(monkeypatch
         excluded_blocks=[],
     )
 
-    monkeypatch.setattr("vigilance.text_analysis_pipeline._build_openai_client", lambda: object())
+    monkeypatch.setattr("vigilance.text_analysis.pipeline._build_openai_client", lambda: object())
     monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline._resolve_sections",
+        "vigilance.text_analysis.pipeline._resolve_sections",
         lambda pdf_path, bank_code, quarter=None, year=None: {"gestion_risques": section},
     )
     monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline._extract_audits_for_pdf",
+        "vigilance.text_analysis.pipeline._extract_audits_for_pdf",
         lambda **kwargs: [audit_prev] if "prev" in str(kwargs["pdf_path"]) else [audit_curr],
     )
     monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline._compare_section_texts",
+        "vigilance.text_analysis.pipeline._compare_section_texts",
         lambda **kwargs: [
             {"change_id": "c1", "section_key": "gestion_risques", "diff_type": "added",
              "semantic_text_t1": "", "semantic_text_t2": "Nouvelle idee", "source_text_t1": "",
@@ -471,7 +518,7 @@ def test_pipeline_retains_non_cosmetic_changes_and_discards_cosmetic(monkeypatch
         ],
     )
     monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline._triage_section_changes",
+        "vigilance.text_analysis.pipeline._triage_section_changes",
         lambda **kwargs: [
             {
                 **kwargs["changes"][0],
@@ -812,13 +859,20 @@ def test_compare_section_texts_skips_invalid_diff_types(monkeypatch) -> None:
     def _fake_call_json_completion(client, *, model, messages, max_tokens=None):
         return {
             "changes": [
-                {"diff_type": "added", "text_t1": "", "text_t2": "Nouvelle idée.", "change_summary": "Ajout."},
+                {
+                    "diff_type": "added",
+                    "status": "ADDED",
+                    "topic": "Nouvelle idée",
+                    "text_t1": "",
+                    "text_t2": "Nouvelle idée.",
+                    "change_summary": "Ajout.",
+                },
                 {"diff_type": "invalid_type", "text_t1": "x", "text_t2": "y", "change_summary": ""},
                 {"diff_type": "removed", "text_t1": "Ancienne idée.", "text_t2": "", "change_summary": "Suppression."},
             ]
         }
 
-    monkeypatch.setattr("vigilance.text_analysis_pipeline._call_json_completion", _fake_call_json_completion)
+    monkeypatch.setattr("vigilance.text_analysis.text_change_detection._call_json_completion", _fake_call_json_completion)
 
     results = _compare_section_texts(
         client=object(),
@@ -833,9 +887,12 @@ def test_compare_section_texts_skips_invalid_diff_types(monkeypatch) -> None:
     assert results[1]["diff_type"] == "removed"
     assert results[0]["source_resolution_t1"] == "markdown"
     assert results[0]["source_resolution_t2"] == "markdown"
+    assert results[0]["comparison_status"] == "ADDED"
+    assert results[1]["comparison_status"] == "REMOVED"
+    assert results[0]["chunk_topic"] == "Nouvelle idée"
 
 
-def test_compare_section_texts_prompt_requests_all_observable_changes(monkeypatch) -> None:
+def test_compare_section_texts_prompt_uses_chunk_existence_matching(monkeypatch) -> None:
     captured: dict[str, object] = {}
 
     def _fake_call_json_completion(client, *, model, messages, max_tokens=None):
@@ -843,7 +900,7 @@ def test_compare_section_texts_prompt_requests_all_observable_changes(monkeypatc
         return {"changes": []}
 
     monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline._call_json_completion",
+        "vigilance.text_analysis.text_change_detection._call_json_completion",
         _fake_call_json_completion,
     )
 
@@ -856,9 +913,11 @@ def test_compare_section_texts_prompt_requests_all_observable_changes(monkeypatc
     )
 
     prompt = "\n".join(str(msg.get("content", "")) for msg in captured["messages"])
-    assert "tous les changements observables" in prompt
-    assert "Ne masque pas les reformulations" in prompt
-    assert "retourne quand même diff_type='modified'" in prompt
+    assert "Découpe T1 et T2 en chunks métier complets" in prompt
+    assert "même section/sous-section" in prompt
+    assert "Ne matche jamais par position, par ordre ou par chunk_id" in prompt
+    assert "EXISTS / diff_type='unchanged'" in prompt
+    assert "reformulation sans changement de sens doit être EXISTS/unchanged" in prompt
 
 
 def test_build_text_extraction_markdown_keeps_headings_and_narrative_only() -> None:
@@ -1015,13 +1074,13 @@ def test_run_text_analysis_pipeline_writes_md_as_source_of_truth(monkeypatch, tm
 
     compare_texts_kwargs: dict = {}
 
-    monkeypatch.setattr("vigilance.text_analysis_pipeline._build_openai_client", lambda: object())
+    monkeypatch.setattr("vigilance.text_analysis.pipeline._build_openai_client", lambda: object())
     monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline._resolve_sections",
+        "vigilance.text_analysis.pipeline._resolve_sections",
         lambda pdf_path, bank_code, quarter=None, year=None: {"gestion_risques": section},
     )
     monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline._extract_audits_for_pdf",
+        "vigilance.text_analysis.pipeline._extract_audits_for_pdf",
         lambda **kwargs: [audit_prev] if "prev" in str(kwargs["pdf_path"]) else [audit_curr],
     )
 
@@ -1029,8 +1088,8 @@ def test_run_text_analysis_pipeline_writes_md_as_source_of_truth(monkeypatch, tm
         compare_texts_kwargs.update(kwargs)
         return []
 
-    monkeypatch.setattr("vigilance.text_analysis_pipeline._compare_section_texts", _fake_compare_section_texts)
-    monkeypatch.setattr("vigilance.text_analysis_pipeline._triage_section_changes", lambda **kwargs: [])
+    monkeypatch.setattr("vigilance.text_analysis.pipeline._compare_section_texts", _fake_compare_section_texts)
+    monkeypatch.setattr("vigilance.text_analysis.pipeline._triage_section_changes", lambda **kwargs: [])
 
     payload, out_path = run_text_analysis_pipeline(
         bank_code="td",
@@ -1104,6 +1163,176 @@ def test_parse_subsections_returns_empty_for_blank_text() -> None:
     assert _parse_subsections("   \n  ") == []
 
 
+def test_split_body_into_narrative_units_splits_long_paragraph_on_sentence_boundaries() -> None:
+    sentence = (
+        "La Banque renforce ses contrôles de données afin de soutenir la qualité, la sécurité "
+        "et la transparence des informations utilisées dans ses processus de gestion des risques."
+    )
+    body = " ".join([sentence] * 12)
+
+    units = _split_body_into_narrative_units(
+        section_key="gestion_risques",
+        heading="Risques de données",
+        body=body,
+    )
+
+    assert len(units) > 1
+    assert all(isinstance(unit, NarrativeUnit) for unit in units)
+    assert all(unit.unit_text.endswith(".") for unit in units)
+    assert all(unit.char_len <= 1_100 for unit in units)
+    assert [unit.unit_index for unit in units] == list(range(1, len(units) + 1))
+
+
+def test_split_body_into_narrative_units_preserves_long_bullets_as_units() -> None:
+    body = (
+        "La Banque applique les principes suivants :\n\n"
+        " mesurer les risques importants et les exigences de capital relativement à la planification financière.\n\n"
+        " intégrer des simulations de crise à l'échelle de l'entreprise pour déterminer une réserve de capital."
+    )
+
+    units = _split_body_into_narrative_units(
+        section_key="gestion_capital",
+        heading="Cadre de gestion du capital",
+        body=body,
+    )
+
+    bullet_units = [unit for unit in units if unit.unit_text.startswith("")]
+    assert len(bullet_units) == 2
+    assert "La Banque applique" in units[0].unit_text
+    assert units[0].hierarchy_path == "Gestion du capital > Cadre de gestion du capital"
+
+
+def test_build_comparison_tasks_aligns_narrative_units_by_llm_plan_not_position(monkeypatch) -> None:
+    cyber = (
+        "La Banque renforce la cybersécurité, la surveillance des menaces et les contrôles "
+        "de sécurité de l'information pour protéger ses plateformes numériques."
+    )
+    tiers = (
+        "La Banque surveille les fournisseurs critiques, les services impartis et les plans "
+        "de continuité liés aux tiers."
+    )
+    donnees = (
+        "La Banque améliore la gouvernance des données, la qualité des renseignements et la "
+        "protection des renseignements personnels."
+    )
+
+    def fake_subsection_align(*, client, model, section_key, records_t1, records_t2):
+        return [
+            {
+                "heading_t1": "Risques opérationnels",
+                "heading_t2": "Risques opérationnels",
+                "alignment_type": "exact_heading",
+                "confidence": "high",
+                "reason": "Même bloc.",
+            }
+        ]
+
+    def fake_unit_align(*, client, model, section_key, previous, current):
+        current_by_text = {unit.unit_text: unit for unit in current.units}
+        return {
+            "matches": [
+                {
+                    "previous_unit_index": unit.unit_index,
+                    "current_unit_index": current_by_text[unit.unit_text].unit_index,
+                    "confidence": "high",
+                    "reason": "Même sujet de fond.",
+                }
+                for unit in previous.units
+            ],
+            "removed_unit_indexes": [],
+            "added_unit_indexes": [],
+        }
+
+    monkeypatch.setattr("vigilance.text_analysis.subsection_alignment._gpt_align_subsections", fake_subsection_align)
+    monkeypatch.setattr("vigilance.text_analysis.subsection_alignment._gpt_align_units_in_subsection", fake_unit_align)
+
+    tasks, removed, added = _build_comparison_tasks(
+        client=object(),
+        model="gpt-4o",
+        section_key="gestion_risques",
+        subs_t1=[("Risques opérationnels", "\n\n".join([cyber, tiers, donnees]))],
+        subs_t2=[("Risques opérationnels", "\n\n".join([donnees, cyber, tiers]))],
+    )
+
+    assert removed == []
+    assert added == []
+    assert len(tasks) == 3
+    paired_texts = [(task.body_t1, task.body_t2) for task in tasks]
+    assert (cyber, cyber) in paired_texts
+    assert (tiers, tiers) in paired_texts
+    assert (donnees, donnees) in paired_texts
+    assert all(task.previous_unit_index is not None for task in tasks)
+    assert all(task.current_unit_index is not None for task in tasks)
+    assert any(task.previous_unit_index != task.current_unit_index for task in tasks)
+    assert all(task.alignment_type == "llm_unit_match" for task in tasks)
+
+
+def test_build_comparison_tasks_supports_local_unit_group_match(monkeypatch) -> None:
+    """Une unité longue peut matcher plusieurs unités T2 dans la même sous-section."""
+    cyber = (
+        "La Banque renforce la cybersécurité, la surveillance des menaces et les contrôles "
+        "de sécurité de l'information."
+    )
+    data = (
+        "La Banque ajoute aussi des contrôles sur la gouvernance des données et la protection "
+        "des renseignements personnels."
+    )
+    tiers = "La Banque surveille les fournisseurs critiques et les services impartis."
+
+    def fake_subsection_align(*, client, model, section_key, records_t1, records_t2):
+        return [
+            {
+                "heading_t1": "Risques opérationnels",
+                "heading_t2": "Risques opérationnels",
+                "alignment_type": "exact_heading",
+                "confidence": "high",
+                "reason": "Même bloc.",
+            }
+        ]
+
+    def fake_unit_align(*, client, model, section_key, previous, current):
+        return {
+            "matches": [
+                {
+                    "previous_unit_index": previous.units[1].unit_index,
+                    "current_unit_index": current.units[2].unit_index,
+                    "confidence": "high",
+                    "reason": "Même sujet tiers.",
+                }
+            ],
+            "group_matches": [
+                {
+                    "previous_unit_indexes": [previous.units[0].unit_index],
+                    "current_unit_indexes": [current.units[0].unit_index, current.units[1].unit_index],
+                    "confidence": "high",
+                    "reason": "T2 découpe le contenu cyber/données en deux unités.",
+                }
+            ],
+            "removed_unit_indexes": [],
+            "added_unit_indexes": [],
+        }
+
+    monkeypatch.setattr("vigilance.text_analysis.subsection_alignment._gpt_align_subsections", fake_subsection_align)
+    monkeypatch.setattr("vigilance.text_analysis.subsection_alignment._gpt_align_units_in_subsection", fake_unit_align)
+
+    tasks, removed, added = _build_comparison_tasks(
+        client=object(),
+        model="gpt-4o",
+        section_key="gestion_risques",
+        subs_t1=[("Risques opérationnels", "\n\n".join([f"{cyber} {data}", tiers]))],
+        subs_t2=[("Risques opérationnels", "\n\n".join([cyber, data, tiers]))],
+    )
+
+    assert removed == []
+    assert added == []
+    grouped = [task for task in tasks if task.alignment_type == "llm_unit_group_match"]
+    assert len(grouped) == 1
+    assert f"{cyber} {data}" in grouped[0].body_t1
+    assert cyber in grouped[0].body_t2
+    assert data in grouped[0].body_t2
+    assert grouped[0].current_unit_indexes == [1, 2]
+
+
 def test_normalize_heading_strips_table_prefix_and_lowercases() -> None:
     assert _normalize_heading("T22 Mesures du risque de marché") == "mesures du risque de marché"
     assert _normalize_heading("Risque de liquidité") == "risque de liquidité"
@@ -1116,36 +1345,157 @@ def test_normalize_heading_treats_renamed_tariff_headings_as_distinct() -> None:
     assert n1 != n2
 
 
-def test_pair_subsections_matches_identical_headings() -> None:
-    subs_t1 = [("Risque de marché", "Corps T1"), ("Risque de liquidité", "Liquide T1")]
-    subs_t2 = [("Risque de marché", "Corps T2"), ("Risque de liquidité", "Liquide T2")]
+def test_build_comparison_tasks_does_not_deterministically_rename_distinct_headings() -> None:
+    body_2024 = (
+        "Le risque juridique et réglementaire désigne le risque de perte qui découle du non-respect "
+        "des lois, des obligations contractuelles ou des exigences réglementaires. Le secteur des "
+        "services financiers est fortement réglementé et BMO suit l'évolution de la réglementation."
+    )
+    body_2025 = (
+        "Le risque lié à la conformité juridique et réglementaire désigne le risque de perte qui "
+        "découle du non-respect des lois, des obligations contractuelles ou des exigences "
+        "réglementaires. Le secteur des services financiers est fortement réglementé et BMO suit "
+        "l'évolution des attentes des organismes de supervision."
+    )
 
-    pairs = _pair_subsections(subs_t1, subs_t2)
+    tasks, removed, added = _build_comparison_tasks(
+        client=object(),
+        model="gpt-4o",
+        section_key="gestion_risques",
+        subs_t1=[("Risque juridique et réglementaire", body_2024)],
+        subs_t2=[("Risque lié à la conformité juridique et réglementaire", body_2025)],
+    )
 
-    assert len(pairs) == 2
-    assert all(h1 is not None and h2 is not None for h1, _, h2, _ in pairs)
-
-
-def test_pair_subsections_marks_t1_only_heading_as_removed() -> None:
-    subs_t1 = [("Risque de marché", "Corps T1"), ("Risque opérationnel", "Opérationnel T1")]
-    subs_t2 = [("Risque de marché", "Corps T2")]
-
-    pairs = _pair_subsections(subs_t1, subs_t2)
-
-    removed = [(h1, h2) for h1, _, h2, _ in pairs if h2 is None]
-    assert len(removed) == 1
-    assert removed[0][0] == "Risque opérationnel"
+    assert tasks == []
+    assert [record.heading for record in removed] == ["Risque juridique et réglementaire"]
+    assert [record.heading for record in added] == ["Risque lié à la conformité juridique et réglementaire"]
 
 
-def test_pair_subsections_marks_t2_only_heading_as_added() -> None:
-    subs_t1 = [("Risque de marché", "Corps T1")]
-    subs_t2 = [("Risque de marché", "Corps T2"), ("Incidence des tarifs", "Nouveau T2")]
+def test_build_comparison_tasks_keeps_unmatched_distinct_subsections_unpaired() -> None:
+    situation_2024 = "Les activités de BMO sont tributaires de la conjoncture économique générale."
+    policies_2024 = (
+        "Les politiques budgétaires et monétaires ainsi que d'autres conditions économiques en vigueur "
+        "au Canada et aux États-Unis peuvent avoir une incidence sur la rentabilité et renforcer "
+        "l'incertitude sur les marchés."
+    )
+    situation_2025 = (
+        "Les activités et les résultats financiers de BMO sont tributaires de la conjoncture économique, "
+        "notamment les politiques monétaires et budgétaires, les taux d'intérêt, l'inflation et la "
+        "volatilité des marchés."
+    )
 
-    pairs = _pair_subsections(subs_t1, subs_t2)
+    tasks, removed, added = _build_comparison_tasks(
+        client=object(),
+        model="gpt-4o",
+        section_key="gestion_risques",
+        subs_t1=[
+            ("Situation économique générale", situation_2024),
+            ("Politiques budgétaires et monétaires et autres conditions économiques", policies_2024),
+        ],
+        subs_t2=[("Situation économique générale", situation_2025)],
+    )
 
-    added = [(h1, h2) for h1, _, h2, _ in pairs if h1 is None]
-    assert len(added) == 1
-    assert added[0][1] == "Incidence des tarifs"
+    assert len(tasks) == 1
+    assert tasks[0].heading_t1 == "Situation économique générale"
+    assert tasks[0].heading_t2 == "Situation économique générale"
+    assert tasks[0].alignment_type == "exact_heading"
+    assert [record.heading for record in removed] == [
+        "Politiques budgétaires et monétaires et autres conditions économiques"
+    ]
+    assert added == []
+
+
+def test_build_comparison_tasks_rejects_gpt_split_restructure(monkeypatch) -> None:
+    cyber = (
+        "La Banque investit dans la sécurité de l'information pour anticiper les cybermenaces, "
+        "protéger les données confidentielles et préserver la confiance de la clientèle."
+    )
+    tiers = (
+        "Des tiers fournissent des composantes essentielles de l'infrastructure technologique. "
+        "Le cadre de gestion des risques liés aux tiers prévoit des validations de sécurité et "
+        "des plans de continuité."
+    )
+    geopolitical = (
+        "Les événements géopolitiques et les tensions commerciales peuvent créer de la volatilité, "
+        "déclencher des sanctions économiques et avoir une incidence sur les politiques monétaires."
+    )
+    description_2024 = "\n\n".join([cyber, tiers, geopolitical] * 4)
+
+    def fake_align(*, client, model, section_key, records_t1, records_t2):
+        return [
+            {
+                "heading_t1": "Description",
+                "heading_t2": "Sécurité de l'information",
+                "alignment_type": "split",
+                "confidence": "high",
+                "reason": "La description T1 est divisée en rubriques dédiées.",
+            },
+            {
+                "heading_t1": "Description",
+                "heading_t2": "Dépendance envers les tiers et les modèles",
+                "alignment_type": "split",
+                "confidence": "high",
+                "reason": "La description T1 est divisée en rubriques dédiées.",
+            },
+            {
+                "heading_t1": "Description",
+                "heading_t2": "Risques géopolitiques",
+                "alignment_type": "split",
+                "confidence": "high",
+                "reason": "La description T1 est divisée en rubriques dédiées.",
+            },
+        ]
+
+    monkeypatch.setattr("vigilance.text_analysis.subsection_alignment._gpt_align_subsections", fake_align)
+
+    tasks, removed, added = _build_comparison_tasks(
+        client=object(),
+        model="gpt-4o",
+        section_key="gestion_risques",
+        subs_t1=[("Description", description_2024)],
+        subs_t2=[
+            ("Sécurité de l'information", cyber),
+            ("Dépendance envers les tiers et les modèles", tiers),
+            ("Risques géopolitiques", geopolitical),
+        ],
+    )
+
+    assert tasks == []
+    assert [record.heading for record in removed] == ["Description"]
+    assert {record.heading for record in added} == {
+        "Sécurité de l'information",
+        "Dépendance envers les tiers et les modèles",
+        "Risques géopolitiques",
+    }
+
+
+def test_build_unpaired_changes_keeps_unpaired_subsection_whole() -> None:
+    body = " ".join(
+        [
+            "La Banque retire une ancienne description opérationnelle qui ne trouve aucun équivalent dans le rapport courant."
+            for _ in range(30)
+        ]
+    )
+    record = _build_comparison_tasks(
+        client=object(),
+        model="gpt-4o",
+        section_key="gestion_risques",
+        subs_t1=[("Ancien dispositif supprimé", body)],
+        subs_t2=[],
+    )[1][0]
+
+    changes, next_idx = _build_unpaired_changes(
+        section_key="gestion_risques",
+        diff_type="removed",
+        record=record,
+        idx=1,
+    )
+
+    assert len(changes) == 1
+    assert next_idx == 2
+    assert changes[0]["diff_type"] == "removed"
+    assert changes[0]["alignment_type"] == "true_removed"
+    assert changes[0]["source_text_t1"] == body
 
 
 def test_compare_section_texts_falls_back_to_single_call_when_no_subsections(monkeypatch) -> None:
@@ -1156,7 +1506,7 @@ def test_compare_section_texts_falls_back_to_single_call_when_no_subsections(mon
         calls.append(heading_slug)
         return []
 
-    monkeypatch.setattr("vigilance.text_analysis_pipeline._compare_texts_single_call", fake_single_call)
+    monkeypatch.setattr("vigilance.text_analysis.text_change_detection._compare_texts_single_call", fake_single_call)
 
     _compare_section_texts(
         client=object(),
@@ -1169,15 +1519,15 @@ def test_compare_section_texts_falls_back_to_single_call_when_no_subsections(mon
     assert calls == ["full"]
 
 
-def test_compare_section_texts_calls_gpt_once_per_subsection_pair(monkeypatch) -> None:
-    """Deux sous-sections appariées → deux appels GPT distincts."""
+def test_compare_section_texts_calls_gpt_once_per_aligned_subsection(monkeypatch) -> None:
+    """Deux sous-sections appariées → deux comparaisons GPT au niveau sous-section complète."""
     calls: list[str] = []
 
     def fake_single_call(*, client, model, section_key, heading_label, heading_slug, text_t1, text_t2, idx_offset):
         calls.append(heading_slug)
         return []
 
-    monkeypatch.setattr("vigilance.text_analysis_pipeline._compare_texts_single_call", fake_single_call)
+    monkeypatch.setattr("vigilance.text_analysis.text_change_detection._compare_texts_single_call", fake_single_call)
 
     md_t1 = "### Risque de marché\n\nCorps T1 A.\n\n### Risque de liquidité\n\nCorps T1 B.\n"
     md_t2 = "### Risque de marché\n\nCorps T2 A.\n\n### Risque de liquidité\n\nCorps T2 B.\n"
@@ -1193,10 +1543,222 @@ def test_compare_section_texts_calls_gpt_once_per_subsection_pair(monkeypatch) -
     assert len(calls) == 2
 
 
+def test_compare_section_texts_sends_aligned_units_for_long_subsection(monkeypatch) -> None:
+    """Une longue sous-section appariée est découpée en unités narratives comparables."""
+    calls: list[tuple[str, str]] = []
+
+    def fake_single_call(*, client, model, section_key, heading_label, heading_slug, text_t1, text_t2, idx_offset):
+        calls.append((text_t1, text_t2))
+        return []
+
+    def fake_batch_call(*, client, model, section_key, tasks):
+        for _task_index, task in tasks:
+            calls.append((task.body_t1, task.body_t2))
+        return {task_index: [] for task_index, _task in tasks}
+
+    def fake_unit_align(*, client, model, section_key, previous, current):
+        return {
+            "matches": [
+                {
+                    "previous_unit_index": previous_unit.unit_index,
+                    "current_unit_index": current_unit.unit_index,
+                    "confidence": "high",
+                    "reason": "Même unité narrative longue.",
+                }
+                for previous_unit, current_unit in zip(previous.units, current.units, strict=False)
+            ],
+            "removed_unit_indexes": [],
+            "added_unit_indexes": [],
+        }
+
+    monkeypatch.setattr("vigilance.text_analysis.text_change_detection._compare_texts_single_call", fake_single_call)
+    monkeypatch.setattr("vigilance.text_analysis.text_change_detection._compare_texts_batch_call", fake_batch_call)
+    monkeypatch.setattr("vigilance.text_analysis.subsection_alignment._gpt_align_units_in_subsection", fake_unit_align)
+    sentence_t1 = (
+        "La Banque renforce ses contrôles de données afin de soutenir la qualité, la sécurité "
+        "et la transparence des informations utilisées dans ses processus de gestion des risques."
+    )
+    sentence_t2 = (
+        "La Banque renforce ses contrôles de données afin de soutenir la qualité, la sécurité "
+        "et la gouvernance des informations utilisées dans ses processus de gestion des risques."
+    )
+    body_t1 = " ".join([sentence_t1] * 12)
+    body_t2 = " ".join([sentence_t2] * 12)
+
+    _compare_section_texts(
+        client=object(),
+        model="gpt-4o",
+        section_key="gestion_risques",
+        text_t1=f"### Risques de données\n\n{body_t1}\n",
+        text_t2=f"### Risques de données\n\n{body_t2}\n",
+    )
+
+    assert len(calls) > 1
+    assert all(sentence_t1 in text_t1 for text_t1, _text_t2 in calls)
+    assert all(sentence_t2 in text_t2 for _text_t1, text_t2 in calls)
+    assert calls != [(body_t1, body_t2)]
+
+
+def test_compare_section_texts_does_not_mirror_reclassify_large_gpt_added(monkeypatch) -> None:
+    """Un added GPT reste added même si le même contenu existe dans une autre sous-section T1."""
+    sentence = (
+        "La Banque maintient un cadre détaillé de gestion des risques liés aux tiers, "
+        "incluant la diligence, la continuité des affaires et la surveillance des fournisseurs."
+    )
+    mirror_text = " ".join([sentence] * 18)
+
+    def fake_single_call(*, client, model, section_key, heading_label, heading_slug, text_t1, text_t2, idx_offset):
+        return [
+            {
+                "change_id": "gpt_large_added",
+                "section_key": section_key,
+                "subsection_heading": heading_label,
+                "diff_type": "added",
+                "semantic_text_t1": "",
+                "semantic_text_t2": mirror_text,
+                "source_text_t1": "",
+                "source_text_t2": mirror_text,
+                "source_block_ids_t1": [],
+                "source_block_ids_t2": [],
+                "source_refs_t1": [],
+                "source_refs_t2": [],
+                "pages_t1": [],
+                "pages_t2": [],
+                "source_resolution_t1": "markdown",
+                "source_resolution_t2": "markdown",
+                "evidence_t1": {"pages": [], "snippet": ""},
+                "evidence_t2": {"pages": [], "snippet": mirror_text[:400]},
+                "change_summary": "Ajout apparent.",
+            }
+        ]
+
+    monkeypatch.setattr("vigilance.text_analysis.text_change_detection._compare_texts_single_call", fake_single_call)
+
+    changes = _compare_section_texts(
+        client=object(),
+        model="gpt-4o",
+        section_key="gestion_risques",
+        text_t1=f"### Ancienne section tiers\n\n{mirror_text}\n\n### Section commune\n\nTexte commun T1.\n",
+        text_t2="### Section commune\n\nTexte commun T2.\n",
+    )
+
+    added = [change for change in changes if change.get("change_id") == "gpt_large_added"]
+    assert len(added) == 1
+    assert added[0]["diff_type"] == "added"
+    assert added[0]["source_text_t1"] == ""
+    assert added[0].get("movement_type") is None
+
+    removed = [
+        change
+        for change in changes
+        if change.get("diff_type") == "removed" and change.get("subsection_heading") == "Ancienne section tiers"
+    ]
+    assert len(removed) == 1
+
+
+def test_compare_section_texts_does_not_reclassify_same_section_moved_capital_unit(monkeypatch) -> None:
+    """Un bloc déplacé dans une autre sous-section reste ajouté/supprimé sans alignement GPT explicite."""
+    stable_text = (
+        "Les fonds propres réglementaires comprennent les instruments admissibles et les réserves "
+        "retenues aux fins du calcul du ratio de capital."
+    )
+    moved_text = (
+        "L'approche NI avancée met en application des techniques de pointe pour mesurer le risque "
+        "de crédit et déterminer les actifs pondérés en fonction des risques de certains portefeuilles."
+    )
+
+    monkeypatch.setattr(
+        "vigilance.text_analysis.text_change_detection._compare_texts_batch_call",
+        lambda **kw: {task_index: [] for task_index, _task in kw["tasks"]},
+    )
+    monkeypatch.setattr(
+        "vigilance.text_analysis.text_change_detection._compare_texts_single_call",
+        lambda **kw: [],
+    )
+
+    changes = _compare_section_texts(
+        client=object(),
+        model="gpt-4o",
+        section_key="gestion_capital",
+        text_t1=(
+            "### Composantes des fonds propres réglementaires\n\n"
+            f"{stable_text}\n\n{moved_text}\n"
+        ),
+        text_t2=(
+            "### Composantes des fonds propres réglementaires\n\n"
+            f"{stable_text}\n\n"
+            "### Actifs pondérés en fonction des risques\n\n"
+            f"{moved_text}\n"
+        ),
+    )
+
+    removed_changes = [change for change in changes if moved_text in change.get("source_text_t1", "")]
+    added_changes = [change for change in changes if moved_text in change.get("source_text_t2", "")]
+    assert len(removed_changes) == 0
+    assert len(added_changes) == 1
+    assert added_changes[0]["diff_type"] == "added"
+    assert added_changes[0]["current_subsection_heading"] == "Actifs pondérés en fonction des risques"
+    assert added_changes[0].get("movement_type") is None
+
+
+def test_attach_vigie_objective_context_enriches_existing_triage_justification() -> None:
+    change = {
+        "section_key": "gestion_risques",
+        "subsection_heading": "Intelligence artificielle",
+        "diff_type": "added",
+        "chunk_topic": "Gouvernance IA",
+        "source_text_t1": "",
+        "source_text_t2": "La Banque ajoute un cadre de gouvernance de l'intelligence artificielle générative.",
+        "genai_triage": {
+            "is_relevant": True,
+            "impact_level": "MINEUR",
+            "action_requise": "information",
+            "explanation": "Le T2 ajoute une gouvernance technologique absente du T1.",
+            "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.",
+        },
+    }
+
+    enriched = _attach_vigie_objective_context(change)
+
+    assert enriched["objective_tags"] == ["ia"]
+    assert enriched["genai_triage"]["objective_tags"] == ["ia"]
+    assert enriched["genai_triage"]["objective_priority"] is True
+    assert enriched["genai_triage"]["impact_level"] == "MODERE"
+    assert enriched["genai_triage"]["action_requise"] == "investigation"
+    assert "Objectif vigie détecté : IA." in enriched["genai_triage"]["nouvelle_idee_justification"]
+    assert "Thème métier détecté : Gouvernance IA." in enriched["genai_triage"]["nouvelle_idee_justification"]
+
+
+def test_retained_change_sort_key_prioritizes_vigie_objectives_at_same_impact() -> None:
+    base_triage = {
+        "is_relevant": True,
+        "themes_amf": ["GOUVERNANCE_RISQUES"],
+        "impact_level": "MODERE",
+        "nouvelle_idee": False,
+    }
+    objective_change = {
+        "change_id": "objective",
+        "section_key": "gestion_risques",
+        "diff_type": "modified",
+        "genai_triage": {
+            **base_triage,
+            "objective_matches": [{"label": "IA", "tag": "ia"}],
+        },
+    }
+    ordinary_change = {
+        "change_id": "ordinary",
+        "section_key": "gestion_risques",
+        "diff_type": "modified",
+        "genai_triage": base_triage,
+    }
+
+    assert sorted([ordinary_change, objective_change], key=_retained_change_sort_key)[0]["change_id"] == "objective"
+
+
 def test_compare_section_texts_synthetic_change_for_removed_subsection(monkeypatch) -> None:
     """Une sous-section T1 sans contrepartie T2 produit un changement synthétique removed."""
     monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline._compare_texts_single_call",
+        "vigilance.text_analysis.text_change_detection._compare_texts_single_call",
         lambda **kw: [],
     )
 
@@ -1220,7 +1782,7 @@ def test_compare_section_texts_synthetic_change_for_removed_subsection(monkeypat
 def test_compare_section_texts_synthetic_change_for_added_subsection(monkeypatch) -> None:
     """Une sous-section T2 sans contrepartie T1 produit un changement synthétique added."""
     monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline._compare_texts_single_call",
+        "vigilance.text_analysis.text_change_detection._compare_texts_single_call",
         lambda **kw: [],
     )
 
@@ -1241,100 +1803,215 @@ def test_compare_section_texts_synthetic_change_for_added_subsection(monkeypatch
     assert "Nouveau en T2" in added[0]["source_text_t2"]
 
 
-def test_gpt_match_orphan_headings_returns_empty_when_no_orphans() -> None:
-    """Pas d'orphelins d'un côté → pas d'appel GPT, retourne []."""
-    result = _gpt_match_orphan_headings(
+def test_gpt_align_subsections_filters_low_confidence(monkeypatch) -> None:
+    """Les alignements de confidence low sont exclus du résultat."""
+    def fake_call(client, *, model, messages, max_tokens=None):
+        return {
+            "matches": [
+                {
+                    "heading_t1": "Incidence des tarifs",
+                    "heading_t2": "Incidence des tarifs douaniers",
+                    "alignment_type": "renamed",
+                    "confidence": "low",
+                    "reason": "x",
+                },
+            ]
+        }
+    monkeypatch.setattr("vigilance.text_analysis.subsection_alignment._call_json_completion", fake_call)
+
+    records_t1 = _build_comparison_tasks(
         client=object(),
         model="gpt-4o",
         section_key="gestion_risques",
-        orphans_t1=[],
-        orphans_t2=["Incidence des tarifs douaniers"],
+        subs_t1=[("Incidence des tarifs", "Texte T1")],
+        subs_t2=[],
+    )[1]
+    records_t2 = _build_comparison_tasks(
+        client=object(),
+        model="gpt-4o",
+        section_key="gestion_risques",
+        subs_t1=[],
+        subs_t2=[("Incidence des tarifs douaniers", "Texte T2")],
+    )[2]
+    result = _gpt_align_subsections(
+        client=object(),
+        model="gpt-4o",
+        section_key="gestion_risques",
+        records_t1={r.heading: r for r in records_t1},
+        records_t2={r.heading: r for r in records_t2},
     )
     assert result == []
 
 
-def test_gpt_match_orphan_headings_filters_low_confidence(monkeypatch) -> None:
-    """Matches de confidence 'low' sont exclus du résultat."""
+def test_gpt_align_subsections_rejects_hallucinated_headings(monkeypatch) -> None:
+    """GPT invente un heading absent des listes fournies → rejeté."""
     def fake_call(client, *, model, messages, max_tokens=None):
         return {
             "matches": [
-                {"heading_t1": "Incidence des tarifs", "heading_t2": "Incidence des tarifs douaniers", "confidence": "low", "reason": "x"},
+                {
+                    "heading_t1": "Heading inventé",
+                    "heading_t2": "Incidence des tarifs douaniers",
+                    "alignment_type": "renamed",
+                    "confidence": "high",
+                    "reason": "x",
+                },
             ]
         }
-    monkeypatch.setattr("vigilance.text_analysis_pipeline._call_json_completion", fake_call)
+    monkeypatch.setattr("vigilance.text_analysis.subsection_alignment._call_json_completion", fake_call)
 
-    result = _gpt_match_orphan_headings(
+    records_t1 = _build_comparison_tasks(
         client=object(),
         model="gpt-4o",
         section_key="gestion_risques",
-        orphans_t1=["Incidence des tarifs"],
-        orphans_t2=["Incidence des tarifs douaniers"],
+        subs_t1=[("Incidence des tarifs", "Texte T1")],
+        subs_t2=[],
+    )[1]
+    records_t2 = _build_comparison_tasks(
+        client=object(),
+        model="gpt-4o",
+        section_key="gestion_risques",
+        subs_t1=[],
+        subs_t2=[("Incidence des tarifs douaniers", "Texte T2")],
+    )[2]
+    result = _gpt_align_subsections(
+        client=object(),
+        model="gpt-4o",
+        section_key="gestion_risques",
+        records_t1={r.heading: r for r in records_t1},
+        records_t2={r.heading: r for r in records_t2},
     )
     assert result == []
 
 
-def test_gpt_match_orphan_headings_rejects_hallucinated_headings(monkeypatch) -> None:
-    """GPT invente un heading absent des listes orphelines → rejeté."""
+def test_gpt_align_subsections_accepts_high_confidence(monkeypatch) -> None:
+    """Un alignement high-confidence avec headings valides est retourné."""
     def fake_call(client, *, model, messages, max_tokens=None):
         return {
             "matches": [
-                {"heading_t1": "Heading inventé", "heading_t2": "Incidence des tarifs douaniers", "confidence": "high", "reason": "x"},
+                {
+                    "heading_t1": "Incidence des tarifs",
+                    "heading_t2": "Incidence des tarifs douaniers",
+                    "alignment_type": "renamed",
+                    "confidence": "high",
+                    "reason": "précision ajoutée",
+                },
             ]
         }
-    monkeypatch.setattr("vigilance.text_analysis_pipeline._call_json_completion", fake_call)
+    monkeypatch.setattr("vigilance.text_analysis.subsection_alignment._call_json_completion", fake_call)
 
-    result = _gpt_match_orphan_headings(
+    records_t1 = _build_comparison_tasks(
         client=object(),
         model="gpt-4o",
         section_key="gestion_risques",
-        orphans_t1=["Incidence des tarifs"],
-        orphans_t2=["Incidence des tarifs douaniers"],
-    )
-    assert result == []
-
-
-def test_gpt_match_orphan_headings_accepts_high_confidence(monkeypatch) -> None:
-    """Un match high-confidence avec headings valides est retourné."""
-    def fake_call(client, *, model, messages, max_tokens=None):
-        return {
-            "matches": [
-                {"heading_t1": "Incidence des tarifs", "heading_t2": "Incidence des tarifs douaniers", "confidence": "high", "reason": "précision ajoutée"},
-            ]
-        }
-    monkeypatch.setattr("vigilance.text_analysis_pipeline._call_json_completion", fake_call)
-
-    result = _gpt_match_orphan_headings(
+        subs_t1=[("Incidence des tarifs", "Texte T1")],
+        subs_t2=[],
+    )[1]
+    records_t2 = _build_comparison_tasks(
         client=object(),
         model="gpt-4o",
         section_key="gestion_risques",
-        orphans_t1=["Incidence des tarifs"],
-        orphans_t2=["Incidence des tarifs douaniers"],
+        subs_t1=[],
+        subs_t2=[("Incidence des tarifs douaniers", "Texte T2")],
+    )[2]
+    result = _gpt_align_subsections(
+        client=object(),
+        model="gpt-4o",
+        section_key="gestion_risques",
+        records_t1={r.heading: r for r in records_t1},
+        records_t2={r.heading: r for r in records_t2},
     )
     assert len(result) == 1
     assert result[0]["heading_t1"] == "Incidence des tarifs"
     assert result[0]["heading_t2"] == "Incidence des tarifs douaniers"
+    assert result[0]["alignment_type"] == "renamed"
 
 
-def test_gpt_match_orphan_headings_enforces_1_to_1(monkeypatch) -> None:
-    """GPT tente d'associer le même T1 heading à deux T2 headings → seule la première paire est acceptée."""
+def test_gpt_align_subsections_prompt_mentions_json_for_openai_response_format(monkeypatch) -> None:
+    """Le mode response_format=json_object exige que le prompt contienne explicitement JSON."""
+    captured: dict[str, object] = {}
+
     def fake_call(client, *, model, messages, max_tokens=None):
-        return {
-            "matches": [
-                {"heading_t1": "Risque de marché", "heading_t2": "Risque de marché amplifié", "confidence": "high", "reason": "a"},
-                {"heading_t1": "Risque de marché", "heading_t2": "Risque de marché étendu", "confidence": "medium", "reason": "b"},
-            ]
-        }
-    monkeypatch.setattr("vigilance.text_analysis_pipeline._call_json_completion", fake_call)
+        captured["messages"] = messages
+        return {"matches": []}
 
-    result = _gpt_match_orphan_headings(
+    monkeypatch.setattr("vigilance.text_analysis.subsection_alignment._call_json_completion", fake_call)
+
+    records_t1 = _build_comparison_tasks(
         client=object(),
         model="gpt-4o",
         section_key="gestion_risques",
-        orphans_t1=["Risque de marché"],
-        orphans_t2=["Risque de marché amplifié", "Risque de marché étendu"],
+        subs_t1=[("Incidence des tarifs", "Texte T1")],
+        subs_t2=[],
+    )[1]
+    records_t2 = _build_comparison_tasks(
+        client=object(),
+        model="gpt-4o",
+        section_key="gestion_risques",
+        subs_t1=[],
+        subs_t2=[("Incidence des tarifs douaniers", "Texte T2")],
+    )[2]
+
+    _gpt_align_subsections(
+        client=object(),
+        model="gpt-4o",
+        section_key="gestion_risques",
+        records_t1={r.heading: r for r in records_t1},
+        records_t2={r.heading: r for r in records_t2},
     )
-    assert len(result) == 1
-    assert result[0]["heading_t2"] == "Risque de marché amplifié"
+
+    prompt = "\n".join(str(message.get("content", "")) for message in captured["messages"])
+    assert "JSON" in prompt
+    assert "Format JSON de réponse" in prompt
+
+
+def test_gpt_align_subsections_rejects_explicit_split(monkeypatch) -> None:
+    """GPT ne peut pas associer un même T1 à plusieurs T2: split est rejeté."""
+    def fake_call(client, *, model, messages, max_tokens=None):
+        return {
+            "matches": [
+                {
+                    "heading_t1": "Description",
+                    "heading_t2": "Risque de marché amplifié",
+                    "alignment_type": "split",
+                    "confidence": "high",
+                    "reason": "a",
+                },
+                {
+                    "heading_t1": "Description",
+                    "heading_t2": "Risque de marché étendu",
+                    "alignment_type": "split",
+                    "confidence": "medium",
+                    "reason": "b",
+                },
+            ]
+        }
+    monkeypatch.setattr("vigilance.text_analysis.subsection_alignment._call_json_completion", fake_call)
+
+    records_t1 = _build_comparison_tasks(
+        client=object(),
+        model="gpt-4o",
+        section_key="gestion_risques",
+        subs_t1=[("Description", "Texte T1")],
+        subs_t2=[],
+    )[1]
+    records_t2 = _build_comparison_tasks(
+        client=object(),
+        model="gpt-4o",
+        section_key="gestion_risques",
+        subs_t1=[],
+        subs_t2=[
+            ("Risque de marché amplifié", "Texte T2 A"),
+            ("Risque de marché étendu", "Texte T2 B"),
+        ],
+    )[2]
+    result = _gpt_align_subsections(
+        client=object(),
+        model="gpt-4o",
+        section_key="gestion_risques",
+        records_t1={r.heading: r for r in records_t1},
+        records_t2={r.heading: r for r in records_t2},
+    )
+    assert result == []
 
 
 def test_compare_section_texts_resolves_renamed_subsection(monkeypatch) -> None:
@@ -1347,13 +2024,26 @@ def test_compare_section_texts_resolves_renamed_subsection(monkeypatch) -> None:
         single_call_labels.append(heading_label)
         return []
 
-    def fake_gpt_match(*, client, model, section_key, orphans_t1, orphans_t2):
+    def fake_gpt_align(*, client, model, section_key, records_t1, records_t2):
         return [
-            {"heading_t1": "Incidence des tarifs", "heading_t2": "Incidence des tarifs douaniers", "confidence": "high", "reason": "précision"},
+            {
+                "heading_t1": "Risque de marché",
+                "heading_t2": "Risque de marché",
+                "alignment_type": "exact_heading",
+                "confidence": "high",
+                "reason": "titre identique",
+            },
+            {
+                "heading_t1": "Incidence des tarifs",
+                "heading_t2": "Incidence des tarifs douaniers",
+                "alignment_type": "renamed",
+                "confidence": "high",
+                "reason": "précision",
+            },
         ]
 
-    monkeypatch.setattr("vigilance.text_analysis_pipeline._compare_texts_single_call", fake_single_call)
-    monkeypatch.setattr("vigilance.text_analysis_pipeline._gpt_match_orphan_headings", fake_gpt_match)
+    monkeypatch.setattr("vigilance.text_analysis.text_change_detection._compare_texts_single_call", fake_single_call)
+    monkeypatch.setattr("vigilance.text_analysis.subsection_alignment._gpt_align_subsections", fake_gpt_align)
 
     md_t1 = "### Risque de marché\n\nCorps T1.\n\n### Incidence des tarifs\n\nTexte T1.\n"
     md_t2 = "### Risque de marché\n\nCorps T2.\n\n### Incidence des tarifs douaniers\n\nTexte T2.\n"
@@ -1394,13 +2084,6 @@ from vigilance.amf_taxonomy import (
     TriageAMFResultWithIndex,
     TriageValidationError,
 )
-from vigilance.text_analysis_pipeline import (
-    _call_structured_completion,
-    _call_structured_completion_with_correction,
-    _triage_section_changes,
-)
-
-
 def _valid_explanation() -> str:
     return (
         "Au T2 la banque introduit un nouveau modele interne pour le risque "
@@ -1891,7 +2574,7 @@ def test_correction_retry_does_not_retry_runtime_errors() -> None:
 def test_correction_retry_retries_transient_timeout(monkeypatch) -> None:
     valid_batch = TriageAMFBatch(triages=[])
     state = {"calls": 0}
-    monkeypatch.setattr("vigilance.text_analysis_pipeline.time.sleep", lambda _seconds: None)
+    monkeypatch.setattr("vigilance.text_analysis.openai_gateway.time.sleep", lambda _seconds: None)
 
     def timeout_then_success(**kwargs):
         state["calls"] += 1
@@ -1915,7 +2598,7 @@ def test_correction_retry_retries_transient_timeout(monkeypatch) -> None:
 
 
 def test_correction_retry_exhausts_transient_timeout(monkeypatch) -> None:
-    monkeypatch.setattr("vigilance.text_analysis_pipeline.time.sleep", lambda _seconds: None)
+    monkeypatch.setattr("vigilance.text_analysis.openai_gateway.time.sleep", lambda _seconds: None)
 
     def always_timeout(**kwargs):
         raise TimeoutError("Request timed out.")
@@ -2020,13 +2703,19 @@ def test_triage_section_changes_propagates_runtime_error_unwrapped() -> None:
     assert client.call_count == 1
 
 
-def test_triage_section_changes_processes_changes_one_by_one() -> None:
+def test_triage_section_changes_batches_changes() -> None:
     def valid_response(**_kwargs):
         return _make_parsed_response(
             TriageAMFBatch(
                 triages=[
                     TriageAMFResultWithIndex(
                         change_index=1,
+                        is_relevant=False,
+                        exclusion_reason="reformulation_mineure",
+                        nouvelle_idee_justification=_valid_justification_non(),
+                    ),
+                    TriageAMFResultWithIndex(
+                        change_index=2,
                         is_relevant=False,
                         exclusion_reason="reformulation_mineure",
                         nouvelle_idee_justification=_valid_justification_non(),
@@ -2058,12 +2747,10 @@ def test_triage_section_changes_processes_changes_one_by_one() -> None:
     )
 
     assert len(enriched) == 2
-    assert client.call_count == 2
-    user_prompts = [
-        call["messages"][1]["content"] for call in client._completions.calls
-    ]
-    assert all('"change_index": 1' in prompt for prompt in user_prompts)
-    assert all('"change_index": 2' not in prompt for prompt in user_prompts)
+    assert client.call_count == 1
+    user_prompt = client._completions.calls[0]["messages"][1]["content"]
+    assert '"change_index": 1' in user_prompt
+    assert '"change_index": 2' in user_prompt
 
 
 def test_triage_section_changes_truncates_large_prompt_fields() -> None:

@@ -33,6 +33,43 @@ def test_apply_text_review_decision_updates_all_change_buckets() -> None:
         assert review["nouvelle_idee_override"] is False
 
 
+def test_apply_text_review_decision_updates_observation_and_source_changes() -> None:
+    payload = {
+        "section_comparisons": [
+            {
+                "all_observation_comparisons": [
+                    {"change_id": "obs-1", "source_change_ids": ["chg-1", "chg-2"]}
+                ],
+                "observation_comparisons": [
+                    {"change_id": "obs-1", "source_change_ids": ["chg-1", "chg-2"]}
+                ],
+                "all_block_comparisons": [{"change_id": "chg-1"}, {"change_id": "chg-2"}],
+                "block_comparisons": [{"change_id": "chg-1"}],
+            }
+        ]
+    }
+
+    updated, found = apply_text_review_decision(
+        payload,
+        change_id="obs-1",
+        status="approved",
+        comment="Observation valide.",
+    )
+
+    assert found is True
+    section = updated["section_comparisons"][0]
+    for bucket in (
+        "all_observation_comparisons",
+        "observation_comparisons",
+        "all_block_comparisons",
+        "block_comparisons",
+    ):
+        for change in section[bucket]:
+            review = change["_analyst_review"]
+            assert review["status"] == "approved"
+            assert review["comment"] == "Observation valide."
+
+
 def test_write_text_review_to_disk_can_skip_excel_regeneration(tmp_path, monkeypatch) -> None:
     payload = {
         "bank_code": "bnc",
