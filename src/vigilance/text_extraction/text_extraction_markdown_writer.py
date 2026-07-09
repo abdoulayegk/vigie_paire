@@ -36,6 +36,30 @@ def get_canonical_text_extraction_md_path(
     )
 
 
+def get_raw_docling_markdown_path(
+    project_root: Path,
+    bank_code: str,
+    year: int,
+    quarter: str,
+    role: str,
+) -> Path:
+    """Retourne le chemin du markdown brut exporté directement par Docling."""
+    normalized_role = str(role or "").strip().lower()
+    if normalized_role not in {"current", "previous"}:
+        raise ValueError("role must be 'current' or 'previous'")
+    bank = bank_code.lower()
+    quarter_norm = quarter.lower()
+    return (
+        project_root
+        / "outputs"
+        / CANONICAL_TEXT_EXTRACTIONS_DIR
+        / bank
+        / str(year)
+        / quarter_norm
+        / f"{bank}_{normalized_role}_{year}_{quarter_norm}.md"
+    )
+
+
 def write_text_extraction_markdown(content: str, out_path: Path) -> Path:
     """Écrit le contenu markdown dans le fichier de sortie et retourne le chemin."""
     out_path.parent.mkdir(parents=True, exist_ok=True)

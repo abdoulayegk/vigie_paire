@@ -6,6 +6,11 @@ from pathlib import Path
 import pytest
 
 from vigilance.text_analysis_pipeline import (
+    _align_chunks_tfidf,
+    _build_comparison_batches,
+    _format_alignments_for_prompt,
+    ChunkAlignment,
+    ChunkCandidate,
     PDFBlock,
     ResolvedSection,
     SectionAudit,
@@ -15,6 +20,7 @@ from vigilance.text_analysis_pipeline import (
     _build_global_summary,
     _build_text_extraction_markdown,
     _call_json_completion,
+    _chunk_subsection_text,
     _classify_block_type,
     _compare_section_texts,
     _default_triage,
@@ -23,6 +29,7 @@ from vigilance.text_analysis_pipeline import (
     _extract_section_text_from_markdown,
     _FEW_SHOT_TRIAGE_AMF,
     _format_page_marker,
+    _format_page_suffix,
     _gpt_match_orphan_headings,
     _is_new_major_or_allowed_moderate,
     _is_non_cosmetic_change,
@@ -36,8 +43,17 @@ from vigilance.text_analysis_pipeline import (
     _rewrite_page_markers_for_display,
     _sanitize_semantic_text,
     _section_window_for_page,
+    TextAnalysisQualityError,
     run_text_analysis_pipeline,
 )
+from vigilance.text_extraction.text_extraction_markdown_writer import get_raw_docling_markdown_path
+from vigilance.text_analysis.docling_markdown import (
+    DoclingSegment,
+    _assign_segments_to_sections,
+    _build_text_extraction_markdown_from_docling,
+    _should_keep_docling_segment,
+)
+from vigilance.text_analysis.markdown import _is_out_of_scope_accounting_heading
 
 
 class _FakeChoice:
@@ -441,7 +457,7 @@ def test_pipeline_retains_non_cosmetic_changes_and_discards_cosmetic(monkeypatch
     )
     monkeypatch.setattr(
         "vigilance.text_analysis_pipeline._extract_audits_for_pdf",
-        lambda **kwargs: [audit_prev] if "prev" in str(kwargs["pdf_path"]) else [audit_curr],
+        lambda **kwargs: ([audit_prev], "") if "prev" in str(kwargs["pdf_path"]) else ([audit_curr], ""),
     )
     monkeypatch.setattr(
         "vigilance.text_analysis_pipeline._compare_section_texts",
@@ -605,6 +621,186 @@ def test_section_window_starts_after_anchor_and_stops_before_next_anchor_same_pa
     assert bottom == 0.72
 
 
+def test_section_window_uses_end_anchor_without_next_section() -> None:
+    section = ResolvedSection(
+        section_key="gestion_risques",
+        title="Gestion des risques",
+        start_page=84,
+        end_page=129,
+        anchor_page=84,
+        anchor_text="Gestion des risques",
+        anchor_bbox_norm=[0.1, 0.10, 0.8, 0.15],
+        end_anchor_page=129,
+        end_anchor_text="NORMES ET MÉTHODES COMPTABLES",
+        end_anchor_bbox_norm=[0.1, 0.65, 0.9, 0.68],
+    )
+
+    top, bottom = _section_window_for_page(section, 129, next_section=None)
+
+    assert top == 0.0
+    assert bottom == 0.65
+
+
+def test_assign_segments_stops_at_end_boundary_heading() -> None:
+    risk_paragraph = (
+        "Les cibles de réduction des émissions de GES sont calculées ou ses cibles "
+        "en matière d'émissions de GES sont établies conformément aux normes."
+    )
+    accounting_paragraph = (
+        "Les méthodes comptables significatives utilisées pour préparer les états financiers "
+        "consolidés sont décrites ci-dessous."
+    )
+    audit = SectionAudit(
+        section_key="gestion_risques",
+        section_title="Gestion des risques",
+        start_page=128,
+        end_page=129,
+        anchor_page=84,
+        anchor_text="Gestion des risques",
+        anchor_bbox_norm=[0.1, 0.10, 0.8, 0.15],
+        included_blocks=[
+            PDFBlock(
+                "p129_b001",
+                129,
+                [0.1, 0.20, 0.9, 0.25],
+                risk_paragraph,
+                1,
+                "narrative",
+                True,
+                "",
+            ),
+            PDFBlock(
+                "p129_b002",
+                129,
+                [0.1, 0.40, 0.9, 0.45],
+                "Faits nouveaux et événements subséquents",
+                2,
+                "other",
+                False,
+                "",
+                "section_header",
+                heading_level=3,
+            ),
+        ],
+        excluded_blocks=[],
+        end_anchor_page=129,
+        end_anchor_text="NORMES ET MÉTHODES COMPTABLES",
+        end_anchor_bbox_norm=[0.1, 0.65, 0.9, 0.68],
+    )
+    segments = [
+        DoclingSegment(kind="paragraph", text=risk_paragraph),
+        DoclingSegment(kind="heading", text="Faits nouveaux et événements subséquents", heading_level=3),
+        DoclingSegment(kind="heading", text="NORMES ET MÉTHODES COMPTABLES", heading_level=2),
+        DoclingSegment(kind="paragraph", text=accounting_paragraph),
+    ]
+
+    assigned = _assign_segments_to_sections(segments, [audit])
+    risk_segments = assigned["gestion_risques"]
+
+    assert any(segment.text == risk_paragraph for segment in risk_segments)
+    assert not any(segment.text == accounting_paragraph for segment in risk_segments)
+    assert not any("NORMES ET MÉTHODES COMPTABLES" in segment.text for segment in risk_segments)
+
+
+def test_is_out_of_scope_accounting_heading_detects_note_titles() -> None:
+    titles = [
+        "CONSOLIDATION DES ENTITÉS STRUCTURÉES",
+        "Transactions entre parties liées",
+        "Convention sur les comptes de dépôt assurés",
+        "Instruments financiers",
+        "Méthodes comptables utilisées par la Banque",
+        "NORMES ET MÉTHODES COMPTABLES",
+        "Jugements, estimations et hypothèses comptables",
+    ]
+
+    assert all(_is_out_of_scope_accounting_heading(title) for title in titles)
+
+
+def test_is_out_of_scope_accounting_heading_allows_risk_titles() -> None:
+    titles = [
+        "Risque de crédit",
+        "Gouvernance des risques",
+        "FACTEURS DE RISQUE ET GESTION DES RISQUES",
+        "Risque opérationnel",
+        "Appétit pour le risque",
+    ]
+
+    assert not any(_is_out_of_scope_accounting_heading(title) for title in titles)
+
+
+def test_should_keep_docling_segment_rejects_accounting_heading() -> None:
+    segment = DoclingSegment(
+        kind="heading",
+        text="CONSOLIDATION DES ENTITÉS STRUCTURÉES",
+        heading_level=3,
+    )
+
+    assert _should_keep_docling_segment(segment, audits=None) is False
+
+
+def test_build_markdown_omits_accounting_headings_in_risk_section() -> None:
+    audit = SectionAudit(
+        section_key="gestion_risques",
+        section_title="Gestion des risques",
+        start_page=84,
+        end_page=94,
+        anchor_page=84,
+        anchor_text="Gestion des risques",
+        anchor_bbox_norm=[0.1, 0.10, 0.8, 0.15],
+        included_blocks=[
+            PDFBlock(
+                "p094_b001",
+                94,
+                [0.1, 0.20, 0.9, 0.25],
+                "La Banque juge qu'il est d'importance critique d'évaluer à intervalles réguliers le contexte.",
+                1,
+                "narrative",
+                True,
+                "",
+            ),
+        ],
+        excluded_blocks=[
+            PDFBlock(
+                "p129_b001",
+                129,
+                [0.1, 0.70, 0.9, 0.73],
+                "CONSOLIDATION DES ENTITÉS STRUCTURÉES",
+                1,
+                "other",
+                False,
+                "non_narrative_block",
+                "section_header",
+                heading_level=3,
+            ),
+            PDFBlock(
+                "p094_b002",
+                94,
+                [0.1, 0.30, 0.9, 0.33],
+                "FACTEURS DE RISQUE ET GESTION DES RISQUES",
+                2,
+                "other",
+                False,
+                "non_narrative_block",
+                "section_header",
+                heading_level=3,
+            ),
+        ],
+    )
+    raw_docling = "\n".join(
+        [
+            "# CONSOLIDATION DES ENTITÉS STRUCTURÉES",
+            "La Banque juge qu'il est d'importance critique d'évaluer à intervalles réguliers le contexte.",
+            "# FACTEURS DE RISQUE ET GESTION DES RISQUES",
+        ]
+    )
+
+    markdown = _build_text_extraction_markdown_from_docling([audit], raw_docling_markdown=raw_docling)
+
+    assert "### CONSOLIDATION DES ENTITÉS STRUCTURÉES" not in markdown
+    assert "### FACTEURS DE RISQUE ET GESTION DES RISQUES" in markdown
+    assert "La Banque juge qu'il est d'importance critique" in markdown
+
+
 def test_build_section_audit_excludes_blocks_outside_target_section_and_tables() -> None:
     section = ResolvedSection(
         section_key="gestion_capital",
@@ -634,6 +830,75 @@ def test_build_section_audit_excludes_blocks_outside_target_section_and_tables()
     assert audit.excluded_blocks[0].exclusion_reason == "outside_target_section"
     assert audit.excluded_blocks[1].block_type == "table"
     assert audit.excluded_blocks[1].exclusion_reason == "table_like_block"
+
+
+def test_raw_docling_markdown_path_uses_role_year_and_quarter(tmp_path: Path) -> None:
+    assert get_raw_docling_markdown_path(tmp_path, "TD", 2025, "T4", "current") == (
+        tmp_path / "outputs" / "text_extractions" / "td" / "2025" / "t4" / "td_current_2025_t4.md"
+    )
+    assert get_raw_docling_markdown_path(tmp_path, "td", 2024, "t4", "previous") == (
+        tmp_path / "outputs" / "text_extractions" / "td" / "2024" / "t4" / "td_previous_2024_t4.md"
+    )
+
+
+def test_extract_audits_for_pdf_writes_raw_docling_markdown_before_filtering(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    raw_markdown = (
+        "# Gestion des risques\n\n"
+        "Texte brut Docling avec un tableau encore présent.\n\n"
+        "| 2025 | 2024 |\n| --- | --- |\n"
+    )
+
+    def _fake_extract_docling_page_blocks(pdf_path: Path, page_numbers: list[int]):
+        assert pdf_path == tmp_path / "td.pdf"
+        assert page_numbers == [7]
+        return (
+            {
+                7: [
+                    PDFBlock(
+                        "p007_d001",
+                        7,
+                        [0.10, 0.35, 0.90, 0.42],
+                        "La banque maintient une gestion prudente des risques et renforce ses contrôles internes.",
+                        1,
+                    ),
+                    PDFBlock("p007_d002", 7, [0.10, 0.60, 0.90, 0.70], "2025 2024 2023 2022", 2),
+                ]
+            },
+            {7: [[0.08, 0.58, 0.92, 0.72]]},
+            {},
+            raw_markdown,
+        )
+
+    monkeypatch.setattr(
+        "vigilance.text_analysis.extraction._extract_docling_page_blocks",
+        _fake_extract_docling_page_blocks,
+    )
+    raw_path = tmp_path / "outputs" / "text_extractions" / "td" / "2025" / "t4" / "td_current_2025_t4.md"
+    section = ResolvedSection(
+        section_key="gestion_risques",
+        title="Gestion des risques",
+        start_page=7,
+        end_page=7,
+        anchor_page=7,
+        anchor_text="Gestion des risques",
+        anchor_bbox_norm=[0.10, 0.20, 0.90, 0.30],
+    )
+
+    audits, written_raw = _extract_audits_for_pdf(
+        pdf_path=tmp_path / "td.pdf",
+        sections={"gestion_risques": section},
+        raw_docling_markdown_path=raw_path,
+    )
+
+    assert raw_path.read_text(encoding="utf-8") == raw_markdown
+    assert "[p." not in written_raw
+    assert "bbox=" not in written_raw
+    assert "block_id=" not in written_raw
+    assert [block.block_id for block in audits[0].included_blocks] == ["p007_d001"]
+    assert audits[0].excluded_blocks[0].block_id == "p007_d002"
 
 
 def test_extract_section_text_from_markdown_returns_matching_section() -> None:
@@ -824,8 +1089,8 @@ def test_compare_section_texts_skips_invalid_diff_types(monkeypatch) -> None:
         client=object(),
         model="gpt-4o",
         section_key="gestion_risques",
-        text_t1="Ancienne idée.",
-        text_t2="Nouvelle idée.",
+        text_t1="### Risque de stratégie\n\nAncienne idée commune.",
+        text_t2="### Risque de stratégie\n\nAncienne idée commune.",
     )
 
     assert len(results) == 2
@@ -851,8 +1116,8 @@ def test_compare_section_texts_prompt_requests_all_observable_changes(monkeypatc
         client=object(),
         model="gpt-4o",
         section_key="gestion_risques",
-        text_t1="La banque surveille ce risque au premier trimestre.",
-        text_t2="Ce risque est surveillé par la banque au deuxième trimestre.",
+        text_t1="### Risque de stratégie\n\nLa banque surveille ce risque au premier trimestre.",
+        text_t2="### Risque de stratégie\n\nCe risque est surveillé par la banque au deuxième trimestre.",
     )
 
     prompt = "\n".join(str(msg.get("content", "")) for msg in captured["messages"])
@@ -888,7 +1153,7 @@ def test_build_text_extraction_markdown_keeps_headings_and_narrative_only() -> N
     assert "TABLEAU 5" not in markdown
 
 
-def test_build_text_extraction_markdown_displays_printed_page_and_keeps_pdf_page() -> None:
+def test_build_text_extraction_markdown_inline_pdf_page_on_headings_only() -> None:
     audit = SectionAudit(
         section_key="gestion_capital",
         section_title="Gestion du capital",
@@ -914,22 +1179,35 @@ def test_build_text_extraction_markdown_displays_printed_page_and_keeps_pdf_page
         semantic_units=[],
     )
 
-    markdown = _build_text_extraction_markdown([audit], page_number_offset=2)
+    markdown = _build_text_extraction_markdown([audit])
     page_index, section_start_pages = _parse_page_index_from_markdown(markdown)
 
-    assert markdown.startswith("[p.58 | pdf.60]\n## Gestion du capital")
-    assert "[p.58 | pdf.60]\nLa banque maintient" in markdown
+    assert markdown.startswith("## Gestion du capital [pdf.60]")
+    assert "[pdf." not in markdown.split("La banque", 1)[1]
     assert page_index["gestion_capital"] == [
         (60, "La banque maintient un niveau prudent de fonds propres.")
     ]
     assert section_start_pages["gestion_capital"] == 60
 
 
-def test_page_marker_without_offset_keeps_legacy_format() -> None:
-    assert _format_page_marker(62, page_number_offset=0) == "[p.62]"
+def test_format_page_suffix_pdf_only() -> None:
+    assert _format_page_suffix(84) == " [pdf.84]"
+    assert _format_page_marker(62) == "[pdf.62]"
 
 
-def test_extract_section_text_from_markdown_strips_printed_and_pdf_page_marker() -> None:
+def test_extract_section_text_from_markdown_strips_inline_pdf_page_marker() -> None:
+    md = (
+        "## Gestion du capital [pdf.60]\n\n"
+        "### Sous-section [pdf.61]\n\n"
+        "La banque maintient un niveau prudent de fonds propres.\n"
+    )
+
+    capital = _extract_section_text_from_markdown(md, "gestion_capital")
+
+    assert capital == "### Sous-section\n\nLa banque maintient un niveau prudent de fonds propres."
+
+
+def test_extract_section_text_from_markdown_strips_legacy_standalone_markers() -> None:
     md = (
         "[p.58 | pdf.60]\n"
         "## Gestion du capital\n\n"
@@ -942,19 +1220,35 @@ def test_extract_section_text_from_markdown_strips_printed_and_pdf_page_marker()
     assert capital == "La banque maintient un niveau prudent de fonds propres."
 
 
-def test_rewrite_page_markers_for_display_migrates_legacy_markers() -> None:
+def test_parse_page_index_inherits_page_from_heading() -> None:
+    md = (
+        "## Gestion du capital [pdf.60]\n\n"
+        "### Objectifs [pdf.61]\n\n"
+        "Premier paragraphe.\n\n"
+        "Deuxieme paragraphe.\n"
+    )
+    page_index, section_start_pages = _parse_page_index_from_markdown(md)
+
+    assert section_start_pages["gestion_capital"] == 60
+    assert page_index["gestion_capital"] == [
+        (61, "Premier paragraphe."),
+        (61, "Deuxieme paragraphe."),
+    ]
+
+
+def test_rewrite_migrates_legacy_markers_to_pdf_inline() -> None:
     md = "[p.60]\n## Gestion du capital\n\n[p.61]\nUn paragraphe.\n"
 
-    rewritten = _rewrite_page_markers_for_display(md, page_number_offset=2)
+    rewritten = _rewrite_page_markers_for_display(md)
     page_index, section_start_pages = _parse_page_index_from_markdown(rewritten)
 
-    assert rewritten.startswith("[p.58 | pdf.60]\n## Gestion du capital")
-    assert "[p.59 | pdf.61]\nUn paragraphe." in rewritten
+    assert rewritten.startswith("## Gestion du capital [pdf.60]")
+    assert "[pdf." not in "Un paragraphe."
     assert section_start_pages["gestion_capital"] == 60
-    assert page_index["gestion_capital"] == [(61, "Un paragraphe.")]
+    assert page_index["gestion_capital"] == [(60, "Un paragraphe.")]
 
 
-def test_build_text_extraction_markdown_drops_orphan_heading_without_body() -> None:
+def test_build_text_extraction_markdown_keeps_orphan_heading_for_audit() -> None:
     audit = SectionAudit(
         section_key="gestion_capital",
         section_title="Gestion du capital",
@@ -972,7 +1266,257 @@ def test_build_text_extraction_markdown_drops_orphan_heading_without_body() -> N
 
     markdown = _build_text_extraction_markdown([audit])
 
-    assert "### Accord de Bâle" not in markdown
+    assert "### Accord de Bâle" in markdown
+
+
+def test_build_text_extraction_markdown_from_docling_keeps_headings_and_order() -> None:
+    raw_docling = (
+        "## Situation des fonds propres\n\n"
+        "| 2025 | 2024 |\n"
+        "| --- | --- |\n"
+        "| 10 | 9 |\n\n"
+        "## OBJECTIFS DE LA BANQUE EN MATIÈRE DE GESTION DES FONDS PROPRES\n\n"
+        "Les objectifs de la Banque en matière de gestion des fonds propres sont les suivants :\n\n"
+        "- Maintenir des fonds propres adéquats compte tenu du profil de risque de la Banque.\n\n"
+        "## SOURCES DES FONDS PROPRES\n\n"
+        "Les fonds propres de la Banque proviennent principalement des actionnaires ordinaires.\n"
+    )
+    audit = SectionAudit(
+        section_key="gestion_capital",
+        section_title="Gestion du capital",
+        start_page=74,
+        end_page=74,
+        anchor_page=73,
+        anchor_text="Gestion du capital",
+        anchor_bbox_norm=[0.1, 0.2, 0.8, 0.25],
+        included_blocks=[
+            PDFBlock(
+                "p074_d002",
+                74,
+                [0.1, 0.33, 0.9, 0.36],
+                "Les objectifs de la Banque en matière de gestion des fonds propres sont les suivants :",
+                2,
+                "narrative",
+                True,
+                "",
+                "paragraph",
+            ),
+            PDFBlock(
+                "p074_d003",
+                74,
+                [0.1, 0.40, 0.9, 0.43],
+                "Maintenir des fonds propres adéquats compte tenu du profil de risque de la Banque.",
+                3,
+                "narrative",
+                True,
+                "",
+                "paragraph",
+            ),
+            PDFBlock(
+                "p074_d004",
+                74,
+                [0.1, 0.50, 0.9, 0.53],
+                "Les fonds propres de la Banque proviennent principalement des actionnaires ordinaires.",
+                4,
+                "narrative",
+                True,
+                "",
+                "paragraph",
+            ),
+        ],
+        excluded_blocks=[
+            PDFBlock(
+                "p074_d001",
+                74,
+                [0.1, 0.28, 0.8, 0.31],
+                "OBJECTIFS DE LA BANQUE EN MATIÈRE DE GESTION DES FONDS PROPRES",
+                1,
+                "other",
+                False,
+                "non_narrative_block",
+                "section_header",
+                heading_level=1,
+            ),
+            PDFBlock(
+                "p074_d005",
+                74,
+                [0.1, 0.55, 0.8, 0.58],
+                "SOURCES DES FONDS PROPRES",
+                5,
+                "other",
+                False,
+                "non_narrative_block",
+                "section_header",
+                heading_level=1,
+            ),
+        ],
+        semantic_units=[],
+    )
+
+    markdown = _build_text_extraction_markdown([audit], raw_docling_markdown=raw_docling)
+
+    assert "## Gestion du capital" in markdown
+    assert "### OBJECTIFS DE LA BANQUE EN MATIÈRE DE GESTION DES FONDS PROPRES" in markdown
+    assert "### SOURCES DES FONDS PROPRES" in markdown
+    assert "Les objectifs de la Banque" in markdown
+    assert "Maintenir des fonds propres adéquats" in markdown
+    assert "| 2025 |" not in markdown
+    assert "Situation des fonds propres" not in markdown
+    assert markdown.index("### OBJECTIFS") < markdown.index("Les objectifs de la Banque")
+    assert markdown.index("Les objectifs de la Banque") < markdown.index("### SOURCES DES FONDS PROPRES")
+
+
+def test_build_text_extraction_markdown_keeps_all_caps_heading_excluded_as_table() -> None:
+    audit = SectionAudit(
+        section_key="gestion_capital",
+        section_title="Gestion du capital",
+        start_page=76,
+        end_page=76,
+        anchor_page=75,
+        anchor_text="Gestion du capital",
+        anchor_bbox_norm=[0.1, 0.2, 0.8, 0.25],
+        included_blocks=[
+            PDFBlock(
+                "p076_d002",
+                76,
+                [0.1, 0.33, 0.9, 0.36],
+                "Les objectifs de la Banque en matière de gestion des fonds propres sont les suivants :",
+                2,
+                "narrative",
+                True,
+                "",
+                "paragraph",
+            ),
+        ],
+        excluded_blocks=[
+            PDFBlock(
+                "p076_d001",
+                76,
+                [0.1, 0.28, 0.8, 0.31],
+                "OBJECTIFS DE LA BANQUE EN MATIÈRE DE GESTION DES FONDS PROPRES",
+                1,
+                "table",
+                False,
+                "table_like_block",
+                "section_header",
+                heading_level=1,
+            ),
+        ],
+        semantic_units=[],
+    )
+
+    markdown = _build_text_extraction_markdown([audit])
+
+    assert "### OBJECTIFS DE LA BANQUE EN MATIÈRE DE GESTION DES FONDS PROPRES" in markdown
+    assert markdown.index("### OBJECTIFS") < markdown.index("Les objectifs de la Banque")
+
+
+def test_classify_block_type_preserves_docling_heading_over_table_overlap() -> None:
+    block = PDFBlock(
+        "p076_d001",
+        76,
+        [0.1, 0.28, 0.8, 0.31],
+        "OBJECTIFS DE LA BANQUE EN MATIÈRE DE GESTION DES FONDS PROPRES",
+        1,
+        "other",
+        False,
+        "",
+        "section_header",
+        heading_level=1,
+    )
+    table_bboxes = [[0.08, 0.20, 0.92, 0.35]]
+
+    assert _classify_block_type(block, {}, table_bboxes=table_bboxes) == "other"
+
+
+def test_classify_block_type_rejects_table_column_header_labeled_as_section_header() -> None:
+    block = PDFBlock(
+        "p077_d010",
+        77,
+        [0.2, 0.40, 0.5, 0.43],
+        "Réserve de conservation des fonds propres",
+        10,
+        "other",
+        False,
+        "",
+        "section_header",
+    )
+    table_bboxes = [[0.08, 0.35, 0.95, 0.55]]
+
+    assert _classify_block_type(block, {}, table_bboxes=table_bboxes) == "table"
+
+
+def test_build_text_extraction_markdown_keeps_consecutive_headings() -> None:
+    audit = SectionAudit(
+        section_key="gestion_risques",
+        section_title="Gestion des risques",
+        start_page=10,
+        end_page=10,
+        anchor_page=10,
+        anchor_text="Gestion des risques",
+        anchor_bbox_norm=[0.1, 0.2, 0.8, 0.25],
+        included_blocks=[
+            PDFBlock(
+                "p010_d003",
+                10,
+                [0.1, 0.36, 0.8, 0.45],
+                "La Banque décrit les contrôles et les responsabilités associés au risque.",
+                3,
+                "narrative",
+                True,
+                "",
+                "text",
+            ),
+        ],
+        excluded_blocks=[
+            PDFBlock(
+                "p010_d001",
+                10,
+                [0.1, 0.28, 0.8, 0.31],
+                "Risque opérationnel",
+                1,
+                "other",
+                False,
+                "non_narrative_block",
+                "section_header",
+            ),
+            PDFBlock(
+                "p010_d002",
+                10,
+                [0.1, 0.32, 0.8, 0.35],
+                "Résilience opérationnelle",
+                2,
+                "other",
+                False,
+                "non_narrative_block",
+                "section_header",
+            ),
+        ],
+        semantic_units=[],
+    )
+
+    markdown = _build_text_extraction_markdown([audit])
+
+    assert "### Risque opérationnel" in markdown
+    assert "### Résilience opérationnelle" in markdown
+    assert markdown.index("### Risque opérationnel") < markdown.index("### Résilience opérationnelle")
+
+
+def test_compare_section_texts_skips_empty_orphan_headings(monkeypatch) -> None:
+    monkeypatch.setattr(
+        "vigilance.text_analysis_pipeline._compare_texts_single_call",
+        lambda **kw: [],
+    )
+
+    changes = _compare_section_texts(
+        client=object(),
+        model="gpt-4o",
+        section_key="gestion_risques",
+        text_t1="### Header sans corps\n\n### Header apparié\n\nCorps T1.",
+        text_t2="### Header apparié\n\nCorps T2.",
+    )
+
+    assert [change for change in changes if change["diff_type"] == "removed"] == []
 
 
 def test_run_text_analysis_pipeline_writes_md_as_source_of_truth(monkeypatch, tmp_path: Path) -> None:
@@ -1022,7 +1566,7 @@ def test_run_text_analysis_pipeline_writes_md_as_source_of_truth(monkeypatch, tm
     )
     monkeypatch.setattr(
         "vigilance.text_analysis_pipeline._extract_audits_for_pdf",
-        lambda **kwargs: [audit_prev] if "prev" in str(kwargs["pdf_path"]) else [audit_curr],
+        lambda **kwargs: ([audit_prev], "") if "prev" in str(kwargs["pdf_path"]) else ([audit_curr], ""),
     )
 
     def _fake_compare_section_texts(**kwargs):
@@ -1104,9 +1648,270 @@ def test_parse_subsections_returns_empty_for_blank_text() -> None:
     assert _parse_subsections("   \n  ") == []
 
 
+def test_chunk_subsection_text_splits_long_paragraphs_into_chunks() -> None:
+    paragraphs = [
+        (
+            "Le risque de stratégie s'entend de la possibilité d'une perte financière ou d'une atteinte "
+            "à la réputation attribuable à des stratégies commerciales inefficaces et à des réponses "
+            "inadéquates aux changements du contexte commercial."
+        ),
+        (
+            "Le risque de stratégie découle du risque que l'adoption de stratégies d'entreprise ou "
+            "d'affaires n'aboutisse pas au résultat attendu en raison d'une mauvaise prise de décision "
+            "ou d'une mise en œuvre inefficace."
+        ),
+        (
+            "Le groupe Stratégies de l'organisation supervise le processus de planification stratégique "
+            "et travaille avec les secteurs d'activité afin de détecter, de surveiller et d'atténuer les "
+            "risques à l'échelle de l'organisation."
+        ),
+        (
+            "Le cadre promeut la cohérence et la conformité aux normes de gestion, y compris l'utilisation "
+            "des résultats de simulations de crise pour éclairer les décisions et tester les hypothèses "
+            "stratégiques."
+        ),
+        (
+            "Le risque stratégique englobe également le risque d'entreprise découlant des activités propres "
+            "à l'entreprise et les répercussions que ces activités pourraient avoir sur les résultats."
+        ),
+        (
+            "Notre performance financière dépend notamment de notre capacité à mettre en œuvre les plans "
+            "stratégiques qu'élabore la direction et à repérer les risques émergents d'importance."
+        ),
+    ]
+
+    chunks = _chunk_subsection_text(
+        "\n\n".join(paragraphs),
+        subsection_heading="Risque de stratégie",
+        section_title="Gestion des risques",
+    )
+
+    assert [chunk.chunk_id for chunk in chunks] == ["c00", "c01", "c02", "c03", "c04", "c05"]
+    assert [chunk.kind for chunk in chunks] == ["paragraph"] * 6
+    assert chunks[0].hierarchy_path == "Gestion des risques > Risque de stratégie"
+    assert chunks[5].text.startswith("Notre performance financière")
+
+
+def test_chunk_subsection_text_keeps_pdf_bullet_list_as_one_chunk() -> None:
+    text = (
+        "‰ est appropriée, compte tenu des ratios cibles de BMO pour les fonds propres réglementaires;\n\n"
+        "‰ soutient les stratégies des groupes d'exploitation de BMO et tient compte du contexte du marché;\n\n"
+        "‰ maintient la confiance des déposants, des investisseurs et des organismes de réglementation."
+    )
+
+    chunks = _chunk_subsection_text(text, subsection_heading="Objectif", section_title="Gestion du capital")
+
+    assert len(chunks) == 1
+    assert chunks[0].kind == "list"
+    assert chunks[0].text.count("‰") == 3
+
+
+def test_chunk_subsection_text_keeps_markdown_bullet_list_as_one_chunk() -> None:
+    text = (
+        "- premier élément de liste qui décrit une exigence de gouvernance;\n\n"
+        "- deuxième élément de liste qui décrit une exigence de surveillance;\n\n"
+        "- troisième élément de liste qui décrit une exigence de communication."
+    )
+
+    chunks = _chunk_subsection_text(text, subsection_heading="Objectif", section_title="Gestion du capital")
+
+    assert len(chunks) == 1
+    assert chunks[0].kind == "list"
+    assert chunks[0].text.count("- ") == 3
+
+
+def test_chunk_subsection_text_merges_short_block_with_previous() -> None:
+    first = (
+        "Ce paragraphe est assez long pour former un chunk autonome et décrit les responsabilités de "
+        "surveillance, de contrôle, de gouvernance et de reddition de comptes dans la section."
+    )
+    short = "Bloc court."
+    second = (
+        "Ce second paragraphe est aussi assez long pour rester séparé et il décrit les mécanismes de "
+        "suivi, les rapports périodiques et les indicateurs utilisés par la direction."
+    )
+
+    chunks = _chunk_subsection_text("\n\n".join([first, short, second]), subsection_heading="Gouvernance")
+
+    assert len(chunks) == 2
+    assert chunks[0].text.endswith(short)
+    assert chunks[1].text == second
+
+
+def test_chunk_subsection_text_merges_first_short_block_with_next() -> None:
+    first = "Demande de capital"
+    second = (
+        "Ce paragraphe est suffisamment long pour absorber le libellé court qui le précède et former "
+        "un seul chunk utile pour la comparaison sémantique entre deux rapports trimestriels."
+    )
+
+    chunks = _chunk_subsection_text("\n\n".join([first, second]), subsection_heading="Cadre")
+
+    assert len(chunks) == 1
+    assert chunks[0].text.startswith(first)
+    assert second in chunks[0].text
+
+
+def test_chunk_subsection_text_excludes_markdown_headings() -> None:
+    paragraph = (
+        "Ce paragraphe narratif est assez long pour être conservé comme chunk autonome et il ne doit "
+        "pas inclure le titre markdown qui le précède dans le texte remis au modèle."
+    )
+
+    chunks = _chunk_subsection_text(f"### Titre à exclure\n\n{paragraph}", subsection_heading="Titre réel")
+
+    assert len(chunks) == 1
+    assert chunks[0].text == paragraph
+    assert "###" not in chunks[0].text
+    assert "Titre à exclure" not in chunks[0].text
+
+
+def test_align_chunks_tfidf_matches_shifted_chunks_and_marks_added() -> None:
+    previous = [
+        (
+            "La définition du risque stratégique décrit la possibilité de pertes financières, "
+            "de décisions commerciales inefficaces et de réponses inadéquates au contexte."
+        ),
+        (
+            "Le groupe Stratégies de l'organisation supervise la planification stratégique, "
+            "les contrôles de gouvernance et la surveillance des risques émergents."
+        ),
+    ]
+    current = [
+        previous[0],
+        (
+            "La banque ajoute un paragraphe distinct sur l'intelligence artificielle, les modèles "
+            "analytiques et la surveillance des nouveaux outils numériques."
+        ),
+        previous[1],
+    ]
+    chunks_t1 = _chunk_subsection_text("\n\n".join(previous), subsection_heading="Risque de stratégie")
+    chunks_t2 = _chunk_subsection_text("\n\n".join(current), subsection_heading="Risque de stratégie")
+
+    alignments = _align_chunks_tfidf(chunks_t1, chunks_t2)
+    matched_pairs = {
+        (alignment.chunk_t1.chunk_id, alignment.chunk_t2.chunk_id)
+        for alignment in alignments
+        if alignment.chunk_t1 and alignment.chunk_t2
+    }
+    added = [alignment for alignment in alignments if alignment.alignment_type == "possible_added"]
+
+    assert ("c00", "c00") in matched_pairs
+    assert ("c01", "c02") in matched_pairs
+    assert len(added) == 1
+    assert added[0].chunk_t2.chunk_id == "c01"
+    assert added[0].candidates_t1_for_t2
+
+
+def test_align_chunks_tfidf_enforces_one_to_one() -> None:
+    previous = (
+        "Le cadre de gouvernance du risque stratégique prévoit une surveillance indépendante, "
+        "des simulations de crise et des rapports réguliers au conseil."
+    )
+    current = "\n\n".join([previous, previous])
+    chunks_t1 = _chunk_subsection_text(previous, subsection_heading="Risque de stratégie")
+    chunks_t2 = _chunk_subsection_text(current, subsection_heading="Risque de stratégie")
+
+    alignments = _align_chunks_tfidf(chunks_t1, chunks_t2)
+    matched = [alignment for alignment in alignments if alignment.chunk_t1 and alignment.chunk_t2]
+    added = [alignment for alignment in alignments if alignment.alignment_type == "possible_added"]
+
+    assert len(matched) == 1
+    assert matched[0].chunk_t1.chunk_id == "c00"
+    assert len(added) == 1
+    assert added[0].chunk_t2.chunk_id == "c01"
+
+
+def test_alignment_prompt_limits_weak_candidate_context() -> None:
+    primary_text = (
+        "Le risque stratégique est surveillé par un cadre de gouvernance précis avec des contrôles "
+        "internes et des rapports réguliers destinés au conseil."
+    )
+    long_candidate_text = (
+        "Ce candidat alternatif contient un texte très long qui ne devrait pas être recopié au complet "
+        "dans le prompt lorsque l'alignement est faible mais déjà apparié à une paire principale. "
+        "La limitation protège la taille du contexte transmis au modèle et conserve seulement un "
+        "extrait utile pour vérifier rapidement qu'il ne s'agit pas d'un meilleur candidat local. "
+        "Cette dernière phrase ne doit pas apparaître dans le prompt si l'extrait est bien tronqué."
+    )
+    primary_t1 = _chunk_subsection_text(primary_text, subsection_heading="Risque de stratégie")[0]
+    primary_t2 = _chunk_subsection_text(primary_text, subsection_heading="Risque de stratégie")[0]
+    long_candidate = _chunk_subsection_text(long_candidate_text, subsection_heading="Risque de stratégie")[0]
+    alignments = [
+        ChunkAlignment(
+            alignment_id="a00",
+            alignment_type="matched_weak",
+            chunk_t1=primary_t1,
+            chunk_t2=primary_t2,
+            similarity_score=0.53,
+            candidates_t1_for_t2=[
+                ChunkCandidate("c00", long_candidate.chunk_id, 0.22, long_candidate),
+            ],
+            candidates_t2_for_t1=[],
+            reason="tfidf_one_to_one",
+        )
+    ]
+
+    prompt_t1, prompt_t2 = _format_alignments_for_prompt(alignments)
+    prompt = f"{prompt_t1}\n{prompt_t2}"
+
+    assert "extrait 300 caractères" in prompt
+    assert "Cette dernière phrase ne doit pas apparaître" not in prompt
+
+
+def test_build_comparison_batches_uses_type_specific_sizes() -> None:
+    base_chunk = _chunk_subsection_text(
+        "Le risque stratégique est surveillé par un cadre de gouvernance précis avec des contrôles internes.",
+        subsection_heading="Risque de stratégie",
+    )[0]
+    alignments = [
+        ChunkAlignment(f"a{index:02d}", "matched_strong", base_chunk, base_chunk, 0.95, [], [], "test")
+        for index in range(6)
+    ]
+    alignments.extend(
+        ChunkAlignment(f"w{index:02d}", "matched_weak", base_chunk, base_chunk, 0.55, [], [], "test")
+        for index in range(4)
+    )
+    alignments.extend(
+        [
+            ChunkAlignment("x00", "ambiguous", base_chunk, base_chunk, 0.40, [], [], "test"),
+            ChunkAlignment("x01", "possible_added", None, base_chunk, 0.0, [], [], "test"),
+            ChunkAlignment("x02", "possible_removed", base_chunk, None, 0.0, [], [], "test"),
+        ]
+    )
+
+    batches = _build_comparison_batches(
+        alignments=alignments,
+        heading_label="Risque de stratégie",
+        heading_slug="risque_de_strategie",
+    )
+
+    assert [(batch.alignment_type, len(batch.alignments)) for batch in batches] == [
+        ("matched_strong", 5),
+        ("matched_strong", 1),
+        ("matched_weak", 3),
+        ("matched_weak", 1),
+        ("ambiguous", 1),
+        ("possible_added", 1),
+        ("possible_removed", 1),
+    ]
+    assert [batch.batch_id for batch in batches] == ["b00", "b01", "b02", "b03", "b04", "b05", "b06"]
+
+
 def test_normalize_heading_strips_table_prefix_and_lowercases() -> None:
     assert _normalize_heading("T22 Mesures du risque de marché") == "mesures du risque de marché"
     assert _normalize_heading("Risque de liquidité") == "risque de liquidité"
+
+
+def test_normalize_heading_strips_pdf_page_suffixes() -> None:
+    assert (
+        _normalize_heading("Structure de la gouvernance du risque [pdf.62]")
+        == "structure de la gouvernance du risque"
+    )
+    assert (
+        _normalize_heading("Structure de la gouvernance du risque [pdf.56]")
+        == "structure de la gouvernance du risque"
+    )
 
 
 def test_normalize_heading_treats_renamed_tariff_headings_as_distinct() -> None:
@@ -1124,6 +1929,22 @@ def test_pair_subsections_matches_identical_headings() -> None:
 
     assert len(pairs) == 2
     assert all(h1 is not None and h2 is not None for h1, _, h2, _ in pairs)
+
+
+def test_pair_subsections_matches_headings_with_different_pdf_page_suffixes() -> None:
+    subs_t1 = [("Structure de la gouvernance du risque [pdf.62]", "Corps T1")]
+    subs_t2 = [("Structure de la gouvernance du risque [pdf.56]", "Corps T2")]
+
+    pairs = _pair_subsections(subs_t1, subs_t2)
+
+    assert pairs == [
+        (
+            "Structure de la gouvernance du risque [pdf.62]",
+            "Corps T1",
+            "Structure de la gouvernance du risque [pdf.56]",
+            "Corps T2",
+        )
+    ]
 
 
 def test_pair_subsections_marks_t1_only_heading_as_removed() -> None:
@@ -1148,25 +1969,28 @@ def test_pair_subsections_marks_t2_only_heading_as_added() -> None:
     assert added[0][1] == "Incidence des tarifs"
 
 
-def test_compare_section_texts_falls_back_to_single_call_when_no_subsections(monkeypatch) -> None:
-    """Sections sans ### doivent toujours produire un seul appel GPT."""
-    calls: list[str] = []
+def test_compare_section_texts_rejects_non_empty_sections_without_subsections() -> None:
+    """Sections non vides sans ### doivent échouer explicitement."""
+    with pytest.raises(TextAnalysisQualityError, match="sans sous-sections ###"):
+        _compare_section_texts(
+            client=object(),
+            model="gpt-4o",
+            section_key="gestion_risques",
+            text_t1="Texte T1 sans sous-sections.",
+            text_t2="Texte T2 sans sous-sections.",
+        )
 
-    def fake_single_call(*, client, model, section_key, heading_label, heading_slug, text_t1, text_t2, idx_offset):
-        calls.append(heading_slug)
-        return []
 
-    monkeypatch.setattr("vigilance.text_analysis_pipeline._compare_texts_single_call", fake_single_call)
-
-    _compare_section_texts(
-        client=object(),
-        model="gpt-4o",
-        section_key="gestion_risques",
-        text_t1="Texte T1 sans sous-sections.",
-        text_t2="Texte T2 sans sous-sections.",
-    )
-
-    assert calls == ["full"]
+def test_compare_section_texts_rejects_matched_subsection_without_chunks() -> None:
+    """Une sous-section appariée avec corps vide ne doit pas repasser en brut."""
+    with pytest.raises(TextAnalysisQualityError, match="Sous-section appariée sans chunk T1"):
+        _compare_section_texts(
+            client=object(),
+            model="gpt-4o",
+            section_key="gestion_risques",
+            text_t1="### Risque de stratégie\n\n",
+            text_t2="### Risque de stratégie\n\nCorps T2 assez long pour former un chunk narratif valide.",
+        )
 
 
 def test_compare_section_texts_calls_gpt_once_per_subsection_pair(monkeypatch) -> None:
@@ -1191,6 +2015,184 @@ def test_compare_section_texts_calls_gpt_once_per_subsection_pair(monkeypatch) -
     )
 
     assert len(calls) == 2
+
+
+def test_compare_section_texts_sends_chunked_subsection_bodies(monkeypatch) -> None:
+    captured: dict[str, str] = {}
+
+    def fake_single_call(*, client, model, section_key, heading_label, heading_slug, text_t1, text_t2, idx_offset):
+        captured["text_t1"] = text_t1
+        captured["text_t2"] = text_t2
+        return []
+
+    monkeypatch.setattr("vigilance.text_analysis_pipeline._compare_texts_single_call", fake_single_call)
+
+    paragraph_a = (
+        "Le risque de stratégie s'entend de la possibilité d'une perte financière ou d'une atteinte à la "
+        "réputation attribuable à des stratégies commerciales inefficaces et à des réponses inadéquates."
+    )
+    paragraph_b = (
+        "Le groupe Stratégies de l'organisation supervise le processus de planification stratégique et "
+        "travaille avec les secteurs d'activité afin de détecter, de surveiller et d'atténuer les risques."
+    )
+
+    _compare_section_texts(
+        client=object(),
+        model="gpt-4o",
+        section_key="gestion_risques",
+        text_t1=f"### Risque de stratégie\n\n{paragraph_a}\n\n{paragraph_b}",
+        text_t2=f"### Risque de stratégie\n\n{paragraph_a}\n\n{paragraph_b}",
+    )
+
+    assert "[c00 | paragraph | Gestion des risques > Risque de stratégie]" in captured["text_t1"]
+    assert "[c01 | paragraph | Gestion des risques > Risque de stratégie]" in captured["text_t1"]
+    assert paragraph_a in captured["text_t1"]
+    assert paragraph_b in captured["text_t2"]
+
+
+def test_compare_section_texts_sends_tfidf_alignment_context(monkeypatch) -> None:
+    calls: list[dict[str, str]] = []
+
+    def fake_single_call(*, client, model, section_key, heading_label, heading_slug, text_t1, text_t2, idx_offset):
+        calls.append({"text_t1": text_t1, "text_t2": text_t2})
+        return []
+
+    monkeypatch.setattr("vigilance.text_analysis_pipeline._compare_texts_single_call", fake_single_call)
+
+    previous = (
+        "Le cadre de gouvernance du risque stratégique prévoit une surveillance indépendante, "
+        "des simulations de crise et des rapports réguliers au conseil d'administration."
+    )
+    added = (
+        "La banque ajoute un paragraphe distinct sur l'intelligence artificielle, les modèles "
+        "analytiques et la surveillance des nouveaux outils numériques."
+    )
+
+    _compare_section_texts(
+        client=object(),
+        model="gpt-4o",
+        section_key="gestion_risques",
+        text_t1=f"### Risque de stratégie\n\n{previous}",
+        text_t2=f"### Risque de stratégie\n\n{previous}\n\n{added}",
+    )
+
+    joined_t1 = "\n".join(call["text_t1"] for call in calls)
+    joined_t2 = "\n".join(call["text_t2"] for call in calls)
+    assert "[a00 | matched_strong" in joined_t1
+    assert "[a01 | possible_added" in joined_t2
+    assert "Meilleurs candidats T1 à vérifier" in joined_t2
+    assert "[c00 | paragraph | Gestion des risques > Risque de stratégie]" in joined_t1
+
+
+def test_compare_section_texts_splits_large_alignment_set_into_batches(monkeypatch) -> None:
+    calls: list[dict[str, str]] = []
+
+    def fake_single_call(*, client, model, section_key, heading_label, heading_slug, text_t1, text_t2, idx_offset):
+        calls.append({"text_t1": text_t1, "text_t2": text_t2})
+        return []
+
+    monkeypatch.setattr("vigilance.text_analysis_pipeline._compare_texts_single_call", fake_single_call)
+
+    paragraphs = [
+        (
+            f"Le paragraphe {index} décrit un contrôle stratégique distinct, une responsabilité de gouvernance "
+            f"et un mécanisme de surveillance propre au risque de stratégie pour produire un chunk autonome."
+        )
+        for index in range(6)
+    ]
+    body = "\n\n".join(paragraphs)
+
+    _compare_section_texts(
+        client=object(),
+        model="gpt-4o",
+        section_key="gestion_risques",
+        text_t1=f"### Risque de stratégie\n\n{body}",
+        text_t2=f"### Risque de stratégie\n\n{body}",
+    )
+
+    assert len(calls) == 2
+    first_batch = next(call for call in calls if "[c00 |" in call["text_t1"])
+    second_batch = next(call for call in calls if "[c05 |" in call["text_t1"])
+    assert "[c04 |" in first_batch["text_t1"]
+    assert "[c05 |" not in first_batch["text_t1"]
+    assert "[c00 |" not in second_batch["text_t1"]
+
+
+def test_compare_section_texts_merges_parallel_batch_results_in_source_order(monkeypatch) -> None:
+    def fake_single_call(*, client, model, section_key, heading_label, heading_slug, text_t1, text_t2, idx_offset):
+        if "[c05 |" in text_t2:
+            label = "second_batch"
+        else:
+            label = "first_batch"
+        return [
+            {
+                "change_id": f"temporary_{label}",
+                "section_key": section_key,
+                "subsection_heading": heading_label,
+                "diff_type": "modified",
+                "semantic_text_t1": label,
+                "semantic_text_t2": label,
+                "source_text_t1": label,
+                "source_text_t2": label,
+                "source_block_ids_t1": [],
+                "source_block_ids_t2": [],
+                "source_refs_t1": [],
+                "source_refs_t2": [],
+                "pages_t1": [],
+                "pages_t2": [],
+                "source_resolution_t1": "markdown",
+                "source_resolution_t2": "markdown",
+                "evidence_t1": {"pages": [], "snippet": label},
+                "evidence_t2": {"pages": [], "snippet": label},
+                "change_summary": label,
+            }
+        ]
+
+    monkeypatch.setattr("vigilance.text_analysis_pipeline._compare_texts_single_call", fake_single_call)
+
+    paragraphs = [
+        (
+            f"Le paragraphe {index} décrit un contrôle stratégique distinct, une responsabilité de gouvernance "
+            f"et un mécanisme de surveillance propre au risque de stratégie pour produire un chunk autonome."
+        )
+        for index in range(6)
+    ]
+    body = "\n\n".join(paragraphs)
+
+    changes = _compare_section_texts(
+        client=object(),
+        model="gpt-4o",
+        section_key="gestion_risques",
+        text_t1=f"### Risque de stratégie\n\n{body}",
+        text_t2=f"### Risque de stratégie\n\n{body}",
+    )
+
+    assert [change["source_text_t2"] for change in changes] == ["first_batch", "second_batch"]
+    assert [change["change_id"] for change in changes] == [
+        "gestion_risques_risque_de_stratégie_change_001",
+        "gestion_risques_risque_de_stratégie_change_002",
+    ]
+
+
+def test_compare_section_texts_reports_batch_id_on_batch_failure(monkeypatch) -> None:
+    def fake_single_call(**kwargs):
+        raise RuntimeError("boom")
+
+    monkeypatch.setattr("vigilance.text_analysis_pipeline._compare_texts_single_call", fake_single_call)
+
+    paragraph = (
+        "Le risque stratégique est surveillé par un cadre de gouvernance précis avec des contrôles internes "
+        "et des rapports réguliers destinés au conseil afin de former un chunk autonome."
+    )
+
+    with pytest.raises(RuntimeError, match="b00"):
+        _compare_section_texts(
+            client=object(),
+            model="gpt-4o",
+            section_key="gestion_risques",
+            text_t1=f"### Risque de stratégie\n\n{paragraph}",
+            text_t2=f"### Risque de stratégie\n\n{paragraph}",
+        )
 
 
 def test_compare_section_texts_synthetic_change_for_removed_subsection(monkeypatch) -> None:
@@ -1377,6 +2379,66 @@ def test_compare_section_texts_resolves_renamed_subsection(monkeypatch) -> None:
     assert renamed_changes[0]["source_text_t1"] == "Incidence des tarifs"
     assert renamed_changes[0]["source_text_t2"] == "Incidence des tarifs douaniers"
     assert "Sous-section renommée" in renamed_changes[0]["change_summary"]
+
+
+def test_bmo_risque_de_strategie_2024_t4_chunks_into_six() -> None:
+    md_path = Path("outputs/resultats/bmo/2025_t4_vs_2024_t4/text_extraction_2024_t4.md")
+    if not md_path.exists():
+        pytest.skip("Artefact local BMO 2024 T4 absent.")
+
+    section_text = _extract_section_text_from_markdown(md_path.read_text(encoding="utf-8"), "gestion_risques")
+    subsections = dict(_parse_subsections(section_text))
+    body = subsections["Risque de stratégie"]
+
+    chunks = _chunk_subsection_text(
+        body,
+        subsection_heading="Risque de stratégie",
+        section_title="Gestion des risques",
+    )
+
+    assert [chunk.chunk_id for chunk in chunks] == ["c00", "c01", "c02", "c03", "c04", "c05"]
+    assert all(chunk.kind == "paragraph" for chunk in chunks)
+    assert chunks[0].text.startswith("Le risque de stratégie s'entend")
+    assert chunks[-1].text.startswith("Notre performance financière dépend")
+
+
+def test_bmo_risque_de_strategie_tfidf_alignment_stays_local() -> None:
+    previous_path = Path("outputs/resultats/bmo/2025_t4_vs_2024_t4/text_extraction_2024_t4.md")
+    current_path = Path("outputs/resultats/bmo/2025_t4_vs_2024_t4/text_extraction_2025_t4.md")
+    if not previous_path.exists() or not current_path.exists():
+        pytest.skip("Artefacts locaux BMO T4 absents.")
+
+    previous_section = _extract_section_text_from_markdown(previous_path.read_text(encoding="utf-8"), "gestion_risques")
+    current_section = _extract_section_text_from_markdown(current_path.read_text(encoding="utf-8"), "gestion_risques")
+    previous_body = dict(_parse_subsections(previous_section))["Risque de stratégie"]
+    current_body = dict(_parse_subsections(current_section))["Risque de stratégie"]
+    chunks_t1 = _chunk_subsection_text(
+        previous_body,
+        subsection_heading="Risque de stratégie",
+        section_title="Gestion des risques",
+    )
+    chunks_t2 = _chunk_subsection_text(
+        current_body,
+        subsection_heading="Risque de stratégie",
+        section_title="Gestion des risques",
+    )
+
+    alignments = _align_chunks_tfidf(chunks_t1, chunks_t2)
+    matched_by_t2 = {
+        alignment.chunk_t2.chunk_id: alignment.chunk_t1.chunk_id
+        for alignment in alignments
+        if alignment.chunk_t1 and alignment.chunk_t2
+    }
+    removed = [alignment for alignment in alignments if alignment.alignment_type == "possible_removed"]
+
+    assert len(chunks_t1) == 6
+    assert len(chunks_t2) == 5
+    assert matched_by_t2["c02"] == "c02"
+    assert matched_by_t2["c03"] == "c04"
+    assert matched_by_t2["c04"] == "c05"
+    assert len(removed) == 1
+    assert removed[0].chunk_t1.chunk_id == "c03"
+    assert all("Risque de stratégie" in chunk.hierarchy_path for chunk in [*chunks_t1, *chunks_t2])
 
 
 # ---------------------------------------------------------------------------
