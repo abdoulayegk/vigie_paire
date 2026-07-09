@@ -592,6 +592,54 @@ def test_side_by_side_modified_highlights_diff_when_change_segments_do_not_match
     assert any("affrontements entre Israël et le Hamas" in text for text in removed_highlights)
 
 
+def test_side_by_side_ignores_over_fragmented_change_segments() -> None:
+    """Les segments caractère-par-caractère sont ignorés au profit du diff mot-à-mot."""
+    text_t1 = (
+        "Le 28 août 2023, la Banque a annoncé que la Bourse de Toronto (TSX) "
+        "et le BSIF ont approuvé une offre publique de rachat dans le cours normal "
+        "des activités visant à racheter, pour annulation, jusqu'à 90 millions de "
+        "ses actions ordinaires. L'offre publique de rachat dans le cours normal "
+        "des activités..."
+    )
+    text_t2 = (
+        "La Banque prévoit lancer un nouveau programme d'offre publique de rachat "
+        "dans le cours normal des activités au terme de l'OPRCNA de 2025, sous "
+        "réserve de l'approbation des autorités de réglementation. Dans le cadre "
+        "du nouveau programme, la Banque entend racheter de 6 à 7 milliards de "
+        "dollars d'actions ordinaires au cours de l'exercice 2026, selon les "
+        "conditions du marché."
+    )
+    noisy_segments = [
+        {"kind": "modified", "text_t1": "a ann", "text_t2": "prév"},
+        {"kind": "modified", "text_t1": "ncé que", "text_t2": "it"},
+        {"kind": "modified", "text_t1": "B", "text_t2": "ncer un n"},
+        {"kind": "added", "text_t1": "", "text_t2": "veau p"},
+        {"kind": "modified", "text_t1": "s", "text_t2": "ogramm"},
+        {"kind": "added", "text_t1": "", "text_t2": "on de"},
+        {"kind": "modified", "text_t1": "90", "text_t2": "7"},
+        {"kind": "modified", "text_t1": "se", "text_t2": "dollar"},
+    ]
+
+    sbs = _build_side_by_side(
+        text_t1=text_t1,
+        text_t2=text_t2,
+        page_t1="80",
+        page_t2="79",
+        change_segments=noisy_segments,
+        diff_type="modified",
+    )
+
+    added_highlights = [
+        text
+        for text, style in _styled_texts(sbs)
+        if style.get("backgroundColor") == "#dcfce7"
+    ]
+    assert "prév" not in added_highlights
+    assert "it" not in added_highlights
+    assert "veau p" not in added_highlights
+    assert any("prévoit lancer un nouveau programme d'offre" in text for text in added_highlights)
+
+
 def test_change_segment_pydantic_invariants() -> None:
     """Pydantic rejette les ChangeSegment incohérents."""
     from pydantic import ValidationError as _PydErr

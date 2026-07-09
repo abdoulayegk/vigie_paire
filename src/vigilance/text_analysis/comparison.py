@@ -432,6 +432,32 @@ def _compare_section_texts(
 
         if not body1.strip() and not body2.strip():
             continue
+        if not body1.strip():
+            all_changes.append(
+                _synthetic_subsection_change(
+                    section_key=section_key,
+                    diff_type="added",
+                    heading=h2,
+                    body_t1="",
+                    body_t2=body2,
+                    idx=global_idx,
+                )
+            )
+            global_idx += 1
+            continue
+        if not body2.strip():
+            all_changes.append(
+                _synthetic_subsection_change(
+                    section_key=section_key,
+                    diff_type="removed",
+                    heading=h1,
+                    body_t1=body1,
+                    body_t2="",
+                    idx=global_idx,
+                )
+            )
+            global_idx += 1
+            continue
 
         alignments = _prepare_subsection_alignments(
             section_key=section_key,

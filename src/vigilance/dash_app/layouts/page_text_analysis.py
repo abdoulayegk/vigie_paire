@@ -358,6 +358,33 @@ def _highlight_text(text: str, highlights: list[str], style: dict[str, str]) -> 
     return _highlight_text_by_intervals(text, _find_highlight_intervals(text, highlights), style)
 
 
+def _change_segments_are_usable(change_segments: list[dict]) -> bool:
+    """Ecarte les segments trop fragmentés qui produisent du faux surlignage."""
+    lengths: list[int] = []
+    for seg in change_segments:
+        if not isinstance(seg, dict):
+            continue
+        parts = [
+            str(seg.get("text_t1") or "").strip(),
+            str(seg.get("text_t2") or "").strip(),
+        ]
+        substantive = [part for part in parts if re.search(r"\w", part, flags=re.UNICODE)]
+        if not substantive:
+            continue
+        longest = max(len(part) for part in substantive)
+        if longest < 3:
+            return False
+        lengths.append(longest)
+
+    if not lengths:
+        return False
+    if len(lengths) >= 8:
+        tiny_count = sum(1 for length in lengths if length < 12)
+        if tiny_count / len(lengths) >= 0.35:
+            return False
+    return True
+
+
 def _token_intervals(text: str) -> list[tuple[str, int, int]]:
     """Tokenise un texte en mots avec positions pour calculer un diff lisible."""
     return [(match.group(0).lower(), match.start(), match.end()) for match in re.finditer(r"\S+", text)]
@@ -586,14 +613,17 @@ def _build_side_by_side(
     précédent. Pour un ajout ou une suppression, le côté absent présente
     explicitement la nature du changement.
     """
+    usable_change_segments = (
+        change_segments if _change_segments_are_usable(change_segments) else []
+    )
     highlights_t1 = [
         seg.get("text_t1", "")
-        for seg in change_segments
+        for seg in usable_change_segments
         if seg.get("kind") in ("removed", "modified") and seg.get("text_t1")
     ]
     highlights_t2 = [
         seg.get("text_t2", "")
-        for seg in change_segments
+        for seg in usable_change_segments
         if seg.get("kind") in ("added", "modified") and seg.get("text_t2")
     ]
     intervals_t1 = _find_highlight_intervals(text_t1, highlights_t1)

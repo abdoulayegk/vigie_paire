@@ -1981,16 +1981,20 @@ def test_compare_section_texts_rejects_non_empty_sections_without_subsections() 
         )
 
 
-def test_compare_section_texts_rejects_matched_subsection_without_chunks() -> None:
-    """Une sous-section appariée avec corps vide ne doit pas repasser en brut."""
-    with pytest.raises(TextAnalysisQualityError, match="Sous-section appariée sans chunk T1"):
-        _compare_section_texts(
-            client=object(),
-            model="gpt-4o",
-            section_key="gestion_risques",
-            text_t1="### Risque de stratégie\n\n",
-            text_t2="### Risque de stratégie\n\nCorps T2 assez long pour former un chunk narratif valide.",
-        )
+def test_compare_section_texts_marks_empty_matched_subsection_side_as_removed() -> None:
+    """Un heading apparié vide côté courant devient un retrait synthétique."""
+    changes = _compare_section_texts(
+        client=object(),
+        model="gpt-4o",
+        section_key="gestion_risques",
+        text_t1="### Responsables\n\nAncien paragraphe présent uniquement dans le rapport précédent.",
+        text_t2="### Responsables\n\n",
+    )
+
+    assert len(changes) == 1
+    assert changes[0]["diff_type"] == "removed"
+    assert changes[0]["subsection_heading"] == "Responsables"
+    assert "Ancien paragraphe" in changes[0]["source_text_t1"]
 
 
 def test_compare_section_texts_calls_gpt_once_per_subsection_pair(monkeypatch) -> None:
@@ -3053,8 +3057,8 @@ def test_triage_section_changes_converts_validation_error_to_triage_validation_e
 
     assert exc_info.value.section_key == "gestion_risques"
     assert exc_info.value.validation_error is err
-    # 2 appels = 1 initial + 1 retry avant remontée
-    assert client.call_count == 2
+    # 3 appels = 1 initial + 2 retries avant remontée
+    assert client.call_count == 3
 
 
 def test_triage_section_changes_propagates_runtime_error_unwrapped() -> None:

@@ -482,7 +482,7 @@ def _triage_section_changes(
                 {"role": "user", "content": user_prompt},
             ],
             response_format=TriageAMFLLMBatch,
-            max_retries=1,
+            max_retries=2,
         )
     except ValidationError as exc:
         raise TriageValidationError(
