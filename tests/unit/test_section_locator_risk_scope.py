@@ -8,6 +8,7 @@ from vigilance.extraction.section_locator import (
     SECTION_PATTERNS,
     LocatedSection,
     SectionLocator,
+    TocEntry,
     VisualTextElement,
 )
 
@@ -196,3 +197,51 @@ def test_anchor_resolution_matches_bnc_titles_with_doubled_characters() -> None:
         "GGeessttiioonn  dduu  ccaappiittaall",
         "GGeessttiioonn  ddeess  rriissqquueess",
     ]
+
+
+def test_refine_shared_page_extends_end_when_boundary_not_at_top() -> None:
+    locator = SectionLocator(bank_code="td", quarter="t4", year=2025)
+    sections = [
+        LocatedSection(
+            section_type="gestion_risques",
+            title_found="Gestion des risques",
+            start_page=84,
+            end_page=128,
+            confidence=0.95,
+            detection_method="toc",
+            end_detection_method="toc_next_section",
+        )
+    ]
+    toc_entries = [
+        TocEntry(
+            title="Méthodes et estimations comptables critiques",
+            page=127,
+            level=0,
+        )
+    ]
+    visual_elements = {
+        129: [
+            VisualTextElement(
+                text="NORMES ET MÉTHODES COMPTABLES",
+                page=129,
+                x0=40.0,
+                y0=520.0,
+                x1=560.0,
+                y1=540.0,
+                font_size=14.0,
+                is_bold=True,
+                is_uppercase=True,
+                line_number=1,
+                page_width=600.0,
+                page_height=800.0,
+            )
+        ]
+    }
+
+    refined = locator._refine_shared_page_boundaries(sections, toc_entries, visual_elements)
+
+    assert refined[0].end_page == 129
+    assert refined[0].end_anchor_page == 129
+    assert refined[0].end_anchor_text == "NORMES ET MÉTHODES COMPTABLES"
+    assert refined[0].end_anchor_bbox_norm == [40.0 / 600.0, 520.0 / 800.0, 560.0 / 600.0, 540.0 / 800.0]
+    assert refined[0].end_detection_method == "toc_next_section+shared_page"

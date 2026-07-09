@@ -123,6 +123,12 @@ class LocatedSection:
     anchor_text: str | None = None
     anchor_bbox_norm: list[float] | None = None
     anchor_found: bool = False
+    end_anchor_page: int | None = None
+    end_anchor_text: str | None = None
+    end_anchor_bbox_norm: list[float] | None = None
+
+
+SHARED_PAGE_TOP_THRESHOLD = 0.12
 
 
 @dataclass
@@ -166,6 +172,9 @@ class SectionMapping:
                 "anchor_text": section.anchor_text,
                 "anchor_bbox_norm": section.anchor_bbox_norm,
                 "anchor_found": section.anchor_found,
+                "end_anchor_page": section.end_anchor_page,
+                "end_anchor_text": section.end_anchor_text,
+                "end_anchor_bbox_norm": section.end_anchor_bbox_norm,
             }
 
         return {
@@ -400,6 +409,9 @@ FOLLOWING_SECTION_PATTERNS = {
         r"analyse\s+des?\s+r[eé]sultats?",
     ],
     "gestion_risques": [
+        r"normes\s+et\s+m[eé]thodes\s+comptables",
+        r"m[eé]thodes\s+et\s+estimations\s+comptables",
+        r"m[eé]thodes\s+comptables\s+significatives",
         r"[eé]tats?\s+financiers?",
         r"informations?\s+compl[eé]mentaires?",
         r"renseignements?\s+compl[eé]mentaires?",
@@ -1577,18 +1589,10 @@ class SectionLocator:
                     new_start = s.start_page + offset
                     new_end = (s.end_page + offset) if s.end_page is not None else None
                     adjusted.append(
-                        LocatedSection(
-                            section_type=s.section_type,
-                            title_found=s.title_found,
+                        replace(
+                            s,
                             start_page=new_start,
                             end_page=new_end,
-                            confidence=s.confidence,
-                            detection_method=s.detection_method,
-                            end_detection_method=s.end_detection_method,
-                            detected_span=s.detected_span,
-                            final_span=s.final_span,
-                            constraint_applied=s.constraint_applied,
-                            constraint_reason=s.constraint_reason,
                         )
                     )
                     logger.info(
@@ -1609,6 +1613,13 @@ class SectionLocator:
         # ETAPE 4.8: Normaliser la taxonomie des sections en sortie.
         for section in sections:
             section.section_type = canonicalize_section(section.section_type)
+
+        # ETAPE 4.85: Étendre les sections sur les pages partagées avec ancre de fin.
+        if sections:
+            if visual_elements is None:
+                visual_elements = self._extract_visual_elements(pdf_path)
+            if visual_elements:
+                sections = self._refine_shared_page_boundaries(sections, toc_entries, visual_elements)
 
         # ETAPE 4.9: Resoudre une ancre intra-page sur le vrai bloc titre.
         if sections:
@@ -1952,6 +1963,131 @@ class SectionLocator:
                 )
 
         return sections
+
+    def _next_toc_boundary_title_candidates(
+        self,
+        section: LocatedSection,
+        toc_entries: list[TocEntry],
+    ) -> list[str]:
+        """Retourne les titres TDM de la section suivante sur la page frontière."""
+        if section.end_page is None or not toc_entries:
+            return []
+        boundary_page = int(section.end_page) + 1
+        offset = self._get_page_number_offset() if self._uses_document_page_numbers(section.detection_method) else 0
+        candidates: list[str] = []
+        for entry in sorted(toc_entries, key=lambda e: e.page):
+            physical_page = int(entry.page) + offset
+            if physical_page != boundary_page or entry.level != 0:
+                continue
+            if self._matches_section(entry.title, section.section_type):
+                continue
+            if section.section_type == "gestion_risques" and self._is_risk_subsection(entry.title):
+                continue
+            title = str(entry.title or "").strip()
+            if title:
+                candidates.append(title)
+        return candidates
+
+    def _matches_boundary_title(
+        self,
+        text: str,
+        patterns: list[re.Pattern],
+        title_candidates: list[str],
+    ) -> bool:
+        """Indique si un bloc titre correspond à une frontière de section suivante."""
+        stripped = str(text or "").strip()
+        if not stripped:
+            return False
+        unstuttered = self._unstutter_pdf_text(stripped)
+        value = normalize_text(stripped)
+        for title in title_candidates:
+            title_norm = normalize_text(title)
+            if not title_norm:
+                continue
+            if title_norm in value or value in title_norm or self._text_similarity(value, title_norm) > 0.75:
+                return True
+        for pattern in patterns:
+            if pattern.search(stripped) or pattern.search(unstuttered):
+                return True
+        return False
+
+    def _find_boundary_header_on_page(
+        self,
+        page: int,
+        patterns: list[re.Pattern],
+        title_candidates: list[str],
+        visual_elements: dict[int, list[VisualTextElement]],
+    ) -> VisualTextElement | None:
+        """Localise le titre de la section suivante sur une page partagée."""
+        matches: list[VisualTextElement] = []
+        for elem in visual_elements.get(page, []):
+            if not elem.is_likely_header:
+                continue
+            if not self._matches_boundary_title(elem.text, patterns, title_candidates):
+                continue
+            bbox = elem.bbox_norm
+            if not bbox or float(bbox[1]) <= SHARED_PAGE_TOP_THRESHOLD:
+                continue
+            matches.append(elem)
+        if not matches:
+            return None
+        return max(matches, key=lambda elem: float(elem.y0))
+
+    def _refine_shared_page_boundaries(
+        self,
+        sections: list[LocatedSection],
+        toc_entries: list[TocEntry],
+        visual_elements: dict[int, list[VisualTextElement]],
+    ) -> list[LocatedSection]:
+        """Étend end_page à la page partagée quand la section suivante ne commence pas en haut."""
+        if not sections or not visual_elements:
+            return sections
+
+        refined: list[LocatedSection] = []
+        for section in sections:
+            if section.end_page is None:
+                refined.append(section)
+                continue
+
+            boundary_page = int(section.end_page) + 1
+            patterns = self.following_patterns.get(section.section_type, [])
+            title_candidates = self._next_toc_boundary_title_candidates(section, toc_entries)
+            boundary = self._find_boundary_header_on_page(
+                boundary_page,
+                patterns,
+                title_candidates,
+                visual_elements,
+            )
+            if boundary is None:
+                refined.append(section)
+                continue
+
+            bbox_norm = boundary.bbox_norm
+            if not bbox_norm:
+                refined.append(section)
+                continue
+
+            logger.info(
+                "Page partagée détectée pour %s: extension p.%s -> p.%s, frontière '%s' y=%.3f",
+                section.section_type,
+                section.end_page,
+                boundary_page,
+                boundary.text[:60],
+                float(bbox_norm[1]),
+            )
+            refined.append(
+                replace(
+                    section,
+                    end_page=boundary_page,
+                    end_anchor_page=boundary_page,
+                    end_anchor_text=boundary.text,
+                    end_anchor_bbox_norm=list(bbox_norm),
+                    end_detection_method=f"{section.end_detection_method}+shared_page"
+                    if section.end_detection_method
+                    else "shared_page",
+                )
+            )
+        return refined
 
     def _get_section_anchor_candidates(self, section: LocatedSection) -> list[str]:
         """Retourner les libelles exacts a tester pour l'ancre de debut de section."""
