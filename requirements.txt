@@ -14,6 +14,8 @@ python-dotenv==1.2.1
 openai==2.21.0
 openpyxl==3.1.5
 pydantic==2.12.5
+scikit-learn==1.7.2 ; python_version < "3.11"
+scikit-learn==1.9.0 ; python_version >= "3.11"
 
 # Optional dev dependencies:
 # bandit[toml]==1.9.4

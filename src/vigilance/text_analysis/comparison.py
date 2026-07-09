@@ -15,10 +15,11 @@ from vigilance.text_analysis.models import TextAnalysisQualityError
 from vigilance.text_analysis.normalization import _sanitize_explanation, _sanitize_semantic_text
 from vigilance.text_analysis.openai_client import _call_json_completion
 from vigilance.text_analysis.subsection_matching import (
-    _gpt_match_orphan_headings,
+    OrphanSubsection,
     _normalize_heading,
     _pair_subsections,
     _parse_subsections,
+    _resolve_orphan_subsections,
     _synthetic_subsection_change,
     _synthetic_subsection_rename_change,
 )
@@ -342,10 +343,18 @@ def _compare_section_texts(
 
     pairs = _pair_subsections(subs_t1, subs_t2)
 
-    # Phase 2 — Fuzzy rename resolution via GPT
-    orphans_t1 = [h1 for h1, _b1, h2, _b2 in pairs if h2 is None and h1 is not None]
-    orphans_t2 = [h2 for _h1, _b1, h2, _b2 in pairs if _h1 is None and h2 is not None]
-    rename_matches = _gpt_match_orphan_headings(
+    # Phase 2 — Hybrid orphan resolution (TF-IDF sklearn + embeddings + LLM)
+    orphans_t1 = [
+        OrphanSubsection(heading=h1, body=body1)
+        for h1, body1, h2, _body2 in pairs
+        if h2 is None and h1 is not None
+    ]
+    orphans_t2 = [
+        OrphanSubsection(heading=h2, body=body2)
+        for h1, _body1, h2, body2 in pairs
+        if h1 is None and h2 is not None
+    ]
+    rename_matches = _resolve_orphan_subsections(
         client=client,
         model=model,
         section_key=section_key,

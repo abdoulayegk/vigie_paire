@@ -39,6 +39,7 @@ from vigilance.text_analysis_pipeline import (
     _pair_subsections,
     _parse_page_index_from_markdown,
     _parse_subsections,
+    _resolve_orphan_subsections,
     _resolve_sections,
     _rewrite_page_markers_for_display,
     _sanitize_semantic_text,
@@ -46,6 +47,8 @@ from vigilance.text_analysis_pipeline import (
     TextAnalysisQualityError,
     run_text_analysis_pipeline,
 )
+from vigilance.text_analysis.chunk_alignment import _tfidf_similarity_matrix_from_texts
+from vigilance.text_analysis.subsection_matching import OrphanSubsection
 from vigilance.text_extraction.text_extraction_markdown_writer import get_raw_docling_markdown_path
 from vigilance.text_analysis.docling_markdown import (
     DoclingSegment,
@@ -1822,6 +1825,24 @@ def test_align_chunks_tfidf_enforces_one_to_one() -> None:
     assert added[0].chunk_t2.chunk_id == "c01"
 
 
+def test_align_chunks_tfidf_handles_empty_sklearn_vocabulary() -> None:
+    chunks_t1 = _chunk_subsection_text("123 456 789", subsection_heading="Risque de stratégie", min_chars=0)
+    chunks_t2 = _chunk_subsection_text("le la de et un une", subsection_heading="Risque de stratégie", min_chars=0)
+
+    alignments = _align_chunks_tfidf(chunks_t1, chunks_t2)
+    matched = [alignment for alignment in alignments if alignment.chunk_t1 and alignment.chunk_t2]
+    added = [alignment for alignment in alignments if alignment.alignment_type == "possible_added"]
+    removed = [alignment for alignment in alignments if alignment.alignment_type == "possible_removed"]
+
+    assert matched == []
+    assert len(added) == 1
+    assert len(removed) == 1
+    assert added[0].similarity_score == 0.0
+    assert removed[0].similarity_score == 0.0
+    assert added[0].candidates_t1_for_t2[0].score == 0.0
+    assert removed[0].candidates_t2_for_t1[0].score == 0.0
+
+
 def test_alignment_prompt_limits_weak_candidate_context() -> None:
     primary_text = (
         "Le risque stratégique est surveillé par un cadre de gouvernance précis avec des contrôles "
@@ -2353,13 +2374,19 @@ def test_compare_section_texts_resolves_renamed_subsection(monkeypatch) -> None:
         single_call_labels.append(heading_label)
         return []
 
-    def fake_gpt_match(*, client, model, section_key, orphans_t1, orphans_t2):
+    def fake_resolve_orphans(*, client, model, section_key, orphans_t1, orphans_t2, embedding_model="text-embedding-3-small"):
         return [
-            {"heading_t1": "Incidence des tarifs", "heading_t2": "Incidence des tarifs douaniers", "confidence": "high", "reason": "précision"},
+            {
+                "heading_t1": "Incidence des tarifs",
+                "heading_t2": "Incidence des tarifs douaniers",
+                "confidence": "high",
+                "reason": "précision",
+                "match_source": "llm",
+            },
         ]
 
     monkeypatch.setattr("vigilance.text_analysis_pipeline._compare_texts_single_call", fake_single_call)
-    monkeypatch.setattr("vigilance.text_analysis_pipeline._gpt_match_orphan_headings", fake_gpt_match)
+    monkeypatch.setattr("vigilance.text_analysis_pipeline._resolve_orphan_subsections", fake_resolve_orphans)
 
     md_t1 = "### Risque de marché\n\nCorps T1.\n\n### Incidence des tarifs\n\nTexte T1.\n"
     md_t2 = "### Risque de marché\n\nCorps T2.\n\n### Incidence des tarifs douaniers\n\nTexte T2.\n"
@@ -2383,6 +2410,398 @@ def test_compare_section_texts_resolves_renamed_subsection(monkeypatch) -> None:
     assert renamed_changes[0]["source_text_t1"] == "Incidence des tarifs"
     assert renamed_changes[0]["source_text_t2"] == "Incidence des tarifs douaniers"
     assert "Sous-section renommée" in renamed_changes[0]["change_summary"]
+
+
+def test_tfidf_similarity_matrix_from_texts_matches_chunk_wrapper() -> None:
+    text_a = (
+        "Le groupe GRCF est responsable de la lutte contre le blanchiment d'argent "
+        "et la conformité aux exigences réglementaires."
+    )
+    text_b = (
+        "Le groupe CFGR est responsable de la lutte contre le blanchiment d'argent "
+        "et la conformité aux exigences réglementaires."
+    )
+    chunks_a = _chunk_subsection_text(text_a, subsection_heading="A", min_chars=0)
+    chunks_b = _chunk_subsection_text(text_b, subsection_heading="B", min_chars=0)
+    matrix_from_texts = _tfidf_similarity_matrix_from_texts([text_a, text_b])
+    matrix_from_chunks = _align_chunks_tfidf(chunks_a, chunks_b)
+    matched = [alignment for alignment in matrix_from_chunks if alignment.chunk_t1 and alignment.chunk_t2]
+    assert matrix_from_texts[0][1] == pytest.approx(matched[0].similarity_score, rel=1e-6)
+
+
+def test_resolve_orphan_subsections_embedding_strong_requires_llm_confirmation(monkeypatch) -> None:
+    body_t1 = (
+        "Le Service de la conformité est une fonction indépendante de gestion et de surveillance "
+        "du risque de conformité à l'échelle mondiale de la Banque."
+    )
+    body_t2 = body_t1.replace("à l'échelle mondiale", "mondiale")
+    orphans_t1 = [OrphanSubsection(heading="Service conformité T1", body=body_t1)]
+    orphans_t2 = [OrphanSubsection(heading="Service conformité T2", body=body_t2)]
+
+    from vigilance.text_analysis.subsection_matching import OrphanCandidate, _shortlist_orphan_candidates
+
+    shortlist = _shortlist_orphan_candidates(orphans_t1, orphans_t2)
+
+    def fake_attach(**kwargs):
+        enriched = [
+            OrphanCandidate(
+                heading_t1=item.heading_t1,
+                body_t1=item.body_t1,
+                heading_t2=item.heading_t2,
+                body_t2=item.body_t2,
+                tfidf_score=item.tfidf_score,
+                heading_score=item.heading_score,
+                embedding_score=0.95,
+            )
+            for item in shortlist
+        ]
+        return enriched, {}
+
+    monkeypatch.setattr("vigilance.text_analysis.subsection_matching._attach_embedding_scores", fake_attach)
+    monkeypatch.setattr(
+        "vigilance.text_analysis.subsection_matching._gpt_arbitrate_orphan_subsections",
+        lambda **kwargs: [],
+    )
+
+    from vigilance.text_analysis.subsection_matching import _resolve_orphan_subsections as resolve_direct
+
+    matches = resolve_direct(
+        client=object(),
+        model="gpt-4o",
+        section_key="gestion_risques",
+        orphans_t1=orphans_t1,
+        orphans_t2=orphans_t2,
+    )
+    assert matches == []
+
+
+def test_resolve_orphan_subsections_embedding_strong_match_when_llm_confirms(monkeypatch) -> None:
+    body_t1 = (
+        "Le Service de la conformité est une fonction indépendante de gestion et de surveillance "
+        "du risque de conformité à l'échelle mondiale de la Banque."
+    )
+    body_t2 = body_t1.replace("à l'échelle mondiale", "mondiale")
+    orphans_t1 = [OrphanSubsection(heading="Service conformité T1", body=body_t1)]
+    orphans_t2 = [OrphanSubsection(heading="Service conformité T2", body=body_t2)]
+
+    from vigilance.text_analysis.subsection_matching import OrphanCandidate, _shortlist_orphan_candidates
+
+    shortlist = _shortlist_orphan_candidates(orphans_t1, orphans_t2)
+
+    def fake_attach(**kwargs):
+        enriched = [
+            OrphanCandidate(
+                heading_t1=item.heading_t1,
+                body_t1=item.body_t1,
+                heading_t2=item.heading_t2,
+                body_t2=item.body_t2,
+                tfidf_score=item.tfidf_score,
+                heading_score=item.heading_score,
+                embedding_score=0.95,
+            )
+            for item in shortlist
+        ]
+        return enriched, {}
+
+    monkeypatch.setattr("vigilance.text_analysis.subsection_matching._attach_embedding_scores", fake_attach)
+    monkeypatch.setattr(
+        "vigilance.text_analysis.subsection_matching._call_json_completion",
+        lambda *args, **kwargs: {
+            "matches": [
+                {
+                    "heading_t1": "Service conformité T1",
+                    "heading_t2": "Service conformité T2",
+                    "confidence": "high",
+                    "reason": "same subsection",
+                }
+            ]
+        },
+    )
+
+    from vigilance.text_analysis.subsection_matching import _resolve_orphan_subsections as resolve_direct
+
+    matches = resolve_direct(
+        client=object(),
+        model="gpt-4o",
+        section_key="gestion_risques",
+        orphans_t1=orphans_t1,
+        orphans_t2=orphans_t2,
+    )
+    assert len(matches) == 1
+    assert matches[0]["match_source"] == "llm_embedding_confirmed"
+    assert matches[0]["llm_confidence"] == "high"
+    assert matches[0]["embedding_score"] == pytest.approx(0.95)
+
+
+def test_resolve_orphan_subsections_llm_arbitration_when_embedding_weak(monkeypatch) -> None:
+    body_shared = (
+        "La Banque et ses entreprises sont assujetties à une réglementation considérable "
+        "et à une surveillance active des autorités de réglementation."
+    )
+    orphans_t1 = [OrphanSubsection(heading="Surveillance réglementaire et conformité", body=body_shared)]
+    orphans_t2 = [
+        OrphanSubsection(
+            heading="Surveillance réglementaire et risque de conformité",
+            body=body_shared + " Le cadre évolue chaque trimestre.",
+        )
+    ]
+
+    from vigilance.text_analysis.subsection_matching import OrphanCandidate, _shortlist_orphan_candidates
+
+    shortlist = _shortlist_orphan_candidates(orphans_t1, orphans_t2)
+
+    def fake_attach(**kwargs):
+        enriched = [
+            OrphanCandidate(
+                heading_t1=item.heading_t1,
+                body_t1=item.body_t1,
+                heading_t2=item.heading_t2,
+                body_t2=item.body_t2,
+                tfidf_score=item.tfidf_score,
+                heading_score=item.heading_score,
+                embedding_score=0.55,
+            )
+            for item in shortlist
+        ]
+        return enriched, {}
+
+    monkeypatch.setattr("vigilance.text_analysis.subsection_matching._attach_embedding_scores", fake_attach)
+    monkeypatch.setattr(
+        "vigilance.text_analysis.subsection_matching._call_json_completion",
+        lambda *args, **kwargs: {
+            "matches": [
+                {
+                    "heading_t1": orphans_t1[0].heading,
+                    "heading_t2": orphans_t2[0].heading,
+                    "confidence": "high",
+                    "reason": "same topic",
+                }
+            ]
+        },
+    )
+
+    from vigilance.text_analysis.subsection_matching import _resolve_orphan_subsections as resolve_direct
+
+    matches = resolve_direct(
+        client=object(),
+        model="gpt-4o",
+        section_key="gestion_risques",
+        orphans_t1=orphans_t1,
+        orphans_t2=orphans_t2,
+    )
+    assert len(matches) == 1
+    assert matches[0]["match_source"] == "llm_embedding_confirmed"
+    assert matches[0]["llm_confidence"] == "high"
+
+
+def test_compare_section_texts_orphan_match_avoids_duplicate_synthetics(monkeypatch) -> None:
+    shared_body = (
+        "Le groupe GRCF, anciennement le groupe Lutte mondiale contre le blanchiment d'argent, "
+        "est responsable de la gouvernance des risques liés aux crimes financiers."
+    )
+
+    monkeypatch.setattr(
+        "vigilance.text_analysis_pipeline._compare_texts_single_call",
+        lambda **kwargs: [],
+    )
+
+    def fake_resolve_orphans(*, client, model, section_key, orphans_t1, orphans_t2, embedding_model="text-embedding-3-small"):
+        return [
+            {
+                "heading_t1": "Crimes financiers, Gestion des risques (CFGR)",
+                "heading_t2": "Gestion des risques liés aux crimes financiers (GRCF)",
+                "confidence": "high",
+                "reason": "rename",
+                "match_source": "llm_embedding_confirmed",
+            }
+        ]
+
+    monkeypatch.setattr("vigilance.text_analysis_pipeline._resolve_orphan_subsections", fake_resolve_orphans)
+
+    md_t1 = (
+        "### Risque de marché\n\nCorps T1.\n\n"
+        "### Crimes financiers, Gestion des risques (CFGR)\n\n"
+        f"{shared_body}\n"
+    )
+    md_t2 = (
+        "### Risque de marché\n\nCorps T2.\n\n"
+        "### Gestion des risques liés aux crimes financiers (GRCF)\n\n"
+        f"{shared_body}\n"
+    )
+
+    changes = _compare_section_texts(
+        client=object(),
+        model="gpt-4o",
+        section_key="gestion_risques",
+        text_t1=md_t1,
+        text_t2=md_t2,
+    )
+
+    synthetic_added = [
+        change for change in changes if change["diff_type"] == "added" and change["change_summary"].startswith("Sous-section")
+    ]
+    synthetic_removed = [
+        change for change in changes if change["diff_type"] == "removed" and change["change_summary"].startswith("Sous-section")
+    ]
+    assert synthetic_added == []
+    assert synthetic_removed == []
+    assert any(change["diff_type"] == "renamed" for change in changes)
+
+
+def test_compare_section_texts_td_renamed_orphans_avoid_duplicate_synthetics(monkeypatch) -> None:
+    regulatory_body = (
+        "La Banque et ses entreprises sont assujetties à une réglementation considérable "
+        "et à une surveillance étendue exercée par différents organismes de réglementation. "
+        "Les exigences réglementaires peuvent entraîner des coûts de conformité et des mesures correctives."
+    )
+    financial_crime_body = (
+        "Le groupe GRCF est responsable de la surveillance de la conformité en matière de LCBA, "
+        "de sanctions économiques et de lutte contre le financement des activités terroristes. "
+        "Il supervise les programmes de gestion du risque lié aux crimes financiers."
+    )
+
+    monkeypatch.setattr(
+        "vigilance.text_analysis_pipeline._compare_texts_single_call",
+        lambda **kwargs: [],
+    )
+
+    def fake_resolve_orphans(*, client, model, section_key, orphans_t1, orphans_t2, embedding_model="text-embedding-3-small"):
+        return [
+            {
+                "heading_t1": "Surveillance réglementaire et conformité",
+                "heading_t2": "Surveillance réglementaire et risque de conformité",
+                "confidence": "high",
+                "llm_confidence": "high",
+                "reason": "same TD regulatory risk subsection",
+                "match_source": "llm_embedding_confirmed",
+                "tfidf_score": 0.94,
+                "embedding_score": 0.97,
+                "heading_score": 0.89,
+            },
+            {
+                "heading_t1": "Crimes financiers, Gestion des risques (CFGR)",
+                "heading_t2": "Gestion des risques liés aux crimes financiers (GRCF)",
+                "confidence": "high",
+                "llm_confidence": "high",
+                "reason": "same TD financial-crime risk subsection",
+                "match_source": "llm_embedding_confirmed",
+                "tfidf_score": 0.91,
+                "embedding_score": 0.96,
+                "heading_score": 0.47,
+            },
+        ]
+
+    monkeypatch.setattr("vigilance.text_analysis_pipeline._resolve_orphan_subsections", fake_resolve_orphans)
+
+    md_t1 = (
+        "### Surveillance réglementaire et conformité\n\n"
+        f"{regulatory_body}\n\n"
+        "### Crimes financiers, Gestion des risques (CFGR)\n\n"
+        f"{financial_crime_body}\n"
+    )
+    md_t2 = (
+        "### Surveillance réglementaire et risque de conformité\n\n"
+        f"{regulatory_body}\n\n"
+        "### Gestion des risques liés aux crimes financiers (GRCF)\n\n"
+        f"{financial_crime_body}\n"
+    )
+
+    changes = _compare_section_texts(
+        client=object(),
+        model="gpt-4o",
+        section_key="gestion_risques",
+        text_t1=md_t1,
+        text_t2=md_t2,
+    )
+
+    synthetic_added_or_removed = [
+        change
+        for change in changes
+        if change["diff_type"] in {"added", "removed"}
+        and change["change_summary"].startswith("Sous-section")
+    ]
+    renamed_headings = {
+        (change.get("previous_subsection_heading"), change.get("current_subsection_heading"))
+        for change in changes
+        if change["diff_type"] == "renamed"
+    }
+    assert synthetic_added_or_removed == []
+    assert (
+        "Surveillance réglementaire et conformité",
+        "Surveillance réglementaire et risque de conformité",
+    ) in renamed_headings
+    assert (
+        "Crimes financiers, Gestion des risques (CFGR)",
+        "Gestion des risques liés aux crimes financiers (GRCF)",
+    ) in renamed_headings
+
+
+def test_resolve_orphan_subsections_embedding_failure_falls_back_to_llm(monkeypatch) -> None:
+    orphans_t1 = [OrphanSubsection(heading="Ancien titre", body="Corps substantiel " * 20)]
+    orphans_t2 = [OrphanSubsection(heading="Nouveau titre", body="Corps substantiel " * 20)]
+
+    def exploding_attach(**kwargs):
+        raise RuntimeError("embedding down")
+
+    monkeypatch.setattr("vigilance.text_analysis.subsection_matching._attach_embedding_scores", exploding_attach)
+    monkeypatch.setattr(
+        "vigilance.text_analysis.subsection_matching._call_json_completion",
+        lambda *args, **kwargs: {
+            "matches": [
+                {
+                    "heading_t1": "Ancien titre",
+                    "heading_t2": "Nouveau titre",
+                    "confidence": "medium",
+                    "reason": "fallback",
+                }
+            ]
+        },
+    )
+
+    from vigilance.text_analysis.subsection_matching import _resolve_orphan_subsections as resolve_direct
+
+    matches = resolve_direct(
+        client=object(),
+        model="gpt-4o",
+        section_key="gestion_risques",
+        orphans_t1=orphans_t1,
+        orphans_t2=orphans_t2,
+    )
+    assert len(matches) == 1
+    assert matches[0]["match_source"] == "llm_embedding_confirmed"
+
+
+def test_resolve_orphan_subsections_short_body_uses_title_only_fallback(monkeypatch) -> None:
+    orphans_t1 = [OrphanSubsection(heading="Objectif", body="Capital disponible.")]
+    orphans_t2 = [OrphanSubsection(heading="Objectif de capital", body="Capital disponible.")]
+
+    monkeypatch.setattr(
+        "vigilance.text_analysis.subsection_matching._call_json_completion",
+        lambda *args, **kwargs: {
+            "matches": [
+                {
+                    "heading_t1": "Objectif",
+                    "heading_t2": "Objectif de capital",
+                    "confidence": "medium",
+                    "reason": "titre très proche",
+                }
+            ]
+        },
+    )
+
+    from vigilance.text_analysis.subsection_matching import _resolve_orphan_subsections as resolve_direct
+
+    matches = resolve_direct(
+        client=object(),
+        model="gpt-4o",
+        section_key="capital",
+        orphans_t1=orphans_t1,
+        orphans_t2=orphans_t2,
+    )
+    assert len(matches) == 1
+    assert matches[0]["match_source"] == "title_only"
+    assert matches[0]["tfidf_score"] is None
+    assert matches[0]["embedding_score"] is None
 
 
 def test_bmo_risque_de_strategie_2024_t4_chunks_into_six() -> None:

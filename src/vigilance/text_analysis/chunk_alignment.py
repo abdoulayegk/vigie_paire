@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
-import math
 import re
 import unicodedata
-from collections import Counter
 from dataclasses import dataclass
+
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 
 from vigilance.text_analysis.chunking import TextChunk
 
@@ -106,59 +107,60 @@ def _tokenize_for_tfidf(text: str) -> list[str]:
     return tokens
 
 
-def _tfidf_vectors(chunks: list[TextChunk]) -> list[dict[str, float]]:
-    tokenized = [_tokenize_for_tfidf(chunk.text) for chunk in chunks]
-    document_count = len(tokenized)
-    if not document_count:
+def _clamp_similarity_score(score: float) -> float:
+    """Contraint les scores cosine dans l'intervalle public attendu."""
+    return max(0.0, min(1.0, float(score)))
+
+
+def _tfidf_similarity_matrix_from_texts(texts: list[str]) -> list[list[float]]:
+    """Calcule une matrice cosine TF-IDF locale avec scikit-learn."""
+    if not texts:
         return []
-    document_frequency: Counter[str] = Counter()
-    for tokens in tokenized:
-        document_frequency.update(set(tokens))
+    vectorizer = TfidfVectorizer(
+        analyzer=_tokenize_for_tfidf,
+        smooth_idf=True,
+        use_idf=True,
+        sublinear_tf=False,
+        norm="l2",
+    )
+    try:
+        vectors = vectorizer.fit_transform(texts)
+    except ValueError as exc:
+        if "empty vocabulary" not in str(exc).lower():
+            raise
+        return [[0.0 for _ in texts] for _ in texts]
+    similarities = cosine_similarity(vectors)
+    return [
+        [_clamp_similarity_score(score) for score in row]
+        for row in similarities.tolist()
+    ]
 
-    vectors: list[dict[str, float]] = []
-    for tokens in tokenized:
-        counts = Counter(tokens)
-        total = sum(counts.values()) or 1
-        vector: dict[str, float] = {}
-        for token, count in counts.items():
-            tf = count / total
-            idf = math.log((1 + document_count) / (1 + document_frequency[token])) + 1
-            vector[token] = tf * idf
-        vectors.append(vector)
-    return vectors
 
-
-def _cosine_similarity(left: dict[str, float], right: dict[str, float]) -> float:
-    if not left or not right:
-        return 0.0
-    common = set(left) & set(right)
-    numerator = sum(left[token] * right[token] for token in common)
-    left_norm = math.sqrt(sum(value * value for value in left.values()))
-    right_norm = math.sqrt(sum(value * value for value in right.values()))
-    if not left_norm or not right_norm:
-        return 0.0
-    return numerator / (left_norm * right_norm)
+def _tfidf_similarity_matrix(chunks: list[TextChunk]) -> list[list[float]]:
+    """Calcule une matrice cosine TF-IDF locale pour des chunks."""
+    return _tfidf_similarity_matrix_from_texts([chunk.text for chunk in chunks])
 
 
 def _candidate_lookup(
     source_chunks: list[TextChunk],
     target_chunks: list[TextChunk],
-    source_vectors: list[dict[str, float]],
-    target_vectors: list[dict[str, float]],
+    similarity_matrix: list[list[float]],
     *,
+    source_offset: int,
+    target_offset: int,
     top_k: int,
 ) -> dict[str, list[ChunkCandidate]]:
     lookup: dict[str, list[ChunkCandidate]] = {}
     limit = max(0, int(top_k))
-    for source, source_vector in zip(source_chunks, source_vectors, strict=True):
+    for source_index, source in enumerate(source_chunks):
         candidates = [
             ChunkCandidate(
                 source_chunk_id=source.chunk_id,
                 target_chunk_id=target.chunk_id,
-                score=_cosine_similarity(source_vector, target_vector),
+                score=similarity_matrix[source_offset + source_index][target_offset + target_index],
                 target_chunk=target,
             )
-            for target, target_vector in zip(target_chunks, target_vectors, strict=True)
+            for target_index, target in enumerate(target_chunks)
         ]
         candidates.sort(key=lambda candidate: (-candidate.score, abs(source.order - candidate.target_chunk.order)))
         lookup[source.chunk_id] = candidates[:limit] if limit else candidates
@@ -192,31 +194,33 @@ def _align_chunks_tfidf(
 ) -> list[ChunkAlignment]:
     """Aligne provisoirement des chunks T1/T2 par TF-IDF local 1-to-1."""
     all_chunks = [*chunks_t1, *chunks_t2]
-    vectors = _tfidf_vectors(all_chunks)
-    vectors_t1 = vectors[: len(chunks_t1)]
-    vectors_t2 = vectors[len(chunks_t1) :]
+    similarity_matrix = _tfidf_similarity_matrix(all_chunks)
+    offset_t1 = 0
+    offset_t2 = len(chunks_t1)
 
     candidates_t2_to_t1 = _candidate_lookup(
         chunks_t2,
         chunks_t1,
-        vectors_t2,
-        vectors_t1,
+        similarity_matrix,
+        source_offset=offset_t2,
+        target_offset=offset_t1,
         top_k=top_k,
     )
     candidates_t1_to_t2 = _candidate_lookup(
         chunks_t1,
         chunks_t2,
-        vectors_t1,
-        vectors_t2,
+        similarity_matrix,
+        source_offset=offset_t1,
+        target_offset=offset_t2,
         top_k=top_k,
     )
 
     scored_pairs: list[tuple[float, int, TextChunk, TextChunk]] = []
-    for chunk_t1, vector_t1 in zip(chunks_t1, vectors_t1, strict=True):
-        for chunk_t2, vector_t2 in zip(chunks_t2, vectors_t2, strict=True):
+    for index_t1, chunk_t1 in enumerate(chunks_t1):
+        for index_t2, chunk_t2 in enumerate(chunks_t2):
             scored_pairs.append(
                 (
-                    _cosine_similarity(vector_t1, vector_t2),
+                    similarity_matrix[offset_t1 + index_t1][offset_t2 + index_t2],
                     abs(chunk_t1.order - chunk_t2.order),
                     chunk_t1,
                     chunk_t2,

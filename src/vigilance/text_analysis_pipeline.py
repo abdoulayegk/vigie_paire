@@ -91,6 +91,7 @@ from vigilance.text_analysis.normalization import (
 from vigilance.text_analysis.openai_client import (
     _append_concise_triage_retry_message,
     _build_json_repair_messages,
+    _embed_texts,
     _build_openai_client,
     _call_json_completion,
     _call_structured_completion,
@@ -119,6 +120,7 @@ from vigilance.text_analysis.subsection_matching import (
     _normalize_heading,
     _pair_subsections,
     _parse_subsections,
+    _resolve_orphan_subsections as _subsection_resolve_orphan_subsections,
     _synthetic_subsection_change,
     _synthetic_subsection_rename_change,
 )
@@ -161,6 +163,12 @@ def _gpt_match_orphan_headings(*args, **kwargs):
     return _subsection_gpt_match_orphan_headings(*args, **kwargs)
 
 
+def _resolve_orphan_subsections(*args, **kwargs):
+    _subsection_mod._call_json_completion = _call_json_completion
+    _subsection_mod._embed_texts = _embed_texts
+    return _subsection_resolve_orphan_subsections(*args, **kwargs)
+
+
 def _compare_texts_single_call(*args, **kwargs):
     _comparison_mod._call_json_completion = _call_json_completion
     return _comparison_compare_texts_single_call(*args, **kwargs)
@@ -173,10 +181,10 @@ def _compare_section_texts(*args, **kwargs):
         _FACADE_COMPARE_TEXTS_SINGLE_CALL,
         _comparison_compare_texts_single_call,
     )
-    _comparison_mod._gpt_match_orphan_headings = _compat_target(
-        "_gpt_match_orphan_headings",
-        _FACADE_GPT_MATCH_ORPHAN_HEADINGS,
-        _subsection_gpt_match_orphan_headings,
+    _comparison_mod._resolve_orphan_subsections = _compat_target(
+        "_resolve_orphan_subsections",
+        _FACADE_RESOLVE_ORPHAN_SUBSECTIONS,
+        _subsection_resolve_orphan_subsections,
     )
     return _comparison_compare_section_texts(*args, **kwargs)
 
@@ -211,3 +219,4 @@ def run_text_analysis_pipeline(*args, **kwargs):
 
 _FACADE_COMPARE_TEXTS_SINGLE_CALL = _compare_texts_single_call
 _FACADE_GPT_MATCH_ORPHAN_HEADINGS = _gpt_match_orphan_headings
+_FACADE_RESOLVE_ORPHAN_SUBSECTIONS = _resolve_orphan_subsections

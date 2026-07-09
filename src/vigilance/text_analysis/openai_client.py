@@ -20,6 +20,23 @@ from vigilance.utils.genai import get_openai_api_key
 logger = logging.getLogger(__name__)
 
 
+_DEFAULT_EMBEDDING_MODEL = "text-embedding-3-small"
+_EMBEDDING_BATCH_SIZE = 96
+
+
+def _embed_texts(client: Any, texts: list[str], model: str = _DEFAULT_EMBEDDING_MODEL) -> list[list[float]]:
+    """Encode une liste de textes via l'API embeddings OpenAI."""
+    if not texts:
+        return []
+    embeddings: list[list[float]] = []
+    for start in range(0, len(texts), _EMBEDDING_BATCH_SIZE):
+        batch = texts[start : start + _EMBEDDING_BATCH_SIZE]
+        response = client.embeddings.create(model=model, input=batch)
+        ordered = sorted(response.data, key=lambda item: item.index)
+        embeddings.extend([list(item.embedding) for item in ordered])
+    return embeddings
+
+
 def _build_openai_client():
     """Instancie le client OpenAI avec la clé API du projet.
 
