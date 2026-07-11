@@ -119,6 +119,13 @@ THEMES_AMF_DESCRIPTIONS: dict[str, str] = {
         "propres à la banque (portefeuille, exposition, profits) — ceux-là "
         "sont exclus via 'variation_numerique_propre_banque'."
     ),
+    "SUJET_EMERGENT_HORS_GRILLE": (
+        "Changement substantiel pertinent pour la vigie bancaire, mais qui "
+        "ne relève directement d'aucune des 20 catégories de contrôle. "
+        "À utiliser seulement lorsque le sujet, son ajout/retrait ou son effet "
+        "sur le risque, la gouvernance, la stratégie ou la divulgation est "
+        "clairement expliqué dans la justification."
+    ),
 }
 
 THEMES_AMF_ANALYST_SUBJECTS: dict[str, str] = {
@@ -143,6 +150,7 @@ THEMES_AMF_ANALYST_SUBJECTS: dict[str, str] = {
     "CONTROLE_CONFORMITE": "Contrôle interne ou conformité",
     "NOUVELLE_MENTION_REGLEMENTAIRE": "Nouvelle mention réglementaire",
     "MONTANT_REGLEMENTAIRE": "Montant ou seuil réglementaire",
+    "SUJET_EMERGENT_HORS_GRILLE": "À qualifier — sujet émergent hors grille",
 }
 
 THEMES_AMF_PIPELINE_2: list[str] = list(THEMES_AMF_DESCRIPTIONS.keys())
@@ -169,6 +177,7 @@ ThemeAMF = Literal[
     "CONTROLE_CONFORMITE",
     "NOUVELLE_MENTION_REGLEMENTAIRE",
     "MONTANT_REGLEMENTAIRE",
+    "SUJET_EMERGENT_HORS_GRILLE",
 ]
 
 EXCLUSION_REASONS_DESCRIPTIONS: dict[str, str] = {
@@ -228,7 +237,7 @@ ActionRequise = Literal[
     "aucune",
 ]
 
-TRIAGE_SOURCE_VERSION = "gpt4o_triage_amf_v3"
+TRIAGE_SOURCE_VERSION = "gpt4o_triage_amf_compact_v1"
 
 
 ChangeSegmentKind = Literal["added", "removed", "modified"]
@@ -404,6 +413,28 @@ class _TriageAMFResultBase(BaseModel):
                 seen.add(theme)
                 out.append(theme)
         return out
+
+    @model_validator(mode="before")
+    @classmethod
+    def _repair_justification_if_needed(cls, data: object) -> object:
+        """Reconstruit la justification si GPT omet les rubriques obligatoires."""
+        if not isinstance(data, dict):
+            return data
+
+        normalized = dict(data)
+        justification = str(normalized.get("nouvelle_idee_justification") or "").strip()
+        from vigilance.text_comparison.justification import (
+            is_structured_text_triage_justification,
+            synthesize_triage_justification_from_payload,
+        )
+
+        if justification and is_structured_text_triage_justification(justification):
+            return normalized
+
+        normalized["nouvelle_idee_justification"] = synthesize_triage_justification_from_payload(
+            normalized
+        )
+        return normalized
 
     @model_validator(mode="before")
     @classmethod
@@ -584,6 +615,67 @@ class TriageAMFLLMBatch(BaseModel):
     """Lot de triages AMF retourné par le LLM sans ``change_segments``."""
 
     triages: list[TriageAMFLLMResultWithIndex]
+
+
+COMPACT_RELEVANCE_REASON_MIN_WORDS = 100
+COMPACT_RELEVANCE_REASON_MAX_WORDS = 120
+
+
+def count_words(value: str) -> int:
+    """Compte les mots selon leur séparation par espaces."""
+    return len(str(value or "").split())
+
+
+class TriageAMFCompactLLMResultWithIndex(BaseModel):
+    """Décision AMF minimale demandée au LLM pour une validation rapide."""
+
+    change_index: int = Field(..., ge=1)
+    is_relevant: bool
+    themes_amf: list[ThemeAMF] = Field(default_factory=list, max_length=2)
+    nouvelle_idee: bool = False
+    relevance_reason: str
+
+    @field_validator("themes_amf")
+    @classmethod
+    def _dedupe_compact_themes(cls, value: list[str]) -> list[str]:
+        return list(dict.fromkeys(value))
+
+    @field_validator("relevance_reason")
+    @classmethod
+    def _validate_relevance_reason_length(cls, value: str) -> str:
+        normalized = " ".join(str(value or "").split())
+        word_count = count_words(normalized)
+        if not (
+            COMPACT_RELEVANCE_REASON_MIN_WORDS
+            <= word_count
+            <= COMPACT_RELEVANCE_REASON_MAX_WORDS
+        ):
+            raise ValueError(
+                "relevance_reason doit contenir entre "
+                f"{COMPACT_RELEVANCE_REASON_MIN_WORDS} et "
+                f"{COMPACT_RELEVANCE_REASON_MAX_WORDS} mots; reçu {word_count}"
+            )
+        return normalized
+
+    @model_validator(mode="after")
+    def _check_compact_invariants(self) -> "TriageAMFCompactLLMResultWithIndex":
+        if self.is_relevant:
+            if not self.themes_amf:
+                raise ValueError(
+                    "is_relevant=True exige au moins un thème AMF dans themes_amf"
+                )
+        else:
+            if self.themes_amf:
+                raise ValueError("is_relevant=False interdit themes_amf non vide")
+            if self.nouvelle_idee:
+                raise ValueError("is_relevant=False interdit nouvelle_idee=True")
+        return self
+
+
+class TriageAMFCompactLLMBatch(BaseModel):
+    """Lot compact : une décision courte pour chaque changement demandé."""
+
+    triages: list[TriageAMFCompactLLMResultWithIndex]
 
 
 def format_themes_for_prompt() -> str:

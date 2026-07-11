@@ -3,32 +3,96 @@
 from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from difflib import SequenceMatcher
 import logging
+import re
+import unicodedata
 from typing import Any
 
 from pydantic import ValidationError
 
 from vigilance.amf_taxonomy import (
+    COMPACT_RELEVANCE_REASON_MAX_WORDS,
+    COMPACT_RELEVANCE_REASON_MIN_WORDS,
+    THEMES_AMF_ANALYST_SUBJECTS,
+    THEMES_AMF_DESCRIPTIONS,
     TRIAGE_SOURCE_VERSION,
-    TriageAMFLLMBatch,
+    TriageAMFCompactLLMBatch,
     TriageValidationError,
+    count_words,
     empty_triage_skeleton,
-    format_exclusion_reasons_for_prompt,
-    format_theme_subjects_for_prompt,
-    format_themes_for_prompt,
 )
 from vigilance.text_analysis.constants import (
+    _NUMERIC_TOKEN_RE,
+    _REGULATORY_REF_RE,
     _TRIAGE_BATCH_SIZE,
-    _TRIAGE_SEMANTIC_TEXT_LIMIT,
     _TRIAGE_SOURCE_SNIPPET_LIMIT,
 )
-from vigilance.text_analysis.normalization import _json_dumps, _sanitize_explanation
-from vigilance.text_analysis.openai_client import _call_structured_completion_with_correction, _truncate_prompt_text
+from vigilance.text_analysis.normalization import _json_dumps
+from vigilance.text_analysis.openai_client import (
+    _call_structured_completion_with_correction,
+    _embed_texts,
+    _truncate_prompt_text,
+)
 from vigilance.text_comparison.change_segments import build_change_segments
+from vigilance.text_comparison.justification import build_compact_triage_justification
 
 logger = logging.getLogger(__name__)
 
 _MAX_TRIAGE_LLM_WORKERS = 6
+_SEMANTIC_ALIGNMENT_DECISIONS = frozenset(
+    {"same_disclosure", "distinct_disclosures", "moved_text", "uncertain"}
+)
+_COSMETIC_SEQUENCE_THRESHOLD = 0.97
+_TRIAGE_DEDUP_EMBEDDING_THRESHOLD = 0.92
+_TRIAGE_EMBEDDING_TRUNCATE_CHARS = 1800
+_DEFAULT_EMBEDDING_MODEL = "text-embedding-3-small"
+_COMPACT_THEME_CANDIDATE_LIMIT = 6
+_COMPACT_COMPLETION_BASE_TOKENS = 350
+_COMPACT_COMPLETION_TOKENS_PER_CHANGE = 320
+_COMPACT_COMPLETION_MAX_TOKENS = 1200
+_ISOLATED_DATE_RE = re.compile(
+    r"\b(?:\d{1,2}\s+(?:janvier|février|fevrier|mars|avril|mai|juin|juillet|août|aout|"
+    r"septembre|octobre|novembre|décembre|decembre)\s+\d{4}|\d{4}-\d{2}-\d{2})\b",
+    flags=re.IGNORECASE,
+)
+_WHITESPACE_RE = re.compile(r"\s+")
+_THEME_TOKEN_RE = re.compile(r"[a-zà-ÿ0-9]+", flags=re.IGNORECASE)
+_THEME_STOPWORDS = frozenset(
+    {
+        "ajout",
+        "changement",
+        "dans",
+        "des",
+        "dune",
+        "dun",
+        "est",
+        "les",
+        "lié",
+        "liée",
+        "modification",
+        "nouvelle",
+        "pour",
+        "rapport",
+        "retrait",
+        "risque",
+        "une",
+    }
+)
+
+
+def _bounded_local_relevance_reason(value: str) -> str:
+    """Normalise une raison locale dans la même plage que la sortie LLM."""
+    words = " ".join(str(value or "").split()).split()
+    filler = (
+        "La décision reste visible afin que l’analyste puisse la confirmer ou "
+        "la corriger directement à partir des textes sources comparés."
+    ).split()
+    while len(words) < COMPACT_RELEVANCE_REASON_MIN_WORDS:
+        words.extend(filler)
+    words = words[:COMPACT_RELEVANCE_REASON_MAX_WORDS]
+    result = " ".join(words).strip()
+    return result if result.endswith((".", "!", "?")) else f"{result}."
 
 
 def _default_triage() -> dict[str, Any]:
@@ -51,6 +115,12 @@ def _default_triage() -> dict[str, Any]:
             "impact_description": "",
             "reference_reglementaire": "",
             "confidence": 0.0,
+            "relevance_reason": _bounded_local_relevance_reason(
+                "Le changement n’a pas reçu de qualification AMF exploitable. "
+                "Il est conservé dans la file de revue sans être présenté comme "
+                "une nouvelle idée, afin d’éviter une conclusion automatique "
+                "non étayée par les éléments disponibles."
+            ),
             "signals": {
                 "regulatory_reference_added": False,
                 "methodology_change": False,
@@ -63,36 +133,419 @@ def _default_triage() -> dict[str, Any]:
     return triage
 
 
+def _requires_alignment_review(change: dict[str, Any]) -> bool:
+    """True only when the first GPT call explicitly cannot decide the relation."""
+    decision = str(change.get("alignment_decision") or "").strip().lower()
+    if decision in _SEMANTIC_ALIGNMENT_DECISIONS:
+        return decision == "uncertain"
+    # Cached artifacts from before semantic arbitration keep the former safe
+    # fallback.  Fresh comparisons always carry ``alignment_decision``.
+    return str(change.get("alignment_type") or "").strip().lower() == "ambiguous"
+
+
+def _is_semantic_text_move(change: dict[str, Any]) -> bool:
+    return str(change.get("alignment_decision") or "").strip().lower() == "moved_text"
+
+
+def _is_single_semantic_alignment_group(changes: list[dict[str, Any]]) -> bool:
+    """Keeps the added/removed sides of one GPT decision in one triage call."""
+    group_ids = {
+        str(change.get("semantic_alignment_group_id") or "").strip()
+        for change in changes
+    }
+    return len(changes) >= 2 and len(group_ids) == 1 and bool(next(iter(group_ids), ""))
+
+
+def _alignment_review_result(change: dict[str, Any]) -> dict[str, Any]:
+    """Preserves the evidence while preventing an unsupported automatic verdict."""
+    triage = _default_triage()
+    triage.update(
+        {
+            "source": "alignment_review_required",
+            "alignment_review_required": True,
+            "alignment_review_reason": (
+                str(change.get("alignment_rationale") or "").strip()
+                or "L'alignement entre les deux passages reste ambigu après la comparaison initiale. "
+                "Le changement est conservé pour revue, sans classification AMF automatique."
+            ),
+            "relevance_reason": _bounded_local_relevance_reason(
+                "Les passages pourraient décrire des divulgations différentes, "
+                "mais l’alignement sémantique ne fournit pas une preuve suffisante "
+                "pour conclure automatiquement. Le changement reste donc visible "
+                "et doit être lu avec ses extraits sources avant toute décision."
+            ),
+            # The analyst still sees the deterministic, verbatim difference;
+            # no LLM-generated highlight is used for this unresolved pairing.
+            "change_segments": build_change_segments(change),
+        }
+    )
+    enriched = dict(change)
+    enriched["genai_triage"] = triage
+    return enriched
+
+
+def _semantic_move_result(change: dict[str, Any]) -> dict[str, Any]:
+    """Marks a GPT-confirmed text move as non-priority without human escalation."""
+    triage = _default_triage()
+    triage.update(
+        {
+            "source": "semantic_alignment_decision",
+            "alignment_decision": "moved_text",
+            "alignment_confidence": str(change.get("alignment_confidence") or "medium"),
+            "alignment_rationale": str(change.get("alignment_rationale") or "").strip(),
+            "exclusion_reason": "deplacement_texte",
+            "relevance_reason": _bounded_local_relevance_reason(
+                "La comparaison confirme que la divulgation a été déplacée sans "
+                "modification substantielle de son sens, de son niveau de détail "
+                "ou de son rattachement métier. Ce déplacement ne crée donc pas "
+                "une nouvelle idée à surveiller."
+            ),
+            "nouvelle_idee_justification": (
+                "NON — Nouvel élément à surveiller : Non.\n\n"
+                "Sujet détecté : Texte déplacé.\n\n"
+                "Ce qui change : Le premier appel GPT a confirmé que la même divulgation "
+                "a été déplacée sans changement sémantique substantiel.\n\n"
+                "Pertinence métier : Ce déplacement ne modifie pas la substance de la "
+                "divulgation ni la posture de risque.\n\n"
+                "Point de surveillance : Aucun suivi prioritaire n'est requis pour ce déplacement."
+            ),
+            "change_segments": [],
+        }
+    )
+    enriched = dict(change)
+    enriched["genai_triage"] = triage
+    return enriched
+
+
+def _normalize_for_cosmetic(text: str) -> str:
+    normalized = unicodedata.normalize("NFKD", str(text or "").lower())
+    normalized = "".join(char for char in normalized if not unicodedata.combining(char))
+    normalized = _WHITESPACE_RE.sub(" ", normalized)
+    return normalized.strip()
+
+
+def _theme_tokens(value: str) -> set[str]:
+    normalized = _normalize_for_cosmetic(value)
+    return {
+        token
+        for token in _THEME_TOKEN_RE.findall(normalized)
+        if len(token) >= 3 and token not in _THEME_STOPWORDS
+    }
+
+
+def _candidate_themes_for_change(
+    change: dict[str, Any],
+    *,
+    section_key: str,
+    limit: int = _COMPACT_THEME_CANDIDATE_LIMIT,
+) -> list[dict[str, str]]:
+    """Sélectionne localement une courte liste de thèmes AMF plausibles."""
+    corpus = " ".join(
+        str(value or "")
+        for value in (
+            change.get("change_summary"),
+            change.get("source_text_t1"),
+            change.get("source_text_t2"),
+            change.get("semantic_text_t1"),
+            change.get("semantic_text_t2"),
+            change.get("subsection_heading"),
+            section_key,
+        )
+    )
+    corpus_tokens = _theme_tokens(corpus)
+    scored: list[tuple[float, str]] = []
+    for code, description in THEMES_AMF_DESCRIPTIONS.items():
+        theme_text = f"{THEMES_AMF_ANALYST_SUBJECTS.get(code, '')} {description}"
+        theme_tokens = _theme_tokens(theme_text)
+        overlap = len(corpus_tokens & theme_tokens)
+        coverage = overlap / max(len(theme_tokens), 1)
+        score = float(overlap) + coverage
+        if overlap:
+            scored.append((score, code))
+
+    scored.sort(key=lambda item: (-item[0], item[1]))
+    selected: list[str] = []
+    diff_type = str(change.get("diff_type") or "").lower()
+    forced = {
+        "added": "DIVULGATION_AJOUT",
+        "removed": "DIVULGATION_RETRAIT",
+        "renamed": "STRUCTURE_RAPPORT",
+    }.get(diff_type)
+    if forced:
+        selected.append(forced)
+
+    for _, code in scored:
+        if code not in selected:
+            selected.append(code)
+        if len(selected) >= max(limit - 1, 1):
+            break
+
+    if len(selected) < max(limit - 1, 1):
+        section_fallbacks = {
+            "gestion_capital": (
+                "CAPITAL_REGLEMENTAIRE",
+                "FONDS_PROPRES_REGLEMENTAIRES",
+                "RATIOS_REGLEMENTAIRES",
+                "EXIGENCES_REGLEMENTAIRES",
+            ),
+            "gestion_reglementation": (
+                "NOUVELLE_MENTION_REGLEMENTAIRE",
+                "EXIGENCES_REGLEMENTAIRES",
+                "CONTROLE_CONFORMITE",
+            ),
+            "gestion_risques": (
+                "MODIFICATION_TEXTE_RISQUE",
+                "FACTEUR_RISQUE_CHANGEMENT",
+                "GOUVERNANCE_RISQUES",
+                "RISQUE_EMERGENT",
+            ),
+        }
+        for code in section_fallbacks.get(section_key, ()):
+            if code not in selected:
+                selected.append(code)
+            if len(selected) >= max(limit - 1, 1):
+                break
+
+    if "SUJET_EMERGENT_HORS_GRILLE" not in selected:
+        selected.append("SUJET_EMERGENT_HORS_GRILLE")
+    selected = selected[:limit]
+    return [
+        {
+            "code": code,
+            "label": THEMES_AMF_ANALYST_SUBJECTS[code],
+            "description": THEMES_AMF_DESCRIPTIONS[code],
+        }
+        for code in selected
+    ]
+
+
+def _sequence_ratio(left: str, right: str) -> float:
+    left_norm = _normalize_for_cosmetic(left)
+    right_norm = _normalize_for_cosmetic(right)
+    if not left_norm or not right_norm:
+        return 0.0
+    return SequenceMatcher(None, left_norm, right_norm, autojunk=False).ratio()
+
+
+def _numeric_tokens(text: str) -> set[str]:
+    return {match.group(0).lower() for match in _NUMERIC_TOKEN_RE.finditer(str(text or ""))}
+
+
+def _regulatory_tokens(text: str) -> set[str]:
+    return {match.group(0).lower() for match in _REGULATORY_REF_RE.finditer(str(text or ""))}
+
+
+def _is_isolated_date_change(text_t1: str, text_t2: str) -> bool:
+    """True when the only material difference looks like an isolated date update."""
+    without_dates_t1 = _ISOLATED_DATE_RE.sub(" ", text_t1)
+    without_dates_t2 = _ISOLATED_DATE_RE.sub(" ", text_t2)
+    if _sequence_ratio(without_dates_t1, without_dates_t2) < 0.98:
+        return False
+    dates_t1 = {match.group(0).lower() for match in _ISOLATED_DATE_RE.finditer(text_t1)}
+    dates_t2 = {match.group(0).lower() for match in _ISOLATED_DATE_RE.finditer(text_t2)}
+    return bool(dates_t1 or dates_t2) and dates_t1 != dates_t2
+
+
+def _deterministic_cosmetic_exclusion(change: dict[str, Any]) -> str | None:
+    """Return an exclusion reason when the change is manifestly cosmetic."""
+    if _is_semantic_text_move(change):
+        return "deplacement_texte"
+    if str(change.get("alignment_type") or "").strip().lower() in {
+        "global_reconciled_residual",
+    } and str(change.get("alignment_decision") or "").strip().lower() in {
+        "moved_text",
+        "same_disclosure",
+    }:
+        # Residual after a confirmed move/resegmentation is already handled upstream.
+        pass
+
+    diff_type = str(change.get("diff_type") or "").strip().lower()
+    if diff_type not in {"modified", "unchanged"}:
+        return None
+
+    text_t1 = str(change.get("source_text_t1") or "")
+    text_t2 = str(change.get("source_text_t2") or "")
+    if not text_t1.strip() or not text_t2.strip():
+        return None
+
+    if _numeric_tokens(text_t1) != _numeric_tokens(text_t2):
+        return None
+    if _regulatory_tokens(text_t1) != _regulatory_tokens(text_t2):
+        return None
+
+    compact_t1 = re.sub(r"[^\w]+", "", _normalize_for_cosmetic(text_t1), flags=re.UNICODE)
+    compact_t2 = re.sub(r"[^\w]+", "", _normalize_for_cosmetic(text_t2), flags=re.UNICODE)
+    if compact_t1 == compact_t2 and text_t1 != text_t2:
+        return "formatage_visuel"
+
+    similarity = _sequence_ratio(text_t1, text_t2)
+    if similarity >= _COSMETIC_SEQUENCE_THRESHOLD:
+        return "reformulation_mineure"
+    if _is_isolated_date_change(text_t1, text_t2):
+        return "reformulation_mineure"
+    return None
+
+
+def _cosmetic_triage_result(change: dict[str, Any], exclusion_reason: str) -> dict[str, Any]:
+    triage = _default_triage()
+    triage.update(
+        {
+            "source": "deterministic_prefilter",
+            "exclusion_reason": exclusion_reason,
+            "relevance_reason": _bounded_local_relevance_reason(
+                "Le préfiltre déterministe identifie uniquement une différence "
+                "de formulation, de présentation ou de date isolée. Aucun écart "
+                "chiffré réglementaire, nouveau facteur de risque ou changement "
+                "de méthode n’est détecté dans les passages comparés."
+            ),
+            "nouvelle_idee_justification": (
+                "NON — Nouvel élément à surveiller : Non.\n\n"
+                "Sujet détecté : Changement cosmétique.\n\n"
+                "Ce qui change : Le pré-filtre déterministe a identifié un écart "
+                "de formulation, de formatage ou de date isolée sans delta chiffré "
+                "ni réglementaire.\n\n"
+                "Pertinence métier : Ce changement ne modifie pas la substance de "
+                "la divulgation ni la posture de risque.\n\n"
+                "Point de surveillance : Aucun suivi prioritaire n'est requis."
+            ),
+            "change_segments": build_change_segments(change),
+        }
+    )
+    enriched = dict(change)
+    enriched["genai_triage"] = triage
+    enriched["triage_prefilter"] = {
+        "excluded": True,
+        "exclusion_reason": exclusion_reason,
+    }
+    return enriched
+
+
+def _triage_retrieval_text(change: dict[str, Any]) -> str:
+    parts = [
+        str(change.get("diff_type") or ""),
+        str(change.get("subsection_heading") or ""),
+        str(change.get("change_summary") or ""),
+        str(change.get("source_text_t1") or "")[:600],
+        str(change.get("source_text_t2") or "")[:600],
+    ]
+    text = " | ".join(part.strip() for part in parts if str(part or "").strip())
+    if len(text) <= _TRIAGE_EMBEDDING_TRUNCATE_CHARS:
+        return text
+    return text[:_TRIAGE_EMBEDDING_TRUNCATE_CHARS]
+
+
+def _cosine_similarity(left: list[float], right: list[float]) -> float:
+    if not left or not right:
+        return 0.0
+    dot = sum(a * b for a, b in zip(left, right, strict=False))
+    left_norm = sum(a * a for a in left) ** 0.5
+    right_norm = sum(b * b for b in right) ** 0.5
+    if not left_norm or not right_norm:
+        return 0.0
+    return max(0.0, min(1.0, dot / (left_norm * right_norm)))
+
+
+def _changes_compatible_for_dedup(left: dict[str, Any], right: dict[str, Any]) -> bool:
+    """Never merge when nature, decision or evidence shape diverge."""
+    if str(left.get("diff_type") or "") != str(right.get("diff_type") or ""):
+        return False
+    if str(left.get("alignment_decision") or "") != str(right.get("alignment_decision") or ""):
+        return False
+    left_has_t1 = bool(str(left.get("source_text_t1") or "").strip())
+    right_has_t1 = bool(str(right.get("source_text_t1") or "").strip())
+    left_has_t2 = bool(str(left.get("source_text_t2") or "").strip())
+    right_has_t2 = bool(str(right.get("source_text_t2") or "").strip())
+    if left_has_t1 != right_has_t1 or left_has_t2 != right_has_t2:
+        return False
+    return True
+
+
+def _group_semantic_triage_duplicates(
+    changes: list[dict[str, Any]],
+    *,
+    client: Any,
+    embedding_model: str = _DEFAULT_EMBEDDING_MODEL,
+) -> list[list[int]]:
+    """Group near-duplicate changes; returns lists of indices into ``changes``."""
+    if len(changes) <= 1:
+        return [[index] for index in range(len(changes))]
+
+    try:
+        embeddings = _embed_texts(
+            client,
+            [_triage_retrieval_text(change) for change in changes],
+            model=embedding_model,
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("Déduplication triage embeddings indisponible: %s", exc)
+        return [[index] for index in range(len(changes))]
+
+    parents = list(range(len(changes)))
+
+    def find(index: int) -> int:
+        while parents[index] != index:
+            parents[index] = parents[parents[index]]
+            index = parents[index]
+        return index
+
+    def union(left: int, right: int) -> None:
+        root_left, root_right = find(left), find(right)
+        if root_left != root_right:
+            parents[root_right] = root_left
+
+    for left_index in range(len(changes)):
+        for right_index in range(left_index + 1, len(changes)):
+            if not _changes_compatible_for_dedup(changes[left_index], changes[right_index]):
+                continue
+            score = _cosine_similarity(embeddings[left_index], embeddings[right_index])
+            if score >= _TRIAGE_DEDUP_EMBEDDING_THRESHOLD:
+                union(left_index, right_index)
+
+    grouped: dict[int, list[int]] = {}
+    for index in range(len(changes)):
+        grouped.setdefault(find(index), []).append(index)
+    return [sorted(members) for members in grouped.values()]
+
+
+def _propagate_triage_to_group(
+    *,
+    representative: dict[str, Any],
+    members: list[dict[str, Any]],
+    group_id: str,
+) -> list[dict[str, Any]]:
+    triage = dict(representative.get("genai_triage") or _default_triage())
+    member_ids = [str(change.get("change_id") or "") for change in members]
+    propagated: list[dict[str, Any]] = []
+    for change in members:
+        enriched = dict(change)
+        member_triage = dict(triage)
+        member_triage["triage_group_id"] = group_id
+        member_triage["triage_group_member_ids"] = member_ids
+        member_triage["triage_group_representative_id"] = str(
+            representative.get("change_id") or ""
+        )
+        if str(change.get("change_id") or "") != str(representative.get("change_id") or ""):
+            member_triage["source"] = f"{triage.get('source') or 'gpt'}_propagated"
+        enriched["genai_triage"] = member_triage
+        enriched["triage_dedup"] = {
+            "group_id": group_id,
+            "representative_change_id": str(representative.get("change_id") or ""),
+            "member_change_ids": member_ids,
+            "propagated": str(change.get("change_id") or "")
+            != str(representative.get("change_id") or ""),
+        }
+        propagated.append(enriched)
+    return propagated
+
+
 _FEW_SHOT_TRIAGE_AMF = """\
-Exemples à imiter strictement. Le champ nouvelle_idee_justification doit être une note d'analyste en français, préfixée OUI/NON, avec les rubriques exactes : Nouvel élément à surveiller, Sujet détecté, Ce qui change, Pertinence métier, Point de surveillance. Les codes AMF servent à choisir les sujets, mais la justification doit expliquer la pertinence métier avec un vocabulaire naturel d'analyste de vigie.
+Exemple 1 — ajout cyber pertinent
+Input : {"change_index": 1, "diff_type": "added", "change_summary": "Ajout d’un contrôle contre les ransomwares."}
+Output : {"change_index": 1, "is_relevant": true, "themes_amf": ["RISQUE_EMERGENT", "CONTROLE_CONFORMITE"], "nouvelle_idee": true, "relevance_reason": "Le rapport courant introduit explicitement un contrôle contre les ransomwares qui n’apparaissait pas dans la divulgation précédente. Cet ajout dépasse une reformulation, car il décrit une mesure concrète visant un risque cyber émergent. Pour la vigie, cette précision permet d’évaluer comment la banque renforce sa résilience opérationnelle, sa prévention des incidents et son encadrement des menaces numériques. Elle améliore aussi la comparabilité avec les autres institutions qui présentent leurs contrôles cyber. Le changement mérite donc une surveillance, puisque la présence d’un nouveau dispositif peut signaler une évolution de la gouvernance, des responsabilités ou des pratiques de gestion du risque technologique."}
 
-Exemple 1 — Risque émergent IA (added, MAJEUR)
-Input : diff_type="added", T1="", T2="La Banque a établi un cadre de gouvernance pour l'utilisation responsable de l'intelligence artificielle générative dans ses activités."
-Output : {"is_relevant": true, "themes_amf": ["RISQUE_EMERGENT", "GOUVERNANCE_RISQUES", "DIVULGATION_AJOUT"], "impact_level": "MAJEUR", "nouvelle_idee": true, "action_requise": "revue_prioritaire", "exclusion_reason": null, "explanation": "Au T2, la banque introduit un cadre formel de gouvernance pour l'IA générative, absent au T1. Ce changement relève des risques émergents et de la gouvernance des risques selon les attentes AMF. Il ajoute une information substantielle sur les contrôles et responsabilités associés à une technologie émergente.", "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Intelligence artificielle, risque émergent, gouvernance des risques, information ajoutée.\n\nCe qui change : Le T2 ajoute un cadre de gouvernance pour l'utilisation responsable de l'intelligence artificielle générative dans les activités de la banque. Cette information était absente du T1 et introduit un sujet de risque technologique explicite dans la divulgation.\n\nPertinence métier : Ce changement met l'accent sur l'encadrement d'un risque émergent qui peut toucher la gestion des modèles, les fournisseurs technologiques, les contrôles internes, la conformité, la protection des données et la gouvernance des risques. La mention d'un cadre de gouvernance ne décrit pas seulement l'utilisation d'un outil; elle rend visible la manière dont la banque structure ses responsabilités et ses contrôles autour d'une technologie qui devient comparable entre pairs.\n\nPoint de surveillance : Intelligence artificielle / gouvernance des risques — Le changement indique que la banque formalise davantage l'encadrement de l'IA générative. Ce point permet de suivre la maturité des contrôles liés aux modèles, aux fournisseurs technologiques, à la protection des données et à la comparabilité des pratiques de gouvernance IA entre pairs."}
-
-Exemple 2 — Retrait de facteur de risque cyber (removed, MAJEUR)
-Input : diff_type="removed", T1="Les risques liés aux cybermenaces incluent les attaques par déni de service et les ransomwares.", T2=""
-Output : {"is_relevant": true, "themes_amf": ["FACTEUR_RISQUE_CHANGEMENT", "RISQUE_EMERGENT", "DIVULGATION_RETRAIT"], "impact_level": "MAJEUR", "nouvelle_idee": true, "action_requise": "revue_prioritaire", "exclusion_reason": null, "explanation": "Au T1, la banque listait explicitement les attaques par déni de service et les ransomwares comme cybermenaces, mais cette mention disparaît au T2. Ce retrait touche un facteur de risque et un risque émergent prioritaire. Il modifie le niveau de détail de la divulgation cyber.", "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Cybersécurité, risque émergent, facteur de risque modifié, information retirée.\n\nCe qui change : Le T2 retire la mention explicite des attaques par déni de service et des ransomwares comme cybermenaces. Ces risques étaient nommés directement au T1 et ne sont plus présentés avec le même niveau de précision dans le passage comparé.\n\nPertinence métier : Ce changement met l'accent sur la précision de la divulgation relative aux cyberrisques. Dans un rapport bancaire, l'ajout ou le retrait de menaces cyber précises peut modifier la lecture de l'exposition au risque, de la transparence et de la comparabilité avec les pairs, surtout lorsque les cybermenaces constituent un sujet de surveillance prioritaire.\n\nPoint de surveillance : Cyberrisque — Le changement modifie le niveau de détail fourni sur les menaces cyber, notamment les attaques par déni de service et les ransomwares. Ce point permet de suivre la transparence de la banque sur son exposition aux risques technologiques, la précision de ses facteurs de risque et la comparabilité de sa divulgation avec les autres institutions."}
-
-Exemple 3 — Nouvelle mention BSIF climatique (added, MAJEUR)
-Input : diff_type="added", T1="", T2="Conformément aux nouvelles attentes du BSIF en matière de risques climatiques (Ligne directrice B-15), nous avons mis en place un comité dédié."
-Output : {"is_relevant": true, "themes_amf": ["NOUVELLE_MENTION_REGLEMENTAIRE", "ESG_CLIMATIQUE", "GOUVERNANCE_RISQUES", "DIVULGATION_AJOUT"], "impact_level": "MAJEUR", "nouvelle_idee": true, "action_requise": "revue_prioritaire", "exclusion_reason": null, "explanation": "Au T2, la banque mentionne pour la première fois la Ligne directrice B-15 du BSIF et la création d'un comité ESG ou climatique. Ce changement croise nouvelle mention réglementaire, divulgation ESG et gouvernance des risques. Il rend plus explicite l'arrimage de la banque aux attentes prudentielles climatiques.", "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Risque climatique, ESG, nouvelle mention réglementaire, gouvernance des risques.\n\nCe qui change : Le T2 ajoute une référence aux attentes du BSIF en matière de risques climatiques, soit la Ligne directrice B-15, ainsi qu'un comité dédié. Cette mention n'apparaissait pas au T1 et introduit une articulation plus explicite entre réglementation climatique et gouvernance interne.\n\nPertinence métier : Ce changement met l'accent sur l'évolution du cadre réglementaire applicable aux divulgations climatiques des institutions financières. La mise à jour de la ligne directrice B-15 par le BSIF peut influencer la manière dont les banques planifient leur conformité, structurent leurs contrôles ESG et communiquent leurs risques climatiques. Ce point est important à suivre, car il permet d'évaluer l'évolution des attentes prudentielles, la comparabilité des pratiques de divulgation entre pairs et le niveau de préparation des banques face aux exigences climatiques.\n\nPoint de surveillance : Risque climatique / ESG — Le changement indique que la banque rend plus explicite son positionnement face aux exigences climatiques du BSIF. Ce point permet de suivre l'adaptation aux attentes prudentielles climatiques, le niveau de préparation ESG et la comparabilité des pratiques de divulgation entre pairs."}
-
-Exemple 4 — Variation chiffrée propre à la banque (EXCLU)
-Input : diff_type="modified", T1="Notre portefeuille de prêts hypothécaires s'élève à 287 G$.", T2="Notre portefeuille de prêts hypothécaires s'élève à 294 G$."
-Output : {"is_relevant": false, "themes_amf": [], "impact_level": "MINEUR", "nouvelle_idee": false, "action_requise": "aucune", "exclusion_reason": "variation_numerique_propre_banque", "explanation": "", "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : Mise à jour quantitative propre à la banque.\n\nCe qui change : Le T2 met à jour le montant du portefeuille de prêts hypothécaires, qui passe de 287 G$ à 294 G$. L'indicateur existait déjà au T1 et le changement porte uniquement sur la valeur publiée.\n\nPertinence métier : Cette variation ne constitue pas une nouvelle idée à surveiller, car elle reflète l'évolution normale d'un chiffre propre à la banque. Elle ne modifie aucun seuil prudentiel, aucune règle BSIF ou AMF, aucune méthode de calcul et aucune posture de risque qui changerait la lecture réglementaire ou la comparabilité métier.\n\nPoint de surveillance : Mise à jour quantitative — La substance de la divulgation demeure stable. Ce point peut être écarté du suivi prioritaire, sauf si une autre information indique un changement de seuil prudentiel, de méthode, de conformité ou de posture de risque."}
-
-Exemple 5 — Montant réglementaire (seuil prudentiel)
-Input : diff_type="modified", T1="Le seuil prudentiel CET1 minimal applicable est de 4,5 %.", T2="Le seuil prudentiel CET1 minimal applicable est de 5,0 %, conformément aux nouvelles exigences pilier 2 du BSIF."
-Output : {"is_relevant": true, "themes_amf": ["RATIOS_REGLEMENTAIRES", "EXIGENCES_REGLEMENTAIRES", "MONTANT_REGLEMENTAIRE", "NOUVELLE_MENTION_REGLEMENTAIRE"], "impact_level": "MAJEUR", "nouvelle_idee": true, "action_requise": "revue_prioritaire", "exclusion_reason": null, "explanation": "Au T2, le seuil prudentiel CET1 minimal applicable passe de 4,5 % à 5,0 % en lien avec les nouvelles exigences pilier 2 du BSIF. Ce changement porte sur un seuil réglementaire, pas sur une variation propre à la banque. Il modifie la lecture du cadre de capital applicable.", "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Ratio prudentiel, seuil réglementaire, exigence réglementaire, capital.\n\nCe qui change : Le T2 modifie le seuil prudentiel CET1 minimal applicable, qui passe de 4,5 % à 5,0 %, et rattache ce changement aux nouvelles exigences pilier 2 du BSIF. Il s'agit d'un seuil réglementaire, pas d'une simple variation du ratio publié par la banque.\n\nPertinence métier : Ce changement met en évidence une évolution du cadre prudentiel applicable aux ratios réglementaires et aux exigences de capital. Un changement de seuil peut modifier l'interprétation de la marge de gestion du capital, la comparaison entre banques et la lecture du niveau de contrainte réglementaire applicable.\n\nPoint de surveillance : Capital réglementaire — La variation observée ne doit pas être lue uniquement comme un mouvement de chiffre. Ce point permet de suivre l'évolution du cadre prudentiel présenté par la banque, la contrainte réglementaire applicable et la comparabilité des ratios de capital entre institutions."}
-
-Exemple 6 — Ajout d'un risque tarifaire / commercial (added, MAJEUR)
-Input : diff_type="added", T1="", T2="L'application de nouveaux tarifs douaniers et de mesures de représailles accroît l'incertitude économique, perturbe les chaînes d'approvisionnement et amplifie la volatilité des marchés ainsi que le risque de crédit."
-Output : {"is_relevant": true, "themes_amf": ["RISQUE_MACRO_GEOPOLITIQUE", "FACTEUR_RISQUE_CHANGEMENT", "DIVULGATION_AJOUT"], "impact_level": "MAJEUR", "nouvelle_idee": true, "action_requise": "revue_prioritaire", "exclusion_reason": null, "explanation": "Au T2, la banque ajoute une divulgation sur l'incidence des nouveaux tarifs douaniers et des mesures de représailles, absente au T1. Ce déclencheur macroéconomique et commercial se transmet au risque de crédit, au risque de marché et aux chaînes d'approvisionnement. Il introduit un facteur de risque externe explicite dans la divulgation.", "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Risque commercial et géopolitique, tarifs douaniers, facteur de risque, information ajoutée.\n\nCe qui change : Le T2 ajoute une divulgation sur les nouveaux tarifs douaniers et les mesures de représailles, ainsi que leurs effets sur l'incertitude économique, les chaînes d'approvisionnement, la volatilité des marchés et le risque de crédit. Cette information était absente du T1.\n\nPertinence métier : Ce changement met l'accent sur un déclencheur macroéconomique et commercial externe qui se transmet aux risques bancaires classiques. L'ajout d'une divulgation tarifaire rend visible la manière dont la banque relie un choc commercial à son exposition au crédit, au marché et au financement, ce qui modifie la lecture de son profil de risque.\n\nPoint de surveillance : Risque commercial et géopolitique — Le changement indique que la banque divulgue désormais explicitement l'incidence des tarifs douaniers. Ce point permet de suivre la transmission de ce déclencheur externe au risque de crédit et de marché, ainsi que l'évolution de la transparence de la banque sur les chocs commerciaux."}
-
-Exemple 7 — Retrait d'un risque tarifaire / commercial (removed, MAJEUR)
-Input : diff_type="removed", T1="Les nouveaux tarifs douaniers pourraient avoir une incidence sur les clients de détail et commerciaux, qui pourraient être touchés par la hausse du chômage et voir leur capacité à rembourser leurs prêts réduite.", T2=""
-Output : {"is_relevant": true, "themes_amf": ["RISQUE_MACRO_GEOPOLITIQUE", "FACTEUR_RISQUE_CHANGEMENT", "DIVULGATION_RETRAIT"], "impact_level": "MAJEUR", "nouvelle_idee": true, "action_requise": "revue_prioritaire", "exclusion_reason": null, "explanation": "Au T1, la banque divulguait l'incidence des tarifs douaniers sur ses clients et sur leur capacité de remboursement, mais cette mention disparaît au T2. Ce retrait touche un déclencheur macroéconomique et commercial relié au risque de crédit. Il réduit le niveau de détail de la divulgation sur un risque externe important.", "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Risque commercial et géopolitique, tarifs douaniers, facteur de risque, information retirée.\n\nCe qui change : Le T2 retire la divulgation, présente au T1, sur l'incidence des tarifs douaniers sur les clients de détail et commerciaux et sur leur capacité à rembourser leurs prêts. Ce lien explicite entre tarifs et risque de crédit n'apparaît plus.\n\nPertinence métier : Ce changement met l'accent sur le fait que la banque atténue sa communication sur un déclencheur macroéconomique et commercial relié au risque de crédit. Le retrait d'une divulgation sur les tarifs n'est pas neutre : il modifie la lecture de l'exposition de la banque et de sa transparence sur un risque externe, et mérite la même attention qu'un ajout.\n\nPoint de surveillance : Risque commercial et géopolitique — Le changement indique que la banque retire une divulgation tarifaire reliée au risque de crédit. Ce point permet de suivre l'évolution de la transparence de la banque sur les chocs commerciaux et la cohérence de sa divulgation du risque externe dans le temps."}
+Exemple 2 — variation propre à la banque non pertinente
+Input : {"change_index": 1, "diff_type": "modified", "change_summary": "Le portefeuille hypothécaire passe de 287 G$ à 294 G$."}
+Output : {"change_index": 1, "is_relevant": false, "themes_amf": [], "nouvelle_idee": false, "relevance_reason": "Le changement porte uniquement sur la valeur courante du portefeuille hypothécaire de la banque, tandis que la nature de l’indicateur et la divulgation demeurent inchangées. Aucun nouveau seuil prudentiel, facteur de risque, contrôle, cadre réglementaire ou changement méthodologique n’est introduit. Cette mise à jour reflète l’évolution normale d’un montant propre à l’institution et ne crée pas une nouvelle idée comparable entre pairs. Elle reste visible pour permettre la validation humaine, mais elle ne justifie pas une surveillance prioritaire au titre de la taxonomie AMF. Les textes sources peuvent confirmer que seule la donnée quantitative a changé entre les deux rapports."}
 """
 
 
@@ -124,7 +577,10 @@ def _derive_legacy_fields(triage_amf: dict[str, Any]) -> dict[str, Any]:
     themes = set(triage_amf.get("themes_amf") or [])
     impact = str(triage_amf.get("impact_level") or "MINEUR").upper()
 
-    if themes & {"CAPITAL_REGLEMENTAIRE", "FONDS_PROPRES_REGLEMENTAIRES", "RATIOS_REGLEMENTAIRES"}:
+    if "SUJET_EMERGENT_HORS_GRILLE" in themes:
+        category = "INCONNU"
+        risk_type = "autre"
+    elif themes & {"CAPITAL_REGLEMENTAIRE", "FONDS_PROPRES_REGLEMENTAIRES", "RATIOS_REGLEMENTAIRES"}:
         category = "CAPITAL"
         risk_type = "capital"
     elif "LIQUIDITE" in themes:
@@ -171,6 +627,70 @@ def _derive_legacy_fields(triage_amf: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+_COMPACT_HIGH_PRIORITY_THEMES = frozenset(
+    {
+        "RISQUE_EMERGENT",
+        "RISQUE_MACRO_GEOPOLITIQUE",
+        "MODIFICATION_METHODOLOGIE",
+        "EXIGENCES_REGLEMENTAIRES",
+        "NOUVELLE_MENTION_REGLEMENTAIRE",
+        "MONTANT_REGLEMENTAIRE",
+    }
+)
+
+
+def _persisted_triage_from_compact(
+    compact: dict[str, Any],
+    *,
+    change: dict[str, Any],
+) -> dict[str, Any]:
+    """Ajoute localement les champs historiques sans les demander au LLM."""
+    is_relevant = bool(compact.get("is_relevant", False))
+    nouvelle_idee = bool(compact.get("nouvelle_idee", False))
+    themes = list(compact.get("themes_amf") or [])
+    relevance_reason = " ".join(
+        str(compact.get("relevance_reason") or "").split()
+    )
+    high_priority = bool(set(themes) & _COMPACT_HIGH_PRIORITY_THEMES)
+
+    if not is_relevant:
+        impact_level = "MINEUR"
+        action_requise = "aucune"
+    elif nouvelle_idee and high_priority:
+        impact_level = "MAJEUR"
+        action_requise = "revue_prioritaire"
+    elif nouvelle_idee:
+        impact_level = "MODERE"
+        action_requise = "investigation"
+    else:
+        impact_level = "MINEUR"
+        action_requise = "information"
+
+    triage: dict[str, Any] = {
+        "compact_schema_version": "analyst_compact_v1",
+        "is_relevant": is_relevant,
+        "themes_amf": themes,
+        "nouvelle_idee": nouvelle_idee,
+        "relevance_reason": relevance_reason,
+        "exclusion_reason": None if is_relevant else "non_pertinent_autre",
+        "impact_level": impact_level,
+        "action_requise": action_requise,
+        "impact_it": "INDETERMINE",
+        "impact_it_justification": "",
+        "changement_posture": "INDETERMINE" if is_relevant else "AUCUN",
+        "justification_posture": "",
+        "statut_mise_en_oeuvre": "INDETERMINE",
+        "confiance_posture": "INDETERMINE",
+        "explanation": relevance_reason if is_relevant else "",
+    }
+    triage["nouvelle_idee_justification"] = build_compact_triage_justification(
+        change,
+        triage,
+    )
+    legacy_fields = _derive_legacy_fields(triage)
+    return {**triage, **legacy_fields, "source": TRIAGE_SOURCE_VERSION}
+
+
 def _triage_section_changes(
     *,
     client: Any,
@@ -192,10 +712,78 @@ def _triage_section_changes(
     if not changes:
         return []
 
-    if len(changes) > _TRIAGE_BATCH_SIZE:
+    # The first GPT call arbitrates the semantic relationship.  Only an
+    # explicit ``uncertain`` result remains for a human; same and distinct
+    # disclosures proceed to the AMF triage normally.
+    if any(_requires_alignment_review(change) or _is_semantic_text_move(change) for change in changes):
+        enriched: list[dict[str, Any]] = []
+        for change in changes:
+            if _requires_alignment_review(change):
+                enriched.append(_alignment_review_result(change))
+            elif _is_semantic_text_move(change):
+                enriched.append(_semantic_move_result(change))
+            else:
+                enriched.extend(
+                    _triage_section_changes(
+                        client=client,
+                        model=model,
+                        section_key=section_key,
+                        changes=[change],
+                    )
+                )
+        return enriched
+
+    # Deterministic cosmetic pre-filter before any AMF GPT call.
+    pending: list[dict[str, Any]] = []
+    prefiltered: list[dict[str, Any]] = []
+    for change in changes:
+        exclusion = _deterministic_cosmetic_exclusion(change)
+        if exclusion:
+            prefiltered.append(_cosmetic_triage_result(change, exclusion))
+        else:
+            pending.append(change)
+    if not pending:
+        return prefiltered
+
+    # Semantic near-duplicate grouping: one representative is triaged, then
+    # the verdict is propagated with an auditable regrouping trace.
+    groups = _group_semantic_triage_duplicates(pending, client=client)
+    if any(len(group) > 1 for group in groups):
+        grouped_results: list[dict[str, Any]] = []
+        for group_index, member_indexes in enumerate(groups, start=1):
+            members = [pending[index] for index in member_indexes]
+            if len(members) == 1:
+                grouped_results.extend(
+                    _triage_section_changes(
+                        client=client,
+                        model=model,
+                        section_key=section_key,
+                        changes=members,
+                    )
+                )
+                continue
+            representative_results = _triage_section_changes(
+                client=client,
+                model=model,
+                section_key=section_key,
+                changes=[members[0]],
+            )
+            if not representative_results:
+                continue
+            group_id = f"{section_key}_triage_group_{group_index:03d}"
+            grouped_results.extend(
+                _propagate_triage_to_group(
+                    representative=representative_results[0],
+                    members=members,
+                    group_id=group_id,
+                )
+            )
+        return [*prefiltered, *grouped_results]
+
+    if len(pending) > _TRIAGE_BATCH_SIZE and not _is_single_semantic_alignment_group(pending):
         chunks = [
-            changes[start : start + _TRIAGE_BATCH_SIZE]
-            for start in range(0, len(changes), _TRIAGE_BATCH_SIZE)
+            pending[start : start + _TRIAGE_BATCH_SIZE]
+            for start in range(0, len(pending), _TRIAGE_BATCH_SIZE)
         ]
         max_workers = min(_MAX_TRIAGE_LLM_WORKERS, len(chunks))
         results_by_index: dict[int, list[dict[str, Any]]] = {}
@@ -222,255 +810,96 @@ def _triage_section_changes(
         enriched_batches: list[dict[str, Any]] = []
         for index in range(len(chunks)):
             enriched_batches.extend(results_by_index.get(index, []))
-        return enriched_batches
+        return [*prefiltered, *enriched_batches]
 
+    changes = pending
     triage_inputs = []
+    exact_segments_by_index: dict[int, list[dict[str, str]]] = {}
     for idx, change in enumerate(changes, start=1):
+        exact_segments = build_change_segments(change)
+        exact_segments_by_index[idx] = exact_segments
+        exact_segments_for_prompt = [
+            {
+                "kind": str(segment.get("kind") or ""),
+                "text_t1": _truncate_prompt_text(
+                    str(segment.get("text_t1") or ""),
+                    _TRIAGE_SOURCE_SNIPPET_LIMIT,
+                ),
+                "text_t2": _truncate_prompt_text(
+                    str(segment.get("text_t2") or ""),
+                    _TRIAGE_SOURCE_SNIPPET_LIMIT,
+                ),
+            }
+            for segment in exact_segments
+        ]
         triage_inputs.append(
             {
                 "change_index": idx,
                 "diff_type": change["diff_type"],
-                "semantic_text_t1": _truncate_prompt_text(
-                    change.get("semantic_text_t1", ""),
-                    _TRIAGE_SEMANTIC_TEXT_LIMIT,
-                ),
-                "semantic_text_t2": _truncate_prompt_text(
-                    change.get("semantic_text_t2", ""),
-                    _TRIAGE_SEMANTIC_TEXT_LIMIT,
-                ),
                 "source_snippet_t1": _truncate_prompt_text(
-                    change.get("source_text_t1") or "",
+                    change.get("source_text_t1")
+                    or change.get("semantic_text_t1")
+                    or "",
                     _TRIAGE_SOURCE_SNIPPET_LIMIT,
                 ),
                 "source_snippet_t2": _truncate_prompt_text(
-                    change.get("source_text_t2") or "",
+                    change.get("source_text_t2")
+                    or change.get("semantic_text_t2")
+                    or "",
+                    _TRIAGE_SOURCE_SNIPPET_LIMIT,
+                ),
+                "exact_change_segments": exact_segments_for_prompt,
+                "alignment_decision": str(change.get("alignment_decision") or ""),
+                "alignment_confidence": str(change.get("alignment_confidence") or ""),
+                "alignment_rationale": _truncate_prompt_text(
+                    str(change.get("alignment_rationale") or ""),
                     _TRIAGE_SOURCE_SNIPPET_LIMIT,
                 ),
                 "change_summary": change.get("change_summary", ""),
+                "candidate_themes": _candidate_themes_for_change(
+                    change,
+                    section_key=section_key,
+                ),
             }
         )
 
     system_prompt = (
-        "Tu es un analyste senior en gestion intégrée des risques, spécialisé "
-        "dans la vigie de pairs des banques canadiennes alignée sur les "
-        "attentes de l'AMF (Autorité des marchés financiers du Québec) et "
-        "du BSIF.\n\n"
-        "Tu analyses chaque changement détecté entre deux rapports d'une "
-        "même banque comparés pair-à-pair :\n"
-        "- T1 = rapport PRÉCÉDENT dans la paire\n"
-        "- T2 = rapport COURANT dans la paire\n"
-        "Les paires possibles sont : T2 vs T1, T3 vs T2, T1 N+1 vs T3 N "
-        "(passage d'année), T4 N+1 vs T4 N (rapports annuels). Le suffixe "
-        "T1/T2 ne désigne PAS forcément un trimestre.\n\n"
-        "Tu utilises uniquement la taxonomie AMF fournie ci-dessous, en "
-        "multi-label si plusieurs thèmes s'appliquent."
+        "Tu qualifies les changements entre le rapport précédent et le rapport "
+        "courant d’une banque canadienne pour une vigie AMF. Réponds uniquement "
+        "avec le schéma compact demandé. Sois factuel, sans analyse IT, posture, "
+        "niveau d’impact, action recommandée ni répétition des textes sources."
     )
 
+
     user_prompt = (
-        "Pour chaque changement de la liste ci-dessous, produis un triage AMF "
-        "dans le batch de sortie en réutilisant le même change_index. Le "
-        "schéma de sortie est imposé par l'API ; tu ne dois pas en dévier.\n\n"
-        "Ne produis pas de segments de surlignage ni de preuve verbatim : "
-        "ces preuves sont calculées localement à partir des textes T1/T2. "
-        "Concentre-toi uniquement sur le triage métier AMF.\n\n"
-        "Taxonomie AMF (utilise UNIQUEMENT ces codes pour themes_amf, "
-        "multi-label autorisé et encouragé) :\n"
-        f"{format_themes_for_prompt()}\n\n"
-        "Libellés analyste à utiliser dans `Sujet détecté` et dans "
-        "`nouvelle_idee_justification` (ne pas laisser seulement les codes "
-        "AMF techniques) :\n"
-        f"{format_theme_subjects_for_prompt()}\n\n"
-        "Raisons d'exclusion (à utiliser quand is_relevant=false) :\n"
-        f"{format_exclusion_reasons_for_prompt()}\n\n"
-        "Règles métier :\n"
-        "1. MULTI-LABEL : un changement peut combiner plusieurs thèmes "
-        "(ex : modification méthodologique qui touche la gouvernance → "
-        '["MODIFICATION_METHODOLOGIE", "GOUVERNANCE_RISQUES"]).\n\n'
-        "1b. RENOMMAGE NARRATIF : si diff_type='renamed', il s'agit d'un "
-        "titre ou d'une sous-section renommée entre T1 et T2. Classer avec "
-        "'STRUCTURE_RAPPORT' et, si le nouveau libellé change la lecture du "
-        "risque, ajouter les thèmes métier applicables. Ne pas assimiler un "
-        "renommage à une simple reformulation lorsque le libellé oriente "
-        "différemment l'analyse de vigie.\n\n"
-        "2. EXCLUSIONS DURES — mettre is_relevant=false avec exclusion_reason :\n"
-        "   - Variations chiffrées PROPRES à la banque (taille du portefeuille, "
-        "exposition, profits, montants d'actifs, ratios chiffrés de la banque) "
-        "→ 'variation_numerique_propre_banque'.\n"
-        "   - Reformulation sans nouveau fond (synonymes, ordre des mots, "
-        "tournure équivalente) → 'reformulation_mineure'.\n"
-        "   - Texte déplacé sans modification → 'deplacement_texte'.\n"
-        "   - Formatage visuel (gras, italique, ponctuation, casse, espacement) "
-        "→ 'formatage_visuel'.\n"
-        "   IMPORTANT : ces changements restent dans le batch de sortie. Tu les "
-        "classes comme non pertinents, mais tu ne les supprimes jamais : "
-        "la décision finale appartient à l'analyste.\n\n"
-        "2b. DEPLACEMENT DE TEXTE — nuance obligatoire :\n"
-        "   - Classer en 'deplacement_texte' UNIQUEMENT si le passage conserve "
-        "le même sens, le même niveau de détail et un contexte équivalent.\n"
-        "   - Si le déplacement change la section, le titre, la visibilité, "
-        "le rattachement à un thème AMF, la posture de risque ou le niveau de "
-        "mise en évidence, NE PAS l'exclure comme simple déplacement. Classer "
-        "plutôt avec 'STRUCTURE_RAPPORT' et les thèmes métier applicables "
-        "(ex. RISQUE_DONNEES, RISQUE_TIERS_CLOUD, EXIGENCES_REGLEMENTAIRES, "
-        "FACTEUR_RISQUE_CHANGEMENT).\n"
-        "   - Un paragraphe déplacé d'une rubrique générale vers une rubrique "
-        "dédiée aux risques, à la réglementation, aux données, aux tiers, à "
-        "l'infonuagique ou à la cybersécurité peut être une nouvelle idée si "
-        "ce nouveau contexte change la lecture analyste.\n\n"
-        "3. INCLUSION EXPLICITE — les MONTANTS RÉGLEMENTAIRES (seuils "
-        "prudentiels, planchers Bâle, exigences pilier 2, lignes directrices "
-        "BSIF chiffrées) sont EN scope. Ajouter le marqueur 'MONTANT_REGLEMENTAIRE' "
-        "aux thèmes principaux quand la divulgation porte sur un seuil "
-        "réglementaire chiffré (PAS un chiffre propre à la banque).\n\n"
-        "4. RISQUE_EMERGENT (cyberrisque, IA, IA générative, fraude numérique, "
-        "ransomware, modèles tiers) est PRIORITAIRE : impact_level minimum MODERE.\n\n"
-        "4a. RISQUE_DONNEES et RISQUE_TIERS_CLOUD sont des axes distincts. "
-        "Ne classe pas une simple occurrence du mot 'données' ou 'tiers'. "
-        "Retiens ces thèmes lorsque la divulgation traite de gouvernance, "
-        "qualité, protection, localisation ou cycle de vie des données, ou de "
-        "fournisseurs critiques, impartition, concentration, infonuagique, "
-        "résilience et stratégie de sortie.\n\n"
-        "4b. RISQUE_MACRO_GEOPOLITIQUE (tarifs douaniers, guerre commerciale, "
-        "sanctions, conflits, incertitude des politiques commerciales) est un "
-        "déclencheur externe qui se transmet au crédit, au marché et au "
-        "financement : PRIORITAIRE, impact_level minimum MODERE. Un AJOUT comme "
-        "un RETRAIT significatif de cette divulgation est MAJEUR — un retrait "
-        "signale que la banque atténue sa communication sur ce risque, ce qui "
-        "est aussi important qu'un ajout.\n\n"
-        "5. nouvelle_idee = true SI ET SEULEMENT SI les 3 conditions cumulatives sont vraies :\n"
-        "   (a) SUBSTANTIELLE : modifie la SUBSTANCE de la divulgation (concept, "
-        "facteur de risque, mention réglementaire, méthodologie, indicateur "
-        "prudentiel) — PAS une variation chiffrée propre à la banque ni une "
-        "reformulation.\n"
-        "   (b) NOUVEAUTÉ INFORMATIONNELLE : ajoute un élément absent au T1, OU "
-        "retire un élément présent au T1, OU modifie substantiellement la "
-        "posture de la banque sur un thème AMF.\n"
-        "   (c) ADOSSÉE À UN THÈME AMF : au moins un code dans themes_amf "
-        "(sinon hors scope vigie).\n"
-        "   Si UNE des 3 conditions est violée → nouvelle_idee = false.\n\n"
-        "5b. changement_posture : détermine si le changement modifie la façon "
-        "de gérer le risque. Utilise RENFORCEMENT pour des contrôles ou une "
-        "surveillance renforcés, ALLEGEMENT pour un encadrement réduit, "
-        "NOUVEAU_DISPOSITIF pour un nouveau comité, cadre, responsabilité, "
-        "diligence, exigence contractuelle ou stratégie de sortie, "
-        "RETRAIT_DISPOSITIF pour leur suppression, AUCUN si la gestion ne "
-        "change pas, et INDETERMINE si le texte ne permet pas de conclure. "
-        "Une simple mention de risque n'est pas un changement de posture. "
-        "Pour une posture autre que AUCUN ou INDETERMINE, renseigne "
-        "justification_posture avec exactement quatre rubriques séparées par "
-        "\\n\\n : Preuve, Effet sur la gestion du risque, Justification du "
-        "statut, Justification de la confiance. Renseigne aussi "
-        "confiance_posture (ELEVEE, MOYENNE ou FAIBLE).\n\n"
-        "5c. statut_mise_en_oeuvre décrit le niveau réellement démontré par le "
-        "rapport : ANNONCE, PLANIFIE, EN_COURS, MIS_EN_OEUVRE ou INDETERMINE. "
-        "Ne transforme jamais un futur, un projet ou une intention en mesure "
-        "déjà mise en œuvre.\n\n"
-        "6. impact_level :\n"
-        "   - MAJEUR : modification méthodologique substantielle, retrait/ajout "
-        "significatif de divulgation, nouvelle exigence réglementaire, risque "
-        "émergent introduit ou retiré.\n"
-        "   - MODERE : modification de posture, croisement multi-thèmes notable.\n"
-        "   - MINEUR : changement modeste mais substantif.\n\n"
-        "6b. impact_it est un axe distinct de impact_level et doit rester "
-        "INDETERMINE par défaut :\n"
-        "   - Règle de prudence : ne JAMAIS inférer un impact IT indirectement. "
-        "Évalue impact_it seulement si le changement contient un signal explicite "
-        "lié aux systèmes, à la technologie, aux données, aux fournisseurs, au cloud, "
-        "à la cybersécurité, à l'IA, aux modèles, à l'automatisation, à l'infrastructure, "
-        "à une migration ou à des contrôles technologiques.\n"
-        "   - ELEVE : migration ou changement d'architecture, remplacement ou "
-        "sortie d'un fournisseur, contrôles technologiques majeurs, localisation "
-        "ou déplacement de données, continuité ou résilience structurante.\n"
-        "   - MOYEN : nouveaux processus, inventaires, surveillance, rapports, "
-        "diligence ou exigences contractuelles nécessitant un effort IT.\n"
-        "   - FAIBLE : clarification ou ajustement limité sans transformation "
-        "technologique apparente, mais avec un effet IT identifiable.\n"
-        "   - INDETERMINE : information insuffisante ou absence de signal IT explicite. "
-        "Utilise INDETERMINE pour les changements de capital, ratio, crédit, liquidité, "
-        "réglementation ou gouvernance générale qui ne mentionnent pas clairement "
-        "une dimension technologique. Ne déduis jamais qu'un changement IT est réalisé "
-        "si le rapport décrit seulement une intention. FAIBLE ne signifie pas absence "
-        "d'impact IT : si le lien IT n'est pas explicite, choisis INDETERMINE. "
-        "Renseigne impact_it_justification avec exactement trois rubriques "
-        "séparées par \\n\\n : Éléments observés, Conséquence probable, Limite "
-        "de l'analyse. Laisse ce champ vide si impact_it=INDETERMINE.\n\n"
-        "7. action_requise : 'revue_prioritaire' UNIQUEMENT pour les changements MAJEUR "
-        "(invariant strict — revue_prioritaire exige impact_level=MAJEUR) ; 'investigation' "
-        "pour MODERE ou MAJEUR sans revue_prioritaire ; 'confirmation' à valider avec "
-        "source ; 'information' pertinent non actionnable ; 'aucune' uniquement "
-        "si is_relevant=false.\n\n"
-        "8. INVARIANTS STRICTS (toute violation rejette la réponse) :\n"
-        "   - is_relevant=true → themes_amf NON VIDE, exclusion_reason=null, "
-        "explanation ≥ 50 caractères (3 phrases pleines), nouvelle_idee_justification "
-        "≥ 3 phrases complètes, entre 220 et 700 caractères au total, commençant par 'OUI' "
-        "et contenant les rubriques exactes : Nouvel élément à surveiller, "
-        "Sujet détecté, Ce qui change, Pertinence métier, Point de surveillance.\n"
-        "   - is_relevant=false → themes_amf=[], exclusion_reason renseigné, "
-        "nouvelle_idee=false, impact_level=MINEUR, action_requise='aucune', "
-        "changement_posture=AUCUN, impact_it=INDETERMINE, "
-        "justification_posture vide, statut_mise_en_oeuvre=INDETERMINE, "
-        "confiance_posture=INDETERMINE, impact_it_justification vide, "
-        "explanation vide. "
-        "nouvelle_idee_justification "
-        "OBLIGATOIRE : ≥ 3 phrases complètes, entre 220 et 700 caractères, commençant "
-        "par 'NON', contenant les mêmes rubriques exactes, et expliquant "
-        "clairement POURQUOI ce changement n'est pas une nouvelle idée AMF "
-        "(citer la raison d'exclusion en langage métier, pas seulement le code).\n\n"
-        "Exigence pour `explanation` (3 phrases obligatoires si is_relevant=true, "
-        "chaîne vide sinon) :\n"
-        "1. Ce qui a changé concrètement entre T1 (précédent) et T2 (courant).\n"
-        "2. Pourquoi ce changement relève des thèmes AMF identifiés (et non "
-        "d'une simple reformulation ou variation chiffrée propre à la banque).\n"
-        "3. Ce que cela implique pour la surveillance de cette banque.\n\n"
-        "Exigence pour `nouvelle_idee_justification` (TOUJOURS obligatoire, "
-        "y compris pour les is_relevant=false) :\n"
-        "- Format STRICT : commencer par 'OUI' (si nouvelle_idee=true) ou 'NON' "
-        "(si nouvelle_idee=false), suivi d'un tiret '—' ou '-'.\n"
-        "- LONGUEUR STRICTE : rester entre 220 et 700 caractères au total. "
-        "Une phrase courte par rubrique suffit; ne jamais produire de note longue.\n"
-        "- Rédiger une NOTE D'ANALYSTE avec ces rubriques EXACTES, dans cet "
-        "ordre, séparées par \\n\\n :\n"
-        "  1) 'OUI — Nouvel élément à surveiller : Oui' ou "
-        "'NON — Nouvel élément à surveiller : Non'.\n"
-        "  2) 'Sujet détecté : ...' avec des mots simples liés aux codes AMF "
-        "(IA, cybersécurité, risque climatique, conformité, capital, liquidité, "
-        "méthode de calcul, information ajoutée ou retirée).\n"
-        "  3) 'Ce qui change : ...' avec l'élément exact ajouté, retiré ou "
-        "modifié entre T1 et T2.\n"
-        "  4) 'Pertinence métier : ...' avec une explication concise, concrète "
-        "et formulée comme un analyste de vigie : commencer idéalement par "
-        "'Ce changement met l'accent sur ...' ou 'Ce changement met en évidence ...'. "
-        "Relier le changement au sujet détecté, aux attentes prudentielles, "
-        "à la conformité, aux contrôles, à la comparabilité entre pairs et à "
-        "son importance pour une banque. Éviter la formule qui associe "
-        "directement les mots vigie et bancaire.\n"
-        "  5) 'Point de surveillance : ...' avec le point de surveillance à retenir, "
-        "sans demander à l'analyste de vérifier, accepter ou rejeter le changement.\n"
-        "- Au moins 3 phrases complètes (ponctuation finale, ≥ 20 chars chacune) "
-        "et ≥ 200 caractères au total — l'analyste doit avoir une explication "
-        "claire et concise, pas une note exhaustive.\n"
-        "- Citer l'élément SPÉCIFIQUE du rapport : nom exact d'un indicateur, "
-        "fragment de phrase, libellé de footnote, titre de tableau — adossé au "
-        "contenu réel des rapports aux actionnaires traités.\n"
-        "- Si is_relevant=true : mentionner explicitement le ou les sujets AMF "
-        "concernés en langage naturel dans 'Sujet détecté' et expliquer en quoi le changement "
-        "constitue une nouveauté.\n"
-        "- Si is_relevant=false : expliquer en LANGAGE MÉTIER pourquoi ce "
-        "changement n'est PAS une nouvelle idée AMF (variation chiffrée propre "
-        "à la banque, reformulation sans nouveau fond, déplacement de texte, "
-        "etc.). L'analyste doit comprendre la raison de l'exclusion sans avoir "
-        "à interpréter le code d'exclusion.\n"
-        "- Ne pas produire une justification de type gabarit qui se contente de "
-        "dire 'ce changement affecte les thèmes AMF ...'. Les codes AMF peuvent "
-        "être mentionnés, mais ils ne remplacent jamais l'explication métier.\n"
-        "- Ne pas utiliser de formules de tâche comme 'vérifier si', 'accepter', "
-        "'rejeter' ou 'à confirmer par l'analyste' : Dash affiche déjà la "
-        "preuve et l'analyste prend la décision finale.\n"
-        "- Adossé aux règles AMF appliquées sur le contenu réel (pas de "
-        "généralités, pas de paraphrase de la règle abstraite).\n\n"
-        f"{_FEW_SHOT_TRIAGE_AMF}\n"
-        f"Section: {section_key}\n"
-        f"Changements à trier:\n{_json_dumps(triage_inputs)}"
+        f"Retourne exactement {len(changes)} entrée(s) dans `triages`, une par "
+        "changement, avec les mêmes `change_index`, sans doublon ni entrée "
+        "supplémentaire.\n\n"
+        "Règles strictes :\n"
+        "1. `is_relevant=true` seulement pour un changement substantiel utile "
+        "à la vigie AMF; dans ce cas, choisis un ou deux codes uniquement parmi "
+        "les `candidate_themes` de l’entrée.\n"
+        "2. `is_relevant=false` exige `themes_amf=[]` et `nouvelle_idee=false`. "
+        "Une variation chiffrée propre à la banque, un déplacement identique, "
+        "du formatage ou une reformulation sans nouveau fond sont non pertinents.\n"
+        "3. `nouvelle_idee=true` seulement si le rapport courant ajoute, retire "
+        "ou modifie substantiellement une information absente sous cette forme "
+        "dans le rapport précédent.\n"
+        "4. `relevance_reason` explique concrètement pourquoi le changement est "
+        "pertinent ou non pertinent. Il doit contenir strictement entre "
+        f"{COMPACT_RELEVANCE_REASON_MIN_WORDS} et "
+        f"{COMPACT_RELEVANCE_REASON_MAX_WORDS} mots, sans titre, liste, rubrique "
+        "ni consigne adressée à l’analyste.\n"
+        "5. Ne produis aucun champ d’impact, d’action, de posture, d’impact IT, "
+        "d’explication générale ou de justification multi-rubriques.\n\n"
+        f"{_FEW_SHOT_TRIAGE_AMF}\n\n"
+        f"Section : {section_key}\n"
+        f"Changements :\n{_json_dumps(triage_inputs)}"
+    )
+    compact_max_tokens = min(
+        _COMPACT_COMPLETION_MAX_TOKENS,
+        _COMPACT_COMPLETION_BASE_TOKENS
+        + _COMPACT_COMPLETION_TOKENS_PER_CHANGE * len(changes),
     )
 
     try:
@@ -481,8 +910,23 @@ def _triage_section_changes(
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt},
             ],
-            response_format=TriageAMFLLMBatch,
+            response_format=TriageAMFCompactLLMBatch,
+            max_tokens=compact_max_tokens,
             max_retries=2,
+            validation_retry_message=(
+                "Renvoie le batch compact complet. Chaque change_index doit être "
+                "présent exactement une fois. is_relevant=true exige un ou deux "
+                "candidate_themes; is_relevant=false exige themes_amf=[] et "
+                "nouvelle_idee=false. relevance_reason doit contenir strictement "
+                f"{COMPACT_RELEVANCE_REASON_MIN_WORDS} à "
+                f"{COMPACT_RELEVANCE_REASON_MAX_WORDS} mots."
+            ),
+            length_retry_message=(
+                "Renvoie immédiatement le même batch compact complet, sans aucun "
+                "commentaire hors schéma. Garde chaque relevance_reason entre "
+                f"{COMPACT_RELEVANCE_REASON_MIN_WORDS} et "
+                f"{COMPACT_RELEVANCE_REASON_MAX_WORDS} mots."
+            ),
         )
     except ValidationError as exc:
         raise TriageValidationError(
@@ -496,32 +940,68 @@ def _triage_section_changes(
     except Exception as exc:
         raise RuntimeError(f"Section triage failed for {section_key}: {exc}") from exc
 
+    expected_indexes = list(range(1, len(changes) + 1))
+    received_indexes = [triage.change_index for triage in batch.triages]
+    if len(received_indexes) != len(expected_indexes) or sorted(received_indexes) != expected_indexes:
+        validation_error = ValueError(
+            "Le batch compact doit contenir exactement les change_index "
+            f"{expected_indexes}; reçu {received_indexes}"
+        )
+        raise TriageValidationError(
+            section_key=section_key,
+            change_index=None,
+            raw_payload=batch.model_dump(),
+            validation_error=validation_error,
+        )
+
+    for triage_obj in batch.triages:
+        allowed_themes = {
+            candidate["code"]
+            for candidate in triage_inputs[triage_obj.change_index - 1][
+                "candidate_themes"
+            ]
+        }
+        unexpected_themes = set(triage_obj.themes_amf) - allowed_themes
+        if unexpected_themes:
+            validation_error = ValueError(
+                "themes_amf contient des codes hors candidate_themes : "
+                f"{sorted(unexpected_themes)}"
+            )
+            raise TriageValidationError(
+                section_key=section_key,
+                change_index=triage_obj.change_index,
+                raw_payload=triage_obj.model_dump(),
+                validation_error=validation_error,
+            )
+
     triage_map: dict[int, dict[str, Any]] = {}
     relevant_count = 0
     nouvelle_idee_count = 0
     for triage_obj in batch.triages:
-        triage_dict = triage_obj.model_dump(exclude={"change_index"})
-        source_change = changes[triage_obj.change_index - 1]
-        triage_dict["change_segments"] = (
-            build_change_segments(source_change) if triage_dict.get("is_relevant") else []
+        change = changes[triage_obj.change_index - 1]
+        compact_dict = triage_obj.model_dump(exclude={"change_index"})
+        triage = _persisted_triage_from_compact(
+            compact_dict,
+            change=change,
         )
-        triage_dict["explanation"] = _sanitize_explanation(triage_dict["explanation"])
-        legacy_fields = _derive_legacy_fields(triage_dict)
-        triage = {**triage_dict, **legacy_fields, "source": TRIAGE_SOURCE_VERSION}
+        triage["change_segments"] = (
+            exact_segments_by_index.get(triage_obj.change_index, [])
+            if triage_obj.is_relevant
+            else []
+        )
         triage_map[triage_obj.change_index] = triage
         if triage_obj.is_relevant:
             relevant_count += 1
         if triage_obj.nouvelle_idee:
             nouvelle_idee_count += 1
         logger.info(
-            "triage validated section=%s change_index=%d is_relevant=%s themes=%s impact=%s nouvelle_idee=%s action=%s",
+            "compact triage validated section=%s change_index=%d is_relevant=%s themes=%s nouvelle_idee=%s reason_words=%d",
             section_key,
             triage_obj.change_index,
             triage_obj.is_relevant,
             triage_obj.themes_amf,
-            triage_obj.impact_level,
             triage_obj.nouvelle_idee,
-            triage_obj.action_requise,
+            count_words(triage_obj.relevance_reason),
         )
 
     logger.info(
@@ -538,4 +1018,4 @@ def _triage_section_changes(
         enriched_change = dict(change)
         enriched_change["genai_triage"] = triage
         enriched.append(enriched_change)
-    return enriched
+    return [*prefiltered, *enriched]

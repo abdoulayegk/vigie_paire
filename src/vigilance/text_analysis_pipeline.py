@@ -19,6 +19,7 @@ from vigilance.text_analysis import triage as _triage_mod
 from vigilance.text_analysis.chunk_alignment import (
     ChunkAlignment,
     ChunkCandidate,
+    _align_chunks_hybrid,
     _align_chunks_tfidf,
     _format_alignments_for_prompt,
 )
@@ -51,6 +52,13 @@ from vigilance.text_analysis.extraction import (
     _extract_docling_page_blocks,
     _repeated_text_counts,
     _table_regions_for_pages,
+)
+from vigilance.text_analysis.global_reconciliation import (
+    _candidate_score,
+    _components,
+    _one_sided_nodes,
+    _pair_retrieval_scores,
+    reconcile_global_change_fragments,
 )
 from vigilance.text_analysis.markdown import (
     _build_block_page_index,
@@ -127,6 +135,7 @@ from vigilance.text_analysis.subsection_matching import (
 from vigilance.text_analysis.summary import (
     _STRONG_AMF_THEMES_FOR_MODERE_RETENTION,
     _build_global_summary,
+    _build_semantic_quality_metrics,
     _is_new_major_or_allowed_moderate,
     _is_non_cosmetic_change,
     _retained_change_sort_key,
@@ -135,6 +144,8 @@ from vigilance.text_analysis.triage import (
     _FEW_SHOT_TRIAGE_AMF,
     _default_triage,
     _derive_legacy_fields,
+    _deterministic_cosmetic_exclusion,
+    _group_semantic_triage_duplicates,
     _triage_section_changes as _triage_triage_section_changes,
 )
 
@@ -159,23 +170,23 @@ def _allowed_target_sections(*args, **kwargs):
 
 
 def _gpt_match_orphan_headings(*args, **kwargs):
-    _subsection_mod._call_json_completion = _call_json_completion
+    _subsection_mod._call_structured_completion_with_correction = _call_structured_completion_with_correction
     return _subsection_gpt_match_orphan_headings(*args, **kwargs)
 
 
 def _resolve_orphan_subsections(*args, **kwargs):
-    _subsection_mod._call_json_completion = _call_json_completion
+    _subsection_mod._call_structured_completion_with_correction = _call_structured_completion_with_correction
     _subsection_mod._embed_texts = _embed_texts
     return _subsection_resolve_orphan_subsections(*args, **kwargs)
 
 
 def _compare_texts_single_call(*args, **kwargs):
-    _comparison_mod._call_json_completion = _call_json_completion
+    _comparison_mod._call_structured_completion_with_correction = _call_structured_completion_with_correction
     return _comparison_compare_texts_single_call(*args, **kwargs)
 
 
 def _compare_section_texts(*args, **kwargs):
-    _comparison_mod._call_json_completion = _call_json_completion
+    _comparison_mod._call_structured_completion_with_correction = _call_structured_completion_with_correction
     _comparison_mod._compare_texts_single_call = _compat_target(
         "_compare_texts_single_call",
         _FACADE_COMPARE_TEXTS_SINGLE_CALL,
@@ -201,6 +212,7 @@ def _sync_pipeline_hooks() -> None:
     _pipeline_mod._extract_audits_for_pdf = globals()["_extract_audits_for_pdf"]
     _pipeline_mod._compare_section_texts = globals()["_compare_section_texts"]
     _pipeline_mod._triage_section_changes = globals()["_triage_section_changes"]
+    _pipeline_mod.reconcile_global_change_fragments = reconcile_global_change_fragments
     _pipeline_mod._extract_section_text_from_markdown = globals()["_extract_section_text_from_markdown"]
     _pipeline_mod._find_page_for_fragment = globals()["_find_page_for_fragment"]
 

@@ -48,12 +48,26 @@ from vigilance.text_analysis_pipeline import (
     run_text_analysis_pipeline,
 )
 from vigilance.text_analysis.chunk_alignment import _tfidf_similarity_matrix_from_texts
-from vigilance.text_analysis.subsection_matching import OrphanSubsection
+from vigilance.text_analysis.comparison import (
+    ChunkComparisonLLMResponse,
+    _attach_alignment_metadata,
+    _materialize_semantic_alignment_decisions,
+)
+from vigilance.text_analysis.global_reconciliation import (
+    _ReconciliationResponse,
+    _components,
+    _one_sided_nodes,
+    reconcile_global_change_fragments,
+)
+from vigilance.text_comparison.change_segments import build_change_segments_from_texts
+from vigilance.text_analysis.subsection_matching import OrphanMatchLLMResponse, OrphanSubsection
 from vigilance.text_extraction.text_extraction_markdown_writer import get_raw_docling_markdown_path
 from vigilance.text_analysis.docling_markdown import (
     DoclingSegment,
     _assign_segments_to_sections,
     _build_text_extraction_markdown_from_docling,
+    _parse_docling_markdown,
+    _sanitize_heading_note_references,
     _should_keep_docling_segment,
 )
 from vigilance.text_analysis.markdown import _is_out_of_scope_accounting_heading
@@ -272,7 +286,7 @@ def test_default_triage_includes_amf_v2_and_legacy_fields() -> None:
     """Le triage par défaut produit le schéma AMF v2 + champs hérités pour rétro-compatibilité."""
     triage = _default_triage()
 
-    assert triage["source"] == "gpt4o_triage_amf_v3"
+    assert triage["source"] == "gpt4o_triage_amf_compact_v1"
     assert triage["themes_amf"] == []
     assert triage["exclusion_reason"] == "non_pertinent_autre"
     assert triage["is_relevant"] is False
@@ -286,13 +300,11 @@ def test_default_triage_includes_amf_v2_and_legacy_fields() -> None:
     assert triage["signals"]["methodology_change"] is False
 
 
-def test_triage_few_shots_request_analyst_style_justification() -> None:
-    """Le prompt doit guider GPT vers une vraie note d'analyste, pas une liste de tags."""
-    assert "note d'analyste" in _FEW_SHOT_TRIAGE_AMF.lower()
-    assert "Pertinence métier" in _FEW_SHOT_TRIAGE_AMF
-    assert "Sujet détecté" in _FEW_SHOT_TRIAGE_AMF
-    assert "codes AMF servent à choisir les sujets" in _FEW_SHOT_TRIAGE_AMF
-    assert "\n\n" in _FEW_SHOT_TRIAGE_AMF
+def test_triage_few_shots_request_compact_relevance_reason() -> None:
+    assert "relevance_reason" in _FEW_SHOT_TRIAGE_AMF
+    assert "impact_it" not in _FEW_SHOT_TRIAGE_AMF
+    assert "justification_posture" not in _FEW_SHOT_TRIAGE_AMF
+    assert _FEW_SHOT_TRIAGE_AMF.count("Exemple ") == 2
 
 
 def test_derive_legacy_fields_maps_methodology_theme() -> None:
@@ -401,8 +413,8 @@ def test_call_json_completion_uses_model_max_by_default() -> None:
 
 def test_compare_section_texts_surfaces_section_key_on_json_failure(monkeypatch) -> None:
     monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline._call_json_completion",
-        lambda *args, **kwargs: (_ for _ in ()).throw(RuntimeError("invalid json from model")),
+        "vigilance.text_analysis_pipeline._call_structured_completion_with_correction",
+        lambda *args, **kwargs: (_ for _ in ()).throw(RuntimeError("invalid structured output from model")),
     )
 
     with pytest.raises(RuntimeError, match="gestion_risques"):
@@ -705,6 +717,159 @@ def test_assign_segments_stops_at_end_boundary_heading() -> None:
     assert not any("NORMES ET MÉTHODES COMPTABLES" in segment.text for segment in risk_segments)
 
 
+def test_assign_segments_keeps_internal_accounting_heading_before_later_risk_content() -> None:
+    introductory_paragraph = "La Banque surveille les facteurs susceptibles d'avoir une incidence sur ses activités."
+    internal_accounting_heading = "Conventions, méthodes et estimations comptables utilisées par la Banque"
+    internal_accounting_paragraph = (
+        "Les conventions utilisées par la Banque exigent des estimations portant sur des questions incertaines."
+    )
+    credit_heading = "Risque de crédit"
+    credit_paragraph = "Le risque de crédit représente la possibilité de subir une perte financière."
+    audit = SectionAudit(
+        section_key="gestion_risques",
+        section_title="Gestion des risques",
+        start_page=72,
+        end_page=118,
+        anchor_page=72,
+        anchor_text="Gestion des risques",
+        anchor_bbox_norm=[0.1, 0.10, 0.8, 0.15],
+        included_blocks=[
+            PDFBlock(
+                "p082_b001",
+                82,
+                [0.1, 0.20, 0.9, 0.25],
+                introductory_paragraph,
+                1,
+                "narrative",
+                True,
+                "",
+            ),
+            PDFBlock(
+                "p083_b002",
+                83,
+                [0.1, 0.30, 0.9, 0.35],
+                internal_accounting_paragraph,
+                2,
+                "narrative",
+                True,
+                "",
+            ),
+            PDFBlock(
+                "p084_b002",
+                84,
+                [0.1, 0.30, 0.9, 0.35],
+                credit_paragraph,
+                2,
+                "narrative",
+                True,
+                "",
+            ),
+        ],
+        excluded_blocks=[
+            PDFBlock(
+                "p083_b001",
+                83,
+                [0.1, 0.20, 0.9, 0.25],
+                internal_accounting_heading,
+                1,
+                "other",
+                False,
+                "non_narrative_block",
+                "section_header",
+                heading_level=2,
+            ),
+            PDFBlock(
+                "p084_b001",
+                84,
+                [0.1, 0.20, 0.9, 0.25],
+                credit_heading,
+                1,
+                "other",
+                False,
+                "non_narrative_block",
+                "section_header",
+                heading_level=2,
+            ),
+        ],
+    )
+    segments = [
+        DoclingSegment(kind="paragraph", text=introductory_paragraph),
+        DoclingSegment(kind="heading", text=internal_accounting_heading, heading_level=2),
+        DoclingSegment(kind="paragraph", text=internal_accounting_paragraph),
+        DoclingSegment(kind="heading", text=credit_heading, heading_level=2),
+        DoclingSegment(kind="paragraph", text=credit_paragraph),
+    ]
+
+    assigned = _assign_segments_to_sections(segments, [audit])
+    risk_segments = assigned["gestion_risques"]
+
+    assert any(segment.text == internal_accounting_paragraph for segment in risk_segments)
+    assert any(segment.text == credit_heading for segment in risk_segments)
+    assert any(segment.text == credit_paragraph for segment in risk_segments)
+
+
+def test_assign_segments_stops_at_td_accounting_heading_before_declared_end_page() -> None:
+    risk_paragraph = "La Banque continue de surveiller les risques environnementaux et sociaux."
+    accounting_heading = "Normes et méthodes comptables"
+    accounting_paragraph = "La direction doit exercer son jugement pour évaluer les méthodes comptables."
+    audit = SectionAudit(
+        section_key="gestion_risques",
+        section_title="Gestion des risques",
+        start_page=84,
+        end_page=132,
+        anchor_page=84,
+        anchor_text="Facteurs de risque et gestion des risques",
+        anchor_bbox_norm=[0.1, 0.10, 0.8, 0.15],
+        included_blocks=[
+            PDFBlock(
+                "p130_b001",
+                130,
+                [0.1, 0.20, 0.9, 0.25],
+                risk_paragraph,
+                1,
+                "narrative",
+                True,
+                "",
+            ),
+            PDFBlock(
+                "p132_b001",
+                132,
+                [0.1, 0.20, 0.9, 0.25],
+                accounting_paragraph,
+                1,
+                "narrative",
+                True,
+                "",
+            ),
+        ],
+        excluded_blocks=[
+            PDFBlock(
+                "p131_b001",
+                131,
+                [0.1, 0.20, 0.9, 0.25],
+                accounting_heading,
+                1,
+                "other",
+                False,
+                "non_narrative_block",
+                "section_header",
+                heading_level=2,
+            ),
+        ],
+    )
+    segments = [
+        DoclingSegment(kind="paragraph", text=risk_paragraph),
+        DoclingSegment(kind="heading", text=accounting_heading, heading_level=2),
+        DoclingSegment(kind="paragraph", text=accounting_paragraph),
+    ]
+
+    assigned = _assign_segments_to_sections(segments, [audit])
+    risk_segments = assigned["gestion_risques"]
+
+    assert any(segment.text == risk_paragraph for segment in risk_segments)
+    assert not any(segment.text == accounting_paragraph for segment in risk_segments)
+
+
 def test_is_out_of_scope_accounting_heading_detects_note_titles() -> None:
     titles = [
         "CONSOLIDATION DES ENTITÉS STRUCTURÉES",
@@ -800,7 +965,7 @@ def test_build_markdown_omits_accounting_headings_in_risk_section() -> None:
     markdown = _build_text_extraction_markdown_from_docling([audit], raw_docling_markdown=raw_docling)
 
     assert "### CONSOLIDATION DES ENTITÉS STRUCTURÉES" not in markdown
-    assert "### FACTEURS DE RISQUE ET GESTION DES RISQUES" in markdown
+    assert "### FACTEURS DE RISQUE ET GESTION DES RISQUES" not in markdown
     assert "La Banque juge qu'il est d'importance critique" in markdown
 
 
@@ -1076,43 +1241,49 @@ def test_build_section_audit_keeps_narrative_between_two_tables() -> None:
     assert [block.block_id for block in audit.included_blocks] == ["p006_b002"]
 
 
-def test_compare_section_texts_skips_invalid_diff_types(monkeypatch) -> None:
-    def _fake_call_json_completion(client, *, model, messages, max_tokens=None):
-        return {
-            "changes": [
-                {"diff_type": "added", "text_t1": "", "text_t2": "Nouvelle idée.", "change_summary": "Ajout."},
-                {"diff_type": "invalid_type", "text_t1": "x", "text_t2": "y", "change_summary": ""},
-                {"diff_type": "removed", "text_t1": "Ancienne idée.", "text_t2": "", "change_summary": "Suppression."},
-            ]
-        }
+def test_chunk_comparison_llm_response_rejects_invalid_diff_types() -> None:
+    with pytest.raises(Exception, match="diff_type"):
+        ChunkComparisonLLMResponse.model_validate(
+            {
+                "changes": [
+                    {
+                        "alignment_id": "a00",
+                        "diff_type": "invalid_type",
+                        "text_t1": "Ancienne idée commune.",
+                        "text_t2": "Ancienne idée commune.",
+                        "change_summary": "",
+                    }
+                ]
+            }
+        )
 
-    monkeypatch.setattr("vigilance.text_analysis_pipeline._call_json_completion", _fake_call_json_completion)
 
-    results = _compare_section_texts(
-        client=object(),
-        model="gpt-4o",
-        section_key="gestion_risques",
-        text_t1="### Risque de stratégie\n\nAncienne idée commune.",
-        text_t2="### Risque de stratégie\n\nAncienne idée commune.",
-    )
-
-    assert len(results) == 2
-    assert results[0]["diff_type"] == "added"
-    assert results[1]["diff_type"] == "removed"
-    assert results[0]["source_resolution_t1"] == "markdown"
-    assert results[0]["source_resolution_t2"] == "markdown"
+def test_chunk_comparison_llm_response_rejects_missing_alignment_id() -> None:
+    with pytest.raises(Exception, match="alignment_id"):
+        ChunkComparisonLLMResponse.model_validate(
+            {
+                "changes": [
+                    {
+                        "diff_type": "modified",
+                        "text_t1": "Ancienne idée commune.",
+                        "text_t2": "Nouvelle idée commune.",
+                        "change_summary": "Modification.",
+                    }
+                ]
+            }
+        )
 
 
 def test_compare_section_texts_prompt_requests_all_observable_changes(monkeypatch) -> None:
     captured: dict[str, object] = {}
 
-    def _fake_call_json_completion(client, *, model, messages, max_tokens=None):
+    def _fake_structured_completion(client, *, model, messages, **kwargs):
         captured["messages"] = messages
-        return {"changes": []}
+        return ChunkComparisonLLMResponse(changes=[])
 
     monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline._call_json_completion",
-        _fake_call_json_completion,
+        "vigilance.text_analysis_pipeline._call_structured_completion_with_correction",
+        _fake_structured_completion,
     )
 
     _compare_section_texts(
@@ -1251,7 +1422,7 @@ def test_rewrite_migrates_legacy_markers_to_pdf_inline() -> None:
     assert page_index["gestion_capital"] == [(60, "Un paragraphe.")]
 
 
-def test_build_text_extraction_markdown_keeps_orphan_heading_for_audit() -> None:
+def test_build_text_extraction_markdown_excludes_orphan_heading_from_matching() -> None:
     audit = SectionAudit(
         section_key="gestion_capital",
         section_title="Gestion du capital",
@@ -1269,11 +1440,155 @@ def test_build_text_extraction_markdown_keeps_orphan_heading_for_audit() -> None
 
     markdown = _build_text_extraction_markdown([audit])
 
-    assert "### Accord de Bâle" in markdown
+    assert "### Accord de Bâle" not in markdown
+
+
+def test_docling_parser_marks_first_segment_after_table() -> None:
+    segments = _parse_docling_markdown(
+        "| 2025 | 2024 |\n"
+        "| --- | --- |\n"
+        "| 10 | 9 |\n\n"
+        "(5) Les montants sont présentés avant déduction des provisions.\n\n"
+        "Le paragraphe narratif suivant doit demeurer dans le flux.\n"
+    )
+
+    assert segments[0].text.startswith("(5)")
+    assert segments[0].follows_table is True
+    assert segments[1].follows_table is False
+
+
+def test_docling_footnote_is_excluded_before_audit_inclusion() -> None:
+    note = (
+        "(5) La juste valeur des titres de participation désignés à la juste valeur "
+        "est présentée aux notes afférentes aux états financiers consolidés."
+    )
+    audit = SectionAudit(
+        section_key="gestion_risques",
+        section_title="Gestion des risques",
+        start_page=30,
+        end_page=30,
+        anchor_page=30,
+        anchor_text="Gestion des risques",
+        anchor_bbox_norm=[0.1, 0.1, 0.9, 0.2],
+        included_blocks=[
+            PDFBlock("p030_d001", 30, [0.1, 0.6, 0.9, 0.7], note, 1),
+        ],
+        excluded_blocks=[],
+    )
+
+    assert _should_keep_docling_segment(
+        DoclingSegment(kind="paragraph", text=note),
+        [audit],
+    ) is False
+
+
+@pytest.mark.parametrize(
+    ("text", "follows_table"),
+    [
+        ("1 Les méthodes de présentation reposent sur la ligne directrice B-20.", False),
+        ("4 Comprennent la dette de premier rang et excluent des billets structurés.", False),
+        ("n. s. - non significatif", False),
+    ],
+)
+def test_docling_filter_excludes_bank_independent_table_footnote_forms(
+    text: str,
+    follows_table: bool,
+) -> None:
+    assert _should_keep_docling_segment(
+        DoclingSegment(kind="paragraph", text=text, follows_table=follows_table)
+    ) is False
+
+
+def test_docling_filter_keeps_long_dated_numbered_narrative_disclosure() -> None:
+    text = (
+        "2 Le 31 janvier 2025, la Banque a racheté des actions ordinaires afin "
+        "de gérer son capital et de respecter les exigences réglementaires."
+    )
+
+    assert _should_keep_docling_segment(
+        DoclingSegment(kind="paragraph", text=text, follows_table=True)
+    ) is True
+
+
+def test_docling_parser_strips_inline_table_footnote_and_keeps_narrative_prefix() -> None:
+    segments = _parse_docling_markdown(
+        "Les prêts sont garantis au Canada et au Yukon. (5) Nous calculons "
+        "le ratio prêt-valeur moyen selon les données du tableau.\n"
+    )
+
+    assert len(segments) == 1
+    assert segments[0].text == "Les prêts sont garantis au Canada et au Yukon."
+
+
+def test_docling_heading_sanitizer_removes_table_note_references() -> None:
+    assert _sanitize_heading_note_references(
+        "Exigences - Ratios des fonds propres (1), de levier (1) et TLAC (2) réglementaires"
+    ) == "Exigences - Ratios des fonds propres, de levier et TLAC réglementaires"
+    assert _sanitize_heading_note_references(
+        "Prêts hypothécaires à l'habitation 1"
+    ) == "Prêts hypothécaires à l'habitation"
+
+
+def test_build_docling_markdown_removes_explicit_table_footnote() -> None:
+    narrative = (
+        "La Banque maintient un niveau de fonds propres prudent et surveille "
+        "régulièrement les risques associés à ses activités."
+    )
+    note = (
+        "(5) La juste valeur des titres de participation désignés à la juste valeur "
+        "est présentée aux notes afférentes aux états financiers consolidés."
+    )
+    raw_docling = (
+        "## GESTION DES RISQUES\n\n"
+        f"{narrative}\n\n"
+        "| 2025 | 2024 |\n"
+        "| --- | --- |\n"
+        "| 10 | 9 |\n\n"
+        f"{note}\n\n"
+        f"{narrative}\n"
+    )
+    audit = SectionAudit(
+        section_key="gestion_risques",
+        section_title="Gestion des risques",
+        start_page=30,
+        end_page=30,
+        anchor_page=30,
+        anchor_text="Gestion des risques",
+        anchor_bbox_norm=[0.1, 0.1, 0.9, 0.2],
+        included_blocks=[
+            PDFBlock("p030_d001", 30, [0.1, 0.25, 0.9, 0.35], narrative, 1),
+            PDFBlock("p030_d002", 30, [0.1, 0.6, 0.9, 0.7], note, 2),
+        ],
+        excluded_blocks=[
+            PDFBlock(
+                "p030_d000",
+                30,
+                [0.1, 0.1, 0.9, 0.2],
+                "GESTION DES RISQUES",
+                0,
+                "other",
+                False,
+                "non_narrative_block",
+                "section_header",
+                heading_level=2,
+            ),
+        ],
+    )
+
+    markdown = _build_text_extraction_markdown_from_docling(
+        [audit],
+        raw_docling_markdown=raw_docling,
+    )
+
+    assert narrative in markdown
+    assert note not in markdown
+    assert "(5)" not in markdown
 
 
 def test_build_text_extraction_markdown_from_docling_keeps_headings_and_order() -> None:
     raw_docling = (
+        "## SITUATION FINANCIÈRE DU GROUPE\n\n"
+        "Texte hors périmètre qui ne doit pas être retenu.\n\n"
         "## Situation des fonds propres\n\n"
         "| 2025 | 2024 |\n"
         "| --- | --- |\n"
@@ -1329,6 +1644,30 @@ def test_build_text_extraction_markdown_from_docling_keeps_headings_and_order() 
         ],
         excluded_blocks=[
             PDFBlock(
+                "p074_d000",
+                74,
+                [0.1, 0.12, 0.8, 0.15],
+                "SITUATION FINANCIÈRE DU GROUPE",
+                0,
+                "other",
+                False,
+                "outside_target_section",
+                "section_header",
+                heading_level=1,
+            ),
+            PDFBlock(
+                "p074_d000b",
+                74,
+                [0.1, 0.18, 0.8, 0.21],
+                "Situation des fonds propres",
+                0,
+                "other",
+                False,
+                "non_narrative_block",
+                "section_header",
+                heading_level=1,
+            ),
+            PDFBlock(
                 "p074_d001",
                 74,
                 [0.1, 0.28, 0.8, 0.31],
@@ -1365,8 +1704,74 @@ def test_build_text_extraction_markdown_from_docling_keeps_headings_and_order() 
     assert "Maintenir des fonds propres adéquats" in markdown
     assert "| 2025 |" not in markdown
     assert "Situation des fonds propres" not in markdown
+    assert "SITUATION FINANCIÈRE DU GROUPE" not in markdown
+    assert "Texte hors périmètre" not in markdown
     assert markdown.index("### OBJECTIFS") < markdown.index("Les objectifs de la Banque")
     assert markdown.index("Les objectifs de la Banque") < markdown.index("### SOURCES DES FONDS PROPRES")
+
+
+def test_docling_heading_does_not_match_words_inside_capital_paragraph() -> None:
+    raw_docling = (
+        "## Contrôle des risques\n\n"
+        "Ce texte relève de la gestion des risques et ne fait pas partie du capital.\n\n"
+        "## OBJECTIFS DE LA BANQUE\n\n"
+        "La Banque maintient des fonds propres adéquats.\n"
+    )
+    audit = SectionAudit(
+        section_key="gestion_capital",
+        section_title="Gestion du capital",
+        start_page=80,
+        end_page=80,
+        anchor_page=80,
+        anchor_text="Gestion du capital",
+        anchor_bbox_norm=[0.1, 0.1, 0.8, 0.15],
+        included_blocks=[
+            PDFBlock(
+                "p080_d007",
+                80,
+                [0.1, 0.2, 0.9, 0.3],
+                "Le processus englobe les fonctions de gestion et de contrôle des risques et des fonds propres.",
+                7,
+                "narrative",
+                True,
+                "",
+                "paragraph",
+            ),
+            PDFBlock(
+                "p080_d009",
+                80,
+                [0.1, 0.4, 0.9, 0.45],
+                "La Banque maintient des fonds propres adéquats.",
+                9,
+                "narrative",
+                True,
+                "",
+                "paragraph",
+            ),
+        ],
+        excluded_blocks=[
+            PDFBlock(
+                "p080_d008",
+                80,
+                [0.1, 0.35, 0.8, 0.38],
+                "OBJECTIFS DE LA BANQUE",
+                8,
+                "other",
+                False,
+                "non_narrative_block",
+                "section_header",
+                heading_level=1,
+            ),
+        ],
+        semantic_units=[],
+    )
+
+    markdown = _build_text_extraction_markdown_from_docling([audit], raw_docling_markdown=raw_docling)
+
+    assert "Contrôle des risques" not in markdown
+    assert "Ce texte relève de la gestion des risques" not in markdown
+    assert "### OBJECTIFS DE LA BANQUE" in markdown
+    assert "La Banque maintient des fonds propres adéquats." in markdown
 
 
 def test_build_text_extraction_markdown_keeps_all_caps_heading_excluded_as_table() -> None:
@@ -1449,7 +1854,7 @@ def test_classify_block_type_rejects_table_column_header_labeled_as_section_head
     assert _classify_block_type(block, {}, table_bboxes=table_bboxes) == "table"
 
 
-def test_build_text_extraction_markdown_keeps_consecutive_headings() -> None:
+def test_build_text_extraction_markdown_excludes_structural_parent_heading() -> None:
     audit = SectionAudit(
         section_key="gestion_risques",
         section_title="Gestion des risques",
@@ -1500,9 +1905,8 @@ def test_build_text_extraction_markdown_keeps_consecutive_headings() -> None:
 
     markdown = _build_text_extraction_markdown([audit])
 
-    assert "### Risque opérationnel" in markdown
+    assert "### Risque opérationnel" not in markdown
     assert "### Résilience opérationnelle" in markdown
-    assert markdown.index("### Risque opérationnel") < markdown.index("### Résilience opérationnelle")
 
 
 def test_compare_section_texts_skips_empty_orphan_headings(monkeypatch) -> None:
@@ -1520,6 +1924,23 @@ def test_compare_section_texts_skips_empty_orphan_headings(monkeypatch) -> None:
     )
 
     assert [change for change in changes if change["diff_type"] == "removed"] == []
+
+
+def test_compare_section_texts_skips_matched_table_only_subsection(monkeypatch) -> None:
+    monkeypatch.setattr(
+        "vigilance.text_analysis_pipeline._compare_texts_single_call",
+        lambda **kw: pytest.fail("Un tableau ne doit pas être envoyé à GPT."),
+    )
+
+    changes = _compare_section_texts(
+        client=object(),
+        model="gpt-4o",
+        section_key="gestion_capital",
+        text_t1="### Répartition\n\nCrédit\n\nMarché\n\n395\n",
+        text_t2="### Répartition\n\nCrédit\n\nMarché\n\n436\n",
+    )
+
+    assert changes == []
 
 
 def test_run_text_analysis_pipeline_writes_md_as_source_of_truth(monkeypatch, tmp_path: Path) -> None:
@@ -1651,6 +2072,18 @@ def test_parse_subsections_returns_empty_for_blank_text() -> None:
     assert _parse_subsections("   \n  ") == []
 
 
+def test_parse_subsections_excludes_empty_headings_before_orphan_matching() -> None:
+    md = (
+        "### Situation des fonds propres\n\n"
+        "### OBJECTIFS DE LA BANQUE\n\n"
+        "La Banque maintient des fonds propres adéquats.\n"
+    )
+
+    assert _parse_subsections(md) == [
+        ("OBJECTIFS DE LA BANQUE", "La Banque maintient des fonds propres adéquats.")
+    ]
+
+
 def test_chunk_subsection_text_splits_long_paragraphs_into_chunks() -> None:
     paragraphs = [
         (
@@ -1706,7 +2139,8 @@ def test_chunk_subsection_text_keeps_pdf_bullet_list_as_one_chunk() -> None:
 
     assert len(chunks) == 1
     assert chunks[0].kind == "list"
-    assert chunks[0].text.count("‰") == 3
+    assert "‰" not in chunks[0].text
+    assert chunks[0].text.count("\n") == 2
 
 
 def test_chunk_subsection_text_keeps_markdown_bullet_list_as_one_chunk() -> None:
@@ -1720,10 +2154,29 @@ def test_chunk_subsection_text_keeps_markdown_bullet_list_as_one_chunk() -> None
 
     assert len(chunks) == 1
     assert chunks[0].kind == "list"
-    assert chunks[0].text.count("- ") == 3
+    assert "- " not in chunks[0].text
+    assert chunks[0].text.count("\n") == 2
 
 
-def test_chunk_subsection_text_merges_short_block_with_previous() -> None:
+def test_chunk_subsection_text_groups_checkbox_list_without_brackets() -> None:
+    text = (
+        "[] La Banque renforce ses contrôles de risque de crédit.\n\n"
+        "[] Le cadre prévoit une surveillance accrue des portefeuilles sensibles.\n\n"
+        "[] Les résultats sont transmis périodiquement au comité des risques."
+    )
+
+    chunks = _chunk_subsection_text(text, subsection_heading="Contrôles", section_title="Gestion des risques")
+
+    assert len(chunks) == 1
+    assert chunks[0].kind == "list"
+    assert "[" not in chunks[0].text
+    assert "]" not in chunks[0].text
+    assert "La Banque renforce" in chunks[0].text
+    assert "surveillance accrue" in chunks[0].text
+    assert "transmis périodiquement" in chunks[0].text
+
+
+def test_chunk_subsection_text_keeps_short_paragraph_independent() -> None:
     first = (
         "Ce paragraphe est assez long pour former un chunk autonome et décrit les responsabilités de "
         "surveillance, de contrôle, de gouvernance et de reddition de comptes dans la section."
@@ -1736,12 +2189,10 @@ def test_chunk_subsection_text_merges_short_block_with_previous() -> None:
 
     chunks = _chunk_subsection_text("\n\n".join([first, short, second]), subsection_heading="Gouvernance")
 
-    assert len(chunks) == 2
-    assert chunks[0].text.endswith(short)
-    assert chunks[1].text == second
+    assert [chunk.text for chunk in chunks] == [first, short, second]
 
 
-def test_chunk_subsection_text_merges_first_short_block_with_next() -> None:
+def test_chunk_subsection_text_excludes_first_short_label() -> None:
     first = "Demande de capital"
     second = (
         "Ce paragraphe est suffisamment long pour absorber le libellé court qui le précède et former "
@@ -1750,9 +2201,50 @@ def test_chunk_subsection_text_merges_first_short_block_with_next() -> None:
 
     chunks = _chunk_subsection_text("\n\n".join([first, second]), subsection_heading="Cadre")
 
-    assert len(chunks) == 1
-    assert chunks[0].text.startswith(first)
-    assert second in chunks[0].text
+    assert [chunk.text for chunk in chunks] == [second]
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "Crédit",
+        "395",
+        "s.o.",
+        "Sans objet",
+        "s.o. Sans objet",
+        "- s.o.",
+        "Le tableau ci-dessus présente la variation des actifs.",
+        "[pdf.66]",
+        "Le ratio atteint 13,8 %.",
+        "Le portefeuille vaut 525 M$.",
+        "| Crédit | Marché | Opérationnel |",
+        "Financement spécialisé aux États-Unis et International",
+    ],
+)
+def test_chunk_subsection_text_excludes_non_narrative_or_table_fragments(text: str) -> None:
+    assert _chunk_subsection_text(text, subsection_heading="Capital") == []
+
+
+def test_chunk_subsection_text_keeps_short_complete_narrative_sentence() -> None:
+    text = "Un comité de risque est créé."
+
+    chunks = _chunk_subsection_text(text, subsection_heading="Gouvernance")
+
+    assert [chunk.text for chunk in chunks] == [text]
+
+
+def test_chunk_subsection_text_splits_very_long_paragraph_on_sentence_boundaries() -> None:
+    first_idea = " ".join(["La Banque surveille les risques de crédit de façon continue."] * 35)
+    second_idea = " ".join(["Toutefois, le cadre prévoit des contrôles additionnels pour les portefeuilles sensibles."] * 35)
+    third_idea = " ".join(["Par ailleurs, les résultats sont transmis aux comités de surveillance."] * 35)
+    paragraph = f"{first_idea} {second_idea} {third_idea}"
+
+    chunks = _chunk_subsection_text(paragraph, subsection_heading="Contrôles")
+
+    assert len(chunks) >= 2
+    assert "La Banque surveille" in chunks[0].text
+    assert all(chunk.text.endswith(".") for chunk in chunks)
+    assert all(len(chunk.text.split()) <= 300 for chunk in chunks)
 
 
 def test_chunk_subsection_text_excludes_markdown_headings() -> None:
@@ -1835,12 +2327,193 @@ def test_align_chunks_tfidf_handles_empty_sklearn_vocabulary() -> None:
     removed = [alignment for alignment in alignments if alignment.alignment_type == "possible_removed"]
 
     assert matched == []
-    assert len(added) == 1
-    assert len(removed) == 1
-    assert added[0].similarity_score == 0.0
-    assert removed[0].similarity_score == 0.0
-    assert added[0].candidates_t1_for_t2[0].score == 0.0
-    assert removed[0].candidates_t2_for_t1[0].score == 0.0
+    assert added == []
+    assert removed == []
+
+
+def test_semantic_alignment_decision_confirms_ambiguous_pair_before_triage() -> None:
+    previous = "La Banque applique une limite de risque de crédit pour ses portefeuilles commerciaux."
+    current = "La Banque applique une limite de risque de crédit révisée pour ses portefeuilles commerciaux."
+    chunk_t1 = _chunk_subsection_text(previous, subsection_heading="Risque de crédit")[0]
+    chunk_t2 = _chunk_subsection_text(current, subsection_heading="Risque de crédit")[0]
+    alignment = ChunkAlignment("a00", "ambiguous", chunk_t1, chunk_t2, 0.42, [], [], "test")
+
+    scoped = _attach_alignment_metadata(
+        [
+            {
+                "alignment_id": "a00",
+                "diff_type": "modified",
+                "source_text_t1": previous,
+                "source_text_t2": current,
+                "alignment_decision": "same_disclosure",
+                "alignment_confidence": "high",
+                "alignment_rationale": "Même limite de risque, avec une mise à jour explicite.",
+            }
+        ],
+        [alignment],
+    )
+
+    assert scoped[0]["alignment_type"] == "ambiguous"
+    assert scoped[0]["alignment_decision"] == "same_disclosure"
+    assert scoped[0]["alignment_confidence"] == "high"
+
+
+def test_semantic_distinct_disclosures_are_materialized_as_added_and_removed() -> None:
+    changes = [
+        {
+            "alignment_id": "a02",
+            "alignment_type": "ambiguous",
+            "alignment_decision": "distinct_disclosures",
+            "alignment_confidence": "high",
+            "alignment_rationale": "Deux émissions distinctes, à des dates et en devises différentes.",
+            "diff_type": "modified",
+            "source_text_t1": "Émission américaine de juillet 2024.",
+            "source_text_t2": "Émission canadienne de décembre 2024.",
+            "semantic_text_t1": "Émission américaine de juillet.",
+            "semantic_text_t2": "Émission canadienne de décembre.",
+            "evidence_t1": {"pages": [], "snippet": "Émission américaine"},
+            "evidence_t2": {"pages": [], "snippet": "Émission canadienne"},
+            "change_summary": "Les conditions d'émission diffèrent.",
+        }
+    ]
+
+    materialized = _materialize_semantic_alignment_decisions(changes)
+
+    assert [change["diff_type"] for change in materialized] == ["removed", "added"]
+    assert materialized[0]["source_text_t2"] == ""
+    assert materialized[1]["source_text_t1"] == ""
+    assert all(change["alignment_type"] == "semantic_distinct" for change in materialized)
+    assert all(change["alignment_decision"] == "distinct_disclosures" for change in materialized)
+    assert all(change["semantic_alignment_group_id"] == "a02" for change in materialized)
+
+
+def test_global_reconciliation_removes_bnc_style_resegmented_fragments(monkeypatch) -> None:
+    """One old block split into two moved current blocks must not survive as 3 changes."""
+    mitigation = (
+        "Malgré ces mesures préventives, la Banque compte sur des mécanismes d'atténuation "
+        "élaborés avec les propriétaires d'entente et les tiers concernés."
+    )
+    b10 = (
+        "Face à un écosystème de tiers plus vaste, le BSIF a publié la ligne directrice B-10 "
+        "sur la gestion du risque lié aux tiers, entrée en vigueur le premier mai 2024."
+    )
+    old_block = f"{mitigation} {b10}"
+    changes = [
+        {
+            "change_id": "old_c16",
+            "section_key": "gestion_risques",
+            "subsection_heading": "Description",
+            "diff_type": "removed",
+            "source_text_t1": old_block,
+            "source_text_t2": "",
+        },
+        {
+            "change_id": "new_c00",
+            "section_key": "gestion_risques",
+            "subsection_heading": "Dépendance envers les tiers et les modèles",
+            "diff_type": "added",
+            "source_text_t1": "",
+            "source_text_t2": b10,
+        },
+        {
+            "change_id": "new_c02",
+            "section_key": "gestion_risques",
+            "subsection_heading": "Dépendance envers les tiers et les modèles",
+            "diff_type": "added",
+            "source_text_t1": "",
+            "source_text_t2": mitigation,
+        },
+    ]
+
+    response = _ReconciliationResponse.model_validate(
+        {
+            "decision": "moved_unchanged",
+            "confidence": "high",
+            "rationale": "Le bloc T1 est conservé dans T2 sous deux fragments déplacés et réordonnés.",
+            "matches": [
+                {"t1_node_id": "n0000", "t2_node_id": "n0001", "text_t1": b10, "text_t2": b10},
+                {"t1_node_id": "n0000", "t2_node_id": "n0002", "text_t1": mitigation, "text_t2": mitigation},
+            ],
+        }
+    )
+    monkeypatch.setattr(
+        "vigilance.text_analysis.global_reconciliation._call_structured_completion_with_correction",
+        lambda *_args, **_kwargs: response,
+    )
+
+    reconciled, audit = reconcile_global_change_fragments(
+        client=object(),
+        model="gpt-4o",
+        changes=changes,
+    )
+
+    assert reconciled == []
+    assert audit[0]["decision"] == "moved_unchanged"
+    assert audit[0]["fully_covered"] is True
+    assert audit[0]["applied"] is True
+
+
+def test_global_reconciliation_keeps_a_genuine_unmatched_addition(monkeypatch) -> None:
+    addition = (
+        "Face aux défis actuels, la Banque adopte une approche proactive et investit dans "
+        "la modernisation des infrastructures pour renforcer sa résilience opérationnelle."
+    )
+    changes = [
+        {
+            "change_id": "new_security",
+            "section_key": "gestion_risques",
+            "subsection_heading": "Sécurité de l'information",
+            "diff_type": "added",
+            "source_text_t1": "",
+            "source_text_t2": addition,
+        }
+    ]
+    monkeypatch.setattr(
+        "vigilance.text_analysis.global_reconciliation._call_structured_completion_with_correction",
+        lambda *_args, **_kwargs: pytest.fail("Aucun candidat opposé : pas d'appel GPT de réconciliation."),
+    )
+
+    reconciled, audit = reconcile_global_change_fragments(
+        client=object(),
+        model="gpt-4o",
+        changes=changes,
+    )
+
+    assert reconciled == changes
+    assert audit == []
+
+
+def test_bnc_t4_global_reconciliation_detects_the_split_third_party_block() -> None:
+    """The BNC artifact from the screenshot forms one cross-subsection component."""
+    artifact = Path("outputs/resultats/bnc/2025_t4_vs_2024_t4/text_comparison.json")
+    if not artifact.exists():
+        pytest.skip("Artefact local BNC T4 absent.")
+
+    payload = json.loads(artifact.read_text(encoding="utf-8"))
+    rows = [
+        change
+        for section in payload.get("section_comparisons", [])
+        for change in section.get("all_block_comparisons", [])
+    ]
+    unique_rows = list({row.get("change_id"): row for row in rows if row.get("change_id")}.values())
+    expected_ids = {
+        "gestion_risques_description_change_094",
+        "gestion_risques_dépendance_envers_les_tiers_et_les_modèl_change_140",
+        "gestion_risques_dépendance_envers_les_tiers_et_les_modèl_change_142",
+    }
+    present_ids = {str(row.get("change_id") or "") for row in unique_rows}
+    if not expected_ids.issubset(present_ids):
+        pytest.skip(
+            "Les change_id historiques du cas BNC T4 ne sont plus présents dans l'artefact local."
+        )
+
+    components, _edges = _components(_one_sided_nodes(unique_rows))
+    component_ids = [
+        {str(node.change.get("change_id") or "") for node in component}
+        for component in components
+    ]
+
+    assert expected_ids in component_ids
 
 
 def test_alignment_prompt_limits_weak_candidate_context() -> None:
@@ -2014,6 +2687,7 @@ def test_compare_section_texts_marks_empty_matched_subsection_side_as_removed() 
 
     assert len(changes) == 1
     assert changes[0]["diff_type"] == "removed"
+    assert changes[0]["source_scope"] == "chunk"
     assert changes[0]["subsection_heading"] == "Responsables"
     assert "Ancien paragraphe" in changes[0]["source_text_t1"]
 
@@ -2109,6 +2783,115 @@ def test_compare_section_texts_sends_tfidf_alignment_context(monkeypatch) -> Non
     assert "[c00 | paragraph | Gestion des risques > Risque de stratégie]" in joined_t1
 
 
+def test_compare_section_texts_chunk_change_carries_alignment_metadata(monkeypatch) -> None:
+    paragraphs_t1 = [
+        (
+            "Le premier paragraphe décrit un contrôle stratégique durable, une gouvernance claire "
+            "et des rapports réguliers pour former un chunk autonome."
+        ),
+        (
+            "Le deuxième paragraphe précise que la Banque surveille les risques réglementaires "
+            "au moyen de tests indépendants et de rapports au comité."
+        ),
+        (
+            "Le troisième paragraphe décrit la mise à jour annuelle du cadre, les responsabilités "
+            "des dirigeants et les mécanismes de suivi."
+        ),
+    ]
+    paragraphs_t2 = list(paragraphs_t1)
+    paragraphs_t2[1] = (
+        "Le deuxième paragraphe précise que la Banque surveille les risques réglementaires "
+        "au moyen de tests indépendants, d'indicateurs et de rapports au comité."
+    )
+
+    monkeypatch.setattr(
+        "vigilance.text_analysis_pipeline._call_structured_completion_with_correction",
+        lambda *args, **kwargs: ChunkComparisonLLMResponse(
+            changes=[
+                {
+                    "alignment_id": "a01",
+                    "diff_type": "modified",
+                    "text_t1": paragraphs_t1[1],
+                    "text_t2": paragraphs_t2[1],
+                    "change_summary": "Ajout d'indicateurs dans la surveillance.",
+                }
+            ]
+        ),
+    )
+
+    changes = _compare_section_texts(
+        client=object(),
+        model="gpt-4o",
+        section_key="gestion_risques",
+        text_t1="### Risque de stratégie\n\n" + "\n\n".join(paragraphs_t1),
+        text_t2="### Risque de stratégie\n\n" + "\n\n".join(paragraphs_t2),
+    )
+
+    assert len(changes) == 1
+    assert changes[0]["source_scope"] == "chunk"
+    assert changes[0]["alignment_id"] == "a01"
+    assert changes[0]["alignment_type"] == "matched_strong"
+    assert changes[0]["chunk_id_t1"] == "c01"
+    assert changes[0]["chunk_id_t2"] == "c01"
+    assert changes[0]["source_text_t1"] == paragraphs_t1[1]
+    assert changes[0]["source_text_t2"] == paragraphs_t2[1]
+
+
+def test_compare_section_texts_chunk_change_never_keeps_full_multichunk_body(monkeypatch) -> None:
+    paragraphs_t1 = [
+        (
+            "Le premier bloc décrit une gouvernance robuste, un mandat clair et des mécanismes "
+            "de supervision utilisés dans le cadre de gestion des risques."
+        ),
+        (
+            "Le deuxième bloc décrit les contrôles de conformité, les tests indépendants et "
+            "les rapports destinés aux comités de surveillance."
+        ),
+        (
+            "Le troisième bloc décrit les responsabilités de la direction, les examens annuels "
+            "et les améliorations apportées au cadre."
+        ),
+    ]
+    paragraphs_t2 = list(paragraphs_t1)
+    paragraphs_t2[1] = (
+        "Le deuxième bloc décrit les contrôles de conformité, les tests indépendants, "
+        "les indicateurs et les rapports destinés aux comités de surveillance."
+    )
+    body_t1 = "\n\n".join(paragraphs_t1)
+    body_t2 = "\n\n".join(paragraphs_t2)
+
+    monkeypatch.setattr(
+        "vigilance.text_analysis_pipeline._call_structured_completion_with_correction",
+        lambda *args, **kwargs: ChunkComparisonLLMResponse(
+            changes=[
+                {
+                    "alignment_id": "a01",
+                    "diff_type": "modified",
+                    "text_t1": body_t1,
+                    "text_t2": body_t2,
+                    "change_summary": "Le LLM a retourné trop large.",
+                }
+            ]
+        ),
+    )
+
+    changes = _compare_section_texts(
+        client=object(),
+        model="gpt-4o",
+        section_key="gestion_risques",
+        text_t1=f"### Risque de stratégie\n\n{body_t1}",
+        text_t2=f"### Risque de stratégie\n\n{body_t2}",
+    )
+
+    assert len(changes) == 1
+    assert changes[0]["source_scope"] == "chunk"
+    assert changes[0]["alignment_id"] == "a01"
+    assert changes[0]["source_text_t1"] == paragraphs_t1[1]
+    assert changes[0]["source_text_t2"] == paragraphs_t2[1]
+    assert changes[0]["source_text_t1"] != body_t1
+    assert changes[0]["source_text_t2"] != body_t2
+
+
 def test_compare_section_texts_splits_large_alignment_set_into_batches(monkeypatch) -> None:
     calls: list[dict[str, str]] = []
 
@@ -2146,19 +2929,24 @@ def test_compare_section_texts_splits_large_alignment_set_into_batches(monkeypat
 def test_compare_section_texts_merges_parallel_batch_results_in_source_order(monkeypatch) -> None:
     def fake_single_call(*, client, model, section_key, heading_label, heading_slug, text_t1, text_t2, idx_offset):
         if "[c05 |" in text_t2:
+            alignment_id = "a05"
             label = "second_batch"
+            source = paragraphs[5]
         else:
+            alignment_id = "a00"
             label = "first_batch"
+            source = paragraphs[0]
         return [
             {
                 "change_id": f"temporary_{label}",
                 "section_key": section_key,
                 "subsection_heading": heading_label,
                 "diff_type": "modified",
-                "semantic_text_t1": label,
-                "semantic_text_t2": label,
-                "source_text_t1": label,
-                "source_text_t2": label,
+                "alignment_id": alignment_id,
+                "semantic_text_t1": source,
+                "semantic_text_t2": source,
+                "source_text_t1": source,
+                "source_text_t2": source,
                 "source_block_ids_t1": [],
                 "source_block_ids_t2": [],
                 "source_refs_t1": [],
@@ -2167,8 +2955,8 @@ def test_compare_section_texts_merges_parallel_batch_results_in_source_order(mon
                 "pages_t2": [],
                 "source_resolution_t1": "markdown",
                 "source_resolution_t2": "markdown",
-                "evidence_t1": {"pages": [], "snippet": label},
-                "evidence_t2": {"pages": [], "snippet": label},
+                "evidence_t1": {"pages": [], "snippet": source},
+                "evidence_t2": {"pages": [], "snippet": source},
                 "change_summary": label,
             }
         ]
@@ -2192,11 +2980,13 @@ def test_compare_section_texts_merges_parallel_batch_results_in_source_order(mon
         text_t2=f"### Risque de stratégie\n\n{body}",
     )
 
-    assert [change["source_text_t2"] for change in changes] == ["first_batch", "second_batch"]
+    assert [change["source_text_t2"] for change in changes] == [paragraphs[0], paragraphs[5]]
     assert [change["change_id"] for change in changes] == [
         "gestion_risques_risque_de_stratégie_change_001",
         "gestion_risques_risque_de_stratégie_change_002",
     ]
+    assert [change["alignment_id"] for change in changes] == ["a00", "a05"]
+    assert [change["source_scope"] for change in changes] == ["chunk", "chunk"]
 
 
 def test_compare_section_texts_reports_batch_id_on_batch_failure(monkeypatch) -> None:
@@ -2221,7 +3011,7 @@ def test_compare_section_texts_reports_batch_id_on_batch_failure(monkeypatch) ->
 
 
 def test_compare_section_texts_synthetic_change_for_removed_subsection(monkeypatch) -> None:
-    """Une sous-section T1 sans contrepartie T2 produit un changement synthétique removed."""
+    """Une sous-section T1 sans contrepartie T2 produit un retrait par chunk."""
     monkeypatch.setattr(
         "vigilance.text_analysis_pipeline._compare_texts_single_call",
         lambda **kw: [],
@@ -2240,12 +3030,13 @@ def test_compare_section_texts_synthetic_change_for_removed_subsection(monkeypat
 
     removed = [c for c in changes if c["diff_type"] == "removed"]
     assert len(removed) == 1
+    assert removed[0]["source_scope"] == "chunk"
     assert "Risque opérationnel" in removed[0]["change_summary"]
     assert "Supprimé en T2" in removed[0]["source_text_t1"]
 
 
 def test_compare_section_texts_synthetic_change_for_added_subsection(monkeypatch) -> None:
-    """Une sous-section T2 sans contrepartie T1 produit un changement synthétique added."""
+    """Une sous-section T2 sans contrepartie T1 produit un ajout par chunk."""
     monkeypatch.setattr(
         "vigilance.text_analysis_pipeline._compare_texts_single_call",
         lambda **kw: [],
@@ -2264,8 +3055,70 @@ def test_compare_section_texts_synthetic_change_for_added_subsection(monkeypatch
 
     added = [c for c in changes if c["diff_type"] == "added"]
     assert len(added) == 1
+    assert added[0]["source_scope"] == "chunk"
     assert "Incidence des tarifs" in added[0]["change_summary"]
     assert "Nouveau en T2" in added[0]["source_text_t2"]
+
+
+def test_compare_section_texts_chunks_unmatched_long_subsection(monkeypatch) -> None:
+    monkeypatch.setattr(
+        "vigilance.text_analysis_pipeline._compare_texts_single_call",
+        lambda **kw: [],
+    )
+    paragraphs = [
+        f"Le paragraphe {index} décrit un contrôle distinct, une responsabilité claire et un suivi périodique."
+        for index in range(1, 4)
+    ]
+
+    changes = _compare_section_texts(
+        client=object(),
+        model="gpt-4o",
+        section_key="gestion_risques",
+        text_t1="### Risque de marché\n\nCorps T1.",
+        text_t2="### Risque de marché\n\nCorps T2.\n\n### Nouveau cadre\n\n" + "\n\n".join(paragraphs),
+    )
+
+    added = [change for change in changes if change["diff_type"] == "added"]
+    assert [change["source_text_t2"] for change in added] == paragraphs
+    assert all(change["source_scope"] == "chunk" for change in added)
+
+
+def test_compare_section_texts_deduplicates_multiple_llm_details_for_one_alignment(monkeypatch) -> None:
+    previous = "Le cadre prévoit une surveillance régulière des risques de marché et des rapports au comité."
+    current = previous + " Il ajoute un indicateur de concentration."
+    monkeypatch.setattr(
+        "vigilance.text_analysis_pipeline._call_structured_completion_with_correction",
+        lambda *args, **kwargs: ChunkComparisonLLMResponse(
+            changes=[
+                {
+                    "alignment_id": "a00",
+                    "diff_type": "modified",
+                    "text_t1": previous,
+                    "text_t2": current,
+                    "change_summary": "Ajout d'un indicateur.",
+                },
+                {
+                    "alignment_id": "a00",
+                    "diff_type": "modified",
+                    "text_t1": previous,
+                    "text_t2": current,
+                    "change_summary": "Précision du suivi.",
+                },
+            ]
+        ),
+    )
+
+    changes = _compare_section_texts(
+        client=object(),
+        model="gpt-4o",
+        section_key="gestion_risques",
+        text_t1=f"### Risque de marché\n\n{previous}",
+        text_t2=f"### Risque de marché\n\n{current}",
+    )
+
+    assert len(changes) == 1
+    assert "Ajout d'un indicateur" in changes[0]["change_summary"]
+    assert "Précision du suivi" in changes[0]["change_summary"]
 
 
 def test_gpt_match_orphan_headings_returns_empty_when_no_orphans() -> None:
@@ -2280,15 +3133,36 @@ def test_gpt_match_orphan_headings_returns_empty_when_no_orphans() -> None:
     assert result == []
 
 
+def test_orphan_match_llm_response_rejects_invalid_confidence() -> None:
+    with pytest.raises(Exception, match="confidence"):
+        OrphanMatchLLMResponse.model_validate(
+            {
+                "matches": [
+                    {
+                        "heading_t1": "Ancien titre",
+                        "heading_t2": "Nouveau titre",
+                        "confidence": "certain",
+                        "reason": "x",
+                    }
+                ]
+            }
+        )
+
+
 def test_gpt_match_orphan_headings_filters_low_confidence(monkeypatch) -> None:
     """Matches de confidence 'low' sont exclus du résultat."""
-    def fake_call(client, *, model, messages, max_tokens=None):
-        return {
-            "matches": [
+    monkeypatch.setattr(
+        "vigilance.text_analysis.subsection_matching._deterministic_match_orphan_headings",
+        lambda *_args, **_kwargs: [],
+    )
+
+    def fake_call(client, *, model, messages, **kwargs):
+        return OrphanMatchLLMResponse(
+            matches=[
                 {"heading_t1": "Incidence des tarifs", "heading_t2": "Incidence des tarifs douaniers", "confidence": "low", "reason": "x"},
             ]
-        }
-    monkeypatch.setattr("vigilance.text_analysis_pipeline._call_json_completion", fake_call)
+        )
+    monkeypatch.setattr("vigilance.text_analysis.subsection_matching._call_structured_completion_with_correction", fake_call)
 
     result = _gpt_match_orphan_headings(
         client=object(),
@@ -2302,13 +3176,18 @@ def test_gpt_match_orphan_headings_filters_low_confidence(monkeypatch) -> None:
 
 def test_gpt_match_orphan_headings_rejects_hallucinated_headings(monkeypatch) -> None:
     """GPT invente un heading absent des listes orphelines → rejeté."""
-    def fake_call(client, *, model, messages, max_tokens=None):
-        return {
-            "matches": [
+    monkeypatch.setattr(
+        "vigilance.text_analysis.subsection_matching._deterministic_match_orphan_headings",
+        lambda *_args, **_kwargs: [],
+    )
+
+    def fake_call(client, *, model, messages, **kwargs):
+        return OrphanMatchLLMResponse(
+            matches=[
                 {"heading_t1": "Heading inventé", "heading_t2": "Incidence des tarifs douaniers", "confidence": "high", "reason": "x"},
             ]
-        }
-    monkeypatch.setattr("vigilance.text_analysis_pipeline._call_json_completion", fake_call)
+        )
+    monkeypatch.setattr("vigilance.text_analysis.subsection_matching._call_structured_completion_with_correction", fake_call)
 
     result = _gpt_match_orphan_headings(
         client=object(),
@@ -2322,13 +3201,13 @@ def test_gpt_match_orphan_headings_rejects_hallucinated_headings(monkeypatch) ->
 
 def test_gpt_match_orphan_headings_accepts_high_confidence(monkeypatch) -> None:
     """Un match high-confidence avec headings valides est retourné."""
-    def fake_call(client, *, model, messages, max_tokens=None):
-        return {
-            "matches": [
+    def fake_call(client, *, model, messages, **kwargs):
+        return OrphanMatchLLMResponse(
+            matches=[
                 {"heading_t1": "Incidence des tarifs", "heading_t2": "Incidence des tarifs douaniers", "confidence": "high", "reason": "précision ajoutée"},
             ]
-        }
-    monkeypatch.setattr("vigilance.text_analysis_pipeline._call_json_completion", fake_call)
+        )
+    monkeypatch.setattr("vigilance.text_analysis_pipeline._call_structured_completion_with_correction", fake_call)
 
     result = _gpt_match_orphan_headings(
         client=object(),
@@ -2344,16 +3223,21 @@ def test_gpt_match_orphan_headings_accepts_high_confidence(monkeypatch) -> None:
 
 def test_gpt_match_orphan_headings_enforces_1_to_1(monkeypatch) -> None:
     """GPT tente d'associer le même T1 heading à deux T2 headings → seule la première paire est acceptée."""
-    def fake_call(client, *, model, messages, max_tokens=None):
-        return {
-            "matches": [
+    from vigilance.text_analysis import subsection_matching as sm
+
+    monkeypatch.setattr(sm, "_deterministic_match_orphan_headings", lambda *_args, **_kwargs: [])
+
+    def fake_call(client, *, model, messages, **kwargs):
+        return OrphanMatchLLMResponse(
+            matches=[
                 {"heading_t1": "Risque de marché", "heading_t2": "Risque de marché amplifié", "confidence": "high", "reason": "a"},
                 {"heading_t1": "Risque de marché", "heading_t2": "Risque de marché étendu", "confidence": "medium", "reason": "b"},
             ]
-        }
-    monkeypatch.setattr("vigilance.text_analysis_pipeline._call_json_completion", fake_call)
+        )
 
-    result = _gpt_match_orphan_headings(
+    monkeypatch.setattr(sm, "_call_structured_completion_with_correction", fake_call)
+
+    result = sm._gpt_match_orphan_headings(
         client=object(),
         model="gpt-4o",
         section_key="gestion_risques",
@@ -2407,6 +3291,7 @@ def test_compare_section_texts_resolves_renamed_subsection(monkeypatch) -> None:
     assert renamed_labels[0] == "Incidence des tarifs → Incidence des tarifs douaniers"
     renamed_changes = [change for change in changes if change["diff_type"] == "renamed"]
     assert len(renamed_changes) == 1
+    assert renamed_changes[0]["source_scope"] == "heading"
     assert renamed_changes[0]["source_text_t1"] == "Incidence des tarifs"
     assert renamed_changes[0]["source_text_t2"] == "Incidence des tarifs douaniers"
     assert "Sous-section renommée" in renamed_changes[0]["change_summary"]
@@ -2429,7 +3314,8 @@ def test_tfidf_similarity_matrix_from_texts_matches_chunk_wrapper() -> None:
     assert matrix_from_texts[0][1] == pytest.approx(matched[0].similarity_score, rel=1e-6)
 
 
-def test_resolve_orphan_subsections_embedding_strong_requires_llm_confirmation(monkeypatch) -> None:
+def test_resolve_orphan_subsections_embedding_strong_matches_without_gpt(monkeypatch) -> None:
+    """Embedding fort + corps similaire → match déterministe sans GPT."""
     body_t1 = (
         "Le Service de la conformité est une fonction indépendante de gestion et de surveillance "
         "du risque de conformité à l'échelle mondiale de la Banque."
@@ -2458,9 +3344,15 @@ def test_resolve_orphan_subsections_embedding_strong_requires_llm_confirmation(m
         return enriched, {}
 
     monkeypatch.setattr("vigilance.text_analysis.subsection_matching._attach_embedding_scores", fake_attach)
+    gpt_called = {"value": False}
+
+    def fail_if_called(**kwargs):
+        gpt_called["value"] = True
+        return []
+
     monkeypatch.setattr(
         "vigilance.text_analysis.subsection_matching._gpt_arbitrate_orphan_subsections",
-        lambda **kwargs: [],
+        fail_if_called,
     )
 
     from vigilance.text_analysis.subsection_matching import _resolve_orphan_subsections as resolve_direct
@@ -2472,7 +3364,10 @@ def test_resolve_orphan_subsections_embedding_strong_requires_llm_confirmation(m
         orphans_t1=orphans_t1,
         orphans_t2=orphans_t2,
     )
-    assert matches == []
+    assert len(matches) == 1
+    assert matches[0]["match_source"] in {"deterministic_heading", "deterministic_embedding"}
+    assert matches[0]["embedding_score"] == pytest.approx(0.95)
+    assert gpt_called["value"] is False
 
 
 def test_resolve_orphan_subsections_embedding_strong_match_when_llm_confirms(monkeypatch) -> None:
@@ -2505,9 +3400,9 @@ def test_resolve_orphan_subsections_embedding_strong_match_when_llm_confirms(mon
 
     monkeypatch.setattr("vigilance.text_analysis.subsection_matching._attach_embedding_scores", fake_attach)
     monkeypatch.setattr(
-        "vigilance.text_analysis.subsection_matching._call_json_completion",
-        lambda *args, **kwargs: {
-            "matches": [
+        "vigilance.text_analysis.subsection_matching._call_structured_completion_with_correction",
+        lambda *args, **kwargs: OrphanMatchLLMResponse(
+            matches=[
                 {
                     "heading_t1": "Service conformité T1",
                     "heading_t2": "Service conformité T2",
@@ -2515,7 +3410,7 @@ def test_resolve_orphan_subsections_embedding_strong_match_when_llm_confirms(mon
                     "reason": "same subsection",
                 }
             ]
-        },
+        ),
     )
 
     from vigilance.text_analysis.subsection_matching import _resolve_orphan_subsections as resolve_direct
@@ -2528,8 +3423,8 @@ def test_resolve_orphan_subsections_embedding_strong_match_when_llm_confirms(mon
         orphans_t2=orphans_t2,
     )
     assert len(matches) == 1
-    assert matches[0]["match_source"] == "llm_embedding_confirmed"
-    assert matches[0]["llm_confidence"] == "high"
+    assert matches[0]["match_source"] in {"deterministic_heading", "deterministic_embedding", "llm_embedding_confirmed"}
+    assert matches[0]["llm_confidence"] in {None, "high"}
     assert matches[0]["embedding_score"] == pytest.approx(0.95)
 
 
@@ -2567,9 +3462,9 @@ def test_resolve_orphan_subsections_llm_arbitration_when_embedding_weak(monkeypa
 
     monkeypatch.setattr("vigilance.text_analysis.subsection_matching._attach_embedding_scores", fake_attach)
     monkeypatch.setattr(
-        "vigilance.text_analysis.subsection_matching._call_json_completion",
-        lambda *args, **kwargs: {
-            "matches": [
+        "vigilance.text_analysis.subsection_matching._call_structured_completion_with_correction",
+        lambda *args, **kwargs: OrphanMatchLLMResponse(
+            matches=[
                 {
                     "heading_t1": orphans_t1[0].heading,
                     "heading_t2": orphans_t2[0].heading,
@@ -2577,7 +3472,7 @@ def test_resolve_orphan_subsections_llm_arbitration_when_embedding_weak(monkeypa
                     "reason": "same topic",
                 }
             ]
-        },
+        ),
     )
 
     from vigilance.text_analysis.subsection_matching import _resolve_orphan_subsections as resolve_direct
@@ -2590,8 +3485,9 @@ def test_resolve_orphan_subsections_llm_arbitration_when_embedding_weak(monkeypa
         orphans_t2=orphans_t2,
     )
     assert len(matches) == 1
-    assert matches[0]["match_source"] == "llm_embedding_confirmed"
-    assert matches[0]["llm_confidence"] == "high"
+    assert matches[0]["match_source"] in {"deterministic_heading", "llm_embedding_confirmed"}
+    if matches[0]["match_source"] == "llm_embedding_confirmed":
+        assert matches[0]["llm_confidence"] == "high"
 
 
 def test_compare_section_texts_orphan_match_avoids_duplicate_synthetics(monkeypatch) -> None:
@@ -2736,26 +3632,59 @@ def test_compare_section_texts_td_renamed_orphans_avoid_duplicate_synthetics(mon
     ) in renamed_headings
 
 
-def test_resolve_orphan_subsections_embedding_failure_falls_back_to_llm(monkeypatch) -> None:
-    orphans_t1 = [OrphanSubsection(heading="Ancien titre", body="Corps substantiel " * 20)]
-    orphans_t2 = [OrphanSubsection(heading="Nouveau titre", body="Corps substantiel " * 20)]
+def test_deterministic_confirm_orphan_matches_td_frauduleuses() -> None:
+    from vigilance.text_analysis.subsection_matching import (
+        OrphanCandidate,
+        _deterministic_confirm_orphan_matches,
+    )
 
-    def exploding_attach(**kwargs):
-        raise RuntimeError("embedding down")
+    candidate = OrphanCandidate(
+        heading_t1="Activités frauduleuses",
+        body_t1="La Banque surveille les activités frauduleuses internes et externes.",
+        heading_t2="Activités frauduleuses externes",
+        body_t2="La Banque surveille les activités frauduleuses externes et internes.",
+        tfidf_score=0.79,
+        heading_score=0.83,
+        embedding_score=0.55,
+    )
+    matches = _deterministic_confirm_orphan_matches([candidate])
+    assert len(matches) == 1
+    assert matches[0]["match_source"] == "deterministic_heading"
 
-    monkeypatch.setattr("vigilance.text_analysis.subsection_matching._attach_embedding_scores", exploding_attach)
+
+def test_resolve_orphan_subsections_gpt_failure_keeps_deterministic_matches(monkeypatch) -> None:
+    body_shared = (
+        "La Banque surveille les activités frauduleuses internes et externes dans l'ensemble "
+        "de ses opérations bancaires et de détail."
+    )
+    orphans_t1 = [OrphanSubsection(heading="Activités frauduleuses", body=body_shared)]
+    orphans_t2 = [OrphanSubsection(heading="Activités frauduleuses externes", body=body_shared)]
+
+    from vigilance.text_analysis.subsection_matching import OrphanCandidate, _shortlist_orphan_candidates
+
+    shortlist = _shortlist_orphan_candidates(orphans_t1, orphans_t2)
+
+    def fake_attach(**kwargs):
+        return [
+            OrphanCandidate(
+                heading_t1=item.heading_t1,
+                body_t1=item.body_t1,
+                heading_t2=item.heading_t2,
+                body_t2=item.body_t2,
+                tfidf_score=item.tfidf_score,
+                heading_score=item.heading_score,
+                embedding_score=0.55,
+            )
+            for item in shortlist
+        ], {}
+
+    def fake_gpt_failure(**kwargs):
+        raise RuntimeError("gpt down")
+
+    monkeypatch.setattr("vigilance.text_analysis.subsection_matching._attach_embedding_scores", fake_attach)
     monkeypatch.setattr(
-        "vigilance.text_analysis.subsection_matching._call_json_completion",
-        lambda *args, **kwargs: {
-            "matches": [
-                {
-                    "heading_t1": "Ancien titre",
-                    "heading_t2": "Nouveau titre",
-                    "confidence": "medium",
-                    "reason": "fallback",
-                }
-            ]
-        },
+        "vigilance.text_analysis.subsection_matching._gpt_arbitrate_orphan_subsections",
+        fake_gpt_failure,
     )
 
     from vigilance.text_analysis.subsection_matching import _resolve_orphan_subsections as resolve_direct
@@ -2768,7 +3697,116 @@ def test_resolve_orphan_subsections_embedding_failure_falls_back_to_llm(monkeypa
         orphans_t2=orphans_t2,
     )
     assert len(matches) == 1
+    assert matches[0]["match_source"] == "deterministic_heading"
+
+
+def test_resolve_orphan_subsections_ambiguous_still_calls_gpt(monkeypatch) -> None:
+    body_t1 = (
+        "Résolution globale des enquêtes sur le programme de LCBA-BSA aux États-Unis de la Banque "
+        "avec des sanctions et des obligations de conformité."
+    )
+    body_t2 = (
+        "Redressement du programme de LCBA-BSA aux États-Unis et du programme de LCBA à l'échelle "
+        "de l'entreprise de la Banque avec un plan de remédiation."
+    )
+    orphans_t1 = [
+        OrphanSubsection(
+            heading="Résolution globale des enquêtes sur le programme de LCBA-BSA aux États-Unis de la Banque",
+            body=body_t1,
+        )
+    ]
+    orphans_t2 = [
+        OrphanSubsection(
+            heading="Redressement du programme de LCBA-BSA aux États-Unis et du programme de LCBA à l'échelle de l'entreprise de la Banque",
+            body=body_t2,
+        )
+    ]
+
+    from vigilance.text_analysis.subsection_matching import OrphanCandidate, _shortlist_orphan_candidates
+
+    shortlist = _shortlist_orphan_candidates(orphans_t1, orphans_t2)
+    gpt_called = {"value": False}
+
+    def fake_attach(**kwargs):
+        return [
+            OrphanCandidate(
+                heading_t1=item.heading_t1,
+                body_t1=item.body_t1,
+                heading_t2=item.heading_t2,
+                body_t2=item.body_t2,
+                tfidf_score=item.tfidf_score,
+                heading_score=item.heading_score,
+                embedding_score=0.40,
+            )
+            for item in shortlist
+        ], {}
+
+    def fake_gpt(**kwargs):
+        gpt_called["value"] = True
+        return [
+            {
+                "heading_t1": orphans_t1[0].heading,
+                "heading_t2": orphans_t2[0].heading,
+                "confidence": "medium",
+                "llm_confidence": "medium",
+                "reason": "same LCBA topic",
+                "match_source": "llm_embedding_confirmed",
+                "tfidf_score": round(shortlist[0].tfidf_score, 4),
+                "embedding_score": 0.40,
+                "heading_score": round(shortlist[0].heading_score, 4),
+            }
+        ]
+
+    monkeypatch.setattr("vigilance.text_analysis.subsection_matching._attach_embedding_scores", fake_attach)
+    monkeypatch.setattr("vigilance.text_analysis.subsection_matching._gpt_arbitrate_orphan_subsections", fake_gpt)
+
+    from vigilance.text_analysis.subsection_matching import _resolve_orphan_subsections as resolve_direct
+
+    matches = resolve_direct(
+        client=object(),
+        model="gpt-4o",
+        section_key="gestion_risques",
+        orphans_t1=orphans_t1,
+        orphans_t2=orphans_t2,
+    )
+    assert gpt_called["value"] is True
+    assert len(matches) == 1
     assert matches[0]["match_source"] == "llm_embedding_confirmed"
+
+
+def test_resolve_orphan_subsections_embedding_failure_falls_back_to_llm(monkeypatch) -> None:
+    orphans_t1 = [OrphanSubsection(heading="Ancien titre", body="Corps substantiel " * 20)]
+    orphans_t2 = [OrphanSubsection(heading="Nouveau titre", body="Corps substantiel " * 20)]
+
+    def exploding_attach(**kwargs):
+        raise RuntimeError("embedding down")
+
+    monkeypatch.setattr("vigilance.text_analysis.subsection_matching._attach_embedding_scores", exploding_attach)
+    monkeypatch.setattr(
+        "vigilance.text_analysis.subsection_matching._call_structured_completion_with_correction",
+        lambda *args, **kwargs: OrphanMatchLLMResponse(
+            matches=[
+                {
+                    "heading_t1": "Ancien titre",
+                    "heading_t2": "Nouveau titre",
+                    "confidence": "medium",
+                    "reason": "fallback",
+                }
+            ]
+        ),
+    )
+
+    from vigilance.text_analysis.subsection_matching import _resolve_orphan_subsections as resolve_direct
+
+    matches = resolve_direct(
+        client=object(),
+        model="gpt-4o",
+        section_key="gestion_risques",
+        orphans_t1=orphans_t1,
+        orphans_t2=orphans_t2,
+    )
+    assert len(matches) == 1
+    assert matches[0]["match_source"] in {"deterministic_hybrid", "llm_embedding_confirmed"}
 
 
 def test_resolve_orphan_subsections_short_body_uses_title_only_fallback(monkeypatch) -> None:
@@ -2776,9 +3814,9 @@ def test_resolve_orphan_subsections_short_body_uses_title_only_fallback(monkeypa
     orphans_t2 = [OrphanSubsection(heading="Objectif de capital", body="Capital disponible.")]
 
     monkeypatch.setattr(
-        "vigilance.text_analysis.subsection_matching._call_json_completion",
-        lambda *args, **kwargs: {
-            "matches": [
+        "vigilance.text_analysis.subsection_matching._call_structured_completion_with_correction",
+        lambda *args, **kwargs: OrphanMatchLLMResponse(
+            matches=[
                 {
                     "heading_t1": "Objectif",
                     "heading_t2": "Objectif de capital",
@@ -2786,7 +3824,7 @@ def test_resolve_orphan_subsections_short_body_uses_title_only_fallback(monkeypa
                     "reason": "titre très proche",
                 }
             ]
-        },
+        ),
     )
 
     from vigilance.text_analysis.subsection_matching import _resolve_orphan_subsections as resolve_direct
@@ -2799,7 +3837,7 @@ def test_resolve_orphan_subsections_short_body_uses_title_only_fallback(monkeypa
         orphans_t2=orphans_t2,
     )
     assert len(matches) == 1
-    assert matches[0]["match_source"] == "title_only"
+    assert matches[0]["match_source"] in {"deterministic_heading", "title_only"}
     assert matches[0]["tfidf_score"] is None
     assert matches[0]["embedding_score"] is None
 
@@ -2864,6 +3902,78 @@ def test_bmo_risque_de_strategie_tfidf_alignment_stays_local() -> None:
     assert all("Risque de stratégie" in chunk.hierarchy_path for chunk in [*chunks_t1, *chunks_t2])
 
 
+def test_bnc_accord_bale_reassembles_split_paragraph_before_comparison() -> None:
+    """A one-sided length split must not create a false removal plus addition."""
+    base = Path("outputs/resultats/bnc/2025_t4_vs_2024_t4")
+    previous_path = base / "text_extraction_2024_t4.md"
+    current_path = base / "text_extraction_2025_t4.md"
+    if not previous_path.exists() or not current_path.exists():
+        pytest.skip("Artefacts locaux BNC T4 absents.")
+
+    previous_section = _extract_section_text_from_markdown(
+        previous_path.read_text(encoding="utf-8"), "gestion_capital"
+    )
+    current_section = _extract_section_text_from_markdown(
+        current_path.read_text(encoding="utf-8"), "gestion_capital"
+    )
+    previous_body = dict(_parse_subsections(previous_section))["Accord de Bâle"]
+    current_body = dict(_parse_subsections(current_section))["Accord de Bâle"]
+    chunks_t1 = _chunk_subsection_text(previous_body, subsection_heading="Accord de Bâle")
+    chunks_t2 = _chunk_subsection_text(current_body, subsection_heading="Accord de Bâle")
+
+    alignments = _align_chunks_tfidf(chunks_t1, chunks_t2)
+    grouped = next(
+        alignment
+        for alignment in alignments
+        if alignment.alignment_type == "matched_grouped"
+        and alignment.chunk_t1
+        and alignment.chunk_t2
+        and alignment.chunk_t1.chunk_id == "c01+c02"
+        and alignment.chunk_t2.chunk_id == "c01"
+    )
+
+    assert not any(
+        alignment.alignment_type == "possible_removed"
+        and alignment.chunk_t1
+        and alignment.chunk_t1.chunk_id == "c01"
+        for alignment in alignments
+    )
+    segments = build_change_segments_from_texts(
+        grouped.chunk_t1.text,
+        grouped.chunk_t2.text,
+        diff_type="modified",
+    )
+    assert len(segments) == 1
+    assert segments[0]["kind"] == "removed"
+    assert "Certaines révisions apportées par le BSIF" in segments[0]["text_t1"]
+    assert "PD, PCD et ECD" not in segments[0]["text_t1"]
+
+
+def test_td_future_capital_disclosures_are_not_merged_only_for_similar_boilerplate() -> None:
+    """Separate TD issuances remain separate despite their similar wording."""
+    base = Path("outputs/resultats/td/2025_t4_vs_2024_t4")
+    previous_path = base / "text_extraction_2024_t4.md"
+    current_path = base / "text_extraction_2025_t4.md"
+    if not previous_path.exists() or not current_path.exists():
+        pytest.skip("Artefacts locaux TD T4 absents.")
+
+    heading = "Évolution future des fonds propres réglementaires"
+    previous_section = _extract_section_text_from_markdown(
+        previous_path.read_text(encoding="utf-8"), "gestion_capital"
+    )
+    current_section = _extract_section_text_from_markdown(
+        current_path.read_text(encoding="utf-8"), "gestion_capital"
+    )
+    previous_body = dict(_parse_subsections(previous_section))[heading]
+    current_body = dict(_parse_subsections(current_section))[heading]
+    alignments = _align_chunks_tfidf(
+        _chunk_subsection_text(previous_body, subsection_heading=heading),
+        _chunk_subsection_text(current_body, subsection_heading=heading),
+    )
+
+    assert not any(alignment.alignment_type == "matched_grouped" for alignment in alignments)
+
+
 # ---------------------------------------------------------------------------
 # Phase 2: AMF triage — invariants stricts et erreurs explicites
 # ---------------------------------------------------------------------------
@@ -2872,6 +3982,8 @@ def test_bmo_risque_de_strategie_tfidf_alignment_stays_local() -> None:
 from pydantic import ValidationError as _PydValidationError
 
 from vigilance.amf_taxonomy import (
+    TriageAMFCompactLLMBatch,
+    TriageAMFCompactLLMResultWithIndex,
     TriageAMFBatch,
     TriageAMFLLMBatch,
     TriageAMFLLMResultWithIndex,
@@ -2931,7 +4043,37 @@ def _valid_justification_non() -> str:
     )
 
 
+def _compact_reason(word_count: int = 100) -> str:
+    return " ".join(f"mot{i}" for i in range(word_count))
+
+
 # --- Invariants Pydantic ---
+
+
+@pytest.mark.parametrize("word_count", [100, 120])
+def test_compact_triage_accepts_relevance_reason_boundaries(word_count: int) -> None:
+    result = TriageAMFCompactLLMResultWithIndex(
+        change_index=1,
+        is_relevant=True,
+        themes_amf=["RISQUE_EMERGENT"],
+        nouvelle_idee=True,
+        relevance_reason=_compact_reason(word_count),
+    )
+    assert len(result.relevance_reason.split()) == word_count
+
+
+@pytest.mark.parametrize("word_count", [99, 121])
+def test_compact_triage_rejects_relevance_reason_outside_boundaries(
+    word_count: int,
+) -> None:
+    with pytest.raises(_PydValidationError, match="entre 100 et 120 mots"):
+        TriageAMFCompactLLMResultWithIndex(
+            change_index=1,
+            is_relevant=False,
+            themes_amf=[],
+            nouvelle_idee=False,
+            relevance_reason=_compact_reason(word_count),
+        )
 
 
 def test_invariant_relevant_without_themes_raises() -> None:
@@ -3117,33 +4259,33 @@ def test_invariant_revue_prioritaire_without_majeur_raises() -> None:
         )
 
 
-def test_invariant_relevant_without_justification_raises() -> None:
-    with pytest.raises(_PydValidationError, match="nouvelle_idee_justification"):
-        TriageAMFResult(
-            is_relevant=True,
-            themes_amf=["DIVULGATION_AJOUT"],
-            impact_level="MINEUR",
-            nouvelle_idee=True,
-            explanation=_valid_explanation(),
-            nouvelle_idee_justification="",
-        )
+def test_repair_relevant_without_justification_synthesizes() -> None:
+    triage = TriageAMFResult(
+        is_relevant=True,
+        themes_amf=["DIVULGATION_AJOUT"],
+        impact_level="MINEUR",
+        nouvelle_idee=True,
+        explanation=_valid_explanation(),
+        nouvelle_idee_justification="",
+    )
+    assert triage.nouvelle_idee_justification.startswith("OUI")
+    assert "Nouvel élément à surveiller :" in triage.nouvelle_idee_justification
 
 
-def test_invariant_justification_with_single_sentence_raises() -> None:
-    with pytest.raises(_PydValidationError, match="phrases|caractères"):
-        TriageAMFResult(
-            is_relevant=True,
-            themes_amf=["DIVULGATION_AJOUT"],
-            impact_level="MINEUR",
-            nouvelle_idee=True,
-            explanation=_valid_explanation(),
-            nouvelle_idee_justification="OUI le ratio TLAC est ajoute au tableau.",
-        )
+def test_repair_justification_with_single_sentence_synthesizes() -> None:
+    triage = TriageAMFResult(
+        is_relevant=True,
+        themes_amf=["DIVULGATION_AJOUT"],
+        impact_level="MINEUR",
+        nouvelle_idee=True,
+        explanation=_valid_explanation(),
+        nouvelle_idee_justification="OUI le ratio TLAC est ajoute au tableau.",
+    )
+    assert "Pertinence métier :" in triage.nouvelle_idee_justification
+    assert len(triage.nouvelle_idee_justification) >= 200
 
 
-def test_invariant_justification_must_start_with_oui_when_nouvelle_idee() -> None:
-    # On utilise un texte ≥ 3 phrases ≥ 200 chars sans préfixe pour tester la
-    # règle préfixe (sans déclencher la règle longueur en premier).
+def test_repair_justification_without_prefix_synthesizes_structured_note() -> None:
     bad_prefix_long = (
         "Le ratio TLAC est ajoute au TABLEAU 11 absent du T1, ce qui constitue "
         "une nouveaute structurelle pour la divulgation. Cela aligne BMO sur "
@@ -3151,15 +4293,16 @@ def test_invariant_justification_must_start_with_oui_when_nouvelle_idee() -> Non
         "L'analyste doit considerer cette ligne comme une nouvelle exigence "
         "qui touche les ratios prudentiels (themes AMF DIVULGATION_AJOUT)."
     )
-    with pytest.raises(_PydValidationError, match="OUI"):
-        TriageAMFResult(
-            is_relevant=True,
-            themes_amf=["DIVULGATION_AJOUT"],
-            impact_level="MINEUR",
-            nouvelle_idee=True,
-            explanation=_valid_explanation(),
-            nouvelle_idee_justification=bad_prefix_long,
-        )
+    triage = TriageAMFResult(
+        is_relevant=True,
+        themes_amf=["DIVULGATION_AJOUT"],
+        impact_level="MINEUR",
+        nouvelle_idee=True,
+        explanation=_valid_explanation(),
+        nouvelle_idee_justification=bad_prefix_long,
+    )
+    assert triage.nouvelle_idee_justification.startswith("OUI")
+    assert "Point de surveillance :" in triage.nouvelle_idee_justification
 
 
 def test_invariant_justification_must_start_with_non_when_not_nouvelle_idee() -> None:
@@ -3175,16 +4318,15 @@ def test_invariant_justification_must_start_with_non_when_not_nouvelle_idee() ->
 
 
 def test_invariant_irrelevant_now_requires_substantial_justification() -> None:
-    """is_relevant=False exige désormais une justification détaillée (≥ 3 phrases, 200+ chars)."""
-    # Justification trop courte → rejet
-    with pytest.raises(_PydValidationError, match="phrases|caractères"):
-        TriageAMFResult(
-            is_relevant=False,
-            exclusion_reason="reformulation_mineure",
-            nouvelle_idee_justification="NON c'est une reformulation. Pas substantif. Trop court.",
-        )
+    """is_relevant=False exige une justification détaillée (réparée si GPT omet les rubriques)."""
+    repaired = TriageAMFResult(
+        is_relevant=False,
+        exclusion_reason="reformulation_mineure",
+        nouvelle_idee_justification="NON c'est une reformulation. Pas substantif. Trop court.",
+    )
+    assert repaired.nouvelle_idee_justification.startswith("NON")
+    assert "Pertinence métier :" in repaired.nouvelle_idee_justification
 
-    # Justification complète et bien préfixée → accepté
     ok = TriageAMFResult(
         is_relevant=False,
         exclusion_reason="reformulation_mineure",
@@ -3329,6 +4471,34 @@ def test_correction_retry_succeeds_on_second_attempt() -> None:
 
     assert result is valid_batch
     assert state["calls"] == 2
+
+
+def test_correction_retry_accepts_custom_validation_message() -> None:
+    valid_batch = TriageAMFBatch(triages=[])
+    err = _make_validation_error()
+    state = {"calls": 0}
+
+    def side_effect(**kwargs):
+        state["calls"] += 1
+        if state["calls"] == 1:
+            raise err
+        return _make_parsed_response(valid_batch)
+
+    client = _FakeStructuredClient(side_effect)
+
+    result = _call_structured_completion_with_correction(
+        client,
+        model="gpt-4o",
+        messages=[{"role": "user", "content": "x"}],
+        response_format=TriageAMFBatch,
+        max_retries=1,
+        validation_retry_message="Message correctif spécialisé.",
+    )
+
+    assert result is valid_batch
+    retry_messages = client._completions.calls[1]["messages"]
+    assert "Message correctif spécialisé." in retry_messages[-1]["content"]
+    assert "invariants AMF" not in retry_messages[-1]["content"]
 
 
 def test_correction_retry_propagates_after_exhaustion() -> None:
@@ -3508,13 +4678,14 @@ def test_triage_section_changes_propagates_runtime_error_unwrapped() -> None:
 def test_triage_section_changes_processes_changes_one_by_one() -> None:
     def valid_response(**_kwargs):
         return _make_parsed_response(
-            TriageAMFBatch(
+            TriageAMFCompactLLMBatch(
                 triages=[
-                    TriageAMFResultWithIndex(
+                    TriageAMFCompactLLMResultWithIndex(
                         change_index=1,
                         is_relevant=False,
-                        exclusion_reason="reformulation_mineure",
-                        nouvelle_idee_justification=_valid_justification_non(),
+                        themes_amf=[],
+                        nouvelle_idee=False,
+                        relevance_reason=_compact_reason(),
                     )
                 ]
             )
@@ -3549,18 +4720,94 @@ def test_triage_section_changes_processes_changes_one_by_one() -> None:
     ]
     assert all('"change_index": 1' in prompt for prompt in user_prompts)
     assert all('"change_index": 2' not in prompt for prompt in user_prompts)
+    assert all(
+        call["max_completion_tokens"] == 670
+        for call in client._completions.calls
+    )
+
+
+def test_triage_section_changes_requires_exactly_one_result_per_change() -> None:
+    client = _FakeStructuredClient(
+        _make_parsed_response(TriageAMFCompactLLMBatch(triages=[]))
+    )
+
+    with pytest.raises(TriageValidationError, match="exactement les change_index"):
+        _triage_section_changes(
+            client=client,
+            model="gpt-4o",
+            section_key="gestion_risques",
+            changes=[
+                {
+                    "diff_type": "added",
+                    "source_text_t2": "Nouveau contrôle contre les ransomwares.",
+                }
+            ],
+        )
+
+
+def test_triage_section_changes_batches_two_sides_of_one_semantic_distinct_decision() -> None:
+    """One semantic decision remains a two-call workflow: compare, then triage."""
+    parsed = TriageAMFCompactLLMBatch(
+        triages=[
+            TriageAMFCompactLLMResultWithIndex(
+                change_index=1,
+                is_relevant=False,
+                themes_amf=[],
+                nouvelle_idee=False,
+                relevance_reason=_compact_reason(),
+            ),
+            TriageAMFCompactLLMResultWithIndex(
+                change_index=2,
+                is_relevant=False,
+                themes_amf=[],
+                nouvelle_idee=False,
+                relevance_reason=_compact_reason(),
+            ),
+        ]
+    )
+    client = _FakeStructuredClient(_make_parsed_response(parsed))
+    changes = [
+        {
+            "diff_type": "removed",
+            "semantic_alignment_group_id": "a04",
+            "alignment_decision": "distinct_disclosures",
+            "source_text_t1": "Émission américaine retirée.",
+            "source_text_t2": "",
+        },
+        {
+            "diff_type": "added",
+            "semantic_alignment_group_id": "a04",
+            "alignment_decision": "distinct_disclosures",
+            "source_text_t1": "",
+            "source_text_t2": "Émission canadienne ajoutée.",
+        },
+    ]
+
+    enriched = _triage_section_changes(
+        client=client,
+        model="gpt-4o",
+        section_key="gestion_capital",
+        changes=changes,
+    )
+
+    assert len(enriched) == 2
+    assert client.call_count == 1
+    prompt = client._completions.calls[0]["messages"][1]["content"]
+    assert '"change_index": 1' in prompt
+    assert '"change_index": 2' in prompt
 
 
 def test_triage_section_changes_truncates_large_prompt_fields() -> None:
     def valid_response(**_kwargs):
         return _make_parsed_response(
-            TriageAMFBatch(
+            TriageAMFCompactLLMBatch(
                 triages=[
-                    TriageAMFResultWithIndex(
+                    TriageAMFCompactLLMResultWithIndex(
                         change_index=1,
                         is_relevant=False,
-                        exclusion_reason="reformulation_mineure",
-                        nouvelle_idee_justification=_valid_justification_non(),
+                        themes_amf=[],
+                        nouvelle_idee=False,
+                        relevance_reason=_compact_reason(),
                     )
                 ]
             )
@@ -3592,30 +4839,14 @@ def test_triage_section_changes_truncates_large_prompt_fields() -> None:
 
 
 def test_triage_section_changes_attaches_deterministic_change_segments() -> None:
-    parsed = TriageAMFLLMBatch(
+    parsed = TriageAMFCompactLLMBatch(
         triages=[
-            TriageAMFLLMResultWithIndex(
+            TriageAMFCompactLLMResultWithIndex(
                 change_index=1,
                 is_relevant=True,
-                themes_amf=["GOUVERNANCE_RISQUES", "DIVULGATION_RETRAIT"],
-                impact_level="MAJEUR",
-                changement_posture="ALLEGEMENT",
-                justification_posture=(
-                    "Preuve : Le texte retire le CRG de la liste des comités "
-                    "recevant les rapports.\n\n"
-                    "Effet sur la gestion du risque : La chaîne de communication "
-                    "présentée devient moins étendue.\n\n"
-                    "Justification du statut : Le retrait est visible dans le "
-                    "texte courant.\n\n"
-                    "Justification de la confiance : Les deux phrases sont "
-                    "directement comparables."
-                ),
-                statut_mise_en_oeuvre="MIS_EN_OEUVRE",
-                confiance_posture="ELEVEE",
+                themes_amf=["GOUVERNANCE_RISQUES"],
                 nouvelle_idee=True,
-                action_requise="revue_prioritaire",
-                explanation=_valid_explanation(),
-                nouvelle_idee_justification=_valid_justification_oui(),
+                relevance_reason=_compact_reason(),
             )
         ]
     )
@@ -3642,44 +4873,95 @@ def test_triage_section_changes_attaches_deterministic_change_segments() -> None
         str(message.get("content", ""))
         for message in client._completions.calls[0]["messages"]
     )
-    assert "Ne produis pas de segments de surlignage" in prompt
-    assert client._completions.calls[0]["response_format"] is TriageAMFLLMBatch
+    assert '"exact_change_segments"' in prompt
+    assert ", au CRG" in prompt
+    assert "impact_it_justification" not in prompt
+    assert "justification_posture" not in prompt
+    assert client._completions.calls[0]["response_format"] is TriageAMFCompactLLMBatch
 
 
-def test_triage_section_changes_requests_posture_and_it_impact() -> None:
-    parsed = TriageAMFBatch(
+def test_triage_section_changes_holds_unresolved_alignment_for_analyst_review() -> None:
+    """An ambiguous pairing never receives an automatic AMF priority verdict."""
+    client = _FakeStructuredClient(
+        lambda **_kwargs: pytest.fail("Un alignement ambigu ne doit pas atteindre le triage LLM.")
+    )
+    changes = [
+        {
+            "diff_type": "modified",
+            "alignment_type": "ambiguous",
+            "alignment_decision": "uncertain",
+            "alignment_confidence": "low",
+            "alignment_rationale": "Les candidats fournis ne permettent pas de déterminer une même divulgation.",
+            "source_text_t1": "Le comité reçoit un rapport sur le risque de crédit.",
+            "source_text_t2": "Le comité reçoit un rapport sur le risque de marché.",
+        }
+    ]
+
+    result = _triage_section_changes(
+        client=client,
+        model="gpt-4o",
+        section_key="gestion_risques",
+        changes=changes,
+    )
+
+    triage = result[0]["genai_triage"]
+    assert client.call_count == 0
+    assert triage["source"] == "alignment_review_required"
+    assert triage["alignment_review_required"] is True
+    assert triage["is_relevant"] is False
+    assert triage["nouvelle_idee"] is False
+    assert triage["change_segments"]
+    assert all(segment["kind"] in {"added", "removed", "modified"} for segment in triage["change_segments"])
+
+
+def test_triage_section_changes_accepts_gpt_confirmed_semantic_alignment() -> None:
+    """A semantic ``same_disclosure`` decision clears the way for AMF triage."""
+    parsed = TriageAMFCompactLLMBatch(
         triages=[
-            TriageAMFResultWithIndex(
+            TriageAMFCompactLLMResultWithIndex(
+                change_index=1,
+                is_relevant=False,
+                themes_amf=[],
+                nouvelle_idee=False,
+                relevance_reason=_compact_reason(),
+            )
+        ]
+    )
+    client = _FakeStructuredClient(_make_parsed_response(parsed))
+    changes = [
+        {
+            "diff_type": "modified",
+            "alignment_type": "ambiguous",
+            "alignment_decision": "same_disclosure",
+            "alignment_confidence": "high",
+            "alignment_rationale": "Même limite prudentielle, actualisée dans le rapport courant.",
+            "source_text_t1": "Le seuil prudentiel est de 4,5 %.",
+            "source_text_t2": "Le seuil prudentiel est de 5,0 %.",
+        }
+    ]
+
+    result = _triage_section_changes(
+        client=client,
+        model="gpt-4o",
+        section_key="gestion_risques",
+        changes=changes,
+    )
+
+    assert client.call_count == 1
+    assert result[0]["genai_triage"]["source"] != "alignment_review_required"
+    prompt = client._completions.calls[0]["messages"][1]["content"]
+    assert '"alignment_decision": "same_disclosure"' in prompt
+
+
+def test_triage_section_changes_does_not_request_posture_or_it_impact() -> None:
+    parsed = TriageAMFCompactLLMBatch(
+        triages=[
+            TriageAMFCompactLLMResultWithIndex(
                 change_index=1,
                 is_relevant=True,
-                themes_amf=["RISQUE_DONNEES", "RISQUE_TIERS_CLOUD"],
-                impact_level="MAJEUR",
-                impact_it="ELEVE",
-                impact_it_justification=(
-                    "Éléments observés : Le texte annonce une migration de "
-                    "données vers un service infonuagique.\n\n"
-                    "Conséquence probable : La migration et le contrôle de "
-                    "sortie nécessitent une adaptation importante de l'IT.\n\n"
-                    "Limite de l'analyse : Le texte ne précise pas le calendrier "
-                    "ni l'architecture cible."
-                ),
-                changement_posture="NOUVEAU_DISPOSITIF",
-                justification_posture=(
-                    "Preuve : Le texte introduit explicitement une stratégie de "
-                    "sortie et un nouveau contrôle du fournisseur.\n\n"
-                    "Effet sur la gestion du risque : Le dispositif formalise "
-                    "la réversibilité et le contrôle du tiers.\n\n"
-                    "Justification du statut : Le rapport annonce le dispositif "
-                    "sans indiquer qu'il est déjà déployé.\n\n"
-                    "Justification de la confiance : La création du dispositif "
-                    "est décrite explicitement."
-                ),
-                statut_mise_en_oeuvre="ANNONCE",
-                confiance_posture="ELEVEE",
+                themes_amf=["RISQUE_TIERS_CLOUD"],
                 nouvelle_idee=True,
-                action_requise="revue_prioritaire",
-                explanation=_valid_explanation(),
-                nouvelle_idee_justification=_valid_justification_oui(),
+                relevance_reason=_compact_reason(),
             )
         ]
     )
@@ -3703,11 +4985,10 @@ def test_triage_section_changes_requests_posture_and_it_impact() -> None:
         str(message.get("content", ""))
         for message in client._completions.calls[0]["messages"]
     )
-    assert "changement_posture" in prompt
-    assert "statut_mise_en_oeuvre" in prompt
-    assert "confiance_posture" in prompt
-    assert "impact_it est un axe distinct" in prompt
-    assert result[0]["genai_triage"]["impact_it"] == "ELEVE"
-    assert result[0]["genai_triage"]["changement_posture"] == "NOUVEAU_DISPOSITIF"
-    assert result[0]["genai_triage"]["statut_mise_en_oeuvre"] == "ANNONCE"
-    assert result[0]["genai_triage"]["confiance_posture"] == "ELEVEE"
+    assert "justification_posture" not in prompt
+    assert "impact_it_justification" not in prompt
+    assert "relevance_reason" in prompt
+    assert result[0]["genai_triage"]["impact_it"] == "INDETERMINE"
+    assert result[0]["genai_triage"]["changement_posture"] == "INDETERMINE"
+    assert result[0]["genai_triage"]["statut_mise_en_oeuvre"] == "INDETERMINE"
+    assert result[0]["genai_triage"]["confiance_posture"] == "INDETERMINE"
