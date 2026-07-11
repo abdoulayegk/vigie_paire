@@ -122,23 +122,30 @@ def test_generate_text_comparison_excel_creates_analysis_sheet() -> None:
 
     assert workbook.sheetnames == ["Analyse complète"]
     ws = workbook["Analyse complète"]
-    assert ws.max_row == 5
-    assert ws.cell(2, _column(ws, "Section du rapport")).value == "Gestion des risques"
-    assert ws.cell(2, _column(ws, "Page du texte précédent")).value == "10"
-    assert ws.cell(2, _column(ws, "Page du texte courant")).value == "12"
-    assert ws.cell(2, _column(ws, "Type de changement")).value == "Modification"
-    assert ws.cell(2, _column(ws, "Texte exact du trimestre précédent")).value == "Paragraphe exact T1"
-    assert ws.cell(2, _column(ws, "Texte exact du trimestre courant")).value == "Paragraphe exact T2"
-    assert ws.cell(2, _column(ws, "Nouvelle idée à surveiller ?")).value == "Oui"
-    assert "nouveau modele AIRB est introduit" in ws.cell(2, _column(ws, "Justification de pertinence (IA)")).value
-    assert ws.cell(3, _column(ws, "Texte exact du trimestre précédent")).value == "Paragraphe modéré T1"
-    assert ws.cell(3, _column(ws, "Texte exact du trimestre courant")).value == "Paragraphe modéré T2"
-    assert ws.cell(4, _column(ws, "Page du texte précédent")).value is None
-    assert ws.cell(4, _column(ws, "Page du texte courant")).value == "13"
-    assert ws.cell(4, _column(ws, "Texte exact du trimestre précédent")).value is None
-    assert ws.cell(4, _column(ws, "Texte exact du trimestre courant")).value == "Paragraphe exact ajouté"
-    assert ws.cell(5, _column(ws, "Texte exact du trimestre précédent")).value == "Paragraphe non substantif T1"
-    assert ws.cell(5, _column(ws, "Texte exact du trimestre courant")).value == "Paragraphe non substantif T2"
+    assert ws.max_row == 8
+    rows = [
+        {
+            "current": ws.cell(row, _column(ws, "Texte exact du trimestre courant")).value,
+            "previous": ws.cell(row, _column(ws, "Texte exact du trimestre précédent")).value,
+            "type": ws.cell(row, _column(ws, "Type de changement")).value,
+            "section": ws.cell(row, _column(ws, "Section du rapport")).value,
+            "current_page": ws.cell(row, _column(ws, "Page du texte courant")).value,
+            "previous_page": ws.cell(row, _column(ws, "Page du texte précédent")).value,
+        }
+        for row in range(2, ws.max_row + 1)
+    ]
+    assert {row["type"] for row in rows} <= {"Ajout", "Suppression", "Renommage"}
+    replacement_rows = [row for row in rows if row["current"] == "Paragraphe exact T2"]
+    assert {row["type"] for row in replacement_rows} == {"Ajout", "Suppression"}
+    assert all(row["previous"] == "Paragraphe exact T1" for row in replacement_rows)
+    assert all(row["section"] == "Gestion des risques" for row in replacement_rows)
+    assert all(row["current_page"] == "12" and row["previous_page"] == "10" for row in replacement_rows)
+    assert any(
+        row["type"] == "Ajout"
+        and row["current"] == "Paragraphe exact ajouté"
+        and row["previous"] is None
+        for row in rows
+    )
 
 
 def test_generate_text_comparison_excel_keeps_minor_date_and_reformulation_changes() -> None:
@@ -195,11 +202,19 @@ def test_generate_text_comparison_excel_keeps_minor_date_and_reformulation_chang
     workbook = load_workbook(io.BytesIO(raw))
     ws = workbook["Analyse complète"]
 
-    assert ws.max_row == 3
-    assert ws.cell(2, _column(ws, "Texte exact du trimestre précédent")).value == "Données au 31 janvier."
-    assert ws.cell(2, _column(ws, "Texte exact du trimestre courant")).value == "Données au 30 avril."
-    assert ws.cell(3, _column(ws, "Texte exact du trimestre précédent")).value == "La banque surveille ce risque."
-    assert ws.cell(3, _column(ws, "Texte exact du trimestre courant")).value == "Ce risque est surveillé par la banque."
+    assert ws.max_row == 5
+    previous_values = [
+        ws.cell(row, _column(ws, "Texte exact du trimestre précédent")).value
+        for row in range(2, ws.max_row + 1)
+    ]
+    current_values = [
+        ws.cell(row, _column(ws, "Texte exact du trimestre courant")).value
+        for row in range(2, ws.max_row + 1)
+    ]
+    assert previous_values.count("Données au 31 janvier.") == 2
+    assert current_values.count("Données au 30 avril.") == 2
+    assert previous_values.count("La banque surveille ce risque.") == 2
+    assert current_values.count("Ce risque est surveillé par la banque.") == 2
 
 
 def test_generate_text_comparison_excel_strips_control_characters() -> None:
@@ -323,7 +338,6 @@ def test_generate_text_comparison_excel_applies_analyst_review_without_new_colum
         "Ce qui change",
         "Nouvelle idée à surveiller ?",
         "Justification de pertinence (IA)",
-        "Effet sur la posture de risque",
         "Priorité / impact",
         "Page du texte courant",
         "Page du texte précédent",
@@ -342,6 +356,32 @@ def test_generate_text_comparison_excel_applies_analyst_review_without_new_colum
     assert values["Nouveau"] == ("Non", "Pas une nouvelle idée.", "Rejeté")
     assert values["Ajout"] == ("Oui", "À conserver.", "Validé")
     assert values["B"] == ("Oui", None, "Ignoré")
+
+
+def test_generate_text_comparison_excel_excludes_confirmed_moves() -> None:
+    payload = {
+        "section_comparisons": [
+            {
+                "section_key": "gestion_risques",
+                "section_title": "Gestion des risques",
+                "all_block_comparisons": [
+                    {
+                        "diff_type": "modified",
+                        "alignment_decision": "moved_text",
+                        "source_text_t1": "Texte déplacé avant.",
+                        "source_text_t2": "Texte déplacé après.",
+                        "genai_triage": {"nouvelle_idee": False},
+                    }
+                ],
+            }
+        ]
+    }
+
+    raw = generate_text_comparison_excel(payload, output_path=None)
+    workbook = load_workbook(io.BytesIO(raw))
+    ws = workbook["Analyse complète"]
+
+    assert ws.max_row == 1
 
 
 def test_text_justification_falls_back_for_legacy_b15_triage() -> None:

@@ -42,7 +42,6 @@ EXCEL_COLUMNS = [
     "Ce qui change",
     "Nouvelle idée à surveiller ?",
     "Justification de pertinence (IA)",
-    "Effet sur la posture de risque",
     "Priorité / impact",
     "Page du texte courant",
     "Page du texte précédent",
@@ -50,14 +49,6 @@ EXCEL_COLUMNS = [
     "Note analyste",
     "Validé le",
 ]
-
-_DIFF_TYPE_FR: dict[str, str] = {
-    "added": "Ajout",
-    "removed": "Suppression",
-    "modified": "Modification",
-    "renamed": "Renommage",
-    "unchanged": "Inchangé",
-}
 
 _VALIDATION_STATUS_FR: dict[str, str] = {
     "approved": "Validé",
@@ -186,6 +177,38 @@ def _row_fill_color(row: dict[str, Any]) -> str | None:
     return None
 
 
+def _published_change_types(change: dict[str, Any]) -> tuple[str, ...]:
+    """Mapper un diff technique vers les seuls types visibles à l'analyste.
+
+    Une modification textuelle contient simultanément un retrait et un ajout.
+    Les deux lignes gardent les mêmes preuves T1/T2 afin de rendre le
+    remplacement auditable, sans introduire ``Modification`` comme quatrième
+    type métier. Un déplacement confirmé n'est pas une vigie publiable.
+    """
+    if str(change.get("alignment_decision") or "").lower() == "moved_text":
+        return ()
+
+    diff_type = str(change.get("diff_type") or "").lower()
+    if diff_type == "added":
+        return ("Ajout",)
+    if diff_type == "removed":
+        return ("Suppression",)
+    if diff_type == "renamed":
+        return ("Renommage",)
+    if diff_type == "modified":
+        return ("Suppression", "Ajout")
+    return ()
+
+
+def _published_change_summary(change_type: str, display_summary: str) -> str:
+    """Rendre explicite le côté Ajout ou Suppression d'un remplacement."""
+    if change_type == "Ajout":
+        return f"Ajout dans le texte courant — {display_summary}"
+    if change_type == "Suppression":
+        return f"Suppression du texte précédent — {display_summary}"
+    return display_summary
+
+
 # ---------------------------------------------------------------------------
 # Collecte des lignes
 # ---------------------------------------------------------------------------
@@ -201,6 +224,9 @@ def _collect_rows(text_comparison: dict[str, Any]) -> list[dict[str, Any]]:
         )
         for block_comp in section_comp.get("all_block_comparisons", []):
             if block_comp.get("diff_type") == "unchanged":
+                continue
+            published_types = _published_change_types(block_comp)
+            if not published_types:
                 continue
 
             triage = block_comp.get("genai_triage") or {}
@@ -224,33 +250,39 @@ def _collect_rows(text_comparison: dict[str, Any]) -> list[dict[str, Any]]:
             elif analyst_status == "approved":
                 analyst_comment = str(analyst_review.get("comment") or "").strip()
 
-            rows.append(
-                {
-                    "change_id": block_comp.get("change_id", ""),
-                    "section_key": section_key,
-                    "section_title": section_title,
-                    "subsection": display["subsection"],
-                    "page_t1": page_t1,
-                    "page_t2": page_t2,
-                    # Les deux colonnes de texte gardent la source du pipeline,
-                    # sans résumé ni reformulation générée.
-                    "source_text_t1": str(block_comp.get("source_text_t1") or ""),
-                    "source_text_t2": str(block_comp.get("source_text_t2") or ""),
-                    "diff_type": display["change_type"],
-                    "impact_level": str(triage.get("impact_level") or "MINEUR").upper(),
-                    "category": display["category"],
-                    "secondary_labels": display["secondary_labels"],
-                    "is_relevant": bool(triage.get("is_relevant", False)),
-                    "nouvelle_idee_bool": nouvelle_idee == "Oui",
-                    "nouvelle_idee": nouvelle_idee,
-                    "justification": justification,
-                    "what_changed": display["what_changed"],
-                    "posture": str(triage.get("changement_posture") or "INDETERMINE"),
-                    "analyst_status": _VALIDATION_STATUS_FR.get(analyst_status, analyst_status),
-                    "commentaire_analyste": analyst_comment,
-                    "validated_at": str(analyst_review.get("at") or ""),
-                }
-            )
+            base_row = {
+                "change_id": block_comp.get("change_id", ""),
+                "section_key": section_key,
+                "section_title": section_title,
+                "subsection": display["subsection"],
+                "page_t1": page_t1,
+                "page_t2": page_t2,
+                # Les deux colonnes de texte gardent la source du pipeline,
+                # sans résumé ni reformulation générée.
+                "source_text_t1": str(block_comp.get("source_text_t1") or ""),
+                "source_text_t2": str(block_comp.get("source_text_t2") or ""),
+                "impact_level": str(triage.get("impact_level") or "MINEUR").upper(),
+                "category": display["category"],
+                "secondary_labels": display["secondary_labels"],
+                "is_relevant": bool(triage.get("is_relevant", False)),
+                "nouvelle_idee_bool": nouvelle_idee == "Oui",
+                "nouvelle_idee": nouvelle_idee,
+                "justification": justification,
+                "analyst_status": _VALIDATION_STATUS_FR.get(analyst_status, analyst_status),
+                "commentaire_analyste": analyst_comment,
+                "validated_at": str(analyst_review.get("at") or ""),
+            }
+            for published_type in published_types:
+                rows.append(
+                    {
+                        **base_row,
+                        "diff_type": published_type,
+                        "what_changed": _published_change_summary(
+                            published_type,
+                            display["what_changed"],
+                        ),
+                    }
+                )
 
     rows.sort(key=_row_sort_key)
     return rows
@@ -321,7 +353,6 @@ def generate_text_comparison_excel(
             row["what_changed"],
             row["nouvelle_idee"],
             row["justification"],
-            row["posture"],
             row["impact_level"],
             row["page_t2"],
             row["page_t1"],
@@ -351,13 +382,12 @@ def generate_text_comparison_excel(
         9: 70,   # Ce qui change
         10: 20,  # Nouvelle idée
         11: 70,  # Justification
-        12: 28,  # Posture de risque
-        13: 16,  # Impact
-        14: 16,  # Page courante
-        15: 16,  # Page précédente
-        16: 18,  # Statut analyste
-        17: 30,  # Note analyste
-        18: 22,  # Validé le
+        12: 16,  # Impact
+        13: 16,  # Page courante
+        14: 16,  # Page précédente
+        15: 18,  # Statut analyste
+        16: 30,  # Note analyste
+        17: 22,  # Validé le
     }
     for col_idx, width in col_widths.items():
         ws.column_dimensions[get_column_letter(col_idx)].width = width
