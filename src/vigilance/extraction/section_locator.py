@@ -465,7 +465,14 @@ T4_SECTION_TITLE_PROFILES: dict[str, dict[str, dict[str, list[str]]]] = {
     "bmo": {
         "gestion_capital": {
             "start": ["Gestion globale du capital"],
-            "end": ["Gestion globale des risques"],
+            # Les rapports annuels BMO intercalent un vrai chapitre sur les
+            # entités structurées/titrisation entre le capital et les risques.
+            # Les titres, et non des pages fixes, bornent donc le capital.
+            "end": [
+                "Entités structurées et titrisation",
+                "Entités de titrisation soutenues par BMO",
+                "Gestion globale des risques",
+            ],
         },
         "gestion_risques": {
             "start": ["Gestion globale des risques"],
@@ -1450,10 +1457,14 @@ class SectionLocator:
             line_normalized = normalize_text(value).strip()
             if len(line_normalized) < 10:
                 continue
+            line_compact = re.sub(r"[^a-z0-9]+", "", line_normalized)
             for title in titles:
                 title_normalized = normalize_text(title).strip()
+                title_compact = re.sub(r"[^a-z0-9]+", "", title_normalized)
                 if title_normalized and (
-                    line_normalized.startswith(title_normalized) or title_normalized.startswith(line_normalized)
+                    line_normalized.startswith(title_normalized)
+                    or title_normalized.startswith(line_normalized)
+                    or (title_compact and line_compact.startswith(title_compact))
                 ):
                     return title
         return None
@@ -1489,6 +1500,11 @@ class SectionLocator:
             if str(title or "").strip()
         }
         candidates: list[tuple[float, int, str]] = []
+        # Une ancre exacte du profil bancaire est plus fiable qu'un alias
+        # générique. On la conserve séparément pour appliquer une règle
+        # d'ordre physique à ces racines (notamment lorsque l'extraction d'un
+        # diagramme répète « Gestion du risque » plus loin dans le rapport).
+        profile_exact_candidates: list[tuple[int, int, str]] = []
 
         for page_num in range(6, total_pages + 1):
             page_text = text_by_page.get(page_num, "")
@@ -1510,15 +1526,24 @@ class SectionLocator:
                 exact_match = bool(
                     self._title_match_variants(line) & self._title_match_variants(matched_title)
                 )
+                if matched_normalized in profile_titles and exact_match:
+                    profile_exact_candidates.append((page_num, line_index, matched_title))
                 score = 0.0
                 if matched_normalized in profile_titles:
                     score += 1000.0
                 if exact_match:
                     score += 100.0
                 if line_index <= 5:
-                    score += 10.0
+                    score += 15.0
                 elif line_index <= 35:
                     score += 5.0
+                else:
+                    # Une mention de titre profondément enfouie dans une page
+                    # narrative/tableau ne doit pas prévaloir sur la même
+                    # ancre présente en tête d'un vrai chapitre. On pénalise
+                    # sans exclure : certains PDF placent un titre visuel
+                    # valide plus bas dans leur ordre d'extraction.
+                    score -= min(30.0, (line_index - 35) * 0.6)
                 score -= toc_penalty
                 score -= noise_penalty
                 # Les sommaires annuels se trouvent normalement avant la page
@@ -1528,6 +1553,23 @@ class SectionLocator:
                     score -= 200.0
                 score -= page_num / 2.0
                 candidates.append((score, page_num, matched_title))
+
+        if profile_exact_candidates:
+            # Les titres de chapitre se trouvent normalement en tête de page.
+            # S'il y en a un, il prévaut sur une mention narrative antérieure.
+            top_level_roots = [
+                candidate for candidate in profile_exact_candidates if candidate[1] <= 5
+            ]
+            if top_level_roots:
+                page_num, _, matched_title = min(top_level_roots, key=lambda item: item[0])
+                return page_num, matched_title
+
+            # Certains PDF placent néanmoins le vrai titre après un tableau
+            # volumineux. Sans ancre de tête, le premier titre exact du profil
+            # est la racine du chapitre; les répétitions ultérieures sont des
+            # sous-thèmes ou du texte de diagramme.
+            page_num, _, matched_title = min(profile_exact_candidates, key=lambda item: item[0])
+            return page_num, matched_title
 
         if not candidates:
             return None
@@ -1612,13 +1654,6 @@ class SectionLocator:
             lines = [line.strip() for line in str(page_text).splitlines() if line.strip()]
             for line_index, line in enumerate(lines, start=1):
                 variants = (line, self._unstutter_pdf_text(line))
-                if not any(
-                    self._is_likely_section_title(value, page_text, matches_configured_pattern=True)
-                    for value in variants
-                ):
-                    continue
-                if section_type == "gestion_risques" and any(self._is_risk_subsection(value) for value in variants):
-                    continue
                 successor = next(
                     (self._annual_t4_successor_match(value, successor_titles) for value in variants),
                     None,
@@ -1630,6 +1665,13 @@ class SectionLocator:
                         for value in variants
                     )
                 )
+                if not any(
+                    self._is_likely_section_title(value, page_text, matches_configured_pattern=True)
+                    for value in variants
+                ) and not successor_is_exact:
+                    continue
+                if section_type == "gestion_risques" and any(self._is_risk_subsection(value) for value in variants):
+                    continue
                 # Un titre exact peut être rejeté très bas dans l'ordre textuel
                 # de pdfplumber. Les correspondances seulement préfixées et les
                 # patterns génériques restent limitées au haut de page.

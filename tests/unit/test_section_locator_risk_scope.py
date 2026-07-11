@@ -354,6 +354,97 @@ def test_annual_t4_prefers_bank_profile_title_over_earlier_generic_alias() -> No
     assert root == (75, "Gestion du risque")
 
 
+def test_annual_t4_prefers_top_level_root_over_later_narrative_mention() -> None:
+    """Une mention au bas d'une page ne doit pas voler la racine BNC."""
+    locator = SectionLocator(bank_code="bnc", quarter="t4", year=2024)
+    text_by_page = {
+        31: "\n".join(
+            [
+                *(f"Ligne narrative {index}" for index in range(44)),
+                "Gestion des risques.",
+            ]
+        ),
+        67: "Gestion des risques\nLe cadre de gestion des risques est présenté ci-dessous.",
+    }
+
+    root = locator._find_annual_t4_section_start(
+        "gestion_risques",
+        text_by_page,
+        total_pages=130,
+    )
+
+    assert root == (67, "Gestion des risques")
+
+
+def test_annual_t4_keeps_earlier_root_when_later_risk_subtopic_repeats_title() -> None:
+    """Le titre racine RBC précède une répétition dans un sous-thème ESG."""
+    locator = SectionLocator(bank_code="rbc", quarter="t4", year=2024)
+    text_by_page = {
+        72: "\n".join(
+            [
+                *(f"Ligne de mise en page {index}" for index in range(55)),
+                "Gestion du risque",
+                "Le cadre de gestion du risque est présenté ci-dessous.",
+            ]
+        ),
+        122: "\n".join(
+            [
+                *(f"Ligne narrative {index}" for index in range(33)),
+                "Gestion du risque",
+                "Les risques environnementaux et sociaux sont traités ici.",
+            ]
+        ),
+    }
+
+    root = locator._find_annual_t4_section_start(
+        "gestion_risques",
+        text_by_page,
+        total_pages=140,
+    )
+
+    assert root == (72, "Gestion du risque")
+
+
+def test_annual_t4_bmo_capital_stops_at_intermediate_securitization_chapter() -> None:
+    """Le capital BMO ne doit pas absorber le chapitre de titrisation."""
+    locator = SectionLocator(bank_code="bmo", quarter="t4", year=2025)
+    text_by_page = {
+        60: "Gestion globale du capital\nLe capital est géré de façon prudente.",
+        68: "Entités de titrisation soutenues par BMO\nContenu hors gestion du capital.",
+        69: "Gestion globale des risques\nLe cadre de risque est présenté ci-dessous.",
+        90: "Questions comptables\nLes méthodes comptables suivent.",
+    }
+
+    sections = locator._rebase_annual_t4_section_starts([], text_by_page, total_pages=100)
+    determined = locator._determine_end_pages(sections, text_by_page, [], total_pages=100)
+    by_type = {section.section_type: section for section in determined}
+
+    assert by_type["gestion_capital"].end_page == 67
+
+
+def test_annual_t4_bmo_accepts_exact_successor_even_when_extracted_late() -> None:
+    """Un titre BMO configuré reste une borne même après une table longue."""
+    locator = SectionLocator(bank_code="bmo", quarter="t4", year=2024)
+    text_by_page = {
+        61: "Gestion globale du capital\nLe capital est géré de façon prudente.",
+        68: "\n".join(
+            [
+                *(f"Ligne de tableau {index}" for index in range(39)),
+                "Entitésstructuréesettitrisation",
+                "Contenu hors gestion du capital.",
+            ]
+        ),
+        70: "Gestion globale des risques\nLe cadre de risque est présenté ci-dessous.",
+        90: "Questions comptables\nLes méthodes comptables suivent.",
+    }
+
+    sections = locator._rebase_annual_t4_section_starts([], text_by_page, total_pages=100)
+    determined = locator._determine_end_pages(sections, text_by_page, [], total_pages=100)
+    by_type = {section.section_type: section for section in determined}
+
+    assert by_type["gestion_capital"].end_page == 67
+
+
 def test_annual_t4_td_uses_financial_group_boundary_not_objectives_sentence() -> None:
     locator = SectionLocator(bank_code="td", quarter="t4", year=2025)
     text_by_page = {
