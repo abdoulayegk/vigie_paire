@@ -4797,8 +4797,34 @@ def test_triage_section_changes_batches_two_sides_of_one_semantic_distinct_decis
     assert '"change_index": 2' in prompt
 
 
-def test_triage_section_changes_truncates_large_prompt_fields() -> None:
-    def valid_response(**_kwargs):
+def test_triage_section_changes_reads_long_sources_as_full_evidence_packets() -> None:
+    from vigilance.text_analysis.triage import (
+        _EvidencePacketBatch,
+        _EvidencePacketCoherenceCheck,
+        _EvidencePacketObservation,
+    )
+
+    def valid_response(**kwargs):
+        response_format = kwargs["response_format"]
+        if response_format is _EvidencePacketBatch:
+            return _make_parsed_response(
+                _EvidencePacketBatch(
+                    observations=[
+                        _EvidencePacketObservation(
+                            packet_index=1,
+                            factual_change="Le texte courant contient une preuve complète à qualifier.",
+                        )
+                    ]
+                )
+            )
+        if response_format is _EvidencePacketCoherenceCheck:
+            return _make_parsed_response(
+                _EvidencePacketCoherenceCheck(
+                    packet_index=1,
+                    verdict="supports",
+                    reason="La décision proposée reste cohérente avec la preuve complète.",
+                )
+            )
         return _make_parsed_response(
             TriageAMFCompactLLMBatch(
                 triages=[
@@ -4832,10 +4858,12 @@ def test_triage_section_changes_truncates_large_prompt_fields() -> None:
         ],
     )
 
-    prompt = client._completions.calls[0]["messages"][1]["content"]
-    assert long_semantic not in prompt
-    assert long_source not in prompt
-    assert "texte tronque pour le triage" in prompt
+    evidence_call = client._completions.calls[0]
+    evidence_prompt = evidence_call["messages"][1]["content"]
+    assert evidence_call["response_format"] is _EvidencePacketBatch
+    assert long_source in evidence_prompt
+    assert "texte tronque pour le triage" not in evidence_prompt
+    assert client._completions.calls[-1]["response_format"] is _EvidencePacketCoherenceCheck
 
 
 def test_triage_section_changes_attaches_deterministic_change_segments() -> None:
