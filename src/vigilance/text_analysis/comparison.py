@@ -5,34 +5,103 @@ from __future__ import annotations
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 import re
-from typing import Any
+from typing import Any, Literal
 
-from vigilance.text_analysis.chunk_alignment import _align_chunks_tfidf, _format_alignments_for_prompt
+from pydantic import BaseModel, ConfigDict, field_validator, model_validator
+
+from vigilance.text_analysis.chunk_alignment import (
+    _align_chunks_hybrid,
+    _format_alignments_for_prompt,
+    _sequence_similarity,
+)
 from vigilance.text_analysis.chunk_alignment import ChunkAlignment
-from vigilance.text_analysis.chunking import _chunk_subsection_text
+from vigilance.text_analysis.chunking import TextChunk, _chunk_subsection_text
 from vigilance.text_analysis.constants import _SECTION_LABELS
 from vigilance.text_analysis.models import TextAnalysisQualityError
 from vigilance.text_analysis.normalization import _sanitize_explanation, _sanitize_semantic_text
-from vigilance.text_analysis.openai_client import _call_json_completion
+from vigilance.text_analysis.openai_client import _call_structured_completion_with_correction
 from vigilance.text_analysis.subsection_matching import (
     OrphanSubsection,
     _normalize_heading,
     _pair_subsections,
     _parse_subsections,
     _resolve_orphan_subsections,
-    _synthetic_subsection_change,
     _synthetic_subsection_rename_change,
 )
 
 
 _MAX_COMPARISON_LLM_WORKERS = 6
+_EXACT_DIFF_STRONG_SEQUENCE_THRESHOLD = 0.98
 _COMPARISON_BATCH_SIZES = {
     "matched_strong": 5,
+    "matched_grouped": 1,
     "matched_weak": 3,
     "ambiguous": 1,
     "possible_added": 1,
     "possible_removed": 1,
 }
+_CHUNK_COMPARISON_VALIDATION_RETRY_MESSAGE = (
+    "Corrige la réponse et renvoie le batch COMPLET en respectant strictement le schéma. "
+    "Chaque changement doit inclure alignment_id obligatoire, diff_type parmi "
+    "unchanged|modified|added|removed, text_t1/text_t2 sans balises [a00]/[c00], "
+    "alignment_decision parmi same_disclosure|distinct_disclosures|moved_text|uncertain, "
+    "alignment_confidence parmi high|medium|low et alignment_rationale non vide, "
+    "modified et unchanged doivent avoir text_t1 et text_t2 non vides, added doit "
+    "avoir text_t2 non vide, removed doit avoir text_t1 non vide. Ne fusionne jamais "
+    "plusieurs alignments dans un même changement."
+)
+
+
+class ChunkComparisonLLMChange(BaseModel):
+    """Changement brut validé à la frontière LLM pour un seul alignment."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    alignment_id: str
+    diff_type: Literal["unchanged", "modified", "added", "removed"]
+    text_t1: str
+    text_t2: str
+    change_summary: str
+    # Kept optional for compatibility with existing cached responses.  The
+    # prompt requires all three fields; missing values are handled
+    # conservatively from the deterministic alignment type below.
+    alignment_decision: Literal[
+        "same_disclosure", "distinct_disclosures", "moved_text", "uncertain", ""
+    ] = ""
+    alignment_confidence: Literal["high", "medium", "low", ""] = ""
+    alignment_rationale: str = ""
+
+    @field_validator(
+        "alignment_id",
+        "text_t1",
+        "text_t2",
+        "change_summary",
+        "alignment_rationale",
+        mode="before",
+    )
+    @classmethod
+    def _coerce_string(cls, value: Any) -> str:
+        return str(value or "").strip()
+
+    @model_validator(mode="after")
+    def _validate_by_diff_type(self) -> "ChunkComparisonLLMChange":
+        if not self.alignment_id:
+            raise ValueError("alignment_id est obligatoire pour chaque changement chunké")
+        if self.diff_type in {"unchanged", "modified"} and not (self.text_t1 and self.text_t2):
+            raise ValueError("unchanged/modified exigent text_t1 et text_t2 non vides")
+        if self.diff_type == "added" and not self.text_t2:
+            raise ValueError("added exige text_t2 non vide")
+        if self.diff_type == "removed" and not self.text_t1:
+            raise ValueError("removed exige text_t1 non vide")
+        return self
+
+
+class ChunkComparisonLLMResponse(BaseModel):
+    """Réponse structurée du LLM pour un batch d'alignements chunkés."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    changes: list[ChunkComparisonLLMChange]
 
 
 @dataclass(slots=True)
@@ -54,8 +123,10 @@ def _prepare_subsection_alignments(
     subsection_heading_t2: str,
     body_t1: str,
     body_t2: str,
+    client: Any | None = None,
+    embedding_model: str = "text-embedding-3-small",
 ) -> list[ChunkAlignment]:
-    """Prépare une paire de sous-sections en alignements locaux TF-IDF."""
+    """Prépare une paire de sous-sections en alignements hybrides locaux."""
     section_title = _SECTION_LABELS.get(section_key, section_key)
     chunks_t1 = _chunk_subsection_text(
         body_t1,
@@ -67,15 +138,81 @@ def _prepare_subsection_alignments(
         subsection_heading=subsection_heading_t2,
         section_title=section_title,
     )
-    if not chunks_t1:
-        raise TextAnalysisQualityError(
-            f"Sous-section appariée sans chunk T1: {section_key}/{subsection_heading_t1}"
-        )
-    if not chunks_t2:
-        raise TextAnalysisQualityError(
-            f"Sous-section appariée sans chunk T2: {section_key}/{subsection_heading_t2}"
-        )
-    return _align_chunks_tfidf(chunks_t1, chunks_t2)
+    # Après exclusion des tableaux, cellules et renvois non narratifs, une
+    # sous-section peut légitimement ne plus avoir de contenu comparable. Ce
+    # n'est pas une erreur de qualité : elle ne doit simplement pas produire
+    # un ajout/retrait artificiel.
+    if not chunks_t1 or not chunks_t2:
+        return []
+    return _align_chunks_hybrid(
+        chunks_t1,
+        chunks_t2,
+        client=client,
+        embedding_model=embedding_model,
+    )
+
+
+def _exact_diff_change_for_strong_alignment(
+    *,
+    alignment: ChunkAlignment,
+    section_key: str,
+    heading_label: str,
+    heading_slug: str,
+    change_index: int,
+) -> dict[str, Any] | None:
+    """Compare localement un alignement très solide sans arbitrage GPT supplémentaire."""
+    if alignment.alignment_type != "matched_strong":
+        return None
+    if alignment.chunk_t1 is None or alignment.chunk_t2 is None:
+        return None
+    text_t1 = alignment.chunk_t1.text
+    text_t2 = alignment.chunk_t2.text
+    similarity = _sequence_similarity(text_t1, text_t2)
+    if similarity < _EXACT_DIFF_STRONG_SEQUENCE_THRESHOLD:
+        return None
+    normalized_t1 = re.sub(r"\s+", " ", text_t1).strip()
+    normalized_t2 = re.sub(r"\s+", " ", text_t2).strip()
+    if normalized_t1 == normalized_t2:
+        diff_type = "unchanged"
+        summary = "Passages alignés identiques après normalisation."
+    else:
+        diff_type = "modified"
+        summary = "Passages fortement alignés avec une différence locale exacte."
+    return {
+        "change_id": f"{section_key}_{heading_slug}_change_{change_index:03d}",
+        "section_key": section_key,
+        "subsection_heading": heading_label,
+        "diff_type": diff_type,
+        "source_scope": "chunk",
+        "alignment_id": alignment.alignment_id,
+        "alignment_type": alignment.alignment_type,
+        "chunk_id_t1": alignment.chunk_t1.chunk_id,
+        "chunk_id_t2": alignment.chunk_t2.chunk_id,
+        "semantic_text_t1": _sanitize_semantic_text(text_t1),
+        "semantic_text_t2": _sanitize_semantic_text(text_t2),
+        "source_text_t1": text_t1,
+        "source_text_t2": text_t2,
+        "source_block_ids_t1": [],
+        "source_block_ids_t2": [],
+        "source_refs_t1": [],
+        "source_refs_t2": [],
+        "pages_t1": [],
+        "pages_t2": [],
+        "source_resolution_t1": "markdown",
+        "source_resolution_t2": "markdown",
+        "evidence_t1": {"pages": [], "snippet": text_t1[:400]},
+        "evidence_t2": {"pages": [], "snippet": text_t2[:400]},
+        "change_summary": summary,
+        "alignment_decision": "same_disclosure",
+        "alignment_confidence": "high",
+        "alignment_rationale": (
+            f"Alignement hybride fort (tfidf={alignment.tfidf_score:.2f}, "
+            f"embedding={alignment.embedding_score:.2f}, sequence={similarity:.2f}); "
+            "diff exacte locale sans arbitrage GPT supplémentaire."
+        ),
+        "tfidf_score": alignment.tfidf_score,
+        "embedding_score": alignment.embedding_score,
+    }
 
 
 def _batch_size_for_alignment_type(alignment_type: str) -> int:
@@ -122,6 +259,27 @@ def _build_comparison_batches(
     return batches
 
 
+def _split_exact_diff_alignments(
+    alignments: list[ChunkAlignment],
+) -> tuple[list[ChunkAlignment], list[ChunkAlignment]]:
+    """Sépare les alignements hybrides assez solides pour un diff exact local."""
+    exact: list[ChunkAlignment] = []
+    remaining: list[ChunkAlignment] = []
+    for alignment in alignments:
+        if (
+            alignment.alignment_type == "matched_strong"
+            and alignment.embedding_score >= 0.85
+            and alignment.chunk_t1 is not None
+            and alignment.chunk_t2 is not None
+            and _sequence_similarity(alignment.chunk_t1.text, alignment.chunk_t2.text)
+            >= _EXACT_DIFF_STRONG_SEQUENCE_THRESHOLD
+        ):
+            exact.append(alignment)
+        else:
+            remaining.append(alignment)
+    return exact, remaining
+
+
 def _reindex_changes(
     changes: list[dict[str, Any]],
     *,
@@ -148,7 +306,7 @@ def _compare_alignment_batch(
     """Compare un lot d'alignements via un appel LLM."""
     text_t1, text_t2 = _format_alignments_for_prompt(batch.alignments)
     try:
-        return _compare_texts_single_call(
+        changes = _compare_texts_single_call(
             client=client,
             model=model,
             section_key=section_key,
@@ -158,6 +316,8 @@ def _compare_alignment_batch(
             text_t2=text_t2,
             idx_offset=batch.idx_offset,
         )
+        scoped = _attach_alignment_metadata(changes, batch.alignments)
+        return _materialize_semantic_alignment_decisions(scoped)
     except Exception as exc:
         raise RuntimeError(
             f"Batch comparison failed for {section_key}/{batch.heading_label}/{batch.batch_id}: {exc}"
@@ -214,7 +374,7 @@ def _compare_texts_single_call(
     permettre son appel répété par sous-section.
     """
     try:
-        raw = _call_json_completion(
+        raw = _call_structured_completion_with_correction(
             client,
             model=model,
             messages=[
@@ -230,27 +390,47 @@ def _compare_texts_single_call(
                         "utilise ces bornes pour aligner les idées comparables, "
                         "mais ne recopie pas ces balises dans text_t1 ou text_t2. "
                         "Lorsque le texte contient des blocs [a00 | matched_strong], "
-                        "[a00 | matched_weak], [a00 | ambiguous], [a00 | possible_added] "
-                        "ou [a00 | possible_removed], ces alignements TF-IDF sont des "
-                        "indices locaux dans la même sous-section, pas des verdicts. "
+                        "[a00 | matched_grouped], [a00 | matched_weak], [a00 | ambiguous], [a00 | possible_added] "
+                        "ou [a00 | possible_removed], ces alignements hybrides "
+                        "(TF-IDF + embeddings) sont des indices locaux dans la même "
+                        "sous-section, pas des verdicts. "
                         "Valide les cas faibles, ambigus, ajoutés ou supprimés possibles "
-                        "avec les candidats fournis avant de décider added/removed/modified."
+                        "avec les candidats fournis avant de décider added/removed/modified. "
+                        "Pour chaque alignment, rends aussi une décision sémantique : "
+                        "same_disclosure si les passages décrivent la même divulgation, "
+                        "distinct_disclosures s'ils décrivent des événements, faits ou "
+                        "obligations différents malgré un vocabulaire commun, moved_text "
+                        "si la même information a seulement été déplacée, ou uncertain si "
+                        "les éléments fournis ne permettent réellement pas de trancher."
                     ),
                 },
                 {
                     "role": "user",
                     "content": (
                         "Compare ces deux versions et retourne uniquement du JSON.\n"
-                        'Format: {"changes":[{"diff_type":"unchanged|modified|added|removed",'
+                        'Format: {"changes":[{"alignment_id":"a00",'
+                        '"diff_type":"unchanged|modified|added|removed",'
                         '"text_t1":"texte du paragraphe en T1, vide si added",'
                         '"text_t2":"texte du paragraphe en T2, vide si removed",'
-                        '"change_summary":"explication concise du changement"}]}.\n'
+                        '"change_summary":"explication concise du changement",'
+                        '"alignment_decision":"same_disclosure|distinct_disclosures|moved_text|uncertain",'
+                        '"alignment_confidence":"high|medium|low",'
+                        '"alignment_rationale":"justification concise de la décision"}]}.\n'
+                        "Chaque changement doit référencer exactement un alignment_id fourni "
+                        "dans les blocs [a00 | ...]. Ne fusionne jamais plusieurs alignments "
+                        "dans un seul changement. Ne recopie jamais les balises [a00] ou [c00] "
+                        "dans text_t1/text_t2.\n"
                         "unchanged = texte substantiellement identique, sans changement observable.\n"
                         "modified = texte correspondant changé, y compris reformulation, "
                         "mise à jour de date, variation chiffrée, changement de nuance "
                         "ou évolution substantielle.\n"
                         "added = idée nouvelle présente uniquement en T2.\n"
                         "removed = idée présente en T1, absente en T2.\n"
+                        "La décision sémantique est obligatoire pour CHAQUE alignment, y compris "
+                        "les alignments forts. Ne choisis uncertain qu'après examen des candidats. "
+                        "Si deux passages décrivent deux événements distincts (par exemple deux "
+                        "émissions différentes), choisis distinct_disclosures même si la structure "
+                        "des phrases se ressemble.\n"
                         "Important : si le texte change mais que le sens semble identique, "
                         "retourne quand même diff_type='modified' avec un résumé indiquant "
                         "qu'il s'agit probablement d'une reformulation.\n"
@@ -260,34 +440,27 @@ def _compare_texts_single_call(
                     ),
                 },
             ],
+            response_format=ChunkComparisonLLMResponse,
+            max_retries=1,
+            validation_retry_message=_CHUNK_COMPARISON_VALIDATION_RETRY_MESSAGE,
         )
     except Exception as exc:
         raise RuntimeError(f"Section comparison failed for {section_key}/{heading_slug}: {exc}") from exc
 
     validated: list[dict[str, Any]] = []
-    for local_idx, item in enumerate(raw.get("changes") or [], start=1):
-        diff_type = str(item.get("diff_type") or "").strip().lower()
-        if diff_type not in {"unchanged", "modified", "added", "removed"}:
-            continue
-        text_t1_item = str(item.get("text_t1") or "").strip()
-        text_t2_item = str(item.get("text_t2") or "").strip()
-        if diff_type in {"unchanged", "modified"} and not (text_t1_item and text_t2_item):
-            continue
-        if diff_type == "added" and not text_t2_item:
-            continue
-        if diff_type == "removed" and not text_t1_item:
-            continue
+    for local_idx, item in enumerate(raw.changes, start=1):
         global_idx = idx_offset + local_idx
         validated.append(
             {
                 "change_id": f"{section_key}_{heading_slug}_change_{global_idx:03d}",
                 "section_key": section_key,
                 "subsection_heading": heading_label,
-                "diff_type": diff_type,
-                "semantic_text_t1": _sanitize_semantic_text(text_t1_item),
-                "semantic_text_t2": _sanitize_semantic_text(text_t2_item),
-                "source_text_t1": text_t1_item,
-                "source_text_t2": text_t2_item,
+                "diff_type": item.diff_type,
+                "alignment_id": item.alignment_id,
+                "semantic_text_t1": _sanitize_semantic_text(item.text_t1),
+                "semantic_text_t2": _sanitize_semantic_text(item.text_t2),
+                "source_text_t1": item.text_t1,
+                "source_text_t2": item.text_t2,
                 "source_block_ids_t1": [],
                 "source_block_ids_t2": [],
                 "source_refs_t1": [],
@@ -296,12 +469,277 @@ def _compare_texts_single_call(
                 "pages_t2": [],
                 "source_resolution_t1": "markdown",
                 "source_resolution_t2": "markdown",
-                "evidence_t1": {"pages": [], "snippet": text_t1_item[:400]},
-                "evidence_t2": {"pages": [], "snippet": text_t2_item[:400]},
-                "change_summary": _sanitize_explanation(str(item.get("change_summary") or "")),
+                "evidence_t1": {"pages": [], "snippet": item.text_t1[:400]},
+                "evidence_t2": {"pages": [], "snippet": item.text_t2[:400]},
+                "change_summary": _sanitize_explanation(item.change_summary),
+                "alignment_decision": item.alignment_decision,
+                "alignment_confidence": item.alignment_confidence,
+                "alignment_rationale": _sanitize_explanation(item.alignment_rationale),
             }
         )
     return validated
+
+
+def _normalize_for_alignment_contains(value: str) -> str:
+    return re.sub(r"\s+", " ", str(value or "")).strip()
+
+
+def _coerce_text_to_chunk(text: str, chunk: TextChunk | None) -> str | None:
+    """Ramène le texte LLM au périmètre exact d'un chunk, sinon invalide."""
+    value = str(text or "").strip()
+    if chunk is None:
+        return "" if not value else None
+    if not value:
+        return ""
+    chunk_text = chunk.text.strip()
+    if value in chunk_text:
+        return value
+
+    normalized_value = _normalize_for_alignment_contains(value)
+    normalized_chunk = _normalize_for_alignment_contains(chunk_text)
+    if not normalized_value:
+        return ""
+    if normalized_value == normalized_chunk:
+        return chunk_text
+    if normalized_chunk and normalized_chunk in normalized_value:
+        return chunk_text
+    if normalized_value in normalized_chunk:
+        return chunk_text
+    return None
+
+
+_SEMANTIC_ALIGNMENT_DECISIONS = frozenset(
+    {"same_disclosure", "distinct_disclosures", "moved_text", "uncertain"}
+)
+
+
+def _resolved_alignment_decision(change: dict[str, Any], alignment: ChunkAlignment) -> str:
+    """Normalizes the first GPT call's semantic decision conservatively."""
+    decision = str(change.get("alignment_decision") or "").strip().lower()
+    if decision in _SEMANTIC_ALIGNMENT_DECISIONS:
+        return decision
+    # Cached / legacy responses do not have the new field.  Preserve the
+    # previous conservative handling only for genuinely ambiguous matches.
+    if alignment.alignment_type == "ambiguous":
+        return "uncertain"
+    return "same_disclosure"
+
+
+def _resolved_alignment_confidence(change: dict[str, Any], decision: str) -> str:
+    confidence = str(change.get("alignment_confidence") or "").strip().lower()
+    if confidence in {"high", "medium", "low"}:
+        return confidence
+    return "low" if decision == "uncertain" else "medium"
+
+
+def _attach_alignment_metadata(
+    changes: list[dict[str, Any]],
+    alignments: list[ChunkAlignment],
+) -> list[dict[str, Any]]:
+    """Valide les changements LLM et les borne à leur alignment/chunk source."""
+    alignment_by_id = {alignment.alignment_id: alignment for alignment in alignments}
+    scoped: list[dict[str, Any]] = []
+    for change in changes:
+        alignment_id = str(change.get("alignment_id") or "").strip()
+        alignment = alignment_by_id.get(alignment_id)
+        if alignment is None:
+            continue
+
+        text_t1 = _coerce_text_to_chunk(str(change.get("source_text_t1") or ""), alignment.chunk_t1)
+        text_t2 = _coerce_text_to_chunk(str(change.get("source_text_t2") or ""), alignment.chunk_t2)
+        if text_t1 is None or text_t2 is None:
+            continue
+
+        diff_type = str(change.get("diff_type") or "").lower()
+        if diff_type in {"unchanged", "modified"} and not (text_t1 and text_t2):
+            continue
+        if diff_type == "added" and not text_t2:
+            continue
+        if diff_type == "removed" and not text_t1:
+            continue
+
+        scoped_change = dict(change)
+        alignment_decision = _resolved_alignment_decision(scoped_change, alignment)
+        scoped_change.update(
+            {
+                "source_scope": "chunk",
+                "alignment_id": alignment.alignment_id,
+                "alignment_type": alignment.alignment_type,
+                "chunk_id_t1": alignment.chunk_t1.chunk_id if alignment.chunk_t1 else None,
+                "chunk_id_t2": alignment.chunk_t2.chunk_id if alignment.chunk_t2 else None,
+                "source_text_t1": text_t1,
+                "source_text_t2": text_t2,
+                "semantic_text_t1": _sanitize_semantic_text(text_t1),
+                "semantic_text_t2": _sanitize_semantic_text(text_t2),
+                "evidence_t1": {"pages": [], "snippet": text_t1[:400]},
+                "evidence_t2": {"pages": [], "snippet": text_t2[:400]},
+                "alignment_decision": alignment_decision,
+                "alignment_confidence": _resolved_alignment_confidence(
+                    scoped_change, alignment_decision
+                ),
+                "alignment_rationale": str(scoped_change.get("alignment_rationale") or "").strip(),
+                "tfidf_score": alignment.tfidf_score,
+                "embedding_score": alignment.embedding_score,
+            }
+        )
+        scoped.append(scoped_change)
+    return scoped
+
+
+def _materialize_semantic_alignment_decisions(changes: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Turns a GPT-confirmed distinct pairing into separate source changes.
+
+    A lexical matcher can put two distinct events in one provisional pair.  If
+    the comparison model explicitly confirms that they are distinct, retaining
+    a single ``modified`` card would still imply a false correspondence.  Two
+    one-sided records preserve the original evidence for the AMF triage.
+    """
+    materialized: list[dict[str, Any]] = []
+    for change in changes:
+        decision = str(change.get("alignment_decision") or "").strip().lower()
+        text_t1 = str(change.get("source_text_t1") or "").strip()
+        text_t2 = str(change.get("source_text_t2") or "").strip()
+        if decision != "distinct_disclosures" or not text_t1 or not text_t2:
+            materialized.append(change)
+            continue
+
+        rationale = str(change.get("alignment_rationale") or "").strip()
+        base_summary = str(change.get("change_summary") or "").strip()
+        removed = dict(change)
+        removed.update(
+            {
+                "diff_type": "removed",
+                "alignment_id": f"{change.get('alignment_id')}:removed",
+                "alignment_type": "semantic_distinct",
+                "semantic_alignment_group_id": str(change.get("alignment_id") or ""),
+                "source_text_t2": "",
+                "semantic_text_t2": "",
+                "evidence_t2": {"pages": [], "snippet": ""},
+                "change_summary": (
+                    f"Divulgation distincte retirée. {rationale or base_summary}".strip()
+                ),
+            }
+        )
+        added = dict(change)
+        added.update(
+            {
+                "diff_type": "added",
+                "alignment_id": f"{change.get('alignment_id')}:added",
+                "alignment_type": "semantic_distinct",
+                "semantic_alignment_group_id": str(change.get("alignment_id") or ""),
+                "source_text_t1": "",
+                "semantic_text_t1": "",
+                "evidence_t1": {"pages": [], "snippet": ""},
+                "change_summary": (
+                    f"Divulgation distincte ajoutée. {rationale or base_summary}".strip()
+                ),
+            }
+        )
+        materialized.extend([removed, added])
+    return materialized
+
+
+def _deduplicate_alignment_changes(changes: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Conserve une carte par alignment, même si le LLM liste plusieurs détails.
+
+    Les détails restent dans le résumé concaténé ; le texte source demeure le
+    chunk unique auquel ils se rapportent. Cela évite de répéter la même paire
+    de paragraphes dans plusieurs cartes Dash.
+    """
+    grouped: dict[tuple[str, str, str, str, str], list[dict[str, Any]]] = {}
+    ordered_keys: list[tuple[str, str, str, str, str]] = []
+    for change in changes:
+        key = (
+            str(change.get("section_key") or ""),
+            str(change.get("subsection_heading") or ""),
+            str(change.get("alignment_id") or ""),
+            str(change.get("chunk_id_t1") or ""),
+            str(change.get("chunk_id_t2") or ""),
+        )
+        if key not in grouped:
+            grouped[key] = []
+            ordered_keys.append(key)
+        grouped[key].append(change)
+
+    deduplicated: list[dict[str, Any]] = []
+    for key in ordered_keys:
+        group = grouped[key]
+        if len(group) == 1 or not key[2]:
+            deduplicated.extend(group)
+            continue
+
+        representative = next(
+            (
+                change
+                for change in group
+                if str(change.get("source_text_t1") or "").strip()
+                and str(change.get("source_text_t2") or "").strip()
+            ),
+            group[0],
+        )
+        merged = dict(representative)
+        summaries: list[str] = []
+        for change in group:
+            summary = str(change.get("change_summary") or "").strip()
+            if summary and summary not in summaries:
+                summaries.append(summary)
+        merged["change_summary"] = " ; ".join(summaries)
+        if str(merged.get("source_text_t1") or "").strip() and str(merged.get("source_text_t2") or "").strip():
+            merged["diff_type"] = "modified"
+        deduplicated.append(merged)
+    return deduplicated
+
+
+def _unmatched_subsection_chunk_changes(
+    *,
+    section_key: str,
+    diff_type: str,
+    heading: str,
+    body: str,
+    idx_offset: int,
+) -> list[dict[str, Any]]:
+    """Produit des ajouts/retraits par chunk pour une sous-section sans paire."""
+    section_title = _SECTION_LABELS.get(section_key, section_key)
+    chunks = _chunk_subsection_text(
+        body,
+        subsection_heading=heading,
+        section_title=section_title,
+    )
+    slug = re.sub(r"[^\w]+", "_", _normalize_heading(heading))[:40].strip("_")
+    changes: list[dict[str, Any]] = []
+    for chunk_index, chunk in enumerate(chunks, start=1):
+        text_t1 = chunk.text if diff_type == "removed" else ""
+        text_t2 = chunk.text if diff_type == "added" else ""
+        change_index = idx_offset + chunk_index
+        changes.append(
+            {
+                "change_id": f"{section_key}_{slug}_change_{change_index:03d}",
+                "section_key": section_key,
+                "subsection_heading": heading,
+                "diff_type": diff_type,
+                "source_scope": "chunk",
+                "alignment_id": f"unmatched_{chunk.chunk_id}",
+                "alignment_type": f"unmatched_{diff_type}",
+                "chunk_id_t1": chunk.chunk_id if diff_type == "removed" else None,
+                "chunk_id_t2": chunk.chunk_id if diff_type == "added" else None,
+                "semantic_text_t1": _sanitize_semantic_text(text_t1),
+                "semantic_text_t2": _sanitize_semantic_text(text_t2),
+                "source_text_t1": text_t1,
+                "source_text_t2": text_t2,
+                "source_block_ids_t1": [],
+                "source_block_ids_t2": [],
+                "source_refs_t1": [],
+                "source_refs_t2": [],
+                "pages_t1": [],
+                "pages_t2": [],
+                "source_resolution_t1": "markdown",
+                "source_resolution_t2": "markdown",
+                "evidence_t1": {"pages": [], "snippet": text_t1[:400]},
+                "evidence_t2": {"pages": [], "snippet": text_t2[:400]},
+                "change_summary": f"Chunk de sous-section {'ajouté' if diff_type == 'added' else 'supprimé'}: {heading}",
+            }
+        )
+    return changes
 
 
 def _compare_section_texts(
@@ -409,63 +847,55 @@ def _compare_section_texts(
             assert h1 is not None
             if not body1.strip():
                 continue
-            all_changes.append(
-                _synthetic_subsection_change(
-                    section_key=section_key,
-                    diff_type="removed",
-                    heading=h1,
-                    body_t1=body1,
-                    body_t2="",
-                    idx=global_idx,
-                )
+            unmatched_changes = _unmatched_subsection_chunk_changes(
+                section_key=section_key,
+                diff_type="removed",
+                heading=h1,
+                body=body1,
+                idx_offset=global_idx - 1,
             )
-            global_idx += 1
+            all_changes.extend(unmatched_changes)
+            global_idx += len(unmatched_changes)
             continue
 
         if h1 is None:
             assert h2 is not None
             if not body2.strip():
                 continue
-            all_changes.append(
-                _synthetic_subsection_change(
-                    section_key=section_key,
-                    diff_type="added",
-                    heading=h2,
-                    body_t1="",
-                    body_t2=body2,
-                    idx=global_idx,
-                )
+            unmatched_changes = _unmatched_subsection_chunk_changes(
+                section_key=section_key,
+                diff_type="added",
+                heading=h2,
+                body=body2,
+                idx_offset=global_idx - 1,
             )
-            global_idx += 1
+            all_changes.extend(unmatched_changes)
+            global_idx += len(unmatched_changes)
             continue
 
         if not body1.strip() and not body2.strip():
             continue
         if not body1.strip():
-            all_changes.append(
-                _synthetic_subsection_change(
-                    section_key=section_key,
-                    diff_type="added",
-                    heading=h2,
-                    body_t1="",
-                    body_t2=body2,
-                    idx=global_idx,
-                )
+            unmatched_changes = _unmatched_subsection_chunk_changes(
+                section_key=section_key,
+                diff_type="added",
+                heading=h2,
+                body=body2,
+                idx_offset=global_idx - 1,
             )
-            global_idx += 1
+            all_changes.extend(unmatched_changes)
+            global_idx += len(unmatched_changes)
             continue
         if not body2.strip():
-            all_changes.append(
-                _synthetic_subsection_change(
-                    section_key=section_key,
-                    diff_type="removed",
-                    heading=h1,
-                    body_t1=body1,
-                    body_t2="",
-                    idx=global_idx,
-                )
+            unmatched_changes = _unmatched_subsection_chunk_changes(
+                section_key=section_key,
+                diff_type="removed",
+                heading=h1,
+                body=body1,
+                idx_offset=global_idx - 1,
             )
-            global_idx += 1
+            all_changes.extend(unmatched_changes)
+            global_idx += len(unmatched_changes)
             continue
 
         alignments = _prepare_subsection_alignments(
@@ -474,9 +904,25 @@ def _compare_section_texts(
             subsection_heading_t2=h2,
             body_t1=body1,
             body_t2=body2,
+            client=client,
         )
+        exact_alignments, llm_alignments = _split_exact_diff_alignments(alignments)
+        exact_changes = [
+            change
+            for index, alignment in enumerate(exact_alignments, start=1)
+            if (
+                change := _exact_diff_change_for_strong_alignment(
+                    alignment=alignment,
+                    section_key=section_key,
+                    heading_label=heading_label,
+                    heading_slug=heading_slug,
+                    change_index=index,
+                )
+            )
+            is not None
+        ]
         batches = _build_comparison_batches(
-            alignments=alignments,
+            alignments=llm_alignments,
             heading_label=heading_label,
             heading_slug=heading_slug,
         )
@@ -486,6 +932,8 @@ def _compare_section_texts(
             section_key=section_key,
             batches=batches,
         )
+        subsection_changes = [*exact_changes, *subsection_changes]
+        subsection_changes = _deduplicate_alignment_changes(subsection_changes)
         subsection_changes = _reindex_changes(
             subsection_changes,
             section_key=section_key,

@@ -28,6 +28,32 @@ _HEADING_LINE_RE = re.compile(r"^(#{1,6})\s+(.+)$")
 _LIST_ITEM_RE = re.compile(r"^[-*]\s+(.+)$")
 _TABLE_ROW_RE = re.compile(r"^\|.+\|$")
 _FOOTNOTE_LINE_RE = re.compile(r"^\d+\s+\S")
+_EXPLICIT_FOOTNOTE_MARKER_RE = re.compile(
+    r"^\s*(?:\(?\d{1,2}\)|[¹²³⁴⁵⁶⁷⁸⁹]+|[*†‡]{1,3}|"
+    r"(?:note|source|s\.?\s*o\.?|n\.?\s*s\.?)\b)",
+    flags=re.IGNORECASE,
+)
+_BARE_NUMERIC_NOTE_RE = re.compile(r"^\s*\d{1,2}\s+(?!\.)")
+_INLINE_NUMERIC_NOTE_RE = re.compile(r"\s+\(\d{1,2}\)\s+(?P<note>.+)$")
+_TABLE_FOOTNOTE_CUE_RE = re.compile(
+    r"\b(?:comprennent|excluent|incluent|les\s+m[eé]thodes|"
+    r"pour\s+de\s+plus\s+amples|se\s+reporter|voir\s+le\s+tableau|"
+    r"au\s+tableau|notes?\s+\d+|non\s+significatif|sans\s+objet|"
+    r"ratio\s+pr[eê]t[-–\s]valeur|calculons\s+le\s+ratio|"
+    r"ligne\s+directrice\s+b-\d+)\b",
+    flags=re.IGNORECASE,
+)
+_DATED_NARRATIVE_RE = re.compile(
+    r"\b(?:le\s+)?\d{1,2}\s+"
+    r"(?:janvier|f[eé]vrier|mars|avril|mai|juin|juillet|ao[uû]t|"
+    r"septembre|octobre|novembre|d[eé]cembre)\s+20\d{2}\b",
+    flags=re.IGNORECASE,
+)
+_TABLE_HEADING_TRAILING_NOTE_RE = re.compile(
+    r"\b(?:pr[eê]ts?\s+hypoth[eé]caires?|fonds\s+propres|tlac|"
+    r"ratios?|actifs\s+pond[eé]r[eé]s|capital|liquidit[eé])\b",
+    flags=re.IGNORECASE,
+)
 _PAGE_HEADER_RE = re.compile(
     r"groupe banque td.*rapport de gestion\s+\d+",
     flags=re.IGNORECASE,
@@ -38,6 +64,11 @@ _END_BOUNDARY_HEADING_PATTERNS = [
     re.compile(r"m[eé]thodes\s+comptables\s+significatives", re.IGNORECASE),
     re.compile(r"[eé]tats?\s+financiers?", re.IGNORECASE),
 ]
+_INTERNAL_RISK_ACCOUNTING_HEADING_RE = re.compile(
+    r"^conventions?,?\s+m[eé]thodes\s+et\s+estimations\s+comptables\s+"
+    r"utilis[eé]es\s+par\s+la\s+banque$",
+    re.IGNORECASE,
+)
 
 
 def _is_end_boundary_heading(segment: DoclingSegment, audits: list[SectionAudit]) -> bool:
@@ -55,6 +86,21 @@ def _is_end_boundary_heading(segment: DoclingSegment, audits: list[SectionAudit]
         end_norm = _normalized_block_text(end_text)
         if segment_norm == end_norm or end_norm in segment_norm or segment_norm in end_norm:
             return True
+
+    # Les rapports BNC contiennent cette sous-section comptable précise à
+    # l'intérieur même de « Gestion des risques », avant « Risque de crédit ».
+    # L'exception reste volontairement étroite : les vrais chapitres comptables
+    # de TD et des autres banques doivent continuer à fermer la section.
+    if _INTERNAL_RISK_ACCOUNTING_HEADING_RE.fullmatch(text):
+        for audit in audits:
+            for block in [*audit.included_blocks, *audit.excluded_blocks]:
+                if block.exclusion_reason == "outside_target_section":
+                    continue
+                if _normalized_block_text(block.text) != segment_norm:
+                    continue
+                if int(block.page) < int(audit.end_page):
+                    return False
+
     for pattern in _END_BOUNDARY_HEADING_PATTERNS:
         if pattern.search(text):
             return True
@@ -68,20 +114,62 @@ class DoclingSegment:
     kind: str
     text: str
     heading_level: int = 0
+    follows_table: bool = False
+
+
+def _has_table_footnote_cue(text: str) -> bool:
+    """Indique si un texte contient un indice lexical propre aux notes de tableau."""
+    return _TABLE_FOOTNOTE_CUE_RE.search(str(text or "")) is not None
+
+
+def _is_bare_numeric_table_footnote(text: str, *, follows_table: bool) -> bool:
+    """Distingue une note de tableau numérotée d'une divulgation narrative numérotée."""
+    value = str(text or "").strip()
+    if not _BARE_NUMERIC_NOTE_RE.match(value):
+        return False
+    if _DATED_NARRATIVE_RE.search(value) and not _has_table_footnote_cue(value):
+        return False
+    return _has_table_footnote_cue(value) or (
+        follows_table and not _DATED_NARRATIVE_RE.search(value)
+    )
+
+
+def _strip_inline_table_footnote_clause(text: str) -> str:
+    """Retire une note `(n)` intégrée à la fin d'un paragraphe narratif.
+
+    Le texte narratif précédant le renvoi est conservé. Les parenthèses
+    réglementaires usuelles ne correspondent pas à ce motif numérique.
+    """
+    value = str(text or "").strip()
+    match = _INLINE_NUMERIC_NOTE_RE.search(value)
+    if not match or not _has_table_footnote_cue(match.group("note")):
+        return value
+    return value[: match.start()].rstrip()
+
+
+def _sanitize_heading_note_references(text: str) -> str:
+    """Supprime les renvois de note de tableau d'un titre conservé."""
+    value = re.sub(r"\s*\(\d{1,2}\)", "", str(text or "")).strip()
+    if _TABLE_HEADING_TRAILING_NOTE_RE.search(value):
+        value = re.sub(r"(?:\s+\d{1,2})(?:\s*,\s*\d{1,2})*\s*$", "", value)
+    return re.sub(r"\s{2,}", " ", value).strip(" ,")
 
 
 def _parse_docling_markdown(md_content: str) -> list[DoclingSegment]:
     """Découpe le markdown Docling en segments ordonnés."""
     segments: list[DoclingSegment] = []
     in_table = False
+    follows_table = False
     for raw_line in md_content.splitlines():
         line = raw_line.strip()
         if not line:
+            follows_table = follows_table or in_table
             in_table = False
             continue
 
         if _TABLE_ROW_RE.match(line):
             in_table = True
+            follows_table = False
             continue
         if in_table:
             continue
@@ -91,17 +179,43 @@ def _parse_docling_markdown(md_content: str) -> list[DoclingSegment]:
             level = len(heading_match.group(1))
             text = heading_match.group(2).strip()
             if text:
-                segments.append(DoclingSegment(kind="heading", text=text, heading_level=level))
+                segments.append(
+                    DoclingSegment(
+                        kind="heading",
+                        text=text,
+                        heading_level=level,
+                        follows_table=follows_table,
+                    )
+                )
+            follows_table = False
             continue
 
         list_match = _LIST_ITEM_RE.match(line)
         if list_match:
-            text = list_match.group(1).strip()
+            text = _strip_inline_table_footnote_clause(list_match.group(1))
             if text:
-                segments.append(DoclingSegment(kind="list_item", text=text))
+                segments.append(
+                    DoclingSegment(
+                        kind="list_item",
+                        text=text,
+                        follows_table=follows_table,
+                    )
+                )
+            follows_table = False
             continue
 
-        segments.append(DoclingSegment(kind="paragraph", text=line))
+        text = _strip_inline_table_footnote_clause(line)
+        if not text:
+            follows_table = False
+            continue
+        segments.append(
+            DoclingSegment(
+                kind="paragraph",
+                text=text,
+                follows_table=follows_table,
+            )
+        )
+        follows_table = False
     return segments
 
 
@@ -124,7 +238,12 @@ def _segment_matches_included_block(segment: DoclingSegment, audit: SectionAudit
 
 
 def _segment_heading_allowed(segment: DoclingSegment, audit: SectionAudit) -> bool:
-    """N'accepte un titre Docling que s'il n'est pas un artefact de tableau."""
+    """N'accepte un titre Docling que s'il correspond à un vrai bloc-titre audité.
+
+    Une correspondance approximative avec un paragraphe est interdite : par
+    exemple, le titre ``Contrôle des risques`` ne doit pas être rattaché au
+    capital parce qu'une phrase capital contient les mêmes mots.
+    """
     if _is_out_of_scope_accounting_heading(segment.text):
         return False
     segment_norm = _normalized_block_text(segment.text)
@@ -137,16 +256,41 @@ def _segment_heading_allowed(segment: DoclingSegment, audit: SectionAudit) -> bo
         if block.block_type == "table" or block.exclusion_reason == "table_like_block":
             return False
         return True
-    return _segment_matches_audit(segment, audit)
+    return False
+
+
+def _is_table_footnote_segment(segment: DoclingSegment) -> bool:
+    """Indique si un segment est une note de tableau à exclure du narratif.
+
+    Les notes sont exclues indépendamment de la banque et avant l'alignement
+    aux blocs inclus : Docling peut parfois les rattacher à un bloc narratif
+    long malgré leur marqueur explicite.
+    """
+    if segment.kind == "heading":
+        return False
+
+    text = str(segment.text or "").strip()
+    if not text:
+        return False
+    if _EXPLICIT_FOOTNOTE_MARKER_RE.match(text):
+        return True
+    if _is_bare_numeric_table_footnote(text, follows_table=segment.follows_table):
+        return True
+    return (
+        segment.follows_table
+        and _BARE_NUMERIC_NOTE_RE.match(text) is None
+        and (
+        _looks_like_footnote(text) or _FOOTNOTE_LINE_RE.match(text) is not None
+        )
+    )
 
 
 def _should_keep_docling_segment(segment: DoclingSegment, audits: list[SectionAudit] | None = None) -> bool:
     """Filtre tableaux, notes et en-têtes de page du flux Docling."""
-    if audits and any(_segment_matches_included_block(segment, audit) for audit in audits):
-        return True
-
     text = str(segment.text or "").strip()
     if not text:
+        return False
+    if _is_table_footnote_segment(segment):
         return False
     if _PAGE_HEADER_RE.search(text):
         return False
@@ -160,12 +304,12 @@ def _should_keep_docling_segment(segment: DoclingSegment, audits: list[SectionAu
         if re.search(r"\(en millions", text, flags=re.IGNORECASE):
             return False
         return True
-    if _looks_like_table_or_financial_grid(text) or _looks_like_footnote(text):
-        return False
-    if _FOOTNOTE_LINE_RE.match(text):
+    if _looks_like_table_or_financial_grid(text):
         return False
     if re.search(r"\(en millions", text, flags=re.IGNORECASE) and re.search(r"\b20\d{2}\b", text):
         return False
+    if audits and any(_segment_matches_included_block(segment, audit) for audit in audits):
+        return True
     return True
 
 
@@ -182,6 +326,11 @@ def _audit_blocks(audit: SectionAudit) -> list[PDFBlock]:
     """Retourne tous les blocs utiles à l'alignement texte↔section."""
     blocks: list[PDFBlock] = list(audit.included_blocks)
     for block in audit.excluded_blocks:
+        # Un titre hors de la fenêtre géométrique de la section ne doit jamais
+        # redevenir une ancre de structure. Le markdown brut Docling peut le
+        # placer juste avant la vraie ancre sur une page partagée.
+        if block.exclusion_reason == "outside_target_section":
+            continue
         if not _is_docling_heading_block(block):
             continue
         if _is_out_of_scope_accounting_heading(block.text):
@@ -190,6 +339,36 @@ def _audit_blocks(audit: SectionAudit) -> list[PDFBlock]:
             continue
         blocks.append(block)
     return blocks
+
+
+def _matchable_section_segments(segments: list[DoclingSegment]) -> list[DoclingSegment]:
+    """Retire les titres sans contenu narratif propre du flux de matching.
+
+    Les tableaux, légendes et notes sont déjà absents des ``segments``. Un
+    titre suivi immédiatement d'un autre titre est donc soit un titre de
+    tableau, soit un parent structurel, soit un en-tête parasite. Il reste dans
+    l'artefact Docling brut et dans l'audit, mais ne devient pas une
+    sous-section ``###`` à comparer.
+    """
+    selected: list[DoclingSegment] = []
+    pending_heading: DoclingSegment | None = None
+
+    for segment in segments:
+        if segment.kind == "heading":
+            # Seul le titre immédiatement associé au prochain bloc narratif
+            # possède un contenu propre. Les parents/titres de tableaux qui le
+            # précèdent sont volontairement exclus du matching.
+            pending_heading = segment
+            continue
+
+        if pending_heading is not None:
+            selected.append(pending_heading)
+            pending_heading = None
+        selected.append(segment)
+
+    # Ne pas vider ``pending_heading`` : un titre final sans texte propre n'est
+    # pas une unité comparable.
+    return selected
 
 
 def _segment_matches_audit(segment: DoclingSegment, audit: SectionAudit) -> bool:
@@ -304,6 +483,46 @@ def _page_for_segment(
     return fallback_page
 
 
+def _strip_rendered_table_footnotes(lines: list[str]) -> list[str]:
+    """Supprime en dernier recours les notes explicitement marquées du Markdown.
+
+    Ce filet de sécurité s'applique après l'alignement Docling/audit. Il évite
+    qu'une note de tableau réintroduite par une fusion de segments atteigne le
+    Markdown source de vérité, sans filtrer les titres ou listes narratives
+    ordinaires.
+    """
+    cleaned: list[str] = []
+    for line in lines:
+        text = line.strip()
+        if text.startswith("#"):
+            heading_match = _HEADING_LINE_RE.match(text)
+            if heading_match:
+                sanitized_heading = _sanitize_heading_note_references(heading_match.group(2))
+                if sanitized_heading:
+                    cleaned.append(
+                        f"{heading_match.group(1)} {sanitized_heading}"
+                    )
+            else:
+                cleaned.append(line)
+            continue
+        text_without_list_marker = _strip_inline_table_footnote_clause(
+            re.sub(r"^[-*]\s+", "", text)
+        )
+        if _EXPLICIT_FOOTNOTE_MARKER_RE.match(text_without_list_marker):
+            continue
+        if _is_bare_numeric_table_footnote(
+            text_without_list_marker,
+            follows_table=False,
+        ):
+            continue
+        if text_without_list_marker != re.sub(r"^[-*]\s+", "", text):
+            prefix = "- " if text.startswith("- ") else "* " if text.startswith("* ") else ""
+            cleaned.append(f"{prefix}{text_without_list_marker}")
+            continue
+        cleaned.append(line)
+    return cleaned
+
+
 def _build_text_extraction_markdown_from_docling(
     section_audits: list[SectionAudit],
     *,
@@ -321,7 +540,7 @@ def _build_text_extraction_markdown_from_docling(
     seen_heading_norms: dict[str, set[str]] = {}
 
     for audit in ordered_audits:
-        section_segments = assigned.get(audit.section_key, [])
+        section_segments = _matchable_section_segments(assigned.get(audit.section_key, []))
         if not section_segments:
             continue
 
@@ -339,7 +558,8 @@ def _build_text_extraction_markdown_from_docling(
                 last_page = page
 
             if segment.kind == "heading":
-                heading_norm = _normalized_block_text(segment.text)
+                heading_text = _sanitize_heading_note_references(segment.text)
+                heading_norm = _normalized_block_text(heading_text)
                 if not heading_norm or heading_norm == section_title_norm:
                     continue
                 if _is_out_of_scope_accounting_heading(segment.text):
@@ -347,11 +567,11 @@ def _build_text_extraction_markdown_from_docling(
                 if heading_norm in seen_heading_norms[audit.section_key]:
                     continue
                 seen_heading_norms[audit.section_key].add(heading_norm)
-                lines.append(_format_heading_line("###", segment.text, page))
+                lines.append(_format_heading_line("###", heading_text, page))
                 lines.append("")
                 continue
 
             lines.append(segment.text)
             lines.append("")
 
-    return "\n".join(lines).strip() + "\n"
+    return "\n".join(_strip_rendered_table_footnotes(lines)).strip() + "\n"

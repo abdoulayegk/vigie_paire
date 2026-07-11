@@ -11,6 +11,7 @@ from vigilance.cli.quarter_logic import normalize_quarter, resolve_previous_quar
 from vigilance.text_analysis.comparison import _compare_section_texts
 from vigilance.text_analysis.constants import UNIFIED_TEXT_SCHEMA_VERSION, _SECTION_LABELS, _T4_TEXT_TARGET_SECTIONS
 from vigilance.text_analysis.extraction import _extract_audits_for_pdf
+from vigilance.text_analysis.global_reconciliation import reconcile_global_change_fragments
 from vigilance.text_analysis.markdown import (
     _build_block_page_index,
     _build_text_extraction_markdown,
@@ -24,6 +25,7 @@ from vigilance.text_analysis.models import TextAnalysisQualityError
 from vigilance.text_analysis.openai_client import _build_openai_client
 from vigilance.text_analysis.sections import _allowed_target_sections, _resolve_sections
 from vigilance.text_analysis.summary import _build_global_summary, _is_non_cosmetic_change, _retained_change_sort_key
+from vigilance.text_analysis.summary import _build_semantic_quality_metrics
 from vigilance.text_analysis.triage import _triage_section_changes
 from vigilance.text_comparison.text_comparison_writer import get_text_comparison_path, write_text_comparison
 from vigilance.text_extraction.text_extraction_markdown_writer import (
@@ -320,9 +322,11 @@ def run_text_analysis_pipeline(
         if not text_t1.strip() and not text_t2.strip():
             raise TextAnalysisQualityError(f"Section vide dans les deux rapports: {section_key}")
 
-    # GPT comparison on .md sections
+    # First GPT pass: local comparison on .md sections.  Do not triage yet:
+    # a later global pass can reconcile content that was moved or resegmented
+    # between different subsections (or even target sections).
     client = _build_openai_client()
-    section_comparisons: list[dict[str, Any]] = []
+    provisional_by_section: dict[str, list[dict[str, Any]]] = {}
     for section_key in section_keys:
         text_t1 = _extract_section_text_from_markdown(md_previous, section_key)
         text_t2 = _extract_section_text_from_markdown(md_current, section_key)
@@ -360,6 +364,29 @@ def run_text_analysis_pipeline(
             if isinstance(_ch.get("evidence_t2"), dict):
                 _ch["evidence_t2"]["pages"] = _p_t2
 
+        provisional_by_section[section_key] = changes
+
+    provisional_changes = [
+        change
+        for section_key in section_keys
+        for change in provisional_by_section.get(section_key, [])
+    ]
+    reconciled_changes, reconciliation_audit = reconcile_global_change_fragments(
+        client=client,
+        model=model,
+        changes=provisional_changes,
+    )
+    reconciled_by_section: dict[str, list[dict[str, Any]]] = {section_key: [] for section_key in section_keys}
+    for change in reconciled_changes:
+        section_key = str(change.get("section_key") or "")
+        if section_key in reconciled_by_section:
+            reconciled_by_section[section_key].append(change)
+
+    # Second GPT pass: AMF triage only after global reconciliation has removed
+    # false added/removed records created by a split or a move.
+    section_comparisons: list[dict[str, Any]] = []
+    for section_key in section_keys:
+        changes = reconciled_by_section.get(section_key, [])
         non_unchanged = [change for change in changes if change.get("diff_type") != "unchanged"]
         enriched = _triage_section_changes(
             client=client,
@@ -401,6 +428,11 @@ def run_text_analysis_pipeline(
         "extraction_artifact_t1": f"text_extraction_{year_previous}_{quarter_previous}.md",
         "extraction_artifact_t2": f"text_extraction_{year_current}_{quarter_current}.md",
         "section_comparisons": section_comparisons,
+        "global_reconciliation_audit": reconciliation_audit,
+        "semantic_quality_metrics": _build_semantic_quality_metrics(
+            section_comparisons=section_comparisons,
+            reconciliation_audit=reconciliation_audit,
+        ),
     }
     payload["global_summary"] = _build_global_summary(section_comparisons)
     payload["all_changes_summary"] = _build_global_summary(

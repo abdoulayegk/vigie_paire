@@ -1,16 +1,23 @@
-"""Alignement local TF-IDF des chunks d'une même sous-section."""
+"""Alignement local hybride TF-IDF + embeddings des chunks d'une sous-section."""
 
 from __future__ import annotations
 
+import logging
+import math
 import re
 import unicodedata
 from dataclasses import dataclass
+from difflib import SequenceMatcher
+from typing import Any
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
 from vigilance.text_analysis.chunking import TextChunk
+from vigilance.text_analysis.openai_client import _embed_texts
 
+
+logger = logging.getLogger(__name__)
 
 _DEFAULT_TOP_K = 5
 _CANDIDATE_EXCERPT_CHARS = 300
@@ -20,6 +27,17 @@ _AMBIGUOUS_SHORT_CANDIDATE_LIMIT = 3
 _STRONG_THRESHOLD = 0.85
 _WEAK_THRESHOLD = 0.35
 _MARGIN_THRESHOLD = 0.10
+_EMBEDDING_STRONG_THRESHOLD = 0.85
+_EMBEDDING_WEAK_THRESHOLD = 0.55
+_EMBEDDING_VERY_STRONG_THRESHOLD = 0.92
+_HYBRID_MARGIN_THRESHOLD = 0.08
+_CHUNK_EMBEDDING_TRUNCATE_CHARS = 4000
+_DEFAULT_EMBEDDING_MODEL = "text-embedding-3-small"
+# A long paragraph can cross the chunking threshold in only one version after
+# a small insertion/removal.  We only reassemble adjacent chunks when the
+# complete passages are near-verbatim; this deliberately rejects similar
+# boilerplate describing distinct transactions.
+_ADJACENT_GROUP_SEQUENCE_THRESHOLD = 0.82
 _PDF_MARKER_RE = re.compile(r"\[(?:pdf|p)\.?\s*\d+(?:\s*[-–]\s*\d+)?\]", flags=re.IGNORECASE)
 _TOKEN_RE = re.compile(r"\b[\wÀ-ÖØ-öø-ÿ']+\b", flags=re.UNICODE)
 _STOPWORDS = {
@@ -67,12 +85,14 @@ _STOPWORDS = {
 
 @dataclass(slots=True)
 class ChunkCandidate:
-    """Candidat TF-IDF d'un chunk source vers un chunk cible."""
+    """Candidat lexical et/ou embedding d'un chunk source vers un chunk cible."""
 
     source_chunk_id: str
     target_chunk_id: str
     score: float
     target_chunk: TextChunk
+    tfidf_score: float = 0.0
+    embedding_score: float = 0.0
 
 
 @dataclass(slots=True)
@@ -87,6 +107,8 @@ class ChunkAlignment:
     candidates_t1_for_t2: list[ChunkCandidate]
     candidates_t2_for_t1: list[ChunkCandidate]
     reason: str
+    tfidf_score: float = 0.0
+    embedding_score: float = 0.0
 
 
 def _strip_accents(value: str) -> str:
@@ -149,28 +171,208 @@ def _candidate_lookup(
     source_offset: int,
     target_offset: int,
     top_k: int,
+    score_kind: str = "tfidf",
 ) -> dict[str, list[ChunkCandidate]]:
     lookup: dict[str, list[ChunkCandidate]] = {}
     limit = max(0, int(top_k))
     for source_index, source in enumerate(source_chunks):
-        candidates = [
-            ChunkCandidate(
-                source_chunk_id=source.chunk_id,
-                target_chunk_id=target.chunk_id,
-                score=similarity_matrix[source_offset + source_index][target_offset + target_index],
-                target_chunk=target,
+        candidates = []
+        for target_index, target in enumerate(target_chunks):
+            score = similarity_matrix[source_offset + source_index][target_offset + target_index]
+            candidates.append(
+                ChunkCandidate(
+                    source_chunk_id=source.chunk_id,
+                    target_chunk_id=target.chunk_id,
+                    score=score,
+                    target_chunk=target,
+                    tfidf_score=score if score_kind == "tfidf" else 0.0,
+                    embedding_score=score if score_kind == "embedding" else 0.0,
+                )
             )
-            for target_index, target in enumerate(target_chunks)
-        ]
         candidates.sort(key=lambda candidate: (-candidate.score, abs(source.order - candidate.target_chunk.order)))
         lookup[source.chunk_id] = candidates[:limit] if limit else candidates
     return lookup
 
 
+def _cosine_similarity_vectors(left: list[float], right: list[float]) -> float:
+    """Cosine similarity entre deux vecteurs d'embedding."""
+    if not left or not right:
+        return 0.0
+    dot = sum(a * b for a, b in zip(left, right, strict=False))
+    left_norm = math.sqrt(sum(a * a for a in left))
+    right_norm = math.sqrt(sum(b * b for b in right))
+    if not left_norm or not right_norm:
+        return 0.0
+    return _clamp_similarity_score(dot / (left_norm * right_norm))
+
+
+def _truncate_for_embedding(text: str, *, limit: int = _CHUNK_EMBEDDING_TRUNCATE_CHARS) -> str:
+    value = str(text or "").strip()
+    if len(value) <= limit:
+        return value
+    return value[:limit]
+
+
+def _embedding_similarity_matrix(
+    chunks: list[TextChunk],
+    *,
+    client: Any,
+    embedding_model: str,
+) -> list[list[float]]:
+    """Calcule une matrice cosine d'embeddings pour des chunks locaux."""
+    if not chunks:
+        return []
+    embeddings = _embed_texts(
+        client,
+        [_truncate_for_embedding(chunk.text) for chunk in chunks],
+        model=embedding_model,
+    )
+    matrix: list[list[float]] = []
+    for left in embeddings:
+        matrix.append([_cosine_similarity_vectors(left, right) for right in embeddings])
+    return matrix
+
+
+def _merge_candidate_lookups(
+    *lookups: dict[str, list[ChunkCandidate]],
+    top_k: int,
+) -> dict[str, list[ChunkCandidate]]:
+    """Union des shortlists TF-IDF et embeddings, score = max des signaux."""
+    merged: dict[str, list[ChunkCandidate]] = {}
+    source_ids = set()
+    for lookup in lookups:
+        source_ids.update(lookup)
+    for source_id in source_ids:
+        by_target: dict[str, ChunkCandidate] = {}
+        for lookup in lookups:
+            for candidate in lookup.get(source_id, []):
+                existing = by_target.get(candidate.target_chunk_id)
+                if existing is None:
+                    by_target[candidate.target_chunk_id] = ChunkCandidate(
+                        source_chunk_id=candidate.source_chunk_id,
+                        target_chunk_id=candidate.target_chunk_id,
+                        score=max(candidate.tfidf_score, candidate.embedding_score, candidate.score),
+                        target_chunk=candidate.target_chunk,
+                        tfidf_score=candidate.tfidf_score,
+                        embedding_score=candidate.embedding_score,
+                    )
+                    continue
+                tfidf_score = max(existing.tfidf_score, candidate.tfidf_score)
+                embedding_score = max(existing.embedding_score, candidate.embedding_score)
+                by_target[candidate.target_chunk_id] = ChunkCandidate(
+                    source_chunk_id=existing.source_chunk_id,
+                    target_chunk_id=existing.target_chunk_id,
+                    score=max(tfidf_score, embedding_score),
+                    target_chunk=existing.target_chunk,
+                    tfidf_score=tfidf_score,
+                    embedding_score=embedding_score,
+                )
+        ranked = sorted(
+            by_target.values(),
+            key=lambda candidate: (
+                -candidate.score,
+                -candidate.embedding_score,
+                -candidate.tfidf_score,
+                abs(candidate.target_chunk.order),
+            ),
+        )
+        merged[source_id] = ranked[: max(0, int(top_k))] if top_k else ranked
+    return merged
+
+
+def _pair_score_from_matrices(
+    *,
+    index_t1: int,
+    index_t2: int,
+    offset_t1: int,
+    offset_t2: int,
+    tfidf_matrix: list[list[float]],
+    embedding_matrix: list[list[float]] | None,
+) -> tuple[float, float, float]:
+    tfidf_score = tfidf_matrix[offset_t1 + index_t1][offset_t2 + index_t2]
+    embedding_score = 0.0
+    if embedding_matrix is not None:
+        embedding_score = embedding_matrix[offset_t1 + index_t1][offset_t2 + index_t2]
+    return max(tfidf_score, embedding_score), tfidf_score, embedding_score
+
+
+def _signals_agree_on_best(
+    *,
+    chunk_t1: TextChunk,
+    chunk_t2: TextChunk,
+    candidates_t1_to_t2: dict[str, list[ChunkCandidate]],
+    candidates_t2_to_t1: dict[str, list[ChunkCandidate]],
+) -> bool:
+    """True when TF-IDF and embedding shortlists share the same top target."""
+    forward = candidates_t1_to_t2.get(chunk_t1.chunk_id, [])
+    backward = candidates_t2_to_t1.get(chunk_t2.chunk_id, [])
+    if not forward or not backward:
+        return False
+    best_forward = forward[0]
+    best_backward = backward[0]
+    if best_forward.target_chunk_id != chunk_t2.chunk_id:
+        return False
+    if best_backward.target_chunk_id != chunk_t1.chunk_id:
+        return False
+    # Agreement is strong when both lexical and embedding scores support the pair,
+    # or when one signal is decisive enough on its own.
+    if best_forward.tfidf_score >= _STRONG_THRESHOLD and best_forward.embedding_score >= _EMBEDDING_STRONG_THRESHOLD:
+        return True
+    if best_forward.embedding_score >= _EMBEDDING_VERY_STRONG_THRESHOLD:
+        return True
+    if best_forward.tfidf_score >= _STRONG_THRESHOLD and best_forward.embedding_score <= 0.0:
+        return True
+    if (
+        best_forward.tfidf_score >= _WEAK_THRESHOLD
+        and best_forward.embedding_score >= _EMBEDDING_STRONG_THRESHOLD
+    ):
+        return True
+    return best_forward.tfidf_score >= _STRONG_THRESHOLD or best_forward.embedding_score >= _EMBEDDING_STRONG_THRESHOLD
+
+
+def _numeric_fact_tokens(text: str) -> set[str]:
+    return {match.group(0).lower() for match in re.finditer(r"\b\S*\d\S*\b", str(text or ""))}
+
+
+def _hybrid_alignment_type(
+    *,
+    hybrid_score: float,
+    tfidf_score: float,
+    embedding_score: float,
+    candidates_t1_for_t2: list[ChunkCandidate],
+    candidates_t2_for_t1: list[ChunkCandidate],
+    signals_agree: bool,
+    chunk_t1: TextChunk,
+    chunk_t2: TextChunk,
+) -> str:
+    clear_margin = _clear_margin(candidates_t1_for_t2) and _clear_margin(candidates_t2_for_t1)
+    strong_embedding = embedding_score >= _EMBEDDING_STRONG_THRESHOLD
+    strong_tfidf = tfidf_score >= _STRONG_THRESHOLD
+    # Boilerplate proche avec faits chiffrés distincts: laisser GPT trancher.
+    if _numeric_fact_tokens(chunk_t1.text) != _numeric_fact_tokens(chunk_t2.text):
+        if hybrid_score >= _WEAK_THRESHOLD:
+            return "ambiguous"
+    if (
+        hybrid_score >= max(_WEAK_THRESHOLD, _EMBEDDING_WEAK_THRESHOLD)
+        and clear_margin
+        and signals_agree
+        and (strong_embedding or strong_tfidf)
+    ):
+        return "matched_strong"
+    if hybrid_score >= _WEAK_THRESHOLD and clear_margin and (strong_embedding or strong_tfidf or signals_agree):
+        return "matched_weak"
+    if hybrid_score >= _WEAK_THRESHOLD:
+        return "ambiguous"
+    return "ambiguous"
+
+
 def _clear_margin(candidates: list[ChunkCandidate]) -> bool:
     if len(candidates) < 2:
         return True
-    return candidates[0].score - candidates[1].score >= _MARGIN_THRESHOLD
+    margin = candidates[0].score - candidates[1].score
+    # Embedding-aware pairs can be close; keep a slightly softer hybrid margin.
+    threshold = _HYBRID_MARGIN_THRESHOLD if candidates[0].embedding_score > 0 else _MARGIN_THRESHOLD
+    return margin >= threshold
 
 
 def _alignment_type_for_score(
@@ -184,6 +386,105 @@ def _alignment_type_for_score(
     if score >= _WEAK_THRESHOLD and _clear_margin(candidates_t1_for_t2) and _clear_margin(candidates_t2_for_t1):
         return "matched_weak"
     return "ambiguous"
+
+
+def _group_adjacent_chunks(chunks: list[TextChunk]) -> TextChunk:
+    """Creates one synthetic chunk from contiguous source chunks.
+
+    The synthetic identifier remains traceable in the artifact (for example
+    ``c01+c02``), while its text is exactly the source text presented to the
+    downstream comparison and highlight stages.
+    """
+    if not chunks:
+        raise ValueError("At least one chunk is required to build a group")
+    ordered = sorted(chunks, key=lambda chunk: chunk.order)
+    first = ordered[0]
+    return TextChunk(
+        chunk_id="+".join(chunk.chunk_id for chunk in ordered),
+        kind=first.kind,
+        text=" ".join(chunk.text.strip() for chunk in ordered if chunk.text.strip()),
+        subsection_heading=first.subsection_heading,
+        hierarchy_path=first.hierarchy_path,
+        order=first.order,
+    )
+
+
+def _sequence_similarity(text_t1: str, text_t2: str) -> float:
+    """Returns a conservative verbatim similarity for adjacent-group rescue."""
+    normalized_t1 = re.sub(r"\s+", " ", str(text_t1 or "")).strip()
+    normalized_t2 = re.sub(r"\s+", " ", str(text_t2 or "")).strip()
+    if not normalized_t1 or not normalized_t2:
+        return 0.0
+    return SequenceMatcher(None, normalized_t1, normalized_t2, autojunk=False).ratio()
+
+
+def _reassemble_adjacent_one_to_many(alignments: list[ChunkAlignment]) -> list[ChunkAlignment]:
+    """Rescues a split/unsplit paragraph before it becomes two false changes.
+
+    The first TF-IDF pass intentionally remains one-to-one.  This post-pass
+    examines only an unmatched chunk directly beside a retained pair and
+    replaces the two records with one synthetic pair when the reassembled
+    passage is almost verbatim.  It addresses threshold-driven splits without
+    collapsing distinct but templated disclosures (for example separate debt
+    issuances) into a single change.
+    """
+    proposals: list[tuple[float, ChunkAlignment, ChunkAlignment, TextChunk | None, TextChunk | None]] = []
+    paired = [alignment for alignment in alignments if alignment.chunk_t1 and alignment.chunk_t2]
+
+    for matched in paired:
+        assert matched.chunk_t1 is not None and matched.chunk_t2 is not None
+        for unmatched in alignments:
+            if unmatched.alignment_type == "possible_removed" and unmatched.chunk_t1:
+                if abs(unmatched.chunk_t1.order - matched.chunk_t1.order) != 1:
+                    continue
+                grouped_t1 = _group_adjacent_chunks([unmatched.chunk_t1, matched.chunk_t1])
+                score = _sequence_similarity(grouped_t1.text, matched.chunk_t2.text)
+                if score >= _ADJACENT_GROUP_SEQUENCE_THRESHOLD:
+                    proposals.append((score, unmatched, matched, grouped_t1, matched.chunk_t2))
+            elif unmatched.alignment_type == "possible_added" and unmatched.chunk_t2:
+                if abs(unmatched.chunk_t2.order - matched.chunk_t2.order) != 1:
+                    continue
+                grouped_t2 = _group_adjacent_chunks([matched.chunk_t2, unmatched.chunk_t2])
+                score = _sequence_similarity(matched.chunk_t1.text, grouped_t2.text)
+                if score >= _ADJACENT_GROUP_SEQUENCE_THRESHOLD:
+                    proposals.append((score, unmatched, matched, matched.chunk_t1, grouped_t2))
+
+    # A chunk can be adjacent to two possible pairs.  Keep the strongest
+    # monotonic proposal only; all other records remain available normally.
+    proposals.sort(
+        key=lambda proposal: (
+            -proposal[0],
+            proposal[3].order if proposal[3] else 10_000,
+            proposal[4].order if proposal[4] else 10_000,
+        )
+    )
+    consumed: set[int] = set()
+    replacements: list[ChunkAlignment] = []
+    for score, unmatched, matched, chunk_t1, chunk_t2 in proposals:
+        unmatched_key = id(unmatched)
+        matched_key = id(matched)
+        if unmatched_key in consumed or matched_key in consumed:
+            continue
+        consumed.update({unmatched_key, matched_key})
+        replacements.append(
+            ChunkAlignment(
+                alignment_id="",
+                alignment_type="matched_grouped",
+                chunk_t1=chunk_t1,
+                chunk_t2=chunk_t2,
+                similarity_score=score,
+                candidates_t1_for_t2=matched.candidates_t1_for_t2,
+                candidates_t2_for_t1=matched.candidates_t2_for_t1,
+                reason="adjacent_many_to_one_reassembled",
+            )
+        )
+
+    if not replacements:
+        return alignments
+    return [
+        *[alignment for alignment in alignments if id(alignment) not in consumed],
+        *replacements,
+    ]
 
 
 def _align_chunks_tfidf(
@@ -253,6 +554,8 @@ def _align_chunks_tfidf(
                 candidates_t1_for_t2=candidates_for_t2,
                 candidates_t2_for_t1=candidates_for_t1,
                 reason="tfidf_one_to_one",
+                tfidf_score=score,
+                embedding_score=0.0,
             )
         )
         used_t1.add(chunk_t1.chunk_id)
@@ -290,6 +593,203 @@ def _align_chunks_tfidf(
             )
         )
 
+    alignments = _reassemble_adjacent_one_to_many(alignments)
+    alignments.sort(
+        key=lambda alignment: (
+            alignment.chunk_t2.order if alignment.chunk_t2 else 10_000 + (alignment.chunk_t1.order if alignment.chunk_t1 else 0),
+            alignment.chunk_t1.order if alignment.chunk_t1 else 10_000,
+        )
+    )
+    for index, alignment in enumerate(alignments):
+        alignment.alignment_id = f"a{index:02d}"
+    return alignments
+
+
+def _align_chunks_hybrid(
+    chunks_t1: list[TextChunk],
+    chunks_t2: list[TextChunk],
+    *,
+    client: Any | None = None,
+    embedding_model: str = _DEFAULT_EMBEDDING_MODEL,
+    top_k: int = _DEFAULT_TOP_K,
+) -> list[ChunkAlignment]:
+    """Aligne des chunks T1/T2 par union TF-IDF + embeddings, 1-to-1 réciproque.
+
+    Sans client embeddings, retombe sur l'alignement TF-IDF local existant.
+    """
+    if client is None:
+        return _align_chunks_tfidf(chunks_t1, chunks_t2, top_k=top_k)
+
+    all_chunks = [*chunks_t1, *chunks_t2]
+    tfidf_matrix = _tfidf_similarity_matrix(all_chunks)
+    offset_t1 = 0
+    offset_t2 = len(chunks_t1)
+    try:
+        embedding_matrix = _embedding_similarity_matrix(
+            all_chunks,
+            client=client,
+            embedding_model=embedding_model,
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("Embeddings chunks indisponibles, repli TF-IDF: %s", exc)
+        return _align_chunks_tfidf(chunks_t1, chunks_t2, top_k=top_k)
+
+    tfidf_t2_to_t1 = _candidate_lookup(
+        chunks_t2,
+        chunks_t1,
+        tfidf_matrix,
+        source_offset=offset_t2,
+        target_offset=offset_t1,
+        top_k=top_k,
+        score_kind="tfidf",
+    )
+    tfidf_t1_to_t2 = _candidate_lookup(
+        chunks_t1,
+        chunks_t2,
+        tfidf_matrix,
+        source_offset=offset_t1,
+        target_offset=offset_t2,
+        top_k=top_k,
+        score_kind="tfidf",
+    )
+    embedding_t2_to_t1 = _candidate_lookup(
+        chunks_t2,
+        chunks_t1,
+        embedding_matrix,
+        source_offset=offset_t2,
+        target_offset=offset_t1,
+        top_k=top_k,
+        score_kind="embedding",
+    )
+    embedding_t1_to_t2 = _candidate_lookup(
+        chunks_t1,
+        chunks_t2,
+        embedding_matrix,
+        source_offset=offset_t1,
+        target_offset=offset_t2,
+        top_k=top_k,
+        score_kind="embedding",
+    )
+    candidates_t2_to_t1 = _merge_candidate_lookups(tfidf_t2_to_t1, embedding_t2_to_t1, top_k=top_k)
+    candidates_t1_to_t2 = _merge_candidate_lookups(tfidf_t1_to_t2, embedding_t1_to_t2, top_k=top_k)
+
+    scored_pairs: list[tuple[float, float, float, int, TextChunk, TextChunk]] = []
+    for index_t1, chunk_t1 in enumerate(chunks_t1):
+        for index_t2, chunk_t2 in enumerate(chunks_t2):
+            hybrid_score, tfidf_score, embedding_score = _pair_score_from_matrices(
+                index_t1=index_t1,
+                index_t2=index_t2,
+                offset_t1=offset_t1,
+                offset_t2=offset_t2,
+                tfidf_matrix=tfidf_matrix,
+                embedding_matrix=embedding_matrix,
+            )
+            scored_pairs.append(
+                (
+                    hybrid_score,
+                    tfidf_score,
+                    embedding_score,
+                    abs(chunk_t1.order - chunk_t2.order),
+                    chunk_t1,
+                    chunk_t2,
+                )
+            )
+    scored_pairs.sort(
+        key=lambda item: (-item[0], -item[2], -item[1], item[3], item[4].order, item[5].order)
+    )
+
+    used_t1: set[str] = set()
+    used_t2: set[str] = set()
+    alignments: list[ChunkAlignment] = []
+    for hybrid_score, tfidf_score, embedding_score, _distance, chunk_t1, chunk_t2 in scored_pairs:
+        credible = hybrid_score >= _WEAK_THRESHOLD or embedding_score >= _EMBEDDING_WEAK_THRESHOLD
+        if not credible:
+            continue
+        if chunk_t1.chunk_id in used_t1 or chunk_t2.chunk_id in used_t2:
+            continue
+
+        candidates_for_t2 = candidates_t2_to_t1.get(chunk_t2.chunk_id, [])
+        candidates_for_t1 = candidates_t1_to_t2.get(chunk_t1.chunk_id, [])
+        reciprocal = (
+            bool(candidates_for_t1)
+            and bool(candidates_for_t2)
+            and candidates_for_t1[0].target_chunk_id == chunk_t2.chunk_id
+            and candidates_for_t2[0].target_chunk_id == chunk_t1.chunk_id
+        )
+        # Priorité haute: seulement les paires réciproques consomment un slot 1→1.
+        # Une paire non réciproque reste disponible pour un meilleur match plus bas
+        # dans le classement, puis finira en added/removed avec ses candidats.
+        if not reciprocal:
+            continue
+
+        signals_agree = _signals_agree_on_best(
+            chunk_t1=chunk_t1,
+            chunk_t2=chunk_t2,
+            candidates_t1_to_t2=candidates_t1_to_t2,
+            candidates_t2_to_t1=candidates_t2_to_t1,
+        )
+        alignment_type = _hybrid_alignment_type(
+            hybrid_score=hybrid_score,
+            tfidf_score=tfidf_score,
+            embedding_score=embedding_score,
+            candidates_t1_for_t2=candidates_for_t2,
+            candidates_t2_for_t1=candidates_for_t1,
+            signals_agree=signals_agree,
+            chunk_t1=chunk_t1,
+            chunk_t2=chunk_t2,
+        )
+        reason = "hybrid_tfidf_embedding"
+
+        alignments.append(
+            ChunkAlignment(
+                alignment_id="",
+                alignment_type=alignment_type,
+                chunk_t1=chunk_t1,
+                chunk_t2=chunk_t2,
+                similarity_score=hybrid_score,
+                candidates_t1_for_t2=candidates_for_t2,
+                candidates_t2_for_t1=candidates_for_t1,
+                reason=reason,
+                tfidf_score=tfidf_score,
+                embedding_score=embedding_score,
+            )
+        )
+        used_t1.add(chunk_t1.chunk_id)
+        used_t2.add(chunk_t2.chunk_id)
+
+    for chunk_t2 in chunks_t2:
+        if chunk_t2.chunk_id in used_t2:
+            continue
+        alignments.append(
+            ChunkAlignment(
+                alignment_id="",
+                alignment_type="possible_added",
+                chunk_t1=None,
+                chunk_t2=chunk_t2,
+                similarity_score=0.0,
+                candidates_t1_for_t2=candidates_t2_to_t1.get(chunk_t2.chunk_id, []),
+                candidates_t2_for_t1=[],
+                reason="unmatched_t2",
+            )
+        )
+
+    for chunk_t1 in chunks_t1:
+        if chunk_t1.chunk_id in used_t1:
+            continue
+        alignments.append(
+            ChunkAlignment(
+                alignment_id="",
+                alignment_type="possible_removed",
+                chunk_t1=chunk_t1,
+                chunk_t2=None,
+                similarity_score=0.0,
+                candidates_t1_for_t2=[],
+                candidates_t2_for_t1=candidates_t1_to_t2.get(chunk_t1.chunk_id, []),
+                reason="unmatched_t1",
+            )
+        )
+
+    alignments = _reassemble_adjacent_one_to_many(alignments)
     alignments.sort(
         key=lambda alignment: (
             alignment.chunk_t2.order if alignment.chunk_t2 else 10_000 + (alignment.chunk_t1.order if alignment.chunk_t1 else 0),
@@ -327,7 +827,11 @@ def _format_candidate_lines(
         lines.append(
             "\n".join(
                 [
-                    f"- {candidate.target_chunk_id} score={candidate.score:.2f} ({mode})",
+                    (
+                        f"- {candidate.target_chunk_id} score={candidate.score:.2f} "
+                        f"(tfidf={candidate.tfidf_score:.2f}, "
+                        f"embedding={candidate.embedding_score:.2f}, {mode})"
+                    ),
                     f"[{candidate.target_chunk.chunk_id} | {candidate.target_chunk.kind}{path}]",
                     _candidate_text(candidate, full=is_full),
                 ]
@@ -349,9 +853,11 @@ def _format_alignments_for_prompt(alignments: list[ChunkAlignment]) -> tuple[str
     blocks_t2: list[str] = []
     for alignment in alignments:
         score = f"{alignment.similarity_score:.2f}" if alignment.similarity_score else "n/a"
+        tfidf = f"{alignment.tfidf_score:.2f}"
+        embedding = f"{alignment.embedding_score:.2f}"
         header = (
             f"[{alignment.alignment_id} | {alignment.alignment_type} | score={score} | "
-            f"reason={alignment.reason}]"
+            f"tfidf={tfidf} | embedding={embedding} | reason={alignment.reason}]"
         )
         if alignment.alignment_type == "ambiguous":
             candidate_kwargs = {
