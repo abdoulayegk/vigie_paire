@@ -918,8 +918,10 @@
 <li class="toctree-l1"><a class="reference internal" href="vigilance.text_comparison.html">Comparaison texte</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="vigilance.text_comparison.html#modules">Modules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="vigilance.text_comparison.html#module-vigilance.text_comparison.justification">text_comparison.justification</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.text_comparison.html#vigilance.text_comparison.justification.build_compact_triage_justification"><code class="docutils literal notranslate"><span class="pre">build_compact_triage_justification()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="vigilance.text_comparison.html#vigilance.text_comparison.justification.build_text_triage_justification"><code class="docutils literal notranslate"><span class="pre">build_text_triage_justification()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="vigilance.text_comparison.html#vigilance.text_comparison.justification.is_structured_text_triage_justification"><code class="docutils literal notranslate"><span class="pre">is_structured_text_triage_justification()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.text_comparison.html#vigilance.text_comparison.justification.synthesize_triage_justification_from_payload"><code class="docutils literal notranslate"><span class="pre">synthesize_triage_justification_from_payload()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="vigilance.text_comparison.html#module-vigilance.text_comparison.text_comparison_excel">text_comparison.text_comparison_excel</a><ul>
@@ -1184,6 +1186,62 @@ Pydantic après désérialisation.</p>
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="vigilance.amf_taxonomy.TriageAMFCompactLLMBatch">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">TriageAMFCompactLLMBatch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.amf_taxonomy.TriageAMFCompactLLMBatch" title="Lien vers cette définition"></a></dt>
+<dd><p>Bases : <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<p>Lot compact : une décision courte pour chaque changement demandé.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="vigilance.amf_taxonomy.TriageAMFCompactLLMBatch.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></span><a class="headerlink" href="#vigilance.amf_taxonomy.TriageAMFCompactLLMBatch.model_config" title="Lien vers cette définition"></a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="vigilance.amf_taxonomy.TriageAMFCompactLLMBatch.triages">
+<span class="sig-name descname"><span class="pre">triages</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#vigilance.amf_taxonomy.TriageAMFCompactLLMResultWithIndex" title="vigilance.amf_taxonomy.TriageAMFCompactLLMResultWithIndex"><span class="pre">TriageAMFCompactLLMResultWithIndex</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#vigilance.amf_taxonomy.TriageAMFCompactLLMBatch.triages" title="Lien vers cette définition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="vigilance.amf_taxonomy.TriageAMFCompactLLMResultWithIndex">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">TriageAMFCompactLLMResultWithIndex</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.amf_taxonomy.TriageAMFCompactLLMResultWithIndex" title="Lien vers cette définition"></a></dt>
+<dd><p>Bases : <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<p>Décision AMF minimale demandée au LLM pour une validation rapide.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="vigilance.amf_taxonomy.TriageAMFCompactLLMResultWithIndex.change_index">
+<span class="sig-name descname"><span class="pre">change_index</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#vigilance.amf_taxonomy.TriageAMFCompactLLMResultWithIndex.change_index" title="Lien vers cette définition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="vigilance.amf_taxonomy.TriageAMFCompactLLMResultWithIndex.is_relevant">
+<span class="sig-name descname"><span class="pre">is_relevant</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><a class="headerlink" href="#vigilance.amf_taxonomy.TriageAMFCompactLLMResultWithIndex.is_relevant" title="Lien vers cette définition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="vigilance.amf_taxonomy.TriageAMFCompactLLMResultWithIndex.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></span><a class="headerlink" href="#vigilance.amf_taxonomy.TriageAMFCompactLLMResultWithIndex.model_config" title="Lien vers cette définition"></a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="vigilance.amf_taxonomy.TriageAMFCompactLLMResultWithIndex.nouvelle_idee">
+<span class="sig-name descname"><span class="pre">nouvelle_idee</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><a class="headerlink" href="#vigilance.amf_taxonomy.TriageAMFCompactLLMResultWithIndex.nouvelle_idee" title="Lien vers cette définition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="vigilance.amf_taxonomy.TriageAMFCompactLLMResultWithIndex.relevance_reason">
+<span class="sig-name descname"><span class="pre">relevance_reason</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#vigilance.amf_taxonomy.TriageAMFCompactLLMResultWithIndex.relevance_reason" title="Lien vers cette définition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="vigilance.amf_taxonomy.TriageAMFCompactLLMResultWithIndex.themes_amf">
+<span class="sig-name descname"><span class="pre">themes_amf</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'DIVULGATION_AJOUT'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'DIVULGATION_RETRAIT'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'MODIFICATION_TEXTE_RISQUE'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'MODIFICATION_METHODOLOGIE'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'FACTEUR_RISQUE_CHANGEMENT'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'CAPITAL_REGLEMENTAIRE'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'LIQUIDITE'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'FONDS_PROPRES_REGLEMENTAIRES'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'EXIGENCES_REGLEMENTAIRES'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'RATIOS_REGLEMENTAIRES'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'STRUCTURE_RAPPORT'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'HYPOTHESES_EXPLICATIONS_RISQUES'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'ESG_CLIMATIQUE'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'RISQUE_EMERGENT'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'RISQUE_DONNEES'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'RISQUE_TIERS_CLOUD'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'RISQUE_MACRO_GEOPOLITIQUE'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'GOUVERNANCE_RISQUES'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'CONTROLE_CONFORMITE'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'NOUVELLE_MENTION_REGLEMENTAIRE'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'MONTANT_REGLEMENTAIRE'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'SUJET_EMERGENT_HORS_GRILLE'</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#vigilance.amf_taxonomy.TriageAMFCompactLLMResultWithIndex.themes_amf" title="Lien vers cette définition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="vigilance.amf_taxonomy.TriageAMFLLMBatch">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">TriageAMFLLMBatch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.amf_taxonomy.TriageAMFLLMBatch" title="Lien vers cette définition"></a></dt>
 <dd><p>Bases : <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
@@ -1271,6 +1329,17 @@ sources, indépendamment de l’ordre de la liste retournée.</p>
 <p>Contient le contexte d’audit nécessaire pour qu’un humain (ou un retry
 automatisé avec feedback correctif) puisse comprendre et corriger
 l’erreur sans avoir à inspecter les logs bruts.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.amf_taxonomy.count_words">
+<span class="sig-name descname"><span class="pre">count_words</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.amf_taxonomy.count_words" title="Lien vers cette définition"></a></dt>
+<dd><p>Compte les mots selon leur séparation par espaces.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">

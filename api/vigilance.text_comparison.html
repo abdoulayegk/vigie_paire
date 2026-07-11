@@ -133,6 +133,17 @@ pour rendre lisibles les sorties du triage AMF.</p>
 <span id="text-comparison-justification"></span><h2>text_comparison.justification<a class="headerlink" href="#module-vigilance.text_comparison.justification" title="Lien vers cette rubrique"></a></h2>
 <p>Helpers de justification pour l’analyse textuelle.</p>
 <dl class="py function">
+<dt class="sig sig-object py" id="vigilance.text_comparison.justification.build_compact_triage_justification">
+<span class="sig-name descname"><span class="pre">build_compact_triage_justification</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">change</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">triage</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.text_comparison.justification.build_compact_triage_justification" title="Lien vers cette définition"></a></dt>
+<dd><p>Construit localement le format historique depuis le triage compact.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="vigilance.text_comparison.justification.build_text_triage_justification">
 <span class="sig-name descname"><span class="pre">build_text_triage_justification</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">change</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.text_comparison.justification.build_text_triage_justification" title="Lien vers cette définition"></a></dt>
 <dd><p>Retourne la justification AMF v2 ou un fallback structure pour Dash/Excel.</p>
@@ -154,6 +165,17 @@ disponibles en note d’analyste structuree pour eviter un affichage vide.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type renvoyé<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.text_comparison.justification.synthesize_triage_justification_from_payload">
+<span class="sig-name descname"><span class="pre">synthesize_triage_justification_from_payload</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">triage</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.text_comparison.justification.synthesize_triage_justification_from_payload" title="Lien vers cette définition"></a></dt>
+<dd><p>Reconstruit une justification AMF structurée à partir des champs de triage.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
 </dd>
 </dl>
 </dd></dl>

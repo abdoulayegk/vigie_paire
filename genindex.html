@@ -646,6 +646,8 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="api/vigilance.dash_app.components.html#vigilance.dash_app.components.review_detail_v2.build_change_list_v2">build_change_list_v2() (dans le module vigilance.dash_app.components.review_detail_v2)</a>
 </li>
+      <li><a href="api/vigilance.text_comparison.html#vigilance.text_comparison.justification.build_compact_triage_justification">build_compact_triage_justification() (dans le module vigilance.text_comparison.justification)</a>
+</li>
       <li><a href="api/vigilance.html#vigilance.review_export.build_export_metadata">build_export_metadata() (dans le module vigilance.review_export)</a>
 </li>
       <li><a href="api/vigilance.dash_app.services.html#vigilance.dash_app.services.comparison_store.build_file_comparison_store">build_file_comparison_store() (dans le module vigilance.dash_app.services.comparison_store)</a>
@@ -726,9 +728,11 @@ window.runMermaid = runMermaid;</script>
         <li><a href="api/vigilance.html#vigilance.review_models.ReviewItem.change_id">(attribut ReviewItem)</a>
 </li>
       </ul></li>
-      <li><a href="api/vigilance.html#vigilance.amf_taxonomy.TriageAMFLLMResultWithIndex.change_index">change_index (attribut TriageAMFLLMResultWithIndex)</a>
+      <li><a href="api/vigilance.html#vigilance.amf_taxonomy.TriageAMFCompactLLMResultWithIndex.change_index">change_index (attribut TriageAMFCompactLLMResultWithIndex)</a>
 
       <ul>
+        <li><a href="api/vigilance.html#vigilance.amf_taxonomy.TriageAMFLLMResultWithIndex.change_index">(attribut TriageAMFLLMResultWithIndex)</a>
+</li>
         <li><a href="api/vigilance.html#vigilance.amf_taxonomy.TriageAMFResultWithIndex.change_index">(attribut TriageAMFResultWithIndex)</a>
 </li>
       </ul></li>
@@ -851,6 +855,8 @@ window.runMermaid = runMermaid;</script>
       <li><a href="api/vigilance.extraction.html#vigilance.extraction.docling_processor.ExtractedTable.context_before">context_before (attribut ExtractedTable)</a>
 </li>
       <li><a href="api/vigilance.utils.html#vigilance.utils.footnotes_utils.count_stringified_dict_suspects">count_stringified_dict_suspects() (dans le module vigilance.utils.footnotes_utils)</a>
+</li>
+      <li><a href="api/vigilance.html#vigilance.amf_taxonomy.count_words">count_words() (dans le module vigilance.amf_taxonomy)</a>
 </li>
       <li><a href="api/vigilance.extraction.html#vigilance.extraction.pdf_preview.create_section_preview">create_section_preview() (dans le module vigilance.extraction.pdf_preview)</a>
 </li>
@@ -1372,10 +1378,10 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="api/vigilance.utils.html#vigilance.utils.indicator_cleaner.insert_space_after_change_tag">insert_space_after_change_tag() (dans le module vigilance.utils.indicator_cleaner)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/vigilance.extraction.html#vigilance.extraction.vision_qa_inspector.VisionTableInspector.inspect_extraction">inspect_extraction() (méthode VisionTableInspector)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/vigilance.models.html#vigilance.models.comparison_models.InspectorArtifactPair">InspectorArtifactPair (classe dans vigilance.models.comparison_models)</a>
 </li>
       <li><a href="api/vigilance.models.html#vigilance.models.comparison_models.InspectorRenamedVerdict">InspectorRenamedVerdict (classe dans vigilance.models.comparison_models)</a>
@@ -1411,6 +1417,8 @@ window.runMermaid = runMermaid;</script>
       <li><a href="api/vigilance.extraction.html#vigilance.extraction.pdf_preview.is_preview_available">is_preview_available() (dans le module vigilance.extraction.pdf_preview)</a>
 </li>
       <li><a href="api/vigilance.utils.html#vigilance.utils.rbc_table_signals.is_rbc_bank">is_rbc_bank() (dans le module vigilance.utils.rbc_table_signals)</a>
+</li>
+      <li><a href="api/vigilance.html#vigilance.amf_taxonomy.TriageAMFCompactLLMResultWithIndex.is_relevant">is_relevant (attribut TriageAMFCompactLLMResultWithIndex)</a>
 </li>
       <li><a href="api/vigilance.html#vigilance.review_models_v2.ChangeItem.is_required">is_required (attribut ChangeItem)</a>
 </li>
@@ -1652,6 +1660,10 @@ window.runMermaid = runMermaid;</script>
         <li><a href="api/vigilance.models.html#vigilance.models.comparison_models.SinglePairInspectorResponse.model_config">(attribut SinglePairInspectorResponse)</a>
 </li>
         <li><a href="api/vigilance.html#vigilance.amf_taxonomy.TriageAMFBatch.model_config">(attribut TriageAMFBatch)</a>
+</li>
+        <li><a href="api/vigilance.html#vigilance.amf_taxonomy.TriageAMFCompactLLMBatch.model_config">(attribut TriageAMFCompactLLMBatch)</a>
+</li>
+        <li><a href="api/vigilance.html#vigilance.amf_taxonomy.TriageAMFCompactLLMResultWithIndex.model_config">(attribut TriageAMFCompactLLMResultWithIndex)</a>
 </li>
         <li><a href="api/vigilance.html#vigilance.amf_taxonomy.TriageAMFLLMBatch.model_config">(attribut TriageAMFLLMBatch)</a>
 </li>
@@ -1935,10 +1947,10 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="api/vigilance.utils.html#vigilance.utils.text_normalizer.TextNormalizer.normalize_indicator">normalize_indicator() (méthode statique TextNormalizer)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/vigilance.utils.html#vigilance.utils.indicator_cleaner.normalize_indicator_for_comparison">normalize_indicator_for_comparison() (dans le module vigilance.utils.indicator_cleaner)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/vigilance.utils.html#vigilance.utils.indicator_cleaner.normalize_indicator_variants">normalize_indicator_variants() (dans le module vigilance.utils.indicator_cleaner)</a>
 </li>
       <li><a href="api/vigilance.utils.html#vigilance.utils.matching_normalizer.normalize_label">normalize_label() (dans le module vigilance.utils.matching_normalizer)</a>
@@ -1962,6 +1974,8 @@ window.runMermaid = runMermaid;</script>
       <li><a href="api/vigilance.utils.html#vigilance.utils.text_normalize_base.normalize_text_base">normalize_text_base() (dans le module vigilance.utils.text_normalize_base)</a>
 </li>
       <li><a href="api/vigilance.report.html#vigilance.report.vigie_extract_schema.FirstColumnEntry.note_refs">note_refs (attribut FirstColumnEntry)</a>
+</li>
+      <li><a href="api/vigilance.html#vigilance.amf_taxonomy.TriageAMFCompactLLMResultWithIndex.nouvelle_idee">nouvelle_idee (attribut TriageAMFCompactLLMResultWithIndex)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -2203,10 +2217,12 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="api/vigilance.models.html#vigilance.models.comparison_models.AnalystAssessment.relevance_level">relevance_level (attribut AnalystAssessment)</a>
 </li>
-      <li><a href="api/vigilance.models.html#vigilance.models.comparison_models.InspectorArtifactPair.removed">removed (attribut InspectorArtifactPair)</a>
+      <li><a href="api/vigilance.html#vigilance.amf_taxonomy.TriageAMFCompactLLMResultWithIndex.relevance_reason">relevance_reason (attribut TriageAMFCompactLLMResultWithIndex)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/vigilance.models.html#vigilance.models.comparison_models.InspectorArtifactPair.removed">removed (attribut InspectorArtifactPair)</a>
+</li>
       <li><a href="api/vigilance.html#vigilance.review_models.ReviewItem.removed_indicators">removed_indicators (attribut ReviewItem)</a>
 </li>
       <li><a href="api/vigilance.models.html#vigilance.models.comparison_models.InspectorResponse.removed_verdicts">removed_verdicts (attribut InspectorResponse)</a>
@@ -2351,10 +2367,10 @@ window.runMermaid = runMermaid;</script>
         <li><a href="api/vigilance.report.html#vigilance.report.vigie_extract_schema.VigieExtractPayload.sections">(attribut VigieExtractPayload)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/vigilance.extraction.html#vigilance.extraction.vision_full_extractor.VisionFullResult.selected_candidate_name">selected_candidate_name (attribut VisionFullResult)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/vigilance.html#vigilance.review_state.set_review_status">set_review_status() (dans le module vigilance.review_state)</a>
 </li>
       <li><a href="api/vigilance.models.html#vigilance.models.comparison_models.MatchInspectorVerdict.shared_indicators">shared_indicators (attribut MatchInspectorVerdict)</a>
@@ -2424,6 +2440,8 @@ window.runMermaid = runMermaid;</script>
       <li><a href="api/vigilance.html#vigilance.review_models_v2.ChangeType.STRUCTURE_CHANGE">STRUCTURE_CHANGE (attribut ChangeType)</a>
 </li>
       <li><a href="api/vigilance.extraction.html#vigilance.extraction.vision_full_extractor.VisionFullResult.summary_present">summary_present (attribut VisionFullResult)</a>
+</li>
+      <li><a href="api/vigilance.text_comparison.html#vigilance.text_comparison.justification.synthesize_triage_justification_from_payload">synthesize_triage_justification_from_payload() (dans le module vigilance.text_comparison.justification)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -2561,11 +2579,13 @@ window.runMermaid = runMermaid;</script>
       </ul></li>
       <li><a href="api/vigilance.html#vigilance.amf_taxonomy.ChangeSegment.text_t1">text_t1 (attribut ChangeSegment)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/vigilance.html#vigilance.amf_taxonomy.ChangeSegment.text_t2">text_t2 (attribut ChangeSegment)</a>
 </li>
       <li><a href="api/vigilance.utils.html#vigilance.utils.text_normalizer.TextNormalizer">TextNormalizer (classe dans vigilance.utils.text_normalizer)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/vigilance.html#vigilance.amf_taxonomy.TriageAMFCompactLLMResultWithIndex.themes_amf">themes_amf (attribut TriageAMFCompactLLMResultWithIndex)</a>
 </li>
       <li><a href="api/vigilance.extraction.html#vigilance.extraction.docling_processor.ExtractedSection.title">title (attribut ExtractedSection)</a>
 
@@ -2665,6 +2685,10 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="api/vigilance.html#vigilance.amf_taxonomy.TriageAMFBatch">TriageAMFBatch (classe dans vigilance.amf_taxonomy)</a>
 </li>
+      <li><a href="api/vigilance.html#vigilance.amf_taxonomy.TriageAMFCompactLLMBatch">TriageAMFCompactLLMBatch (classe dans vigilance.amf_taxonomy)</a>
+</li>
+      <li><a href="api/vigilance.html#vigilance.amf_taxonomy.TriageAMFCompactLLMResultWithIndex">TriageAMFCompactLLMResultWithIndex (classe dans vigilance.amf_taxonomy)</a>
+</li>
       <li><a href="api/vigilance.html#vigilance.amf_taxonomy.TriageAMFLLMBatch">TriageAMFLLMBatch (classe dans vigilance.amf_taxonomy)</a>
 </li>
       <li><a href="api/vigilance.html#vigilance.amf_taxonomy.TriageAMFLLMResultWithIndex">TriageAMFLLMResultWithIndex (classe dans vigilance.amf_taxonomy)</a>
@@ -2676,6 +2700,8 @@ window.runMermaid = runMermaid;</script>
       <li><a href="api/vigilance.html#vigilance.amf_taxonomy.TriageAMFBatch.triages">triages (attribut TriageAMFBatch)</a>
 
       <ul>
+        <li><a href="api/vigilance.html#vigilance.amf_taxonomy.TriageAMFCompactLLMBatch.triages">(attribut TriageAMFCompactLLMBatch)</a>
+</li>
         <li><a href="api/vigilance.html#vigilance.amf_taxonomy.TriageAMFLLMBatch.triages">(attribut TriageAMFLLMBatch)</a>
 </li>
       </ul></li>
