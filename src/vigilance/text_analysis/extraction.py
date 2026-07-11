@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import gc
+import logging
 import os
 import re
 from pathlib import Path
@@ -20,6 +22,9 @@ from vigilance.text_analysis.normalization import (
     _normalized_block_text,
 )
 from vigilance.text_analysis.sections import _next_section_by_key, _section_window_for_page
+
+_DOCLING_TEXT_PAGE_BATCH_SIZE = 2
+logger = logging.getLogger(__name__)
 
 
 def _docling_bbox_to_norm(docling_doc: Any, prov: Any) -> list[float] | None:
@@ -139,6 +144,31 @@ def _merge_missing_fallback_blocks(
             existing_norms.append(cand_norm)
 
 
+def _docling_page_batches(page_numbers: list[int]) -> list[tuple[int, int, list[int]]]:
+    """Découpe les pages demandées en plages Docling de taille bornée.
+
+    Les rapports annuels peuvent contenir plus d'une centaine de pages dans
+    les sections ciblées. Les convertir en une seule fois fait exploser la
+    mémoire sur certaines banques. Les plages discontinues sont également
+    séparées afin de ne jamais analyser de pages hors périmètre.
+    """
+    pages = sorted({int(page) for page in page_numbers if int(page) > 0})
+    if not pages:
+        return []
+
+    batches: list[tuple[int, int, list[int]]] = []
+    batch: list[int] = [pages[0]]
+    for page in pages[1:]:
+        is_contiguous = page == batch[-1] + 1
+        if not is_contiguous or len(batch) >= _DOCLING_TEXT_PAGE_BATCH_SIZE:
+            batches.append((batch[0], batch[-1], batch))
+            batch = [page]
+            continue
+        batch.append(page)
+    batches.append((batch[0], batch[-1], batch))
+    return batches
+
+
 def _extract_docling_page_blocks(
     pdf_path: Path,
     page_numbers: list[int],
@@ -150,8 +180,10 @@ def _extract_docling_page_blocks(
 ]:
     """Extrait tous les blocs de texte d'un PDF via Docling pour les pages demandées.
 
-    Lance Docling sur la plage ``[min(pages), max(pages)]``, avec OCR narratif
+    Lance Docling par plages bornées de pages contiguës, avec OCR narratif
     opt-in via ``VIGILANCE_TEXT_OCR_ENABLED=1``, puis filtre les blocs par page.
+    Ce découpage évite l'épuisement de mémoire sur les sections annuelles très
+    longues, sans inclure de pages hors périmètre.
     Retourne quatre valeurs :
 
     - ``page_blocks`` : liste de PDFBlock triés par position (y, x)
@@ -176,68 +208,80 @@ def _extract_docling_page_blocks(
     opts = PdfPipelineOptions()
     opts.do_ocr = _text_docling_ocr_enabled()
     converter = DocumentConverter(format_options={InputFormat.PDF: PdfFormatOption(pipeline_options=opts)})
-    start_page = min(page_numbers)
-    end_page = max(page_numbers)
-    result = converter.convert(str(pdf_path), page_range=(start_page, end_page))
-    docling_doc = result.document
-    raw_docling_markdown = _export_docling_markdown(docling_doc)
-
+    requested_pages = sorted({int(page) for page in page_numbers if int(page) > 0})
     table_bboxes_by_page: dict[int, list[list[float]]] = {}
-    for table in getattr(docling_doc, "tables", []) or []:
-        try:
-            if not getattr(table, "prov", None):
-                continue
-            page = int(getattr(table.prov[0], "page_no", 0) or 0)
-            if page not in page_numbers:
-                continue
-            bbox = _docling_bbox_to_norm(docling_doc, table.prov[0])
-            if not bbox:
-                continue
-            table_bboxes_by_page.setdefault(page, []).append(bbox)
-        except Exception:
-            continue
-    footnote_bboxes_by_page = _infer_table_footnote_bboxes(table_bboxes_by_page)
+    page_blocks: dict[int, list[PDFBlock]] = {page: [] for page in requested_pages}
+    line_numbers: dict[int, int] = {page: 0 for page in requested_pages}
+    raw_markdown_parts: list[str] = []
 
-    page_blocks: dict[int, list[PDFBlock]] = {page: [] for page in page_numbers}
-    line_numbers: dict[int, int] = {page: 0 for page in page_numbers}
-    for page in page_numbers:
-        for item, _level in docling_doc.iterate_items(page_no=page, with_groups=False):
-            text = _MULTISPACE_RE.sub(" ", str(getattr(item, "text", "") or "").replace("\n", " ").strip()).strip()
-            if not text:
+    for start_page, end_page, batch_pages in _docling_page_batches(requested_pages):
+        logger.info("Docling extraction texte: pages %d-%d (%s)", start_page, end_page, pdf_path.name)
+        result = converter.convert(str(pdf_path), page_range=(start_page, end_page))
+        docling_doc = result.document
+        raw_markdown = _export_docling_markdown(docling_doc)
+        if raw_markdown.strip():
+            raw_markdown_parts.append(raw_markdown.strip())
+
+        for table in getattr(docling_doc, "tables", []) or []:
+            try:
+                if not getattr(table, "prov", None):
+                    continue
+                page = int(getattr(table.prov[0], "page_no", 0) or 0)
+                if page not in batch_pages:
+                    continue
+                bbox = _docling_bbox_to_norm(docling_doc, table.prov[0])
+                if not bbox:
+                    continue
+                table_bboxes_by_page.setdefault(page, []).append(bbox)
+            except Exception:
                 continue
-            label = str(getattr(item, "label", "") or "").lower()
-            item_provs = [
-                prov for prov in list(getattr(item, "prov", []) or []) if int(getattr(prov, "page_no", 0) or 0) == page
-            ]
-            if not item_provs:
-                continue
-            bbox_norm = _docling_bbox_to_norm(docling_doc, item_provs[0])
-            if not bbox_norm:
-                continue
-            line_numbers[page] += 1
-            initial_block_type = {
-                "footnote": "footnote",
-                "page_header": "header_footer",
-                "page_footer": "header_footer",
-                "caption": "table",
-            }.get(label, "other")
-            page_blocks[page].append(
-                PDFBlock(
-                    block_id=f"p{page:03d}_d{line_numbers[page]:03d}",
-                    page=page,
-                    bbox_norm=bbox_norm,
-                    text=text,
-                    line_number=line_numbers[page],
-                    block_type=initial_block_type,
-                    source_label=label,
-                    heading_level=int(_level) if isinstance(_level, int) else None,
+
+        for page in batch_pages:
+            for item, _level in docling_doc.iterate_items(page_no=page, with_groups=False):
+                text = _MULTISPACE_RE.sub(" ", str(getattr(item, "text", "") or "").replace("\n", " ").strip()).strip()
+                if not text:
+                    continue
+                label = str(getattr(item, "label", "") or "").lower()
+                item_provs = [
+                    prov for prov in list(getattr(item, "prov", []) or []) if int(getattr(prov, "page_no", 0) or 0) == page
+                ]
+                if not item_provs:
+                    continue
+                bbox_norm = _docling_bbox_to_norm(docling_doc, item_provs[0])
+                if not bbox_norm:
+                    continue
+                line_numbers[page] += 1
+                initial_block_type = {
+                    "footnote": "footnote",
+                    "page_header": "header_footer",
+                    "page_footer": "header_footer",
+                    "caption": "table",
+                }.get(label, "other")
+                page_blocks[page].append(
+                    PDFBlock(
+                        block_id=f"p{page:03d}_d{line_numbers[page]:03d}",
+                        page=page,
+                        bbox_norm=bbox_norm,
+                        text=text,
+                        line_number=line_numbers[page],
+                        block_type=initial_block_type,
+                        source_label=label,
+                        heading_level=int(_level) if isinstance(_level, int) else None,
+                    )
                 )
-            )
+            page_blocks[page].sort(key=lambda block: (round(block.y0, 4), round(block.bbox_norm[0], 4)))
+
+        # Le document Docling d'un lot peut être volumineux. Le libérer avant
+        # de convertir la plage suivante limite le pic mémoire du processus.
+        del docling_doc
+        del result
+        gc.collect()
+
+    footnote_bboxes_by_page = _infer_table_footnote_bboxes(table_bboxes_by_page)
+    _merge_missing_fallback_blocks(page_blocks, _extract_pymupdf_fallback_blocks(pdf_path, requested_pages))
+    for page in requested_pages:
         page_blocks[page].sort(key=lambda block: (round(block.y0, 4), round(block.bbox_norm[0], 4)))
-    _merge_missing_fallback_blocks(page_blocks, _extract_pymupdf_fallback_blocks(pdf_path, page_numbers))
-    for page in page_numbers:
-        page_blocks[page].sort(key=lambda block: (round(block.y0, 4), round(block.bbox_norm[0], 4)))
-    return page_blocks, table_bboxes_by_page, footnote_bboxes_by_page, raw_docling_markdown
+    return page_blocks, table_bboxes_by_page, footnote_bboxes_by_page, "\n\n".join(raw_markdown_parts)
 
 
 def _classify_block_type(

@@ -61,7 +61,11 @@ from vigilance.text_analysis.global_reconciliation import (
 )
 from vigilance.text_comparison.change_segments import build_change_segments_from_texts
 from vigilance.text_analysis.subsection_matching import OrphanMatchLLMResponse, OrphanSubsection
-from vigilance.text_extraction.text_extraction_markdown_writer import get_raw_docling_markdown_path
+from vigilance.text_extraction.text_extraction_markdown_writer import (
+    get_raw_docling_markdown_path,
+    has_current_text_extraction_cache_schema,
+    stamp_text_extraction_cache_schema,
+)
 from vigilance.text_analysis.docling_markdown import (
     DoclingSegment,
     _assign_segments_to_sections,
@@ -70,6 +74,7 @@ from vigilance.text_analysis.docling_markdown import (
     _sanitize_heading_note_references,
     _should_keep_docling_segment,
 )
+from vigilance.text_analysis.extraction import _docling_page_batches
 from vigilance.text_analysis.markdown import _is_out_of_scope_accounting_heading
 
 
@@ -904,6 +909,274 @@ def test_should_keep_docling_segment_rejects_accounting_heading() -> None:
     )
 
     assert _should_keep_docling_segment(segment, audits=None) is False
+
+
+def test_should_keep_docling_segment_keeps_audited_regulatory_paragraph_despite_ratios() -> None:
+    """Les pourcentages et le mot « total » ne doivent pas annuler l'audit PDF."""
+    paragraph = (
+        "Le Bureau du surintendant des institutions financières Canada exige des institutions "
+        "de dépôt qu'elles atteignent des exigences minimales de 7 %, de 8,5 % et de 10,5 % "
+        "pour les actions ordinaires et assimilées de T1, les fonds propres de T1 et le total "
+        "des fonds propres. Les exigences du premier pilier sont de 8,0 %, de 9,5 % et de 11,5 %."
+    )
+    audit = SectionAudit(
+        section_key="gestion_capital",
+        section_title="Gestion du capital",
+        start_page=58,
+        end_page=58,
+        anchor_page=58,
+        anchor_text="Gestion du capital",
+        anchor_bbox_norm=[0.1, 0.1, 0.9, 0.2],
+        included_blocks=[
+            PDFBlock(
+                "p058_d007",
+                58,
+                [0.1, 0.57, 0.9, 0.67],
+                paragraph,
+                7,
+                "narrative",
+                True,
+            )
+        ],
+        excluded_blocks=[],
+    )
+    segment = DoclingSegment(kind="paragraph", text=paragraph)
+
+    assert _should_keep_docling_segment(segment, audits=None) is False
+    assert _should_keep_docling_segment(segment, audits=[audit]) is True
+
+
+@pytest.mark.parametrize(
+    ("bank", "paragraph"),
+    [
+        (
+            "bmo",
+            "Le total des capitaux propres a augmenté de 8,2 milliards de dollars depuis le 31 octobre 2023, "
+            "et les actions ordinaires ont progressé de 1,0 milliard pendant l'exercice.",
+        ),
+        (
+            "bnc",
+            "Le total de l'actif pondéré en fonction des risques ne doit pas être inférieur à 72,5 % du total "
+            "calculé selon les approches standardisées, après un coefficient de 67,5 % en 2024.",
+        ),
+        (
+            "bns",
+            "Au 31 octobre 2024, le total des actifs s'élevait à 1 412 milliards de dollars, en hausse de "
+            "1 milliard par rapport à 2023, malgré une baisse de 26 milliards des dépôts auprès des banques centrales.",
+        ),
+        (
+            "cibc",
+            "Au 31 octobre 2024, le total de l'actif avait augmenté de 66,3 G$, ou 7 %, par rapport à 2023, "
+            "dont environ 1,4 G$ attribuable à l'appréciation du dollar américain.",
+        ),
+        (
+            "rbc",
+            "Au 31 octobre 2024, le risque de perte maximal relativement aux fiducies non consolidées se chiffrait "
+            "à 3 milliards de dollars, comparativement à 3 milliards au 31 octobre 2023.",
+        ),
+        (
+            "td",
+            "Selon Bâle III, le total des fonds propres comprend trois composantes et les ratios de catégorie 1, "
+            "de catégorie 2 et du total sont calculés par rapport aux actifs pondérés en fonction des risques.",
+        ),
+    ],
+)
+def test_should_keep_audited_narrative_samples_from_every_bank(bank: str, paragraph: str) -> None:
+    """Les paragraphes chiffrés observés dans les six banques restent comparables."""
+    audit = SectionAudit(
+        section_key="gestion_capital",
+        section_title="Gestion du capital",
+        start_page=58,
+        end_page=58,
+        anchor_page=58,
+        anchor_text="Gestion du capital",
+        anchor_bbox_norm=[0.1, 0.1, 0.9, 0.2],
+        included_blocks=[
+            PDFBlock(
+                f"{bank}_p058_d001",
+                58,
+                [0.1, 0.3, 0.9, 0.4],
+                paragraph,
+                1,
+                "narrative",
+                True,
+            )
+        ],
+        excluded_blocks=[],
+    )
+    segment = DoclingSegment(kind="paragraph", text=paragraph)
+
+    assert _should_keep_docling_segment(segment, audits=None) is False
+    assert _should_keep_docling_segment(segment, audits=[audit]) is True
+
+
+@pytest.mark.parametrize(
+    ("bank", "note", "follows_table", "requires_audited_footnote"),
+    [
+        ("bmo", "1 Les réserves de fonds propres sont calculées conformément à la ligne directrice du BSIF.", False, True),
+        ("bnc", "(1) Les ratios sont calculés selon les exigences de Bâle III publiées par le BSIF.", False, False),
+        ("bns", "1) Les montants des périodes précédentes ont été retraités afin de refléter une nouvelle norme.", False, False),
+        ("cibc", "i) Les expositions sur dérivés sont présentées selon les règles réglementaires applicables.", True, False),
+        ("rbc", "¹ Se reporter aux notes afférentes aux états financiers consolidés pour plus de précisions.", False, False),
+        ("td", "Note : le ratio de levier est calculé conformément aux exigences de levier du BSIF.", False, False),
+    ],
+)
+def test_explicit_bank_note_formats_remain_excluded_even_if_audit_matches(
+    bank: str,
+    note: str,
+    follows_table: bool,
+    requires_audited_footnote: bool,
+) -> None:
+    """Les variations de marqueurs de notes ne doivent pas devenir du narratif."""
+    audit = SectionAudit(
+        section_key="gestion_capital",
+        section_title="Gestion du capital",
+        start_page=58,
+        end_page=58,
+        anchor_page=58,
+        anchor_text="Gestion du capital",
+        anchor_bbox_norm=[0.1, 0.1, 0.9, 0.2],
+        included_blocks=(
+            []
+            if requires_audited_footnote
+            else [PDFBlock(f"{bank}_p058_d010", 58, [0.1, 0.7, 0.9, 0.75], note, 10, "narrative", True)]
+        ),
+        excluded_blocks=(
+            [
+                PDFBlock(
+                    f"{bank}_p058_d010",
+                    58,
+                    [0.1, 0.7, 0.9, 0.75],
+                    note,
+                    10,
+                    "footnote",
+                    False,
+                    "footnote",
+                    "footnote",
+                )
+            ]
+            if requires_audited_footnote
+            else []
+        ),
+    )
+
+    assert _should_keep_docling_segment(
+        DoclingSegment(kind="paragraph", text=note, follows_table=follows_table),
+        audits=[audit],
+    ) is False
+
+
+def test_build_docling_markdown_keeps_narrative_around_bns_d22_figure() -> None:
+    """La figure D22 ne doit pas faire disparaître les paragraphes réglementaires voisins."""
+    before_figure = (
+        "Les banques canadiennes sont assujetties aux exigences de suffisance des fonds propres "
+        "publiées par le Comité de Bâle sur le contrôle bancaire. Trois ratios fondés sur le risque "
+        "sont utilisés pour évaluer la suffisance des fonds propres réglementaires de la Banque."
+    )
+    osfi_requirements = (
+        "Le Bureau du surintendant des institutions financières Canada exige des institutions de "
+        "dépôt qu'elles atteignent des exigences minimales de 7 %, de 8,5 % et de 10,5 % pour les "
+        "actions ordinaires et assimilées de T1, les fonds propres de T1 et le total des fonds propres."
+    )
+    stability_buffer = (
+        "En juin 2018, le BSIF a mis en œuvre la réserve pour stabilité intérieure que les banques "
+        "d'importance systémique intérieure doivent constituer comme réserve supplémentaire au titre "
+        "du deuxième pilier et réexamine la réserve deux fois par an."
+    )
+    current_requirements = (
+        "En juin 2023, le BSIF a annoncé que la réserve pour stabilité intérieure serait portée à "
+        "3,5 % des actifs pondérés en fonction des risques. Les exigences minimales s'établissent à "
+        "11,5 %, à 13,0 % et à 15,0 % pour les ratios de fonds propres réglementaires."
+    )
+    leverage = (
+        "Outre les exigences de ratio de fonds propres fondées sur le risque, Bâle III a introduit "
+        "un ratio de levier simple qui vient compléter les exigences de fonds propres fondées sur le risque."
+    )
+    audit = SectionAudit(
+        section_key="gestion_capital",
+        section_title="Gestion du capital",
+        start_page=58,
+        end_page=58,
+        anchor_page=58,
+        anchor_text="Gestion du capital",
+        anchor_bbox_norm=[0.1, 0.1, 0.9, 0.2],
+        included_blocks=[
+            PDFBlock("p058_d001", 58, [0.1, 0.22, 0.9, 0.3], before_figure, 1, "narrative", True),
+            PDFBlock("p058_d002", 58, [0.1, 0.56, 0.9, 0.66], osfi_requirements, 2, "narrative", True),
+            PDFBlock("p058_d003", 58, [0.1, 0.67, 0.9, 0.74], stability_buffer, 3, "narrative", True),
+            PDFBlock("p058_d004", 58, [0.1, 0.75, 0.9, 0.82], current_requirements, 4, "narrative", True),
+            PDFBlock("p058_d005", 58, [0.1, 0.85, 0.9, 0.92], leverage, 5, "narrative", True),
+        ],
+        excluded_blocks=[
+            PDFBlock(
+                "p058_d000",
+                58,
+                [0.1, 0.18, 0.5, 0.2],
+                "Fonds propres réglementaires",
+                0,
+                "other",
+                False,
+                "non_narrative_block",
+                "section_header",
+                heading_level=2,
+            ),
+            PDFBlock(
+                "p058_d006",
+                58,
+                [0.1, 0.83, 0.5, 0.84],
+                "Ratio de levier",
+                6,
+                "other",
+                False,
+                "non_narrative_block",
+                "section_header",
+                heading_level=2,
+            ),
+        ],
+    )
+    raw_docling = "\n\n".join(
+        [
+            "## Fonds propres réglementaires",
+            before_figure,
+            "## D22 Exigences en matière de ratios de fonds propres réglementaires minimaux (au 31 octobre 2024)",
+            "<!-- image -->",
+            osfi_requirements,
+            stability_buffer,
+            current_requirements,
+            "## Ratio de levier",
+            leverage,
+        ]
+    )
+
+    markdown = _build_text_extraction_markdown_from_docling([audit], raw_docling_markdown=raw_docling)
+
+    for paragraph in (before_figure, osfi_requirements, stability_buffer, current_requirements, leverage):
+        assert paragraph in markdown
+    assert "### Ratio de levier" in markdown
+    assert "D22 Exigences" not in markdown
+
+
+def test_text_extraction_cache_schema_invalidates_legacy_markdown() -> None:
+    legacy = "## Gestion du capital\n\nTexte narratif.\n"
+
+    stamped = stamp_text_extraction_cache_schema(legacy)
+
+    assert has_current_text_extraction_cache_schema(legacy) is False
+    assert has_current_text_extraction_cache_schema(stamped) is True
+    assert stamped.endswith(legacy)
+
+
+def test_docling_page_batches_bound_memory_and_preserve_page_order() -> None:
+    pages = [10, 11, 12, 20, 21, 25]
+
+    batches = _docling_page_batches(pages)
+
+    assert batches == [
+        (10, 11, [10, 11]),
+        (12, 12, [12]),
+        (20, 21, [20, 21]),
+        (25, 25, [25]),
+    ]
 
 
 def test_build_markdown_omits_accounting_headings_in_risk_section() -> None:
