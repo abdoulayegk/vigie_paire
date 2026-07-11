@@ -115,28 +115,27 @@ def test_generate_text_comparison_excel_creates_analysis_sheet() -> None:
     assert workbook.sheetnames == ["Analyse complète"]
     ws = workbook["Analyse complète"]
     assert ws.max_row == 5
-    assert ws["A2"].value == "Gestion des risques"
-    assert ws["C2"].value == "10"
-    assert ws["D2"].value == "12"
-    assert ws["E2"].value == "Modification"
-    assert ws["F2"].value == "Paragraphe exact T1"
-    assert ws["G2"].value == "Paragraphe exact T2"
-    assert ws["H2"].value == "Oui"
-    # La colonne 9 contient une justification structurée pour l'affichage Dash.
-    assert ws["I2"].value.startswith("OUI — Nouvel élément à surveiller : Oui.")
-    assert "Sujet détecté :" in ws["I2"].value
-    assert "Ce qui change : Le passage est modifie entre T1 et T2." in ws["I2"].value
-    assert "Pertinence métier :" in ws["I2"].value
-    assert "le nouveau modele AIRB est introduit" in ws["I2"].value
-    assert "Point de surveillance :" in ws["I2"].value
-    assert ws["F3"].value == "Paragraphe modéré T1"
-    assert ws["G3"].value == "Paragraphe modéré T2"
-    assert ws["C4"].value is None
-    assert ws["D4"].value == "13"
-    assert ws["F4"].value is None
-    assert ws["G4"].value == "Paragraphe exact ajouté"
-    assert ws["F5"].value == "Paragraphe non substantif T1"
-    assert ws["G5"].value == "Paragraphe non substantif T2"
+    assert ws["A2"].value == "Paragraphe exact T2"
+    assert ws["B2"].value == "Paragraphe exact T1"
+    assert ws["E2"].value == "Gestion des risques"
+    assert ws["K2"].value == "12"
+    assert ws["L2"].value == "10"
+    assert ws["G2"].value == "Modification"
+    assert ws["I2"].value == "Oui"
+    assert "le nouveau modele AIRB est introduit" in ws["J2"].value
+    rows = {
+        ws.cell(row=row, column=1).value: {
+            "previous": ws.cell(row=row, column=2).value,
+            "page_current": ws.cell(row=row, column=11).value,
+            "page_previous": ws.cell(row=row, column=12).value,
+        }
+        for row in range(2, ws.max_row + 1)
+    }
+    assert rows["Paragraphe modéré T2"]["previous"] == "Paragraphe modéré T1"
+    assert rows["Paragraphe exact ajouté"]["previous"] is None
+    assert rows["Paragraphe exact ajouté"]["page_current"] == "13"
+    assert rows["Paragraphe exact ajouté"]["page_previous"] is None
+    assert rows["Paragraphe non substantif T2"]["previous"] == "Paragraphe non substantif T1"
 
 
 def test_generate_text_comparison_excel_keeps_minor_date_and_reformulation_changes() -> None:
@@ -194,10 +193,12 @@ def test_generate_text_comparison_excel_keeps_minor_date_and_reformulation_chang
     ws = workbook["Analyse complète"]
 
     assert ws.max_row == 3
-    assert ws["F2"].value == "Données au 31 janvier."
-    assert ws["G2"].value == "Données au 30 avril."
-    assert ws["F3"].value == "La banque surveille ce risque."
-    assert ws["G3"].value == "Ce risque est surveillé par la banque."
+    rows = {
+        ws.cell(row=row, column=1).value: ws.cell(row=row, column=2).value
+        for row in range(2, ws.max_row + 1)
+    }
+    assert rows["Données au 30 avril."] == "Données au 31 janvier."
+    assert rows["Ce risque est surveillé par la banque."] == "La banque surveille ce risque."
 
 
 def test_generate_text_comparison_excel_strips_control_characters() -> None:
@@ -231,11 +232,9 @@ def test_generate_text_comparison_excel_strips_control_characters() -> None:
     workbook = load_workbook(io.BytesIO(raw))
     ws = workbook["Analyse complète"]
 
-    assert ws["F2"].value == "Texte T1"
-    assert "\x00" not in ws["I2"].value
-    assert ws["I2"].value.startswith("OUI — Nouvel élément à surveiller : Oui.")
-    assert "Ce qui change :" in ws["I2"].value
-    assert "Pertinence métier : note analyste utile." in ws["I2"].value
+    assert ws["B2"].value == "Texte T1"
+    assert "\x00" not in ws["J2"].value
+    assert ws["J2"].value == "note analyste utile."
 
 
 def test_generate_text_comparison_excel_applies_analyst_review_without_new_columns() -> None:
@@ -312,27 +311,32 @@ def test_generate_text_comparison_excel_applies_analyst_review_without_new_colum
     headers = [ws.cell(row=1, column=i).value for i in range(1, ws.max_column + 1)]
 
     assert headers == [
-        "Titre",
+        "Texte exact du trimestre courant",
+        "Texte exact du trimestre précédent",
+        "Catégorie principale",
+        "Étiquettes secondaires",
+        "Section du rapport",
         "Sous-section",
-        "Page T1",
-        "Page T2",
         "Type de changement",
-        "Texte exact T1",
-        "Texte exact T2",
-        "Nouvelle idée ?",
-        "Justification IA",
-        "Commentaire analyste",
+        "Ce qui change",
+        "Nouvelle idée à surveiller ?",
+        "Justification de pertinence (IA)",
+        "Page du texte courant",
+        "Page du texte précédent",
+        "Statut analyste",
+        "Note analyste",
     ]
     values = {
-        ws.cell(row=row, column=7).value: (
-            ws.cell(row=row, column=8).value,
-            ws.cell(row=row, column=10).value,
+        ws.cell(row=row, column=1).value: (
+            ws.cell(row=row, column=9).value,
+            ws.cell(row=row, column=14).value,
+            ws.cell(row=row, column=13).value,
         )
         for row in range(2, ws.max_row + 1)
     }
-    assert values["Nouveau"] == ("Non", "Pas une nouvelle idée.")
-    assert values["Ajout"] == ("Oui", "À conserver.")
-    assert values["B"] == ("Oui", None)
+    assert values["Nouveau"] == ("Non", "Pas une nouvelle idée.", "Écarté")
+    assert values["Ajout"] == ("Oui", "À conserver.", "Confirmé")
+    assert values["B"] == ("Oui", None, "Ignoré")
 
 
 def test_text_justification_falls_back_for_legacy_b15_triage() -> None:
@@ -405,8 +409,8 @@ def test_text_justification_falls_back_for_legacy_b15_triage() -> None:
     )
     workbook = load_workbook(io.BytesIO(raw))
     ws = workbook["Analyse complète"]
-    assert ws["H2"].value == "Oui"
-    assert ws["I2"].value == justification
+    assert ws["I2"].value == "Oui"
+    assert ws["J2"].value == change["genai_triage"]["explanation"]
 
 
 def test_text_justification_rewrites_b15_pertinence_when_explicit_exists() -> None:
@@ -470,7 +474,51 @@ def test_generate_text_comparison_excel_labels_text_renames() -> None:
     workbook = load_workbook(io.BytesIO(raw))
     ws = workbook["Analyse complète"]
 
-    assert ws["B2"].value == "Ancien titre → Nouveau titre"
-    assert ws["E2"].value == "Renommage"
-    assert ws["F2"].value == "Ancien titre"
-    assert ws["G2"].value == "Nouveau titre"
+    assert ws["F2"].value == "Ancien titre → Nouveau titre"
+    assert ws["G2"].value == "Renommage"
+    assert ws["B2"].value == "Ancien titre"
+    assert ws["A2"].value == "Nouveau titre"
+
+
+def test_text_excel_exposes_vigie_fields_for_analyst_review() -> None:
+    payload = {
+        "bank_code": "bnc",
+        "quarter_previous": "2024_t4",
+        "quarter_current": "2025_t4",
+        "section_comparisons": [
+            {
+                "section_key": "gestion_risques",
+                "section_title": "Gestion des risques",
+                "all_block_comparisons": [
+                    {
+                        "diff_type": "added",
+                        "change_summary": "Ajout d'un contrôle contre les ransomwares.",
+                        "source_text_t1": "",
+                        "source_text_t2": "La banque ajoute un contrôle contre les ransomwares.",
+                        "evidence_t2": {"pages": [22]},
+                        "genai_triage": {
+                            "is_relevant": True,
+                            "themes_amf": ["RISQUE_EMERGENT", "RISQUE_DONNEES"],
+                            "impact_level": "MAJEUR",
+                            "changement_posture": "RENFORCEMENT",
+                            "nouvelle_idee": True,
+                            "nouvelle_idee_justification": "OUI - contrôle cyber ajouté.",
+                        },
+                    }
+                ],
+            }
+        ],
+    }
+
+    raw = generate_text_comparison_excel(payload, output_path=None)
+    ws = load_workbook(io.BytesIO(raw))["Analyse complète"]
+
+    assert ws["A2"].value == "La banque ajoute un contrôle contre les ransomwares."
+    assert ws["B2"].value is None
+    assert ws["C2"].value == "7 — Cyberrisque"
+    assert "Risque émergent" in ws["D2"].value
+    assert ws["H2"].value == "Ajout d'un contrôle contre les ransomwares."
+    assert ws["I2"].value == "Oui"
+    assert ws["J2"].value == "contrôle cyber ajouté."
+    assert ws["K2"].value == "22"
+    assert ws["M2"].value == "À revoir"

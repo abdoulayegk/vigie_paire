@@ -20,6 +20,7 @@ from vigilance.amf_taxonomy import (
 )
 from vigilance.quarter_utils import quarter_label_from_payload
 from vigilance.text_comparison.justification import build_text_triage_justification
+from vigilance.vigie_columns import build_text_vigie_display_row
 
 # ---------------------------------------------------------------------------
 # Constantes d'affichage
@@ -737,7 +738,7 @@ def _build_side_by_side(
 # ---------------------------------------------------------------------------
 
 
-def _build_change_card(
+def _build_legacy_change_card(
     change: dict[str, Any],
     section_title: str,
     *,
@@ -763,6 +764,15 @@ def _build_change_card(
         return None  # type: ignore[return-value]
 
     is_relevant = bool(triage.get("is_relevant", False))
+    alignment_review_required = bool(triage.get("alignment_review_required", False))
+    alignment_review_reason = str(triage.get("alignment_review_reason") or "").strip()
+    alignment_decision = str(
+        triage.get("alignment_decision") or change.get("alignment_decision") or ""
+    ).strip().lower()
+    alignment_rationale = str(
+        triage.get("alignment_rationale") or change.get("alignment_rationale") or ""
+    ).strip()
+    semantic_text_move = alignment_decision == "moved_text"
     impact_level = (triage.get("impact_level") or "MINEUR").upper()
     impact_it_justification = str(
         triage.get("impact_it_justification") or ""
@@ -818,29 +828,41 @@ def _build_change_card(
     change_segments = list(triage.get("change_segments") or [])
 
     # Couleur border-left dérivée du niveau d'impact
-    border_color = {"MAJEUR": "danger", "MODERE": "warning"}.get(impact_level, "secondary")
+    border_color = (
+        "warning"
+        if alignment_review_required
+        else {"MAJEUR": "danger", "MODERE": "warning"}.get(impact_level, "secondary")
+    )
 
     # Ligne 1 — badges (nouvelle idée + impact + action)
     impact_lbl, impact_color = _IMPACT_BADGE.get(impact_level, (impact_level, "secondary"))
     action_lbl, action_color = _ACTION_BADGE.get(action, (action.capitalize(), "secondary"))
 
     badge_children: list = []
-    if nouvelle_idee:
-        badge_children.append(
-            dbc.Badge(
-                "Nouvelle idée",
-                color="primary",
-                className="me-1",
+    if alignment_review_required:
+        badge_children.append(_badge("Alignement à vérifier", "warning"))
+    elif semantic_text_move:
+        badge_children.append(_badge("Texte déplacé", "secondary"))
+    else:
+        if alignment_decision == "distinct_disclosures":
+            badge_children.append(_badge("Divulgations distinctes", "info"))
+        if nouvelle_idee:
+            badge_children.append(
+                dbc.Badge(
+                    "Nouvelle idée",
+                    color="primary",
+                    className="me-1",
+                )
             )
-        )
-    if not is_relevant:
+    if not is_relevant and not alignment_review_required and not semantic_text_move:
         badge_children.append(_badge("Non pertinent", "secondary"))
-    badge_children.append(_badge(impact_lbl, impact_color))
-    posture_badge = _POSTURE_BADGE.get(changement_posture)
-    if posture_badge:
-        badge_children.append(_badge(*posture_badge))
-    if action and action != "aucune":
-        badge_children.append(_badge(action_lbl, action_color))
+    if not alignment_review_required and not semantic_text_move:
+        badge_children.append(_badge(impact_lbl, impact_color))
+        posture_badge = _POSTURE_BADGE.get(changement_posture)
+        if posture_badge:
+            badge_children.append(_badge(*posture_badge))
+        if action and action != "aucune":
+            badge_children.append(_badge(action_lbl, action_color))
 
     badge_row = html.Div(
         badge_children,
@@ -894,27 +916,59 @@ def _build_change_card(
     # source affiché dans le side-by-side avec les highlights AMF v2.
     evidence_block = None
 
-    observed_block = _build_observed_block(
-        impact_level=impact_level,
-        impact_domain=impact_domain,
-        justification_sections=justification_sections,
-        change_summary=_localize_period_aliases(
-            str(change.get("change_summary") or "").strip(),
-            current_quarter_label=current_quarter_label,
-            previous_quarter_label=previous_quarter_label,
-        ),
-    )
+    if alignment_review_required or semantic_text_move:
+        observed_block = html.Div(
+            [
+                html.Div(
+                    "Alignement source à confirmer" if alignment_review_required else "Déplacement sémantique confirmé",
+                    className=(
+                        "small fw-semibold text-warning mb-1"
+                        if alignment_review_required
+                        else "small fw-semibold text-secondary mb-1"
+                    ),
+                ),
+                html.P(
+                    (
+                        alignment_review_reason
+                        or "Les passages restent ambigus; aucune conclusion automatique n'est affichée."
+                    )
+                    if alignment_review_required
+                    else (
+                        alignment_rationale
+                        or "Le premier appel GPT a confirmé que la divulgation a seulement été déplacée."
+                    ),
+                    className="small mb-0",
+                ),
+            ],
+            className=(
+                "border-start border-warning border-3 ps-2 mb-3"
+                if alignment_review_required
+                else "border-start border-secondary border-3 ps-2 mb-3"
+            ),
+        )
+        posture_proof_block, ai_details = None, None
+    else:
+        observed_block = _build_observed_block(
+            impact_level=impact_level,
+            impact_domain=impact_domain,
+            justification_sections=justification_sections,
+            change_summary=_localize_period_aliases(
+                str(change.get("change_summary") or "").strip(),
+                current_quarter_label=current_quarter_label,
+                previous_quarter_label=previous_quarter_label,
+            ),
+        )
 
-    posture_proof_block, ai_details = _build_ai_details(
-        impact_it_justification=impact_it_justification,
-        impact_level=impact_level,
-        impact_domain=impact_domain,
-        justification_sections=justification_sections,
-        changement_posture=changement_posture,
-        justification_posture=justification_posture,
-        statut_mise_en_oeuvre=statut_mise_en_oeuvre,
-        confiance_posture=confiance_posture,
-    )
+        posture_proof_block, ai_details = _build_ai_details(
+            impact_it_justification=impact_it_justification,
+            impact_level=impact_level,
+            impact_domain=impact_domain,
+            justification_sections=justification_sections,
+            changement_posture=changement_posture,
+            justification_posture=justification_posture,
+            statut_mise_en_oeuvre=statut_mise_en_oeuvre,
+            confiance_posture=confiance_posture,
+        )
 
     review = change.get("_analyst_review") or {}
     review_status = str(review.get("status") or "").strip().lower()
@@ -997,6 +1051,272 @@ def _build_change_card(
     )
 
 
+def _compact_field(label: str, value: str, *, width: int = 3) -> dbc.Col:
+    """Affiche un champ de lecture rapide dans l'en-tête de carte."""
+    return dbc.Col(
+        [
+            html.Div(label, className="small fw-semibold text-muted mb-1"),
+            html.Div(value or "—", className="small"),
+        ],
+        md=width,
+        className="mb-2",
+    )
+
+
+def _build_compact_review_controls(
+    *,
+    change_id: str,
+    review_status: str,
+    review_comment: str,
+) -> html.Div:
+    review_badge = None
+    if review_status in _TEXT_REVIEW_STATUS_BADGES:
+        review_label, review_color = _TEXT_REVIEW_STATUS_BADGES[review_status]
+        review_badge = _badge(f"Décision : {review_label}", review_color)
+    return html.Div(
+        [
+            html.Div(
+                [
+                    html.Span(
+                        "Revue analyste",
+                        className="fw-semibold small text-muted me-2",
+                    ),
+                    review_badge,
+                ],
+                className="mb-2 d-flex align-items-center flex-wrap",
+            ),
+            dcc.Textarea(
+                id={"type": "text-review-comment", "change_id": change_id},
+                value=review_comment,
+                placeholder="Commentaire analyste (optionnel)...",
+                className="form-control form-control-sm mb-2",
+                style={"minHeight": "64px", "resize": "vertical"},
+            ),
+            html.Div(
+                [
+                    dbc.Button(
+                        "Valider",
+                        id={
+                            "type": "text-review-action",
+                            "change_id": change_id,
+                            "action": "approved",
+                        },
+                        color="success",
+                        size="sm",
+                        outline=review_status != "approved",
+                        className="me-2",
+                        disabled=not change_id,
+                    ),
+                    dbc.Button(
+                        "Rejeter",
+                        id={
+                            "type": "text-review-action",
+                            "change_id": change_id,
+                            "action": "rejected",
+                        },
+                        color="danger",
+                        size="sm",
+                        outline=review_status != "rejected",
+                        className="me-2",
+                        disabled=not change_id,
+                    ),
+                    dbc.Button(
+                        "Passer",
+                        id={
+                            "type": "text-review-action",
+                            "change_id": change_id,
+                            "action": "skipped",
+                        },
+                        color="secondary",
+                        size="sm",
+                        outline=review_status != "skipped",
+                        disabled=not change_id,
+                    ),
+                ],
+                className="d-flex flex-wrap",
+            ),
+        ],
+        className="mt-3 pt-3 border-top",
+    )
+
+
+def _build_change_card(
+    change: dict[str, Any],
+    section_title: str,
+    *,
+    current_quarter_label: str = "Trimestre courant",
+    previous_quarter_label: str = "Trimestre précédent",
+) -> dbc.Card:
+    """Carte compacte centrée sur la validation rapide de l'analyste."""
+    triage = change.get("genai_triage") or {}
+    diff_type = str(change.get("diff_type") or "")
+    if diff_type == "unchanged" or triage.get("source") == "skip":
+        return None  # type: ignore[return-value]
+
+    display = build_text_vigie_display_row(
+        change,
+        section_title=section_title,
+    )
+    display["what_changed"] = _localize_period_aliases(
+        str(display["what_changed"]),
+        current_quarter_label=current_quarter_label,
+        previous_quarter_label=previous_quarter_label,
+    )
+    display["relevance_reason"] = _localize_period_aliases(
+        str(display["relevance_reason"]),
+        current_quarter_label=current_quarter_label,
+        previous_quarter_label=previous_quarter_label,
+    )
+
+    change_id = str(change.get("change_id") or "").strip()
+    is_relevant = bool(triage.get("is_relevant", False))
+    nouvelle_idee = bool(display["nouvelle_idee"])
+    review = change.get("_analyst_review") or {}
+    review_status = str(review.get("status") or "").strip().lower()
+    review_comment = str(review.get("comment") or "").strip()
+
+    evidence_t1 = change.get("evidence_t1") or {}
+    evidence_t2 = change.get("evidence_t2") or {}
+    page_t1 = ", ".join(str(page) for page in evidence_t1.get("pages") or [] if page)
+    page_t2 = ", ".join(str(page) for page in evidence_t2.get("pages") or [] if page)
+    page_label = page_t2 or page_t1
+    text_t1 = str(
+        change.get("source_text_t1") or change.get("semantic_text_t1") or ""
+    ).strip()
+    text_t2 = str(
+        change.get("source_text_t2") or change.get("semantic_text_t2") or ""
+    ).strip()
+    source_evidence = _build_side_by_side(
+        text_t1=text_t1,
+        text_t2=text_t2,
+        page_t1=page_t1,
+        page_t2=page_t2,
+        change_segments=list(triage.get("change_segments") or []),
+        diff_type=diff_type,
+        current_quarter_label=current_quarter_label,
+        previous_quarter_label=previous_quarter_label,
+    )
+    evidence_details = html.Details(
+        [
+            html.Summary(
+                "Voir les preuves T1/T2",
+                className="fw-semibold small text-primary",
+                style={"cursor": "pointer"},
+            ),
+            html.Div(source_evidence, className="pt-3"),
+        ],
+        open=False,
+        className="mt-3 border rounded bg-light p-2",
+    )
+
+    alignment_review_required = bool(triage.get("alignment_review_required"))
+    alignment_note = None
+    if alignment_review_required:
+        alignment_note = dbc.Alert(
+            str(
+                triage.get("alignment_review_reason")
+                or "L’alignement des passages doit être confirmé avant le triage."
+            ),
+            color="warning",
+            className="small py-2 mb-3",
+        )
+
+    header_badges = html.Div(
+        [
+            _badge(
+                "Nouvelle idée : Oui" if nouvelle_idee else "Nouvelle idée : Non",
+                "primary" if nouvelle_idee else "secondary",
+            ),
+            _badge(
+                "Pertinent" if is_relevant else "Non pertinent",
+                "success" if is_relevant else "secondary",
+            ),
+        ],
+        className="mb-2 d-flex flex-wrap align-items-center",
+    )
+
+    compact_grid = dbc.Row(
+        [
+            _compact_field("Catégorie principale", str(display["category"]), width=3),
+            _compact_field(
+                "Étiquettes secondaires",
+                str(display["secondary_labels"]),
+                width=3,
+            ),
+            _compact_field("Section du rapport", str(display["section"]), width=3),
+            _compact_field(
+                "Sous-section",
+                str(display["subsection"]),
+                width=3,
+            ),
+            _compact_field(
+                "Type de changement",
+                str(display["change_type"]),
+                width=3,
+            ),
+            _compact_field(
+                "Nouvelle idée à surveiller ?",
+                str(display["nouvelle_idee_label"]),
+                width=3,
+            ),
+            _compact_field(
+                "Pages",
+                page_label,
+                width=3,
+            ),
+        ],
+        className="g-2 border-bottom mb-3",
+    )
+
+    what_changed = html.Div(
+        [
+            html.Div(
+                "Ce qui change",
+                className="small fw-semibold text-primary mb-1",
+            ),
+            html.P(
+                str(display["what_changed"]),
+                className="mb-0 fw-semibold",
+            ),
+        ],
+        className="border-start border-primary border-3 ps-3 mb-3",
+    )
+    relevance_reason = html.Div(
+        [
+            html.Div(
+                "Pourquoi c’est pertinent",
+                className="small fw-semibold text-muted mb-1",
+            ),
+            html.P(str(display["relevance_reason"]), className="small mb-0"),
+        ],
+        className="mb-2",
+    )
+    review_controls = _build_compact_review_controls(
+        change_id=change_id,
+        review_status=review_status,
+        review_comment=review_comment,
+    )
+
+    border_color = "warning" if alignment_review_required else (
+        "primary" if nouvelle_idee else "secondary"
+    )
+    return dbc.Card(
+        dbc.CardBody(
+            [
+                header_badges,
+                compact_grid,
+                alignment_note,
+                what_changed,
+                relevance_reason,
+                evidence_details,
+                review_controls,
+            ],
+            className="p-3",
+        ),
+        className=f"mb-3 border-start border-{border_color} border-3",
+    )
+
+
 # ---------------------------------------------------------------------------
 # Executive banner
 # ---------------------------------------------------------------------------
@@ -1009,50 +1329,35 @@ def _build_executive_banner(
     q_prev: str,
     auditable_changes: int | None = None,
 ) -> dbc.Alert:
-    """Bannière exécutive avec résumé, compteurs et bouton export."""
-    overview = _build_executive_overview_text(global_summary, auditable_changes)
-    pertinence = (global_summary.get("pertinence_globale") or "FAIBLE").upper()
+    """Bannière compacte avec périmètre de revue et export."""
     counts = global_summary.get("counts") or {}
-    by_impact = counts.get("by_impact") or {}
-
-    pertinence_color = {"ELEVEE": "danger", "MOYENNE": "warning", "FAIBLE": "success"}.get(pertinence, "secondary")
-    pertinence_label = {"ELEVEE": "Élevée", "MOYENNE": "Moyenne", "FAIBLE": "Faible"}.get(pertinence, pertinence)
-
-    # Compteurs
-    n_maj = by_impact.get("MAJEUR", 0)
-    n_mod = by_impact.get("MODERE", 0)
-    n_auditable = auditable_changes if auditable_changes is not None else counts.get("total", 0)
+    n_auditable = (
+        auditable_changes
+        if auditable_changes is not None
+        else counts.get("total", 0)
+    )
 
     return dbc.Alert(
         [
-            # Ligne 1 : banque + trimestres + badge pertinence
             html.Div(
                 [
-                    html.Strong(f"{bank} · {q_cur} vs {q_prev}  "),
-                    _badge(f"Pertinence : {pertinence_label}", pertinence_color),
-                ],
-                className="mb-2 d-flex align-items-center flex-wrap",
-            ),
-            # Ligne 2 : résumé exécutif
-            html.P(overview, className="mb-2 small") if overview else None,
-            # Ligne 3 : compteurs + bouton Excel
-            html.Div(
-                [
-                    _badge(f"{n_maj} Majeur(s)", "danger") if n_maj else None,
-                    _badge(f"{n_mod} Modéré(s)", "warning") if n_mod else None,
-                    _badge(f"{n_auditable} changement(s) textuel(s)", "primary") if n_auditable else None,
+                    html.Strong(f"{bank} · {q_cur} vs {q_prev}"),
+                    _badge(
+                        f"{n_auditable} changement(s) à examiner",
+                        "primary",
+                    ),
                     dbc.Button(
-                        "↓ Télécharger Excel",
+                        "Télécharger Excel",
                         id="btn-download-text-excel",
                         color="light",
                         size="sm",
                         className="ms-auto border",
                     ),
                 ],
-                className="d-flex align-items-center flex-wrap gap-1 mt-1",
+                className="d-flex align-items-center flex-wrap gap-2",
             ),
         ],
-        color=pertinence_color,
+        color="light",
         className="mb-3",
     )
 
@@ -1103,12 +1408,14 @@ def _empty_text_state() -> list[html.Div]:
 
 def build_filtered_text_cards(
     text_data: dict[str, Any],
-    filter_section: str | None,
-    filter_impact: str | None,
-    filter_action: str | None,
+    filter_section: str | None = None,
+    filter_category: str | None = None,
+    filter_nouvelle_idee: str | None = None,
+    filter_review: str | None = None,
+    filter_search: str | None = None,
 ) -> tuple[list[Any], str]:
     """Construit les cartes texte selon les filtres courants."""
-    items: list[tuple[tuple[int, int, str, str, str], dict[str, Any], str]] = []
+    items: list[tuple[tuple[int, int, int, str, str, str], dict[str, Any], str]] = []
     current_label = quarter_label_from_payload(text_data, "current")
     previous_label = quarter_label_from_payload(text_data, "previous")
     for sec in text_data.get("section_comparisons") or []:
@@ -1124,9 +1431,14 @@ def build_filtered_text_cards(
                 continue
             triage = change.get("genai_triage") or {}
 
-            impact = (triage.get("impact_level") or "MINEUR").upper()
-            action = (triage.get("action_requise") or "aucune").lower()
+            display = build_text_vigie_display_row(
+                change,
+                section_title=title,
+            )
             nouvelle_idee = bool(triage.get("nouvelle_idee", False))
+            review_status = str(
+                (change.get("_analyst_review") or {}).get("status") or "pending"
+            ).lower()
             pages = change.get("pages_t2") or change.get("pages_t1") or []
             page_sort = ""
             if pages:
@@ -1135,15 +1447,35 @@ def build_filtered_text_cards(
                 except (TypeError, ValueError):
                     page_sort = str(pages[0])
 
-            if filter_impact and impact != filter_impact.upper():
+            if filter_category and display["category"] != filter_category:
                 continue
-            if filter_action and action != filter_action.lower():
+            if filter_nouvelle_idee in {"yes", "no"}:
+                expected = filter_nouvelle_idee == "yes"
+                if nouvelle_idee is not expected:
+                    continue
+            if filter_review and review_status != filter_review.lower():
                 continue
+            if filter_search:
+                searchable = " ".join(
+                    str(value or "")
+                    for value in (
+                        display["category"],
+                        display["secondary_labels"],
+                        display["section"],
+                        display["subsection"],
+                        display["what_changed"],
+                        display["relevance_reason"],
+                        change.get("source_text_t1"),
+                        change.get("source_text_t2"),
+                    )
+                ).lower()
+                if filter_search.strip().lower() not in searchable:
+                    continue
 
             sort_key = (
-                0 if triage.get("is_relevant", False) else 1,
-                _IMPACT_ORDER.get(impact, 99),
+                0 if review_status == "pending" else 1,
                 0 if nouvelle_idee else 1,
+                0 if triage.get("is_relevant", False) else 1,
                 title,
                 page_sort,
                 diff_type,
@@ -1174,10 +1506,11 @@ def build_filtered_text_cards(
 
 def _build_filter_bar(
     section_options: list[dict],
+    category_options: list[dict],
     default_section: str | None,
     initial_count: str,
 ) -> html.Div:
-    """Barre de filtres : section / impact / action + compteur."""
+    """Barre de filtres adaptée aux huit champs analyste."""
     return html.Div(
         dbc.Row(
             [
@@ -1189,40 +1522,57 @@ def _build_filter_bar(
                         placeholder="Toutes les sections",
                         clearable=True,
                     ),
-                    md=4,
+                    md=3,
                 ),
                 dbc.Col(
                     dcc.Dropdown(
-                        id="text-filter-impact",
-                        options=[
-                            {"label": "Majeur", "value": "MAJEUR"},
-                            {"label": "Modéré", "value": "MODERE"},
-                            {"label": "Mineur", "value": "MINEUR"},
-                        ],
-                        placeholder="Tous les impacts",
+                        id="text-filter-category",
+                        options=category_options,
+                        placeholder="Toutes les catégories",
                         clearable=True,
                     ),
                     md=3,
                 ),
                 dbc.Col(
                     dcc.Dropdown(
-                        id="text-filter-action",
+                        id="text-filter-new-idea",
                         options=[
-                            {"label": "Revue prioritaire", "value": "revue_prioritaire"},
-                            {"label": "Investigation", "value": "investigation"},
-                            {"label": "Confirmation", "value": "confirmation"},
-                            {"label": "Information", "value": "information"},
-                            {"label": "Aucune", "value": "aucune"},
+                            {"label": "Nouvelle idée : Oui", "value": "yes"},
+                            {"label": "Nouvelle idée : Non", "value": "no"},
                         ],
-                        placeholder="Toutes les actions",
+                        placeholder="Toutes les idées",
                         clearable=True,
                     ),
-                    md=3,
+                    md=2,
+                ),
+                dbc.Col(
+                    dcc.Dropdown(
+                        id="text-filter-review",
+                        options=[
+                            {"label": "À revoir", "value": "pending"},
+                            {"label": "Validé", "value": "approved"},
+                            {"label": "Rejeté", "value": "rejected"},
+                            {"label": "Passé", "value": "skipped"},
+                        ],
+                        placeholder="Tous les statuts",
+                        clearable=True,
+                    ),
+                    md=2,
                 ),
                 dbc.Col(
                     html.Span(initial_count, id="text-filter-count", className="small text-muted align-self-center"),
                     md=2,
                     className="d-flex",
+                ),
+                dbc.Col(
+                    dcc.Input(
+                        id="text-filter-search",
+                        type="search",
+                        placeholder="Rechercher dans les changements...",
+                        debounce=True,
+                        className="form-control",
+                    ),
+                    md=12,
                 ),
             ],
             className="g-2 align-items-center",
@@ -1270,6 +1620,7 @@ def build_text_analysis_tab(text_data: dict[str, Any] | None) -> html.Div:
 
     # Options de filtre section dynamiques
     section_options = []
+    categories: set[str] = set()
     seen: set[str] = set()
     for sec in section_comparisons:
         key = sec.get("section_key", "")
@@ -1277,11 +1628,26 @@ def build_text_analysis_tab(text_data: dict[str, Any] | None) -> html.Div:
         if key and key not in seen:
             section_options.append({"label": title, "value": key})
             seen.add(key)
+        for change in sec.get("all_block_comparisons") or []:
+            if change.get("diff_type") == "unchanged":
+                continue
+            display = build_text_vigie_display_row(
+                change,
+                section_title=title,
+            )
+            if display["category"]:
+                categories.add(str(display["category"]))
+    category_options = [
+        {"label": category, "value": category}
+        for category in sorted(categories)
+    ]
 
     default_section = _default_text_section(section_comparisons)
     initial_cards, initial_count = build_filtered_text_cards(
         text_data,
         default_section,
+        None,
+        None,
         None,
         None,
     )
@@ -1295,7 +1661,12 @@ def build_text_analysis_tab(text_data: dict[str, Any] | None) -> html.Div:
                 q_prev,
                 auditable_changes=_count_auditable_text_changes(section_comparisons),
             ),
-            _build_filter_bar(section_options, default_section, initial_count),
+            _build_filter_bar(
+                section_options,
+                category_options,
+                default_section,
+                initial_count,
+            ),
             html.Div(initial_cards, id="text-cards-container"),
         ],
         className="pt-3",

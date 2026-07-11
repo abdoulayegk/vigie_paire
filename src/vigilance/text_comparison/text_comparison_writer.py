@@ -13,6 +13,7 @@ from vigilance.text_comparison.justification import (
     build_text_triage_justification,
     is_structured_text_triage_justification,
 )
+from vigilance.vigie_columns import summarize_change
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +40,11 @@ def _fallback_change_segments(change: dict[str, Any]) -> list[dict[str, str]]:
 
 def _normalize_text_change(change: dict[str, Any]) -> None:
     """Garantit les champs nécessaires au rendu analyste de l'analyse textuelle."""
+    change["what_changed"] = summarize_change(
+        change,
+        previous_text=str(change.get("source_text_t1") or ""),
+        current_text=str(change.get("source_text_t2") or ""),
+    )
     triage = change.get("genai_triage")
     if not isinstance(triage, dict) or not triage:
         return

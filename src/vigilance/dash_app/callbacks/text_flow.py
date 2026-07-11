@@ -39,15 +39,31 @@ def render_text_analysis(text_data, show_results):
     Output("text-filter-count", "children"),
     Input("store-text-comparison", "data"),
     Input("text-filter-section", "value"),
-    Input("text-filter-impact", "value"),
-    Input("text-filter-action", "value"),
+    Input("text-filter-category", "value"),
+    Input("text-filter-new-idea", "value"),
+    Input("text-filter-review", "value"),
+    Input("text-filter-search", "value"),
     prevent_initial_call=True,
 )
-def filter_text_cards(text_data, filter_section, filter_impact, filter_action):
+def filter_text_cards(
+    text_data,
+    filter_section=None,
+    filter_category=None,
+    filter_nouvelle_idee=None,
+    filter_review=None,
+    filter_search=None,
+):
     """Filtre et trie les cartes analytiques selon les dropdowns."""
     if not text_data:
         raise PreventUpdate
-    return build_filtered_text_cards(text_data, filter_section, filter_impact, filter_action)
+    return build_filtered_text_cards(
+        text_data,
+        filter_section,
+        filter_category,
+        filter_nouvelle_idee,
+        filter_review,
+        filter_search,
+    )
 
 
 @callback(

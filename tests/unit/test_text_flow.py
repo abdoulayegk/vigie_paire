@@ -5,7 +5,7 @@ from typing import Any
 from dash.development.base_component import Component
 
 from vigilance.dash_app.callbacks.text_flow import download_text_excel, filter_text_cards
-from vigilance.dash_app.layouts.page_text_analysis import build_text_analysis_tab
+from vigilance.dash_app.layouts.page_text_analysis import _build_change_card, build_text_analysis_tab
 
 
 def _flat_text(node: object) -> str:
@@ -34,6 +34,58 @@ def _find_by_id(node: object, target_id: str) -> Component:
         elif children is not None:
             return _find_by_id(children, target_id)
     raise LookupError(target_id)
+
+
+def test_text_change_card_displays_json_scope_texts() -> None:
+    chunk_card = _build_change_card(
+        {
+            "change_id": "chunk",
+            "diff_type": "modified",
+            "source_scope": "chunk",
+            "source_text_t1": "Ancien chunk affiché.",
+            "source_text_t2": "Nouveau chunk affiché.",
+            "change_summary": "Modification chunkée.",
+            "genai_triage": {"is_relevant": True, "impact_level": "MINEUR", "themes_amf": []},
+        },
+        "Gestion des risques",
+    )
+    subsection_card = _build_change_card(
+        {
+            "change_id": "subsection",
+            "diff_type": "added",
+            "source_scope": "subsection",
+            "source_text_t1": "",
+            "source_text_t2": "Body complet ajouté.\n\nDeuxième paragraphe ajouté.",
+            "change_summary": "Sous-section ajoutée.",
+            "genai_triage": {"is_relevant": True, "impact_level": "MINEUR", "themes_amf": []},
+        },
+        "Gestion des risques",
+    )
+    heading_card = _build_change_card(
+        {
+            "change_id": "heading",
+            "diff_type": "renamed",
+            "source_scope": "heading",
+            "source_text_t1": "Ancien titre",
+            "source_text_t2": "Nouveau titre",
+            "change_summary": "Sous-section renommée.",
+            "genai_triage": {"is_relevant": True, "impact_level": "MINEUR", "themes_amf": []},
+        },
+        "Gestion des risques",
+    )
+
+    chunk_text = _flat_text(chunk_card)
+    subsection_text = _flat_text(subsection_card)
+    heading_text = _flat_text(heading_card)
+
+    assert "Nouveau" in chunk_text
+    assert "chunk affiché." in chunk_text
+    assert "Body complet ajouté" not in chunk_text
+    assert "Body complet ajouté" in subsection_text
+    assert "Deuxième paragraphe ajouté." in subsection_text
+    assert "Ancien" in heading_text
+    assert "titre" in heading_text
+    assert "Nouveau" in heading_text
 
 
 def test_download_text_excel_reload_latest_payload_before_export(monkeypatch) -> None:
@@ -82,10 +134,10 @@ def test_download_text_excel_reload_latest_payload_before_export(monkeypatch) ->
     assert response["filename"] == "veille_textuelle_TD_T1_2026.xlsx"
 
 
-def test_filter_text_cards_sorts_by_impact_then_new_idea_and_keeps_non_pertinent() -> None:
+def test_filter_text_cards_sorts_new_ideas_first_and_keeps_non_pertinent() -> None:
     """Le filtrage Dash garde les changements non pertinents pour revue humaine.
 
-    Tri : impact d'abord, puis nouvelle idée. Les is_relevant=False
+    Tri : nouvelle idée d'abord. Les is_relevant=False
     restent visibles afin que l'analyste puisse contester le triage.
     """
     text_data = {
@@ -173,9 +225,9 @@ def test_filter_text_cards_sorts_by_impact_then_new_idea_and_keeps_non_pertinent
     first_text = _flat_text(cards[0])
     second_text = _flat_text(cards[1])
     third_text = _flat_text(cards[2])
-    # Tri : impact d'abord, puis nouvelle idée
-    assert "Majeur existant" in first_text
-    assert "Nouvelle idée" in second_text
+    # Tri compact : nouvelle idée, puis autres changements pertinents.
+    assert "Nouvelle idée" in first_text
+    assert "Majeur existant" in second_text
     assert "Variation chiffree" in third_text
     assert "Non pertinent" in third_text
 
@@ -281,11 +333,9 @@ def test_text_analysis_banner_uses_auditable_text_total_not_retained_total() -> 
     assert "BNC · T2 2025 vs T1 2025" in text
     assert "Courant - T2 2025" in text
     assert "Précédent - T1 2025" in text
-    assert "27 changement(s) textuel(s)" in text
-    assert "27 changements textuels détectés" in text
-    assert "17 changements substantiels" in text
-    assert "4 majeurs et 13 modérés" in text
-    assert "Les autres changements restent accessibles" in text
+    assert "27 changement(s) à examiner" in text
+    assert "Majeur" not in text
+    assert "Modéré" not in text
     assert "Exemple brut à ne pas afficher" not in text
     assert "retenu(s) pour revue experte" not in text
     assert "17 pertinents / 32 analysés" not in text
@@ -329,6 +379,10 @@ def test_text_analysis_tab_selects_first_auditable_section_by_default() -> None:
 
     view = build_text_analysis_tab(text_data)
     section_dropdown = _find_by_id(view, "text-filter-section")
+    _find_by_id(view, "text-filter-category")
+    _find_by_id(view, "text-filter-new-idea")
+    _find_by_id(view, "text-filter-review")
+    _find_by_id(view, "text-filter-search")
     text = _flat_text(view)
 
     assert section_dropdown.value == "gestion_capital"
@@ -383,6 +437,6 @@ def test_text_analysis_replaces_t1_t2_aliases_with_selected_quarters() -> None:
     assert "BNC · T4 2026 vs T4 2025" in rendered
     assert "Courant - T4 2026" in rendered
     assert "Précédent - T4 2025" in rendered
-    assert "Le T4 2026 ajoute une précision absente du T4 2025" in rendered
-    assert "Comparer la posture entre T4 2025 et T4 2026" in rendered
-    assert "Le T2 ajoute une précision absente du T1" not in rendered
+    assert "Le T4 2026 précise une information qui était implicite au T4 2025" in rendered
+    assert "La mention au T4 2026 modifie la lecture du risque" in rendered
+    assert "Le T2 précise une information qui était implicite au T1" not in rendered

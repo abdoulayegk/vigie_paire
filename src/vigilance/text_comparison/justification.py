@@ -27,6 +27,69 @@ def is_structured_text_triage_justification(value: Any) -> bool:
     return all(marker in text for marker in _REQUIRED_JUSTIFICATION_MARKERS)
 
 
+def synthesize_triage_justification_from_payload(triage: dict[str, Any]) -> str:
+    """Reconstruit une justification AMF structurée à partir des champs de triage."""
+    from vigilance.amf_taxonomy import EXCLUSION_REASONS_DESCRIPTIONS, THEMES_AMF_ANALYST_SUBJECTS
+
+    nouvelle_idee = bool(triage.get("nouvelle_idee", False))
+    is_relevant = bool(triage.get("is_relevant", False))
+    prefix = "OUI" if nouvelle_idee else "NON"
+    yes_no = "Oui" if nouvelle_idee else "Non"
+
+    subject_parts: list[str] = []
+    for theme in triage.get("themes_amf") or []:
+        label = THEMES_AMF_ANALYST_SUBJECTS.get(str(theme))
+        if label and label not in subject_parts:
+            subject_parts.append(label)
+    subject = ", ".join(subject_parts) or "Changement textuel détecté dans la divulgation"
+
+    explanation = _clean(triage.get("explanation"))
+    exclusion_code = str(triage.get("exclusion_reason") or "").strip()
+    exclusion_label = EXCLUSION_REASONS_DESCRIPTIONS.get(exclusion_code, exclusion_code)
+
+    if is_relevant:
+        ce_qui_change = (
+            explanation
+            or "Le rapport courant présente une information nouvelle ou reformulée par rapport "
+            "au rapport précédent sur ce sujet."
+        )
+        pertinence = (
+            explanation
+            or (
+                "Ce changement met l'accent sur un sujet pertinent pour la vigie, car il peut "
+                "modifier la lecture réglementaire, la comparabilité des divulgations entre pairs "
+                "ou le niveau de détail exposé par la banque sur ce thème."
+            )
+        )
+    else:
+        ce_qui_change = (
+            explanation
+            or "Le texte diffère entre T1 et T2, mais le changement ne constitue pas un signal "
+            "métier prioritaire pour la vigie."
+        )
+        pertinence = (
+            explanation
+            or (
+                "Ce changement n'est pas retenu comme nouvelle idée, car il relève principalement de "
+                f"{exclusion_label or 'une variation ou reformulation sans impact réglementaire direct'}."
+            )
+        )
+
+    surveillance_subject = subject.split(",")[0].strip() or "Ce point"
+    surveillance = (
+        f"{surveillance_subject} — Ce point résume l'élément à conserver dans la lecture de vigie "
+        "et son importance relative pour la surveillance des divulgations de la banque."
+    )
+
+    return (
+        f"{prefix} — Nouvel élément à surveiller : {yes_no}.\n\n"
+        f"Sujet détecté : {subject}.\n\n"
+        f"Ce qui change : {_sentence(ce_qui_change)}\n\n"
+        f"Pertinence métier : {_sentence(pertinence)}\n\n"
+        f"Point de surveillance : {_sentence(surveillance)}"
+    )
+
+
 def _sentence(value: str) -> str:
     """Termine une phrase sans doubler la ponctuation."""
     value = value.strip()
@@ -218,6 +281,43 @@ def _surveillance_point(
     )
 
 
+def build_compact_triage_justification(
+    change: dict[str, Any],
+    triage: dict[str, Any],
+) -> str:
+    """Construit localement le format historique depuis le triage compact."""
+    from vigilance.amf_taxonomy import THEMES_AMF_ANALYST_SUBJECTS
+    from vigilance.vigie_columns import summarize_change
+
+    nouvelle_idee = bool(triage.get("nouvelle_idee", False))
+    prefix = "OUI" if nouvelle_idee else "NON"
+    yes_no = "Oui" if nouvelle_idee else "Non"
+    subjects = [
+        THEMES_AMF_ANALYST_SUBJECTS.get(str(theme), str(theme))
+        for theme in triage.get("themes_amf") or []
+    ]
+    subject = ", ".join(dict.fromkeys(subjects)) or "Changement non retenu"
+    what_changed = summarize_change(
+        change,
+        previous_text=str(change.get("source_text_t1") or ""),
+        current_text=str(change.get("source_text_t2") or ""),
+    )
+    relevance_reason = _clean(triage.get("relevance_reason"))
+    if not relevance_reason:
+        relevance_reason = _fallback_pertinence(change, triage)
+    surveillance = (
+        f"{subject.split(',')[0]} — La décision reste disponible pour validation "
+        "avec les textes sources et les différences exactes."
+    )
+    return (
+        f"{prefix} — Nouvel élément à surveiller : {yes_no}.\n\n"
+        f"Sujet détecté : {_sentence(subject)}\n\n"
+        f"Ce qui change : {_sentence(what_changed)}\n\n"
+        f"Pertinence métier : {_sentence(relevance_reason)}\n\n"
+        f"Point de surveillance : {_sentence(surveillance)}"
+    )
+
+
 def build_text_triage_justification(change: dict[str, Any]) -> str:
     """Retourne la justification AMF v2 ou un fallback structure pour Dash/Excel.
 
@@ -229,6 +329,9 @@ def build_text_triage_justification(change: dict[str, Any]) -> str:
     triage = change.get("genai_triage") or {}
     if not isinstance(triage, dict) or not triage:
         return ""
+
+    if str(triage.get("relevance_reason") or "").strip():
+        return build_compact_triage_justification(change, triage)
 
     explicit = str(triage.get("nouvelle_idee_justification") or "").strip()
     if explicit:

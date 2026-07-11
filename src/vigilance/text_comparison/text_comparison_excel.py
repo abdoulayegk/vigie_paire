@@ -8,7 +8,10 @@ import re
 from pathlib import Path
 from typing import Any
 
-from vigilance.text_comparison.justification import build_text_triage_justification
+from vigilance.vigie_columns import (
+    build_text_vigie_display_row,
+    subsection_label,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -18,36 +21,28 @@ _SECTION_DISPLAY: dict[str, str] = {
     "gestion_reglementation": "Faits nouveaux en matière de réglementation",
 }
 
-_IMPACT_SORT_ORDER: dict[str, int] = {"MAJEUR": 0, "MODERE": 1, "MINEUR": 2}
-
-_CATEGORY_SORT_ORDER: dict[str, int] = {
-    "REGLEMENTAIRE": 0,
-    "RISQUE": 1,
-    "CAPITAL": 2,
-    "STRUCTURE": 3,
-    "NON_PERTINENT": 4,
-    "INCONNU": 5,
-}
-
 EXCEL_COLUMNS = [
-    "Titre",
+    "Texte exact du trimestre courant",
+    "Texte exact du trimestre précédent",
+    "Catégorie principale",
+    "Étiquettes secondaires",
+    "Section du rapport",
     "Sous-section",
-    "Page T1",
-    "Page T2",
     "Type de changement",
-    "Texte exact T1",
-    "Texte exact T2",
-    "Nouvelle idée ?",
-    "Justification IA",
-    "Commentaire analyste",
+    "Ce qui change",
+    "Nouvelle idée à surveiller ?",
+    "Justification de pertinence (IA)",
+    "Page du texte courant",
+    "Page du texte précédent",
+    "Statut analyste",
+    "Note analyste",
 ]
 
-_DIFF_TYPE_FR: dict[str, str] = {
-    "added": "Ajout",
-    "removed": "Suppression",
-    "modified": "Modification",
-    "renamed": "Renommage",
-    "unchanged": "Inchangé",
+_ANALYST_STATUS_FR: dict[str, str] = {
+    "approved": "Confirmé",
+    "rejected": "Écarté",
+    "skipped": "Ignoré",
+    "": "À revoir",
 }
 
 # ---------------------------------------------------------------------------
@@ -113,19 +108,8 @@ def _should_exclude(change: dict[str, Any]) -> bool:
 # ---------------------------------------------------------------------------
 
 def _subsection_label(change: dict[str, Any]) -> str:
-    """Retourne le nom lisible de la sous-section."""
-    heading = change.get("subsection_heading") or ""
-    if heading and heading not in ("__intro__", "full", ""):
-        return heading
-    # Fallback: extraire du change_id
-    change_id = change.get("change_id") or ""
-    section_key = change.get("section_key") or ""
-    prefix = section_key + "_"
-    if change_id.startswith(prefix):
-        slug = re.sub(r"_change_\d+$", "", change_id[len(prefix):])
-        if slug and slug != "full":
-            return slug.replace("_", " ").strip()
-    return ""
+    """Alias historique vers le helper partagé."""
+    return subsection_label(change)
 
 
 # ---------------------------------------------------------------------------
@@ -133,12 +117,11 @@ def _subsection_label(change: dict[str, Any]) -> str:
 # ---------------------------------------------------------------------------
 
 def _row_sort_key(row: dict[str, Any]) -> tuple:
-    """Cle de tri analyste : pertinence -> impact -> nouvelle idee."""
+    """Cle de tri analyste : pertinence -> nouvelle idee -> categorie."""
     return (
         0 if row.get("is_relevant") else 1,
-        _IMPACT_SORT_ORDER.get(str(row.get("impact_level") or "").upper(), 99),
         0 if row.get("nouvelle_idee_bool") else 1,
-        _CATEGORY_SORT_ORDER.get(str(row.get("category") or "").upper(), 5),
+        str(row.get("vigie_category") or ""),
         str(row.get("section_title") or ""),
         str(row.get("diff_type") or ""),
     )
@@ -149,22 +132,14 @@ def _row_sort_key(row: dict[str, Any]) -> tuple:
 # ---------------------------------------------------------------------------
 
 _FILL_NOUVELLE_IDEE = "D6E4F0"   # bleu clair — nouvelle idée
-_FILL_MAJEUR        = "FADADD"   # rouge clair
-_FILL_MODERE        = "FDEBD0"   # orange clair
 _FILL_MINEUR_REL    = "FEF9E7"   # jaune très pâle — MINEUR mais pertinent
-_FILL_MINEUR        = "FFFFFF"   # blanc — non pertinent ou MINEUR standard
 
 
 def _row_fill_color(row: dict[str, Any]) -> str | None:
-    """Retourne la couleur de remplissage Excel selon nouvelle_idee et impact."""
+    """Retourne la couleur de remplissage selon le signal analyste compact."""
     if row.get("nouvelle_idee_bool"):
         return _FILL_NOUVELLE_IDEE
-    level = str(row.get("impact_level") or "").upper()
-    if level == "MAJEUR":
-        return _FILL_MAJEUR
-    if level == "MODERE":
-        return _FILL_MODERE
-    if level == "MINEUR" and row.get("is_relevant"):
+    if row.get("is_relevant"):
         return _FILL_MINEUR_REL
     return None
 
@@ -192,7 +167,10 @@ def _collect_rows(text_comparison: dict[str, Any]) -> list[dict[str, Any]]:
             page_t1 = ", ".join(str(p) for p in (evidence_t1.get("pages") or []) if p)
             page_t2 = ", ".join(str(p) for p in (evidence_t2.get("pages") or []) if p)
 
-            justification = build_text_triage_justification(block_comp)
+            display = build_text_vigie_display_row(
+                block_comp,
+                section_title=section_title,
+            )
             analyst_review = block_comp.get("_analyst_review") or {}
             analyst_status = str(analyst_review.get("status") or "").strip().lower()
             ai_nouvelle_idee = bool(triage.get("nouvelle_idee", False))
@@ -209,7 +187,7 @@ def _collect_rows(text_comparison: dict[str, Any]) -> list[dict[str, Any]]:
                     "change_id": block_comp.get("change_id", ""),
                     "section_key": section_key,
                     "section_title": section_title,
-                    "subsection": _subsection_label(block_comp),
+                    "subsection": display["subsection"],
                     "page_t1": page_t1,
                     "page_t2": page_t2,
                     "source_text_t1": (block_comp.get("source_text_t1") or "").strip(),
@@ -218,9 +196,14 @@ def _collect_rows(text_comparison: dict[str, Any]) -> list[dict[str, Any]]:
                     "impact_level": str(triage.get("impact_level") or "MINEUR").upper(),
                     "category": str(triage.get("category") or "INCONNU").upper(),
                     "is_relevant": bool(triage.get("is_relevant", False)),
+                    "vigie_category": display["category"],
+                    "secondary_labels": display["secondary_labels"],
+                    "what_changed": display["what_changed"],
+                    "change_type": display["change_type"],
                     "nouvelle_idee_bool": nouvelle_idee == "Oui",
                     "nouvelle_idee": nouvelle_idee,
-                    "justification": justification,
+                    "justification": display["relevance_reason"],
+                    "analyst_status": _ANALYST_STATUS_FR.get(analyst_status, analyst_status or "À revoir"),
                     "commentaire_analyste": analyst_comment,
                 }
             )
@@ -283,15 +266,19 @@ def generate_text_comparison_excel(
         fill = PatternFill(start_color=fill_hex, end_color=fill_hex, fill_type="solid") if fill_hex else None
 
         row_data = [
+            row["source_text_t2"],
+            row["source_text_t1"],
+            row["vigie_category"],
+            row["secondary_labels"],
             row["section_title"],
             row["subsection"],
-            row["page_t1"],
-            row["page_t2"],
-            _DIFF_TYPE_FR.get(str(row["diff_type"]).lower(), row["diff_type"]),
-            row["source_text_t1"],
-            row["source_text_t2"],
+            row["change_type"],
+            row["what_changed"],
             row["nouvelle_idee"],
             row["justification"],
+            row["page_t2"],
+            row["page_t1"],
+            row["analyst_status"],
             row["commentaire_analyste"],
         ]
         for col_idx, value in enumerate(row_data, 1):
@@ -305,16 +292,20 @@ def generate_text_comparison_excel(
 
     # ---------- largeurs de colonnes ----------
     col_widths = {
-        1: 30,   # Titre
-        2: 35,   # Sous-section
-        3: 10,   # Page T1
-        4: 10,   # Page T2
-        5: 18,   # Type de changement
-        6: 70,   # Texte exact T1
-        7: 70,   # Texte exact T2
-        8: 14,   # Nouvelle idée ?
-        9: 70,   # Justification IA
-        10: 25,  # Commentaire analyste
+        1: 70,   # Texte exact courant
+        2: 70,   # Texte exact precedent
+        3: 38,   # Categorie principale
+        4: 45,   # Etiquettes secondaires
+        5: 30,   # Section du rapport
+        6: 35,   # Sous-section
+        7: 18,   # Type de changement
+        8: 70,   # Ce qui change
+        9: 20,   # Nouvelle idee
+        10: 70,  # Justification IA
+        11: 14,  # Page courant
+        12: 14,  # Page precedent
+        13: 18,  # Statut analyste
+        14: 30,  # Note analyste
     }
     for col_idx, width in col_widths.items():
         ws.column_dimensions[get_column_letter(col_idx)].width = width

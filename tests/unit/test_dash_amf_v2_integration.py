@@ -148,9 +148,12 @@ def test_themes_amf_chips_render_data_and_third_party_cloud_labels() -> None:
 
 
 def test_text_analysis_change_card_renders_amf_fields() -> None:
-    """La carte texte narratif rend les badges AMF v2 et la justification."""
+    """La carte texte rend les huit champs compacts et replie les preuves."""
+    reason = " ".join(f"raison{i}" for i in range(100))
     change = {
         "diff_type": "modified",
+        "change_summary": "Modification de la méthode applicable aux exigences réglementaires.",
+        "subsection_heading": "Cadre réglementaire",
         "source_text_t2": "Texte courant T2",
         "source_text_t1": "Texte précédent T1",
         "evidence_t2": {"pages": [10], "snippet": "preuve"},
@@ -181,6 +184,7 @@ def test_text_analysis_change_card_renders_amf_fields() -> None:
             "statut_mise_en_oeuvre": "EN_COURS",
             "confiance_posture": "ELEVEE",
             "nouvelle_idee": True,
+            "relevance_reason": reason,
             "nouvelle_idee_justification": (
                 "OUI — Nouvel élément à surveiller : Oui.\n\n"
                 "Sujet détecté : Exigences réglementaires et méthodologie.\n\n"
@@ -197,49 +201,30 @@ def test_text_analysis_change_card_renders_amf_fields() -> None:
     card = _build_change_card(change, "Gestion des risques")
     assert card is not None
     text = _flatten_text(card)
-    assert "Nouvelle idée" in text
-    assert "Majeur" in text  # libellé impact (capitalized) pour la page texte
-    assert "Impact exigences réglementaires — Majeur" in text
-    assert "Impact IT" not in text
-    assert "Posture renforcée" in text
-    assert "Preuve de posture" in text
-    assert "Voir les détails de l’évaluation IA" in text
-    assert "Éléments observés" in text
-    assert "Conséquence probable" in text
-    assert "Limite de l’analyse" in text
-    assert "Mise en œuvre En cours" in text
-    assert "Confiance Élevée" in text
-    assert "Modif. méthodologie" in text
-    assert "Revue prioritaire" in text
+    assert "Catégorie principale" in text
+    assert "Étiquettes secondaires" in text
+    assert "Section du rapport" in text
+    assert "Sous-section" in text
+    assert "Type de changement" in text
+    assert "Ce qui change" in text
+    assert "Nouvelle idée à surveiller ?" in text
+    assert "Pourquoi c’est pertinent" in text
+    assert "Cadre réglementaire" in text
+    assert reason in text
+    assert "Majeur" not in text
+    assert "Posture renforcée" not in text
+    assert "Revue prioritaire" not in text
 
     details = _find_component_by_type(card, "Details")
     assert getattr(details, "open", None) is False
     details_text = _flatten_text(details)
-    assert "Voir les détails de l’évaluation IA" in details_text
-    assert "Éléments observés" not in details_text
-
-    card_body = getattr(card, "children")
-    card_sections = [_flatten_text(child) for child in getattr(card_body, "children")]
-    proof_index = next(
-        index for index, value in enumerate(card_sections) if "Preuve de posture" in value
-    )
-    observed_index = next(
-        index for index, value in enumerate(card_sections) if "Éléments observés" in value
-    )
-    details_index = next(
-        index
-        for index, value in enumerate(card_sections)
-        if "Voir les détails de l’évaluation IA" in value
-    )
-    assert observed_index < proof_index < details_index
-
-    badge_row = getattr(card_body, "children")[0]
-    badge_text = _flatten_text(badge_row)
-    assert "Mise en œuvre" not in badge_text
-    assert "Confiance" not in badge_text
+    details_compact = " ".join(details_text.split())
+    assert "Voir les preuves T1/T2" in details_text
+    assert "Texte courant T2" in details_compact
+    assert "Texte précédent T1" in details_compact
 
 
-def test_text_analysis_change_card_shows_unchanged_posture() -> None:
+def test_text_analysis_change_card_hides_legacy_posture() -> None:
     change = {
         "diff_type": "modified",
         "source_text_t2": "Le risque est décrit plus précisément.",
@@ -259,16 +244,15 @@ def test_text_analysis_change_card_shows_unchanged_posture() -> None:
     card = _build_change_card(change, "Gestion des risques")
     text = _flatten_text(card)
 
-    assert "Posture inchangée" in text
+    assert "Posture inchangée" not in text
+    assert "Nouvelle idée : Non" in text
     details = _find_component_by_type(card, "Details")
     details_text = _flatten_text(details)
-    assert "Voir les détails de l’évaluation IA" in details_text
-    assert "Impact données — Mineur" in details_text
+    assert "Voir les preuves T1/T2" in details_text
     assert "Impact IT" not in details_text
-    assert "Posture indéterminée" not in details_text
 
 
-def test_text_analysis_change_card_always_exposes_ai_details_fold() -> None:
+def test_text_analysis_change_card_always_exposes_source_evidence_fold() -> None:
     change = {
         "diff_type": "modified",
         "source_text_t2": "Le cadre est présenté plus brièvement.",
@@ -288,12 +272,12 @@ def test_text_analysis_change_card_always_exposes_ai_details_fold() -> None:
     card = _build_change_card(change, "Gestion du capital")
     details = _find_component_by_type(card, "Details")
     details_text = _flatten_text(details)
+    details_compact = " ".join(details_text.split())
 
     assert getattr(details, "open", None) is False
-    assert "Voir les détails de l’évaluation IA" in details_text
-    assert "Impact méthodologie de risque — Modéré" in details_text
-    assert "Impact IT" not in details_text
-    assert "Posture indéterminée" not in details_text
+    assert "Voir les preuves T1/T2" in details_text
+    assert "Le cadre est présenté plus brièvement." in details_compact
+    assert "Le cadre était présenté avec davantage de détails." in details_compact
 
 
 def test_review_detail_renders_posture_evidence_and_implementation_status() -> None:
@@ -374,7 +358,7 @@ def test_changements_communs_hides_indeterminate_impact_it() -> None:
 
 
 def test_text_analysis_shows_observed_change_before_fold() -> None:
-    """Le changement observé reste visible et les explications sont repliées."""
+    """Le changement et sa pertinence restent visibles avant les preuves."""
     change = {
         "diff_type": "removed",
         "source_text_t1": "Contexte géopolitique volatile.",
@@ -401,22 +385,18 @@ def test_text_analysis_shows_observed_change_before_fold() -> None:
     card = _build_change_card(change, "Gestion des risques")
     card_body = getattr(card, "children")
     card_sections = [_flatten_text(child) for child in getattr(card_body, "children")]
-    observed_index = next(
-        index for index, value in enumerate(card_sections) if "Éléments observés" in value
+    change_index = next(
+        index for index, value in enumerate(card_sections) if "Ce qui change" in value
     )
     details_index = next(
         index
         for index, value in enumerate(card_sections)
-        if "Voir les détails de l’évaluation IA" in value
+        if "Voir les preuves T1/T2" in value
     )
 
-    assert observed_index < details_index
-    assert "Le T2 retire la description du contexte géopolitique" in card_sections[
-        observed_index
-    ]
-    assert "Impact facteurs de risque — Majeur" in card_sections[observed_index]
-    assert "Pertinence métier" not in card_sections[observed_index]
-    assert "Pertinence métier" in card_sections[details_index]
+    assert change_index < details_index
+    assert "Contexte géopolitique volatile" in card_sections[change_index]
+    assert "Pourquoi c’est pertinent" in _flatten_text(card)
 
 
 def test_text_analysis_change_card_keeps_non_pertinent() -> None:
