@@ -289,16 +289,18 @@ def _build_text_extraction_markdown_from_blocks(
                 pending_headings.append((text, int(block.page)))
                 seen_heading_norms.add(norm)
                 continue
-            while pending_headings:
-                heading_text, heading_page = pending_headings.pop(0)
+            if pending_headings:
+                # Les titres successifs sans bloc narratif intermédiaire sont
+                # des parents structurels ou des titres de tableau. Seul le
+                # dernier introduit le texte qui suit et devient comparable.
+                heading_text, heading_page = pending_headings[-1]
                 lines.append(_format_heading_line("###", heading_text, heading_page))
                 lines.append("")
+                pending_headings.clear()
             lines.append(text)
             lines.append("")
-        while pending_headings:
-            heading_text, heading_page = pending_headings.pop(0)
-            lines.append(_format_heading_line("###", heading_text, heading_page))
-            lines.append("")
+    # Un titre final sans bloc narratif propre est conservé par l'audit, pas
+    # par le markdown utilisé pour le matching.
     return "\n".join(lines).strip() + "\n"
 
 

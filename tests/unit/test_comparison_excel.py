@@ -51,5 +51,5 @@ def test_comparison_excel_prefers_amf_justification() -> None:
     workbook = load_workbook(io.BytesIO(raw))
     ws = workbook["Changements détectés"]
 
-    assert "Sujet détecté : Cybersécurité" in ws["I2"].value
-    assert "Ancienne justification technique" not in ws["I2"].value
+    assert "Sujet détecté : Cybersécurité" in ws["K2"].value
+    assert "Ancienne justification technique" not in ws["K2"].value

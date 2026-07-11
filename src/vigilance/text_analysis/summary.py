@@ -137,3 +137,81 @@ def _build_global_summary(section_comparisons: list[dict[str, Any]]) -> dict[str
             "by_action": by_action,
         },
     }
+
+
+def _build_semantic_quality_metrics(
+    *,
+    section_comparisons: list[dict[str, Any]],
+    reconciliation_audit: list[dict[str, Any]] | None = None,
+) -> dict[str, Any]:
+    """Agrège des métriques de qualité pour l'alignement hybride et le triage."""
+    all_changes = [
+        block
+        for section in section_comparisons
+        for block in (section.get("all_block_comparisons") or section.get("block_comparisons") or [])
+    ]
+    alignment_types: dict[str, int] = {}
+    ambiguous_count = 0
+    human_review_count = 0
+    triage_sent_count = 0
+    triage_prefiltered_count = 0
+    triage_dedup_groups = 0
+    triage_dedup_members = 0
+    seen_dedup_groups: set[str] = set()
+
+    for change in all_changes:
+        alignment_type = str(change.get("alignment_type") or "unknown")
+        alignment_types[alignment_type] = alignment_types.get(alignment_type, 0) + 1
+        if alignment_type == "ambiguous" or str(change.get("alignment_decision") or "") == "uncertain":
+            ambiguous_count += 1
+        triage = change.get("genai_triage") or {}
+        if triage.get("alignment_review_required"):
+            human_review_count += 1
+        source = str(triage.get("source") or "")
+        if source == "deterministic_prefilter":
+            triage_prefiltered_count += 1
+        elif source and source not in {
+            "alignment_review_required",
+            "semantic_alignment_decision",
+        }:
+            triage_sent_count += 1
+        dedup = change.get("triage_dedup") or {}
+        group_id = str(dedup.get("group_id") or triage.get("triage_group_id") or "")
+        if group_id:
+            if group_id not in seen_dedup_groups:
+                seen_dedup_groups.add(group_id)
+                triage_dedup_groups += 1
+            triage_dedup_members += 1
+
+    audit_rows = list(reconciliation_audit or [])
+    applied_reconciliations = sum(1 for row in audit_rows if row.get("applied"))
+    total_changes = len(all_changes)
+    return {
+        "total_changes": total_changes,
+        "alignment_type_counts": dict(sorted(alignment_types.items())),
+        "ambiguous_alignment_rate": (
+            round(ambiguous_count / total_changes, 4) if total_changes else 0.0
+        ),
+        "ambiguous_alignment_count": ambiguous_count,
+        "reconciliation_component_count": len(audit_rows),
+        "reconciliation_applied_count": applied_reconciliations,
+        "reconciliation_applied_rate": (
+            round(applied_reconciliations / len(audit_rows), 4) if audit_rows else 0.0
+        ),
+        "triage_prefiltered_count": triage_prefiltered_count,
+        "triage_sent_count": triage_sent_count,
+        "triage_dedup_group_count": triage_dedup_groups,
+        "triage_dedup_member_count": triage_dedup_members,
+        "triage_duplicate_rate": (
+            round(
+                max(0, triage_dedup_members - triage_dedup_groups) / total_changes,
+                4,
+            )
+            if total_changes and triage_dedup_groups
+            else 0.0
+        ),
+        "human_review_count": human_review_count,
+        "human_review_rate": (
+            round(human_review_count / total_changes, 4) if total_changes else 0.0
+        ),
+    }

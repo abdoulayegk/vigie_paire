@@ -266,6 +266,16 @@ def _append_concise_triage_retry_message(messages: list[dict[str, Any]]) -> list
     ]
 
 
+def _append_length_retry_message(
+    messages: list[dict[str, Any]],
+    length_retry_message: str | None,
+) -> list[dict[str, Any]]:
+    """Ajoute une consigne de concision apres troncature, avec message optionnel."""
+    if length_retry_message:
+        return list(messages) + [{"role": "user", "content": length_retry_message}]
+    return _append_concise_triage_retry_message(messages)
+
+
 def _call_structured_completion(
     client: Any,
     *,
@@ -329,6 +339,8 @@ def _call_structured_completion_with_correction(
     max_retries: int = 1,
     max_transport_retries: int = _TRIAGE_TRANSPORT_RETRIES,
     max_length_retries: int = _TRIAGE_LENGTH_RETRIES,
+    validation_retry_message: str | None = None,
+    length_retry_message: str | None = None,
 ) -> _T_StructuredModel:
     """Appel structuré avec retry correctif borné sur ``ValidationError``.
 
@@ -367,7 +379,10 @@ def _call_structured_completion_with_correction(
                     "Triage structured completion reached output length limit; retrying with concise-output instruction. Error: %s",
                     exc,
                 )
-                current_messages = _append_concise_triage_retry_message(current_messages)
+                current_messages = _append_length_retry_message(
+                    current_messages,
+                    length_retry_message,
+                )
                 continue
             if err_kind not in {"timeout", "rate_limit", "connection"}:
                 raise
@@ -394,35 +409,38 @@ def _call_structured_completion_with_correction(
                 max_retries + 1,
                 exc,
             )
-            current_messages = current_messages + [
-                {
-                    "role": "user",
-                    "content": (
-                        "Ta réponse précédente a échoué la validation du schéma "
-                        "ou des invariants AMF. Détail de l'erreur :\n"
-                        f"{exc}\n\n"
-                        "Corrige TOUS les invariants violés et renvoie le batch "
-                        "COMPLET (tous les change_index) en respectant strictement "
-                        "le schéma. Rappel des invariants stricts : "
-                        "nouvelle_idee_justification est TOUJOURS obligatoire, "
-                        "≥ 3 phrases complètes ET ≥ 200 caractères au total, "
-                        "rédigée comme une note d'analyste avec les rubriques "
-                        "exactes séparées par \\n\\n. Tu dois inclure ces cinq "
-                        "libellés EXACTS, avec deux-points, dans cet ordre : "
-                        "Nouvel élément à surveiller :, Sujet détecté :, "
-                        "Ce qui change :, Pertinence métier :, "
-                        "Point de surveillance :, "
-                        "commençant par 'OUI' ou 'NON' selon nouvelle_idee ; "
-                        "is_relevant=true exige themes_amf non vide + explanation "
-                        "≥ 50 caractères ; is_relevant=false exige themes_amf=[] + "
-                        "exclusion_reason renseigné + nouvelle_idee=false + "
-                        "impact_level=MINEUR + action_requise='aucune' + "
-                        "explanation vide (mais justification OBLIGATOIRE expliquant "
-                        "pourquoi le changement n'est pas une nouvelle idée) ; "
-                        "action_requise='revue_prioritaire' exige impact_level='MAJEUR'."
-                    ),
-                }
-            ]
+            retry_content = validation_retry_message or (
+                "Ta réponse précédente a échoué la validation du schéma "
+                "ou des invariants AMF. Détail de l'erreur :\n"
+                f"{exc}\n\n"
+                "Corrige TOUS les invariants violés et renvoie le batch "
+                "COMPLET (tous les change_index) en respectant strictement "
+                "le schéma. Rappel des invariants stricts : "
+                "nouvelle_idee_justification est TOUJOURS obligatoire, "
+                "≥ 3 phrases complètes ET ≥ 200 caractères au total, "
+                "rédigée comme une note d'analyste avec les rubriques "
+                "exactes séparées par \\n\\n. Tu dois inclure ces cinq "
+                "libellés EXACTS, avec deux-points, dans cet ordre : "
+                "Nouvel élément à surveiller :, Sujet détecté :, "
+                "Ce qui change :, Pertinence métier :, "
+                "Point de surveillance :, "
+                "commençant par 'OUI' ou 'NON' selon nouvelle_idee ; "
+                "is_relevant=true exige themes_amf non vide + explanation "
+                "≥ 50 caractères ; is_relevant=false exige themes_amf=[] + "
+                "exclusion_reason renseigné + nouvelle_idee=false + "
+                "impact_level=MINEUR + action_requise='aucune' + "
+                "explanation vide (mais justification OBLIGATOIRE expliquant "
+                "pourquoi le changement n'est pas une nouvelle idée) ; "
+                "action_requise='revue_prioritaire' exige impact_level='MAJEUR'."
+            )
+            if validation_retry_message:
+                retry_content = (
+                    "Ta réponse précédente a échoué la validation du schéma. "
+                    "Détail de l'erreur :\n"
+                    f"{exc}\n\n"
+                    f"{validation_retry_message}"
+                )
+            current_messages = current_messages + [{"role": "user", "content": retry_content}]
         except Exception as exc:
             err_kind = _classify_openai_transport_error(exc)
             if err_kind == "length_limit":
@@ -433,7 +451,10 @@ def _call_structured_completion_with_correction(
                     "Triage structured completion reached output length limit; retrying with concise-output instruction. Error: %s",
                     exc,
                 )
-                current_messages = _append_concise_triage_retry_message(current_messages)
+                current_messages = _append_length_retry_message(
+                    current_messages,
+                    length_retry_message,
+                )
                 continue
             if err_kind not in {"timeout", "rate_limit", "connection"}:
                 raise

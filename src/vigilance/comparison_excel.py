@@ -14,6 +14,12 @@ import logging
 from pathlib import Path
 from typing import Any
 
+from vigilance.vigie_columns import (
+    derive_secondary_labels,
+    derive_vigie_category,
+    summarize_change,
+)
+
 logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
@@ -21,18 +27,23 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 EXCEL_COLUMNS = [
-    "Section",
+    "Texte exact du trimestre courant",
+    "Texte exact du trimestre précédent",
+    "Catégorie principale",
+    "Étiquettes secondaires",
+    "Section du rapport",
     "Tableau",
-    "Page T1",
-    "Page T2",
     "Type d'élément",
     "Type de changement",
-    "Libellé T1",
-    "Libellé T2",
-    "Justification IA",
-    "Nouvelle idée ?",
-    "Commentaire analyste",
-    "Statut validation",
+    "Ce qui change",
+    "Nouvelle idée à surveiller ?",
+    "Justification de pertinence (IA)",
+    "Effet sur la posture de risque",
+    "Priorité / impact",
+    "Page du texte courant",
+    "Page du texte précédent",
+    "Statut analyste",
+    "Note analyste",
     "Validé le",
 ]
 
@@ -42,6 +53,13 @@ _VALIDATION_STATUS_FR: dict[str, str] = {
     "skipped": "Ignoré",
     "pending": "En attente",
     "": "En attente",
+}
+
+_RAW_CHANGE_TYPE: dict[str, str] = {
+    "Ajout": "added",
+    "Suppression": "removed",
+    "Renommage": "renamed",
+    "Modification": "modified",
 }
 
 
@@ -153,6 +171,7 @@ def _collect_rows(comparison: dict[str, Any]) -> list[dict[str, Any]]:
                 "relevance_level_raw": relevance_level,
                 "nouvelle_idee": _is_nouvelle_idee_label(triage),
                 "review": _review_fields(ind),
+                "_triage": triage,
             })
 
         # Indicateurs supprimés
@@ -175,6 +194,7 @@ def _collect_rows(comparison: dict[str, Any]) -> list[dict[str, Any]]:
                 "relevance_level_raw": relevance_level,
                 "nouvelle_idee": _is_nouvelle_idee_label(triage),
                 "review": _review_fields(ind),
+                "_triage": triage,
             })
 
         # Indicateurs renommés
@@ -197,6 +217,7 @@ def _collect_rows(comparison: dict[str, Any]) -> list[dict[str, Any]]:
                 "relevance_level_raw": relevance_level,
                 "nouvelle_idee": _is_nouvelle_idee_label(triage),
                 "review": _review_fields(ind),
+                "_triage": triage,
             })
 
         # Notes ajoutées
@@ -219,6 +240,7 @@ def _collect_rows(comparison: dict[str, Any]) -> list[dict[str, Any]]:
                 "relevance_level_raw": relevance_level,
                 "nouvelle_idee": _is_nouvelle_idee_label(triage),
                 "review": _review_fields(fn),
+                "_triage": triage,
             })
 
         # Notes supprimées
@@ -241,6 +263,7 @@ def _collect_rows(comparison: dict[str, Any]) -> list[dict[str, Any]]:
                 "relevance_level_raw": relevance_level,
                 "nouvelle_idee": _is_nouvelle_idee_label(triage),
                 "review": _review_fields(fn),
+                "_triage": triage,
             })
 
         # Notes modifiées (renommées)
@@ -263,6 +286,7 @@ def _collect_rows(comparison: dict[str, Any]) -> list[dict[str, Any]]:
                 "relevance_level_raw": relevance_level,
                 "nouvelle_idee": _is_nouvelle_idee_label(triage),
                 "review": _review_fields(fn),
+                "_triage": triage,
             })
 
     # --- Tableaux ajoutés ---
@@ -287,6 +311,7 @@ def _collect_rows(comparison: dict[str, Any]) -> list[dict[str, Any]]:
             "relevance_level_raw": None,
             "nouvelle_idee": _is_nouvelle_idee_label(triage),
             "review": _review_fields(tbl),
+            "_triage": triage,
         })
 
     # --- Tableaux supprimés ---
@@ -310,7 +335,30 @@ def _collect_rows(comparison: dict[str, Any]) -> list[dict[str, Any]]:
             "relevance_level_raw": None,
             "nouvelle_idee": _is_nouvelle_idee_label(triage),
             "review": _review_fields(tbl),
+            "_triage": triage,
         })
+
+    for row in rows:
+        triage = row.pop("_triage", {})
+        proof_t1 = str(row.get("label_t1") or "")
+        proof_t2 = str(row.get("label_t2") or "")
+        category_text = " ".join(
+            (str(row.get("title") or ""), proof_t1, proof_t2, str(row.get("justification") or ""))
+        )
+        row["vigie_category"] = derive_vigie_category(
+            triage,
+            text=category_text,
+            section=str(row.get("section") or ""),
+            source_kind="table",
+        )
+        row["secondary_labels"] = derive_secondary_labels(triage)
+        row["what_changed"] = summarize_change(
+            {"change_type": _RAW_CHANGE_TYPE.get(str(row.get("change_type") or ""), "modified")},
+            previous_text=proof_t1,
+            current_text=proof_t2,
+        )
+        row["posture"] = str(triage.get("changement_posture") or "INDETERMINE")
+        row["impact_level"] = str(triage.get("impact_level") or "INDETERMINE").upper()
 
     # Tri : pertinence critique en premier, puis section, puis tableau
     rows.sort(key=lambda r: (
@@ -392,18 +440,23 @@ def generate_comparison_excel(
 
         review = row.get("review") or {}
         row_data = [
+            row["label_t2"],
+            row["label_t1"],
+            row["vigie_category"],
+            row["secondary_labels"],
             row["section"],
             row["title"],
-            row["page_t1"],
-            row["page_t2"],
             row["element_type"],
             row["change_type"],
-            row["label_t1"],
-            row["label_t2"],
-            row["justification"],
+            row["what_changed"],
             row["nouvelle_idee"],
-            review.get("notes", ""),
+            row["justification"],
+            row["posture"],
+            row["impact_level"],
+            row["page_t2"],
+            row["page_t1"],
             review.get("status", ""),
+            review.get("notes", ""),
             review.get("at", ""),
         ]
         for col_idx, value in enumerate(row_data, 1):
@@ -417,19 +470,23 @@ def generate_comparison_excel(
 
     # ---------- largeurs de colonnes ----------
     col_widths = {
-        1: 30,   # Section
-        2: 45,   # Tableau
-        3: 10,   # Page T1
-        4: 10,   # Page T2
-        5: 22,   # Type d'élément
-        6: 18,   # Type de changement
-        7: 50,   # Libellé T1
-        8: 50,   # Libellé T2
-        9: 70,   # Justification IA
-        10: 16,  # Nouvelle idée ?
-        11: 30,  # Commentaire analyste
-        12: 16,  # Statut validation
-        13: 22,  # Validé le
+        1: 50,   # Texte exact courant
+        2: 50,   # Texte exact precedent
+        3: 38,   # Categorie principale
+        4: 45,   # Etiquettes secondaires
+        5: 30,   # Section du rapport
+        6: 45,   # Tableau
+        7: 22,   # Type d'element
+        8: 18,   # Type de changement
+        9: 70,   # Ce qui change
+        10: 20,  # Nouvelle idee
+        11: 70,  # Justification IA
+        12: 28,  # Posture
+        13: 16,  # Impact
+        14: 14,  # Page precedent
+        15: 18,  # Statut analyste
+        16: 30,  # Note analyste
+        17: 22,  # Valide le
     }
     for col_idx, width in col_widths.items():
         ws.column_dimensions[get_column_letter(col_idx)].width = width
