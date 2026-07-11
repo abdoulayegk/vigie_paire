@@ -421,6 +421,9 @@
 <li class="toctree-l4"><a class="reference internal" href="vigilance.extraction.html#vigilance.extraction.section_locator.LocatedSection.constraint_reason"><code class="docutils literal notranslate"><span class="pre">LocatedSection.constraint_reason</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="vigilance.extraction.html#vigilance.extraction.section_locator.LocatedSection.detected_span"><code class="docutils literal notranslate"><span class="pre">LocatedSection.detected_span</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="vigilance.extraction.html#vigilance.extraction.section_locator.LocatedSection.detection_method"><code class="docutils literal notranslate"><span class="pre">LocatedSection.detection_method</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.extraction.html#vigilance.extraction.section_locator.LocatedSection.end_anchor_bbox_norm"><code class="docutils literal notranslate"><span class="pre">LocatedSection.end_anchor_bbox_norm</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.extraction.html#vigilance.extraction.section_locator.LocatedSection.end_anchor_page"><code class="docutils literal notranslate"><span class="pre">LocatedSection.end_anchor_page</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigilance.extraction.html#vigilance.extraction.section_locator.LocatedSection.end_anchor_text"><code class="docutils literal notranslate"><span class="pre">LocatedSection.end_anchor_text</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="vigilance.extraction.html#vigilance.extraction.section_locator.LocatedSection.end_detection_method"><code class="docutils literal notranslate"><span class="pre">LocatedSection.end_detection_method</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="vigilance.extraction.html#vigilance.extraction.section_locator.LocatedSection.end_page"><code class="docutils literal notranslate"><span class="pre">LocatedSection.end_page</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="vigilance.extraction.html#vigilance.extraction.section_locator.LocatedSection.final_span"><code class="docutils literal notranslate"><span class="pre">LocatedSection.final_span</span></code></a></li>
@@ -940,6 +943,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="vigilance.text_extraction.html#module-vigilance.text_extraction.text_extraction_markdown_writer">text_extraction.text_extraction_markdown_writer</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="vigilance.text_extraction.html#vigilance.text_extraction.text_extraction_markdown_writer.get_canonical_text_extraction_md_path"><code class="docutils literal notranslate"><span class="pre">get_canonical_text_extraction_md_path()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vigilance.text_extraction.html#vigilance.text_extraction.text_extraction_markdown_writer.get_raw_docling_markdown_path"><code class="docutils literal notranslate"><span class="pre">get_raw_docling_markdown_path()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="vigilance.text_extraction.html#vigilance.text_extraction.text_extraction_markdown_writer.get_text_extraction_markdown_path"><code class="docutils literal notranslate"><span class="pre">get_text_extraction_markdown_path()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="vigilance.text_extraction.html#vigilance.text_extraction.text_extraction_markdown_writer.write_text_extraction_markdown"><code class="docutils literal notranslate"><span class="pre">write_text_extraction_markdown()</span></code></a></li>
 </ul>
@@ -3524,283 +3528,20 @@ du sidecar partage historique (mode reader uniquement).</p></li>
 </section>
 <section id="module-vigilance.text_analysis_pipeline">
 <span id="text-analysis-pipeline"></span><h2>text_analysis_pipeline<a class="headerlink" href="#module-vigilance.text_analysis_pipeline" title="Lien vers cette rubrique"></a></h2>
-<p>Pipeline texte — .md comme source de vérité.</p>
-<p>Ce module orchestre la comparaison textuelle inter-trimestrielle en trois étapes:</p>
-<ol class="arabic simple">
-<li><p>localise les sections texte dans les deux PDFs,</p></li>
-<li><p>extrait les blocs narratifs via Docling + classification heuristique,
-puis écrit les fichiers <code class="docutils literal notranslate"><span class="pre">text_extraction_*.md</span></code> (source de vérité auditée),</p></li>
-<li><p>compare les sections T1 vs T2 via GPT-4o directement sur le contenu .md,</p></li>
-<li><p>trie les changements métiers et ne conserve que les changements vraiment majeurs.</p></li>
-</ol>
-<p>Le .md est à la fois l’artefact d’audit lisible par l’humain
-et l’entrée directe du GPT de comparaison — garantissant leur cohérence.</p>
-<dl class="py class">
-<dt class="sig sig-object py" id="vigilance.text_analysis_pipeline.PDFBlock">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">PDFBlock</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">block_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bbox_norm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">line_number</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">block_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'other'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">included</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exclusion_reason</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.text_analysis_pipeline.PDFBlock" title="Lien vers cette définition"></a></dt>
-<dd><p>Bases : <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Bloc de texte extrait d’un PDF avec ses métadonnées de position.</p>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vigilance.text_analysis_pipeline.PDFBlock.bbox_norm">
-<span class="sig-name descname"><span class="pre">bbox_norm</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#vigilance.text_analysis_pipeline.PDFBlock.bbox_norm" title="Lien vers cette définition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vigilance.text_analysis_pipeline.PDFBlock.block_id">
-<span class="sig-name descname"><span class="pre">block_id</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#vigilance.text_analysis_pipeline.PDFBlock.block_id" title="Lien vers cette définition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vigilance.text_analysis_pipeline.PDFBlock.block_type">
-<span class="sig-name descname"><span class="pre">block_type</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#vigilance.text_analysis_pipeline.PDFBlock.block_type" title="Lien vers cette définition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vigilance.text_analysis_pipeline.PDFBlock.exclusion_reason">
-<span class="sig-name descname"><span class="pre">exclusion_reason</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#vigilance.text_analysis_pipeline.PDFBlock.exclusion_reason" title="Lien vers cette définition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vigilance.text_analysis_pipeline.PDFBlock.included">
-<span class="sig-name descname"><span class="pre">included</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><a class="headerlink" href="#vigilance.text_analysis_pipeline.PDFBlock.included" title="Lien vers cette définition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vigilance.text_analysis_pipeline.PDFBlock.line_number">
-<span class="sig-name descname"><span class="pre">line_number</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#vigilance.text_analysis_pipeline.PDFBlock.line_number" title="Lien vers cette définition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vigilance.text_analysis_pipeline.PDFBlock.page">
-<span class="sig-name descname"><span class="pre">page</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#vigilance.text_analysis_pipeline.PDFBlock.page" title="Lien vers cette définition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vigilance.text_analysis_pipeline.PDFBlock.source_label">
-<span class="sig-name descname"><span class="pre">source_label</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#vigilance.text_analysis_pipeline.PDFBlock.source_label" title="Lien vers cette définition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vigilance.text_analysis_pipeline.PDFBlock.text">
-<span class="sig-name descname"><span class="pre">text</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#vigilance.text_analysis_pipeline.PDFBlock.text" title="Lien vers cette définition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py property">
-<dt class="sig sig-object py" id="vigilance.text_analysis_pipeline.PDFBlock.y0">
-<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">y0</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><a class="headerlink" href="#vigilance.text_analysis_pipeline.PDFBlock.y0" title="Lien vers cette définition"></a></dt>
-<dd><p>Coordonnée Y du bord supérieur du bloc (normalisée).</p>
-</dd></dl>
-
-<dl class="py property">
-<dt class="sig sig-object py" id="vigilance.text_analysis_pipeline.PDFBlock.y1">
-<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">y1</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><a class="headerlink" href="#vigilance.text_analysis_pipeline.PDFBlock.y1" title="Lien vers cette définition"></a></dt>
-<dd><p>Coordonnée Y du bord inférieur du bloc (normalisée).</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="vigilance.text_analysis_pipeline.ResolvedSection">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">ResolvedSection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">section_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_page</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_page</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">anchor_page</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">anchor_text</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">anchor_bbox_norm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.text_analysis_pipeline.ResolvedSection" title="Lien vers cette définition"></a></dt>
-<dd><p>Bases : <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Section narrative résolue avec ses coordonnées de pages.</p>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vigilance.text_analysis_pipeline.ResolvedSection.anchor_bbox_norm">
-<span class="sig-name descname"><span class="pre">anchor_bbox_norm</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#vigilance.text_analysis_pipeline.ResolvedSection.anchor_bbox_norm" title="Lien vers cette définition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vigilance.text_analysis_pipeline.ResolvedSection.anchor_page">
-<span class="sig-name descname"><span class="pre">anchor_page</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#vigilance.text_analysis_pipeline.ResolvedSection.anchor_page" title="Lien vers cette définition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vigilance.text_analysis_pipeline.ResolvedSection.anchor_text">
-<span class="sig-name descname"><span class="pre">anchor_text</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#vigilance.text_analysis_pipeline.ResolvedSection.anchor_text" title="Lien vers cette définition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vigilance.text_analysis_pipeline.ResolvedSection.end_page">
-<span class="sig-name descname"><span class="pre">end_page</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#vigilance.text_analysis_pipeline.ResolvedSection.end_page" title="Lien vers cette définition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py property">
-<dt class="sig sig-object py" id="vigilance.text_analysis_pipeline.ResolvedSection.pages">
-<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">pages</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#vigilance.text_analysis_pipeline.ResolvedSection.pages" title="Lien vers cette définition"></a></dt>
-<dd><p>Retourne la liste des pages couvertes par la section.</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vigilance.text_analysis_pipeline.ResolvedSection.section_key">
-<span class="sig-name descname"><span class="pre">section_key</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#vigilance.text_analysis_pipeline.ResolvedSection.section_key" title="Lien vers cette définition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vigilance.text_analysis_pipeline.ResolvedSection.start_page">
-<span class="sig-name descname"><span class="pre">start_page</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#vigilance.text_analysis_pipeline.ResolvedSection.start_page" title="Lien vers cette définition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vigilance.text_analysis_pipeline.ResolvedSection.title">
-<span class="sig-name descname"><span class="pre">title</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#vigilance.text_analysis_pipeline.ResolvedSection.title" title="Lien vers cette définition"></a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="vigilance.text_analysis_pipeline.SectionAudit">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">SectionAudit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">section_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">section_title</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_page</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_page</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">anchor_page</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">anchor_text</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">anchor_bbox_norm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">included_blocks</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">excluded_blocks</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">semantic_units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">table_regions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.text_analysis_pipeline.SectionAudit" title="Lien vers cette définition"></a></dt>
-<dd><p>Bases : <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Audit complet d’une section narrative : blocs inclus, exclus et unités sémantiques.</p>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vigilance.text_analysis_pipeline.SectionAudit.anchor_bbox_norm">
-<span class="sig-name descname"><span class="pre">anchor_bbox_norm</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#vigilance.text_analysis_pipeline.SectionAudit.anchor_bbox_norm" title="Lien vers cette définition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vigilance.text_analysis_pipeline.SectionAudit.anchor_page">
-<span class="sig-name descname"><span class="pre">anchor_page</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#vigilance.text_analysis_pipeline.SectionAudit.anchor_page" title="Lien vers cette définition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vigilance.text_analysis_pipeline.SectionAudit.anchor_text">
-<span class="sig-name descname"><span class="pre">anchor_text</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#vigilance.text_analysis_pipeline.SectionAudit.anchor_text" title="Lien vers cette définition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vigilance.text_analysis_pipeline.SectionAudit.end_page">
-<span class="sig-name descname"><span class="pre">end_page</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#vigilance.text_analysis_pipeline.SectionAudit.end_page" title="Lien vers cette définition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vigilance.text_analysis_pipeline.SectionAudit.excluded_blocks">
-<span class="sig-name descname"><span class="pre">excluded_blocks</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#vigilance.text_analysis_pipeline.PDFBlock" title="vigilance.text_analysis_pipeline.PDFBlock"><span class="pre">PDFBlock</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#vigilance.text_analysis_pipeline.SectionAudit.excluded_blocks" title="Lien vers cette définition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vigilance.text_analysis_pipeline.SectionAudit.included_blocks">
-<span class="sig-name descname"><span class="pre">included_blocks</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#vigilance.text_analysis_pipeline.PDFBlock" title="vigilance.text_analysis_pipeline.PDFBlock"><span class="pre">PDFBlock</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#vigilance.text_analysis_pipeline.SectionAudit.included_blocks" title="Lien vers cette définition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vigilance.text_analysis_pipeline.SectionAudit.section_key">
-<span class="sig-name descname"><span class="pre">section_key</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#vigilance.text_analysis_pipeline.SectionAudit.section_key" title="Lien vers cette définition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vigilance.text_analysis_pipeline.SectionAudit.section_title">
-<span class="sig-name descname"><span class="pre">section_title</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#vigilance.text_analysis_pipeline.SectionAudit.section_title" title="Lien vers cette définition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vigilance.text_analysis_pipeline.SectionAudit.semantic_units">
-<span class="sig-name descname"><span class="pre">semantic_units</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#vigilance.text_analysis_pipeline.SemanticUnit" title="vigilance.text_analysis_pipeline.SemanticUnit"><span class="pre">SemanticUnit</span></a><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#vigilance.text_analysis_pipeline.SectionAudit.semantic_units" title="Lien vers cette définition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vigilance.text_analysis_pipeline.SectionAudit.start_page">
-<span class="sig-name descname"><span class="pre">start_page</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#vigilance.text_analysis_pipeline.SectionAudit.start_page" title="Lien vers cette définition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vigilance.text_analysis_pipeline.SectionAudit.table_regions">
-<span class="sig-name descname"><span class="pre">table_regions</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#vigilance.text_analysis_pipeline.SectionAudit.table_regions" title="Lien vers cette définition"></a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="vigilance.text_analysis_pipeline.SemanticUnit">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">SemanticUnit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">unit_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">section_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theme</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">semantic_text</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_text</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_block_ids</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_resolution</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">evidence_pages</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">evidence_snippet</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.text_analysis_pipeline.SemanticUnit" title="Lien vers cette définition"></a></dt>
-<dd><p>Bases : <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Unité sémantique extraite d’une section narratif d’un rapport bancaire.</p>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vigilance.text_analysis_pipeline.SemanticUnit.evidence_pages">
-<span class="sig-name descname"><span class="pre">evidence_pages</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#vigilance.text_analysis_pipeline.SemanticUnit.evidence_pages" title="Lien vers cette définition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vigilance.text_analysis_pipeline.SemanticUnit.evidence_snippet">
-<span class="sig-name descname"><span class="pre">evidence_snippet</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#vigilance.text_analysis_pipeline.SemanticUnit.evidence_snippet" title="Lien vers cette définition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vigilance.text_analysis_pipeline.SemanticUnit.section_key">
-<span class="sig-name descname"><span class="pre">section_key</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#vigilance.text_analysis_pipeline.SemanticUnit.section_key" title="Lien vers cette définition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vigilance.text_analysis_pipeline.SemanticUnit.semantic_text">
-<span class="sig-name descname"><span class="pre">semantic_text</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#vigilance.text_analysis_pipeline.SemanticUnit.semantic_text" title="Lien vers cette définition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vigilance.text_analysis_pipeline.SemanticUnit.source_block_ids">
-<span class="sig-name descname"><span class="pre">source_block_ids</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#vigilance.text_analysis_pipeline.SemanticUnit.source_block_ids" title="Lien vers cette définition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vigilance.text_analysis_pipeline.SemanticUnit.source_resolution">
-<span class="sig-name descname"><span class="pre">source_resolution</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#vigilance.text_analysis_pipeline.SemanticUnit.source_resolution" title="Lien vers cette définition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vigilance.text_analysis_pipeline.SemanticUnit.source_text">
-<span class="sig-name descname"><span class="pre">source_text</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#vigilance.text_analysis_pipeline.SemanticUnit.source_text" title="Lien vers cette définition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vigilance.text_analysis_pipeline.SemanticUnit.theme">
-<span class="sig-name descname"><span class="pre">theme</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#vigilance.text_analysis_pipeline.SemanticUnit.theme" title="Lien vers cette définition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vigilance.text_analysis_pipeline.SemanticUnit.unit_id">
-<span class="sig-name descname"><span class="pre">unit_id</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#vigilance.text_analysis_pipeline.SemanticUnit.unit_id" title="Lien vers cette définition"></a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py exception">
-<dt class="sig sig-object py" id="vigilance.text_analysis_pipeline.TextAnalysisQualityError">
-<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">TextAnalysisQualityError</span></span><a class="headerlink" href="#vigilance.text_analysis_pipeline.TextAnalysisQualityError" title="Lien vers cette définition"></a></dt>
-<dd><p>Bases : <code class="xref py py-class docutils literal notranslate"><span class="pre">RuntimeError</span></code></p>
-<p>Raised when a targeted text section cannot yield analyzable semantic units.</p>
-</dd></dl>
-
+<p>Façade de compatibilité pour le pipeline texte modulaire.</p>
+<p>La logique métier vit maintenant dans <code class="docutils literal notranslate"><span class="pre">vigilance.text_analysis</span></code>. Ce module
+conserve les anciens imports, y compris plusieurs helpers privés encore utilisés
+par les tests et certains monkeypatchs historiques.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.text_analysis_pipeline.run_text_analysis_pipeline">
-<span class="sig-name descname"><span class="pre">run_text_analysis_pipeline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Séparateur de paramètres par mot-clé uniquement (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">bank_code</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">year_current</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quarter_current</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pdf_previous</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pdf_current</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_root</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'gpt-4o'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allowed_section_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">project_root</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_extraction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.text_analysis_pipeline.run_text_analysis_pipeline" title="Lien vers cette définition"></a></dt>
-<dd><p>Exécute le pipeline texte complet avec le markdown comme source de vérité.</p>
-<p>Déroulement :</p>
-<ol class="arabic simple">
-<li><p>Pour chaque période, si le .md canonique existe sur disque, relecture et parse ; sinon Docling + construction du .md + écriture canonique pour réutilisation.</p></li>
-<li><p>Envoi des sections .md à GPT-4o pour comparaison T1 vs T2 (ajouts, modifications, retraits).</p></li>
-<li><p>Triage et retenue uniquement des changements substantiels, triés par impact métier.</p></li>
-</ol>
-<p>Notes opérationnelles :</p>
-<ul class="simple">
-<li><p>Le .md canonique vit dans <code class="docutils literal notranslate"><span class="pre">outputs/text_extractions/{bank}/{year}/{q}/text_extraction.md</span></code> et sert d’artefact d’audit ET d’entrée réutilisable pour les runs suivants.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">force_extraction=True</span></code> ignore ce cache et force une ré-extraction Docling.</p></li>
-<li><p>Les marqueurs <code class="docutils literal notranslate"><span class="pre">[p.N]</span></code> présents dans le .md sont strippés avant tout appel GPT (gatekeeper unique : <code class="docutils literal notranslate"><span class="pre">_extract_section_text_from_markdown</span></code>).</p></li>
-<li><p>Les appels GPT du flux texte n’envoient pas de limite de complétion explicite par défaut, afin de privilégier l’arrêt naturel du modèle.</p></li>
-</ul>
-<dl class="field-list simple">
-<dt class="field-odd">Type renvoyé<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code>]</span></p>
-</dd>
-</dl>
+<span class="sig-name descname"><span class="pre">run_text_analysis_pipeline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.text_analysis_pipeline.run_text_analysis_pipeline" title="Lien vers cette définition"></a></dt>
+<dd><p>Exécuter l’analyse texte complète via le package modulaire.</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="vigilance.text_analysis_pipeline.run_text_extraction_pipeline">
-<span class="sig-name descname"><span class="pre">run_text_extraction_pipeline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Séparateur de paramètres par mot-clé uniquement (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">bank_code</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">year_current</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quarter_current</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pdf_previous</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pdf_current</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_root</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allowed_section_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">project_root</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force_extraction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.text_analysis_pipeline.run_text_extraction_pipeline" title="Lien vers cette définition"></a></dt>
-<dd><p>Exécute seulement l’extraction texte et écrit les artefacts markdown.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type renvoyé<span class="colon">:</span></dt>
-<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]</span></p>
-</dd>
-</dl>
+<span class="sig-name descname"><span class="pre">run_text_extraction_pipeline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.text_analysis_pipeline.run_text_extraction_pipeline" title="Lien vers cette définition"></a></dt>
+<dd><p>Exécuter l’extraction texte via le package modulaire.</p>
 </dd></dl>
 
 </section>
