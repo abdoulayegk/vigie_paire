@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from vigilance.text_comparison.justification import build_text_triage_justification
+from vigilance.vigie_columns import build_text_vigie_display_row
 
 logger = logging.getLogger(__name__)
 
@@ -30,16 +31,24 @@ _CATEGORY_SORT_ORDER: dict[str, int] = {
 }
 
 EXCEL_COLUMNS = [
-    "Titre",
+    "Texte exact du trimestre courant",
+    "Texte exact du trimestre précédent",
+    "Catégorie principale",
+    "Étiquettes secondaires",
+    "Section du rapport",
     "Sous-section",
-    "Page T1",
-    "Page T2",
+    "Type d'élément",
     "Type de changement",
-    "Texte exact T1",
-    "Texte exact T2",
-    "Nouvelle idée ?",
-    "Justification IA",
-    "Commentaire analyste",
+    "Ce qui change",
+    "Nouvelle idée à surveiller ?",
+    "Justification de pertinence (IA)",
+    "Effet sur la posture de risque",
+    "Priorité / impact",
+    "Page du texte courant",
+    "Page du texte précédent",
+    "Statut analyste",
+    "Note analyste",
+    "Validé le",
 ]
 
 _DIFF_TYPE_FR: dict[str, str] = {
@@ -48,6 +57,14 @@ _DIFF_TYPE_FR: dict[str, str] = {
     "modified": "Modification",
     "renamed": "Renommage",
     "unchanged": "Inchangé",
+}
+
+_VALIDATION_STATUS_FR: dict[str, str] = {
+    "approved": "Validé",
+    "rejected": "Rejeté",
+    "skipped": "Ignoré",
+    "pending": "En attente",
+    "": "En attente",
 }
 
 # ---------------------------------------------------------------------------
@@ -192,11 +209,14 @@ def _collect_rows(text_comparison: dict[str, Any]) -> list[dict[str, Any]]:
             page_t1 = ", ".join(str(p) for p in (evidence_t1.get("pages") or []) if p)
             page_t2 = ", ".join(str(p) for p in (evidence_t2.get("pages") or []) if p)
 
-            justification = build_text_triage_justification(block_comp)
+            display = build_text_vigie_display_row(
+                block_comp,
+                section_title=section_title,
+            )
+            justification = display["relevance_reason"] or build_text_triage_justification(block_comp)
             analyst_review = block_comp.get("_analyst_review") or {}
             analyst_status = str(analyst_review.get("status") or "").strip().lower()
-            ai_nouvelle_idee = bool(triage.get("nouvelle_idee", False))
-            nouvelle_idee = "Oui" if ai_nouvelle_idee else "Non"
+            nouvelle_idee = display["nouvelle_idee_label"]
             analyst_comment = ""
             if analyst_status == "rejected":
                 nouvelle_idee = "Non"
@@ -209,19 +229,26 @@ def _collect_rows(text_comparison: dict[str, Any]) -> list[dict[str, Any]]:
                     "change_id": block_comp.get("change_id", ""),
                     "section_key": section_key,
                     "section_title": section_title,
-                    "subsection": _subsection_label(block_comp),
+                    "subsection": display["subsection"],
                     "page_t1": page_t1,
                     "page_t2": page_t2,
-                    "source_text_t1": (block_comp.get("source_text_t1") or "").strip(),
-                    "source_text_t2": (block_comp.get("source_text_t2") or "").strip(),
-                    "diff_type": block_comp.get("diff_type", ""),
+                    # Les deux colonnes de texte gardent la source du pipeline,
+                    # sans résumé ni reformulation générée.
+                    "source_text_t1": str(block_comp.get("source_text_t1") or ""),
+                    "source_text_t2": str(block_comp.get("source_text_t2") or ""),
+                    "diff_type": display["change_type"],
                     "impact_level": str(triage.get("impact_level") or "MINEUR").upper(),
-                    "category": str(triage.get("category") or "INCONNU").upper(),
+                    "category": display["category"],
+                    "secondary_labels": display["secondary_labels"],
                     "is_relevant": bool(triage.get("is_relevant", False)),
                     "nouvelle_idee_bool": nouvelle_idee == "Oui",
                     "nouvelle_idee": nouvelle_idee,
                     "justification": justification,
+                    "what_changed": display["what_changed"],
+                    "posture": str(triage.get("changement_posture") or "INDETERMINE"),
+                    "analyst_status": _VALIDATION_STATUS_FR.get(analyst_status, analyst_status),
                     "commentaire_analyste": analyst_comment,
+                    "validated_at": str(analyst_review.get("at") or ""),
                 }
             )
 
@@ -283,16 +310,24 @@ def generate_text_comparison_excel(
         fill = PatternFill(start_color=fill_hex, end_color=fill_hex, fill_type="solid") if fill_hex else None
 
         row_data = [
+            row["source_text_t2"],
+            row["source_text_t1"],
+            row["category"],
+            row["secondary_labels"],
             row["section_title"],
             row["subsection"],
-            row["page_t1"],
-            row["page_t2"],
-            _DIFF_TYPE_FR.get(str(row["diff_type"]).lower(), row["diff_type"]),
-            row["source_text_t1"],
-            row["source_text_t2"],
+            "Texte",
+            row["diff_type"],
+            row["what_changed"],
             row["nouvelle_idee"],
             row["justification"],
+            row["posture"],
+            row["impact_level"],
+            row["page_t2"],
+            row["page_t1"],
+            row["analyst_status"],
             row["commentaire_analyste"],
+            row["validated_at"],
         ]
         for col_idx, value in enumerate(row_data, 1):
             cell = ws.cell(row=row_num, column=col_idx, value=_excel_safe(value))
@@ -305,16 +340,24 @@ def generate_text_comparison_excel(
 
     # ---------- largeurs de colonnes ----------
     col_widths = {
-        1: 30,   # Titre
-        2: 35,   # Sous-section
-        3: 10,   # Page T1
-        4: 10,   # Page T2
-        5: 18,   # Type de changement
-        6: 70,   # Texte exact T1
-        7: 70,   # Texte exact T2
-        8: 14,   # Nouvelle idée ?
-        9: 70,   # Justification IA
-        10: 25,  # Commentaire analyste
+        1: 70,   # Texte exact courant
+        2: 70,   # Texte exact précédent
+        3: 38,   # Catégorie principale
+        4: 42,   # Étiquettes secondaires
+        5: 30,   # Section
+        6: 35,   # Sous-section
+        7: 18,   # Type d'élément
+        8: 18,   # Type de changement
+        9: 70,   # Ce qui change
+        10: 20,  # Nouvelle idée
+        11: 70,  # Justification
+        12: 28,  # Posture de risque
+        13: 16,  # Impact
+        14: 16,  # Page courante
+        15: 16,  # Page précédente
+        16: 18,  # Statut analyste
+        17: 30,  # Note analyste
+        18: 22,  # Validé le
     }
     for col_idx, width in col_widths.items():
         ws.column_dimensions[get_column_letter(col_idx)].width = width

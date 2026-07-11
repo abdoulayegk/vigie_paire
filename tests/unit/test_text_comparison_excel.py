@@ -8,6 +8,14 @@ from vigilance.text_comparison.justification import build_text_triage_justificat
 from vigilance.text_comparison.text_comparison_excel import generate_text_comparison_excel
 
 
+def _column(ws, header: str) -> int:
+    """Retourner l'index d'une colonne analyste par son en-tête."""
+    for index in range(1, ws.max_column + 1):
+        if ws.cell(row=1, column=index).value == header:
+            return index
+    raise AssertionError(f"Colonne absente : {header}")
+
+
 def test_generate_text_comparison_excel_creates_analysis_sheet() -> None:
     justification_oui = (
         "OUI - le nouveau modele AIRB est introduit au T2 et n'apparaissait "
@@ -115,28 +123,22 @@ def test_generate_text_comparison_excel_creates_analysis_sheet() -> None:
     assert workbook.sheetnames == ["Analyse complète"]
     ws = workbook["Analyse complète"]
     assert ws.max_row == 5
-    assert ws["A2"].value == "Gestion des risques"
-    assert ws["C2"].value == "10"
-    assert ws["D2"].value == "12"
-    assert ws["E2"].value == "Modification"
-    assert ws["F2"].value == "Paragraphe exact T1"
-    assert ws["G2"].value == "Paragraphe exact T2"
-    assert ws["H2"].value == "Oui"
-    # La colonne 9 contient une justification structurée pour l'affichage Dash.
-    assert ws["I2"].value.startswith("OUI — Nouvel élément à surveiller : Oui.")
-    assert "Sujet détecté :" in ws["I2"].value
-    assert "Ce qui change : Le passage est modifie entre T1 et T2." in ws["I2"].value
-    assert "Pertinence métier :" in ws["I2"].value
-    assert "le nouveau modele AIRB est introduit" in ws["I2"].value
-    assert "Point de surveillance :" in ws["I2"].value
-    assert ws["F3"].value == "Paragraphe modéré T1"
-    assert ws["G3"].value == "Paragraphe modéré T2"
-    assert ws["C4"].value is None
-    assert ws["D4"].value == "13"
-    assert ws["F4"].value is None
-    assert ws["G4"].value == "Paragraphe exact ajouté"
-    assert ws["F5"].value == "Paragraphe non substantif T1"
-    assert ws["G5"].value == "Paragraphe non substantif T2"
+    assert ws.cell(2, _column(ws, "Section du rapport")).value == "Gestion des risques"
+    assert ws.cell(2, _column(ws, "Page du texte précédent")).value == "10"
+    assert ws.cell(2, _column(ws, "Page du texte courant")).value == "12"
+    assert ws.cell(2, _column(ws, "Type de changement")).value == "Modification"
+    assert ws.cell(2, _column(ws, "Texte exact du trimestre précédent")).value == "Paragraphe exact T1"
+    assert ws.cell(2, _column(ws, "Texte exact du trimestre courant")).value == "Paragraphe exact T2"
+    assert ws.cell(2, _column(ws, "Nouvelle idée à surveiller ?")).value == "Oui"
+    assert "nouveau modele AIRB est introduit" in ws.cell(2, _column(ws, "Justification de pertinence (IA)")).value
+    assert ws.cell(3, _column(ws, "Texte exact du trimestre précédent")).value == "Paragraphe modéré T1"
+    assert ws.cell(3, _column(ws, "Texte exact du trimestre courant")).value == "Paragraphe modéré T2"
+    assert ws.cell(4, _column(ws, "Page du texte précédent")).value is None
+    assert ws.cell(4, _column(ws, "Page du texte courant")).value == "13"
+    assert ws.cell(4, _column(ws, "Texte exact du trimestre précédent")).value is None
+    assert ws.cell(4, _column(ws, "Texte exact du trimestre courant")).value == "Paragraphe exact ajouté"
+    assert ws.cell(5, _column(ws, "Texte exact du trimestre précédent")).value == "Paragraphe non substantif T1"
+    assert ws.cell(5, _column(ws, "Texte exact du trimestre courant")).value == "Paragraphe non substantif T2"
 
 
 def test_generate_text_comparison_excel_keeps_minor_date_and_reformulation_changes() -> None:
@@ -194,10 +196,10 @@ def test_generate_text_comparison_excel_keeps_minor_date_and_reformulation_chang
     ws = workbook["Analyse complète"]
 
     assert ws.max_row == 3
-    assert ws["F2"].value == "Données au 31 janvier."
-    assert ws["G2"].value == "Données au 30 avril."
-    assert ws["F3"].value == "La banque surveille ce risque."
-    assert ws["G3"].value == "Ce risque est surveillé par la banque."
+    assert ws.cell(2, _column(ws, "Texte exact du trimestre précédent")).value == "Données au 31 janvier."
+    assert ws.cell(2, _column(ws, "Texte exact du trimestre courant")).value == "Données au 30 avril."
+    assert ws.cell(3, _column(ws, "Texte exact du trimestre précédent")).value == "La banque surveille ce risque."
+    assert ws.cell(3, _column(ws, "Texte exact du trimestre courant")).value == "Ce risque est surveillé par la banque."
 
 
 def test_generate_text_comparison_excel_strips_control_characters() -> None:
@@ -231,11 +233,9 @@ def test_generate_text_comparison_excel_strips_control_characters() -> None:
     workbook = load_workbook(io.BytesIO(raw))
     ws = workbook["Analyse complète"]
 
-    assert ws["F2"].value == "Texte T1"
-    assert "\x00" not in ws["I2"].value
-    assert ws["I2"].value.startswith("OUI — Nouvel élément à surveiller : Oui.")
-    assert "Ce qui change :" in ws["I2"].value
-    assert "Pertinence métier : note analyste utile." in ws["I2"].value
+    assert ws.cell(2, _column(ws, "Texte exact du trimestre précédent")).value == "Texte T1"
+    assert "\x00" not in ws.cell(2, _column(ws, "Justification de pertinence (IA)")).value
+    assert "note analyste utile" in ws.cell(2, _column(ws, "Justification de pertinence (IA)")).value
 
 
 def test_generate_text_comparison_excel_applies_analyst_review_without_new_columns() -> None:
@@ -312,27 +312,36 @@ def test_generate_text_comparison_excel_applies_analyst_review_without_new_colum
     headers = [ws.cell(row=1, column=i).value for i in range(1, ws.max_column + 1)]
 
     assert headers == [
-        "Titre",
+        "Texte exact du trimestre courant",
+        "Texte exact du trimestre précédent",
+        "Catégorie principale",
+        "Étiquettes secondaires",
+        "Section du rapport",
         "Sous-section",
-        "Page T1",
-        "Page T2",
+        "Type d'élément",
         "Type de changement",
-        "Texte exact T1",
-        "Texte exact T2",
-        "Nouvelle idée ?",
-        "Justification IA",
-        "Commentaire analyste",
+        "Ce qui change",
+        "Nouvelle idée à surveiller ?",
+        "Justification de pertinence (IA)",
+        "Effet sur la posture de risque",
+        "Priorité / impact",
+        "Page du texte courant",
+        "Page du texte précédent",
+        "Statut analyste",
+        "Note analyste",
+        "Validé le",
     ]
     values = {
-        ws.cell(row=row, column=7).value: (
-            ws.cell(row=row, column=8).value,
-            ws.cell(row=row, column=10).value,
+        ws.cell(row=row, column=_column(ws, "Texte exact du trimestre courant")).value: (
+            ws.cell(row=row, column=_column(ws, "Nouvelle idée à surveiller ?")).value,
+            ws.cell(row=row, column=_column(ws, "Note analyste")).value,
+            ws.cell(row=row, column=_column(ws, "Statut analyste")).value,
         )
         for row in range(2, ws.max_row + 1)
     }
-    assert values["Nouveau"] == ("Non", "Pas une nouvelle idée.")
-    assert values["Ajout"] == ("Oui", "À conserver.")
-    assert values["B"] == ("Oui", None)
+    assert values["Nouveau"] == ("Non", "Pas une nouvelle idée.", "Rejeté")
+    assert values["Ajout"] == ("Oui", "À conserver.", "Validé")
+    assert values["B"] == ("Oui", None, "Ignoré")
 
 
 def test_text_justification_falls_back_for_legacy_b15_triage() -> None:
@@ -405,8 +414,8 @@ def test_text_justification_falls_back_for_legacy_b15_triage() -> None:
     )
     workbook = load_workbook(io.BytesIO(raw))
     ws = workbook["Analyse complète"]
-    assert ws["H2"].value == "Oui"
-    assert ws["I2"].value == justification
+    assert ws.cell(2, _column(ws, "Nouvelle idée à surveiller ?")).value == "Oui"
+    assert "mise a jour des lignes directrices" in ws.cell(2, _column(ws, "Justification de pertinence (IA)")).value
 
 
 def test_text_justification_rewrites_b15_pertinence_when_explicit_exists() -> None:
@@ -470,7 +479,7 @@ def test_generate_text_comparison_excel_labels_text_renames() -> None:
     workbook = load_workbook(io.BytesIO(raw))
     ws = workbook["Analyse complète"]
 
-    assert ws["B2"].value == "Ancien titre → Nouveau titre"
-    assert ws["E2"].value == "Renommage"
-    assert ws["F2"].value == "Ancien titre"
-    assert ws["G2"].value == "Nouveau titre"
+    assert ws.cell(2, _column(ws, "Sous-section")).value == "Ancien titre → Nouveau titre"
+    assert ws.cell(2, _column(ws, "Type de changement")).value == "Renommage"
+    assert ws.cell(2, _column(ws, "Texte exact du trimestre précédent")).value == "Ancien titre"
+    assert ws.cell(2, _column(ws, "Texte exact du trimestre courant")).value == "Nouveau titre"
