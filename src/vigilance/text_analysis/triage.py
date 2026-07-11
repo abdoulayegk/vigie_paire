@@ -7,9 +7,9 @@ from difflib import SequenceMatcher
 import logging
 import re
 import unicodedata
-from typing import Any
+from typing import Any, Literal
 
-from pydantic import ValidationError
+from pydantic import BaseModel, Field, ValidationError
 
 from vigilance.amf_taxonomy import (
     COMPACT_RELEVANCE_REASON_MAX_WORDS,
@@ -51,6 +51,9 @@ _COMPACT_THEME_CANDIDATE_LIMIT = 6
 _COMPACT_COMPLETION_BASE_TOKENS = 350
 _COMPACT_COMPLETION_TOKENS_PER_CHANGE = 320
 _COMPACT_COMPLETION_MAX_TOKENS = 1200
+_FULL_EVIDENCE_PACKET_LIMIT = 2400
+_FULL_EVIDENCE_FACT_MAX_TOKENS = 300
+_FULL_EVIDENCE_VERIFICATION_MAX_TOKENS = 220
 _ISOLATED_DATE_RE = re.compile(
     r"\b(?:\d{1,2}\s+(?:janvier|février|fevrier|mars|avril|mai|juin|juillet|août|aout|"
     r"septembre|octobre|novembre|décembre|decembre)\s+\d{4}|\d{4}-\d{2}-\d{2})\b",
@@ -79,6 +82,137 @@ _THEME_STOPWORDS = frozenset(
         "une",
     }
 )
+
+
+class _EvidencePacketObservation(BaseModel):
+    """Constat factuel sur un paquet complet de preuves T1/T2."""
+
+    packet_index: int = Field(..., ge=1)
+    factual_change: str = Field(..., min_length=12, max_length=700)
+
+
+class _EvidencePacketBatch(BaseModel):
+    """Réponse de l'étape factuelle, sans qualification AMF."""
+
+    observations: list[_EvidencePacketObservation]
+
+
+class _EvidencePacketCoherenceCheck(BaseModel):
+    """Contrôle indépendant d'une décision sur une preuve exacte."""
+
+    packet_index: int = Field(..., ge=1)
+    verdict: Literal["supports", "contradicts", "insufficient"]
+    reason: str = Field(..., min_length=12, max_length=700)
+
+
+def _split_full_evidence_text(text: str, *, limit: int = _FULL_EVIDENCE_PACKET_LIMIT) -> list[str]:
+    """Découper un texte complet sans jamais retirer de caractères.
+
+    La coupure privilégie les sauts de ligne puis les fins de phrase. Elle ne
+    sert qu'à respecter le contexte d'un appel; la concaténation des paquets
+    restitue intégralement le texte source.
+    """
+    value = str(text or "")
+    if not value:
+        return []
+    if len(value) <= limit:
+        return [value]
+
+    packets: list[str] = []
+    start = 0
+    while start < len(value):
+        end = min(start + limit, len(value))
+        if end < len(value):
+            boundary = max(
+                value.rfind("\n", start + limit // 2, end),
+                value.rfind(". ", start + limit // 2, end),
+                value.rfind("; ", start + limit // 2, end),
+            )
+            if boundary > start:
+                end = boundary + (1 if value[boundary] in ".;" else 0)
+        packets.append(value[start:end])
+        start = end
+    return packets
+
+
+def _build_full_evidence_packets(change: dict[str, Any]) -> list[dict[str, Any]]:
+    """Construire des paquets T1/T2 exhaustifs pour un changement long."""
+    source_t1 = str(change.get("source_text_t1") or change.get("semantic_text_t1") or "")
+    source_t2 = str(change.get("source_text_t2") or change.get("semantic_text_t2") or "")
+    packets_t1 = _split_full_evidence_text(source_t1)
+    packets_t2 = _split_full_evidence_text(source_t2)
+    packet_count = max(len(packets_t1), len(packets_t2), 1)
+    return [
+        {
+            "packet_index": index + 1,
+            "text_t1": packets_t1[index] if index < len(packets_t1) else "",
+            "text_t2": packets_t2[index] if index < len(packets_t2) else "",
+        }
+        for index in range(packet_count)
+    ]
+
+
+def _requires_full_evidence_packets(change: dict[str, Any]) -> bool:
+    """Indiquer si la preuve dépasse le contexte compact de triage."""
+    return any(
+        len(str(change.get(key) or "")) > _TRIAGE_SOURCE_SNIPPET_LIMIT
+        for key in ("source_text_t1", "source_text_t2", "semantic_text_t1", "semantic_text_t2")
+    )
+
+
+def _collect_full_evidence_observations(
+    *,
+    client: Any,
+    model: str,
+    change: dict[str, Any],
+) -> list[dict[str, Any]]:
+    """Lire toute preuve longue par appels factuels séparés et auditables."""
+    packets = _build_full_evidence_packets(change)
+    observations: list[dict[str, Any]] = []
+    for packet in packets:
+        response = _call_structured_completion_with_correction(
+            client,
+            model=model,
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "Tu lis une preuve textuelle complète T1/T2. Décris uniquement "
+                        "le fait observable entre les deux textes, sans catégorie AMF, "
+                        "sans priorité, sans posture et sans recommandation."
+                    ),
+                },
+                {
+                    "role": "user",
+                    "content": _json_dumps(
+                        {
+                            "diff_type": str(change.get("diff_type") or ""),
+                            "packet": packet,
+                        }
+                    ),
+                },
+            ],
+            response_format=_EvidencePacketBatch,
+            max_tokens=_FULL_EVIDENCE_FACT_MAX_TOKENS,
+            max_retries=1,
+            validation_retry_message=(
+                "Renvoie une seule observation factuelle pour le packet_index fourni, "
+                "sans qualification métier ni texte hors schéma."
+            ),
+        )
+        matching = [item for item in response.observations if item.packet_index == packet["packet_index"]]
+        if len(matching) != 1:
+            raise RuntimeError(
+                "La lecture de preuve complète doit retourner exactement une observation "
+                f"pour le paquet {packet['packet_index']}."
+            )
+        observations.append(
+            {
+                "packet_index": packet["packet_index"],
+                "factual_change": matching[0].factual_change,
+            }
+        )
+    return observations
 
 
 def _bounded_local_relevance_reason(value: str) -> str:
@@ -215,6 +349,92 @@ def _semantic_move_result(change: dict[str, Any]) -> dict[str, Any]:
     enriched = dict(change)
     enriched["genai_triage"] = triage
     return enriched
+
+
+def _coherence_review_triage(change: dict[str, Any], reason: str) -> dict[str, Any]:
+    """Conserver un dossier visible quand le contrôle indépendant diverge."""
+    triage = _default_triage()
+    triage.update(
+        {
+            "source": "triage_coherence_review_required",
+            "coherence_review_required": True,
+            "coherence_review_reason": str(reason or "").strip(),
+            "relevance_reason": _bounded_local_relevance_reason(
+                "La qualification métier proposée ne concorde pas suffisamment avec "
+                "la vérification indépendante des preuves complètes. Le dossier est "
+                "conservé avec ses textes sources et ses pages afin qu'un analyste "
+                "confirme le type de changement, la pertinence et l'existence d'une "
+                "nouvelle idée avant toute conclusion de vigie."
+            ),
+            "change_segments": build_change_segments(change),
+        }
+    )
+    enriched = dict(change)
+    enriched["genai_triage"] = triage
+    return enriched
+
+
+def _verify_triage_coherence(
+    *,
+    client: Any,
+    model: str,
+    change: dict[str, Any],
+    triage: dict[str, Any],
+    evidence_packets: list[dict[str, Any]],
+) -> tuple[bool, str]:
+    """Contrôler chaque preuve exacte contre la décision métier proposée."""
+    support_reasons: list[str] = []
+    for packet in evidence_packets:
+        response = _call_structured_completion_with_correction(
+            client,
+            model=model,
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "Tu vérifies une décision de vigie bancaire de façon indépendante. "
+                        "Compare la décision proposée au paquet de texte exact fourni. "
+                        "Réponds supports si le paquet l'appuie, contradicts s'il la "
+                        "contredit, insufficient s'il ne permet pas de conclure. N'invente "
+                        "aucun fait absent du paquet."
+                    ),
+                },
+                {
+                    "role": "user",
+                    "content": _json_dumps(
+                        {
+                            "diff_type": change.get("diff_type"),
+                            "packet": packet,
+                            "proposed_triage": {
+                                "is_relevant": triage.get("is_relevant"),
+                                "themes_amf": triage.get("themes_amf"),
+                                "nouvelle_idee": triage.get("nouvelle_idee"),
+                                "relevance_reason": triage.get("relevance_reason"),
+                            },
+                        }
+                    ),
+                },
+            ],
+            response_format=_EvidencePacketCoherenceCheck,
+            max_tokens=_FULL_EVIDENCE_VERIFICATION_MAX_TOKENS,
+            max_retries=1,
+            validation_retry_message=(
+                "Réponds avec le packet_index, supports, contradicts ou insufficient, "
+                "et une raison factuelle courte sans ajouter de thème."
+            ),
+        )
+        if response.packet_index != packet["packet_index"]:
+            raise RuntimeError(
+                "Le contrôle de cohérence doit répondre pour le paquet de preuve demandé."
+            )
+        if response.verdict == "contradicts":
+            return False, response.reason
+        if response.verdict == "supports":
+            support_reasons.append(response.reason)
+
+    if not support_reasons:
+        return False, "Aucun paquet de preuve complet ne confirme la décision métier proposée."
+    return True, " ".join(support_reasons)
 
 
 def _normalize_for_cosmetic(text: str) -> str:
@@ -815,9 +1035,20 @@ def _triage_section_changes(
     changes = pending
     triage_inputs = []
     exact_segments_by_index: dict[int, list[dict[str, str]]] = {}
+    full_evidence_by_index: dict[int, list[dict[str, Any]]] = {}
+    full_evidence_packets_by_index: dict[int, list[dict[str, Any]]] = {}
     for idx, change in enumerate(changes, start=1):
         exact_segments = build_change_segments(change)
         exact_segments_by_index[idx] = exact_segments
+        full_evidence = []
+        if _requires_full_evidence_packets(change):
+            full_evidence_packets_by_index[idx] = _build_full_evidence_packets(change)
+            full_evidence = _collect_full_evidence_observations(
+                client=client,
+                model=model,
+                change=change,
+            )
+            full_evidence_by_index[idx] = full_evidence
         exact_segments_for_prompt = [
             {
                 "kind": str(segment.get("kind") or ""),
@@ -856,6 +1087,7 @@ def _triage_section_changes(
                     _TRIAGE_SOURCE_SNIPPET_LIMIT,
                 ),
                 "change_summary": change.get("change_summary", ""),
+                "full_evidence_observations": full_evidence,
                 "candidate_themes": _candidate_themes_for_change(
                     change,
                     section_key=section_key,
@@ -1015,6 +1247,20 @@ def _triage_section_changes(
     enriched: list[dict[str, Any]] = []
     for idx, change in enumerate(changes, start=1):
         triage = triage_map.get(idx, _default_triage())
+        evidence_observations = full_evidence_by_index.get(idx, [])
+        if evidence_observations:
+            coherent, coherence_reason = _verify_triage_coherence(
+                client=client,
+                model=model,
+                change=change,
+                triage=triage,
+                evidence_packets=full_evidence_packets_by_index[idx],
+            )
+            if not coherent:
+                enriched.append(_coherence_review_triage(change, coherence_reason))
+                continue
+            triage["full_evidence_verified"] = True
+            triage["full_evidence_observations"] = evidence_observations
         enriched_change = dict(change)
         enriched_change["genai_triage"] = triage
         enriched.append(enriched_change)
