@@ -35,12 +35,14 @@ except ValueError:
 
 
 def build_parser() -> argparse.ArgumentParser:
+    """Construit le parseur CLI du pipeline complet."""
     p = argparse.ArgumentParser(
         description="Vigilance -- Pipeline complet (indicateurs + texte).",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=(
             "Exemples:\n"
             "  python run_full_pipeline.py --banque BNC --annee 2025 --T2\n"
+            "  python run_full_pipeline.py --banque BNC --annee 2025 --T2 --force-extraction\n"
             "  python run_full_pipeline.py --banque BNC --annee 2025 --T2 --sans-extraction\n"
             "  python run_full_pipeline.py --banque BNC --annee 2025 --T2 --sans-indicateurs\n"
             "  python run_full_pipeline.py --banque BNC --annee 2025 --T2 --sans-texte\n"
@@ -64,6 +66,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--sans-extraction",
         action="store_true",
         help="Sauter l'extraction des tableaux (reutiliser les tables.json existants)",
+    )
+    p.add_argument(
+        "--force-extraction",
+        action="store_true",
+        help="Forcer la ré-extraction texte même si les text_extraction.md existent déjà",
     )
     p.add_argument(
         "--sans-comparaison",
@@ -114,6 +121,7 @@ def _run_pipeline_texte(
     trimestre: str,
     out_root: str,
     sans_comparaison: bool,
+    force_extraction: bool,
 ) -> int:
     """Lance le pipeline texte et retourne le code de sortie."""
     from run_text_pipeline import main as texte_main
@@ -126,11 +134,14 @@ def _run_pipeline_texte(
     ]
     if sans_comparaison:
         argv.append("--skip-comparison")
+    if force_extraction:
+        argv.append("--force-extraction")
 
     return texte_main(argv)
 
 
 def main(argv: list[str] | None = None) -> int:
+    """Exécute les pipelines indicateurs et texte selon les options CLI."""
     args = build_parser().parse_args(argv)
 
     banque = args.banque.upper()
@@ -192,6 +203,7 @@ def main(argv: list[str] | None = None) -> int:
                 trimestre=trimestre,
                 out_root=out_root,
                 sans_comparaison=args.sans_comparaison,
+                force_extraction=args.force_extraction,
             )
             elapsed = time.time() - t0
             if rc == 0:

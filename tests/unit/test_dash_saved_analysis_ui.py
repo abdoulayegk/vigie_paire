@@ -127,3 +127,47 @@ def test_file_comparison_store_loads_saved_analysis_with_local_pdf_context(
     assert loaded["pdf_paths"]["pdf_previous"] == str(previous_pdf)
     assert loaded["pdf_paths"]["pdf_current"] == str(current_pdf)
     assert loaded["warning"] == ""
+
+
+def test_file_comparison_store_lists_text_only_saved_analysis(tmp_path: Path) -> None:
+    relative = "td/2025_t4_vs_2024_t4/text_comparison.json"
+    text_path = tmp_path / relative
+    text_path.parent.mkdir(parents=True, exist_ok=True)
+    text_path.write_text(
+        json.dumps(
+            {
+                "schema_version": 3,
+                "artifact_type": "text_comparison",
+                "bank_code": "td",
+                "year_previous": 2024,
+                "quarter_previous": "2024_t4",
+                "year_current": 2025,
+                "quarter_current": "2025_t4",
+                "generated_at": "2026-07-09T09:38:45",
+                "section_comparisons": [],
+            },
+            ensure_ascii=False,
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
+
+    store = build_file_comparison_store(root_dir=tmp_path)
+
+    options = store.list_saved_run_options(
+        bank_code="td",
+        year=2025,
+        current_quarter="T4",
+    )
+    loaded = store.load_dash_payload(
+        relative,
+        source="analyse_enregistree",
+        source_label="Analyse enregistrée",
+    )
+
+    assert [option["value"] for option in options] == [relative]
+    assert loaded is not None
+    assert loaded["indicator_result"]["bank_code"] == "td"
+    assert loaded["indicator_result"]["quarter_to"] == "Q4-2025"
+    assert loaded["indicator_result"]["quarter_from"] == "Q4-2024"
+    assert loaded["indicator_meta"]["source_format"] == "text_only"
