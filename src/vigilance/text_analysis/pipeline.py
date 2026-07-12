@@ -32,6 +32,8 @@ from vigilance.text_extraction.text_extraction_markdown_writer import (
     get_canonical_text_extraction_md_path,
     get_raw_docling_markdown_path,
     get_text_extraction_markdown_path,
+    has_current_text_extraction_cache_schema,
+    stamp_text_extraction_cache_schema,
     write_text_extraction_markdown,
 )
 
@@ -62,24 +64,27 @@ def _prepare_period_extraction(
     if md_path.exists() and not force_extraction:
         try:
             original_md = md_path.read_text(encoding="utf-8")
-            md = _rewrite_page_markers_for_display(original_md)
-            if md != original_md:
-                md_path.write_text(md, encoding="utf-8")
-                logger.info("Migration des marqueurs de pages du .md canonique: %s", md_path)
-            page_idx_by_key, section_start_pages = _parse_page_index_from_markdown(md)
-            if any(page_idx_by_key.values()):
-                section_range_by_key = {
-                    key: _section_page_range_from_index(idx, start_page_hint=section_start_pages.get(key))
-                    for key, idx in page_idx_by_key.items()
-                }
-                available_keys = set(page_idx_by_key.keys())
-                if allowed_section_keys is not None:
-                    available_keys &= allowed_section_keys
-                    page_idx_by_key = {k: v for k, v in page_idx_by_key.items() if k in available_keys}
-                    section_range_by_key = {k: v for k, v in section_range_by_key.items() if k in available_keys}
-                logger.info("Réutilisation du .md canonique: %s", md_path)
-                return md, page_idx_by_key, section_range_by_key, available_keys
-            logger.warning(".md canonique vide — ré-extraction: %s", md_path)
+            if not has_current_text_extraction_cache_schema(original_md):
+                logger.info(".md canonique d'un schéma obsolète — ré-extraction: %s", md_path)
+            else:
+                md = _rewrite_page_markers_for_display(original_md)
+                if md != original_md:
+                    md_path.write_text(md, encoding="utf-8")
+                    logger.info("Migration des marqueurs de pages du .md canonique: %s", md_path)
+                page_idx_by_key, section_start_pages = _parse_page_index_from_markdown(md)
+                if any(page_idx_by_key.values()):
+                    section_range_by_key = {
+                        key: _section_page_range_from_index(idx, start_page_hint=section_start_pages.get(key))
+                        for key, idx in page_idx_by_key.items()
+                    }
+                    available_keys = set(page_idx_by_key.keys())
+                    if allowed_section_keys is not None:
+                        available_keys &= allowed_section_keys
+                        page_idx_by_key = {k: v for k, v in page_idx_by_key.items() if k in available_keys}
+                        section_range_by_key = {k: v for k, v in section_range_by_key.items() if k in available_keys}
+                    logger.info("Réutilisation du .md canonique: %s", md_path)
+                    return md, page_idx_by_key, section_range_by_key, available_keys
+                logger.warning(".md canonique vide — ré-extraction: %s", md_path)
         except Exception as exc:  # noqa: BLE001
             logger.warning(".md canonique illisible (%s) — ré-extraction: %s", exc, md_path)
     elif md_path.exists():
@@ -108,9 +113,11 @@ def _prepare_period_extraction(
         sections=filtered_sections,
         raw_docling_markdown_path=raw_docling_markdown_path,
     )
-    md = _build_text_extraction_markdown(
-        audits,
-        raw_docling_markdown=raw_docling_markdown,
+    md = stamp_text_extraction_cache_schema(
+        _build_text_extraction_markdown(
+            audits,
+            raw_docling_markdown=raw_docling_markdown,
+        )
     )
 
     md_path.parent.mkdir(parents=True, exist_ok=True)

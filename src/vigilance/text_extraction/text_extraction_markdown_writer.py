@@ -5,6 +5,26 @@ from __future__ import annotations
 from pathlib import Path
 
 CANONICAL_TEXT_EXTRACTIONS_DIR = "text_extractions"
+TEXT_EXTRACTION_CACHE_SCHEMA_VERSION = 4
+_CACHE_MARKER_PREFIX = "<!-- vigilance-text-extraction-schema:"
+
+
+def _cache_marker() -> str:
+    """Retourne le marqueur de version du Markdown canonique."""
+    return f"{_CACHE_MARKER_PREFIX} {TEXT_EXTRACTION_CACHE_SCHEMA_VERSION} -->"
+
+
+def has_current_text_extraction_cache_schema(content: str) -> bool:
+    """Vérifie que le Markdown canonique correspond au schéma courant."""
+    return str(content or "").lstrip().startswith(_cache_marker())
+
+
+def stamp_text_extraction_cache_schema(content: str) -> str:
+    """Ajoute le marqueur de schéma au Markdown canonique réutilisable."""
+    value = str(content or "").lstrip()
+    if has_current_text_extraction_cache_schema(value):
+        return value
+    return f"{_cache_marker()}\n\n{value}"
 
 
 def get_text_extraction_markdown_path(out_dir: Path, quarter_label: str) -> Path:

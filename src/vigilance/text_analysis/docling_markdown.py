@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import re
 from dataclasses import dataclass
 
@@ -17,6 +18,8 @@ from vigilance.text_analysis.normalization import (
     _looks_like_table_or_financial_grid,
     _normalized_block_text,
 )
+
+logger = logging.getLogger(__name__)
 
 _SECTION_ORDER = {
     "gestion_capital": 0,
@@ -219,21 +222,66 @@ def _parse_docling_markdown(md_content: str) -> list[DoclingSegment]:
     return segments
 
 
-def _segment_matches_included_block(segment: DoclingSegment, audit: SectionAudit) -> bool:
-    """Vérifie si un segment correspond à un bloc narratif inclus."""
+def _segment_matches_block(segment: DoclingSegment, block: PDFBlock) -> bool:
+    """Vérifie si un segment Docling correspond à un bloc PDF audité."""
     segment_norm = _normalized_block_text(segment.text)
     if not segment_norm:
         return False
-    for block in audit.included_blocks:
-        block_norm = _normalized_block_text(block.text)
-        if not block_norm:
-            continue
-        if segment_norm == block_norm:
-            return True
-        if len(segment_norm) >= 20 and segment_norm in block_norm:
-            return True
-        if len(block_norm) >= 20 and block_norm in segment_norm:
-            return True
+    block_norm = _normalized_block_text(block.text)
+    if not block_norm:
+        return False
+    if segment_norm == block_norm:
+        return True
+    if len(segment_norm) >= 20 and segment_norm in block_norm:
+        return True
+    if len(block_norm) >= 20 and block_norm in segment_norm:
+        return True
+    return False
+
+
+def _segment_matches_included_block(segment: DoclingSegment, audit: SectionAudit) -> bool:
+    """Vérifie si un segment correspond à un bloc narratif inclus."""
+    return any(_segment_matches_block(segment, block) for block in audit.included_blocks)
+
+
+def _is_confirmed_narrative_segment(
+    segment: DoclingSegment,
+    audits: list[SectionAudit] | None,
+) -> bool:
+    """Indique qu'un segment est confirmé comme narratif par l'audit PDF.
+
+    L'audit combine le libellé Docling, la géométrie de la page et les régions
+    de tableaux pour décider qu'un bloc appartient réellement au narratif de
+    la section. Cette information est plus fiable qu'une heuristique fondée
+    uniquement sur des mots comme ``total`` et des pourcentages.
+
+    Les titres restent exclus : ils sont structurels et sont traités par les
+    règles spécifiques aux en-têtes plus bas dans le flux.
+    """
+    if segment.kind not in {"paragraph", "list_item"} or not audits:
+        return False
+    return any(_segment_matches_included_block(segment, audit) for audit in audits)
+
+
+def _is_confirmed_footnote_segment(
+    segment: DoclingSegment,
+    audits: list[SectionAudit] | None,
+) -> bool:
+    """Indique que l'audit PDF a identifié le segment comme note de tableau.
+
+    Ce repli couvre les formats propres aux banques qui ne portent pas tous un
+    marqueur universel, par exemple une note BMO commençant simplement par
+    ``1`` sous une figure. La géométrie de la note et son libellé Docling sont
+    alors plus fiables que son préfixe textuel seul.
+    """
+    if segment.kind not in {"paragraph", "list_item"} or not audits:
+        return False
+    for audit in audits:
+        for block in audit.excluded_blocks:
+            if block.block_type != "footnote" and block.exclusion_reason != "footnote":
+                continue
+            if _segment_matches_block(segment, block):
+                return True
     return False
 
 
@@ -286,16 +334,36 @@ def _is_table_footnote_segment(segment: DoclingSegment) -> bool:
 
 
 def _should_keep_docling_segment(segment: DoclingSegment, audits: list[SectionAudit] | None = None) -> bool:
-    """Filtre tableaux, notes et en-têtes de page du flux Docling."""
+    """Filtre tableaux, notes et en-têtes de page du flux Docling.
+
+    Un paragraphe confirmé narratif par ``SectionAudit`` est conservé avant
+    les heuristiques textuelles de détection de tableaux. Sans cette priorité,
+    des divulgations réglementaires ordinaires (plusieurs ratios et le mot
+    « total », par exemple) étaient supprimées comme de fausses grilles.
+    """
     text = str(segment.text or "").strip()
     if not text:
-        return False
-    if _is_table_footnote_segment(segment):
         return False
     if _PAGE_HEADER_RE.search(text):
         return False
     if re.search(r"rapport de gestion\s+\d+", text, flags=re.IGNORECASE):
         return False
+
+    # Les notes confirmées par la géométrie/l'étiquetage PDF couvrent les
+    # variantes de présentation propres à chaque banque.
+    if _is_confirmed_footnote_segment(segment, audits):
+        return False
+
+    # Une note explicitement marquée reste une note, même si Docling l'a
+    # rattachée par erreur à un bloc narratif dans l'audit.
+    if _is_table_footnote_segment(segment):
+        return False
+
+    # La décision géométrique/auditée prévaut sur les heuristiques lexicales.
+    # Les vraies notes et les vrais tableaux ne sont pas des blocs inclus dans
+    # l'audit et continuent donc d'être filtrés ci-dessous.
+    if _is_confirmed_narrative_segment(segment, audits):
+        return True
     if segment.kind == "heading":
         if _is_out_of_scope_accounting_heading(text):
             return False
@@ -308,9 +376,37 @@ def _should_keep_docling_segment(segment: DoclingSegment, audits: list[SectionAu
         return False
     if re.search(r"\(en millions", text, flags=re.IGNORECASE) and re.search(r"\b20\d{2}\b", text):
         return False
-    if audits and any(_segment_matches_included_block(segment, audit) for audit in audits):
-        return True
     return True
+
+
+def _warn_on_missing_audited_narrative_blocks(
+    markdown: str,
+    audits: list[SectionAudit],
+) -> None:
+    """Signale toute perte entre les blocs narratifs audités et le Markdown.
+
+    Ce garde-fou n'altère pas l'ordre de lecture en ajoutant un texte à la fin
+    d'une section. Il rend toutefois toute omission visible dans les journaux,
+    avec la section et la page concernées, afin qu'elle ne soit plus silencieuse.
+    """
+    rendered = _normalized_block_text(markdown)
+    if not rendered:
+        return
+
+    missing: list[str] = []
+    for audit in audits:
+        for block in audit.included_blocks:
+            block_norm = _normalized_block_text(block.text)
+            if not block_norm or block_norm in rendered:
+                continue
+            missing.append(f"{audit.section_key}:pdf.{block.page}:{block.block_id}")
+
+    if missing:
+        logger.warning(
+            "Markdown narratif incomplet: %d bloc(s) audité(s) absent(s): %s",
+            len(missing),
+            ", ".join(missing),
+        )
 
 
 def _block_below_end_anchor(block: PDFBlock, audit: SectionAudit) -> bool:
@@ -574,4 +670,6 @@ def _build_text_extraction_markdown_from_docling(
             lines.append(segment.text)
             lines.append("")
 
-    return "\n".join(_strip_rendered_table_footnotes(lines)).strip() + "\n"
+    rendered = "\n".join(_strip_rendered_table_footnotes(lines)).strip() + "\n"
+    _warn_on_missing_audited_narrative_blocks(rendered, section_audits)
+    return rendered
