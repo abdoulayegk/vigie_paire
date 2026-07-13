@@ -147,6 +147,25 @@ def _validate_groups(groups: list[SemanticSentenceGroup], sentence_count: int) -
     return validated
 
 
+def _ranges_are_overfragmented(
+    ranges: list[tuple[int, int]],
+    sentences: list[str],
+) -> bool:
+    """Détecte une partition qui revient pratiquement à un chunk par phrase."""
+    if len(sentences) < 4 or len(ranges) < 4:
+        return False
+    range_count = len(ranges)
+    singleton_count = sum(end - start == 1 for start, end in ranges)
+    short_count = sum(
+        _word_count(" ".join(sentences[start:end])) < 50 for start, end in ranges
+    )
+    return (
+        range_count / len(sentences) >= 0.75
+        and singleton_count / range_count >= 0.65
+        and short_count / range_count >= 0.65
+    )
+
+
 def _partition_with_llm(
     *,
     client: Any,
@@ -165,9 +184,16 @@ def _partition_with_llm(
                 "Tu partitionnes un paragraphe financier en unités d'idée autonomes pour comparer deux rapports. "
                 "Chaque groupe doit être un intervalle contigu. Couvre chaque phrase exactement une fois, dans l'ordre. "
                 "Sépare un changement réel de sujet, de méthode, de règle, de politique ou de gouvernance. "
+                "Regroupe les phrases qui décrivent les variantes, paramètres, conditions ou conséquences d'un même cadre. "
+                "Ne crée pas un groupe par phrase simplement parce que chaque phrase est grammaticalement complète. "
+                "Quand plusieurs phrases développent la même idée, vise généralement 80 à 180 mots par groupe. "
                 "Ne crée jamais une frontière à cause d'une année, d'une date, d'un montant, d'un pourcentage, "
                 "d'une acquisition ou d'une émission d'actions. Une unité courte mais complète est permise. "
-                f"Évite les groupes de plus de {_HARD_MAX_WORDS} mots, sauf phrase indivisible."
+                f"Évite les groupes de plus de {_HARD_MAX_WORDS} mots, sauf phrase indivisible. "
+                "Exemple de logique attendue : une phrase autonome sur le calcul général de l'actif pondéré peut rester seule; "
+                "une phrase autonome sur une réforme réglementaire peut rester seule; les phrases présentant l'approche NI, "
+                "l'approche NI fondation et l'approche NI avancée doivent former un même groupe; les phrases expliquant leurs "
+                "paramètres, limites plancher et l'approche standardisée doivent former le groupe suivant."
             ),
         },
         {
@@ -178,11 +204,11 @@ def _partition_with_llm(
             ),
         },
     ]
-    try:
-        response = _call_structured_completion_with_correction(
+    def request_partition(request_messages: list[dict[str, str]]) -> SemanticPartitionResponse:
+        return _call_structured_completion_with_correction(
             client,
             model=model,
-            messages=messages,
+            messages=request_messages,
             response_format=SemanticPartitionResponse,
             max_retries=1,
             validation_retry_message=(
@@ -190,9 +216,40 @@ def _partition_with_llm(
                 "avec des intervalles contigus sans trou ni chevauchement."
             ),
         )
+
+    try:
+        response = request_partition(messages)
     except Exception as exc:
         raise SemanticChunkingError(f"Échec du partitionnement LLM sans fallback: {exc}") from exc
-    return _validate_groups(response.groups, len(sentences))
+    ranges = _validate_groups(response.groups, len(sentences))
+    if not _ranges_are_overfragmented(ranges, sentences):
+        return ranges
+
+    correction_messages = [
+        *messages,
+        {"role": "assistant", "content": response.model_dump_json()},
+        {
+            "role": "user",
+            "content": (
+                "Cette partition est trop fragmentée et revient presque à produire un chunk par phrase. "
+                "Corrige-la en regroupant les phrases qui développent la même idée réglementaire. "
+                "Vise 80 à 180 mots pour une idée développée. Conserve une phrase courte seule uniquement "
+                "si elle constitue une divulgation réellement indépendante des phrases voisines."
+            ),
+        },
+    ]
+    try:
+        corrected_response = request_partition(correction_messages)
+    except Exception as exc:
+        raise SemanticChunkingError(
+            f"Échec de la correction d'une partition LLM sur-fragmentée sans fallback: {exc}"
+        ) from exc
+    corrected_ranges = _validate_groups(corrected_response.groups, len(sentences))
+    if _ranges_are_overfragmented(corrected_ranges, sentences):
+        raise SemanticChunkingError(
+            "Partition LLM toujours sur-fragmentée après correction; aucun fallback n'est autorisé."
+        )
+    return corrected_ranges
 
 
 def _split_oversized_groups(
@@ -252,7 +309,9 @@ def _semantic_partition_paragraphs(
     for sentences, normalized_sentences in zip(sentence_groups, normalized_groups, strict=True):
         embeddings = [embedding_by_text[text] for text in normalized_sentences]
         scores = _continuity_scores(sentences, normalized_sentences, embeddings)
+        deterministic_ranges = _deterministic_ranges(len(sentences), scores)
         ambiguous = any(_SPLIT_SCORE < score < _JOIN_SCORE for score in scores)
+        ambiguous = ambiguous or _ranges_are_overfragmented(deterministic_ranges, sentences)
         if ambiguous:
             ranges = _partition_with_llm(
                 client=client,
@@ -261,7 +320,7 @@ def _semantic_partition_paragraphs(
                 scores=scores,
             )
         else:
-            ranges = _deterministic_ranges(len(sentences), scores)
+            ranges = deterministic_ranges
         ranges = _split_oversized_groups(ranges, sentences, scores)
         partitions.append([" ".join(sentences[start:end]).strip() for start, end in ranges])
     return partitions

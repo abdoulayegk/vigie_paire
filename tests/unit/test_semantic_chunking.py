@@ -7,6 +7,7 @@ from vigilance.text_analysis.semantic_chunking import (
     SemanticChunkingError,
     SemanticPartitionResponse,
     SemanticSentenceGroup,
+    _partition_with_llm,
     _semantic_partition_paragraphs,
 )
 
@@ -113,6 +114,88 @@ def test_embeddings_are_batched_once_and_identical_sentences_are_deduplicated(
     assert len(calls) == 1
     assert len(calls[0]) == 4
     assert partitions == [[paragraph], [paragraph]]
+
+
+def test_deterministic_single_sentence_partition_is_treated_as_ambiguous(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        "vigilance.text_analysis.semantic_chunking._embed_texts",
+        lambda client, texts, model: [[1.0, 0.0] for _ in texts],
+    )
+    monkeypatch.setattr(
+        "vigilance.text_analysis.semantic_chunking._continuity_scores",
+        lambda sentences, normalized, embeddings: [0.50] * (len(sentences) - 1),
+    )
+    llm_calls: list[int] = []
+
+    def coherent_partition(*, sentences, **kwargs):
+        llm_calls.append(len(sentences))
+        return [(0, len(sentences))]
+
+    monkeypatch.setattr(
+        "vigilance.text_analysis.semantic_chunking._partition_with_llm",
+        coherent_partition,
+    )
+
+    partitions = _semantic_partition_paragraphs(
+        [_four_sentence_paragraph()],
+        client=object(),
+    )
+
+    assert llm_calls == [4]
+    assert partitions == [[_four_sentence_paragraph()]]
+
+
+def test_llm_overfragmentation_is_corrected_once(monkeypatch: pytest.MonkeyPatch) -> None:
+    sentences = [f"Phrase {index} sur le même cadre réglementaire." for index in range(1, 7)]
+    responses = iter(
+        [
+            SemanticPartitionResponse(
+                groups=[SemanticSentenceGroup(start=index, end=index) for index in range(1, 7)]
+            ),
+            SemanticPartitionResponse(
+                groups=[
+                    SemanticSentenceGroup(start=1, end=3),
+                    SemanticSentenceGroup(start=4, end=6),
+                ]
+            ),
+        ]
+    )
+    monkeypatch.setattr(
+        "vigilance.text_analysis.semantic_chunking._call_structured_completion_with_correction",
+        lambda *args, **kwargs: next(responses),
+    )
+
+    ranges = _partition_with_llm(
+        client=object(),
+        model="gpt-4o",
+        sentences=sentences,
+        scores=[0.78] * 5,
+    )
+
+    assert ranges == [(0, 3), (3, 6)]
+
+
+def test_llm_repeated_overfragmentation_fails_without_fallback(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    sentences = [f"Phrase {index} sur le même cadre réglementaire." for index in range(1, 7)]
+    fragmented = SemanticPartitionResponse(
+        groups=[SemanticSentenceGroup(start=index, end=index) for index in range(1, 7)]
+    )
+    monkeypatch.setattr(
+        "vigilance.text_analysis.semantic_chunking._call_structured_completion_with_correction",
+        lambda *args, **kwargs: fragmented,
+    )
+
+    with pytest.raises(SemanticChunkingError, match="toujours sur-fragmentée"):
+        _partition_with_llm(
+            client=object(),
+            model="gpt-4o",
+            sentences=sentences,
+            scores=[0.78] * 5,
+        )
 
 
 def test_numbers_are_neutralized_for_similarity_but_preserved_in_chunk(
