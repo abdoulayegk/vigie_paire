@@ -125,6 +125,7 @@ def _prepare_subsection_alignments(
     body_t2: str,
     client: Any | None = None,
     embedding_model: str = "text-embedding-3-small",
+    semantic_model: str = "gpt-4o",
 ) -> list[ChunkAlignment]:
     """Prépare une paire de sous-sections en alignements hybrides locaux."""
     section_title = _SECTION_LABELS.get(section_key, section_key)
@@ -132,11 +133,17 @@ def _prepare_subsection_alignments(
         body_t1,
         subsection_heading=subsection_heading_t1,
         section_title=section_title,
+        client=client,
+        embedding_model=embedding_model,
+        semantic_model=semantic_model,
     )
     chunks_t2 = _chunk_subsection_text(
         body_t2,
         subsection_heading=subsection_heading_t2,
         section_title=section_title,
+        client=client,
+        embedding_model=embedding_model,
+        semantic_model=semantic_model,
     )
     # Après exclusion des tableaux, cellules et renvois non narratifs, une
     # sous-section peut légitimement ne plus avoir de contenu comparable. Ce
@@ -697,6 +704,9 @@ def _unmatched_subsection_chunk_changes(
     heading: str,
     body: str,
     idx_offset: int,
+    client: Any,
+    embedding_model: str = "text-embedding-3-small",
+    semantic_model: str = "gpt-4o",
 ) -> list[dict[str, Any]]:
     """Produit des ajouts/retraits par chunk pour une sous-section sans paire."""
     section_title = _SECTION_LABELS.get(section_key, section_key)
@@ -704,6 +714,9 @@ def _unmatched_subsection_chunk_changes(
         body,
         subsection_heading=heading,
         section_title=section_title,
+        client=client,
+        embedding_model=embedding_model,
+        semantic_model=semantic_model,
     )
     slug = re.sub(r"[^\w]+", "_", _normalize_heading(heading))[:40].strip("_")
     changes: list[dict[str, Any]] = []
@@ -853,6 +866,8 @@ def _compare_section_texts(
                 heading=h1,
                 body=body1,
                 idx_offset=global_idx - 1,
+                client=client,
+                semantic_model=model,
             )
             all_changes.extend(unmatched_changes)
             global_idx += len(unmatched_changes)
@@ -868,6 +883,8 @@ def _compare_section_texts(
                 heading=h2,
                 body=body2,
                 idx_offset=global_idx - 1,
+                client=client,
+                semantic_model=model,
             )
             all_changes.extend(unmatched_changes)
             global_idx += len(unmatched_changes)
@@ -882,6 +899,8 @@ def _compare_section_texts(
                 heading=h2,
                 body=body2,
                 idx_offset=global_idx - 1,
+                client=client,
+                semantic_model=model,
             )
             all_changes.extend(unmatched_changes)
             global_idx += len(unmatched_changes)
@@ -893,6 +912,8 @@ def _compare_section_texts(
                 heading=h1,
                 body=body1,
                 idx_offset=global_idx - 1,
+                client=client,
+                semantic_model=model,
             )
             all_changes.extend(unmatched_changes)
             global_idx += len(unmatched_changes)
@@ -905,6 +926,7 @@ def _compare_section_texts(
             body_t1=body1,
             body_t2=body2,
             client=client,
+            semantic_model=model,
         )
         exact_alignments, llm_alignments = _split_exact_diff_alignments(alignments)
         exact_changes = [

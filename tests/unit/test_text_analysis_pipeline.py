@@ -48,6 +48,7 @@ from vigilance.text_analysis_pipeline import (
     run_text_analysis_pipeline,
 )
 from vigilance.text_analysis.chunk_alignment import _tfidf_similarity_matrix_from_texts
+from vigilance.text_analysis.semantic_chunking import SemanticChunkingError
 from vigilance.text_analysis.comparison import (
     ChunkComparisonLLMResponse,
     _attach_alignment_metadata,
@@ -2891,7 +2892,7 @@ def test_chunk_subsection_text_keeps_short_paragraph_independent() -> None:
     assert [chunk.text for chunk in chunks] == [first, short, second]
 
 
-def test_chunk_subsection_text_keeps_first_short_label() -> None:
+def test_chunk_subsection_text_merges_first_short_label_with_its_paragraph() -> None:
     first = "Demande de capital"
     second = (
         "Ce paragraphe est suffisamment long pour absorber le libellé court qui le précède et former "
@@ -2900,7 +2901,7 @@ def test_chunk_subsection_text_keeps_first_short_label() -> None:
 
     chunks = _chunk_subsection_text("\n\n".join([first, second]), subsection_heading="Cadre")
 
-    assert [chunk.text for chunk in chunks] == [first, second]
+    assert [chunk.text for chunk in chunks] == [f"{first}\n\n{second}"]
 
 
 @pytest.mark.parametrize(
@@ -2944,18 +2945,14 @@ def test_chunk_subsection_text_keeps_short_complete_narrative_sentence() -> None
     assert [chunk.text for chunk in chunks] == [text]
 
 
-def test_chunk_subsection_text_splits_very_long_paragraph_on_sentence_boundaries() -> None:
+def test_chunk_subsection_text_requires_semantic_services_for_complex_paragraph() -> None:
     first_idea = " ".join(["La Banque surveille les risques de crédit de façon continue."] * 35)
     second_idea = " ".join(["Toutefois, le cadre prévoit des contrôles additionnels pour les portefeuilles sensibles."] * 35)
     third_idea = " ".join(["Par ailleurs, les résultats sont transmis aux comités de surveillance."] * 35)
     paragraph = f"{first_idea} {second_idea} {third_idea}"
 
-    chunks = _chunk_subsection_text(paragraph, subsection_heading="Contrôles")
-
-    assert len(chunks) >= 2
-    assert "La Banque surveille" in chunks[0].text
-    assert all(chunk.text.endswith(".") for chunk in chunks)
-    assert all(len(chunk.text.split()) <= 300 for chunk in chunks)
+    with pytest.raises(SemanticChunkingError, match="aucun fallback"):
+        _chunk_subsection_text(paragraph, subsection_heading="Contrôles")
 
 
 def test_chunk_subsection_text_excludes_markdown_headings() -> None:
@@ -4613,8 +4610,7 @@ def test_bmo_risque_de_strategie_tfidf_alignment_stays_local() -> None:
     assert all("Risque de stratégie" in chunk.hierarchy_path for chunk in [*chunks_t1, *chunks_t2])
 
 
-def test_bnc_accord_bale_reassembles_split_paragraph_before_comparison() -> None:
-    """A one-sided length split must not create a false removal plus addition."""
+def test_bnc_accord_bale_requires_semantic_services_without_legacy_fallback() -> None:
     base = Path("outputs/resultats/bnc/2025_t4_vs_2024_t4")
     previous_path = base / "text_extraction_2024_t4.md"
     current_path = base / "text_extraction_2025_t4.md"
@@ -4629,60 +4625,26 @@ def test_bnc_accord_bale_reassembles_split_paragraph_before_comparison() -> None
     )
     previous_body = dict(_parse_subsections(previous_section))["Accord de Bâle"]
     current_body = dict(_parse_subsections(current_section))["Accord de Bâle"]
-    chunks_t1 = _chunk_subsection_text(previous_body, subsection_heading="Accord de Bâle")
-    chunks_t2 = _chunk_subsection_text(current_body, subsection_heading="Accord de Bâle")
-
-    alignments = _align_chunks_tfidf(chunks_t1, chunks_t2)
-    grouped = next(
-        alignment
-        for alignment in alignments
-        if alignment.alignment_type == "matched_grouped"
-        and alignment.chunk_t1
-        and alignment.chunk_t2
-        and alignment.chunk_t1.chunk_id == "c01+c02"
-        and alignment.chunk_t2.chunk_id == "c01"
-    )
-
-    assert not any(
-        alignment.alignment_type == "possible_removed"
-        and alignment.chunk_t1
-        and alignment.chunk_t1.chunk_id == "c01"
-        for alignment in alignments
-    )
-    segments = build_change_segments_from_texts(
-        grouped.chunk_t1.text,
-        grouped.chunk_t2.text,
-        diff_type="modified",
-    )
-    assert len(segments) == 1
-    assert segments[0]["kind"] == "removed"
-    assert "Certaines révisions apportées par le BSIF" in segments[0]["text_t1"]
-    assert "PD, PCD et ECD" not in segments[0]["text_t1"]
+    with pytest.raises(SemanticChunkingError, match="aucun fallback"):
+        _chunk_subsection_text(previous_body, subsection_heading="Accord de Bâle")
+    with pytest.raises(SemanticChunkingError, match="aucun fallback"):
+        _chunk_subsection_text(current_body, subsection_heading="Accord de Bâle")
 
 
 def test_td_future_capital_disclosures_are_not_merged_only_for_similar_boilerplate() -> None:
     """Separate TD issuances remain separate despite their similar wording."""
-    base = Path("outputs/resultats/td/2025_t4_vs_2024_t4")
-    previous_path = base / "text_extraction_2024_t4.md"
-    current_path = base / "text_extraction_2025_t4.md"
-    if not previous_path.exists() or not current_path.exists():
-        pytest.skip("Artefacts locaux TD T4 absents.")
-
     heading = "Évolution future des fonds propres réglementaires"
-    previous_section = _extract_section_text_from_markdown(
-        previous_path.read_text(encoding="utf-8"), "gestion_capital"
+    first = (
+        "La Banque a émis des billets de fonds propres avec recours limité. "
+        "Les billets portent intérêt selon les modalités annoncées."
     )
-    current_section = _extract_section_text_from_markdown(
-        current_path.read_text(encoding="utf-8"), "gestion_capital"
+    second = (
+        "La Banque a émis une autre série de billets de fonds propres avec recours limité. "
+        "Cette série porte intérêt selon ses propres modalités."
     )
-    previous_body = dict(_parse_subsections(previous_section))[heading]
-    current_body = dict(_parse_subsections(current_section))[heading]
-    alignments = _align_chunks_tfidf(
-        _chunk_subsection_text(previous_body, subsection_heading=heading),
-        _chunk_subsection_text(current_body, subsection_heading=heading),
-    )
+    chunks = _chunk_subsection_text(f"{first}\n\n{second}", subsection_heading=heading)
 
-    assert not any(alignment.alignment_type == "matched_grouped" for alignment in alignments)
+    assert [chunk.text for chunk in chunks] == [first, second]
 
 
 # ---------------------------------------------------------------------------
