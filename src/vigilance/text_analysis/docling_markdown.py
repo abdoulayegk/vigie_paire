@@ -14,8 +14,10 @@ from vigilance.text_analysis.markdown import (
 )
 from vigilance.text_analysis.models import PDFBlock, SectionAudit
 from vigilance.text_analysis.normalization import (
-    _looks_like_footnote,
-    _looks_like_table_or_financial_grid,
+    _is_chart_axis_label_row,
+    _is_not_applicable_marker,
+    _is_running_report_chrome,
+    _is_table_unit_label,
     _normalized_block_text,
 )
 
@@ -30,14 +32,12 @@ _SECTION_ORDER = {
 _HEADING_LINE_RE = re.compile(r"^(#{1,6})\s+(.+)$")
 _LIST_ITEM_RE = re.compile(r"^[-*]\s+(.+)$")
 _TABLE_ROW_RE = re.compile(r"^\|.+\|$")
-_FOOTNOTE_LINE_RE = re.compile(r"^\d+\s+\S")
 _EXPLICIT_FOOTNOTE_MARKER_RE = re.compile(
     r"^\s*(?:\(?\d{1,2}\)|[¹²³⁴⁵⁶⁷⁸⁹]+|[*†‡]{1,3}|"
     r"(?:note|source|s\.?\s*o\.?|n\.?\s*s\.?)\b)",
     flags=re.IGNORECASE,
 )
 _BARE_NUMERIC_NOTE_RE = re.compile(r"^\s*\d{1,2}\s+(?!\.)")
-_INLINE_NUMERIC_NOTE_RE = re.compile(r"\s+\(\d{1,2}\)\s+(?P<note>.+)$")
 _TABLE_FOOTNOTE_CUE_RE = re.compile(
     r"\b(?:comprennent|excluent|incluent|les\s+m[eé]thodes|"
     r"pour\s+de\s+plus\s+amples|se\s+reporter|voir\s+le\s+tableau|"
@@ -50,15 +50,6 @@ _DATED_NARRATIVE_RE = re.compile(
     r"\b(?:le\s+)?\d{1,2}\s+"
     r"(?:janvier|f[eé]vrier|mars|avril|mai|juin|juillet|ao[uû]t|"
     r"septembre|octobre|novembre|d[eé]cembre)\s+20\d{2}\b",
-    flags=re.IGNORECASE,
-)
-_TABLE_HEADING_TRAILING_NOTE_RE = re.compile(
-    r"\b(?:pr[eê]ts?\s+hypoth[eé]caires?|fonds\s+propres|tlac|"
-    r"ratios?|actifs\s+pond[eé]r[eé]s|capital|liquidit[eé])\b",
-    flags=re.IGNORECASE,
-)
-_PAGE_HEADER_RE = re.compile(
-    r"groupe banque td.*rapport de gestion\s+\d+",
     flags=re.IGNORECASE,
 )
 _END_BOUNDARY_HEADING_PATTERNS = [
@@ -137,27 +128,6 @@ def _is_bare_numeric_table_footnote(text: str, *, follows_table: bool) -> bool:
     )
 
 
-def _strip_inline_table_footnote_clause(text: str) -> str:
-    """Retire une note `(n)` intégrée à la fin d'un paragraphe narratif.
-
-    Le texte narratif précédant le renvoi est conservé. Les parenthèses
-    réglementaires usuelles ne correspondent pas à ce motif numérique.
-    """
-    value = str(text or "").strip()
-    match = _INLINE_NUMERIC_NOTE_RE.search(value)
-    if not match or not _has_table_footnote_cue(match.group("note")):
-        return value
-    return value[: match.start()].rstrip()
-
-
-def _sanitize_heading_note_references(text: str) -> str:
-    """Supprime les renvois de note de tableau d'un titre conservé."""
-    value = re.sub(r"\s*\(\d{1,2}\)", "", str(text or "")).strip()
-    if _TABLE_HEADING_TRAILING_NOTE_RE.search(value):
-        value = re.sub(r"(?:\s+\d{1,2})(?:\s*,\s*\d{1,2})*\s*$", "", value)
-    return re.sub(r"\s{2,}", " ", value).strip(" ,")
-
-
 def _parse_docling_markdown(md_content: str) -> list[DoclingSegment]:
     """Découpe le markdown Docling en segments ordonnés."""
     segments: list[DoclingSegment] = []
@@ -195,7 +165,7 @@ def _parse_docling_markdown(md_content: str) -> list[DoclingSegment]:
 
         list_match = _LIST_ITEM_RE.match(line)
         if list_match:
-            text = _strip_inline_table_footnote_clause(list_match.group(1))
+            text = list_match.group(1).strip()
             if text:
                 segments.append(
                     DoclingSegment(
@@ -207,7 +177,7 @@ def _parse_docling_markdown(md_content: str) -> list[DoclingSegment]:
             follows_table = False
             continue
 
-        text = _strip_inline_table_footnote_clause(line)
+        text = line
         if not text:
             follows_table = False
             continue
@@ -278,7 +248,23 @@ def _is_confirmed_footnote_segment(
         return False
     for audit in audits:
         for block in audit.excluded_blocks:
-            if block.block_type != "footnote" and block.exclusion_reason != "footnote":
+            if block.block_type != "table_footnote" and block.exclusion_reason != "table_footnote":
+                continue
+            if _segment_matches_block(segment, block):
+                return True
+    return False
+
+
+def _is_confirmed_table_segment(
+    segment: DoclingSegment,
+    audits: list[SectionAudit] | None,
+) -> bool:
+    """Indique que l'audit spatial a rattaché le segment à un tableau."""
+    if not audits:
+        return False
+    for audit in audits:
+        for block in audit.excluded_blocks:
+            if block.block_type != "table" and block.exclusion_reason != "table_like_block":
                 continue
             if _segment_matches_block(segment, block):
                 return True
@@ -301,7 +287,10 @@ def _segment_heading_allowed(segment: DoclingSegment, audit: SectionAudit) -> bo
         block_norm = _normalized_block_text(block.text)
         if segment_norm != block_norm:
             continue
-        if block.block_type == "table" or block.exclusion_reason == "table_like_block":
+        if block.block_type in {"table", "table_footnote"} or block.exclusion_reason in {
+            "table_like_block",
+            "table_footnote",
+        }:
             return False
         return True
     return False
@@ -310,9 +299,9 @@ def _segment_heading_allowed(segment: DoclingSegment, audit: SectionAudit) -> bo
 def _is_table_footnote_segment(segment: DoclingSegment) -> bool:
     """Indique si un segment est une note de tableau à exclure du narratif.
 
-    Les notes sont exclues indépendamment de la banque et avant l'alignement
-    aux blocs inclus : Docling peut parfois les rattacher à un bloc narratif
-    long malgré leur marqueur explicite.
+    Le repli sans géométrie reste volontairement strict : un marqueur ne suffit
+    que s'il arrive immédiatement après une vraie table Markdown. Les notes
+    numérotées ou « Source » ailleurs dans la section sont conservées.
     """
     if segment.kind == "heading":
         return False
@@ -320,93 +309,85 @@ def _is_table_footnote_segment(segment: DoclingSegment) -> bool:
     text = str(segment.text or "").strip()
     if not text:
         return False
-    if _EXPLICIT_FOOTNOTE_MARKER_RE.match(text):
-        return True
-    if _is_bare_numeric_table_footnote(text, follows_table=segment.follows_table):
-        return True
-    return (
-        segment.follows_table
-        and _BARE_NUMERIC_NOTE_RE.match(text) is None
-        and (
-        _looks_like_footnote(text) or _FOOTNOTE_LINE_RE.match(text) is not None
-        )
+    if not segment.follows_table:
+        return False
+    return bool(
+        _EXPLICIT_FOOTNOTE_MARKER_RE.match(text)
+        or _is_bare_numeric_table_footnote(text, follows_table=True)
     )
 
 
 def _should_keep_docling_segment(segment: DoclingSegment, audits: list[SectionAudit] | None = None) -> bool:
-    """Filtre tableaux, notes et en-têtes de page du flux Docling.
+    """Conserve tout segment hors table ou note de table confirmée.
 
-    Un paragraphe confirmé narratif par ``SectionAudit`` est conservé avant
-    les heuristiques textuelles de détection de tableaux. Sans cette priorité,
-    des divulgations réglementaires ordinaires (plusieurs ratios et le mot
-    « total », par exemple) étaient supprimées comme de fausses grilles.
+    Les tables Markdown sont déjà retirées par le parseur. Les notes de table
+    sont éliminées par leur lien géométrique audité ou, en repli, par une
+    position immédiatement après une table. Aucun filtre lexical ne doit
+    supprimer un montant, un pourcentage, un texte court ou une note autonome,
+    à l'exception du marqueur autonome « s.o. ».
     """
     text = str(segment.text or "").strip()
     if not text:
         return False
-    if _PAGE_HEADER_RE.search(text):
+    if _is_running_report_chrome(text) or _is_table_unit_label(text) or _is_chart_axis_label_row(text):
         return False
-    if re.search(r"rapport de gestion\s+\d+", text, flags=re.IGNORECASE):
+    if _is_not_applicable_marker(text):
         return False
 
-    # Les notes confirmées par la géométrie/l'étiquetage PDF couvrent les
-    # variantes de présentation propres à chaque banque.
+    # Les notes confirmées par leur zone sous tableau sont les seules notes
+    # exclues par les métadonnées PDF.
     if _is_confirmed_footnote_segment(segment, audits):
         return False
 
-    # Une note explicitement marquée reste une note, même si Docling l'a
-    # rattachée par erreur à un bloc narratif dans l'audit.
+    if _is_confirmed_table_segment(segment, audits):
+        return False
+
     if _is_table_footnote_segment(segment):
         return False
 
-    # La décision géométrique/auditée prévaut sur les heuristiques lexicales.
-    # Les vraies notes et les vrais tableaux ne sont pas des blocs inclus dans
-    # l'audit et continuent donc d'être filtrés ci-dessous.
     if _is_confirmed_narrative_segment(segment, audits):
         return True
     if segment.kind == "heading":
-        if _is_out_of_scope_accounting_heading(text):
-            return False
-        if _looks_like_table_or_financial_grid(text) or _looks_like_footnote(text):
-            return False
-        if re.search(r"\(en millions", text, flags=re.IGNORECASE):
-            return False
-        return True
-    if _looks_like_table_or_financial_grid(text):
-        return False
-    if re.search(r"\(en millions", text, flags=re.IGNORECASE) and re.search(r"\b20\d{2}\b", text):
-        return False
+        return not _is_out_of_scope_accounting_heading(text)
     return True
 
 
-def _warn_on_missing_audited_narrative_blocks(
+def _missing_audited_blocks(
     markdown: str,
     audits: list[SectionAudit],
-) -> None:
-    """Signale toute perte entre les blocs narratifs audités et le Markdown.
-
-    Ce garde-fou n'altère pas l'ordre de lecture en ajoutant un texte à la fin
-    d'une section. Il rend toutefois toute omission visible dans les journaux,
-    avec la section et la page concernées, afin qu'elle ne soit plus silencieuse.
-    """
+) -> list[PDFBlock]:
+    """Retourne les blocs audités absents du Markdown rendu."""
     rendered = _normalized_block_text(markdown)
     if not rendered:
-        return
+        return [block for audit in audits for block in audit.included_blocks]
 
-    missing: list[str] = []
+    missing: list[PDFBlock] = []
     for audit in audits:
         for block in audit.included_blocks:
             block_norm = _normalized_block_text(block.text)
             if not block_norm or block_norm in rendered:
                 continue
-            missing.append(f"{audit.section_key}:pdf.{block.page}:{block.block_id}")
+            missing.append(block)
+    return missing
+
+
+def _warn_on_missing_audited_narrative_blocks(
+    markdown: str,
+    audits: list[SectionAudit],
+) -> list[PDFBlock]:
+    """Journalise et retourne toute perte entre l'audit et le Markdown."""
+    missing = _missing_audited_blocks(markdown, audits)
 
     if missing:
         logger.warning(
             "Markdown narratif incomplet: %d bloc(s) audité(s) absent(s): %s",
             len(missing),
-            ", ".join(missing),
+            ", ".join(
+                f"{block.block_id}:pdf.{block.page}"
+                for block in missing
+            ),
         )
+    return missing
 
 
 def _block_below_end_anchor(block: PDFBlock, audit: SectionAudit) -> bool:
@@ -579,46 +560,6 @@ def _page_for_segment(
     return fallback_page
 
 
-def _strip_rendered_table_footnotes(lines: list[str]) -> list[str]:
-    """Supprime en dernier recours les notes explicitement marquées du Markdown.
-
-    Ce filet de sécurité s'applique après l'alignement Docling/audit. Il évite
-    qu'une note de tableau réintroduite par une fusion de segments atteigne le
-    Markdown source de vérité, sans filtrer les titres ou listes narratives
-    ordinaires.
-    """
-    cleaned: list[str] = []
-    for line in lines:
-        text = line.strip()
-        if text.startswith("#"):
-            heading_match = _HEADING_LINE_RE.match(text)
-            if heading_match:
-                sanitized_heading = _sanitize_heading_note_references(heading_match.group(2))
-                if sanitized_heading:
-                    cleaned.append(
-                        f"{heading_match.group(1)} {sanitized_heading}"
-                    )
-            else:
-                cleaned.append(line)
-            continue
-        text_without_list_marker = _strip_inline_table_footnote_clause(
-            re.sub(r"^[-*]\s+", "", text)
-        )
-        if _EXPLICIT_FOOTNOTE_MARKER_RE.match(text_without_list_marker):
-            continue
-        if _is_bare_numeric_table_footnote(
-            text_without_list_marker,
-            follows_table=False,
-        ):
-            continue
-        if text_without_list_marker != re.sub(r"^[-*]\s+", "", text):
-            prefix = "- " if text.startswith("- ") else "* " if text.startswith("* ") else ""
-            cleaned.append(f"{prefix}{text_without_list_marker}")
-            continue
-        cleaned.append(line)
-    return cleaned
-
-
 def _build_text_extraction_markdown_from_docling(
     section_audits: list[SectionAudit],
     *,
@@ -654,7 +595,7 @@ def _build_text_extraction_markdown_from_docling(
                 last_page = page
 
             if segment.kind == "heading":
-                heading_text = _sanitize_heading_note_references(segment.text)
+                heading_text = segment.text.strip()
                 heading_norm = _normalized_block_text(heading_text)
                 if not heading_norm or heading_norm == section_title_norm:
                     continue
@@ -670,6 +611,18 @@ def _build_text_extraction_markdown_from_docling(
             lines.append(segment.text)
             lines.append("")
 
-    rendered = "\n".join(_strip_rendered_table_footnotes(lines)).strip() + "\n"
-    _warn_on_missing_audited_narrative_blocks(rendered, section_audits)
+    rendered = "\n".join(lines).strip() + "\n"
+    missing = _warn_on_missing_audited_narrative_blocks(rendered, section_audits)
+    if missing:
+        # La structure Markdown de Docling est préférée lorsqu'elle couvre tout
+        # l'audit. Dès qu'elle omet un bloc non-tabulaire, le rendu ordonné des
+        # blocs PDF devient la source de vérité : conserver le contenu prévaut
+        # sur une hiérarchie Docling incomplète.
+        logger.warning(
+            "Repli vers les blocs PDF audités pour préserver %d bloc(s) absent(s).",
+            len(missing),
+        )
+        from vigilance.text_analysis.markdown import _build_text_extraction_markdown_from_blocks
+
+        return _build_text_extraction_markdown_from_blocks(section_audits)
     return rendered

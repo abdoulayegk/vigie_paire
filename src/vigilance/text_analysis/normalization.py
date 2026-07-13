@@ -23,6 +23,30 @@ from vigilance.text_analysis.constants import (
 from vigilance.text_analysis.models import PDFBlock
 
 
+_NOT_APPLICABLE_MARKER_RE = re.compile(
+    r"^\s*(?:(?:\[\s*(?:x|X)?\s*\]|[-*•‰])\s*)?s\.?\s*o\.?\s*$",
+    flags=re.IGNORECASE,
+)
+_TABLE_UNIT_LABEL_RE = re.compile(
+    r"^\s*\(?\s*en\s+(?:milliers|millions|milliards)\s+de\s+"
+    r"dollars(?:\s+canadiens)?\s*\)?\s*$",
+    flags=re.IGNORECASE,
+)
+_BNC_ANNUAL_REPORT_CHROME_RE = re.compile(
+    r"^\s*(?:\d{1,3}\s+)?banque\s+nationale\s+du\s+canada\s+"
+    r"rapport\s+annuel\s+20\d{2}(?:\s+\d{1,3})?\s*$",
+    flags=re.IGNORECASE,
+)
+_BNC_MANAGEMENT_RUNNING_HEADER_RE = re.compile(
+    r"^\s*rapport\s+de\s+gestion(?:\s+gestion\s+"
+    r"(?:du\s+capital|des\s+risques))?\s*$",
+    flags=re.IGNORECASE,
+)
+_CHART_AXIS_LABEL_ROW_RE = re.compile(
+    r"^\s*(?:\(?-?\d+(?:[,.]\d+)?\)?\s+){11,}\(?-?\d+(?:[,.]\d+)?\)?\s*$"
+)
+
+
 def _json_dumps(data: Any) -> str:
     """Sérialise ``data`` en JSON indenté avec support complet des caractères UTF-8."""
     return json.dumps(data, ensure_ascii=False, indent=2)
@@ -70,6 +94,30 @@ def _normalized_block_text(text: str) -> str:
     value = re.sub(r"\s+", " ", value)
     value = re.sub(r"[^a-zàâçéèêëîïôûùüÿñæœ0-9 ]+", "", value)
     return value.strip()
+
+
+def _is_not_applicable_marker(text: str) -> bool:
+    """Indique qu'un bloc ne contient que le marqueur autonome « s.o. »."""
+    return bool(_NOT_APPLICABLE_MARKER_RE.fullmatch(str(text or "")))
+
+
+def _is_table_unit_label(text: str) -> bool:
+    """Indique qu'un bloc est le libellé d'unité d'un tableau ou graphique."""
+    return bool(_TABLE_UNIT_LABEL_RE.fullmatch(str(text or "")))
+
+
+def _is_running_report_chrome(text: str) -> bool:
+    """Indique un en-tête ou pied de page récurrent du rapport annuel BNC."""
+    value = str(text or "").strip()
+    return bool(
+        _BNC_ANNUAL_REPORT_CHROME_RE.fullmatch(value)
+        or _BNC_MANAGEMENT_RUNNING_HEADER_RE.fullmatch(value)
+    )
+
+
+def _is_chart_axis_label_row(text: str) -> bool:
+    """Indique une suite de graduations numériques issue d'un graphique."""
+    return bool(_CHART_AXIS_LABEL_ROW_RE.fullmatch(str(text or "")))
 
 
 def _sanitize_explanation(text: str) -> str:
@@ -162,7 +210,7 @@ def _looks_like_table_footnote_text(text: str) -> bool:
     if _looks_like_footnote(value):
         return True
     lower_value = value.lower()
-    if lower_value.startswith(("s.o.", "n.s.", "sans objet", "note", "source")):
+    if lower_value.startswith(("s.o.", "n.s.", "sans objet", "note", "source", "consulter")):
         return True
     words = re.findall(r"[A-Za-zÀ-ÿ]{2,}", value)
     return len(words) <= 30 and _count_numeric_values(value) >= 1 and "(" in value
@@ -233,7 +281,7 @@ def _block_overlaps_table(block: PDFBlock, table_bboxes: list[list[float]]) -> b
 def _infer_table_footnote_bboxes(
     table_bboxes_by_page: dict[int, list[list[float]]],
     *,
-    max_height: float = 0.05,
+    max_height: float = 0.14,
 ) -> dict[int, list[list[float]]]:
     """Infère les zones de notes de bas de tableau à partir des bounding boxes des tableaux.
 
@@ -244,7 +292,10 @@ def _infer_table_footnote_bboxes(
 
     Args:
         table_bboxes_by_page: Bounding boxes des tableaux détectés par Docling, par page.
-        max_height: Hauteur maximale (normalisée) de la zone note inférée.
+        max_height: Hauteur maximale (normalisée) de la zone note inférée. La
+            marge par défaut de 14 % couvre les notes BNC séparées du tableau
+            par un léger espace visuel, sans supprimer un paragraphe ordinaire
+            (qui doit aussi présenter une forme explicite de note).
 
     Returns:
         Dictionnaire page → liste de bounding boxes de zones notes potentielles.

@@ -86,6 +86,17 @@ def _is_docling_heading_block(block: PDFBlock) -> bool:
     return False
 
 
+def _is_structural_markdown_heading(block: PDFBlock) -> bool:
+    """Indique qu'un bloc peut réellement devenir un titre Markdown.
+
+    Docling peut étiqueter un paragraphe entier ``section_header``. Le rendu de
+    repli ne doit pas transformer ce contenu en ``###`` : les titres Markdown
+    ne sont pas chunkés pour la comparaison. On exige donc aussi la forme d'un
+    titre court et non phrastique.
+    """
+    return _is_docling_heading_block(block) and _looks_like_section_heading_text(block.text)
+
+
 def _markdown_blocks_for_section(section: SectionAudit) -> list[PDFBlock]:
     """Retourne les blocs à inclure dans le markdown source de vérité d'une section.
 
@@ -103,7 +114,7 @@ def _markdown_blocks_for_section(section: SectionAudit) -> list[PDFBlock]:
     for block in section.excluded_blocks:
         if block.block_id in seen_ids:
             continue
-        if not _is_docling_heading_block(block):
+        if not _is_structural_markdown_heading(block):
             continue
         if block.exclusion_reason not in {"", "non_narrative_block", "table_like_block"}:
             continue
@@ -283,7 +294,7 @@ def _build_text_extraction_markdown_from_blocks(
             if not text:
                 continue
             norm = _normalized_block_text(text)
-            if _is_docling_heading_block(block):
+            if _is_structural_markdown_heading(block):
                 if not norm or norm == section_title_norm or norm in seen_heading_norms:
                     continue
                 pending_headings.append((text, int(block.page)))
@@ -312,7 +323,7 @@ def _build_block_page_index(section: SectionAudit) -> list[tuple[int, str]]:
     """
     index: list[tuple[int, str]] = []
     for block in _markdown_blocks_for_section(section):
-        if _is_docling_heading_block(block):
+        if _is_structural_markdown_heading(block):
             continue
         text = str(block.text or "").strip()
         if text:
