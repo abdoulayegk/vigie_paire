@@ -71,10 +71,13 @@ from vigilance.text_analysis.docling_markdown import (
     _assign_segments_to_sections,
     _build_text_extraction_markdown_from_docling,
     _parse_docling_markdown,
-    _sanitize_heading_note_references,
     _should_keep_docling_segment,
 )
-from vigilance.text_analysis.extraction import _docling_page_batches
+from vigilance.text_analysis.extraction import (
+    _augment_table_regions_with_composite_grids,
+    _docling_page_batches,
+)
+from vigilance.text_analysis.normalization import _infer_table_footnote_bboxes
 from vigilance.text_analysis.markdown import _is_out_of_scope_accounting_heading
 
 
@@ -942,7 +945,7 @@ def test_should_keep_docling_segment_keeps_audited_regulatory_paragraph_despite_
     )
     segment = DoclingSegment(kind="paragraph", text=paragraph)
 
-    assert _should_keep_docling_segment(segment, audits=None) is False
+    assert _should_keep_docling_segment(segment, audits=None) is True
     assert _should_keep_docling_segment(segment, audits=[audit]) is True
 
 
@@ -1006,7 +1009,7 @@ def test_should_keep_audited_narrative_samples_from_every_bank(bank: str, paragr
     )
     segment = DoclingSegment(kind="paragraph", text=paragraph)
 
-    assert _should_keep_docling_segment(segment, audits=None) is False
+    assert _should_keep_docling_segment(segment, audits=None) is True
     assert _should_keep_docling_segment(segment, audits=[audit]) is True
 
 
@@ -1021,13 +1024,13 @@ def test_should_keep_audited_narrative_samples_from_every_bank(bank: str, paragr
         ("td", "Note : le ratio de levier est calculé conformément aux exigences de levier du BSIF.", False, False),
     ],
 )
-def test_explicit_bank_note_formats_remain_excluded_even_if_audit_matches(
+def test_note_formats_are_kept_unless_confirmed_as_table_notes(
     bank: str,
     note: str,
     follows_table: bool,
     requires_audited_footnote: bool,
 ) -> None:
-    """Les variations de marqueurs de notes ne doivent pas devenir du narratif."""
+    """Un marqueur de note seul ne doit pas retirer un texte de la comparaison."""
     audit = SectionAudit(
         section_key="gestion_capital",
         section_title="Gestion du capital",
@@ -1049,9 +1052,9 @@ def test_explicit_bank_note_formats_remain_excluded_even_if_audit_matches(
                     [0.1, 0.7, 0.9, 0.75],
                     note,
                     10,
-                    "footnote",
+                    "table_footnote",
                     False,
-                    "footnote",
+                    "table_footnote",
                     "footnote",
                 )
             ]
@@ -1063,7 +1066,7 @@ def test_explicit_bank_note_formats_remain_excluded_even_if_audit_matches(
     assert _should_keep_docling_segment(
         DoclingSegment(kind="paragraph", text=note, follows_table=follows_table),
         audits=[audit],
-    ) is False
+    ) is (not requires_audited_footnote)
 
 
 def test_build_docling_markdown_keeps_narrative_around_bns_d22_figure() -> None:
@@ -1273,6 +1276,223 @@ def test_build_section_audit_excludes_blocks_outside_target_section_and_tables()
     assert audit.excluded_blocks[1].exclusion_reason == "table_like_block"
 
 
+def test_build_section_audit_keeps_every_in_scope_non_table_block() -> None:
+    section = ResolvedSection(
+        section_key="gestion_capital",
+        title="Gestion du capital",
+        start_page=5,
+        end_page=5,
+        anchor_page=5,
+        anchor_text="Gestion du capital",
+        anchor_bbox_norm=[0.1, 0.10, 0.8, 0.15],
+    )
+    short_label = "Crédit"
+    percentage = "Le ratio de fonds propres atteint 13,8 %."
+    standalone_note = "(1) Ce passage décrit une exigence réglementaire autonome."
+    blocks = [
+        PDFBlock("p005_b001", 5, [0.1, 0.20, 0.9, 0.24], short_label, 1),
+        PDFBlock("p005_b002", 5, [0.1, 0.26, 0.9, 0.32], percentage, 2),
+        PDFBlock("p005_b003", 5, [0.1, 0.34, 0.9, 0.40], standalone_note, 3, "footnote"),
+        PDFBlock("p005_b004", 5, [0.1, 0.42, 0.9, 0.48], "10 20 30 40", 4),
+        PDFBlock("p005_b005", 5, [0.1, 0.50, 0.9, 0.54], "(2) Note sous tableau.", 5),
+    ]
+
+    audit = _build_section_audit(
+        section=section,
+        next_section=None,
+        page_blocks={5: blocks},
+        repeated_text_counts={},
+        table_bboxes_by_page={5: [[0.08, 0.40, 0.92, 0.49]]},
+        footnote_bboxes_by_page={5: [[0.0, 0.49, 1.0, 0.56]]},
+    )
+
+    assert [block.block_id for block in audit.included_blocks] == ["p005_b001", "p005_b002", "p005_b003"]
+    assert [(block.block_id, block.block_type) for block in audit.excluded_blocks] == [
+        ("p005_b004", "table"),
+        ("p005_b005", "table_footnote"),
+    ]
+
+
+@pytest.mark.parametrize("marker", ["s.o.", "S.O.", "- s.o."])
+def test_build_section_audit_excludes_standalone_not_applicable_marker(marker: str) -> None:
+    section = ResolvedSection(
+        section_key="gestion_capital",
+        title="Gestion du capital",
+        start_page=5,
+        end_page=5,
+        anchor_page=5,
+        anchor_text="Gestion du capital",
+        anchor_bbox_norm=[0.1, 0.10, 0.8, 0.15],
+    )
+    audit = _build_section_audit(
+        section=section,
+        next_section=None,
+        page_blocks={5: [PDFBlock("p005_b001", 5, [0.1, 0.20, 0.9, 0.24], marker, 1)]},
+        repeated_text_counts={},
+        table_bboxes_by_page={},
+        footnote_bboxes_by_page={},
+    )
+
+    assert audit.included_blocks == []
+    assert [(block.block_type, block.exclusion_reason) for block in audit.excluded_blocks] == [
+        ("not_applicable", "not_applicable")
+    ]
+
+
+def test_build_section_audit_excludes_running_chrome_and_table_unit_label() -> None:
+    section = ResolvedSection(
+        section_key="gestion_capital",
+        title="Gestion du capital",
+        start_page=65,
+        end_page=65,
+        anchor_page=65,
+        anchor_text="Gestion du capital",
+        anchor_bbox_norm=[0.1, 0.01, 0.8, 0.02],
+    )
+    audit = _build_section_audit(
+        section=section,
+        next_section=None,
+        page_blocks={
+            65: [
+                PDFBlock(
+                    "p065_m001",
+                    65,
+                    [0.07, 0.04, 0.95, 0.09],
+                    "Rapport de gestion Gestion du capital",
+                    1,
+                ),
+                PDFBlock(
+                    "p065_d002",
+                    65,
+                    [0.07, 0.25, 0.35, 0.28],
+                    "(en millions de dollars canadiens)",
+                    2,
+                ),
+                PDFBlock(
+                    "p065_d003",
+                    65,
+                    [0.07, 0.30, 0.95, 0.36],
+                    "La Banque maintient des fonds propres suffisants pour couvrir les risques inhérents à ses activités.",
+                    3,
+                ),
+                PDFBlock(
+                    "p065_m004",
+                    65,
+                    [0.79, 0.95, 0.96, 0.98],
+                    "65 Banque Nationale du Canada Rapport annuel 2025",
+                    4,
+                ),
+            ]
+        },
+        repeated_text_counts={},
+        table_bboxes_by_page={},
+        footnote_bboxes_by_page={},
+    )
+
+    assert [block.block_id for block in audit.included_blocks] == ["p065_d003"]
+    assert [(block.block_type, block.exclusion_reason) for block in audit.excluded_blocks] == [
+        ("header_footer", "running_header_footer"),
+        ("table", "table_like_block"),
+        ("header_footer", "running_header_footer"),
+    ]
+
+
+def test_inferred_table_footnote_zone_covers_bnc_visual_gap() -> None:
+    footnotes = _infer_table_footnote_bboxes({96: [[0.04, 0.18, 0.93, 0.573]]})
+    note = PDFBlock(
+        "p096_d009",
+        96,
+        [0.04, 0.687, 0.60, 0.695],
+        "(7) Pour de plus amples renseignements, se reporter aux notes afférentes aux états financiers consolidés.",
+        7,
+    )
+
+    assert footnotes[96] == [[0.0, 0.573, 1.0, 0.713]]
+    assert _classify_block_type(note, {}, [], footnotes[96]) == "table_footnote"
+
+
+def test_composite_grid_region_excludes_cells_caption_and_table_note() -> None:
+    narrative = PDFBlock(
+        "p066_d001",
+        66,
+        [0.05, 0.12, 0.95, 0.20],
+        (
+            "Le capital économique permet à la Banque de couvrir ses risques et le ratio réglementaire "
+            "atteint 13,8 %, tandis que les fonds propres disponibles totalisent 525 M$."
+        ),
+        1,
+    )
+    caption = PDFBlock(
+        "p066_d004",
+        66,
+        [0.05, 0.25, 0.40, 0.27],
+        "Répartition des risques par secteur d'exploitation",
+        4,
+        source_label="section_header",
+        heading_level=1,
+    )
+    blocks = [narrative, caption]
+    line_number = 5
+    for column_x in (0.17, 0.48, 0.79):
+        for label, y, value in (
+            ("Crédit", 0.56, "4 290"),
+            ("Marché", 0.58, "228"),
+            ("Opérationnel", 0.60, "518"),
+            ("Total", 0.67, "5 121"),
+        ):
+            blocks.append(
+                PDFBlock(
+                    f"p066_d{line_number:03d}",
+                    66,
+                    [column_x, y, column_x + 0.08, y + 0.008],
+                    label,
+                    line_number,
+                )
+            )
+            line_number += 1
+            blocks.append(
+                PDFBlock(
+                    f"p066_d{line_number:03d}",
+                    66,
+                    [column_x + 0.09, y, column_x + 0.14, y + 0.008],
+                    value,
+                    line_number,
+                )
+            )
+            line_number += 1
+    note = PDFBlock(
+        "p066_d083",
+        66,
+        [0.05, 0.72, 0.80, 0.74],
+        (
+            "Consulter le « Mode de présentation de l'information » aux pages 14 à 20 "
+            "pour de plus amples renseignements sur les mesures de gestion du capital."
+        ),
+        line_number,
+    )
+    following_narrative = PDFBlock(
+        "p067_d001",
+        66,
+        [0.05, 0.86, 0.95, 0.92],
+        "La Banque applique ensuite son cadre de gestion des risques à l'ensemble de ses activités.",
+        line_number + 1,
+    )
+    blocks.extend([note, following_narrative])
+    table_regions = {66: [[0.79, 0.63, 0.93, 0.68]]}
+
+    _augment_table_regions_with_composite_grids({66: blocks}, table_regions)
+    composite = [bbox for bbox in table_regions[66] if bbox[0] == 0.0 and bbox[2] == 1.0]
+    footnote_regions = _infer_table_footnote_bboxes(table_regions)
+
+    assert len(composite) == 1
+    assert caption.block_type == "table"
+    assert all(block.block_type == "table" for block in blocks[2:-2])
+    assert narrative.block_type == "other"
+    assert following_narrative.block_type == "other"
+    assert _classify_block_type(note, {}, table_regions[66], footnote_regions[66]) == "table_footnote"
+    assert _classify_block_type(narrative, {}, table_regions[66], footnote_regions[66]) == "narrative"
+
+
 def test_raw_docling_markdown_path_uses_role_year_and_quarter(tmp_path: Path) -> None:
     assert get_raw_docling_markdown_path(tmp_path, "TD", 2025, "T4", "current") == (
         tmp_path / "outputs" / "text_extractions" / "td" / "2025" / "t4" / "td_current_2025_t4.md"
@@ -1402,7 +1622,7 @@ def test_classify_block_type_rejects_block_overlapping_table_footnote_bbox() -> 
         3,
     )
 
-    assert _classify_block_type(block, {}, [], [[0.0, 0.33, 1.0, 0.42]]) == "footnote"
+    assert _classify_block_type(block, {}, [], [[0.0, 0.33, 1.0, 0.42]]) == "table_footnote"
 
 
 def test_looks_like_footnote_accepts_bare_numeric_note_marker() -> None:
@@ -1426,7 +1646,7 @@ def test_classify_block_type_rejects_ns_table_note_marker() -> None:
         11,
     )
 
-    assert _classify_block_type(block, {}, [], [[0.0, 0.60, 1.0, 0.70]]) == "footnote"
+    assert _classify_block_type(block, {}, [], [[0.0, 0.60, 1.0, 0.70]]) == "table_footnote"
 
 
 def test_classify_block_type_rejects_long_explicit_footnote_before_narrative_rule() -> None:
@@ -1730,7 +1950,7 @@ def test_docling_parser_marks_first_segment_after_table() -> None:
     assert segments[1].follows_table is False
 
 
-def test_docling_footnote_is_excluded_before_audit_inclusion() -> None:
+def test_docling_standalone_footnote_is_kept_without_table_context() -> None:
     note = (
         "(5) La juste valeur des titres de participation désignés à la juste valeur "
         "est présentée aux notes afférentes aux états financiers consolidés."
@@ -1752,7 +1972,7 @@ def test_docling_footnote_is_excluded_before_audit_inclusion() -> None:
     assert _should_keep_docling_segment(
         DoclingSegment(kind="paragraph", text=note),
         [audit],
-    ) is False
+    ) is True
 
 
 @pytest.mark.parametrize(
@@ -1763,12 +1983,62 @@ def test_docling_footnote_is_excluded_before_audit_inclusion() -> None:
         ("n. s. - non significatif", False),
     ],
 )
-def test_docling_filter_excludes_bank_independent_table_footnote_forms(
+def test_docling_filter_keeps_note_forms_without_table_context(
     text: str,
     follows_table: bool,
 ) -> None:
     assert _should_keep_docling_segment(
         DoclingSegment(kind="paragraph", text=text, follows_table=follows_table)
+    ) is True
+
+
+@pytest.mark.parametrize("marker", ["s.o.", "S.O."])
+def test_docling_filter_excludes_standalone_not_applicable_marker(marker: str) -> None:
+    assert _should_keep_docling_segment(DoclingSegment(kind="paragraph", text=marker)) is False
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "65 Banque Nationale du Canada Rapport annuel 2025",
+        "Rapport de gestion",
+        "Rapport de gestion Gestion des risques",
+        "(en millions de dollars canadiens)",
+        "(25) (23) (21) (19) (17) (15) (13) (11) (9) (7) (5) (3) (1) 1 3 5 7 9 11 13",
+    ],
+)
+def test_docling_filter_excludes_running_chrome_and_table_unit_label(text: str) -> None:
+    segment = DoclingSegment(kind="heading", text=text, follows_table=False)
+
+    assert _should_keep_docling_segment(segment) is False
+
+
+def test_docling_filter_excludes_cell_confirmed_by_composite_table_audit() -> None:
+    cell = PDFBlock(
+        "p066_d007",
+        66,
+        [0.17, 0.56, 0.20, 0.57],
+        "Crédit",
+        7,
+        "table",
+        False,
+        "table_like_block",
+    )
+    audit = SectionAudit(
+        section_key="gestion_capital",
+        section_title="Gestion du capital",
+        start_page=66,
+        end_page=66,
+        anchor_page=66,
+        anchor_text="Gestion du capital",
+        anchor_bbox_norm=[0.1, 0.1, 0.9, 0.2],
+        included_blocks=[],
+        excluded_blocks=[cell],
+    )
+
+    assert _should_keep_docling_segment(
+        DoclingSegment(kind="paragraph", text="Crédit"),
+        [audit],
     ) is False
 
 
@@ -1783,23 +2053,17 @@ def test_docling_filter_keeps_long_dated_numbered_narrative_disclosure() -> None
     ) is True
 
 
-def test_docling_parser_strips_inline_table_footnote_and_keeps_narrative_prefix() -> None:
+def test_docling_parser_keeps_inline_note_clause_with_the_narrative() -> None:
     segments = _parse_docling_markdown(
         "Les prêts sont garantis au Canada et au Yukon. (5) Nous calculons "
         "le ratio prêt-valeur moyen selon les données du tableau.\n"
     )
 
     assert len(segments) == 1
-    assert segments[0].text == "Les prêts sont garantis au Canada et au Yukon."
-
-
-def test_docling_heading_sanitizer_removes_table_note_references() -> None:
-    assert _sanitize_heading_note_references(
-        "Exigences - Ratios des fonds propres (1), de levier (1) et TLAC (2) réglementaires"
-    ) == "Exigences - Ratios des fonds propres, de levier et TLAC réglementaires"
-    assert _sanitize_heading_note_references(
-        "Prêts hypothécaires à l'habitation 1"
-    ) == "Prêts hypothécaires à l'habitation"
+    assert segments[0].text == (
+        "Les prêts sont garantis au Canada et au Yukon. (5) Nous calculons "
+        "le ratio prêt-valeur moyen selon les données du tableau."
+    )
 
 
 def test_build_docling_markdown_removes_explicit_table_footnote() -> None:
@@ -1830,7 +2094,6 @@ def test_build_docling_markdown_removes_explicit_table_footnote() -> None:
         anchor_bbox_norm=[0.1, 0.1, 0.9, 0.2],
         included_blocks=[
             PDFBlock("p030_d001", 30, [0.1, 0.25, 0.9, 0.35], narrative, 1),
-            PDFBlock("p030_d002", 30, [0.1, 0.6, 0.9, 0.7], note, 2),
         ],
         excluded_blocks=[
             PDFBlock(
@@ -1845,6 +2108,16 @@ def test_build_docling_markdown_removes_explicit_table_footnote() -> None:
                 "section_header",
                 heading_level=2,
             ),
+            PDFBlock(
+                "p030_d002",
+                30,
+                [0.1, 0.6, 0.9, 0.7],
+                note,
+                2,
+                "table_footnote",
+                False,
+                "table_footnote",
+            ),
         ],
     )
 
@@ -1856,6 +2129,125 @@ def test_build_docling_markdown_removes_explicit_table_footnote() -> None:
     assert narrative in markdown
     assert note not in markdown
     assert "(5)" not in markdown
+
+
+def test_build_docling_markdown_keeps_all_non_table_content() -> None:
+    short_label = "Crédit"
+    financial_paragraph = "Le ratio de fonds propres atteint 13,8 % et le portefeuille vaut 525 M$."
+    standalone_note = "(1) Cette exigence s'applique à toutes les filiales réglementées."
+    table_note = "(2) Les montants sont exprimés en millions de dollars."
+    raw_docling = (
+        "## GESTION DU CAPITAL\n\n"
+        f"{short_label}\n\n"
+        f"{financial_paragraph}\n\n"
+        f"{standalone_note}\n\n"
+        "| Catégorie | Valeur |\n"
+        "| --- | ---: |\n"
+        "| Crédit | 395 |\n\n"
+        f"{table_note}\n"
+    )
+    audit = SectionAudit(
+        section_key="gestion_capital",
+        section_title="Gestion du capital",
+        start_page=30,
+        end_page=30,
+        anchor_page=30,
+        anchor_text="Gestion du capital",
+        anchor_bbox_norm=[0.1, 0.1, 0.9, 0.2],
+        included_blocks=[
+            PDFBlock("p030_d001", 30, [0.1, 0.25, 0.9, 0.29], short_label, 1, "other", True),
+            PDFBlock("p030_d002", 30, [0.1, 0.30, 0.9, 0.36], financial_paragraph, 2, "narrative", True),
+            PDFBlock("p030_d003", 30, [0.1, 0.37, 0.9, 0.43], standalone_note, 3, "footnote", True),
+        ],
+        excluded_blocks=[
+            PDFBlock(
+                "p030_d004",
+                30,
+                [0.1, 0.50, 0.9, 0.56],
+                table_note,
+                4,
+                "table_footnote",
+                False,
+                "table_footnote",
+            ),
+        ],
+    )
+
+    markdown = _build_text_extraction_markdown_from_docling(
+        [audit],
+        raw_docling_markdown=raw_docling,
+    )
+
+    assert short_label in markdown
+    assert financial_paragraph in markdown
+    assert standalone_note in markdown
+    assert "| Crédit | 395 |" not in markdown
+    assert table_note not in markdown
+
+
+def test_build_docling_markdown_falls_back_to_audited_blocks_when_raw_markdown_is_incomplete() -> None:
+    visible = "Le ratio de fonds propres atteint 13,8 %."
+    missing = "Le portefeuille réglementaire vaut 525 M$."
+    audit = SectionAudit(
+        section_key="gestion_capital",
+        section_title="Gestion du capital",
+        start_page=30,
+        end_page=30,
+        anchor_page=30,
+        anchor_text="Gestion du capital",
+        anchor_bbox_norm=[0.1, 0.1, 0.9, 0.2],
+        included_blocks=[
+            PDFBlock("p030_d001", 30, [0.1, 0.25, 0.9, 0.31], visible, 1, "narrative", True),
+            PDFBlock("p030_d002", 30, [0.1, 0.33, 0.9, 0.39], missing, 2, "narrative", True),
+        ],
+        excluded_blocks=[],
+    )
+
+    markdown = _build_text_extraction_markdown_from_docling(
+        [audit],
+        raw_docling_markdown=f"## Gestion du capital\n\n{visible}\n",
+    )
+
+    assert visible in markdown
+    assert missing in markdown
+
+
+def test_fallback_markdown_keeps_mislabeled_long_section_header_as_comparable_text() -> None:
+    paragraph = (
+        "La Banque maintient un ratio CET1 de 13,8 % et renforce ses contrôles "
+        "afin de préserver une base de fonds propres suffisante."
+    )
+    audit = SectionAudit(
+        section_key="gestion_capital",
+        section_title="Gestion du capital",
+        start_page=30,
+        end_page=30,
+        anchor_page=30,
+        anchor_text="Gestion du capital",
+        anchor_bbox_norm=[0.1, 0.1, 0.9, 0.2],
+        included_blocks=[
+            PDFBlock(
+                "p030_d001",
+                30,
+                [0.1, 0.25, 0.9, 0.35],
+                paragraph,
+                1,
+                "other",
+                True,
+                "",
+                "section_header",
+            )
+        ],
+        excluded_blocks=[],
+    )
+
+    markdown = _build_text_extraction_markdown([audit])
+
+    assert paragraph in markdown
+    assert f"### {paragraph}" not in markdown
+    section = _extract_section_text_from_markdown(markdown, "gestion_capital")
+    chunks = _chunk_subsection_text(dict(_parse_subsections(section))["__intro__"])
+    assert [chunk.text for chunk in chunks] == [paragraph]
 
 
 def test_build_text_extraction_markdown_from_docling_keeps_headings_and_order() -> None:
@@ -2209,11 +2601,45 @@ def test_compare_section_texts_skips_matched_table_only_subsection(monkeypatch) 
         client=object(),
         model="gpt-4o",
         section_key="gestion_capital",
-        text_t1="### Répartition\n\nCrédit\n\nMarché\n\n395\n",
-        text_t2="### Répartition\n\nCrédit\n\nMarché\n\n436\n",
+        text_t1="### Répartition\n\n| Catégorie | Valeur |\n| --- | ---: |\n| Crédit | 395 |\n",
+        text_t2="### Répartition\n\n| Catégorie | Valeur |\n| --- | ---: |\n| Crédit | 436 |\n",
     )
 
     assert changes == []
+
+
+def test_compare_section_texts_sends_financial_paragraphs_to_comparison(monkeypatch) -> None:
+    captured: dict[str, str] = {}
+
+    def _capture_comparison(**kwargs):
+        captured["text_t1"] = kwargs["text_t1"]
+        captured["text_t2"] = kwargs["text_t2"]
+        raise RuntimeError("comparison reached")
+
+    monkeypatch.setattr(
+        "vigilance.text_analysis_pipeline._compare_texts_single_call",
+        _capture_comparison,
+    )
+
+    with pytest.raises(RuntimeError, match="comparison reached"):
+        _compare_section_texts(
+            client=object(),
+            model="gpt-4o",
+            section_key="gestion_capital",
+            text_t1=(
+                "### Ratio CET1\n\n"
+                "Le ratio CET1 atteint 13,8 % et les fonds propres totalisent 525 M$.\n"
+            ),
+            text_t2=(
+                "### Ratio CET1\n\n"
+                "Le ratio CET1 atteint 14,2 % et les fonds propres totalisent 540 M$.\n"
+            ),
+        )
+
+    assert "13,8 %" in captured["text_t1"]
+    assert "525 M$" in captured["text_t1"]
+    assert "14,2 %" in captured["text_t2"]
+    assert "540 M$" in captured["text_t2"]
 
 
 def test_run_text_analysis_pipeline_writes_md_as_source_of_truth(monkeypatch, tmp_path: Path) -> None:
@@ -2465,7 +2891,7 @@ def test_chunk_subsection_text_keeps_short_paragraph_independent() -> None:
     assert [chunk.text for chunk in chunks] == [first, short, second]
 
 
-def test_chunk_subsection_text_excludes_first_short_label() -> None:
+def test_chunk_subsection_text_keeps_first_short_label() -> None:
     first = "Demande de capital"
     second = (
         "Ce paragraphe est suffisamment long pour absorber le libellé court qui le précède et former "
@@ -2474,7 +2900,7 @@ def test_chunk_subsection_text_excludes_first_short_label() -> None:
 
     chunks = _chunk_subsection_text("\n\n".join([first, second]), subsection_heading="Cadre")
 
-    assert [chunk.text for chunk in chunks] == [second]
+    assert [chunk.text for chunk in chunks] == [first, second]
 
 
 @pytest.mark.parametrize(
@@ -2482,10 +2908,8 @@ def test_chunk_subsection_text_excludes_first_short_label() -> None:
     [
         "Crédit",
         "395",
-        "s.o.",
         "Sans objet",
         "s.o. Sans objet",
-        "- s.o.",
         "Le tableau ci-dessus présente la variation des actifs.",
         "[pdf.66]",
         "Le ratio atteint 13,8 %.",
@@ -2494,8 +2918,22 @@ def test_chunk_subsection_text_excludes_first_short_label() -> None:
         "Financement spécialisé aux États-Unis et International",
     ],
 )
-def test_chunk_subsection_text_excludes_non_narrative_or_table_fragments(text: str) -> None:
-    assert _chunk_subsection_text(text, subsection_heading="Capital") == []
+def test_chunk_subsection_text_keeps_every_non_table_fragment(text: str) -> None:
+    chunks = _chunk_subsection_text(text, subsection_heading="Capital")
+
+    assert len(chunks) == 1
+    assert chunks[0].text
+
+
+@pytest.mark.parametrize("marker", ["s.o.", "S.O.", "- s.o."])
+def test_chunk_subsection_text_excludes_standalone_not_applicable_marker(marker: str) -> None:
+    assert _chunk_subsection_text(marker, subsection_heading="Capital") == []
+
+
+def test_chunk_subsection_text_excludes_only_a_structural_markdown_table() -> None:
+    table = "| Catégorie | Valeur |\n| --- | ---: |\n| Crédit | 395 |"
+
+    assert _chunk_subsection_text(table, subsection_heading="Capital") == []
 
 
 def test_chunk_subsection_text_keeps_short_complete_narrative_sentence() -> None:
@@ -2600,8 +3038,8 @@ def test_align_chunks_tfidf_handles_empty_sklearn_vocabulary() -> None:
     removed = [alignment for alignment in alignments if alignment.alignment_type == "possible_removed"]
 
     assert matched == []
-    assert added == []
-    assert removed == []
+    assert [alignment.chunk_t2.text for alignment in added if alignment.chunk_t2] == ["le la de et un une"]
+    assert [alignment.chunk_t1.text for alignment in removed if alignment.chunk_t1] == ["123 456 789"]
 
 
 def test_semantic_alignment_decision_confirms_ambiguous_pair_before_triage() -> None:

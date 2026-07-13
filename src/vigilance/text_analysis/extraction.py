@@ -15,6 +15,10 @@ from vigilance.text_analysis.normalization import (
     _bbox_overlap_ratio,
     _block_overlaps_table,
     _infer_table_footnote_bboxes,
+    _is_chart_axis_label_row,
+    _is_not_applicable_marker,
+    _is_running_report_chrome,
+    _is_table_unit_label,
     _looks_like_footnote,
     _looks_like_narrative_paragraph,
     _looks_like_table_footnote_text,
@@ -25,6 +29,15 @@ from vigilance.text_analysis.sections import _next_section_by_key, _section_wind
 
 _DOCLING_TEXT_PAGE_BATCH_SIZE = 2
 logger = logging.getLogger(__name__)
+
+_COMPOSITE_GRID_ROW_LABELS = frozenset({"crédit", "marché", "opérationnel", "total"})
+_COMPOSITE_GRID_CAPTION_RE = re.compile(
+    r"\br[eé]partition\s+des?\s+risques?\s+par\s+secteur",
+    flags=re.IGNORECASE,
+)
+_COMPOSITE_GRID_NUMERIC_CELL_RE = re.compile(
+    r"^\s*\(?\s*-?\d[\d\s.,]*\s*\)?\s*%?\s*$"
+)
 
 
 def _docling_bbox_to_norm(docling_doc: Any, prov: Any) -> list[float] | None:
@@ -142,6 +155,92 @@ def _merge_missing_fallback_blocks(
                 continue
             existing.append(candidate)
             existing_norms.append(cand_norm)
+
+
+def _distinct_x_clusters(blocks: list[PDFBlock], *, tolerance: float = 0.06) -> int:
+    """Compte les colonnes visuelles distinctes d'une série de blocs."""
+    centers = sorted((float(block.bbox_norm[0]) + float(block.bbox_norm[2])) / 2.0 for block in blocks)
+    clusters: list[float] = []
+    for center in centers:
+        if not clusters or center - clusters[-1] > tolerance:
+            clusters.append(center)
+            continue
+        clusters[-1] = (clusters[-1] + center) / 2.0
+    return len(clusters)
+
+
+def _augment_table_regions_with_composite_grids(
+    page_blocks: dict[int, list[PDFBlock]],
+    table_bboxes_by_page: dict[int, list[list[float]]],
+) -> None:
+    """Détecte les tableaux éclatés en cellules de texte indépendantes.
+
+    Certains rapports annuels représentent un grand tableau sous forme de
+    diagramme. Docling n'en reconnaît alors que quelques sous-tableaux et
+    étiquette le reste comme texte ou titre. Une répétition des mêmes libellés
+    de lignes dans au moins trois colonnes, accompagnée de nombreuses cellules
+    numériques et d'une légende de répartition, permet de reconstruire une zone
+    tabulaire englobante avec une forte confiance.
+
+    Les blocs contenus dans cette zone sont marqués ``table`` immédiatement :
+    cette décision spatiale doit précéder la confiance accordée aux faux
+    ``section_header`` produits par Docling.
+    """
+    for page, blocks in page_blocks.items():
+        label_blocks_by_text: dict[str, list[PDFBlock]] = {
+            label: [] for label in _COMPOSITE_GRID_ROW_LABELS
+        }
+        for block in blocks:
+            normalized = _normalized_block_text(block.text)
+            if normalized in label_blocks_by_text:
+                label_blocks_by_text[normalized].append(block)
+
+        if any(len(label_blocks_by_text[label]) < 3 for label in _COMPOSITE_GRID_ROW_LABELS):
+            continue
+        if _distinct_x_clusters(label_blocks_by_text["crédit"]) < 3:
+            continue
+
+        row_labels = [block for matches in label_blocks_by_text.values() for block in matches]
+        label_top = min(block.y0 for block in row_labels)
+        label_bottom = max(block.y1 for block in row_labels)
+        numeric_cells = [
+            block
+            for block in blocks
+            if block.y0 >= label_top - 0.02
+            and block.y1 <= label_bottom + 0.02
+            and _COMPOSITE_GRID_NUMERIC_CELL_RE.fullmatch(str(block.text or ""))
+        ]
+        if len(numeric_cells) < 6:
+            continue
+
+        captions = [
+            block
+            for block in blocks
+            if block.y1 <= label_top
+            and label_top - block.y1 <= 0.35
+            and _COMPOSITE_GRID_CAPTION_RE.search(str(block.text or ""))
+        ]
+        if not captions:
+            continue
+        caption = max(captions, key=lambda block: block.y1)
+
+        overlapping_detected_tables = [
+            bbox
+            for bbox in table_bboxes_by_page.get(page, [])
+            if len(bbox) == 4
+            and float(bbox[1]) <= label_bottom + 0.05
+            and float(bbox[3]) >= label_top - 0.05
+        ]
+        region_bottom = max(
+            [label_bottom, *(block.y1 for block in numeric_cells), *(float(bbox[3]) for bbox in overlapping_detected_tables)]
+        )
+        composite_bbox = [0.0, max(0.0, caption.y0), 1.0, min(1.0, region_bottom + 0.005)]
+        table_bboxes_by_page.setdefault(page, []).append(composite_bbox)
+
+        for block in blocks:
+            midpoint = (block.y0 + block.y1) / 2.0
+            if composite_bbox[1] <= midpoint <= composite_bbox[3]:
+                block.block_type = "table"
 
 
 def _docling_page_batches(page_numbers: list[int]) -> list[tuple[int, int, list[int]]]:
@@ -277,10 +376,11 @@ def _extract_docling_page_blocks(
         del result
         gc.collect()
 
-    footnote_bboxes_by_page = _infer_table_footnote_bboxes(table_bboxes_by_page)
     _merge_missing_fallback_blocks(page_blocks, _extract_pymupdf_fallback_blocks(pdf_path, requested_pages))
     for page in requested_pages:
         page_blocks[page].sort(key=lambda block: (round(block.y0, 4), round(block.bbox_norm[0], 4)))
+    _augment_table_regions_with_composite_grids(page_blocks, table_bboxes_by_page)
+    footnote_bboxes_by_page = _infer_table_footnote_bboxes(table_bboxes_by_page)
     return page_blocks, table_bboxes_by_page, footnote_bboxes_by_page, "\n\n".join(raw_markdown_parts)
 
 
@@ -290,15 +390,16 @@ def _classify_block_type(
     table_bboxes: list[list[float]] | None = None,
     footnote_bboxes: list[list[float]] | None = None,
 ) -> str:
-    """Classifie un bloc PDF en l'une des catégories : narrative, table, footnote, header_footer, other.
+    """Classifie un bloc PDF en contenu, table ou note de table.
 
     Priorités d'application :
-    1. Type déjà assigné par Docling (table, footnote, header_footer) → conservé tel quel.
-    2. Texte répété en haut/bas de page → header_footer.
-    3. Bas de page avec marqueur de note → footnote.
-    4. Chevauchement géométrique avec un tableau → table.
-    5. Chevauchement avec zone de note + texte de légende → footnote.
-    6. Heuristiques textuelles : narrative, table ou other.
+    1. Type ``table`` ou chevauchement géométrique avec un tableau → table.
+    2. Chevauchement avec une zone sous un tableau + indice de note → note de table.
+    3. Le marqueur autonome « s.o. » → non applicable.
+    4. Tout le reste est conservé pour le markdown et la comparaison. Les
+       heuristiques lexicales peuvent encore reconnaître les grilles sans bbox,
+       mais aucun symbole, texte court ou marqueur de note isolé ne suffit à
+       exclure un bloc.
 
     Args:
         block: Bloc PDF à classifier.
@@ -307,15 +408,33 @@ def _classify_block_type(
         footnote_bboxes: Zones de notes inférées sur la même page.
 
     Returns:
-        Chaîne parmi ``"narrative"``, ``"table"``, ``"footnote"``, ``"header_footer"``, ``"other"``.
+        Chaîne parmi ``"narrative"``, ``"table"``, ``"table_footnote"``,
+        ``"footnote"``, ``"header_footer"``, ``"not_applicable"`` ou ``"other"``.
     """
-    if block.block_type in {"table", "footnote", "header_footer"}:
-        return block.block_type
+    if block.block_type == "table":
+        return "table"
 
     from vigilance.text_analysis.markdown import _is_docling_heading_block
 
+    text = block.text.strip()
+    table_bboxes = table_bboxes or []
+    footnote_bboxes = footnote_bboxes or []
+    # Ces éléments de présentation doivent être retirés avant de faire
+    # confiance à l'étiquette ``section_header`` de Docling, qui peut aussi
+    # être attribuée à une cellule de tableau ou à un en-tête courant.
+    if _is_running_report_chrome(text):
+        return "header_footer"
+    if _is_table_unit_label(text):
+        return "table"
+    if _is_chart_axis_label_row(text):
+        return "table"
+    if _is_not_applicable_marker(text):
+        return "not_applicable"
+    if _block_overlaps_table(block, footnote_bboxes) and _looks_like_table_footnote_text(text):
+        return "table_footnote"
+
     if _is_docling_heading_block(block):
-        if _block_overlaps_table(block, table_bboxes or []):
+        if _block_overlaps_table(block, table_bboxes):
             words = re.findall(r"[A-Za-zÀ-ÿ]{2,}", block.text.strip())
             if not (block.text.strip().isupper() and len(words) >= 4):
                 return "table"
@@ -324,7 +443,6 @@ def _classify_block_type(
     norm = _normalized_block_text(block.text)
     if not norm:
         return "other"
-    text = block.text.strip()
     words = re.findall(r"[A-Za-zÀ-ÿ]{2,}", text)
     digits = re.findall(r"\d", text)
     numeric_tokens = re.findall(r"\b\S*\d\S*\b", text)
@@ -333,17 +451,12 @@ def _classify_block_type(
     digit_ratio = len(digits) / max(1, len(text))
     upper_ratio = sum(1 for ch in text if ch.isupper()) / max(1, sum(1 for ch in text if ch.isalpha()))
     repeated = repeated_text_counts.get(norm, 0)
-    table_bboxes = table_bboxes or []
-    footnote_bboxes = footnote_bboxes or []
-
     if repeated >= 2 and (block.y1 <= 0.12 or block.y0 >= 0.88):
         return "header_footer"
-    if block.y0 >= 0.75 and re.match(r"^\s*(?:\(?\d+\)?|[*†‡]|note\b|source\b)", text, flags=re.IGNORECASE):
-        return "footnote"
     if _block_overlaps_table(block, table_bboxes):
         return "table"
     if _block_overlaps_table(block, footnote_bboxes) and _looks_like_table_footnote_text(text):
-        return "footnote"
+        return "table_footnote"
     if _looks_like_footnote(text):
         return "footnote"
     if _looks_like_narrative_paragraph(text):
@@ -368,19 +481,14 @@ def _classify_block_type(
 
 
 def _exclusion_reason_for_block(block_type: str, in_window: bool) -> str:
-    """Retourne la raison d'exclusion d'un bloc non narratif.
-
-    Un bloc hors fenêtre de section reçoit ``outside_target_section``.
-    Un bloc dans la fenêtre mais non narratif reçoit une raison selon son type.
-    Un bloc narratif inclus reçoit une chaîne vide (pas d'exclusion).
-    """
+    """Retourne la raison d'exclusion d'un bloc hors périmètre ou tabulaire."""
     if not in_window:
         return "outside_target_section"
     return {
         "table": "table_like_block",
-        "footnote": "footnote",
-        "header_footer": "header_footer",
-        "other": "non_narrative_block",
+        "table_footnote": "table_footnote",
+        "not_applicable": "not_applicable",
+        "header_footer": "running_header_footer",
     }.get(block_type, "")
 
 
@@ -449,9 +557,11 @@ def _build_section_audit(
     """Construit l'audit complet d'une section : blocs inclus, exclus et régions de tableaux.
 
     Pour chaque bloc de la section, applique la fenêtre verticale de la section,
-    classifie le type de bloc et décide de son inclusion. Seuls les blocs
-    ``narrative`` dans la fenêtre sont inclus ; les autres sont gardés dans
-    ``excluded_blocks`` pour la traçabilité.
+    classifie le type de bloc et décide de son inclusion. Tout contenu dans la
+    fenêtre est conservé, sauf les tables confirmées, leurs notes associées et
+    le marqueur autonome « s.o. ».
+    Les autres blocs restent comparables même s'ils sont courts, chiffrés ou
+    ressemblent lexicalement à une note.
 
     Args:
         section: Section résolue avec ses pages et son ancre.
@@ -486,7 +596,12 @@ def _build_section_audit(
             in_window = top_cutoff <= midpoint < bottom_cutoff
             block_type = _classify_block_type(section_block, repeated_text_counts, page_tables, page_footnotes)
             section_block.block_type = block_type
-            section_block.included = in_window and block_type == "narrative"
+            section_block.included = in_window and block_type not in {
+                "table",
+                "table_footnote",
+                "not_applicable",
+                "header_footer",
+            }
             section_block.exclusion_reason = (
                 "" if section_block.included else _exclusion_reason_for_block(block_type, in_window)
             )

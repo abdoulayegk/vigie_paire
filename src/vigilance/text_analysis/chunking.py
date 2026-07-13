@@ -5,6 +5,8 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
+from vigilance.text_analysis.normalization import _is_not_applicable_marker
+
 
 _BULLET_LINE_RE = re.compile(r"^\s*(?:\[\s*(?:x|X)?\s*\]\s*|[-*•‰]\s+|\d{1,3}[.)]\s+)")
 _HEADING_LINE_RE = re.compile(r"^\s*#{2,6}\s+")
@@ -17,15 +19,13 @@ _SEMANTIC_TRANSITION_RE = re.compile(
 _LONG_PARAGRAPH_TRIGGER_WORDS = 300
 _TARGET_CHUNK_WORDS = 220
 _HARD_MAX_CHUNK_WORDS = 300
-_NON_NARRATIVE_EXACT_RE = re.compile(
-    r"^(?:s\.?\s*o\.?(?:\s+sans\s+objet)?|sans\s+objet)$",
-    flags=re.IGNORECASE,
-)
-_TABLE_REFERENCE_RE = re.compile(r"^le\s+tableau\s+ci[-\s]dessus\b", flags=re.IGNORECASE)
-_EXCLUDED_NARRATIVE_SYMBOLS = frozenset("[]$%")
 _LEADING_LIST_MARKER_RE = re.compile(
     r"^\s*(?:\[\s*(?:x|X)?\s*\]\s*|[-*•‰]\s+|\d{1,3}[.)]\s+)",
 )
+_MARKDOWN_TABLE_DIVIDER_RE = re.compile(
+    r"^\s*\|?\s*:?-{3,}:?\s*(?:\|\s*:?-{3,}:?\s*)+\|?\s*$"
+)
+_MARKDOWN_TABLE_ROW_RE = re.compile(r"^\s*\|.+\|\s*$")
 
 
 @dataclass(slots=True)
@@ -60,36 +60,26 @@ def _strip_list_markers(text: str) -> str:
 
 
 def _is_narrative_comparison_candidate(text: str) -> bool:
-    """Écarte les unités qui ne peuvent pas porter un changement sémantique.
+    """Indique si le bloc doit rejoindre la comparaison.
 
-    Le pipeline narratif ne compare ni les tableaux, ni leurs cellules isolées,
-    ni les renvois à un tableau. Ces exclusions sont des critères de qualité de
-    l'entrée; le jugement de pertinence du texte narratif restant demeure confié
-    au triage GPT.
+    Le filtrage de contenu est effectué en amont, avec les métadonnées Docling
+    et les zones géométriques des tableaux. Le chunker ne doit donc jamais
+    écarter un passage pour sa longueur, un symbole financier ou un renvoi à un
+    tableau : tous peuvent être des divulgations pertinentes. Les seules
+    exceptions sont une table Markdown structurellement identifiable et le
+    marqueur autonome « s.o. ».
     """
     value = str(text or "").strip()
     if not value:
         return False
-    value_without_list_marker = _LEADING_LIST_MARKER_RE.sub("", value)
-    if _NON_NARRATIVE_EXACT_RE.fullmatch(value_without_list_marker):
+    if _is_not_applicable_marker(value):
         return False
-    if _TABLE_REFERENCE_RE.match(value_without_list_marker):
+    lines = [line.strip() for line in value.splitlines() if line.strip()]
+    if not lines:
         return False
-    if "|" in value or "\t" in value:
+    if any(_MARKDOWN_TABLE_DIVIDER_RE.match(line) for line in lines):
         return False
-    if any(symbol in value for symbol in _EXCLUDED_NARRATIVE_SYMBOLS):
-        return False
-
-    words = re.findall(r"[A-Za-zÀ-ÖØ-öø-ÿ][A-Za-zÀ-ÖØ-öø-ÿ0-9]*", value)
-    if len(words) < 2:
-        return False
-
-    # Les libellés de cellules et de colonnes (« Crédit », « Marché »,
-    # « Financement spécialisé… ») ne portent normalement aucune ponctuation
-    # de phrase. Une phrase courte reste admise si elle est bien terminée.
-    if not re.search(r"[.!?;:]\s*$", value) and len(words) < 12:
-        return False
-    return True
+    return not (len(lines) >= 2 and all(_MARKDOWN_TABLE_ROW_RE.match(line) for line in lines))
 
 
 def _candidate_kind(lines: list[str]) -> str:
