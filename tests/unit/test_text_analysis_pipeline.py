@@ -48,6 +48,7 @@ from vigilance.text_analysis_pipeline import (
     run_text_analysis_pipeline,
 )
 from vigilance.text_analysis.chunk_alignment import _tfidf_similarity_matrix_from_texts
+from vigilance.text_analysis.semantic_chunking import SemanticChunkingError
 from vigilance.text_analysis.comparison import (
     ChunkComparisonLLMResponse,
     _attach_alignment_metadata,
@@ -306,6 +307,7 @@ def test_default_triage_includes_amf_v2_and_legacy_fields() -> None:
     assert triage["statut_mise_en_oeuvre"] == "INDETERMINE"
     assert triage["confiance_posture"] == "INDETERMINE"
     assert triage["signals"]["methodology_change"] is False
+    assert count_complete_sentences(triage["relevance_reason"]) == 2
 
 
 def test_triage_few_shots_request_compact_relevance_reason() -> None:
@@ -313,6 +315,20 @@ def test_triage_few_shots_request_compact_relevance_reason() -> None:
     assert "impact_it" not in _FEW_SHOT_TRIAGE_AMF
     assert "justification_posture" not in _FEW_SHOT_TRIAGE_AMF
     assert _FEW_SHOT_TRIAGE_AMF.count("Exemple ") == 2
+    outputs = [
+        json.loads(line.removeprefix("Output : "))
+        for line in _FEW_SHOT_TRIAGE_AMF.splitlines()
+        if line.startswith("Output : ")
+    ]
+    assert len(outputs) == 2
+    for output in outputs:
+        validated = TriageAMFCompactLLMResultWithIndex(**output)
+        assert count_complete_sentences(validated.relevance_reason) == 2
+        assert (
+            "Ce changement est pertinent pour la vigie AMF"
+            not in validated.relevance_reason
+        )
+        assert "Ce changement n’est pas pertinent" not in validated.relevance_reason
 
 
 def test_derive_legacy_fields_maps_methodology_theme() -> None:
@@ -2891,7 +2907,7 @@ def test_chunk_subsection_text_keeps_short_paragraph_independent() -> None:
     assert [chunk.text for chunk in chunks] == [first, short, second]
 
 
-def test_chunk_subsection_text_keeps_first_short_label() -> None:
+def test_chunk_subsection_text_merges_first_short_label_with_its_paragraph() -> None:
     first = "Demande de capital"
     second = (
         "Ce paragraphe est suffisamment long pour absorber le libellé court qui le précède et former "
@@ -2900,7 +2916,7 @@ def test_chunk_subsection_text_keeps_first_short_label() -> None:
 
     chunks = _chunk_subsection_text("\n\n".join([first, second]), subsection_heading="Cadre")
 
-    assert [chunk.text for chunk in chunks] == [first, second]
+    assert [chunk.text for chunk in chunks] == [f"{first}\n\n{second}"]
 
 
 @pytest.mark.parametrize(
@@ -2944,18 +2960,14 @@ def test_chunk_subsection_text_keeps_short_complete_narrative_sentence() -> None
     assert [chunk.text for chunk in chunks] == [text]
 
 
-def test_chunk_subsection_text_splits_very_long_paragraph_on_sentence_boundaries() -> None:
+def test_chunk_subsection_text_requires_semantic_services_for_complex_paragraph() -> None:
     first_idea = " ".join(["La Banque surveille les risques de crédit de façon continue."] * 35)
     second_idea = " ".join(["Toutefois, le cadre prévoit des contrôles additionnels pour les portefeuilles sensibles."] * 35)
     third_idea = " ".join(["Par ailleurs, les résultats sont transmis aux comités de surveillance."] * 35)
     paragraph = f"{first_idea} {second_idea} {third_idea}"
 
-    chunks = _chunk_subsection_text(paragraph, subsection_heading="Contrôles")
-
-    assert len(chunks) >= 2
-    assert "La Banque surveille" in chunks[0].text
-    assert all(chunk.text.endswith(".") for chunk in chunks)
-    assert all(len(chunk.text.split()) <= 300 for chunk in chunks)
+    with pytest.raises(SemanticChunkingError, match="aucun fallback"):
+        _chunk_subsection_text(paragraph, subsection_heading="Contrôles")
 
 
 def test_chunk_subsection_text_excludes_markdown_headings() -> None:
@@ -4613,8 +4625,7 @@ def test_bmo_risque_de_strategie_tfidf_alignment_stays_local() -> None:
     assert all("Risque de stratégie" in chunk.hierarchy_path for chunk in [*chunks_t1, *chunks_t2])
 
 
-def test_bnc_accord_bale_reassembles_split_paragraph_before_comparison() -> None:
-    """A one-sided length split must not create a false removal plus addition."""
+def test_bnc_accord_bale_requires_semantic_services_without_legacy_fallback() -> None:
     base = Path("outputs/resultats/bnc/2025_t4_vs_2024_t4")
     previous_path = base / "text_extraction_2024_t4.md"
     current_path = base / "text_extraction_2025_t4.md"
@@ -4629,60 +4640,26 @@ def test_bnc_accord_bale_reassembles_split_paragraph_before_comparison() -> None
     )
     previous_body = dict(_parse_subsections(previous_section))["Accord de Bâle"]
     current_body = dict(_parse_subsections(current_section))["Accord de Bâle"]
-    chunks_t1 = _chunk_subsection_text(previous_body, subsection_heading="Accord de Bâle")
-    chunks_t2 = _chunk_subsection_text(current_body, subsection_heading="Accord de Bâle")
-
-    alignments = _align_chunks_tfidf(chunks_t1, chunks_t2)
-    grouped = next(
-        alignment
-        for alignment in alignments
-        if alignment.alignment_type == "matched_grouped"
-        and alignment.chunk_t1
-        and alignment.chunk_t2
-        and alignment.chunk_t1.chunk_id == "c01+c02"
-        and alignment.chunk_t2.chunk_id == "c01"
-    )
-
-    assert not any(
-        alignment.alignment_type == "possible_removed"
-        and alignment.chunk_t1
-        and alignment.chunk_t1.chunk_id == "c01"
-        for alignment in alignments
-    )
-    segments = build_change_segments_from_texts(
-        grouped.chunk_t1.text,
-        grouped.chunk_t2.text,
-        diff_type="modified",
-    )
-    assert len(segments) == 1
-    assert segments[0]["kind"] == "removed"
-    assert "Certaines révisions apportées par le BSIF" in segments[0]["text_t1"]
-    assert "PD, PCD et ECD" not in segments[0]["text_t1"]
+    with pytest.raises(SemanticChunkingError, match="aucun fallback"):
+        _chunk_subsection_text(previous_body, subsection_heading="Accord de Bâle")
+    with pytest.raises(SemanticChunkingError, match="aucun fallback"):
+        _chunk_subsection_text(current_body, subsection_heading="Accord de Bâle")
 
 
 def test_td_future_capital_disclosures_are_not_merged_only_for_similar_boilerplate() -> None:
     """Separate TD issuances remain separate despite their similar wording."""
-    base = Path("outputs/resultats/td/2025_t4_vs_2024_t4")
-    previous_path = base / "text_extraction_2024_t4.md"
-    current_path = base / "text_extraction_2025_t4.md"
-    if not previous_path.exists() or not current_path.exists():
-        pytest.skip("Artefacts locaux TD T4 absents.")
-
     heading = "Évolution future des fonds propres réglementaires"
-    previous_section = _extract_section_text_from_markdown(
-        previous_path.read_text(encoding="utf-8"), "gestion_capital"
+    first = (
+        "La Banque a émis des billets de fonds propres avec recours limité. "
+        "Les billets portent intérêt selon les modalités annoncées."
     )
-    current_section = _extract_section_text_from_markdown(
-        current_path.read_text(encoding="utf-8"), "gestion_capital"
+    second = (
+        "La Banque a émis une autre série de billets de fonds propres avec recours limité. "
+        "Cette série porte intérêt selon ses propres modalités."
     )
-    previous_body = dict(_parse_subsections(previous_section))[heading]
-    current_body = dict(_parse_subsections(current_section))[heading]
-    alignments = _align_chunks_tfidf(
-        _chunk_subsection_text(previous_body, subsection_heading=heading),
-        _chunk_subsection_text(current_body, subsection_heading=heading),
-    )
+    chunks = _chunk_subsection_text(f"{first}\n\n{second}", subsection_heading=heading)
 
-    assert not any(alignment.alignment_type == "matched_grouped" for alignment in alignments)
+    assert [chunk.text for chunk in chunks] == [first, second]
 
 
 # ---------------------------------------------------------------------------
@@ -4701,6 +4678,7 @@ from vigilance.amf_taxonomy import (
     TriageAMFResult,
     TriageAMFResultWithIndex,
     TriageValidationError,
+    count_complete_sentences,
 )
 from vigilance.text_analysis_pipeline import (
     _call_structured_completion,
@@ -4754,37 +4732,122 @@ def _valid_justification_non() -> str:
     )
 
 
-def _compact_reason(word_count: int = 100) -> str:
-    return " ".join(f"mot{i}" for i in range(word_count))
+def _compact_reason() -> str:
+    return (
+        "Le rapport courant ajoute un exercice annuel de simulation de cyberattaque "
+        "qui n’était pas décrit dans le rapport précédent. Cette évolution renforce "
+        "la lecture des pratiques de résilience et fournit un point de comparaison "
+        "concret entre les banques."
+    )
 
 
 # --- Invariants Pydantic ---
 
 
-@pytest.mark.parametrize("word_count", [100, 120])
-def test_compact_triage_accepts_relevance_reason_boundaries(word_count: int) -> None:
+def test_compact_triage_accepts_two_complete_relevance_reason_sentences() -> None:
     result = TriageAMFCompactLLMResultWithIndex(
         change_index=1,
         is_relevant=True,
         themes_amf=["RISQUE_EMERGENT"],
         nouvelle_idee=True,
-        relevance_reason=_compact_reason(word_count),
+        relevance_reason=f"  {_compact_reason().replace(' Cette', '   Cette')}  ",
     )
-    assert len(result.relevance_reason.split()) == word_count
+    assert count_complete_sentences(result.relevance_reason) == 2
+    assert "  " not in result.relevance_reason
+    assert len(result.relevance_reason.split()) < 100
 
 
-@pytest.mark.parametrize("word_count", [99, 121])
-def test_compact_triage_rejects_relevance_reason_outside_boundaries(
-    word_count: int,
-) -> None:
-    with pytest.raises(_PydValidationError, match="entre 100 et 120 mots"):
+@pytest.mark.parametrize(
+    "reason",
+    [
+        "Le rapport courant ajoute un nouveau contrôle de cybersécurité.",
+        (
+            "Le rapport courant ajoute un nouveau contrôle de cybersécurité. "
+            "Cette mesure renforce le dispositif déclaré par la banque. "
+            "Elle fournit aussi un nouveau point de comparaison entre les banques."
+        ),
+    ],
+)
+def test_compact_triage_rejects_other_sentence_counts(reason: str) -> None:
+    with pytest.raises(_PydValidationError, match="exactement 2 phrases complètes"):
         TriageAMFCompactLLMResultWithIndex(
             change_index=1,
             is_relevant=False,
             themes_amf=[],
             nouvelle_idee=False,
-            relevance_reason=_compact_reason(word_count),
+            relevance_reason=reason,
         )
+
+
+def test_compact_triage_rejects_incomplete_second_sentence() -> None:
+    with pytest.raises(_PydValidationError, match="se terminer par une phrase complète"):
+        TriageAMFCompactLLMResultWithIndex(
+            change_index=1,
+            is_relevant=False,
+            themes_amf=[],
+            nouvelle_idee=False,
+            relevance_reason=(
+                "Le rapport courant ajoute un nouveau contrôle de cybersécurité. "
+                "Cette mesure fournit un nouveau point de comparaison entre les banques"
+            ),
+        )
+
+
+def test_compact_triage_rejects_sentences_without_lexical_content() -> None:
+    with pytest.raises(_PydValidationError, match="contenu lexical"):
+        TriageAMFCompactLLMResultWithIndex(
+            change_index=1,
+            is_relevant=False,
+            themes_amf=[],
+            nouvelle_idee=False,
+            relevance_reason=". .",
+        )
+
+
+def test_compact_triage_counts_sentence_ending_with_uppercase_label() -> None:
+    result = TriageAMFCompactLLMResultWithIndex(
+        change_index=1,
+        is_relevant=True,
+        themes_amf=["MODIFICATION_METHODOLOGIE"],
+        nouvelle_idee=True,
+        relevance_reason=(
+            "Le rapport courant retient désormais l’approche A. "
+            "Cette modification fournit une nouvelle base de comparaison des "
+            "méthodes déclarées par les banques."
+        ),
+    )
+    assert count_complete_sentences(result.relevance_reason) == 2
+
+
+def test_compact_triage_ignores_abbreviations_and_decimals_when_counting_sentences() -> None:
+    reason = (
+        "Le cadre de Bâle 3.1, présenté p. ex. à la p. 12 par M. Dupont, "
+        "est maintenant détaillé dans le rapport. "
+        "2025 devient l’année de référence pour comparer son application entre les banques."
+    )
+    result = TriageAMFCompactLLMResultWithIndex(
+        change_index=1,
+        is_relevant=True,
+        themes_amf=["EXIGENCES_REGLEMENTAIRES"],
+        nouvelle_idee=True,
+        relevance_reason=reason,
+    )
+    assert count_complete_sentences(result.relevance_reason) == 2
+
+
+def test_compact_triage_ignores_common_french_abbreviations_inside_sentence() -> None:
+    result = TriageAMFCompactLLMResultWithIndex(
+        change_index=1,
+        is_relevant=True,
+        themes_amf=["CONTROLE_CONFORMITE"],
+        nouvelle_idee=True,
+        relevance_reason=(
+            "Le rapport détaille plusieurs mesures, etc. afin d’encadrer le contrôle, "
+            "c.-à-d. une revue annuelle documentée. Cette précision permet de "
+            "comparer la fréquence des contrôles déclarés par les banques."
+        ),
+    )
+    assert count_complete_sentences(result.relevance_reason) == 2
 
 
 def test_invariant_relevant_without_themes_raises() -> None:
@@ -5359,6 +5422,53 @@ def test_triage_section_changes_converts_validation_error_to_triage_validation_e
     assert exc_info.value.validation_error is err
     # 3 appels = 1 initial + 2 retries avant remontée
     assert client.call_count == 3
+    retry_message = client._completions.calls[1]["messages"][-1]["content"]
+    assert "exactement deux phrases complètes" in retry_message
+    assert "description factuelle" in retry_message
+    assert "analyse comparative" in retry_message
+
+
+def test_triage_section_changes_length_retry_repeats_two_sentence_contract() -> None:
+    valid_batch = TriageAMFCompactLLMBatch(
+        triages=[
+            TriageAMFCompactLLMResultWithIndex(
+                change_index=1,
+                is_relevant=False,
+                themes_amf=[],
+                nouvelle_idee=False,
+                relevance_reason=_compact_reason(),
+            )
+        ]
+    )
+    state = {"calls": 0}
+
+    def length_then_success(**_kwargs):
+        state["calls"] += 1
+        if state["calls"] == 1:
+            raise RuntimeError(
+                "Could not parse response content as the length limit was reached"
+            )
+        return _make_parsed_response(valid_batch)
+
+    client = _FakeStructuredClient(length_then_success)
+    result = _triage_section_changes(
+        client=client,
+        model="gpt-4o",
+        section_key="gestion_risques",
+        changes=[
+            {
+                "diff_type": "added",
+                "source_text_t1": "",
+                "source_text_t2": "Ajout d’un exercice annuel de cyberattaque.",
+            }
+        ],
+    )
+
+    assert len(result) == 1
+    assert client.call_count == 2
+    retry_message = client._completions.calls[1]["messages"][-1]["content"]
+    assert "exactement deux phrases complètes" in retry_message
+    assert "interprétation comparative" in retry_message
 
 
 def test_triage_section_changes_propagates_runtime_error_unwrapped() -> None:
@@ -5727,6 +5837,10 @@ def test_triage_section_changes_does_not_request_posture_or_it_impact() -> None:
     assert "justification_posture" not in prompt
     assert "impact_it_justification" not in prompt
     assert "relevance_reason" in prompt
+    assert "exactement deux phrases complètes" in prompt
+    assert "La première décrit factuellement" in prompt
+    assert "La seconde interprète" in prompt
+    assert "100 à 120 mots" not in prompt
     assert result[0]["genai_triage"]["impact_it"] == "INDETERMINE"
     assert result[0]["genai_triage"]["changement_posture"] == "INDETERMINE"
     assert result[0]["genai_triage"]["statut_mise_en_oeuvre"] == "INDETERMINE"

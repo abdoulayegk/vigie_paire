@@ -4,21 +4,18 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
+from typing import Any
 
 from vigilance.text_analysis.normalization import _is_not_applicable_marker
-
-
-_BULLET_LINE_RE = re.compile(r"^\s*(?:\[\s*(?:x|X)?\s*\]\s*|[-*•‰]\s+|\d{1,3}[.)]\s+)")
-_HEADING_LINE_RE = re.compile(r"^\s*#{2,6}\s+")
-_SENTENCE_BOUNDARY_RE = re.compile(r"(?<=[.!?])\s+(?=[A-ZÀ-ÖØ-Þ])")
-_SEMANTIC_TRANSITION_RE = re.compile(
-    r"^(?:En plus|Toutefois|Par ailleurs|De plus|En outre|Néanmoins|Cependant|"
-    r"Le cadre couvre également|Cette approche|À cet égard|Dans ce contexte)\b",
-    flags=re.IGNORECASE,
+from vigilance.text_analysis.semantic_chunking import (
+    SemanticChunkingError,
+    _requires_semantic_partition,
+    _semantic_partition_paragraphs,
 )
-_LONG_PARAGRAPH_TRIGGER_WORDS = 300
-_TARGET_CHUNK_WORDS = 220
-_HARD_MAX_CHUNK_WORDS = 300
+
+
+_BULLET_LINE_RE = re.compile(r"^\s*(?:\[\s*(?:x|X)?\s*\]\s*|[-*•‰]\s+|\d{1,3}[.)]\s+)")
+_HEADING_LINE_RE = re.compile(r"^\s*#{2,6}\s+")
 _LEADING_LIST_MARKER_RE = re.compile(
     r"^\s*(?:\[\s*(?:x|X)?\s*\]\s*|[-*•‰]\s+|\d{1,3}[.)]\s+)",
 )
@@ -130,46 +127,46 @@ def _group_adjacent_lists(candidates: list[tuple[str, str]]) -> list[tuple[str, 
 
 
 def _word_count(text: str) -> int:
-    """Compte les mots pour borner uniquement les paragraphes exceptionnellement longs."""
+    """Compte les mots d'un bloc candidat."""
     return len(re.findall(r"\b[\wÀ-ÖØ-öø-ÿ']+\b", str(text or "")))
 
 
-def _split_long_paragraph(text: str) -> list[str]:
-    """Découpe un long paragraphe aux frontières de phrase les plus naturelles.
+def _looks_like_short_label(text: str) -> bool:
+    """Détecte un micro-titre extrait comme paragraphe isolé."""
+    value = str(text or "").strip()
+    words = re.findall(r"[A-Za-zÀ-ÖØ-öø-ÿ][\wÀ-ÖØ-öø-ÿ'’-]*", value)
+    return (
+        bool(words)
+        and len(words) <= 5
+        and "\n" not in value
+        and not re.search(r"[.!?;:]\s*$", value)
+        and not re.search(r"\d", value)
+        and value[0].isupper()
+    )
 
-    La taille n'est qu'un garde-fou : une transition explicite est privilégiée,
-    puis une fin de phrase est utilisée seulement pour éviter qu'un paragraphe
-    anormalement long devienne une unique unité de comparaison.
-    """
-    paragraph = str(text or "").strip()
-    if _word_count(paragraph) <= _LONG_PARAGRAPH_TRIGGER_WORDS:
-        return [paragraph] if paragraph else []
 
-    sentences = [sentence.strip() for sentence in _SENTENCE_BOUNDARY_RE.split(paragraph) if sentence.strip()]
-    if len(sentences) <= 1:
-        return [paragraph]
-
-    chunks: list[str] = []
-    current: list[str] = []
-    current_words = 0
-    for sentence in sentences:
-        sentence_words = _word_count(sentence)
-        starts_new_idea = bool(_SEMANTIC_TRANSITION_RE.match(sentence))
-        should_split = bool(current) and (
-            (current_words >= 100 and starts_new_idea)
-            or current_words + sentence_words > _HARD_MAX_CHUNK_WORDS
-            or current_words >= _TARGET_CHUNK_WORDS
-        )
-        if should_split:
-            chunks.append(" ".join(current).strip())
-            current = []
-            current_words = 0
-        current.append(sentence)
-        current_words += sentence_words
-
-    if current:
-        chunks.append(" ".join(current).strip())
-    return [chunk for chunk in chunks if chunk]
+def _merge_short_labels_with_following(
+    candidates: list[tuple[str, str]],
+) -> list[tuple[str, str]]:
+    """Attache un micro-titre au paragraphe narratif qu'il introduit."""
+    merged: list[tuple[str, str]] = []
+    index = 0
+    while index < len(candidates):
+        kind, candidate_text = candidates[index]
+        if index + 1 < len(candidates):
+            next_kind, next_text = candidates[index + 1]
+            if (
+                kind == "paragraph"
+                and next_kind == "paragraph"
+                and _looks_like_short_label(candidate_text)
+                and _word_count(next_text) >= 8
+            ):
+                merged.append(("paragraph", f"{candidate_text}\n\n{next_text}"))
+                index += 2
+                continue
+        merged.append((kind, candidate_text))
+        index += 1
+    return merged
 
 
 def _chunk_subsection_text(
@@ -178,16 +175,22 @@ def _chunk_subsection_text(
     subsection_heading: str = "",
     section_title: str = "",
     min_chars: int = 0,
+    client: Any | None = None,
+    embedding_model: str = "text-embedding-3-small",
+    semantic_model: str = "gpt-4o",
 ) -> list[TextChunk]:
-    """Découpe un corps en paragraphes autonomes et listes cohérentes.
+    """Découpe un corps en unités d'idée et listes cohérentes.
 
-    ``min_chars`` est conservé pour compatibilité d'appel, mais les paragraphes
-    ne sont plus fusionnés automatiquement : une ligne vide définit un chunk.
+    Les paragraphes simples restent intacts. Tous les paragraphes complexes de
+    la sous-section partagent un lot d'embeddings, puis seules les frontières
+    ambiguës sont arbitrées par LLM. Il n'existe aucun fallback en cas d'échec.
+    ``min_chars`` reste accepté uniquement pour compatibilité d'appel.
     """
     _ = min_chars
     candidates = _split_candidate_blocks(text)
+    candidates = _merge_short_labels_with_following(candidates)
     candidates = _group_adjacent_lists(candidates)
-    split_candidates: list[tuple[str, str]] = []
+    filtered_candidates: list[tuple[str, str]] = []
     for kind, candidate_text in candidates:
         # Une liste est une seule unité sémantique : ses items restent groupés.
         # Les marqueurs ``[]``/``[x]`` ne sont que de la mise en forme et ne
@@ -195,14 +198,34 @@ def _chunk_subsection_text(
         normalized_candidate = _strip_list_markers(candidate_text) if kind == "list" else candidate_text
         if not _is_narrative_comparison_candidate(normalized_candidate):
             continue
-        if kind == "paragraph":
-            split_candidates.extend(
-                (kind, part)
-                for part in _split_long_paragraph(normalized_candidate)
-                if _is_narrative_comparison_candidate(part)
+        filtered_candidates.append((kind, normalized_candidate))
+
+    complex_indexes = [
+        index
+        for index, (kind, candidate_text) in enumerate(filtered_candidates)
+        if kind == "paragraph" and _requires_semantic_partition(candidate_text)
+    ]
+    partitions_by_index: dict[int, list[str]] = {}
+    if complex_indexes:
+        if client is None:
+            raise SemanticChunkingError(
+                "Un client OpenAI est requis pour découper les paragraphes complexes; aucun fallback n'est autorisé."
             )
-        else:
-            split_candidates.append((kind, normalized_candidate))
+        complex_paragraphs = [filtered_candidates[index][1] for index in complex_indexes]
+        partitions = _semantic_partition_paragraphs(
+            complex_paragraphs,
+            client=client,
+            embedding_model=embedding_model,
+            semantic_model=semantic_model,
+        )
+        partitions_by_index = dict(zip(complex_indexes, partitions, strict=True))
+
+    split_candidates: list[tuple[str, str]] = []
+    for index, (kind, candidate_text) in enumerate(filtered_candidates):
+        parts = partitions_by_index.get(index, [candidate_text])
+        split_candidates.extend(
+            (kind, part) for part in parts if _is_narrative_comparison_candidate(part)
+        )
 
     subsection = str(subsection_heading or "").strip()
     section = str(section_title or "").strip()

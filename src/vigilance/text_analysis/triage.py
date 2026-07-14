@@ -12,14 +12,13 @@ from typing import Any, Literal
 from pydantic import BaseModel, Field, ValidationError
 
 from vigilance.amf_taxonomy import (
-    COMPACT_RELEVANCE_REASON_MAX_WORDS,
-    COMPACT_RELEVANCE_REASON_MIN_WORDS,
+    COMPACT_RELEVANCE_REASON_SENTENCE_COUNT,
     THEMES_AMF_ANALYST_SUBJECTS,
     THEMES_AMF_DESCRIPTIONS,
     TRIAGE_SOURCE_VERSION,
     TriageAMFCompactLLMBatch,
     TriageValidationError,
-    count_words,
+    count_complete_sentences,
     empty_triage_skeleton,
 )
 from vigilance.text_analysis.constants import (
@@ -215,18 +214,23 @@ def _collect_full_evidence_observations(
     return observations
 
 
-def _bounded_local_relevance_reason(value: str) -> str:
-    """Normalise une raison locale dans la même plage que la sortie LLM."""
-    words = " ".join(str(value or "").split()).split()
-    filler = (
-        "La décision reste visible afin que l’analyste puisse la confirmer ou "
-        "la corriger directement à partir des textes sources comparés."
-    ).split()
-    while len(words) < COMPACT_RELEVANCE_REASON_MIN_WORDS:
-        words.extend(filler)
-    words = words[:COMPACT_RELEVANCE_REASON_MAX_WORDS]
-    result = " ".join(words).strip()
-    return result if result.endswith((".", "!", "?")) else f"{result}."
+def _local_relevance_reason(
+    factual_change: str,
+    comparative_interpretation: str,
+) -> str:
+    """Compose les deux phrases des qualifications locales sans remplissage."""
+    sentences = [
+        " ".join(str(sentence or "").split())
+        for sentence in (factual_change, comparative_interpretation)
+    ]
+    if any(not sentence.endswith((".", "!", "?")) for sentence in sentences):
+        raise ValueError("Chaque phrase locale doit être complète et ponctuée.")
+    result = " ".join(sentences)
+    if count_complete_sentences(result) != COMPACT_RELEVANCE_REASON_SENTENCE_COUNT:
+        raise ValueError(
+            "Une justification locale doit contenir exactement deux phrases complètes."
+        )
+    return result
 
 
 def _default_triage() -> dict[str, Any]:
@@ -249,11 +253,11 @@ def _default_triage() -> dict[str, Any]:
             "impact_description": "",
             "reference_reglementaire": "",
             "confidence": 0.0,
-            "relevance_reason": _bounded_local_relevance_reason(
-                "Le changement n’a pas reçu de qualification AMF exploitable. "
+            "relevance_reason": _local_relevance_reason(
+                "Le changement n’a pas reçu de qualification AMF exploitable.",
                 "Il est conservé dans la file de revue sans être présenté comme "
                 "une nouvelle idée, afin d’éviter une conclusion automatique "
-                "non étayée par les éléments disponibles."
+                "non étayée par les éléments disponibles.",
             ),
             "signals": {
                 "regulatory_reference_added": False,
@@ -302,11 +306,12 @@ def _alignment_review_result(change: dict[str, Any]) -> dict[str, Any]:
                 or "L'alignement entre les deux passages reste ambigu après la comparaison initiale. "
                 "Le changement est conservé pour revue, sans classification AMF automatique."
             ),
-            "relevance_reason": _bounded_local_relevance_reason(
+            "relevance_reason": _local_relevance_reason(
                 "Les passages pourraient décrire des divulgations différentes, "
                 "mais l’alignement sémantique ne fournit pas une preuve suffisante "
-                "pour conclure automatiquement. Le changement reste donc visible "
-                "et doit être lu avec ses extraits sources avant toute décision."
+                "pour conclure automatiquement.",
+                "Le changement reste donc visible et doit être lu avec ses extraits "
+                "sources avant toute décision.",
             ),
             # The analyst still sees the deterministic, verbatim difference;
             # no LLM-generated highlight is used for this unresolved pairing.
@@ -328,11 +333,11 @@ def _semantic_move_result(change: dict[str, Any]) -> dict[str, Any]:
             "alignment_confidence": str(change.get("alignment_confidence") or "medium"),
             "alignment_rationale": str(change.get("alignment_rationale") or "").strip(),
             "exclusion_reason": "deplacement_texte",
-            "relevance_reason": _bounded_local_relevance_reason(
+            "relevance_reason": _local_relevance_reason(
                 "La comparaison confirme que la divulgation a été déplacée sans "
                 "modification substantielle de son sens, de son niveau de détail "
-                "ou de son rattachement métier. Ce déplacement ne crée donc pas "
-                "une nouvelle idée à surveiller."
+                "ou de son rattachement métier.",
+                "Ce déplacement ne crée donc pas une nouvelle idée à surveiller.",
             ),
             "nouvelle_idee_justification": (
                 "NON — Nouvel élément à surveiller : Non.\n\n"
@@ -359,12 +364,13 @@ def _coherence_review_triage(change: dict[str, Any], reason: str) -> dict[str, A
             "source": "triage_coherence_review_required",
             "coherence_review_required": True,
             "coherence_review_reason": str(reason or "").strip(),
-            "relevance_reason": _bounded_local_relevance_reason(
+            "relevance_reason": _local_relevance_reason(
                 "La qualification métier proposée ne concorde pas suffisamment avec "
-                "la vérification indépendante des preuves complètes. Le dossier est "
+                "la vérification indépendante des preuves complètes.",
+                "Le dossier est "
                 "conservé avec ses textes sources et ses pages afin qu'un analyste "
                 "confirme le type de changement, la pertinence et l'existence d'une "
-                "nouvelle idée avant toute conclusion de vigie."
+                "nouvelle idée avant toute conclusion de vigie.",
             ),
             "change_segments": build_change_segments(change),
         }
@@ -612,11 +618,11 @@ def _cosmetic_triage_result(change: dict[str, Any], exclusion_reason: str) -> di
         {
             "source": "deterministic_prefilter",
             "exclusion_reason": exclusion_reason,
-            "relevance_reason": _bounded_local_relevance_reason(
+            "relevance_reason": _local_relevance_reason(
                 "Le préfiltre déterministe identifie uniquement une différence "
-                "de formulation, de présentation ou de date isolée. Aucun écart "
-                "chiffré réglementaire, nouveau facteur de risque ou changement "
-                "de méthode n’est détecté dans les passages comparés."
+                "de formulation, de présentation ou de date isolée.",
+                "Cette différence n’apporte aucun nouvel élément sur les pratiques "
+                "de gestion des risques à comparer entre les banques.",
             ),
             "nouvelle_idee_justification": (
                 "NON — Nouvel élément à surveiller : Non.\n\n"
@@ -760,12 +766,12 @@ def _propagate_triage_to_group(
 
 _FEW_SHOT_TRIAGE_AMF = """\
 Exemple 1 — ajout cyber pertinent
-Input : {"change_index": 1, "diff_type": "added", "change_summary": "Ajout d’un contrôle contre les ransomwares."}
-Output : {"change_index": 1, "is_relevant": true, "themes_amf": ["RISQUE_EMERGENT", "CONTROLE_CONFORMITE"], "nouvelle_idee": true, "relevance_reason": "Le rapport courant introduit explicitement un contrôle contre les ransomwares qui n’apparaissait pas dans la divulgation précédente. Cet ajout dépasse une reformulation, car il décrit une mesure concrète visant un risque cyber émergent. Pour la vigie, cette précision permet d’évaluer comment la banque renforce sa résilience opérationnelle, sa prévention des incidents et son encadrement des menaces numériques. Elle améliore aussi la comparabilité avec les autres institutions qui présentent leurs contrôles cyber. Le changement mérite donc une surveillance, puisque la présence d’un nouveau dispositif peut signaler une évolution de la gouvernance, des responsabilités ou des pratiques de gestion du risque technologique."}
+Input : {"change_index": 1, "diff_type": "added", "change_summary": "Ajout d’exercices annuels de simulation de cyberattaque."}
+Output : {"change_index": 1, "is_relevant": true, "themes_amf": ["RISQUE_EMERGENT", "CONTROLE_CONFORMITE"], "nouvelle_idee": true, "relevance_reason": "Le rapport courant indique que la banque réalise désormais des simulations annuelles de cyberattaque avec ses unités d’affaires, une pratique qui n’était pas mentionnée dans le rapport précédent. Cette évolution témoigne d’un renforcement des mécanismes de résilience et permet de comparer plus précisément le degré de préparation opérationnelle déclaré par les banques."}
 
 Exemple 2 — variation propre à la banque non pertinente
 Input : {"change_index": 1, "diff_type": "modified", "change_summary": "Le portefeuille hypothécaire passe de 287 G$ à 294 G$."}
-Output : {"change_index": 1, "is_relevant": false, "themes_amf": [], "nouvelle_idee": false, "relevance_reason": "Le changement porte uniquement sur la valeur courante du portefeuille hypothécaire de la banque, tandis que la nature de l’indicateur et la divulgation demeurent inchangées. Aucun nouveau seuil prudentiel, facteur de risque, contrôle, cadre réglementaire ou changement méthodologique n’est introduit. Cette mise à jour reflète l’évolution normale d’un montant propre à l’institution et ne crée pas une nouvelle idée comparable entre pairs. Elle reste visible pour permettre la validation humaine, mais elle ne justifie pas une surveillance prioritaire au titre de la taxonomie AMF. Les textes sources peuvent confirmer que seule la donnée quantitative a changé entre les deux rapports."}
+Output : {"change_index": 1, "is_relevant": false, "themes_amf": [], "nouvelle_idee": false, "relevance_reason": "Le portefeuille hypothécaire passe de 287 G$ à 294 G$, sans modification de la méthode de calcul ni du périmètre présenté. Cette variation reflète l’évolution normale des activités et n’apporte aucun nouvel élément sur les pratiques de gestion des risques à comparer entre les banques."}
 """
 
 
@@ -1099,7 +1105,9 @@ def _triage_section_changes(
         "Tu qualifies les changements entre le rapport précédent et le rapport "
         "courant d’une banque canadienne pour une vigie AMF. Réponds uniquement "
         "avec le schéma compact demandé. Sois factuel, sans analyse IT, posture, "
-        "niveau d’impact, action recommandée ni répétition des textes sources."
+        "niveau d’impact, action recommandée ni répétition des textes sources. "
+        "Rédige chaque relevance_reason en exactement deux phrases complètes, "
+        "professionnelles et faciles à comprendre."
     )
 
 
@@ -1117,11 +1125,13 @@ def _triage_section_changes(
         "3. `nouvelle_idee=true` seulement si le rapport courant ajoute, retire "
         "ou modifie substantiellement une information absente sous cette forme "
         "dans le rapport précédent.\n"
-        "4. `relevance_reason` explique concrètement pourquoi le changement est "
-        "pertinent ou non pertinent. Il doit contenir strictement entre "
-        f"{COMPACT_RELEVANCE_REASON_MIN_WORDS} et "
-        f"{COMPACT_RELEVANCE_REASON_MAX_WORDS} mots, sans titre, liste, rubrique "
-        "ni consigne adressée à l’analyste.\n"
+        "4. `relevance_reason` contient exactement deux phrases complètes, "
+        "professionnelles et faciles à comprendre. La première décrit "
+        "factuellement le changement entre les rapports. La seconde interprète "
+        "ce changement et précise ce qu’il apporte à l’analyse comparative entre "
+        "les banques. N’écris pas « Ce changement est pertinent pour la vigie AMF » "
+        "ni « Ce changement n’est pas pertinent ». Aucun titre, aucune liste, "
+        "aucune rubrique et aucune consigne adressée à l’analyste.\n"
         "5. Ne produis aucun champ d’impact, d’action, de posture, d’impact IT, "
         "d’explication générale ou de justification multi-rubriques.\n\n"
         f"{_FEW_SHOT_TRIAGE_AMF}\n\n"
@@ -1149,15 +1159,16 @@ def _triage_section_changes(
                 "Renvoie le batch compact complet. Chaque change_index doit être "
                 "présent exactement une fois. is_relevant=true exige un ou deux "
                 "candidate_themes; is_relevant=false exige themes_amf=[] et "
-                "nouvelle_idee=false. relevance_reason doit contenir strictement "
-                f"{COMPACT_RELEVANCE_REASON_MIN_WORDS} à "
-                f"{COMPACT_RELEVANCE_REASON_MAX_WORDS} mots."
+                "nouvelle_idee=false. Chaque relevance_reason doit contenir "
+                "exactement deux phrases complètes : une description factuelle "
+                "du changement, puis son interprétation et son apport à l’analyse "
+                "comparative."
             ),
             length_retry_message=(
                 "Renvoie immédiatement le même batch compact complet, sans aucun "
-                "commentaire hors schéma. Garde chaque relevance_reason entre "
-                f"{COMPACT_RELEVANCE_REASON_MIN_WORDS} et "
-                f"{COMPACT_RELEVANCE_REASON_MAX_WORDS} mots."
+                "commentaire hors schéma. Garde exactement deux phrases complètes "
+                "dans chaque relevance_reason : une description factuelle, puis "
+                "une interprétation comparative."
             ),
         )
     except ValidationError as exc:
@@ -1227,13 +1238,13 @@ def _triage_section_changes(
         if triage_obj.nouvelle_idee:
             nouvelle_idee_count += 1
         logger.info(
-            "compact triage validated section=%s change_index=%d is_relevant=%s themes=%s nouvelle_idee=%s reason_words=%d",
+            "compact triage validated section=%s change_index=%d is_relevant=%s themes=%s nouvelle_idee=%s reason_sentences=%d",
             section_key,
             triage_obj.change_index,
             triage_obj.is_relevant,
             triage_obj.themes_amf,
             triage_obj.nouvelle_idee,
-            count_words(triage_obj.relevance_reason),
+            count_complete_sentences(triage_obj.relevance_reason),
         )
 
     logger.info(
