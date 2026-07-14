@@ -617,13 +617,74 @@ class TriageAMFLLMBatch(BaseModel):
     triages: list[TriageAMFLLMResultWithIndex]
 
 
-COMPACT_RELEVANCE_REASON_MIN_WORDS = 100
-COMPACT_RELEVANCE_REASON_MAX_WORDS = 120
+COMPACT_RELEVANCE_REASON_SENTENCE_COUNT = 2
+_COMPACT_SENTENCE_END_RE = re.compile(
+    r"(?P<mark>[.!?]+)(?P<closers>[\u00bb\u201d\"')\]]*)(?=\s+|$)"
+)
+_COMPACT_NON_TERMINAL_ABBREVIATIONS = frozenset(
+    {
+        "art",
+        "dr",
+        "dre",
+        "m",
+        "mlle",
+        "mme",
+        "mmes",
+        "no",
+        "nos",
+        "p",
+        "pp",
+        "pr",
+        "prof",
+    }
+)
 
 
-def count_words(value: str) -> int:
-    """Compte les mots selon leur séparation par espaces."""
-    return len(str(value or "").split())
+def _is_non_terminal_compact_period(value: str, match: re.Match[str]) -> bool:
+    """Distingue une abréviation interne d'une véritable fin de phrase."""
+    if match.group("mark") != "." or match.end() == len(value):
+        return False
+    prefix = value[: match.start()].rstrip()
+    suffix = value[match.end() :].lstrip()
+    token_match = re.search(r"([\wÀ-ÖØ-öø-ÿ-]+)$", prefix)
+    token = token_match.group(1) if token_match else ""
+    if token.casefold() in _COMPACT_NON_TERMINAL_ABBREVIATIONS:
+        return True
+    folded_prefix = prefix.casefold()
+    if folded_prefix.endswith("p. ex"):
+        return True
+    if folded_prefix.endswith(("c.-à-d", "c.-a-d")):
+        return bool(suffix and suffix[0].islower())
+    if token.casefold() == "etc":
+        return bool(suffix and suffix[0].islower())
+    return bool(re.search(r"(?:\b[A-ZÀ-ÖØ-Þ]\.)+[A-ZÀ-ÖØ-Þ]$", prefix))
+
+
+def _compact_complete_sentence_parts(value: str) -> list[str]:
+    """Retourne les phrases terminées en conservant les abréviations internes."""
+    normalized = " ".join(str(value or "").split())
+    parts: list[str] = []
+    start = 0
+    for match in _COMPACT_SENTENCE_END_RE.finditer(normalized):
+        if _is_non_terminal_compact_period(normalized, match):
+            continue
+        parts.append(normalized[start : match.end()].strip())
+        start = match.end()
+    return parts
+
+
+def count_complete_sentences(value: str) -> int:
+    """Compte les phrases terminées qui contiennent du contenu lexical."""
+    return sum(
+        1
+        for part in _compact_complete_sentence_parts(value)
+        if re.search(r"[0-9A-Za-zÀ-ÖØ-öø-ÿ]", part)
+    )
+
+
+def _has_complete_sentence_ending(value: str) -> bool:
+    parts = _compact_complete_sentence_parts(value)
+    return bool(parts) and value.endswith(parts[-1])
 
 
 class TriageAMFCompactLLMResultWithIndex(BaseModel):
@@ -633,7 +694,12 @@ class TriageAMFCompactLLMResultWithIndex(BaseModel):
     is_relevant: bool
     themes_amf: list[ThemeAMF] = Field(default_factory=list, max_length=2)
     nouvelle_idee: bool = False
-    relevance_reason: str
+    relevance_reason: str = Field(
+        description=(
+            "Exactement deux phrases complètes : la première décrit factuellement "
+            "le changement et la seconde en donne l'interprétation comparative."
+        )
+    )
 
     @field_validator("themes_amf")
     @classmethod
@@ -642,18 +708,23 @@ class TriageAMFCompactLLMResultWithIndex(BaseModel):
 
     @field_validator("relevance_reason")
     @classmethod
-    def _validate_relevance_reason_length(cls, value: str) -> str:
+    def _validate_relevance_reason_sentences(cls, value: str) -> str:
         normalized = " ".join(str(value or "").split())
-        word_count = count_words(normalized)
-        if not (
-            COMPACT_RELEVANCE_REASON_MIN_WORDS
-            <= word_count
-            <= COMPACT_RELEVANCE_REASON_MAX_WORDS
-        ):
+        if not _has_complete_sentence_ending(normalized):
             raise ValueError(
-                "relevance_reason doit contenir entre "
-                f"{COMPACT_RELEVANCE_REASON_MIN_WORDS} et "
-                f"{COMPACT_RELEVANCE_REASON_MAX_WORDS} mots; reçu {word_count}"
+                "relevance_reason doit se terminer par une phrase complète "
+                "ponctuée par '.', '!' ou '?'"
+            )
+        sentence_parts = _compact_complete_sentence_parts(normalized)
+        if len(sentence_parts) != COMPACT_RELEVANCE_REASON_SENTENCE_COUNT:
+            raise ValueError(
+                "relevance_reason doit contenir exactement "
+                f"{COMPACT_RELEVANCE_REASON_SENTENCE_COUNT} phrases complètes; "
+                f"reçu {len(sentence_parts)}"
+            )
+        if count_complete_sentences(normalized) != len(sentence_parts):
+            raise ValueError(
+                "chaque phrase de relevance_reason doit contenir du contenu lexical"
             )
         return normalized
 

@@ -307,6 +307,7 @@ def test_default_triage_includes_amf_v2_and_legacy_fields() -> None:
     assert triage["statut_mise_en_oeuvre"] == "INDETERMINE"
     assert triage["confiance_posture"] == "INDETERMINE"
     assert triage["signals"]["methodology_change"] is False
+    assert count_complete_sentences(triage["relevance_reason"]) == 2
 
 
 def test_triage_few_shots_request_compact_relevance_reason() -> None:
@@ -314,6 +315,20 @@ def test_triage_few_shots_request_compact_relevance_reason() -> None:
     assert "impact_it" not in _FEW_SHOT_TRIAGE_AMF
     assert "justification_posture" not in _FEW_SHOT_TRIAGE_AMF
     assert _FEW_SHOT_TRIAGE_AMF.count("Exemple ") == 2
+    outputs = [
+        json.loads(line.removeprefix("Output : "))
+        for line in _FEW_SHOT_TRIAGE_AMF.splitlines()
+        if line.startswith("Output : ")
+    ]
+    assert len(outputs) == 2
+    for output in outputs:
+        validated = TriageAMFCompactLLMResultWithIndex(**output)
+        assert count_complete_sentences(validated.relevance_reason) == 2
+        assert (
+            "Ce changement est pertinent pour la vigie AMF"
+            not in validated.relevance_reason
+        )
+        assert "Ce changement n’est pas pertinent" not in validated.relevance_reason
 
 
 def test_derive_legacy_fields_maps_methodology_theme() -> None:
@@ -4663,6 +4678,7 @@ from vigilance.amf_taxonomy import (
     TriageAMFResult,
     TriageAMFResultWithIndex,
     TriageValidationError,
+    count_complete_sentences,
 )
 from vigilance.text_analysis_pipeline import (
     _call_structured_completion,
@@ -4716,37 +4732,122 @@ def _valid_justification_non() -> str:
     )
 
 
-def _compact_reason(word_count: int = 100) -> str:
-    return " ".join(f"mot{i}" for i in range(word_count))
+def _compact_reason() -> str:
+    return (
+        "Le rapport courant ajoute un exercice annuel de simulation de cyberattaque "
+        "qui n’était pas décrit dans le rapport précédent. Cette évolution renforce "
+        "la lecture des pratiques de résilience et fournit un point de comparaison "
+        "concret entre les banques."
+    )
 
 
 # --- Invariants Pydantic ---
 
 
-@pytest.mark.parametrize("word_count", [100, 120])
-def test_compact_triage_accepts_relevance_reason_boundaries(word_count: int) -> None:
+def test_compact_triage_accepts_two_complete_relevance_reason_sentences() -> None:
     result = TriageAMFCompactLLMResultWithIndex(
         change_index=1,
         is_relevant=True,
         themes_amf=["RISQUE_EMERGENT"],
         nouvelle_idee=True,
-        relevance_reason=_compact_reason(word_count),
+        relevance_reason=f"  {_compact_reason().replace(' Cette', '   Cette')}  ",
     )
-    assert len(result.relevance_reason.split()) == word_count
+    assert count_complete_sentences(result.relevance_reason) == 2
+    assert "  " not in result.relevance_reason
+    assert len(result.relevance_reason.split()) < 100
 
 
-@pytest.mark.parametrize("word_count", [99, 121])
-def test_compact_triage_rejects_relevance_reason_outside_boundaries(
-    word_count: int,
-) -> None:
-    with pytest.raises(_PydValidationError, match="entre 100 et 120 mots"):
+@pytest.mark.parametrize(
+    "reason",
+    [
+        "Le rapport courant ajoute un nouveau contrôle de cybersécurité.",
+        (
+            "Le rapport courant ajoute un nouveau contrôle de cybersécurité. "
+            "Cette mesure renforce le dispositif déclaré par la banque. "
+            "Elle fournit aussi un nouveau point de comparaison entre les banques."
+        ),
+    ],
+)
+def test_compact_triage_rejects_other_sentence_counts(reason: str) -> None:
+    with pytest.raises(_PydValidationError, match="exactement 2 phrases complètes"):
         TriageAMFCompactLLMResultWithIndex(
             change_index=1,
             is_relevant=False,
             themes_amf=[],
             nouvelle_idee=False,
-            relevance_reason=_compact_reason(word_count),
+            relevance_reason=reason,
         )
+
+
+def test_compact_triage_rejects_incomplete_second_sentence() -> None:
+    with pytest.raises(_PydValidationError, match="se terminer par une phrase complète"):
+        TriageAMFCompactLLMResultWithIndex(
+            change_index=1,
+            is_relevant=False,
+            themes_amf=[],
+            nouvelle_idee=False,
+            relevance_reason=(
+                "Le rapport courant ajoute un nouveau contrôle de cybersécurité. "
+                "Cette mesure fournit un nouveau point de comparaison entre les banques"
+            ),
+        )
+
+
+def test_compact_triage_rejects_sentences_without_lexical_content() -> None:
+    with pytest.raises(_PydValidationError, match="contenu lexical"):
+        TriageAMFCompactLLMResultWithIndex(
+            change_index=1,
+            is_relevant=False,
+            themes_amf=[],
+            nouvelle_idee=False,
+            relevance_reason=". .",
+        )
+
+
+def test_compact_triage_counts_sentence_ending_with_uppercase_label() -> None:
+    result = TriageAMFCompactLLMResultWithIndex(
+        change_index=1,
+        is_relevant=True,
+        themes_amf=["MODIFICATION_METHODOLOGIE"],
+        nouvelle_idee=True,
+        relevance_reason=(
+            "Le rapport courant retient désormais l’approche A. "
+            "Cette modification fournit une nouvelle base de comparaison des "
+            "méthodes déclarées par les banques."
+        ),
+    )
+    assert count_complete_sentences(result.relevance_reason) == 2
+
+
+def test_compact_triage_ignores_abbreviations_and_decimals_when_counting_sentences() -> None:
+    reason = (
+        "Le cadre de Bâle 3.1, présenté p. ex. à la p. 12 par M. Dupont, "
+        "est maintenant détaillé dans le rapport. "
+        "2025 devient l’année de référence pour comparer son application entre les banques."
+    )
+    result = TriageAMFCompactLLMResultWithIndex(
+        change_index=1,
+        is_relevant=True,
+        themes_amf=["EXIGENCES_REGLEMENTAIRES"],
+        nouvelle_idee=True,
+        relevance_reason=reason,
+    )
+    assert count_complete_sentences(result.relevance_reason) == 2
+
+
+def test_compact_triage_ignores_common_french_abbreviations_inside_sentence() -> None:
+    result = TriageAMFCompactLLMResultWithIndex(
+        change_index=1,
+        is_relevant=True,
+        themes_amf=["CONTROLE_CONFORMITE"],
+        nouvelle_idee=True,
+        relevance_reason=(
+            "Le rapport détaille plusieurs mesures, etc. afin d’encadrer le contrôle, "
+            "c.-à-d. une revue annuelle documentée. Cette précision permet de "
+            "comparer la fréquence des contrôles déclarés par les banques."
+        ),
+    )
+    assert count_complete_sentences(result.relevance_reason) == 2
 
 
 def test_invariant_relevant_without_themes_raises() -> None:
@@ -5321,6 +5422,53 @@ def test_triage_section_changes_converts_validation_error_to_triage_validation_e
     assert exc_info.value.validation_error is err
     # 3 appels = 1 initial + 2 retries avant remontée
     assert client.call_count == 3
+    retry_message = client._completions.calls[1]["messages"][-1]["content"]
+    assert "exactement deux phrases complètes" in retry_message
+    assert "description factuelle" in retry_message
+    assert "analyse comparative" in retry_message
+
+
+def test_triage_section_changes_length_retry_repeats_two_sentence_contract() -> None:
+    valid_batch = TriageAMFCompactLLMBatch(
+        triages=[
+            TriageAMFCompactLLMResultWithIndex(
+                change_index=1,
+                is_relevant=False,
+                themes_amf=[],
+                nouvelle_idee=False,
+                relevance_reason=_compact_reason(),
+            )
+        ]
+    )
+    state = {"calls": 0}
+
+    def length_then_success(**_kwargs):
+        state["calls"] += 1
+        if state["calls"] == 1:
+            raise RuntimeError(
+                "Could not parse response content as the length limit was reached"
+            )
+        return _make_parsed_response(valid_batch)
+
+    client = _FakeStructuredClient(length_then_success)
+    result = _triage_section_changes(
+        client=client,
+        model="gpt-4o",
+        section_key="gestion_risques",
+        changes=[
+            {
+                "diff_type": "added",
+                "source_text_t1": "",
+                "source_text_t2": "Ajout d’un exercice annuel de cyberattaque.",
+            }
+        ],
+    )
+
+    assert len(result) == 1
+    assert client.call_count == 2
+    retry_message = client._completions.calls[1]["messages"][-1]["content"]
+    assert "exactement deux phrases complètes" in retry_message
+    assert "interprétation comparative" in retry_message
 
 
 def test_triage_section_changes_propagates_runtime_error_unwrapped() -> None:
@@ -5689,6 +5837,10 @@ def test_triage_section_changes_does_not_request_posture_or_it_impact() -> None:
     assert "justification_posture" not in prompt
     assert "impact_it_justification" not in prompt
     assert "relevance_reason" in prompt
+    assert "exactement deux phrases complètes" in prompt
+    assert "La première décrit factuellement" in prompt
+    assert "La seconde interprète" in prompt
+    assert "100 à 120 mots" not in prompt
     assert result[0]["genai_triage"]["impact_it"] == "INDETERMINE"
     assert result[0]["genai_triage"]["changement_posture"] == "INDETERMINE"
     assert result[0]["genai_triage"]["statut_mise_en_oeuvre"] == "INDETERMINE"
