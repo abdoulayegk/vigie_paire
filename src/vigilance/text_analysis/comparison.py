@@ -393,6 +393,12 @@ def _compare_texts_single_call(
                         "Ne masque pas les reformulations, les mises à jour de dates "
                         "ou les variations chiffrées : retourne-les comme changements, "
                         "le triage métier décidera ensuite de leur pertinence. "
+                        "Rédige pour une analyste en vigie prudentielle : français soutenu, "
+                        "phrases courtes, vocabulaire métier bancaire. "
+                        "Interdit dans change_summary et alignment_rationale : fragment, chunk, "
+                        "T1, T2, termes anglais, et formulations meta du type "
+                        "« Les deux fragments traitent… ». "
+                        "Utilise « rapport précédent » et « rapport courant ». "
                         "Lorsque le texte contient des blocs [c00], [c01], etc., "
                         "utilise ces bornes pour aligner les idées comparables, "
                         "mais ne recopie pas ces balises dans text_t1 ou text_t2. "
@@ -417,12 +423,14 @@ def _compare_texts_single_call(
                         "Compare ces deux versions et retourne uniquement du JSON.\n"
                         'Format: {"changes":[{"alignment_id":"a00",'
                         '"diff_type":"unchanged|modified|added|removed",'
-                        '"text_t1":"texte du paragraphe en T1, vide si added",'
-                        '"text_t2":"texte du paragraphe en T2, vide si removed",'
-                        '"change_summary":"explication concise du changement",'
+                        '"text_t1":"texte du paragraphe dans le rapport précédent, vide si added",'
+                        '"text_t2":"texte du paragraphe dans le rapport courant, vide si removed",'
+                        '"change_summary":"1 ou 2 phrases factuelles en français décrivant le '
+                        "changement (nommer BSIF, la banque, les montants ou dates exacts ; "
+                        "interdire fragment/chunk/T1/T2 et les formulations meta)\","
                         '"alignment_decision":"same_disclosure|distinct_disclosures|moved_text|uncertain",'
                         '"alignment_confidence":"high|medium|low",'
-                        '"alignment_rationale":"justification concise de la décision"}]}.\n'
+                        '"alignment_rationale":"justification concise en français de la décision"}]}.\n'
                         "Chaque changement doit référencer exactement un alignment_id fourni "
                         "dans les blocs [a00 | ...]. Ne fusionne jamais plusieurs alignments "
                         "dans un seul changement. Ne recopie jamais les balises [a00] ou [c00] "
@@ -431,8 +439,8 @@ def _compare_texts_single_call(
                         "modified = texte correspondant changé, y compris reformulation, "
                         "mise à jour de date, variation chiffrée, changement de nuance "
                         "ou évolution substantielle.\n"
-                        "added = idée nouvelle présente uniquement en T2.\n"
-                        "removed = idée présente en T1, absente en T2.\n"
+                        "added = idée nouvelle présente uniquement dans le rapport courant.\n"
+                        "removed = idée présente dans le rapport précédent, absente du rapport courant.\n"
                         "La décision sémantique est obligatoire pour CHAQUE alignment, y compris "
                         "les alignments forts. Ne choisis uncertain qu'après examen des candidats. "
                         "Si deux passages décrivent deux événements distincts (par exemple deux "
@@ -442,8 +450,8 @@ def _compare_texts_single_call(
                         "retourne quand même diff_type='modified' avec un résumé indiquant "
                         "qu'il s'agit probablement d'une reformulation.\n"
                         f"Section: {section_key}\n\n"
-                        f"=== T1 ===\n{text_t1}\n\n"
-                        f"=== T2 ===\n{text_t2}\n"
+                        f"=== Rapport précédent ===\n{text_t1}\n\n"
+                        f"=== Rapport courant ===\n{text_t2}\n"
                     ),
                 },
             ],
@@ -749,7 +757,10 @@ def _unmatched_subsection_chunk_changes(
                 "source_resolution_t2": "markdown",
                 "evidence_t1": {"pages": [], "snippet": text_t1[:400]},
                 "evidence_t2": {"pages": [], "snippet": text_t2[:400]},
-                "change_summary": f"Chunk de sous-section {'ajouté' if diff_type == 'added' else 'supprimé'}: {heading}",
+                "change_summary": (
+                    f"Passage de sous-section "
+                    f"{'ajouté' if diff_type == 'added' else 'supprimé'}: {heading}"
+                ),
             }
         )
     return changes

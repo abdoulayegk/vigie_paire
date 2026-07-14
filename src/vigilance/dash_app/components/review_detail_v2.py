@@ -260,6 +260,8 @@ _THEMES_AMF_DISPLAY: dict[str, str] = {
 
 _EXCLUSION_REASON_DISPLAY: dict[str, str] = {
     "variation_numerique_propre_banque": "Variation chiffrée propre à la banque",
+    "operation_interne_banque": "Opération interne propre à la banque",
+    "mise_a_jour_calendrier": "Mise à jour de calendrier d'application",
     "reformulation_mineure": "Reformulation sans nouveau fond",
     "deplacement_texte": "Déplacement de texte sans modification",
     "formatage_visuel": "Formatage visuel",
@@ -307,7 +309,7 @@ _POSTURE_CONFIDENCE_DISPLAY: dict[str, str] = {
 
 _ACTION_REQUISE_DISPLAY: dict[str, str] = {
     "revue_prioritaire": "Revue prioritaire",
-    "investigation": "Investigation",
+    "investigation": "Analyse approfondie",
     "confirmation": "À confirmer",
     "information": "Pour information",
     "aucune": "Aucune",

@@ -52,4 +52,9 @@ def test_comparison_excel_prefers_amf_justification() -> None:
     ws = workbook["Changements détectés"]
 
     assert "Sujet détecté : Cybersécurité" in ws["I2"].value
+    assert "rapport courant ajoute une mention cyber absente du rapport précédent" in ws["I2"].value
     assert "Ancienne justification technique" not in ws["I2"].value
+    assert ws.cell(1, 3).value == "Page (trimestre précédent)"
+    assert ws.cell(1, 4).value == "Page (trimestre courant)"
+    assert ws.cell(1, 7).value == "Libellé (trimestre précédent)"
+    assert ws.cell(1, 8).value == "Libellé (trimestre courant)"

@@ -411,9 +411,11 @@ def test_text_analysis_shows_observed_change_before_fold() -> None:
     )
 
     assert observed_index < details_index
-    assert "Le T2 retire la description du contexte géopolitique" in card_sections[
+    assert "rapport courant retire la description du contexte géopolitique" in card_sections[
         observed_index
     ]
+    assert "Éléments observés" in card_sections[observed_index]
+    assert "…" not in card_sections[observed_index].split("Éléments observés", 1)[-1][:200]
     assert "Impact facteurs de risque — Majeur" in card_sections[observed_index]
     assert "Pertinence métier" not in card_sections[observed_index]
     assert "Pertinence métier" in card_sections[details_index]

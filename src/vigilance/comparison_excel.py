@@ -14,6 +14,8 @@ import logging
 from pathlib import Path
 from typing import Any
 
+from vigilance.i18n.fr import sanitize_analyst_french
+
 logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
@@ -23,12 +25,12 @@ logger = logging.getLogger(__name__)
 EXCEL_COLUMNS = [
     "Section",
     "Tableau",
-    "Page T1",
-    "Page T2",
+    "Page (trimestre précédent)",
+    "Page (trimestre courant)",
     "Type d'élément",
     "Type de changement",
-    "Libellé T1",
-    "Libellé T2",
+    "Libellé (trimestre précédent)",
+    "Libellé (trimestre courant)",
     "Justification IA",
     "Nouvelle idée ?",
     "Commentaire analyste",
@@ -271,7 +273,9 @@ def _collect_rows(comparison: dict[str, Any]) -> list[dict[str, Any]]:
         if not isinstance(tbl, dict):
             continue
         triage = tbl.get("genai_triage") or {}
-        justification = str(triage.get("nouvelle_idee_justification") or "").strip()
+        justification = sanitize_analyst_french(
+            str(triage.get("nouvelle_idee_justification") or "").strip()
+        )
         category = str(triage.get("category") or "").upper()
         is_relevant = bool(triage.get("is_relevant", False))
         rows.append({
@@ -294,7 +298,9 @@ def _collect_rows(comparison: dict[str, Any]) -> list[dict[str, Any]]:
         if not isinstance(tbl, dict):
             continue
         triage = tbl.get("genai_triage") or {}
-        justification = str(triage.get("nouvelle_idee_justification") or "").strip()
+        justification = sanitize_analyst_french(
+            str(triage.get("nouvelle_idee_justification") or "").strip()
+        )
         category = str(triage.get("category") or "").upper()
         is_relevant = bool(triage.get("is_relevant", False))
         rows.append({
@@ -335,8 +341,8 @@ def _best_analyst_justification(
     """Privilégie la justification AMF enrichie, puis le fallback technique."""
     amf_justification = table_justification.strip()
     if amf_justification:
-        return amf_justification
-    return str(assessment.get("justification") or "").strip()
+        return sanitize_analyst_french(amf_justification)
+    return sanitize_analyst_french(str(assessment.get("justification") or "").strip())
 
 
 # ---------------------------------------------------------------------------
@@ -419,12 +425,12 @@ def generate_comparison_excel(
     col_widths = {
         1: 30,   # Section
         2: 45,   # Tableau
-        3: 10,   # Page T1
-        4: 10,   # Page T2
+        3: 10,   # Page (trimestre précédent)
+        4: 10,   # Page (trimestre courant)
         5: 22,   # Type d'élément
         6: 18,   # Type de changement
-        7: 50,   # Libellé T1
-        8: 50,   # Libellé T2
+        7: 50,   # Libellé (trimestre précédent)
+        8: 50,   # Libellé (trimestre courant)
         9: 70,   # Justification IA
         10: 16,  # Nouvelle idée ?
         11: 30,  # Commentaire analyste

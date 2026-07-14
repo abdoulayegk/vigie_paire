@@ -185,6 +185,15 @@ EXCLUSION_REASONS_DESCRIPTIONS: dict[str, str] = {
         "Variation de chiffres propres à la banque (taille du portefeuille, "
         "exposition, profits, montants d'actifs) sans dimension réglementaire."
     ),
+    "operation_interne_banque": (
+        "Opération spécifique à la banque (acquisition, rachat, émission, "
+        "dividende, fusion ou transaction d'entreprise) sans nouveau cadre "
+        "réglementaire ou méthodologique à comparer entre institutions."
+    ),
+    "mise_a_jour_calendrier": (
+        "Mise à jour de dates ou d'échéances d'application d'une exigence "
+        "déjà connue, sans nouveau fond réglementaire ni nouvelle méthode."
+    ),
     "reformulation_mineure": (
         "Texte reformulé sans changement de fond (synonymes, ordre des mots, tournure équivalente)."
     ),
@@ -200,6 +209,8 @@ EXCLUSION_REASONS_DESCRIPTIONS: dict[str, str] = {
 
 ExclusionReason = Literal[
     "variation_numerique_propre_banque",
+    "operation_interne_banque",
+    "mise_a_jour_calendrier",
     "reformulation_mineure",
     "deplacement_texte",
     "formatage_visuel",

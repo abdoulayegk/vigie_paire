@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from vigilance.text_comparison.justification import build_text_triage_justification
+from vigilance.i18n.fr import impact_label_fr, sanitize_analyst_french
 from vigilance.vigie_columns import build_text_vigie_display_row
 
 logger = logging.getLogger(__name__)
@@ -262,12 +263,14 @@ def _collect_rows(text_comparison: dict[str, Any]) -> list[dict[str, Any]]:
                 "source_text_t1": str(block_comp.get("source_text_t1") or ""),
                 "source_text_t2": str(block_comp.get("source_text_t2") or ""),
                 "impact_level": str(triage.get("impact_level") or "MINEUR").upper(),
-                "category": display["category"],
-                "secondary_labels": display["secondary_labels"],
+                "category": sanitize_analyst_french(str(display["category"] or "")),
+                "secondary_labels": sanitize_analyst_french(
+                    str(display["secondary_labels"] or "")
+                ),
                 "is_relevant": bool(triage.get("is_relevant", False)),
                 "nouvelle_idee_bool": nouvelle_idee == "Oui",
                 "nouvelle_idee": nouvelle_idee,
-                "justification": justification,
+                "justification": sanitize_analyst_french(justification),
                 "analyst_status": _VALIDATION_STATUS_FR.get(analyst_status, analyst_status),
                 "commentaire_analyste": analyst_comment,
                 "validated_at": str(analyst_review.get("at") or ""),
@@ -277,9 +280,11 @@ def _collect_rows(text_comparison: dict[str, Any]) -> list[dict[str, Any]]:
                     {
                         **base_row,
                         "diff_type": published_type,
-                        "what_changed": _published_change_summary(
-                            published_type,
-                            display["what_changed"],
+                        "what_changed": sanitize_analyst_french(
+                            _published_change_summary(
+                                published_type,
+                                display["what_changed"],
+                            )
                         ),
                     }
                 )
@@ -353,7 +358,7 @@ def generate_text_comparison_excel(
             row["what_changed"],
             row["nouvelle_idee"],
             row["justification"],
-            row["impact_level"],
+            impact_label_fr(str(row["impact_level"] or "MINEUR")),
             row["page_t2"],
             row["page_t1"],
             row["analyst_status"],
