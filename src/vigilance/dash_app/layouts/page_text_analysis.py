@@ -188,11 +188,12 @@ def _localize_period_aliases(
     current_quarter_label: str,
     previous_quarter_label: str,
 ) -> str:
-    """Remplace les alias analytiques T2/T1 par les vrais trimestres affiches.
+    """Remplace les périodes analytiques génériques par les vrais trimestres affichés.
 
-    Le pipeline texte utilise T2 pour le rapport courant et T1 pour le rapport
-    precedent, meme lorsque la paire comparee est T4 vs T4 N-1 ou T1 vs T3.
-    Cette substitution reste limitee aux textes d'analyse, jamais aux extraits
+    Le pipeline texte utilise T2 ou « rapport courant » pour le rapport courant,
+    et T1 ou « rapport précédent » pour le rapport précédent, même lorsque la
+    paire comparée est T4 vs T4 N-1 ou T1 vs T3. Cette substitution reste
+    limitée aux textes d'analyse, jamais aux extraits
     sources du rapport.
     """
     if not value:
@@ -209,7 +210,27 @@ def _localize_period_aliases(
     def _replace(match: re.Match[str]) -> str:
         return replacements.get(match.group(1), match.group(0))
 
-    return re.sub(r"(?<![A-Za-z0-9])T([12])(?![A-Za-z0-9])", _replace, value, flags=re.IGNORECASE)
+    localized = re.sub(
+        r"(?<![A-Za-z0-9])T([12])(?![A-Za-z0-9])",
+        _replace,
+        value,
+        flags=re.IGNORECASE,
+    )
+    if "2" in replacements:
+        localized = re.sub(
+            r"\brapport courant\b",
+            replacements["2"],
+            localized,
+            flags=re.IGNORECASE,
+        )
+    if "1" in replacements:
+        localized = re.sub(
+            r"\brapport précédent\b",
+            replacements["1"],
+            localized,
+            flags=re.IGNORECASE,
+        )
+    return localized
 
 
 def _build_executive_overview_text(
