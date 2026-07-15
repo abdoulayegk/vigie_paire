@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 CANONICAL_TEXT_EXTRACTIONS_DIR = "text_extractions"
-TEXT_EXTRACTION_CACHE_SCHEMA_VERSION = 4
+TEXT_EXTRACTION_CACHE_SCHEMA_VERSION = 5
 _CACHE_MARKER_PREFIX = "<!-- vigilance-text-extraction-schema:"
 
 

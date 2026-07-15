@@ -11,8 +11,9 @@ from vigilance.text_analysis.markdown import (
     _format_heading_line,
     _is_docling_heading_block,
     _is_out_of_scope_accounting_heading,
+    _is_structural_markdown_heading,
 )
-from vigilance.text_analysis.models import PDFBlock, SectionAudit
+from vigilance.text_analysis.models import PDFBlock, SectionAudit, TextAnalysisQualityError
 from vigilance.text_analysis.normalization import (
     _is_chart_axis_label_row,
     _is_not_applicable_marker,
@@ -109,6 +110,10 @@ class DoclingSegment:
     text: str
     heading_level: int = 0
     follows_table: bool = False
+    page: int | None = None
+    bbox_norm: list[float] | None = None
+    source_block_id: str | None = None
+    source_block_type: str | None = None
 
 
 def _has_table_footnote_cue(text: str) -> bool:
@@ -141,11 +146,16 @@ def _parse_docling_markdown(md_content: str) -> list[DoclingSegment]:
             continue
 
         if _TABLE_ROW_RE.match(line):
+            if not in_table:
+                segments.append(DoclingSegment(kind="table", text="[table]"))
             in_table = True
             follows_table = False
             continue
         if in_table:
-            continue
+            # Une table se termine normalement par une ligne vide, mais le
+            # Markdown compact peut reprendre directement avec du narratif.
+            in_table = False
+            follows_table = True
 
         heading_match = _HEADING_LINE_RE.match(line)
         if heading_match:
@@ -262,6 +272,21 @@ def _is_confirmed_table_segment(
     """Indique que l'audit spatial a rattaché le segment à un tableau."""
     if not audits:
         return False
+    segment_norm = _normalized_block_text(segment.text)
+    if not segment_norm:
+        return False
+
+    # Une correspondance exacte avec un bloc inclus est prioritaire sur une
+    # correspondance partielle avec une grande grille. Par exemple, le vrai
+    # titre « Ratio de liquidité à long terme » peut aussi apparaître comme
+    # libellé de ligne à l'intérieur du tableau NSFR de la page suivante.
+    for audit in audits:
+        if any(
+            _normalized_block_text(block.text) == segment_norm
+            for block in audit.included_blocks
+        ):
+            return False
+
     for audit in audits:
         for block in audit.excluded_blocks:
             if block.block_type != "table" and block.exclusion_reason != "table_like_block":
@@ -352,6 +377,17 @@ def _should_keep_docling_segment(segment: DoclingSegment, audits: list[SectionAu
     return True
 
 
+def _is_audited_structural_heading(block: PDFBlock) -> bool:
+    """Distingue un vrai titre audité d'un paragraphe Docling mal étiqueté."""
+    if _is_structural_markdown_heading(block):
+        return True
+    return bool(
+        _is_docling_heading_block(block)
+        and block.heading_level is not None
+        and int(block.heading_level) > 0
+    )
+
+
 def _missing_audited_blocks(
     markdown: str,
     audits: list[SectionAudit],
@@ -364,6 +400,8 @@ def _missing_audited_blocks(
     missing: list[PDFBlock] = []
     for audit in audits:
         for block in audit.included_blocks:
+            if _is_audited_structural_heading(block):
+                continue
             block_norm = _normalized_block_text(block.text)
             if not block_norm or block_norm in rendered:
                 continue
@@ -403,6 +441,17 @@ def _audit_blocks(audit: SectionAudit) -> list[PDFBlock]:
     """Retourne tous les blocs utiles à l'alignement texte↔section."""
     blocks: list[PDFBlock] = list(audit.included_blocks)
     for block in audit.excluded_blocks:
+        # Ces décisions spatiales sont définitives. Une étiquette Docling
+        # ``section_header`` ne doit pas réadmettre un numéro de page, un pied
+        # de page ou un titre situé dans une grille.
+        if block.block_type in {"table", "table_footnote", "header_footer"}:
+            continue
+        if block.exclusion_reason in {
+            "table_like_block",
+            "table_footnote",
+            "running_header_footer",
+        }:
+            continue
         # Un titre hors de la fenêtre géométrique de la section ne doit jamais
         # redevenir une ancre de structure. Le markdown brut Docling peut le
         # placer juste avant la vraie ancre sur une page partagée.
@@ -438,6 +487,14 @@ def _matchable_section_segments(segments: list[DoclingSegment]) -> list[DoclingS
             pending_heading = segment
             continue
 
+        if segment.kind == "table":
+            # Toute chaîne de titres immédiatement suivie d'une table lui
+            # appartient (titre, période, unités) et ne doit pas devenir le
+            # parent du narratif qui reprend après la grille.
+            pending_heading = None
+            selected.append(segment)
+            continue
+
         if pending_heading is not None:
             selected.append(pending_heading)
             pending_heading = None
@@ -466,6 +523,33 @@ def _segment_matches_audit(segment: DoclingSegment, audit: SectionAudit) -> bool
     return False
 
 
+def _best_matching_audit_block(
+    segment: DoclingSegment,
+    audit: SectionAudit,
+) -> PDFBlock | None:
+    """Retourne le bloc audité exact qui porte la provenance du segment."""
+    segment_norm = _normalized_block_text(segment.text)
+    if not segment_norm:
+        return None
+    candidates = _audit_blocks(audit)
+    for block in candidates:
+        if _normalized_block_text(block.text) == segment_norm:
+            return block
+    for block in candidates:
+        if _segment_matches_block(segment, block):
+            return block
+    return None
+
+
+def _attach_segment_provenance(segment: DoclingSegment, block: PDFBlock | None) -> None:
+    if block is None:
+        return
+    segment.page = int(block.page)
+    segment.bbox_norm = list(block.bbox_norm)
+    segment.source_block_id = str(block.block_id)
+    segment.source_block_type = str(block.block_type)
+
+
 def _matching_section_keys(segment: DoclingSegment, audits: list[SectionAudit]) -> list[str]:
     """Retourne les section_key candidates pour un segment."""
     return [audit.section_key for audit in audits if _segment_matches_audit(segment, audit)]
@@ -489,6 +573,11 @@ def _assign_segments_to_sections(
             if current_section is not None:
                 stopped_sections.add(current_section)
             current_section = None
+            continue
+
+        if segment.kind == "table":
+            if current_section is not None and current_section not in stopped_sections:
+                assigned[current_section].append(segment)
             continue
 
         if not _should_keep_docling_segment(segment, audits):
@@ -515,6 +604,9 @@ def _assign_segments_to_sections(
 
         if current_section is None or current_section in stopped_sections:
             continue
+        audit = next((item for item in audits_by_start if item.section_key == current_section), None)
+        if audit is not None:
+            _attach_segment_provenance(segment, _best_matching_audit_block(segment, audit))
         assigned[current_section].append(segment)
 
     return assigned
@@ -537,6 +629,8 @@ def _page_for_segment(
     fallback_page: int | None,
 ) -> int | None:
     """Retrouve la page PDF d'un segment via les blocs audités."""
+    if segment.page is not None:
+        return int(segment.page)
     segment_norm = _normalized_block_text(segment.text)
     if segment_norm in page_lookup:
         return page_lookup[segment_norm]
@@ -560,6 +654,57 @@ def _page_for_segment(
     return fallback_page
 
 
+def _segment_position_key(segment: DoclingSegment) -> tuple[int, float, float]:
+    page = int(segment.page or 10**9)
+    bbox = segment.bbox_norm or []
+    y0 = float(bbox[1]) if len(bbox) == 4 else 1.0
+    x0 = float(bbox[0]) if len(bbox) == 4 else 1.0
+    return page, y0, x0
+
+
+def _merge_missing_audited_segments(
+    segments: list[DoclingSegment],
+    audit: SectionAudit,
+) -> list[DoclingSegment]:
+    """Réinsère localement les blocs narratifs absents du Markdown Docling.
+
+    Un bloc de repli est toujours du texte : le filet PyMuPDF ne doit jamais
+    fabriquer un nouveau titre.  Sa page et sa géométrie servent à l'insérer
+    avant le premier segment audité qui le suit.
+    """
+    rendered_norm = _normalized_block_text(" ".join(segment.text for segment in segments))
+    missing = [
+        block
+        for block in audit.included_blocks
+        if not _is_audited_structural_heading(block)
+        if _normalized_block_text(block.text)
+        and _normalized_block_text(block.text) not in rendered_norm
+    ]
+    if not missing:
+        return list(segments)
+
+    merged = list(segments)
+    for block in sorted(missing, key=lambda item: (item.page, item.y0, item.bbox_norm[0])):
+        recovered = DoclingSegment(
+            kind="paragraph",
+            text=str(block.text or "").strip(),
+            page=int(block.page),
+            bbox_norm=list(block.bbox_norm),
+            source_block_id=str(block.block_id),
+            source_block_type=str(block.block_type),
+        )
+        recovered_key = _segment_position_key(recovered)
+        insert_at = len(merged)
+        for index, segment in enumerate(merged):
+            if segment.kind == "table" or segment.page is None:
+                continue
+            if _segment_position_key(segment) > recovered_key:
+                insert_at = index
+                break
+        merged.insert(insert_at, recovered)
+    return merged
+
+
 def _build_text_extraction_markdown_from_docling(
     section_audits: list[SectionAudit],
     *,
@@ -577,7 +722,11 @@ def _build_text_extraction_markdown_from_docling(
     seen_heading_norms: dict[str, set[str]] = {}
 
     for audit in ordered_audits:
-        section_segments = _matchable_section_segments(assigned.get(audit.section_key, []))
+        section_segments = _merge_missing_audited_segments(
+            assigned.get(audit.section_key, []),
+            audit,
+        )
+        section_segments = _matchable_section_segments(section_segments)
         if not section_segments:
             continue
 
@@ -590,6 +739,8 @@ def _build_text_extraction_markdown_from_docling(
 
         last_page: int | None = audit.start_page
         for segment in section_segments:
+            if segment.kind == "table":
+                continue
             page = _page_for_segment(segment, page_lookup=page_lookup, fallback_page=last_page)
             if page is not None:
                 last_page = page
@@ -614,15 +765,8 @@ def _build_text_extraction_markdown_from_docling(
     rendered = "\n".join(lines).strip() + "\n"
     missing = _warn_on_missing_audited_narrative_blocks(rendered, section_audits)
     if missing:
-        # La structure Markdown de Docling est préférée lorsqu'elle couvre tout
-        # l'audit. Dès qu'elle omet un bloc non-tabulaire, le rendu ordonné des
-        # blocs PDF devient la source de vérité : conserver le contenu prévaut
-        # sur une hiérarchie Docling incomplète.
-        logger.warning(
-            "Repli vers les blocs PDF audités pour préserver %d bloc(s) absent(s).",
-            len(missing),
+        raise TextAnalysisQualityError(
+            "Markdown narratif incomplet après réinsertion locale: "
+            + ", ".join(f"{block.block_id}:pdf.{block.page}" for block in missing)
         )
-        from vigilance.text_analysis.markdown import _build_text_extraction_markdown_from_blocks
-
-        return _build_text_extraction_markdown_from_blocks(section_audits)
     return rendered

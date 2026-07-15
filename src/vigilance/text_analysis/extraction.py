@@ -430,6 +430,8 @@ def _classify_block_type(
         return "table"
     if _is_not_applicable_marker(text):
         return "not_applicable"
+    if re.fullmatch(r"\d{1,3}", text) and (block.y1 <= 0.15 or block.y0 >= 0.85):
+        return "header_footer"
     if _block_overlaps_table(block, footnote_bboxes) and _looks_like_table_footnote_text(text):
         return "table_footnote"
 
