@@ -99,8 +99,13 @@ THEMES_AMF_DESCRIPTIONS: dict[str, str] = {
         "soit traité comme facteur autonome ou intégré au risque de crédit/marché."
     ),
     "GOUVERNANCE_RISQUES": (
-        "Changement dans la gouvernance des risques (comités, rôles, "
-        "responsabilités, appétit pour le risque, cadre de gouvernance)."
+        "Changement dans la gouvernance des risques : nom ou mandat d'un "
+        "comité, autorité décisionnelle, rôles, responsabilités, supervision, "
+        "reddition de comptes, lignes de défense, culture de risque, "
+        "rémunération liée au risque, appétit pour le risque ou cadre de "
+        "gouvernance. Un renommage explicite d'un comité reste pertinent même "
+        "si son mandat demeure identique; il ne constitue toutefois pas, à lui "
+        "seul, une nouvelle idée substantielle."
     ),
     "CONTROLE_CONFORMITE": (
         "Changement dans les processus de contrôle interne ou de conformité "

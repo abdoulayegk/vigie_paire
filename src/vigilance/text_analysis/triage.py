@@ -106,6 +106,16 @@ _NEW_REGULATORY_SIGNAL_RE = re.compile(
     r")\b",
     flags=re.IGNORECASE,
 )
+_GOVERNANCE_SIGNAL_RE = re.compile(
+    r"\b(?:"
+    r"gouvernance|comit[ée]s?|conseil\s+d['’]administration|mandat|"
+    r"lignes?\s+de\s+d[ée]fense|responsabilit[ée]s?|supervision|"
+    r"reddition\s+de\s+comptes|escalade|autorit[ée]\s+d[ée]cisionnelle|"
+    r"droits?\s+d['’]approbation|culture\s+de\s+risque|"
+    r"r[ée]mun[ée]ration|app[ée]tit\s+(?:pour\s+le|au)\s+risque"
+    r")\b",
+    flags=re.IGNORECASE,
+)
 _CALENDAR_SUBJECT_RE = re.compile(
     r"(?:"
     r"coefficient\s+de\s+plancher|plancher\s+des?\s+fonds\s+propres|"
@@ -844,6 +854,12 @@ def _deterministic_cosmetic_exclusion(change: dict[str, Any]) -> str | None:
     if compact_t1 == compact_t2 and text_t1 != text_t2:
         return "formatage_visuel"
 
+    # Une modification très courte peut changer le nom d'un comité, un mandat,
+    # une responsabilité ou une ligne de défense. Ces cas doivent atteindre le
+    # triage métier plutôt que d'être écartés selon leur seule similarité.
+    if _GOVERNANCE_SIGNAL_RE.search(f"{text_t1} {text_t2}"):
+        return None
+
     similarity = _sequence_ratio(text_t1, text_t2)
     if similarity >= _COSMETIC_SEQUENCE_THRESHOLD:
         return "reformulation_mineure"
@@ -1114,6 +1130,14 @@ Output : {"change_index": 1, "is_relevant": false, "themes_amf": [], "nouvelle_i
 Exemple 5 — rachat d’actions non pertinent
 Input : {"change_index": 1, "diff_type": "modified", "change_summary": "Mise à jour des montants de rachat d’actions ordinaires au semestre."}
 Output : {"change_index": 1, "is_relevant": false, "themes_amf": [], "nouvelle_idee": false, "relevance_reason": "Le rapport courant met à jour les montants de rachat d’actions ordinaires déjà présentés, sans modifier le cadre réglementaire associé. Ce type de transaction propre à la banque n’éclaire pas la comparabilité des pratiques prudentielles entre pairs."}
+
+Exemple 6 — transfert de responsabilité de gouvernance pertinent et substantiel
+Input : {"change_index": 1, "diff_type": "modified", "change_summary": "L’approbation de l’appétit pour le risque passe du comité de direction au conseil d’administration."}
+Output : {"change_index": 1, "is_relevant": true, "themes_amf": ["GOUVERNANCE_RISQUES"], "nouvelle_idee": true, "relevance_reason": "Le rapport courant transfère au conseil d’administration l’approbation de l’appétit pour le risque auparavant confiée au comité de direction. Ce transfert d’autorité modifie substantiellement la gouvernance et fournit un point important de comparaison des responsabilités entre les banques."}
+
+Exemple 7 — comité renommé pertinent sans nouvelle idée substantielle
+Input : {"change_index": 1, "diff_type": "modified", "change_summary": "Le Comité de gestion des risques est renommé Comité des risques et de la conformité, sans modification de son mandat."}
+Output : {"change_index": 1, "is_relevant": true, "themes_amf": ["GOUVERNANCE_RISQUES"], "nouvelle_idee": false, "relevance_reason": "Le rapport courant renomme le Comité de gestion des risques en Comité des risques et de la conformité tout en maintenant son mandat. Ce changement de désignation reste pertinent pour suivre la structure de gouvernance entre les périodes, sans démontrer à lui seul une nouvelle responsabilité ou autorité."}
 """
 
 
@@ -1203,6 +1227,7 @@ _COMPACT_HIGH_PRIORITY_THEMES = frozenset(
         "EXIGENCES_REGLEMENTAIRES",
         "NOUVELLE_MENTION_REGLEMENTAIRE",
         "MONTANT_REGLEMENTAIRE",
+        "GOUVERNANCE_RISQUES",
     }
 )
 
@@ -1485,7 +1510,9 @@ def _triage_section_changes(
         "niveau d’impact, action recommandée ni répétition des textes sources. "
         "Rédige chaque relevance_reason en français uniquement, en exactement "
         "deux phrases complètes, professionnelles et faciles à comprendre. "
-        "N’utilise jamais fragment, chunk, T1, T2 ni termes anglais."
+        "N’utilise jamais fragment, chunk, T1, T2 ni termes anglais. La longueur "
+        "du changement ne détermine jamais sa pertinence : une modification très "
+        "courte peut être substantielle si elle touche la gouvernance."
     )
 
 
@@ -1504,10 +1531,18 @@ def _triage_section_changes(
         "Une variation chiffrée propre à la banque, une opération interne "
         "(acquisition, rachat, émission, dividende), une mise à jour de calendrier "
         "d’application, un déplacement identique, du formatage ou une reformulation "
-        "sans nouveau fond sont non pertinents.\n"
+        "sans nouveau fond sont non pertinents. Exception : le changement explicite "
+        "du nom d’un comité ou d’une instance de gouvernance reste pertinent même "
+        "si son mandat demeure identique; utilise alors `GOUVERNANCE_RISQUES` et "
+        "`nouvelle_idee=false`.\n"
         "3. `nouvelle_idee=true` seulement si le rapport courant ajoute, retire "
         "ou modifie substantiellement une information absente sous cette forme "
-        "dans le rapport précédent.\n"
+        "dans le rapport précédent. Pour la gouvernance, considère comme substantiel "
+        "tout changement démontré d’autorité décisionnelle, de mandat ou de rôle "
+        "d’un comité, de ligne de défense, de responsabilité, de supervision, de reddition de "
+        "comptes, de culture de risque, de rémunération liée au risque ou d’appétit "
+        "pour le risque. Une phrase courte peut donc être une nouvelle idée; un "
+        "simple renommage sans effet sur le mandat ne l’est pas.\n"
         "4. `relevance_reason` contient exactement deux phrases complètes, "
         "professionnelles et faciles à comprendre, rédigées pour une analyste. "
         "La première décrit factuellement le changement entre les rapports. "
