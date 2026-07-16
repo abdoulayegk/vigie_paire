@@ -53,8 +53,10 @@ _COMPACT_COMPLETION_BASE_TOKENS = 350
 _COMPACT_COMPLETION_TOKENS_PER_CHANGE = 320
 _COMPACT_COMPLETION_MAX_TOKENS = 1200
 _FULL_EVIDENCE_PACKET_LIMIT = 2400
-_FULL_EVIDENCE_FACT_MAX_TOKENS = 300
-_FULL_EVIDENCE_VERIFICATION_MAX_TOKENS = 220
+# Must stay above the token equivalent of max_length=700 on factual_change /
+# reason so structured completions never hit finish_reason=length.
+_FULL_EVIDENCE_FACT_MAX_TOKENS = 500
+_FULL_EVIDENCE_VERIFICATION_MAX_TOKENS = 500
 _ISOLATED_DATE_RE = re.compile(
     r"\b(?:\d{1,2}\s+(?:janvier|février|fevrier|mars|avril|mai|juin|juillet|août|aout|"
     r"septembre|octobre|novembre|décembre|decembre)\s+\d{4}|\d{4}-\d{2}-\d{2})\b",
@@ -270,6 +272,12 @@ def _collect_full_evidence_observations(
             validation_retry_message=(
                 "Renvoie une seule observation factuelle pour le packet_index fourni, "
                 "sans qualification métier ni texte hors schéma."
+            ),
+            length_retry_message=(
+                "La réponse précédente a dépassé la limite de sortie. Renvoie "
+                "immédiatement une seule observation pour le packet_index fourni, "
+                "avec un factual_change concis (moins de 600 caractères), sans "
+                "qualification métier ni champ hors schéma."
             ),
         )
         matching = [item for item in response.observations if item.packet_index == packet["packet_index"]]
@@ -500,6 +508,12 @@ def _verify_triage_coherence(
             validation_retry_message=(
                 "Réponds avec le packet_index, supports, contradicts ou insufficient, "
                 "et une raison factuelle courte sans ajouter de thème."
+            ),
+            length_retry_message=(
+                "La réponse précédente a dépassé la limite de sortie. Renvoie "
+                "immédiatement packet_index, verdict (supports, contradicts ou "
+                "insufficient) et une reason factuelle concise (moins de 600 "
+                "caractères), sans thème ni champ hors schéma."
             ),
         )
         if response.packet_index != packet["packet_index"]:
