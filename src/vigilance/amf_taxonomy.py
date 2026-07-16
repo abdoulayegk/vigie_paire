@@ -667,6 +667,16 @@ def _is_non_terminal_compact_period(value: str, match: re.Match[str]) -> bool:
     if token.casefold() in _COMPACT_NON_TERMINAL_ABBREVIATIONS:
         return True
     folded_prefix = prefix.casefold()
+    folded_suffix = suffix.casefold()
+    # ``s. o.`` / ``s.o.`` signifie « sans objet » dans les rapports
+    # bancaires. Protéger les deux points afin qu'ils ne soient pas comptés
+    # comme des fins de phrase.
+    if re.search(r"(?:^|[^\w])s$", folded_prefix) and re.match(
+        r"o\.(?:\s|$)", folded_suffix
+    ):
+        return True
+    if re.search(r"(?:^|[^\w])s\.\s*o$", folded_prefix):
+        return True
     if folded_prefix.endswith("p. ex"):
         return True
     if folded_prefix.endswith(("c.-à-d", "c.-a-d")):
