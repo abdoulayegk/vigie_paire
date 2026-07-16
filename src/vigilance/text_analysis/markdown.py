@@ -114,9 +114,17 @@ def _markdown_blocks_for_section(section: SectionAudit) -> list[PDFBlock]:
     for block in section.excluded_blocks:
         if block.block_id in seen_ids:
             continue
+        # La classification spatiale des tableaux est une décision durable.
+        # Un renderer de repli ne doit jamais la renverser sous prétexte que
+        # Docling avait aussi attribué une étiquette de titre à la cellule.
+        if block.block_type in {"table", "table_footnote"} or block.exclusion_reason in {
+            "table_like_block",
+            "table_footnote",
+        }:
+            continue
         if not _is_structural_markdown_heading(block):
             continue
-        if block.exclusion_reason not in {"", "non_narrative_block", "table_like_block"}:
+        if block.exclusion_reason not in {"", "non_narrative_block"}:
             continue
         if _looks_like_table_or_financial_grid(block.text) or _looks_like_footnote(block.text):
             continue

@@ -71,6 +71,7 @@ from vigilance.text_analysis.docling_markdown import (
     DoclingSegment,
     _assign_segments_to_sections,
     _build_text_extraction_markdown_from_docling,
+    _matchable_section_segments,
     _parse_docling_markdown,
     _should_keep_docling_segment,
 )
@@ -1177,10 +1178,15 @@ def test_build_docling_markdown_keeps_narrative_around_bns_d22_figure() -> None:
 
 def test_text_extraction_cache_schema_invalidates_legacy_markdown() -> None:
     legacy = "## Gestion du capital\n\nTexte narratif.\n"
+    previous_schema = (
+        "<!-- vigilance-text-extraction-schema: 4 -->\n\n"
+        "## Gestion du capital\n\nTexte narratif.\n"
+    )
 
     stamped = stamp_text_extraction_cache_schema(legacy)
 
     assert has_current_text_extraction_cache_schema(legacy) is False
+    assert has_current_text_extraction_cache_schema(previous_schema) is False
     assert has_current_text_extraction_cache_schema(stamped) is True
     assert stamped.endswith(legacy)
 
@@ -1961,9 +1967,10 @@ def test_docling_parser_marks_first_segment_after_table() -> None:
         "Le paragraphe narratif suivant doit demeurer dans le flux.\n"
     )
 
-    assert segments[0].text.startswith("(5)")
-    assert segments[0].follows_table is True
-    assert segments[1].follows_table is False
+    assert segments[0].kind == "table"
+    assert segments[1].text.startswith("(5)")
+    assert segments[1].follows_table is True
+    assert segments[2].follows_table is False
 
 
 def test_docling_standalone_footnote_is_kept_without_table_context() -> None:
@@ -2214,7 +2221,16 @@ def test_build_docling_markdown_falls_back_to_audited_blocks_when_raw_markdown_i
         anchor_bbox_norm=[0.1, 0.1, 0.9, 0.2],
         included_blocks=[
             PDFBlock("p030_d001", 30, [0.1, 0.25, 0.9, 0.31], visible, 1, "narrative", True),
-            PDFBlock("p030_d002", 30, [0.1, 0.33, 0.9, 0.39], missing, 2, "narrative", True),
+            PDFBlock(
+                "p030_d002",
+                30,
+                [0.1, 0.33, 0.9, 0.39],
+                missing,
+                2,
+                "narrative",
+                True,
+                source_label="section_header",
+            ),
         ],
         excluded_blocks=[],
     )
@@ -2226,6 +2242,272 @@ def test_build_docling_markdown_falls_back_to_audited_blocks_when_raw_markdown_i
 
     assert visible in markdown
     assert missing in markdown
+
+
+def test_parse_docling_markdown_preserves_one_table_boundary() -> None:
+    segments = _parse_docling_markdown(
+        "\n".join(
+            [
+                "## Activités de négociation",
+                "| Facteur | VaR |",
+                "| --- | ---: |",
+                "| Taux | 13,0 |",
+                "Le texte narratif reprend après le tableau.",
+            ]
+        )
+    )
+
+    assert [segment.kind for segment in segments] == ["heading", "table", "paragraph"]
+    assert segments[-1].follows_table is True
+
+
+def test_matchable_segments_drop_table_caption_chain_and_resume_parent_heading() -> None:
+    segments = [
+        DoclingSegment(kind="heading", text="Activités de négociation"),
+        DoclingSegment(kind="paragraph", text="Le tableau suivant présente la VaR."),
+        DoclingSegment(kind="heading", text="VaR des portefeuilles de négociation"),
+        DoclingSegment(kind="heading", text="Exercice terminé le 31 octobre"),
+        DoclingSegment(kind="table", text="[table]"),
+        DoclingSegment(kind="paragraph", text="La VaR moyenne a augmenté cette année."),
+    ]
+
+    selected = _matchable_section_segments(segments)
+
+    assert [segment.text for segment in selected if segment.kind == "heading"] == [
+        "Activités de négociation"
+    ]
+    assert [segment.kind for segment in selected] == [
+        "heading",
+        "paragraph",
+        "table",
+        "paragraph",
+    ]
+
+
+def test_docling_markdown_accepts_numbered_parent_heading_without_reinserting_it() -> None:
+    parent = "La gestion du capital en 2024"
+    child = "Activités de gestion"
+    paragraph = "La Banque poursuit ses activités de gestion du capital."
+    audit = SectionAudit(
+        section_key="gestion_capital",
+        section_title="Gestion du capital",
+        start_page=62,
+        end_page=62,
+        anchor_page=57,
+        anchor_text="Gestion du capital",
+        anchor_bbox_norm=[0.04, 0.05, 0.90, 0.08],
+        included_blocks=[
+            PDFBlock(
+                "p062_d001",
+                62,
+                [0.04, 0.09, 0.33, 0.11],
+                parent,
+                1,
+                "other",
+                True,
+                "",
+                "section_header",
+                heading_level=1,
+            ),
+            PDFBlock(
+                "p062_d002",
+                62,
+                [0.04, 0.12, 0.16, 0.14],
+                child,
+                2,
+                "other",
+                True,
+                "",
+                "section_header",
+                heading_level=1,
+            ),
+            PDFBlock(
+                "p062_d003",
+                62,
+                [0.04, 0.15, 0.90, 0.20],
+                paragraph,
+                3,
+                "narrative",
+                True,
+            ),
+        ],
+        excluded_blocks=[],
+    )
+
+    markdown = _build_text_extraction_markdown_from_docling(
+        [audit],
+        raw_docling_markdown=f"## {parent}\n\n## {child}\n\n{paragraph}\n",
+    )
+
+    assert parent not in markdown
+    assert f"### {child} [pdf.62]" in markdown
+    assert paragraph in markdown
+
+
+def test_docling_markdown_keeps_parent_across_table_and_inserts_missing_text_locally() -> None:
+    intro = "Le tableau suivant présente la VaR des portefeuilles de négociation."
+    missing = "Les montants sont présentés avant impôts selon un niveau de confiance de 99 %."
+    after = "La VaR totale de négociation moyenne a augmenté pendant l'exercice."
+    audit = SectionAudit(
+        section_key="gestion_risques",
+        section_title="Gestion des risques",
+        start_page=98,
+        end_page=98,
+        anchor_page=98,
+        anchor_text="Gestion des risques",
+        anchor_bbox_norm=[0.04, 0.05, 0.90, 0.08],
+        included_blocks=[
+            PDFBlock(
+                "p098_d001",
+                98,
+                [0.04, 0.09, 0.50, 0.11],
+                "Activités de négociation",
+                1,
+                "other",
+                True,
+                "",
+                "section_header",
+                heading_level=1,
+            ),
+            PDFBlock("p098_d002", 98, [0.04, 0.12, 0.90, 0.15], intro, 2, "narrative", True),
+            PDFBlock("p098_d005", 98, [0.04, 0.55, 0.90, 0.58], missing, 5, "narrative", True),
+            PDFBlock("p098_d006", 98, [0.04, 0.59, 0.90, 0.62], after, 6, "narrative", True),
+        ],
+        excluded_blocks=[
+            PDFBlock(
+                "p098_d003",
+                98,
+                [0.04, 0.16, 0.40, 0.18],
+                "VaR des portefeuilles de négociation (1) (2) *",
+                3,
+                "table",
+                False,
+                "table_like_block",
+                "section_header",
+                heading_level=1,
+            ),
+            PDFBlock(
+                "p098_d004",
+                98,
+                [0.04, 0.19, 0.30, 0.21],
+                "Exercice terminé le 31 octobre",
+                4,
+                "table",
+                False,
+                "table_like_block",
+                "section_header",
+                heading_level=1,
+            ),
+        ],
+        table_regions=[
+            {
+                "table_id": "gestion_risques_p098_tbl_01",
+                "page": 98,
+                "region_type": "table",
+                "bbox": [0.04, 0.16, 0.93, 0.53],
+            }
+        ],
+    )
+    raw_docling = "\n\n".join(
+        [
+            "## Activités de négociation",
+            intro,
+            "## VaR des portefeuilles de négociation (1) (2) *",
+            "## Exercice terminé le 31 octobre",
+            "| Facteur | VaR |",
+            "| --- | ---: |",
+            "| Taux | 13,0 |",
+            after,
+        ]
+    )
+
+    markdown = _build_text_extraction_markdown_from_docling(
+        [audit],
+        raw_docling_markdown=raw_docling,
+    )
+
+    assert "### Activités de négociation [pdf.98]" in markdown
+    assert "### VaR des portefeuilles" not in markdown
+    assert "### Exercice terminé" not in markdown
+    assert intro in markdown
+    assert missing in markdown
+    assert after in markdown
+    assert markdown.index(intro) < markdown.index(missing) < markdown.index(after)
+
+
+def test_docling_alignment_prefers_exact_heading_and_rejects_page_footer() -> None:
+    heading = "Ratio de liquidité à long terme"
+    paragraph = (
+        "Le CBCB a élaboré le ratio de liquidité à long terme afin de promouvoir "
+        "la résilience du secteur bancaire."
+    )
+    audit = SectionAudit(
+        section_key="gestion_risques",
+        section_title="Gestion des risques",
+        start_page=106,
+        end_page=107,
+        anchor_page=106,
+        anchor_text="Gestion des risques",
+        anchor_bbox_norm=[0.04, 0.05, 0.90, 0.08],
+        included_blocks=[
+            PDFBlock(
+                "p106_d001",
+                106,
+                [0.04, 0.82, 0.23, 0.84],
+                heading,
+                1,
+                "other",
+                True,
+                "",
+                "section_header",
+                heading_level=2,
+            ),
+            PDFBlock(
+                "p106_d002",
+                106,
+                [0.04, 0.85, 0.90, 0.91],
+                paragraph,
+                2,
+                "narrative",
+                True,
+            ),
+        ],
+        excluded_blocks=[
+            PDFBlock(
+                "p106_d003",
+                106,
+                [0.90, 0.94, 0.94, 0.96],
+                "106",
+                3,
+                "header_footer",
+                False,
+                "running_header_footer",
+                "section_header",
+            ),
+            PDFBlock(
+                "p107_d001",
+                107,
+                [0.07, 0.20, 0.95, 0.82],
+                f"Passifs et actifs du NSFR {heading} (%) 124 % 123 %",
+                4,
+                "table",
+                False,
+                "table_like_block",
+                "pymupdf_fallback",
+            ),
+        ],
+    )
+
+    markdown = _build_text_extraction_markdown_from_docling(
+        [audit],
+        raw_docling_markdown=(
+            f"## Gestion des risques\n\n## {heading}\n\n{paragraph}\n\n106\n"
+        ),
+    )
+
+    assert f"### {heading} [pdf.106]" in markdown
+    assert paragraph in markdown
+    assert "\n106\n" not in markdown
 
 
 def test_fallback_markdown_keeps_mislabeled_long_section_header_as_comparable_text() -> None:
@@ -2455,7 +2737,7 @@ def test_docling_heading_does_not_match_words_inside_capital_paragraph() -> None
     assert "La Banque maintient des fonds propres adéquats." in markdown
 
 
-def test_build_text_extraction_markdown_keeps_all_caps_heading_excluded_as_table() -> None:
+def test_build_text_extraction_markdown_never_reintroduces_table_block_as_heading() -> None:
     audit = SectionAudit(
         section_key="gestion_capital",
         section_title="Gestion du capital",
@@ -2496,8 +2778,8 @@ def test_build_text_extraction_markdown_keeps_all_caps_heading_excluded_as_table
 
     markdown = _build_text_extraction_markdown([audit])
 
-    assert "### OBJECTIFS DE LA BANQUE EN MATIÈRE DE GESTION DES FONDS PROPRES" in markdown
-    assert markdown.index("### OBJECTIFS") < markdown.index("Les objectifs de la Banque")
+    assert "### OBJECTIFS DE LA BANQUE EN MATIÈRE DE GESTION DES FONDS PROPRES" not in markdown
+    assert "Les objectifs de la Banque" in markdown
 
 
 def test_classify_block_type_preserves_docling_heading_over_table_overlap() -> None:
@@ -2533,6 +2815,33 @@ def test_classify_block_type_rejects_table_column_header_labeled_as_section_head
     table_bboxes = [[0.08, 0.35, 0.95, 0.55]]
 
     assert _classify_block_type(block, {}, table_bboxes=table_bboxes) == "table"
+
+
+@pytest.mark.parametrize(
+    ("bbox", "expected"),
+    [
+        ([0.90, 0.02, 0.96, 0.05], "header_footer"),
+        ([0.90, 0.93, 0.96, 0.97], "header_footer"),
+        ([0.45, 0.45, 0.52, 0.49], "table"),
+    ],
+)
+def test_classify_block_type_removes_isolated_printed_page_numbers(
+    bbox: list[float],
+    expected: str,
+) -> None:
+    block = PDFBlock(
+        "p106_m001",
+        106,
+        bbox,
+        "106",
+        1,
+        "other",
+        False,
+        "",
+        "pymupdf_fallback",
+    )
+
+    assert _classify_block_type(block, {}) == expected
 
 
 def test_build_text_extraction_markdown_excludes_structural_parent_heading() -> None:
