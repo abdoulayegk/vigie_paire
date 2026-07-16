@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import re
+
 # -----------------------------------------------------------------------------
 # A) UI Labels
 # -----------------------------------------------------------------------------
@@ -197,3 +199,58 @@ def t(key: str, default: str | None = None) -> str:
     if default is not None:
         return default
     return key
+
+
+# -----------------------------------------------------------------------------
+# F) Analyst-facing French normalization (Dash / Excel)
+# -----------------------------------------------------------------------------
+_IMPACT_LABEL_FR: dict[str, str] = {
+    "MAJEUR": "Majeur",
+    "MODERE": "Modéré",
+    "MINEUR": "Mineur",
+}
+
+_ANALYST_ENGLISH_REPLACEMENTS: tuple[tuple[re.Pattern[str], str], ...] = (
+    (re.compile(r"\badded\b", re.IGNORECASE), "ajout"),
+    (re.compile(r"\bremoved\b", re.IGNORECASE), "suppression"),
+    (re.compile(r"\brenamed\b", re.IGNORECASE), "renommage"),
+    (re.compile(r"\bmodified\b", re.IGNORECASE), "modification"),
+    (re.compile(r"\binvestigation\b", re.IGNORECASE), "analyse approfondie"),
+    (re.compile(r"\bchunks?\b", re.IGNORECASE), "passage"),
+    (re.compile(r"\bfragments?\b", re.IGNORECASE), "passage"),
+)
+
+_T1_RE = re.compile(r"\bT1\b")
+_T2_RE = re.compile(r"\bT2\b")
+_META_FRAGMENTS_RE = re.compile(
+    r"^Les deux fragments\b",
+    re.IGNORECASE,
+)
+
+
+def impact_label_fr(code: str) -> str:
+    """Convertit un code d'impact AMF en libellé français pour l'analyste."""
+    normalized = str(code or "").strip().upper()
+    return _IMPACT_LABEL_FR.get(normalized, str(code or "").strip().capitalize() or "Mineur")
+
+
+def sanitize_analyst_french(text: str) -> str:
+    """Normalise un texte destiné à l'analyste : français soutenu, sans jargon pipeline.
+
+    Remplace T1/T2, fragment/chunk et termes anglais résiduels. Ne modifie pas
+    le sens métier ; sert uniquement l'affichage Dash et l'export Excel.
+    """
+    value = " ".join(str(text or "").split()).strip()
+    if not value:
+        return ""
+
+    if _META_FRAGMENTS_RE.match(value):
+        value = _META_FRAGMENTS_RE.sub("Les deux passages", value, count=1)
+
+    value = _T1_RE.sub("rapport précédent", value)
+    value = _T2_RE.sub("rapport courant", value)
+
+    for pattern, replacement in _ANALYST_ENGLISH_REPLACEMENTS:
+        value = pattern.sub(replacement, value)
+
+    return value

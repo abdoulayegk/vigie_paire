@@ -426,7 +426,7 @@ def test_text_justification_falls_back_for_legacy_b15_triage() -> None:
     assert "Sujet détecté : Risque climatique, ESG" in justification
     assert "nouvelle mention réglementaire" in justification
     assert "information ajoutée" in justification
-    assert "Ce qui change : Le T2 ajoute" in justification
+    assert "Ce qui change : Le rapport courant ajoute" in justification
     assert "Pertinence métier :" in justification
     assert (
         "Ce changement met l'accent sur l'évolution du cadre réglementaire "
@@ -523,3 +523,84 @@ def test_generate_text_comparison_excel_labels_text_renames() -> None:
     assert ws.cell(2, _column(ws, "Type de changement")).value == "Renommage"
     assert ws.cell(2, _column(ws, "Texte exact du trimestre précédent")).value == "Ancien titre"
     assert ws.cell(2, _column(ws, "Texte exact du trimestre courant")).value == "Nouveau titre"
+
+
+def test_generate_text_comparison_excel_uses_french_analyst_labels() -> None:
+    payload = {
+        "section_comparisons": [
+            {
+                "section_key": "gestion_capital",
+                "section_title": "Gestion du capital",
+                "all_block_comparisons": [
+                    {
+                        "diff_type": "modified",
+                        "change_summary": (
+                            "Les deux fragments traitent de la même divulgation "
+                            "concernant le report du plancher par le BSIF."
+                        ),
+                        "source_text_t1": "Calendrier jusqu'en 2027.",
+                        "source_text_t2": "Report jusqu'à nouvel ordre.",
+                        "evidence_t1": {"pages": [10]},
+                        "evidence_t2": {"pages": [11]},
+                        "genai_triage": {
+                            "is_relevant": True,
+                            "themes_amf": ["FONDS_PROPRES_REGLEMENTAIRES"],
+                            "impact_level": "MAJEUR",
+                            "nouvelle_idee": True,
+                            "relevance_reason": (
+                                "Le rapport courant actualise le calendrier d'application "
+                                "du plancher de fonds propres. Cette mise à jour n'apporte "
+                                "pas de méthode nouvelle à comparer entre les banques."
+                            ),
+                        },
+                    }
+                ],
+            }
+        ]
+    }
+
+    raw = generate_text_comparison_excel(payload, output_path=None)
+    workbook = load_workbook(io.BytesIO(raw))
+    ws = workbook["Analyse complète"]
+
+    impact_col = _column(ws, "Priorité / impact")
+    what_col = _column(ws, "Ce qui change")
+    just_col = _column(ws, "Justification de pertinence (IA)")
+
+    for row in range(2, ws.max_row + 1):
+        impact = str(ws.cell(row, impact_col).value or "")
+        what = str(ws.cell(row, what_col).value or "")
+        justification = str(ws.cell(row, just_col).value or "")
+        assert impact in {"Majeur", "Modéré", "Mineur"}
+        for forbidden in ("fragment", "chunk", "T1", "T2", "MAJEUR", "MODERE"):
+            assert forbidden not in what
+            assert forbidden not in justification
+        assert "calendrier" in what.lower()
+        assert "Les deux passages" not in what
+        assert "Les deux fragments" not in what
+
+
+def test_what_changed_for_display_prefers_relevance_reason() -> None:
+    from vigilance.vigie_columns import what_changed_for_display
+
+    change = {
+        "diff_type": "modified",
+        "change_summary": (
+            "Les deux fragments traitent de la même divulgation "
+            "concernant le report du plancher par le BSIF."
+        ),
+        "source_text_t1": "Calendrier jusqu'en 2027.",
+        "source_text_t2": "Report jusqu'à nouvel ordre.",
+        "genai_triage": {
+            "relevance_reason": (
+                "Le rapport courant actualise le calendrier d'application "
+                "du plancher de fonds propres. Cette mise à jour n'apporte "
+                "pas de méthode nouvelle à comparer entre les banques."
+            ),
+        },
+    }
+    what = what_changed_for_display(change)
+    assert "calendrier" in what.lower()
+    assert "fragments" not in what.lower()
+    assert "passages" not in what.lower()
+    assert what.startswith("Le rapport courant")

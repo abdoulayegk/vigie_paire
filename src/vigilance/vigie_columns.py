@@ -135,21 +135,40 @@ def derive_secondary_labels(triage: dict[str, Any] | None) -> str:
     return " · ".join(labels)
 
 
+def _truncate_at_sentence(value: str, limit: int) -> str:
+    """Coupe à la dernière phrase complète avant ``limit``, sans couper au milieu."""
+    if len(value) <= limit:
+        return value
+    window = value[:limit]
+    # Prefer the last sentence-ending punctuation inside the window.
+    for sep in (". ", "! ", "? ", ".\n", "!\n", "?\n"):
+        idx = window.rfind(sep)
+        if idx >= max(40, limit // 4):
+            return window[: idx + 1].rstrip()
+    # Fallback: cut at last space then ensure we do not leave a hanging ellipsis mid-word.
+    space_idx = window.rfind(" ")
+    if space_idx >= max(40, limit // 4):
+        return window[:space_idx].rstrip(" ,;:") + "."
+    return window.rstrip(" ,;:") + "."
+
+
 def summarize_change(
     change: dict[str, Any],
     *,
     previous_text: str = "",
     current_text: str = "",
-    limit: int = 180,
+    limit: int = 300,
 ) -> str:
     """Produit une phrase factuelle courte, indépendante du triage AMF."""
+    from vigilance.i18n.fr import sanitize_analyst_french
+
     summary = str(
         change.get("what_changed") or change.get("change_summary") or ""
     ).strip()
     if summary:
-        value = re.sub(r"\s+", " ", summary)
+        value = sanitize_analyst_french(re.sub(r"\s+", " ", summary))
         if len(value) > limit:
-            value = value[: limit - 1].rstrip(" ,;:") + "…"
+            value = _truncate_at_sentence(value, limit)
         return value
 
     diff_type = str(change.get("diff_type") or change.get("change_type") or "").lower()
@@ -168,8 +187,8 @@ def summarize_change(
 
     value = re.sub(r"\s+", " ", str(value or "")).strip()
     if len(value) > limit:
-        value = value[: limit - 1].rstrip() + "…"
-    return prefix + value if value else prefix.rstrip(" :")
+        value = _truncate_at_sentence(value, limit)
+    return sanitize_analyst_french(prefix + value if value else prefix.rstrip(" :"))
 
 
 def subsection_label(change: dict[str, Any]) -> str:
@@ -190,10 +209,12 @@ def subsection_label(change: dict[str, Any]) -> str:
 
 def relevance_reason_for_display(change: dict[str, Any]) -> str:
     """Lit la raison compacte, avec repli compatible sur les anciens artefacts."""
+    from vigilance.i18n.fr import sanitize_analyst_french
+
     triage = change.get("genai_triage") or {}
     compact_reason = " ".join(str(triage.get("relevance_reason") or "").split())
     if compact_reason:
-        return compact_reason
+        return sanitize_analyst_french(compact_reason)
 
     legacy_justification = str(
         triage.get("nouvelle_idee_justification") or ""
@@ -204,11 +225,11 @@ def relevance_reason_for_display(change: dict[str, Any]) -> str:
         flags=re.IGNORECASE | re.DOTALL,
     )
     if match:
-        return " ".join(match.group(1).split())
+        return sanitize_analyst_french(" ".join(match.group(1).split()))
 
     explanation = " ".join(str(triage.get("explanation") or "").split())
     if explanation:
-        return explanation
+        return sanitize_analyst_french(explanation)
     if legacy_justification:
         cleaned_legacy = re.sub(
             r"^(OUI|NON)\s*[-—:]\s*",
@@ -217,12 +238,62 @@ def relevance_reason_for_display(change: dict[str, Any]) -> str:
             flags=re.IGNORECASE,
         ).strip()
         if cleaned_legacy:
-            return cleaned_legacy
+            return sanitize_analyst_french(cleaned_legacy)
 
     exclusion_code = str(triage.get("exclusion_reason") or "").strip()
     if exclusion_code:
         return EXCLUSION_REASONS_DESCRIPTIONS.get(exclusion_code, exclusion_code)
     return "La pertinence n’a pas encore été qualifiée par l’analyse automatisée."
+
+
+_META_SUMMARY_RE = re.compile(
+    r"^Les deux (?:fragments|passages)\b",
+    flags=re.IGNORECASE,
+)
+_CE_QUI_CHANGE_RE = re.compile(
+    r"Ce qui change\s*:\s*(.*?)(?=\n\s*\n(?:Pertinence métier|Point de surveillance|Lecture de vigie)\s*:|$)",
+    flags=re.IGNORECASE | re.DOTALL,
+)
+
+
+def what_changed_for_display(change: dict[str, Any], *, limit: int = 300) -> str:
+    """Texte « Ce qui change » pour analyste : phrase complète, sans meta GPT."""
+    from vigilance.amf_taxonomy import _compact_complete_sentence_parts
+    from vigilance.i18n.fr import sanitize_analyst_french
+
+    triage = change.get("genai_triage") or {}
+    # Prefer compact relevance_reason only (not Pertinence métier fallback).
+    compact_reason = " ".join(str(triage.get("relevance_reason") or "").split())
+    if compact_reason:
+        parts = _compact_complete_sentence_parts(compact_reason)
+        candidate = parts[0] if parts else compact_reason
+        value = sanitize_analyst_french(candidate)
+        if value:
+            return value if len(value) <= limit else _truncate_at_sentence(value, limit)
+
+    justification = str(triage.get("nouvelle_idee_justification") or "")
+    match = _CE_QUI_CHANGE_RE.search(justification)
+    if match:
+        value = sanitize_analyst_french(" ".join(match.group(1).split()))
+        if value:
+            return value if len(value) <= limit else _truncate_at_sentence(value, limit)
+
+    previous_text = str(change.get("source_text_t1") or "")
+    current_text = str(change.get("source_text_t2") or "")
+    summary = str(change.get("change_summary") or "").strip()
+    if summary and not _META_SUMMARY_RE.match(summary):
+        return summarize_change(
+            change,
+            previous_text=previous_text,
+            current_text=current_text,
+            limit=limit,
+        )
+    return summarize_change(
+        change,
+        previous_text=previous_text,
+        current_text=current_text,
+        limit=limit,
+    )
 
 
 def build_text_vigie_display_row(
@@ -234,11 +305,7 @@ def build_text_vigie_display_row(
     triage = change.get("genai_triage") or {}
     previous_text = str(change.get("source_text_t1") or "")
     current_text = str(change.get("source_text_t2") or "")
-    what_changed = summarize_change(
-        change,
-        previous_text=previous_text,
-        current_text=current_text,
-    )
+    what_changed = what_changed_for_display(change)
     category = derive_vigie_category(
         triage,
         text=" ".join((what_changed, previous_text, current_text)),

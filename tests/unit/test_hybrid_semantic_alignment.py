@@ -18,8 +18,10 @@ from vigilance.text_analysis.global_reconciliation import (
 )
 from vigilance.text_analysis.summary import _build_semantic_quality_metrics
 from vigilance.text_analysis.triage import (
+    _deterministic_bank_specific_exclusion,
     _deterministic_cosmetic_exclusion,
     _group_semantic_triage_duplicates,
+    _prefilter_triage_result,
     _propagate_triage_to_group,
     _triage_section_changes,
 )
@@ -536,6 +538,194 @@ def test_deterministic_cosmetic_prefilter_skips_near_identical_text() -> None:
         "source_text_t2": "Le seuil prudentiel CET1 minimal applicable est de 5,0 %.",
     }
     assert _deterministic_cosmetic_exclusion(material) is None
+    assert (
+        _deterministic_bank_specific_exclusion(material)
+        == "variation_numerique_propre_banque"
+    )
+
+
+def test_deterministic_bank_specific_excludes_numeric_and_operations() -> None:
+    numeric = {
+        "diff_type": "modified",
+        "change_summary": "Le portefeuille hypothécaire passe de 287 G$ à 294 G$.",
+        "source_text_t1": "Le portefeuille hypothécaire s'établit à 287 G$.",
+        "source_text_t2": "Le portefeuille hypothécaire s'établit à 294 G$.",
+    }
+    assert (
+        _deterministic_bank_specific_exclusion(numeric)
+        == "variation_numerique_propre_banque"
+    )
+
+    calendar = {
+        "diff_type": "modified",
+        "change_summary": "Report du coefficient de plancher jusqu'à nouvel ordre.",
+        "source_text_t1": (
+            "Le 5 juillet 2024, le BSIF a annoncé qu'il retardait d'un an "
+            "l'augmentation du coefficient de plancher jusqu'à l'exercice 2027."
+        ),
+        "source_text_t2": (
+            "Le 12 février 2025, le BSIF a reporté toute augmentation "
+            "supplémentaire du coefficient de plancher jusqu'à nouvel ordre."
+        ),
+    }
+    assert _deterministic_bank_specific_exclusion(calendar) == "mise_a_jour_calendrier"
+
+    acquisition = {
+        "diff_type": "added",
+        "change_summary": "Inclusion de CWB après l'acquisition.",
+        "source_text_t1": "",
+        "source_text_t2": (
+            "L'inclusion de CWB à la suite de l'acquisition augmente "
+            "l'actif pondéré en fonction des risques."
+        ),
+    }
+    assert (
+        _deterministic_bank_specific_exclusion(acquisition)
+        == "operation_interne_banque"
+    )
+
+    cyber = {
+        "diff_type": "added",
+        "change_summary": "Ajout d'exercices annuels de simulation de cyberattaque.",
+        "source_text_t1": "",
+        "source_text_t2": (
+            "La banque réalise désormais des simulations annuelles de "
+            "cyberattaque avec ses unités d'affaires."
+        ),
+    }
+    assert _deterministic_bank_specific_exclusion(cyber) is None
+
+
+def _assert_natural_analyst_copy(text: str) -> None:
+    lowered = text.lower()
+    for forbidden in ("préfiltre", "prefiltre", "déterministe", "deterministe", "pipeline"):
+        assert forbidden not in lowered, f"jargon interdit trouvé: {forbidden!r} dans {text!r}"
+
+
+def test_deterministic_bank_specific_excludes_bnc_floor_reschedule() -> None:
+    """Cas BNC réel : report du plancher BSIF → mise à jour de calendrier."""
+    change = {
+        "diff_type": "modified",
+        "change_summary": (
+            "Les deux fragments traitent de la même divulgation concernant "
+            "le report de l'augmentation du coefficient de plancher."
+        ),
+        "source_text_t1": (
+            "Le 5 juillet 2024, le BSIF a annoncé qu'il retardait d'un an "
+            "l'augmentation du plancher de fonds propres. Par conséquent, "
+            "le coefficient de plancher révisé atteindra 72,5 % à l'exercice 2027. "
+            "Pour l'exercice 2024, et restera à ce niveau jusqu'à la fin de "
+            "l'exercice 2025, pour ensuite augmenter jusqu'en 2027."
+        ),
+        "source_text_t2": (
+            "Le 12 février 2025, le BSIF a reporté toute augmentation "
+            "supplémentaire jusqu'à nouvel ordre. En conséquence, restera "
+            "à ce niveau pour une période indéterminée."
+        ),
+    }
+    assert (
+        _deterministic_bank_specific_exclusion(change) == "mise_a_jour_calendrier"
+    )
+    enriched = _prefilter_triage_result(change, "mise_a_jour_calendrier")
+    reason = enriched["genai_triage"]["relevance_reason"]
+    justification = enriched["genai_triage"]["nouvelle_idee_justification"]
+    _assert_natural_analyst_copy(reason)
+    _assert_natural_analyst_copy(justification)
+    assert "dates" in reason.lower() or "échéances" in reason.lower() or "passage" in reason.lower()
+
+
+def test_deterministic_bank_specific_excludes_cwb_appetite_and_aprf() -> None:
+    appetite = {
+        "diff_type": "modified",
+        "change_summary": (
+            "Ajout d'une section sur la considération de la posture de risque "
+            "et des impacts de l'acquisition récente de CWB"
+        ),
+        "source_text_t1": (
+            "L'appétit pour le risque représente le niveau de risque qu'une "
+            "entreprise est prête à assumer afin de réaliser sa stratégie "
+            "d'affaires. L'appétit pour le risque est intégré aux processus "
+            "de prise de décisions."
+        ),
+        "source_text_t2": (
+            "L'appétit pour le risque représente le niveau de risque qu'une "
+            "entreprise est prête à assumer afin de réaliser sa stratégie "
+            "d'affaires. L'appétit pour le risque est intégré aux processus "
+            "de prise de décisions. En établissant son appétit pour le risque, "
+            "la Banque considère également sa posture de risque et tous les "
+            "impacts pouvant découler d'un changement stratégique, tels que "
+            "les impacts de l'acquisition récente de CWB."
+        ),
+    }
+    assert (
+        _deterministic_bank_specific_exclusion(appetite)
+        == "operation_interne_banque"
+    )
+    enriched = _prefilter_triage_result(appetite, "operation_interne_banque")
+    reason = enriched["genai_triage"]["relevance_reason"]
+    _assert_natural_analyst_copy(reason)
+    assert "acquisition" in reason.lower() or "opération" in reason.lower()
+
+    emission = {
+        "diff_type": "added",
+        "change_summary": "Nouvelle divulgation concernant l'émission d'actions lors de l'acquisition de CWB",
+        "source_text_t1": "",
+        "source_text_t2": (
+            "Le 3 février 2025, lors de la clôture de l'acquisition de CWB, "
+            "la Banque a émis un total de 50 272 878 actions ordinaires, "
+            "pour un produit brut de 6,3 G$."
+        ),
+    }
+    assert (
+        _deterministic_bank_specific_exclusion(emission)
+        == "operation_interne_banque"
+    )
+    emission_copy = _prefilter_triage_result(emission, "operation_interne_banque")
+    emission_reason = emission_copy["genai_triage"]["relevance_reason"]
+    _assert_natural_analyst_copy(emission_reason)
+    assert "introduit" in emission_reason.lower()
+    assert "cwb" in emission_reason.lower() or "acquisition" in emission_reason.lower()
+
+    aprf = {
+        "diff_type": "modified",
+        "change_summary": (
+            "Les chiffres et les dates ont été mis à jour, et l'inclusion "
+            "de CWB est mentionnée comme un nouveau facteur."
+        ),
+        "source_text_t1": (
+            "L'actif pondéré en fonction des risques a augmenté de 15,4 G$ "
+            "pour s'établir à 141,0 G$ au 31 octobre 2024. Cette augmentation "
+            "découle de la croissance organique et des changements de méthode "
+            "découlant principalement de la mise en œuvre des réformes de Bâle III."
+        ),
+        "source_text_t2": (
+            "L'actif pondéré en fonction des risques a augmenté de 47,8 G$ "
+            "pour s'établir à 188,8 G$ au 31 octobre 2025. Cette augmentation "
+            "découle principalement de l'inclusion de CWB, ainsi que de la "
+            "croissance organique de l'actif pondéré en fonction des risques."
+        ),
+    }
+    exclusion = _deterministic_bank_specific_exclusion(aprf)
+    assert exclusion in {
+        "operation_interne_banque",
+        "variation_numerique_propre_banque",
+    }
+    aprf_copy = _prefilter_triage_result(aprf, exclusion)
+    _assert_natural_analyst_copy(aprf_copy["genai_triage"]["relevance_reason"])
+
+
+def test_analyst_exclusion_copy_avoids_pipeline_jargon() -> None:
+    change = {
+        "diff_type": "modified",
+        "source_text_t1": "Ratio à 12,1 %.",
+        "source_text_t2": "Ratio à 12,4 %.",
+    }
+    enriched = _prefilter_triage_result(change, "variation_numerique_propre_banque")
+    reason = enriched["genai_triage"]["relevance_reason"]
+    justification = enriched["genai_triage"]["nouvelle_idee_justification"]
+    _assert_natural_analyst_copy(reason)
+    _assert_natural_analyst_copy(justification)
+    assert "chiffres" in reason.lower() or "pourcentages" in reason.lower()
 
 
 def test_triage_dedup_groups_compatible_near_duplicates(monkeypatch) -> None:

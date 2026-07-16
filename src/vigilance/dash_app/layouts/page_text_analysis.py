@@ -16,10 +16,13 @@ from dash import dcc, html
 from vigilance.amf_taxonomy import (
     IMPACT_IT_DETAIL_LABELS,
     POSTURE_DETAIL_LABELS,
+    _compact_complete_sentence_parts,
     extract_labeled_analysis,
 )
+from vigilance.i18n.fr import sanitize_analyst_french
 from vigilance.quarter_utils import quarter_label_from_payload
 from vigilance.text_comparison.justification import build_text_triage_justification
+from vigilance.vigie_columns import what_changed_for_display
 
 # ---------------------------------------------------------------------------
 # Constantes d'affichage
@@ -145,7 +148,7 @@ _TRIAGE_DETAIL_LABELS = (
 
 _ACTION_BADGE: dict[str, tuple[str, str]] = {
     "revue_prioritaire": ("Revue prioritaire", "danger"),
-    "investigation": ("Investigation", "warning"),
+    "investigation": ("Analyse approfondie", "warning"),
     "confirmation": ("Confirmation", "success"),
     "information": ("Information", "info"),
     "aucune": ("Aucune", "secondary"),
@@ -185,11 +188,12 @@ def _localize_period_aliases(
     current_quarter_label: str,
     previous_quarter_label: str,
 ) -> str:
-    """Remplace les alias analytiques T2/T1 par les vrais trimestres affiches.
+    """Remplace les périodes analytiques génériques par les vrais trimestres affichés.
 
-    Le pipeline texte utilise T2 pour le rapport courant et T1 pour le rapport
-    precedent, meme lorsque la paire comparee est T4 vs T4 N-1 ou T1 vs T3.
-    Cette substitution reste limitee aux textes d'analyse, jamais aux extraits
+    Le pipeline texte utilise T2 ou « rapport courant » pour le rapport courant,
+    et T1 ou « rapport précédent » pour le rapport précédent, même lorsque la
+    paire comparée est T4 vs T4 N-1 ou T1 vs T3. Cette substitution reste
+    limitée aux textes d'analyse, jamais aux extraits
     sources du rapport.
     """
     if not value:
@@ -206,7 +210,27 @@ def _localize_period_aliases(
     def _replace(match: re.Match[str]) -> str:
         return replacements.get(match.group(1), match.group(0))
 
-    return re.sub(r"(?<![A-Za-z0-9])T([12])(?![A-Za-z0-9])", _replace, value, flags=re.IGNORECASE)
+    localized = re.sub(
+        r"(?<![A-Za-z0-9])T([12])(?![A-Za-z0-9])",
+        _replace,
+        value,
+        flags=re.IGNORECASE,
+    )
+    if "2" in replacements:
+        localized = re.sub(
+            r"\brapport courant\b",
+            replacements["2"],
+            localized,
+            flags=re.IGNORECASE,
+        )
+    if "1" in replacements:
+        localized = re.sub(
+            r"\brapport précédent\b",
+            replacements["1"],
+            localized,
+            flags=re.IGNORECASE,
+        )
+    return localized
 
 
 def _build_executive_overview_text(
@@ -437,12 +461,25 @@ def _impact_domain(themes_amf: list[str], section_title: str) -> str:
     return section_title.lower()
 
 
+def _first_complete_sentence(text: str) -> str:
+    """Retourne la première phrase complète ponctuée, ou le texte nettoyé."""
+    normalized = " ".join(str(text or "").split()).strip()
+    if not normalized:
+        return ""
+    parts = _compact_complete_sentence_parts(normalized)
+    if parts:
+        return parts[0]
+    return normalized
+
+
 def _build_observed_block(
     *,
     impact_level: str,
     impact_domain: str,
     justification_sections: dict[str, str],
     change_summary: str,
+    relevance_reason: str = "",
+    observed_text: str = "",
 ) -> html.Div:
     """Affiche les faits observés et l'impact contextualisé avant les détails."""
     impact_label = _IMPACT_BADGE.get(
@@ -450,10 +487,13 @@ def _build_observed_block(
         (impact_level.capitalize(), "secondary"),
     )[0]
     observed = (
-        justification_sections.get("Ce qui change")
+        observed_text
+        or _first_complete_sentence(relevance_reason)
+        or justification_sections.get("Ce qui change")
         or change_summary
         or "Le changement est visible dans les passages comparés ci-dessus."
     )
+    observed = sanitize_analyst_french(observed)
     return html.Div(
         [
             html.Div(
@@ -509,9 +549,11 @@ def _build_ai_details(
         )
 
     detail_sections: list = []
-    pertinence = justification_sections.get("Pertinence métier", "")
-    surveillance = justification_sections.get("Point de surveillance", "")
-    subject = justification_sections.get("Sujet détecté", "")
+    pertinence = sanitize_analyst_french(justification_sections.get("Pertinence métier", ""))
+    surveillance = sanitize_analyst_french(
+        justification_sections.get("Point de surveillance", "")
+    )
+    subject = sanitize_analyst_french(justification_sections.get("Sujet détecté", ""))
     if pertinence or surveillance or subject or impact_sections:
         impact_label = _IMPACT_BADGE.get(
             impact_level,
@@ -529,11 +571,15 @@ def _build_ai_details(
                     _ai_detail_item("Point de surveillance", surveillance),
                     _ai_detail_item(
                         "Conséquence probable",
-                        impact_sections.get("Conséquence probable", ""),
+                        sanitize_analyst_french(
+                            impact_sections.get("Conséquence probable", "")
+                        ),
                     ),
                     _ai_detail_item(
                         "Limite de l’analyse",
-                        impact_sections.get("Limite de l'analyse", ""),
+                        sanitize_analyst_french(
+                            impact_sections.get("Limite de l'analyse", "")
+                        ),
                     ),
                 ],
                 className="mb-3",
@@ -903,6 +949,16 @@ def _build_change_card(
             current_quarter_label=current_quarter_label,
             previous_quarter_label=previous_quarter_label,
         ),
+        relevance_reason=_localize_period_aliases(
+            str(triage.get("relevance_reason") or "").strip(),
+            current_quarter_label=current_quarter_label,
+            previous_quarter_label=previous_quarter_label,
+        ),
+        observed_text=_localize_period_aliases(
+            what_changed_for_display(change),
+            current_quarter_label=current_quarter_label,
+            previous_quarter_label=previous_quarter_label,
+        ),
     )
 
     posture_proof_block, ai_details = _build_ai_details(
@@ -1209,7 +1265,7 @@ def _build_filter_bar(
                         id="text-filter-action",
                         options=[
                             {"label": "Revue prioritaire", "value": "revue_prioritaire"},
-                            {"label": "Investigation", "value": "investigation"},
+                            {"label": "Analyse approfondie", "value": "investigation"},
                             {"label": "Confirmation", "value": "confirmation"},
                             {"label": "Information", "value": "information"},
                             {"label": "Aucune", "value": "aucune"},

@@ -15,6 +15,7 @@ from vigilance.amf_taxonomy import (
     COMPACT_RELEVANCE_REASON_SENTENCE_COUNT,
     THEMES_AMF_ANALYST_SUBJECTS,
     THEMES_AMF_DESCRIPTIONS,
+    THEMES_AMF_PIPELINE_2,
     TRIAGE_SOURCE_VERSION,
     TriageAMFCompactLLMBatch,
     TriageValidationError,
@@ -43,6 +44,7 @@ _SEMANTIC_ALIGNMENT_DECISIONS = frozenset(
     {"same_disclosure", "distinct_disclosures", "moved_text", "uncertain"}
 )
 _COSMETIC_SEQUENCE_THRESHOLD = 0.97
+_BANK_NOISE_SEQUENCE_THRESHOLD = 0.92
 _TRIAGE_DEDUP_EMBEDDING_THRESHOLD = 0.92
 _TRIAGE_EMBEDDING_TRUNCATE_CHARS = 1800
 _DEFAULT_EMBEDDING_MODEL = "text-embedding-3-small"
@@ -56,6 +58,60 @@ _FULL_EVIDENCE_VERIFICATION_MAX_TOKENS = 220
 _ISOLATED_DATE_RE = re.compile(
     r"\b(?:\d{1,2}\s+(?:janvier|février|fevrier|mars|avril|mai|juin|juillet|août|aout|"
     r"septembre|octobre|novembre|décembre|decembre)\s+\d{4}|\d{4}-\d{2}-\d{2})\b",
+    flags=re.IGNORECASE,
+)
+_VOLATILE_TOKEN_RE = re.compile(
+    r"(?:"
+    r"\b\d{1,2}\s+(?:janvier|février|fevrier|mars|avril|mai|juin|juillet|août|aout|"
+    r"septembre|octobre|novembre|décembre|decembre)\s+\d{4}\b|"
+    r"\b\d{4}-\d{2}-\d{2}\b|"
+    r"\b(?:t|q)\s*[1-4]\s*[\-/–]?\s*\d{2,4}\b|"
+    r"\bexercice\s+\d{4}\b|"
+    r"\btrimestre\s+(?:de\s+)?\d{4}\b|"
+    r"\b\d{4}\b|"
+    r"\d[\d\s\u00a0.,]*\s*(?:%|m\$|g\$|mds?|millions?|milliards?)?\b"
+    r")",
+    flags=re.IGNORECASE,
+)
+_BANK_OPERATION_RE = re.compile(
+    r"\b(?:"
+    r"acquisition|acquérir|rachet|rachat|émission|émettre|dividende|"
+    r"fusion|achat\s+d['’]actions|billets?\s+à\s+moyen\s+terme|"
+    r"cwb|canadian\s+western\s+bank|transaction\s+d['’]entreprise|"
+    r"offre\s+publique\s+d['’]achat|opa\b|spin[- ]?off"
+    r")\b",
+    flags=re.IGNORECASE,
+)
+_CALENDAR_UPDATE_RE = re.compile(
+    r"\b(?:"
+    r"jusqu['’]à\s+nouvel\s+ordre|report(?:é|er|ait)?|report|"
+    r"calendrier|échéanc|exercice\s+\d{4}|à\s+compter|"
+    r"progressiv|coefficient\s+de\s+plancher|plancher\s+de\s+fonds"
+    r")\b",
+    flags=re.IGNORECASE,
+)
+_METHODOLOGY_SIGNAL_RE = re.compile(
+    r"\b(?:"
+    r"méthodolog|trimestriellement|périodiquement|mensuellement|"
+    r"approche\s+standard|approche\s+interne|airb|modèle\s+interne|"
+    r"sensibilités\s+standard|calcul(?:é|er)?\s+selon"
+    r")\b",
+    flags=re.IGNORECASE,
+)
+_NEW_REGULATORY_SIGNAL_RE = re.compile(
+    r"\b(?:"
+    r"b-15|ligne\s+directrice|tlac|bâle\s+iii|nouvelle\s+exigence|"
+    r"entrée\s+en\s+vigueur|exigence\s+additionnelle|"
+    r"cadre\s+réglementaire|avis\s+du\s+bsif"
+    r")\b",
+    flags=re.IGNORECASE,
+)
+_CALENDAR_SUBJECT_RE = re.compile(
+    r"(?:"
+    r"coefficient\s+de\s+plancher|plancher\s+des?\s+fonds\s+propres|"
+    r"entrée\s+en\s+vigueur|report\s+des?\s+exigences|"
+    r"calendrier\s+d['’]application|jusqu['’]à\s+nouvel\s+ordre"
+    r")",
     flags=re.IGNORECASE,
 )
 _WHITESPACE_RE = re.compile(r"\s+")
@@ -545,6 +601,26 @@ def _candidate_themes_for_change(
     ]
 
 
+def _normalize_themes_amf(themes: list[str]) -> list[str]:
+    """Accepte tout code de la taxonomie AMF ; remap les inconnus vers hors grille."""
+    allowed = set(THEMES_AMF_DESCRIPTIONS)
+    normalized: list[str] = []
+    for theme in themes:
+        code = str(theme or "").strip().upper()
+        if not code:
+            continue
+        if code in allowed:
+            if code not in normalized:
+                normalized.append(code)
+        elif "SUJET_EMERGENT_HORS_GRILLE" not in normalized:
+            normalized.append("SUJET_EMERGENT_HORS_GRILLE")
+            logger.debug(
+                "theme_clamped unknown=%s -> SUJET_EMERGENT_HORS_GRILLE",
+                code,
+            )
+    return normalized
+
+
 def _sequence_ratio(left: str, right: str) -> float:
     left_norm = _normalize_for_cosmetic(left)
     right_norm = _normalize_for_cosmetic(right)
@@ -570,6 +646,170 @@ def _is_isolated_date_change(text_t1: str, text_t2: str) -> bool:
     dates_t1 = {match.group(0).lower() for match in _ISOLATED_DATE_RE.finditer(text_t1)}
     dates_t2 = {match.group(0).lower() for match in _ISOLATED_DATE_RE.finditer(text_t2)}
     return bool(dates_t1 or dates_t2) and dates_t1 != dates_t2
+
+
+def _mask_volatile_tokens(text: str) -> str:
+    """Retire dates, trimestres et montants pour comparer le fond textuel."""
+    masked = _VOLATILE_TOKEN_RE.sub(" ", str(text or ""))
+    return _WHITESPACE_RE.sub(" ", masked).strip()
+
+
+def _combined_change_text(change: dict[str, Any]) -> str:
+    return " ".join(
+        str(part or "")
+        for part in (
+            change.get("change_summary"),
+            change.get("source_text_t1"),
+            change.get("source_text_t2"),
+            change.get("semantic_text_t1"),
+            change.get("semantic_text_t2"),
+        )
+        if str(part or "").strip()
+    )
+
+
+def _has_methodology_signal(text_t1: str, text_t2: str) -> bool:
+    markers_t1 = {m.group(0).lower() for m in _METHODOLOGY_SIGNAL_RE.finditer(text_t1)}
+    markers_t2 = {m.group(0).lower() for m in _METHODOLOGY_SIGNAL_RE.finditer(text_t2)}
+    return bool(markers_t1.symmetric_difference(markers_t2))
+
+
+def _has_new_regulatory_substance(text_t1: str, text_t2: str) -> bool:
+    """Conservé pertinent seulement si une mention réglementaire NOUVELLE apparaît en T2."""
+    signals_t1 = {m.group(0).lower() for m in _NEW_REGULATORY_SIGNAL_RE.finditer(text_t1)}
+    signals_t2 = {m.group(0).lower() for m in _NEW_REGULATORY_SIGNAL_RE.finditer(text_t2)}
+    # Disappearance of a Bâle III / BSIF mention alone is reformulation, not substance.
+    return bool(signals_t2 - signals_t1)
+
+
+def _shares_calendar_subject(text_t1: str, text_t2: str) -> bool:
+    subjects_t1 = {m.group(0).lower() for m in _CALENDAR_SUBJECT_RE.finditer(text_t1)}
+    subjects_t2 = {m.group(0).lower() for m in _CALENDAR_SUBJECT_RE.finditer(text_t2)}
+    return bool(subjects_t1 & subjects_t2)
+
+
+def _has_calendar_reschedule_context(
+    text_t1: str,
+    text_t2: str,
+    combined: str,
+) -> bool:
+    """True when the delta is a deferred-application update of a known requirement."""
+    if not _CALENDAR_UPDATE_RE.search(combined):
+        return False
+    has_anchor = bool(
+        _CALENDAR_SUBJECT_RE.search(combined)
+        or re.search(
+            r"\b(?:bsif|plancher\s+de\s+fonds|coefficient\s+de\s+plancher)\b",
+            combined,
+            flags=re.IGNORECASE,
+        )
+    )
+    if not has_anchor:
+        return False
+    if _shares_calendar_subject(text_t1, text_t2):
+        return True
+    # Subject may appear only in T1 while T2 only updates the deferral wording.
+    if _CALENDAR_SUBJECT_RE.search(text_t1) and _CALENDAR_UPDATE_RE.search(text_t2):
+        return True
+    return bool(
+        re.search(
+            r"\b(?:bsif|plancher|coefficient)\b",
+            combined,
+            flags=re.IGNORECASE,
+        )
+        and re.search(
+            r"\b(?:report|retard|jusqu['’]à\s+nouvel\s+ordre)\b",
+            combined,
+            flags=re.IGNORECASE,
+        )
+    )
+
+
+def _is_pure_new_regulatory_disclosure(change: dict[str, Any]) -> bool:
+    """First mention of a shared regulatory requirement, without a bank deal."""
+    diff_type = str(change.get("diff_type") or "").strip().lower()
+    text_t2 = str(change.get("source_text_t2") or change.get("semantic_text_t2") or "")
+    combined = _combined_change_text(change)
+    if diff_type != "added" or not text_t2.strip():
+        return False
+    if _BANK_OPERATION_RE.search(combined):
+        return False
+    return bool(_NEW_REGULATORY_SIGNAL_RE.search(text_t2))
+
+
+def _deterministic_bank_specific_exclusion(change: dict[str, Any]) -> str | None:
+    """Exclut dates/montants/opérations internes sans fond réglementaire inter-pairs."""
+    text_t1 = str(change.get("source_text_t1") or change.get("semantic_text_t1") or "")
+    text_t2 = str(change.get("source_text_t2") or change.get("semantic_text_t2") or "")
+    combined = _combined_change_text(change)
+    diff_type = str(change.get("diff_type") or "").strip().lower()
+
+    # Priority 1: bank-specific operations (acquisition, CWB, buyback, issuance).
+    if _BANK_OPERATION_RE.search(combined):
+        if _is_pure_new_regulatory_disclosure(change):
+            pass
+        else:
+            return "operation_interne_banque"
+
+    # Keep true methodology changes for analyst review — but only when no
+    # bank operation already matched above.
+    if text_t1.strip() and text_t2.strip():
+        if _has_methodology_signal(text_t1, text_t2) and not _BANK_OPERATION_RE.search(
+            combined
+        ):
+            return None
+        if _has_new_regulatory_substance(text_t1, text_t2):
+            masked_ratio = _sequence_ratio(
+                _mask_volatile_tokens(text_t1),
+                _mask_volatile_tokens(text_t2),
+            )
+            if (
+                masked_ratio < _BANK_NOISE_SEQUENCE_THRESHOLD
+                and not _BANK_OPERATION_RE.search(combined)
+            ):
+                return None
+
+    if diff_type not in {"modified", "unchanged"}:
+        return None
+    if not text_t1.strip() or not text_t2.strip():
+        return None
+
+    masked_t1 = _mask_volatile_tokens(text_t1)
+    masked_t2 = _mask_volatile_tokens(text_t2)
+    if not masked_t1 or not masked_t2:
+        return None
+
+    masked_ratio = _sequence_ratio(masked_t1, masked_t2)
+    numbers_differ = _numeric_tokens(text_t1) != _numeric_tokens(text_t2)
+    dates_differ = _is_isolated_date_change(text_t1, text_t2) or (
+        {m.group(0).lower() for m in _ISOLATED_DATE_RE.finditer(text_t1)}
+        != {m.group(0).lower() for m in _ISOLATED_DATE_RE.finditer(text_t2)}
+    )
+    volatile_differ = numbers_differ or dates_differ
+
+    # Calendar updates of a known requirement (e.g. BSIF floor deferral).
+    if volatile_differ and _has_calendar_reschedule_context(text_t1, text_t2, combined):
+        if not _has_methodology_signal(text_t1, text_t2):
+            return "mise_a_jour_calendrier"
+
+    if masked_ratio >= _BANK_NOISE_SEQUENCE_THRESHOLD and volatile_differ:
+        if _CALENDAR_UPDATE_RE.search(combined) and dates_differ:
+            return "mise_a_jour_calendrier"
+        if dates_differ and not numbers_differ:
+            return "mise_a_jour_calendrier"
+        if numbers_differ:
+            return "variation_numerique_propre_banque"
+        return "variation_numerique_propre_banque"
+
+    # Fallback: calendar reschedule when reformulation lowers similarity below 0.92.
+    if (
+        volatile_differ
+        and dates_differ
+        and _has_calendar_reschedule_context(text_t1, text_t2, combined)
+        and not _has_methodology_signal(text_t1, text_t2)
+    ):
+        return "mise_a_jour_calendrier"
+    return None
 
 
 def _deterministic_cosmetic_exclusion(change: dict[str, Any]) -> str | None:
@@ -612,26 +852,111 @@ def _deterministic_cosmetic_exclusion(change: dict[str, Any]) -> str | None:
     return None
 
 
-def _cosmetic_triage_result(change: dict[str, Any], exclusion_reason: str) -> dict[str, Any]:
+def _excerpt_for_analyst(text: str, *, limit: int = 160) -> str:
+    """Tronque un extrait source pour une phrase analysée lisible (une seule phrase)."""
+    value = re.sub(r"\s+", " ", str(text or "")).strip()
+    # Avoid internal sentence breaks that would break the 2-sentence relevance_reason.
+    value = re.sub(r"[.!?]+", ",", value).strip(" ,;")
+    if len(value) <= limit:
+        return value
+    space_idx = value.rfind(" ", 0, limit)
+    if space_idx >= max(40, limit // 4):
+        return value[:space_idx].rstrip(" ,;:") + "…"
+    return value[:limit].rstrip(" ,;:") + "…"
+
+
+def _analyst_exclusion_copy(
+    change: dict[str, Any],
+    exclusion_reason: str,
+) -> tuple[str, str, str]:
+    """Textes analyste naturels pour un changement exclu (sans jargon pipeline)."""
+    diff_type = str(change.get("diff_type") or "").strip().lower()
+    source_t2 = str(change.get("source_text_t2") or change.get("semantic_text_t2") or "")
+    excerpt_t2 = _excerpt_for_analyst(source_t2)
+    comparative = (
+        "Ce changement n'apporte pas d'élément nouveau à comparer entre les "
+        "banques pour la vigie prudentielle."
+    )
+
+    if exclusion_reason == "operation_interne_banque":
+        subject = "Opération interne propre à la banque"
+        if diff_type == "added" and excerpt_t2:
+            factual = (
+                "Le rapport courant introduit un passage sur "
+                f"« {excerpt_t2} », absent du rapport précédent et lié à une "
+                "opération propre à la banque (acquisition, rachat ou émission)."
+            )
+        elif diff_type == "added":
+            factual = (
+                "Le rapport courant introduit une information liée à une "
+                "opération propre à la banque (acquisition, rachat ou émission), "
+                "absente du rapport précédent."
+            )
+        else:
+            factual = (
+                "Le passage est modifié et mentionne une opération propre à la "
+                "banque (acquisition, rachat ou émission)."
+            )
+        return factual, comparative, subject
+
+    if exclusion_reason == "variation_numerique_propre_banque":
+        subject = "Variation chiffrée propre à la banque"
+        if diff_type == "added":
+            factual = (
+                "Le rapport courant introduit des montants ou pourcentages "
+                "propres à la banque, sans nouvelle exigence réglementaire."
+            )
+        else:
+            factual = (
+                "Seuls les chiffres, montants ou pourcentages diffèrent entre "
+                "les deux versions."
+            )
+        return factual, comparative, subject
+
+    if exclusion_reason == "mise_a_jour_calendrier":
+        subject = "Mise à jour de calendrier"
+        factual = (
+            "Le passage est modifié : seules les dates ou échéances "
+            "d'application changent, sans nouvelle exigence."
+        )
+        return factual, comparative, subject
+
+    # Cosmetic / generic exclusions
+    subject = "Changement cosmétique"
+    if exclusion_reason == "deplacement_texte":
+        factual = (
+            "Le même texte apparaît ailleurs dans le rapport courant, "
+            "sans nouveau contenu à comparer."
+        )
+        subject = "Déplacement de texte"
+    elif exclusion_reason == "formatage_visuel":
+        factual = (
+            "Le passage est reformulé sans changement de fond "
+            "(ponctuation ou formatage uniquement)."
+        )
+    elif diff_type == "added":
+        factual = (
+            "Le rapport courant introduit une formulation différente "
+            "sans changement de fond."
+        )
+    else:
+        factual = "Le passage est reformulé sans changement de fond."
+    return factual, comparative, subject
+
+
+def _prefilter_triage_result(change: dict[str, Any], exclusion_reason: str) -> dict[str, Any]:
     triage = _default_triage()
+    factual, comparative, subject = _analyst_exclusion_copy(change, exclusion_reason)
     triage.update(
         {
             "source": "deterministic_prefilter",
             "exclusion_reason": exclusion_reason,
-            "relevance_reason": _local_relevance_reason(
-                "Le préfiltre déterministe identifie uniquement une différence "
-                "de formulation, de présentation ou de date isolée.",
-                "Cette différence n’apporte aucun nouvel élément sur les pratiques "
-                "de gestion des risques à comparer entre les banques.",
-            ),
+            "relevance_reason": _local_relevance_reason(factual, comparative),
             "nouvelle_idee_justification": (
                 "NON — Nouvel élément à surveiller : Non.\n\n"
-                "Sujet détecté : Changement cosmétique.\n\n"
-                "Ce qui change : Le pré-filtre déterministe a identifié un écart "
-                "de formulation, de formatage ou de date isolée sans delta chiffré "
-                "ni réglementaire.\n\n"
-                "Pertinence métier : Ce changement ne modifie pas la substance de "
-                "la divulgation ni la posture de risque.\n\n"
+                f"Sujet détecté : {subject}.\n\n"
+                f"Ce qui change : {factual}\n\n"
+                f"Pertinence métier : {comparative}\n\n"
                 "Point de surveillance : Aucun suivi prioritaire n'est requis."
             ),
             "change_segments": build_change_segments(change),
@@ -644,6 +969,11 @@ def _cosmetic_triage_result(change: dict[str, Any], exclusion_reason: str) -> di
         "exclusion_reason": exclusion_reason,
     }
     return enriched
+
+
+def _cosmetic_triage_result(change: dict[str, Any], exclusion_reason: str) -> dict[str, Any]:
+    """Compatibilité : délégué au préfiltre généraliste."""
+    return _prefilter_triage_result(change, exclusion_reason)
 
 
 def _triage_retrieval_text(change: dict[str, Any]) -> str:
@@ -772,6 +1102,18 @@ Output : {"change_index": 1, "is_relevant": true, "themes_amf": ["RISQUE_EMERGEN
 Exemple 2 — variation propre à la banque non pertinente
 Input : {"change_index": 1, "diff_type": "modified", "change_summary": "Le portefeuille hypothécaire passe de 287 G$ à 294 G$."}
 Output : {"change_index": 1, "is_relevant": false, "themes_amf": [], "nouvelle_idee": false, "relevance_reason": "Le portefeuille hypothécaire passe de 287 G$ à 294 G$, sans modification de la méthode de calcul ni du périmètre présenté. Cette variation reflète l’évolution normale des activités et n’apporte aucun nouvel élément sur les pratiques de gestion des risques à comparer entre les banques."}
+
+Exemple 3 — calendrier d’application non pertinent
+Input : {"change_index": 1, "diff_type": "modified", "change_summary": "Le BSIF reporte l’augmentation du coefficient de plancher jusqu’à nouvel ordre plutôt que jusqu’en 2027."}
+Output : {"change_index": 1, "is_relevant": false, "themes_amf": [], "nouvelle_idee": false, "relevance_reason": "Le rapport courant actualise seulement le calendrier d’application du coefficient de plancher annoncé par le BSIF, sans changer la nature de l’exigence. Cette mise à jour d’échéances n’apporte pas d’élément nouveau pour comparer les pratiques de gestion des fonds propres entre les banques."}
+
+Exemple 4 — acquisition interne non pertinente
+Input : {"change_index": 1, "diff_type": "added", "change_summary": "Inclusion de CWB dans le calcul du risque opérationnel à la suite de l’acquisition."}
+Output : {"change_index": 1, "is_relevant": false, "themes_amf": [], "nouvelle_idee": false, "relevance_reason": "Le rapport courant mentionne l’inclusion de CWB après une acquisition propre à la banque, sans décrire une nouvelle méthode de calcul partagée. Cette opération interne n’offre pas de base comparable sur les pratiques de gestion des risques entre institutions."}
+
+Exemple 5 — rachat d’actions non pertinent
+Input : {"change_index": 1, "diff_type": "modified", "change_summary": "Mise à jour des montants de rachat d’actions ordinaires au semestre."}
+Output : {"change_index": 1, "is_relevant": false, "themes_amf": [], "nouvelle_idee": false, "relevance_reason": "Le rapport courant met à jour les montants de rachat d’actions ordinaires déjà présentés, sans modifier le cadre réglementaire associé. Ce type de transaction propre à la banque n’éclaire pas la comparabilité des pratiques prudentielles entre pairs."}
 """
 
 
@@ -877,6 +1219,32 @@ def _persisted_triage_from_compact(
     relevance_reason = " ".join(
         str(compact.get("relevance_reason") or "").split()
     )
+
+    # Recalculate exclusion on change + GPT reason (catches CWB framed as methodology).
+    bank_exclusion = _deterministic_bank_specific_exclusion(change) or (
+        _deterministic_bank_specific_exclusion(
+            {**change, "change_summary": relevance_reason}
+        )
+        if relevance_reason
+        else None
+    )
+
+    # Post-LLM guardrail: never promote bank-specific noise to Majeur/Modéré.
+    if bank_exclusion and is_relevant:
+        logger.debug(
+            "post_llm_guardrail override change_id=%s exclusion=%s",
+            change.get("change_id"),
+            bank_exclusion,
+        )
+        is_relevant = False
+        nouvelle_idee = False
+        themes = []
+        factual, comparative, _subject = _analyst_exclusion_copy(
+            change,
+            bank_exclusion,
+        )
+        relevance_reason = _local_relevance_reason(factual, comparative)
+
     high_priority = bool(set(themes) & _COMPACT_HIGH_PRIORITY_THEMES)
 
     if not is_relevant:
@@ -898,7 +1266,11 @@ def _persisted_triage_from_compact(
         "themes_amf": themes,
         "nouvelle_idee": nouvelle_idee,
         "relevance_reason": relevance_reason,
-        "exclusion_reason": None if is_relevant else "non_pertinent_autre",
+        "exclusion_reason": (
+            None
+            if is_relevant
+            else (bank_exclusion or "non_pertinent_autre")
+        ),
         "impact_level": impact_level,
         "action_requise": action_requise,
         "impact_it": "INDETERMINE",
@@ -909,6 +1281,8 @@ def _persisted_triage_from_compact(
         "confiance_posture": "INDETERMINE",
         "explanation": relevance_reason if is_relevant else "",
     }
+    if bank_exclusion and not is_relevant and compact.get("is_relevant"):
+        triage["source_guardrail"] = "post_llm_guardrail"
     triage["nouvelle_idee_justification"] = build_compact_triage_justification(
         change,
         triage,
@@ -959,13 +1333,16 @@ def _triage_section_changes(
                 )
         return enriched
 
-    # Deterministic cosmetic pre-filter before any AMF GPT call.
+    # Deterministic cosmetic + bank-noise pre-filter before any AMF GPT call.
     pending: list[dict[str, Any]] = []
     prefiltered: list[dict[str, Any]] = []
     for change in changes:
-        exclusion = _deterministic_cosmetic_exclusion(change)
+        exclusion = (
+            _deterministic_cosmetic_exclusion(change)
+            or _deterministic_bank_specific_exclusion(change)
+        )
         if exclusion:
-            prefiltered.append(_cosmetic_triage_result(change, exclusion))
+            prefiltered.append(_prefilter_triage_result(change, exclusion))
         else:
             pending.append(change)
     if not pending:
@@ -1106,8 +1483,9 @@ def _triage_section_changes(
         "courant d’une banque canadienne pour une vigie AMF. Réponds uniquement "
         "avec le schéma compact demandé. Sois factuel, sans analyse IT, posture, "
         "niveau d’impact, action recommandée ni répétition des textes sources. "
-        "Rédige chaque relevance_reason en exactement deux phrases complètes, "
-        "professionnelles et faciles à comprendre."
+        "Rédige chaque relevance_reason en français uniquement, en exactement "
+        "deux phrases complètes, professionnelles et faciles à comprendre. "
+        "N’utilise jamais fragment, chunk, T1, T2 ni termes anglais."
     )
 
 
@@ -1117,21 +1495,27 @@ def _triage_section_changes(
         "supplémentaire.\n\n"
         "Règles strictes :\n"
         "1. `is_relevant=true` seulement pour un changement substantiel utile "
-        "à la vigie AMF; dans ce cas, choisis un ou deux codes uniquement parmi "
-        "les `candidate_themes` de l’entrée.\n"
+        "à la vigie AMF; dans ce cas, choisis un ou deux codes. Préfère les "
+        "`candidate_themes` de l’entrée ; tu peux aussi utiliser tout code de "
+        "la taxonomie AMF complète listée ci-dessous ; si aucun ne convient, "
+        "utilise `SUJET_EMERGENT_HORS_GRILLE`.\n"
+        f"   Taxonomie AMF autorisée : {', '.join(THEMES_AMF_PIPELINE_2)}.\n"
         "2. `is_relevant=false` exige `themes_amf=[]` et `nouvelle_idee=false`. "
-        "Une variation chiffrée propre à la banque, un déplacement identique, "
-        "du formatage ou une reformulation sans nouveau fond sont non pertinents.\n"
+        "Une variation chiffrée propre à la banque, une opération interne "
+        "(acquisition, rachat, émission, dividende), une mise à jour de calendrier "
+        "d’application, un déplacement identique, du formatage ou une reformulation "
+        "sans nouveau fond sont non pertinents.\n"
         "3. `nouvelle_idee=true` seulement si le rapport courant ajoute, retire "
         "ou modifie substantiellement une information absente sous cette forme "
         "dans le rapport précédent.\n"
         "4. `relevance_reason` contient exactement deux phrases complètes, "
-        "professionnelles et faciles à comprendre. La première décrit "
-        "factuellement le changement entre les rapports. La seconde interprète "
-        "ce changement et précise ce qu’il apporte à l’analyse comparative entre "
-        "les banques. N’écris pas « Ce changement est pertinent pour la vigie AMF » "
-        "ni « Ce changement n’est pas pertinent ». Aucun titre, aucune liste, "
-        "aucune rubrique et aucune consigne adressée à l’analyste.\n"
+        "professionnelles et faciles à comprendre, rédigées pour une analyste. "
+        "La première décrit factuellement le changement entre les rapports. "
+        "La seconde interprète ce changement et précise ce qu’il apporte à "
+        "l’analyse comparative entre les banques. N’écris pas « Ce changement "
+        "est pertinent pour la vigie AMF » ni « Ce changement n’est pas pertinent ». "
+        "Aucun titre, aucune liste, aucune rubrique et aucune consigne adressée "
+        "à l’analyste. Interdit : fragment, chunk, T1, T2, termes anglais.\n"
         "5. Ne produis aucun champ d’impact, d’action, de posture, d’impact IT, "
         "d’explication générale ou de justification multi-rubriques.\n\n"
         f"{_FEW_SHOT_TRIAGE_AMF}\n\n"
@@ -1158,7 +1542,9 @@ def _triage_section_changes(
             validation_retry_message=(
                 "Renvoie le batch compact complet. Chaque change_index doit être "
                 "présent exactement une fois. is_relevant=true exige un ou deux "
-                "candidate_themes; is_relevant=false exige themes_amf=[] et "
+                "thèmes AMF (préfère candidate_themes, sinon tout code de la "
+                "taxonomie AMF, sinon SUJET_EMERGENT_HORS_GRILLE); "
+                "is_relevant=false exige themes_amf=[] et "
                 "nouvelle_idee=false. Chaque relevance_reason doit contenir "
                 "exactement deux phrases complètes : une description factuelle "
                 "du changement, puis son interprétation et son apport à l’analyse "
@@ -1198,24 +1584,28 @@ def _triage_section_changes(
         )
 
     for triage_obj in batch.triages:
-        allowed_themes = {
+        candidate_codes = {
             candidate["code"]
             for candidate in triage_inputs[triage_obj.change_index - 1][
                 "candidate_themes"
             ]
         }
-        unexpected_themes = set(triage_obj.themes_amf) - allowed_themes
-        if unexpected_themes:
-            validation_error = ValueError(
-                "themes_amf contient des codes hors candidate_themes : "
-                f"{sorted(unexpected_themes)}"
+        raw_themes = list(triage_obj.themes_amf or [])
+        outside_candidates = [
+            code
+            for code in raw_themes
+            if str(code or "").strip().upper() not in candidate_codes
+            and str(code or "").strip().upper() in THEMES_AMF_DESCRIPTIONS
+        ]
+        if outside_candidates:
+            logger.debug(
+                "theme_accepted_outside_candidates section=%s change_index=%d themes=%s",
+                section_key,
+                triage_obj.change_index,
+                outside_candidates,
             )
-            raise TriageValidationError(
-                section_key=section_key,
-                change_index=triage_obj.change_index,
-                raw_payload=triage_obj.model_dump(),
-                validation_error=validation_error,
-            )
+        # Soft-normalize: full AMF taxonomy accepted; unknown -> hors grille.
+        triage_obj.themes_amf = _normalize_themes_amf(raw_themes)
 
     triage_map: dict[int, dict[str, Any]] = {}
     relevant_count = 0

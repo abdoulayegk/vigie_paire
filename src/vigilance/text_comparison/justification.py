@@ -156,8 +156,23 @@ def _infer_subject(change: dict[str, Any], triage: dict[str, Any]) -> str:
     return ", ".join(deduped) or "Changement textuel detecte"
 
 
+def _first_complete_sentence(text: str) -> str:
+    """Retourne la première phrase complète ponctuée, ou le texte nettoyé."""
+    from vigilance.amf_taxonomy import _compact_complete_sentence_parts
+
+    normalized = _clean(text)
+    if not normalized:
+        return ""
+    parts = _compact_complete_sentence_parts(normalized)
+    if parts:
+        return parts[0]
+    return normalized
+
+
 def _change_sentence(change: dict[str, Any]) -> str:
-    """Formule une phrase « Ce qui change » à partir des diff_type et extraits T1/T2."""
+    """Formule une phrase « Ce qui change » à partir des diff_type et extraits sources."""
+    from vigilance.i18n.fr import sanitize_analyst_french
+
     diff_type = str(change.get("diff_type") or "").lower()
     summary = _clean(change.get("change_summary"))
     source_t1 = _clean(change.get("source_text_t1") or change.get("semantic_text_t1"))
@@ -165,20 +180,32 @@ def _change_sentence(change: dict[str, Any]) -> str:
 
     if diff_type == "added" and source_t2:
         return _sentence(
-            f"Le T2 ajoute l'information suivante, absente du T1 : {source_t2}"
+            sanitize_analyst_french(
+                "Le rapport courant ajoute l'information suivante, absente "
+                f"du rapport précédent : {source_t2}"
+            )
         )
     if diff_type == "removed" and source_t1:
         return _sentence(
-            f"Le T2 retire l'information suivante, présente au T1 : {source_t1}"
+            sanitize_analyst_french(
+                "Le rapport courant retire l'information suivante, présente "
+                f"au rapport précédent : {source_t1}"
+            )
         )
     if diff_type == "modified" and source_t1 and source_t2:
         return _sentence(
-            "Le passage est modifie entre T1 et T2. "
-            f"T1 indiquait : {source_t1} T2 indique : {source_t2}"
+            sanitize_analyst_french(
+                "Le passage est modifié entre les deux versions. "
+                f"Le rapport précédent indiquait : {source_t1} "
+                f"Le rapport courant indique : {source_t2}"
+            )
         )
     if summary:
-        return _sentence(summary)
-    return "Le changement textuel modifie l'information communiquee entre T1 et T2."
+        return _sentence(sanitize_analyst_french(summary))
+    return (
+        "Le changement textuel modifie l'information communiquée entre "
+        "le rapport précédent et le rapport courant."
+    )
 
 
 def _fallback_pertinence(change: dict[str, Any], triage: dict[str, Any]) -> str:
@@ -287,7 +314,7 @@ def build_compact_triage_justification(
 ) -> str:
     """Construit localement le format historique depuis le triage compact."""
     from vigilance.amf_taxonomy import THEMES_AMF_ANALYST_SUBJECTS
-    from vigilance.vigie_columns import summarize_change
+    from vigilance.i18n.fr import sanitize_analyst_french
 
     nouvelle_idee = bool(triage.get("nouvelle_idee", False))
     prefix = "OUI" if nouvelle_idee else "NON"
@@ -297,14 +324,13 @@ def build_compact_triage_justification(
         for theme in triage.get("themes_amf") or []
     ]
     subject = ", ".join(dict.fromkeys(subjects)) or "Changement non retenu"
-    what_changed = summarize_change(
-        change,
-        previous_text=str(change.get("source_text_t1") or ""),
-        current_text=str(change.get("source_text_t2") or ""),
-    )
     relevance_reason = _clean(triage.get("relevance_reason"))
     if not relevance_reason:
         relevance_reason = _fallback_pertinence(change, triage)
+    # Prefer the factual first sentence of relevance_reason — complete and analyst-ready.
+    what_changed = _first_complete_sentence(relevance_reason) or _change_sentence(change)
+    what_changed = sanitize_analyst_french(what_changed)
+    relevance_reason = sanitize_analyst_french(relevance_reason)
     surveillance = (
         f"{subject.split(',')[0]} — La décision reste disponible pour validation "
         "avec les textes sources et les différences exactes."

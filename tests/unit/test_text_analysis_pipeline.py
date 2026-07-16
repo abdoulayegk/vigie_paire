@@ -314,13 +314,13 @@ def test_triage_few_shots_request_compact_relevance_reason() -> None:
     assert "relevance_reason" in _FEW_SHOT_TRIAGE_AMF
     assert "impact_it" not in _FEW_SHOT_TRIAGE_AMF
     assert "justification_posture" not in _FEW_SHOT_TRIAGE_AMF
-    assert _FEW_SHOT_TRIAGE_AMF.count("Exemple ") == 2
+    assert _FEW_SHOT_TRIAGE_AMF.count("Exemple ") == 5
     outputs = [
         json.loads(line.removeprefix("Output : "))
         for line in _FEW_SHOT_TRIAGE_AMF.splitlines()
         if line.startswith("Output : ")
     ]
-    assert len(outputs) == 2
+    assert len(outputs) == 5
     for output in outputs:
         validated = TriageAMFCompactLLMResultWithIndex(**output)
         assert count_complete_sentences(validated.relevance_reason) == 2
@@ -5405,8 +5405,10 @@ def test_triage_section_changes_converts_validation_error_to_triage_validation_e
     changes = [
         {
             "diff_type": "modified",
-            "semantic_text_t1": "Texte T1.",
-            "semantic_text_t2": "Texte T2.",
+            "semantic_text_t1": "La banque décrit son dispositif de gouvernance du risque de crédit.",
+            "semantic_text_t2": "La banque décrit un dispositif renforcé de gouvernance du risque opérationnel.",
+            "source_text_t1": "La banque décrit son dispositif de gouvernance du risque de crédit.",
+            "source_text_t2": "La banque décrit un dispositif renforcé de gouvernance du risque opérationnel.",
         }
     ]
 
@@ -5480,8 +5482,10 @@ def test_triage_section_changes_propagates_runtime_error_unwrapped() -> None:
     changes = [
         {
             "diff_type": "modified",
-            "semantic_text_t1": "T1",
-            "semantic_text_t2": "T2",
+            "semantic_text_t1": "La banque souligne le risque de liquidité dans sa divulgation.",
+            "semantic_text_t2": "La banque souligne le risque de marché dans sa divulgation.",
+            "source_text_t1": "La banque souligne le risque de liquidité dans sa divulgation.",
+            "source_text_t2": "La banque souligne le risque de marché dans sa divulgation.",
         }
     ]
 
@@ -5592,7 +5596,7 @@ def test_triage_section_changes_batches_two_sides_of_one_semantic_distinct_decis
             "diff_type": "removed",
             "semantic_alignment_group_id": "a04",
             "alignment_decision": "distinct_disclosures",
-            "source_text_t1": "Émission américaine retirée.",
+            "source_text_t1": "Exposition américaine retirée du texte.",
             "source_text_t2": "",
         },
         {
@@ -5600,7 +5604,7 @@ def test_triage_section_changes_batches_two_sides_of_one_semantic_distinct_decis
             "semantic_alignment_group_id": "a04",
             "alignment_decision": "distinct_disclosures",
             "source_text_t1": "",
-            "source_text_t2": "Émission canadienne ajoutée.",
+            "source_text_t2": "Exposition canadienne ajoutée au texte.",
         },
     ]
 
@@ -5784,8 +5788,14 @@ def test_triage_section_changes_accepts_gpt_confirmed_semantic_alignment() -> No
             "alignment_decision": "same_disclosure",
             "alignment_confidence": "high",
             "alignment_rationale": "Même limite prudentielle, actualisée dans le rapport courant.",
-            "source_text_t1": "Le seuil prudentiel est de 4,5 %.",
-            "source_text_t2": "Le seuil prudentiel est de 5,0 %.",
+            "source_text_t1": (
+                "La banque surveille le risque de crédit selon une approche "
+                "interne fondée sur des revues périodiques."
+            ),
+            "source_text_t2": (
+                "La banque surveille le risque de crédit selon une approche "
+                "interne fondée sur des revues trimestrielles."
+            ),
         }
     ]
 
@@ -5845,3 +5855,77 @@ def test_triage_section_changes_does_not_request_posture_or_it_impact() -> None:
     assert result[0]["genai_triage"]["changement_posture"] == "INDETERMINE"
     assert result[0]["genai_triage"]["statut_mise_en_oeuvre"] == "INDETERMINE"
     assert result[0]["genai_triage"]["confiance_posture"] == "INDETERMINE"
+
+
+def test_normalize_themes_amf_clamps_unknown_to_emergent() -> None:
+    from vigilance.text_analysis.triage import _normalize_themes_amf
+
+    assert _normalize_themes_amf(["EXIGENCES_REGLEMENTAIRES"]) == [
+        "EXIGENCES_REGLEMENTAIRES"
+    ]
+    assert _normalize_themes_amf(["THEME_INEXISTANT_XYZ"]) == [
+        "SUJET_EMERGENT_HORS_GRILLE"
+    ]
+    assert _normalize_themes_amf(
+        ["RISQUE_EMERGENT", "THEME_INEXISTANT_XYZ", "RISQUE_EMERGENT"]
+    ) == ["RISQUE_EMERGENT", "SUJET_EMERGENT_HORS_GRILLE"]
+    assert _normalize_themes_amf([]) == []
+
+
+def test_triage_accepts_amf_theme_outside_candidate_shortlist(monkeypatch) -> None:
+    """Un thème AMF valide hors shortlist ne fait plus planter le pipeline."""
+    from vigilance.text_analysis import triage as triage_mod
+
+    def _narrow_candidates(change, *, section_key, limit=6):
+        return [
+            {
+                "code": "RISQUE_EMERGENT",
+                "label": "Risque émergent",
+                "description": "Risque émergent.",
+            },
+            {
+                "code": "SUJET_EMERGENT_HORS_GRILLE",
+                "label": "Hors grille",
+                "description": "Hors grille.",
+            },
+        ]
+
+    monkeypatch.setattr(triage_mod, "_candidate_themes_for_change", _narrow_candidates)
+
+    parsed = TriageAMFCompactLLMBatch(
+        triages=[
+            TriageAMFCompactLLMResultWithIndex(
+                change_index=1,
+                is_relevant=True,
+                themes_amf=["EXIGENCES_REGLEMENTAIRES"],
+                nouvelle_idee=True,
+                relevance_reason=_compact_reason(),
+            )
+        ]
+    )
+    client = _FakeStructuredClient(_make_parsed_response(parsed))
+    changes = [
+        {
+            "diff_type": "added",
+            "source_text_t1": "",
+            "source_text_t2": (
+                "La banque décrit une nouvelle exigence réglementaire du BSIF "
+                "sur la divulgation des risques opérationnels."
+            ),
+        }
+    ]
+
+    result = _triage_section_changes(
+        client=client,
+        model="gpt-4o",
+        section_key="gestion_risques",
+        changes=changes,
+    )
+
+    triage = result[0]["genai_triage"]
+    assert triage["themes_amf"] == ["EXIGENCES_REGLEMENTAIRES"]
+    assert triage["is_relevant"] is True
+    user_prompt = client._completions.calls[0]["messages"][1]["content"]
+    assert "Taxonomie AMF autorisée" in user_prompt
+    assert "EXIGENCES_REGLEMENTAIRES" in user_prompt
+    assert "uniquement parmi les `candidate_themes`" not in user_prompt
