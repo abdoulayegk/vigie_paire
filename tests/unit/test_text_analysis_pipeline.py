@@ -5162,6 +5162,25 @@ def test_compact_triage_ignores_common_french_abbreviations_inside_sentence() ->
     assert count_complete_sentences(result.relevance_reason) == 2
 
 
+@pytest.mark.parametrize("abbreviation", ["s. o.", "s.o."])
+def test_compact_triage_ignores_sans_objet_abbreviation(
+    abbreviation: str,
+) -> None:
+    result = TriageAMFCompactLLMResultWithIndex(
+        change_index=1,
+        is_relevant=False,
+        themes_amf=[],
+        nouvelle_idee=False,
+        relevance_reason=(
+            f"La mention « {abbreviation} - sans objet » remplace une valeur "
+            "dans le rapport courant. Cette mise à jour n'apporte pas de nouvel "
+            "élément pour comparer les pratiques de gestion du capital entre "
+            "les banques."
+        ),
+    )
+    assert count_complete_sentences(result.relevance_reason) == 2
+
+
 def test_invariant_relevant_without_themes_raises() -> None:
     with pytest.raises(_PydValidationError, match="themes_amf"):
         TriageAMFResult(
