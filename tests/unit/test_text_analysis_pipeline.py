@@ -315,7 +315,7 @@ def test_triage_few_shots_request_compact_relevance_reason() -> None:
     assert "relevance_reason" in _FEW_SHOT_TRIAGE_AMF
     assert "impact_it" not in _FEW_SHOT_TRIAGE_AMF
     assert "justification_posture" not in _FEW_SHOT_TRIAGE_AMF
-    assert _FEW_SHOT_TRIAGE_AMF.count("Exemple ") == 7
+    assert _FEW_SHOT_TRIAGE_AMF.count("Exemple ") == 9
     assert "transfert de responsabilité de gouvernance" in _FEW_SHOT_TRIAGE_AMF
     assert "comité renommé pertinent" in _FEW_SHOT_TRIAGE_AMF
     outputs = [
@@ -323,7 +323,7 @@ def test_triage_few_shots_request_compact_relevance_reason() -> None:
         for line in _FEW_SHOT_TRIAGE_AMF.splitlines()
         if line.startswith("Output : ")
     ]
-    assert len(outputs) == 7
+    assert len(outputs) == 9
     for output in outputs:
         validated = TriageAMFCompactLLMResultWithIndex(**output)
         assert count_complete_sentences(validated.relevance_reason) == 2
@@ -6086,6 +6086,66 @@ def test_governance_new_idea_receives_major_priority() -> None:
     assert triage["nouvelle_idee"] is True
     assert triage["impact_level"] == "MAJEUR"
     assert triage["action_requise"] == "revue_prioritaire"
+
+
+@pytest.mark.parametrize(
+    ("theme", "previous", "current"),
+    [
+        (
+            "MODIFICATION_METHODOLOGIE",
+            "Le risque de crédit est mesuré selon l’approche standard.",
+            "Le risque de crédit est mesuré selon un modèle interne avancé.",
+        ),
+        (
+            "CONTROLE_CONFORMITE",
+            "Le processus de clôture des alertes repose sur une validation.",
+            "Le processus de clôture des alertes exige désormais deux validations.",
+        ),
+    ],
+)
+def test_real_methodology_or_process_change_receives_major_priority(
+    theme: str,
+    previous: str,
+    current: str,
+) -> None:
+    parsed = TriageAMFCompactLLMBatch(
+        triages=[
+            TriageAMFCompactLLMResultWithIndex(
+                change_index=1,
+                is_relevant=True,
+                themes_amf=[theme],
+                nouvelle_idee=True,
+                relevance_reason=(
+                    "Le rapport courant modifie le fonctionnement décrit dans le "
+                    "rapport précédent. Cette évolution substantielle fournit un "
+                    "point prioritaire de comparaison entre les banques."
+                ),
+            )
+        ]
+    )
+    client = _FakeStructuredClient(_make_parsed_response(parsed))
+
+    result = _triage_section_changes(
+        client=client,
+        model="gpt-4o",
+        section_key="gestion_risques",
+        changes=[
+            {
+                "diff_type": "modified",
+                "source_text_t1": previous,
+                "source_text_t2": current,
+            }
+        ],
+    )
+
+    triage = result[0]["genai_triage"]
+    assert triage["impact_level"] == "MAJEUR"
+    assert triage["action_requise"] == "revue_prioritaire"
+
+    prompt = client._completions.calls[0]["messages"][1]["content"]
+    assert "modification réelle de méthodologie ou de processus" in prompt
+    assert "Exemple 8 — changement réel de méthodologie" in prompt
+    assert "Exemple 9 — modification réelle de processus" in prompt
 
 
 def test_committee_rename_stays_relevant_without_becoming_a_new_idea() -> None:

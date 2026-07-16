@@ -98,6 +98,13 @@ _METHODOLOGY_SIGNAL_RE = re.compile(
     r")\b",
     flags=re.IGNORECASE,
 )
+_PROCESS_SIGNAL_RE = re.compile(
+    r"\b(?:"
+    r"processus|proc[ée]dure|flux\s+de\s+travail|workflow|"
+    r"cha[iî]ne\s+de\s+traitement|mode\s+op[ée]ratoire"
+    r")\b",
+    flags=re.IGNORECASE,
+)
 _NEW_REGULATORY_SIGNAL_RE = re.compile(
     r"\b(?:"
     r"b-15|ligne\s+directrice|tlac|bâle\s+iii|nouvelle\s+exigence|"
@@ -1138,6 +1145,14 @@ Output : {"change_index": 1, "is_relevant": true, "themes_amf": ["GOUVERNANCE_RI
 Exemple 7 — comité renommé pertinent sans nouvelle idée substantielle
 Input : {"change_index": 1, "diff_type": "modified", "change_summary": "Le Comité de gestion des risques est renommé Comité des risques et de la conformité, sans modification de son mandat."}
 Output : {"change_index": 1, "is_relevant": true, "themes_amf": ["GOUVERNANCE_RISQUES"], "nouvelle_idee": false, "relevance_reason": "Le rapport courant renomme le Comité de gestion des risques en Comité des risques et de la conformité tout en maintenant son mandat. Ce changement de désignation reste pertinent pour suivre la structure de gouvernance entre les périodes, sans démontrer à lui seul une nouvelle responsabilité ou autorité."}
+
+Exemple 8 — changement réel de méthodologie pertinent et substantiel
+Input : {"change_index": 1, "diff_type": "modified", "change_summary": "La méthode standard de mesure du risque de crédit est remplacée par un modèle interne avancé."}
+Output : {"change_index": 1, "is_relevant": true, "themes_amf": ["MODIFICATION_METHODOLOGIE"], "nouvelle_idee": true, "relevance_reason": "Le rapport courant remplace la méthode standard de mesure du risque de crédit par un modèle interne avancé. Cette nouvelle base méthodologique modifie substantiellement la mesure déclarée et constitue un point prioritaire de comparaison entre les banques."}
+
+Exemple 9 — modification réelle de processus pertinente et substantielle
+Input : {"change_index": 1, "diff_type": "modified", "change_summary": "Les alertes de conformité sont désormais validées par une deuxième équipe avant leur clôture."}
+Output : {"change_index": 1, "is_relevant": true, "themes_amf": ["CONTROLE_CONFORMITE"], "nouvelle_idee": true, "relevance_reason": "Le rapport courant ajoute une seconde validation au processus de clôture des alertes de conformité. Cette modification réelle du processus renforce le dispositif de contrôle et fournit un point prioritaire de comparaison entre les banques."}
 """
 
 
@@ -1270,7 +1285,24 @@ def _persisted_triage_from_compact(
         )
         relevance_reason = _local_relevance_reason(factual, comparative)
 
-    high_priority = bool(set(themes) & _COMPACT_HIGH_PRIORITY_THEMES)
+    change_corpus = " ".join(
+        str(change.get(field) or "")
+        for field in (
+            "source_text_t1",
+            "source_text_t2",
+            "semantic_text_t1",
+            "semantic_text_t2",
+            "change_summary",
+        )
+    )
+    substantive_process_change = (
+        nouvelle_idee
+        and "CONTROLE_CONFORMITE" in themes
+        and bool(_PROCESS_SIGNAL_RE.search(change_corpus))
+    )
+    high_priority = bool(set(themes) & _COMPACT_HIGH_PRIORITY_THEMES) or (
+        substantive_process_change
+    )
 
     if not is_relevant:
         impact_level = "MINEUR"
@@ -1543,6 +1575,12 @@ def _triage_section_changes(
         "comptes, de culture de risque, de rémunération liée au risque ou d’appétit "
         "pour le risque. Une phrase courte peut donc être une nouvelle idée; un "
         "simple renommage sans effet sur le mandat ne l’est pas.\n"
+        "   Une modification réelle de méthodologie ou de processus est toujours "
+        "substantielle et prioritaire : utilise `MODIFICATION_METHODOLOGIE` pour "
+        "la méthode ou l’approche, et `CONTROLE_CONFORMITE` pour un processus de "
+        "contrôle ou de conformité, avec `nouvelle_idee=true`. Une reformulation "
+        "qui ne change ni le fonctionnement, ni les étapes, ni les acteurs, ni les "
+        "contrôles demeure non substantielle.\n"
         "4. `relevance_reason` contient exactement deux phrases complètes, "
         "professionnelles et faciles à comprendre, rédigées pour une analyste. "
         "La première décrit factuellement le changement entre les rapports. "
