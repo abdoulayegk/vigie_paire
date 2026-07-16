@@ -315,13 +315,15 @@ def test_triage_few_shots_request_compact_relevance_reason() -> None:
     assert "relevance_reason" in _FEW_SHOT_TRIAGE_AMF
     assert "impact_it" not in _FEW_SHOT_TRIAGE_AMF
     assert "justification_posture" not in _FEW_SHOT_TRIAGE_AMF
-    assert _FEW_SHOT_TRIAGE_AMF.count("Exemple ") == 5
+    assert _FEW_SHOT_TRIAGE_AMF.count("Exemple ") == 9
+    assert "transfert de responsabilité de gouvernance" in _FEW_SHOT_TRIAGE_AMF
+    assert "comité renommé pertinent" in _FEW_SHOT_TRIAGE_AMF
     outputs = [
         json.loads(line.removeprefix("Output : "))
         for line in _FEW_SHOT_TRIAGE_AMF.splitlines()
         if line.startswith("Output : ")
     ]
-    assert len(outputs) == 5
+    assert len(outputs) == 9
     for output in outputs:
         validated = TriageAMFCompactLLMResultWithIndex(**output)
         assert count_complete_sentences(validated.relevance_reason) == 2
@@ -4994,6 +4996,7 @@ from vigilance.text_analysis_pipeline import (
     _call_structured_completion_with_correction,
     _triage_section_changes,
 )
+from vigilance.text_analysis.triage import _deterministic_cosmetic_exclusion
 
 
 def _valid_explanation() -> str:
@@ -6040,6 +6043,161 @@ def test_triage_section_changes_attaches_deterministic_change_segments() -> None
     assert "impact_it_justification" not in prompt
     assert "justification_posture" not in prompt
     assert client._completions.calls[0]["response_format"] is TriageAMFCompactLLMBatch
+
+
+def test_governance_new_idea_receives_major_priority() -> None:
+    parsed = TriageAMFCompactLLMBatch(
+        triages=[
+            TriageAMFCompactLLMResultWithIndex(
+                change_index=1,
+                is_relevant=True,
+                themes_amf=["GOUVERNANCE_RISQUES"],
+                nouvelle_idee=True,
+                relevance_reason=(
+                    "Le rapport courant transfère au conseil d’administration "
+                    "l’approbation de l’appétit pour le risque. Ce transfert "
+                    "d’autorité modifie la gouvernance et permet de comparer les "
+                    "responsabilités décisionnelles entre les banques."
+                ),
+            )
+        ]
+    )
+    client = _FakeStructuredClient(_make_parsed_response(parsed))
+
+    result = _triage_section_changes(
+        client=client,
+        model="gpt-4o",
+        section_key="gestion_risques",
+        changes=[
+            {
+                "diff_type": "modified",
+                "source_text_t1": (
+                    "Le comité de direction approuve l’appétit pour le risque."
+                ),
+                "source_text_t2": (
+                    "Le conseil d’administration approuve l’appétit pour le risque."
+                ),
+            }
+        ],
+    )
+
+    triage = result[0]["genai_triage"]
+    assert triage["is_relevant"] is True
+    assert triage["nouvelle_idee"] is True
+    assert triage["impact_level"] == "MAJEUR"
+    assert triage["action_requise"] == "revue_prioritaire"
+
+
+@pytest.mark.parametrize(
+    ("theme", "previous", "current"),
+    [
+        (
+            "MODIFICATION_METHODOLOGIE",
+            "Le risque de crédit est mesuré selon l’approche standard.",
+            "Le risque de crédit est mesuré selon un modèle interne avancé.",
+        ),
+        (
+            "CONTROLE_CONFORMITE",
+            "Le processus de clôture des alertes repose sur une validation.",
+            "Le processus de clôture des alertes exige désormais deux validations.",
+        ),
+    ],
+)
+def test_real_methodology_or_process_change_receives_major_priority(
+    theme: str,
+    previous: str,
+    current: str,
+) -> None:
+    parsed = TriageAMFCompactLLMBatch(
+        triages=[
+            TriageAMFCompactLLMResultWithIndex(
+                change_index=1,
+                is_relevant=True,
+                themes_amf=[theme],
+                nouvelle_idee=True,
+                relevance_reason=(
+                    "Le rapport courant modifie le fonctionnement décrit dans le "
+                    "rapport précédent. Cette évolution substantielle fournit un "
+                    "point prioritaire de comparaison entre les banques."
+                ),
+            )
+        ]
+    )
+    client = _FakeStructuredClient(_make_parsed_response(parsed))
+
+    result = _triage_section_changes(
+        client=client,
+        model="gpt-4o",
+        section_key="gestion_risques",
+        changes=[
+            {
+                "diff_type": "modified",
+                "source_text_t1": previous,
+                "source_text_t2": current,
+            }
+        ],
+    )
+
+    triage = result[0]["genai_triage"]
+    assert triage["impact_level"] == "MAJEUR"
+    assert triage["action_requise"] == "revue_prioritaire"
+
+    prompt = client._completions.calls[0]["messages"][1]["content"]
+    assert "modification réelle de méthodologie ou de processus" in prompt
+    assert "Exemple 8 — changement réel de méthodologie" in prompt
+    assert "Exemple 9 — modification réelle de processus" in prompt
+
+
+def test_committee_rename_stays_relevant_without_becoming_a_new_idea() -> None:
+    previous = (
+        "Le Comité de gestion des risques (CGR) supervise le cadre de gestion "
+        "intégrée des risques et présente ses conclusions chaque trimestre."
+    )
+    current = previous.replace("(CGR)", "(CGRI)")
+    change = {
+        "diff_type": "modified",
+        "source_text_t1": previous,
+        "source_text_t2": current,
+        "change_summary": (
+            "Le Comité de gestion des risques est désormais désigné par "
+            "l’acronyme CGRI, sans modification de son mandat."
+        ),
+    }
+    assert _deterministic_cosmetic_exclusion(change) is None
+
+    parsed = TriageAMFCompactLLMBatch(
+        triages=[
+            TriageAMFCompactLLMResultWithIndex(
+                change_index=1,
+                is_relevant=True,
+                themes_amf=["GOUVERNANCE_RISQUES"],
+                nouvelle_idee=False,
+                relevance_reason=(
+                    "Le rapport courant renomme le comité par le nouvel acronyme "
+                    "CGRI sans modifier son mandat. Cette désignation reste utile "
+                    "pour suivre la structure de gouvernance entre les périodes."
+                ),
+            )
+        ]
+    )
+    client = _FakeStructuredClient(_make_parsed_response(parsed))
+    result = _triage_section_changes(
+        client=client,
+        model="gpt-4o",
+        section_key="gestion_risques",
+        changes=[change],
+    )
+
+    triage = result[0]["genai_triage"]
+    assert client.call_count == 1
+    assert triage["is_relevant"] is True
+    assert triage["nouvelle_idee"] is False
+    assert triage["impact_level"] == "MINEUR"
+    assert triage["action_requise"] == "information"
+    prompt = client._completions.calls[0]["messages"][1]["content"]
+    assert "reste pertinent même si son mandat demeure identique" in prompt
+    assert "simple renommage sans effet sur le mandat ne l’est pas" in prompt
+    assert "Exemple 7 — comité renommé pertinent" in prompt
 
 
 def test_triage_section_changes_holds_unresolved_alignment_for_analyst_review() -> None:
