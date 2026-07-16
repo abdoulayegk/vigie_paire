@@ -130,9 +130,33 @@
 <span id="i18n-fr"></span><h2>i18n.fr<a class="headerlink" href="#module-vigilance.i18n.fr" title="Lien vers cette rubrique"></a></h2>
 <p>Traductions francaises – terminologie professionnelle bancaire.</p>
 <dl class="py function">
+<dt class="sig sig-object py" id="vigilance.i18n.fr.impact_label_fr">
+<span class="sig-name descname"><span class="pre">impact_label_fr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">code</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.i18n.fr.impact_label_fr" title="Lien vers cette définition"></a></dt>
+<dd><p>Convertit un code d’impact AMF en libellé français pour l’analyste.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="vigilance.i18n.fr.reason_fr">
 <span class="sig-name descname"><span class="pre">reason_fr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">code</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.i18n.fr.reason_fr" title="Lien vers cette définition"></a></dt>
 <dd><p>Convertit un code de raison en libelle francais. Les codes inconnus sont retournes tels quels.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.i18n.fr.sanitize_analyst_french">
+<span class="sig-name descname"><span class="pre">sanitize_analyst_french</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.i18n.fr.sanitize_analyst_french" title="Lien vers cette définition"></a></dt>
+<dd><p>Normalise un texte destiné à l’analyste : français soutenu, sans jargon pipeline.</p>
+<p>Remplace T1/T2, fragment/chunk et termes anglais résiduels. Ne modifie pas
+le sens métier ; sert uniquement l’affichage Dash et l’export Excel.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type renvoyé<span class="colon">:</span></dt>
 <dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
