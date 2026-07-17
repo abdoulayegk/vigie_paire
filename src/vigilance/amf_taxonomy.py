@@ -699,6 +699,38 @@ def _compact_complete_sentence_parts(value: str) -> list[str]:
     return parts
 
 
+def _strip_compact_sentence_ending(value: str) -> str:
+    """Retire la ponctuation terminale d'une phrase, sans perdre ses guillemets."""
+    match = re.search(
+        r"(?P<mark>[.!?]+)(?P<closers>[\u00bb\u201d\"')\]]*)$",
+        value,
+    )
+    if match is None:
+        return value.strip()
+    return f"{value[: match.start('mark')].rstrip()}{match.group('closers')}"
+
+
+def _collapse_compact_reason_to_two_sentences(value: str) -> str:
+    """Fusionne les phrases excédentaires sans supprimer leur contenu lexical.
+
+    La première phrase reste la description factuelle. Les phrases suivantes
+    sont réunies avec des points-virgules pour former l'interprétation
+    comparative attendue par les consommateurs aval.
+    """
+    normalized = " ".join(str(value or "").split())
+    parts = _compact_complete_sentence_parts(normalized)
+    if len(parts) <= COMPACT_RELEVANCE_REASON_SENTENCE_COUNT:
+        return normalized
+
+    first_sentence = parts[0]
+    comparative_clauses = [
+        _strip_compact_sentence_ending(part)
+        for part in parts[1:]
+    ]
+    second_sentence = "; ".join(comparative_clauses).strip()
+    return f"{first_sentence} {second_sentence}."
+
+
 def count_complete_sentences(value: str) -> int:
     """Compte les phrases terminées qui contiennent du contenu lexical."""
     return sum(
@@ -741,6 +773,7 @@ class TriageAMFCompactLLMResultWithIndex(BaseModel):
                 "relevance_reason doit se terminer par une phrase complète "
                 "ponctuée par '.', '!' ou '?'"
             )
+        normalized = _collapse_compact_reason_to_two_sentences(normalized)
         sentence_parts = _compact_complete_sentence_parts(normalized)
         if len(sentence_parts) != COMPACT_RELEVANCE_REASON_SENTENCE_COUNT:
             raise ValueError(

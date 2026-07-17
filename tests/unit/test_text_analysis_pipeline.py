@@ -5084,26 +5084,36 @@ def test_compact_triage_accepts_two_complete_relevance_reason_sentences() -> Non
     assert len(result.relevance_reason.split()) < 100
 
 
-@pytest.mark.parametrize(
-    "reason",
-    [
-        "Le rapport courant ajoute un nouveau contrôle de cybersécurité.",
-        (
-            "Le rapport courant ajoute un nouveau contrôle de cybersécurité. "
-            "Cette mesure renforce le dispositif déclaré par la banque. "
-            "Elle fournit aussi un nouveau point de comparaison entre les banques."
-        ),
-    ],
-)
-def test_compact_triage_rejects_other_sentence_counts(reason: str) -> None:
+def test_compact_triage_rejects_single_sentence() -> None:
     with pytest.raises(_PydValidationError, match="exactement 2 phrases complètes"):
         TriageAMFCompactLLMResultWithIndex(
             change_index=1,
             is_relevant=False,
             themes_amf=[],
             nouvelle_idee=False,
-            relevance_reason=reason,
+            relevance_reason="Le rapport courant ajoute un nouveau contrôle de cybersécurité.",
         )
+
+
+def test_compact_triage_collapses_extra_sentences_without_losing_content() -> None:
+    result = TriageAMFCompactLLMResultWithIndex(
+        change_index=1,
+        is_relevant=False,
+        themes_amf=[],
+        nouvelle_idee=False,
+        relevance_reason=(
+            "Le rapport courant ajoute un nouveau contrôle de cybersécurité. "
+            "Cette mesure renforce le dispositif déclaré par la banque. "
+            "Elle précise la fréquence du contrôle. "
+            "Elle fournit un point de comparaison entre les banques."
+        ),
+    )
+
+    assert count_complete_sentences(result.relevance_reason) == 2
+    assert "Cette mesure renforce le dispositif déclaré par la banque" in result.relevance_reason
+    assert "Elle précise la fréquence du contrôle" in result.relevance_reason
+    assert "Elle fournit un point de comparaison entre les banques" in result.relevance_reason
+    assert result.relevance_reason.count(";") == 2
 
 
 def test_compact_triage_rejects_incomplete_second_sentence() -> None:
@@ -5619,6 +5629,7 @@ def test_correction_retry_accepts_custom_validation_message() -> None:
     retry_messages = client._completions.calls[1]["messages"]
     assert "Message correctif spécialisé." in retry_messages[-1]["content"]
     assert "invariants AMF" not in retry_messages[-1]["content"]
+    assert _valid_explanation() in retry_messages[-1]["content"]
 
 
 def test_correction_retry_propagates_after_exhaustion() -> None:
