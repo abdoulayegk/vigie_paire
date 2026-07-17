@@ -452,10 +452,10 @@ SECTION_TITLE_ALIASES: dict[str, list[str]] = {
 # titres dans l'ordre physique du PDF. Les titres configurés ici complètent les
 # alias génériques et évitent d'imposer aux rapports T1-T3 la structure T4.
 T4_SECTION_TITLE_PROFILES: dict[str, dict[str, dict[str, list[str]]]] = {
-        "td": {
-            "gestion_capital": {
-                "start": ["Situation des fonds propres"],
-                "end": ["Situation financière du groupe"],
+    "td": {
+        "gestion_capital": {
+            "start": ["Situation des fonds propres"],
+            "end": ["Situation financière du groupe"],
         },
         "gestion_risques": {
             "start": ["Facteurs de risque et gestion des risques"],
@@ -1400,7 +1400,10 @@ class SectionLocator:
 
     def _is_annual_t4_risk_section(self, section: LocatedSection) -> bool:
         """Indiquer si une section est la section risques annuelle T4."""
-        return self._is_annual_t4_target_section(section) and canonicalize_section(section.section_type) == "risk_management"
+        return (
+            self._is_annual_t4_target_section(section)
+            and canonicalize_section(section.section_type) == "risk_management"
+        )
 
     def _annual_t4_profile(self, section_type: str) -> dict[str, list[str]]:
         """Retourner les repères sémantiques T4 de la banque courante."""
@@ -1523,9 +1526,7 @@ class SectionLocator:
                     continue
 
                 matched_normalized = normalize_text(matched_title).strip()
-                exact_match = bool(
-                    self._title_match_variants(line) & self._title_match_variants(matched_title)
-                )
+                exact_match = bool(self._title_match_variants(line) & self._title_match_variants(matched_title))
                 if matched_normalized in profile_titles and exact_match:
                     profile_exact_candidates.append((page_num, line_index, matched_title))
                 score = 0.0
@@ -1557,9 +1558,7 @@ class SectionLocator:
         if profile_exact_candidates:
             # Les titres de chapitre se trouvent normalement en tête de page.
             # S'il y en a un, il prévaut sur une mention narrative antérieure.
-            top_level_roots = [
-                candidate for candidate in profile_exact_candidates if candidate[1] <= 5
-            ]
+            top_level_roots = [candidate for candidate in profile_exact_candidates if candidate[1] <= 5]
             if top_level_roots:
                 page_num, _, matched_title = min(top_level_roots, key=lambda item: item[0])
                 return page_num, matched_title
@@ -1661,24 +1660,30 @@ class SectionLocator:
                 successor_is_exact = bool(
                     successor
                     and any(
-                        self._title_match_variants(value) & self._title_match_variants(successor)
-                        for value in variants
+                        self._title_match_variants(value) & self._title_match_variants(successor) for value in variants
                     )
                 )
-                if not any(
-                    self._is_likely_section_title(value, page_text, matches_configured_pattern=True)
-                    for value in variants
-                ) and not successor_is_exact:
+                if (
+                    not any(
+                        self._is_likely_section_title(value, page_text, matches_configured_pattern=True)
+                        for value in variants
+                    )
+                    and not successor_is_exact
+                ):
                     continue
                 if section_type == "gestion_risques" and any(self._is_risk_subsection(value) for value in variants):
                     continue
                 # Un titre exact peut être rejeté très bas dans l'ordre textuel
                 # de pdfplumber. Les correspondances seulement préfixées et les
                 # patterns génériques restent limitées au haut de page.
-                if successor_is_exact or (successor and line_index <= 35) or (
-                    not has_profile_successor
-                    and line_index <= 35
-                    and any(pattern.match(value) for pattern in following_patterns for value in variants)
+                if (
+                    successor_is_exact
+                    or (successor and line_index <= 35)
+                    or (
+                        not has_profile_successor
+                        and line_index <= 35
+                        and any(pattern.match(value) for pattern in following_patterns for value in variants)
+                    )
                 ):
                     logger.info(
                         "T4 annuel: fin %s validée par titre physique p.%s: %s",
@@ -1689,8 +1694,7 @@ class SectionLocator:
                     return page_num - 1, "annual_t4_physical_successor"
 
         logger.warning(
-            "T4 annuel: aucune section suivante validée après %s p.%s; "
-            "application de la borne de sécurité documentée.",
+            "T4 annuel: aucune section suivante validée après %s p.%s; application de la borne de sécurité documentée.",
             section_type,
             start_page,
         )
@@ -3709,7 +3713,9 @@ class SectionLocator:
             # un sous-thème (p. ex. propriété intellectuelle) peut y ressembler
             # à un nouveau chapitre. Une fin pré-calculée depuis cette TDM ne
             # doit donc jamais court-circuiter la recherche du vrai successeur.
-            if self._is_annual_t4_target_section(section) and not section.detection_method.startswith("manual_override"):
+            if self._is_annual_t4_target_section(section) and not section.detection_method.startswith(
+                "manual_override"
+            ):
                 end_page, end_method = self._detect_annual_t4_section_end(
                     section.section_type, section.start_page, text_by_page, total_pages
                 )

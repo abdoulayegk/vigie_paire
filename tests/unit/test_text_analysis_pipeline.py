@@ -1625,6 +1625,21 @@ def test_classify_block_type_rejects_rating_table_like_block() -> None:
     assert _classify_block_type(block, {}) == "table"
 
 
+def test_classify_block_type_rejects_numbered_table_caption_title() -> None:
+    block = PDFBlock(
+        "p065_d012",
+        65,
+        [0.08, 0.60, 0.64, 0.62],
+        "T33 État des flux liés aux actifs pondérés en fonction du risque de crédit de Bâle III (en millions de dollars)",
+        12,
+        block_type="other",
+        source_label="section_header",
+        heading_level=1,
+    )
+
+    assert _classify_block_type(block, {}) == "table"
+
+
 def test_classify_block_type_rejects_block_overlapping_docling_table_bbox() -> None:
     block = PDFBlock(
         "p043_d002",

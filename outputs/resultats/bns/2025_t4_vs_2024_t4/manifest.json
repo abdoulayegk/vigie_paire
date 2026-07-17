@@ -1,0 +1,17 @@
+{
+  "bank": "BNS",
+  "current": {
+    "year": 2025,
+    "quarter": "T4",
+    "extraction_path": "/Users/balde/Desktop/vigie_paire/outputs/extractions/bns/2025/t4",
+    "pdf_path": "/Users/balde/Desktop/vigie_paire/Inputs/BNS/2025/BNS_2025_T4.pdf"
+  },
+  "previous": {
+    "year": 2024,
+    "quarter": "T4",
+    "extraction_path": "/Users/balde/Desktop/vigie_paire/outputs/extractions/bns/2024/t4",
+    "pdf_path": "/Users/balde/Desktop/vigie_paire/Inputs/BNS/2024/BNS_2024_T4.pdf"
+  },
+  "status": "completed",
+  "generated_at": "2026-07-17T19:01:21.430376+00:00"
+}
