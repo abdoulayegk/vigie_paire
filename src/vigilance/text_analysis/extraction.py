@@ -21,6 +21,7 @@ from vigilance.text_analysis.normalization import (
     _is_table_unit_label,
     _looks_like_footnote,
     _looks_like_narrative_paragraph,
+    _looks_like_table_caption_title,
     _looks_like_table_footnote_text,
     _looks_like_table_or_financial_grid,
     _normalized_block_text,
@@ -425,6 +426,8 @@ def _classify_block_type(
     if _is_running_report_chrome(text):
         return "header_footer"
     if _is_table_unit_label(text):
+        return "table"
+    if _looks_like_table_caption_title(text):
         return "table"
     if _is_chart_axis_label_row(text):
         return "table"

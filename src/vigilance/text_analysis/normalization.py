@@ -32,6 +32,14 @@ _TABLE_UNIT_LABEL_RE = re.compile(
     r"dollars(?:\s+canadiens)?\s*\)?\s*$",
     flags=re.IGNORECASE,
 )
+_TABLE_CAPTION_UNIT_RE = re.compile(
+    r"\(\s*en\s+(?:milliers|millions|milliards)\s+de\s+dollars",
+    flags=re.IGNORECASE,
+)
+_NUMBERED_TABLE_CAPTION_RE = re.compile(
+    r"^\s*T\d+\b.+" + _TABLE_CAPTION_UNIT_RE.pattern,
+    flags=re.IGNORECASE,
+)
 _BNC_ANNUAL_REPORT_CHROME_RE = re.compile(
     r"^\s*(?:\d{1,3}\s+)?banque\s+nationale\s+du\s+canada\s+"
     r"rapport\s+annuel\s+20\d{2}(?:\s+\d{1,3})?\s*$",
@@ -104,6 +112,22 @@ def _is_not_applicable_marker(text: str) -> bool:
 def _is_table_unit_label(text: str) -> bool:
     """Indique qu'un bloc est le libellé d'unité d'un tableau ou graphique."""
     return bool(_TABLE_UNIT_LABEL_RE.fullmatch(str(text or "")))
+
+
+def _looks_like_table_caption_title(text: str) -> bool:
+    """Indique un titre/légende de tableau, pas du narratif comparable.
+
+    Docling étiquette souvent ces légendes ``section_header`` (ex. ``T33 État
+    des flux … (en millions de dollars)``). Elles précèdent une grille et doivent
+    être exclues du markdown narratif, comme le font déjà les chaînes de titres
+    immédiatement suivies d'une table Markdown.
+    """
+    value = str(text or "").strip()
+    if not value:
+        return False
+    if _NUMBERED_TABLE_CAPTION_RE.search(value):
+        return True
+    return bool(_TABLE_HEADING_RE.match(value) and _TABLE_CAPTION_UNIT_RE.search(value))
 
 
 def _is_running_report_chrome(text: str) -> bool:

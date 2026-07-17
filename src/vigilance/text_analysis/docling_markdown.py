@@ -19,6 +19,7 @@ from vigilance.text_analysis.normalization import (
     _is_not_applicable_marker,
     _is_running_report_chrome,
     _is_table_unit_label,
+    _looks_like_table_caption_title,
     _normalized_block_text,
 )
 
@@ -402,6 +403,10 @@ def _missing_audited_blocks(
         for block in audit.included_blocks:
             if _is_audited_structural_heading(block):
                 continue
+            # Titres de grille exclus du matching (heading → table) : ne pas
+            # les exiger dans le markdown narratif.
+            if _looks_like_table_caption_title(block.text):
+                continue
             block_norm = _normalized_block_text(block.text)
             if not block_norm or block_norm in rendered:
                 continue
@@ -677,6 +682,7 @@ def _merge_missing_audited_segments(
         block
         for block in audit.included_blocks
         if not _is_audited_structural_heading(block)
+        if not _looks_like_table_caption_title(block.text)
         if _normalized_block_text(block.text)
         and _normalized_block_text(block.text) not in rendered_norm
     ]
