@@ -217,6 +217,7 @@ def _exact_diff_change_for_strong_alignment(
             f"embedding={alignment.embedding_score:.2f}, sequence={similarity:.2f}); "
             "diff exacte locale sans arbitrage GPT supplémentaire."
         ),
+        "alignment_reason": alignment.reason,
         "tfidf_score": alignment.tfidf_score,
         "embedding_score": alignment.embedding_score,
     }
@@ -273,9 +274,15 @@ def _split_exact_diff_alignments(
     exact: list[ChunkAlignment] = []
     remaining: list[ChunkAlignment] = []
     for alignment in alignments:
+        # matched_strong may come from TF-IDF-only fallback (embedding_score=0)
+        # or from embeddings; both deserve the local exact-diff fast path when
+        # the sequences are near-identical.
+        strong_signal = (
+            alignment.embedding_score >= 0.85 or alignment.tfidf_score >= 0.85
+        )
         if (
             alignment.alignment_type == "matched_strong"
-            and alignment.embedding_score >= 0.85
+            and strong_signal
             and alignment.chunk_t1 is not None
             and alignment.chunk_t2 is not None
             and _sequence_similarity(alignment.chunk_t1.text, alignment.chunk_t2.text)
@@ -593,6 +600,7 @@ def _attach_alignment_metadata(
                     scoped_change, alignment_decision
                 ),
                 "alignment_rationale": str(scoped_change.get("alignment_rationale") or "").strip(),
+                "alignment_reason": alignment.reason,
                 "tfidf_score": alignment.tfidf_score,
                 "embedding_score": alignment.embedding_score,
             }
@@ -705,20 +713,42 @@ def _deduplicate_alignment_changes(changes: list[dict[str, Any]]) -> list[dict[s
     return deduplicated
 
 
-def _unmatched_subsection_chunk_changes(
+def _heading_slug(heading: str) -> str:
+    return re.sub(r"[^\w]+", "_", _normalize_heading(heading))[:40].strip("_") or "unknown"
+
+
+def _display_heading_for_alignment(alignment: ChunkAlignment) -> str:
+    """Heading affiché : H1 → H2 quand le match croise deux sous-sections."""
+    heading_t1 = str(alignment.chunk_t1.subsection_heading if alignment.chunk_t1 else "").strip()
+    heading_t2 = str(alignment.chunk_t2.subsection_heading if alignment.chunk_t2 else "").strip()
+    if heading_t1 and heading_t2 and heading_t1 != heading_t2:
+        return f"{heading_t1} → {heading_t2}"
+    return heading_t1 or heading_t2 or "unknown"
+
+
+def _annotate_section_rescue(alignment: ChunkAlignment) -> ChunkAlignment:
+    """Marque un match Phase B comme récupération cross-sous-section."""
+    alignment.reason = "section_rescue"
+    return alignment
+
+
+def _is_matched_alignment(alignment: ChunkAlignment) -> bool:
+    return alignment.alignment_type not in {"possible_added", "possible_removed"}
+
+
+def _chunk_subsection_bodies(
     *,
     section_key: str,
-    diff_type: str,
     heading: str,
     body: str,
-    idx_offset: int,
     client: Any,
-    embedding_model: str = "text-embedding-3-small",
-    semantic_model: str = "gpt-4o",
-) -> list[dict[str, Any]]:
-    """Produit des ajouts/retraits par chunk pour une sous-section sans paire."""
+    embedding_model: str,
+    semantic_model: str,
+) -> list[TextChunk]:
+    if not str(body or "").strip():
+        return []
     section_title = _SECTION_LABELS.get(section_key, section_key)
-    chunks = _chunk_subsection_text(
+    return _chunk_subsection_text(
         body,
         subsection_heading=heading,
         section_title=section_title,
@@ -726,9 +756,68 @@ def _unmatched_subsection_chunk_changes(
         embedding_model=embedding_model,
         semantic_model=semantic_model,
     )
-    slug = re.sub(r"[^\w]+", "_", _normalize_heading(heading))[:40].strip("_")
+
+
+def _process_alignment_group(
+    *,
+    client: Any,
+    model: str,
+    section_key: str,
+    heading_label: str,
+    heading_slug: str,
+    alignments: list[ChunkAlignment],
+    idx_offset: int,
+) -> list[dict[str, Any]]:
+    """Exact-diff + LLM pour un groupe d'alignements déjà résolus."""
+    if not alignments:
+        return []
+    exact_alignments, llm_alignments = _split_exact_diff_alignments(alignments)
+    exact_changes: list[dict[str, Any]] = []
+    for index, alignment in enumerate(exact_alignments, start=1):
+        change = _exact_diff_change_for_strong_alignment(
+            alignment=alignment,
+            section_key=section_key,
+            heading_label=heading_label,
+            heading_slug=heading_slug,
+            change_index=index,
+        )
+        if change is None:
+            llm_alignments.append(alignment)
+            continue
+        exact_changes.append(change)
+
+    batches = _build_comparison_batches(
+        alignments=llm_alignments,
+        heading_label=heading_label,
+        heading_slug=heading_slug,
+    )
+    llm_changes = _compare_alignment_batches(
+        client=client,
+        model=model,
+        section_key=section_key,
+        batches=batches,
+    )
+    group_changes = _deduplicate_alignment_changes([*exact_changes, *llm_changes])
+    return _reindex_changes(
+        group_changes,
+        section_key=section_key,
+        heading_slug=heading_slug,
+        idx_offset=idx_offset,
+    )
+
+
+def _changes_from_orphan_chunks(
+    *,
+    section_key: str,
+    diff_type: str,
+    chunks: list[TextChunk],
+    idx_offset: int,
+) -> list[dict[str, Any]]:
+    """Ajouts/retraits déterministes pour les orphelins restants après Phase B."""
     changes: list[dict[str, Any]] = []
     for chunk_index, chunk in enumerate(chunks, start=1):
+        heading = chunk.subsection_heading or "unknown"
+        slug = _heading_slug(heading)
         text_t1 = chunk.text if diff_type == "removed" else ""
         text_t2 = chunk.text if diff_type == "added" else ""
         change_index = idx_offset + chunk_index
@@ -741,6 +830,7 @@ def _unmatched_subsection_chunk_changes(
                 "source_scope": "chunk",
                 "alignment_id": f"unmatched_{chunk.chunk_id}",
                 "alignment_type": f"unmatched_{diff_type}",
+                "alignment_reason": "section_orphan_after_rescue",
                 "chunk_id_t1": chunk.chunk_id if diff_type == "removed" else None,
                 "chunk_id_t2": chunk.chunk_id if diff_type == "added" else None,
                 "semantic_text_t1": _sanitize_semantic_text(text_t1),
@@ -766,6 +856,34 @@ def _unmatched_subsection_chunk_changes(
     return changes
 
 
+def _unmatched_subsection_chunk_changes(
+    *,
+    section_key: str,
+    diff_type: str,
+    heading: str,
+    body: str,
+    idx_offset: int,
+    client: Any,
+    embedding_model: str = "text-embedding-3-small",
+    semantic_model: str = "gpt-4o",
+) -> list[dict[str, Any]]:
+    """Produit des ajouts/retraits par chunk pour une sous-section sans paire."""
+    chunks = _chunk_subsection_bodies(
+        section_key=section_key,
+        heading=heading,
+        body=body,
+        client=client,
+        embedding_model=embedding_model,
+        semantic_model=semantic_model,
+    )
+    return _changes_from_orphan_chunks(
+        section_key=section_key,
+        diff_type=diff_type,
+        chunks=chunks,
+        idx_offset=idx_offset,
+    )
+
+
 def _compare_section_texts(
     *,
     client: Any,
@@ -774,15 +892,11 @@ def _compare_section_texts(
     text_t1: str,
     text_t2: str,
 ) -> list[dict[str, Any]]:
-    """Compare deux sections markdown T1/T2 sous-section par sous-section.
+    """Compare deux sections markdown T1/T2 avec alignement cascade.
 
-    Le texte est découpé selon les headings ### existants. Chaque paire de
-    sous-sections fait l'objet d'un appel GPT séparé, évitant les dépassements
-    de contexte sur les grandes sections comme ``Gestion des risques``.
-
-    Les sous-sections sans contrepartie sont marquées ajoutées ou supprimées
-    sans appel GPT. Les sections non vides sans ``###`` sont rejetées comme
-    anomalie de qualité au lieu d'être comparées en bloc brut.
+    Phase A aligne sous-section par sous-section. Les orphelins sont ensuite
+    ré-alignés une fois sur toute la section (Phase B) avant tout add/remove
+    définitif, ce qui récupère les passages déplacés entre rubriques.
     """
     # Safety: the .md canonique contient des marqueurs ``[p.N]`` pour la
     # reconstruction de l'index page→texte. Ils DOIVENT avoir été strippés
@@ -805,7 +919,7 @@ def _compare_section_texts(
 
     pairs = _pair_subsections(subs_t1, subs_t2)
 
-    # Phase 2 — Hybrid orphan resolution (TF-IDF sklearn + embeddings + LLM)
+    # Heading-level orphan rename resolution (unchanged).
     orphans_t1 = [
         OrphanSubsection(heading=h1, body=body1)
         for h1, body1, h2, _body2 in pairs
@@ -823,11 +937,9 @@ def _compare_section_texts(
         orphans_t1=orphans_t1,
         orphans_t2=orphans_t2,
     )
-    # Build lookup: orphan_t1_heading → matched orphan_t2_heading (and vice versa)
     rename_t1_to_t2: dict[str, str] = {m["heading_t1"]: m["heading_t2"] for m in rename_matches}
     renamed_as_t2: set[str] = set(rename_t1_to_t2.values())
 
-    # Augment pairs: replace (h1, body1, None, "") with (h1, body1, h2_matched, body2_matched)
     body_by_t2_heading: dict[str, str] = {h2: b2 for _, _, h2, b2 in pairs if h2 is not None}
     resolved_pairs: list[tuple[str | None, str, str | None, str]] = []
     for h1, body1, h2, body2 in pairs:
@@ -836,7 +948,6 @@ def _compare_section_texts(
             matched_body2 = body_by_t2_heading.get(matched_h2, "")
             resolved_pairs.append((h1, body1, matched_h2, matched_body2))
         elif h1 is None and h2 is not None and h2 in renamed_as_t2:
-            # Skip — already consumed by the T1 side above
             continue
         else:
             resolved_pairs.append((h1, body1, h2, body2))
@@ -846,11 +957,15 @@ def _compare_section_texts(
     global_idx = 1
     renamed_pairs: set[tuple[str, str]] = {(m["heading_t1"], m["heading_t2"]) for m in rename_matches}
 
+    # heading_label -> matched alignments from Phase A (same subsection).
+    matched_by_heading: dict[str, list[ChunkAlignment]] = {}
+    orphan_chunks_t1: list[TextChunk] = []
+    orphan_chunks_t2: list[TextChunk] = []
+    embedding_model = "text-embedding-3-small"
+
     for h1, body1, h2, body2 in pairs:
         heading_label = h1 or h2 or "unknown"
-        heading_slug = re.sub(r"[^\w]+", "_", _normalize_heading(heading_label))[:40].strip("_")
 
-        # For renamed pairs, display as "T1 heading → T2 heading"
         is_renamed_pair = h1 is not None and h2 is not None and (h1, h2) in renamed_pairs
         if is_renamed_pair:
             all_changes.append(
@@ -862,118 +977,158 @@ def _compare_section_texts(
                 )
             )
             global_idx += 1
-
-        if h1 is not None and h2 is not None and (h1, h2) in renamed_pairs:
             heading_label = f"{h1} → {h2}"
-            heading_slug = re.sub(r"[^\w]+", "_", _normalize_heading(h1))[:40].strip("_")
 
         if h2 is None:
             assert h1 is not None
-            if not body1.strip():
-                continue
-            unmatched_changes = _unmatched_subsection_chunk_changes(
-                section_key=section_key,
-                diff_type="removed",
-                heading=h1,
-                body=body1,
-                idx_offset=global_idx - 1,
-                client=client,
-                semantic_model=model,
+            orphan_chunks_t1.extend(
+                _chunk_subsection_bodies(
+                    section_key=section_key,
+                    heading=h1,
+                    body=body1,
+                    client=client,
+                    embedding_model=embedding_model,
+                    semantic_model=model,
+                )
             )
-            all_changes.extend(unmatched_changes)
-            global_idx += len(unmatched_changes)
             continue
 
         if h1 is None:
             assert h2 is not None
-            if not body2.strip():
-                continue
-            unmatched_changes = _unmatched_subsection_chunk_changes(
-                section_key=section_key,
-                diff_type="added",
-                heading=h2,
-                body=body2,
-                idx_offset=global_idx - 1,
-                client=client,
-                semantic_model=model,
+            orphan_chunks_t2.extend(
+                _chunk_subsection_bodies(
+                    section_key=section_key,
+                    heading=h2,
+                    body=body2,
+                    client=client,
+                    embedding_model=embedding_model,
+                    semantic_model=model,
+                )
             )
-            all_changes.extend(unmatched_changes)
-            global_idx += len(unmatched_changes)
             continue
 
         if not body1.strip() and not body2.strip():
             continue
         if not body1.strip():
-            unmatched_changes = _unmatched_subsection_chunk_changes(
-                section_key=section_key,
-                diff_type="added",
-                heading=h2,
-                body=body2,
-                idx_offset=global_idx - 1,
-                client=client,
-                semantic_model=model,
-            )
-            all_changes.extend(unmatched_changes)
-            global_idx += len(unmatched_changes)
-            continue
-        if not body2.strip():
-            unmatched_changes = _unmatched_subsection_chunk_changes(
-                section_key=section_key,
-                diff_type="removed",
-                heading=h1,
-                body=body1,
-                idx_offset=global_idx - 1,
-                client=client,
-                semantic_model=model,
-            )
-            all_changes.extend(unmatched_changes)
-            global_idx += len(unmatched_changes)
-            continue
-
-        alignments = _prepare_subsection_alignments(
-            section_key=section_key,
-            subsection_heading_t1=h1,
-            subsection_heading_t2=h2,
-            body_t1=body1,
-            body_t2=body2,
-            client=client,
-            semantic_model=model,
-        )
-        exact_alignments, llm_alignments = _split_exact_diff_alignments(alignments)
-        exact_changes = [
-            change
-            for index, alignment in enumerate(exact_alignments, start=1)
-            if (
-                change := _exact_diff_change_for_strong_alignment(
-                    alignment=alignment,
+            orphan_chunks_t2.extend(
+                _chunk_subsection_bodies(
                     section_key=section_key,
-                    heading_label=heading_label,
-                    heading_slug=heading_slug,
-                    change_index=index,
+                    heading=h2,
+                    body=body2,
+                    client=client,
+                    embedding_model=embedding_model,
+                    semantic_model=model,
                 )
             )
-            is not None
-        ]
-        batches = _build_comparison_batches(
-            alignments=llm_alignments,
-            heading_label=heading_label,
-            heading_slug=heading_slug,
+            continue
+        if not body2.strip():
+            orphan_chunks_t1.extend(
+                _chunk_subsection_bodies(
+                    section_key=section_key,
+                    heading=h1,
+                    body=body1,
+                    client=client,
+                    embedding_model=embedding_model,
+                    semantic_model=model,
+                )
+            )
+            continue
+
+        chunks_t1 = _chunk_subsection_bodies(
+            section_key=section_key,
+            heading=h1,
+            body=body1,
+            client=client,
+            embedding_model=embedding_model,
+            semantic_model=model,
         )
-        subsection_changes = _compare_alignment_batches(
+        chunks_t2 = _chunk_subsection_bodies(
+            section_key=section_key,
+            heading=h2,
+            body=body2,
+            client=client,
+            embedding_model=embedding_model,
+            semantic_model=model,
+        )
+        if not chunks_t1 and not chunks_t2:
+            continue
+        if not chunks_t1:
+            orphan_chunks_t2.extend(chunks_t2)
+            continue
+        if not chunks_t2:
+            orphan_chunks_t1.extend(chunks_t1)
+            continue
+
+        # Phase A — local hybrid alignment inside the paired subsection.
+        alignments = _align_chunks_hybrid(
+            chunks_t1,
+            chunks_t2,
+            client=client,
+            embedding_model=embedding_model,
+        )
+        matched = [alignment for alignment in alignments if _is_matched_alignment(alignment)]
+        for alignment in alignments:
+            if alignment.alignment_type == "possible_removed" and alignment.chunk_t1 is not None:
+                orphan_chunks_t1.append(alignment.chunk_t1)
+            elif alignment.alignment_type == "possible_added" and alignment.chunk_t2 is not None:
+                orphan_chunks_t2.append(alignment.chunk_t2)
+        if matched:
+            matched_by_heading.setdefault(heading_label, []).extend(matched)
+
+    # Phase B — section-wide rescue among remaining orphans only.
+    rescued_by_heading: dict[str, list[ChunkAlignment]] = {}
+    if orphan_chunks_t1 and orphan_chunks_t2:
+        rescue_alignments = _align_chunks_hybrid(
+            orphan_chunks_t1,
+            orphan_chunks_t2,
+            client=client,
+            embedding_model=embedding_model,
+        )
+        remaining_t1: list[TextChunk] = []
+        remaining_t2: list[TextChunk] = []
+        for alignment in rescue_alignments:
+            if not _is_matched_alignment(alignment):
+                if alignment.alignment_type == "possible_removed" and alignment.chunk_t1 is not None:
+                    remaining_t1.append(alignment.chunk_t1)
+                elif alignment.alignment_type == "possible_added" and alignment.chunk_t2 is not None:
+                    remaining_t2.append(alignment.chunk_t2)
+                continue
+            rescued = _annotate_section_rescue(alignment)
+            rescue_heading = _display_heading_for_alignment(rescued)
+            rescued_by_heading.setdefault(rescue_heading, []).append(rescued)
+        orphan_chunks_t1 = remaining_t1
+        orphan_chunks_t2 = remaining_t2
+
+    # Emit matched groups (Phase A + Phase B) through exact-diff / LLM.
+    for heading_label, alignments in [*matched_by_heading.items(), *rescued_by_heading.items()]:
+        heading_slug = _heading_slug(heading_label.split(" → ", 1)[0] if " → " in heading_label else heading_label)
+        group_changes = _process_alignment_group(
             client=client,
             model=model,
             section_key=section_key,
-            batches=batches,
-        )
-        subsection_changes = [*exact_changes, *subsection_changes]
-        subsection_changes = _deduplicate_alignment_changes(subsection_changes)
-        subsection_changes = _reindex_changes(
-            subsection_changes,
-            section_key=section_key,
+            heading_label=heading_label,
             heading_slug=heading_slug,
+            alignments=alignments,
             idx_offset=global_idx - 1,
         )
-        all_changes.extend(subsection_changes)
-        global_idx += len(subsection_changes)
+        all_changes.extend(group_changes)
+        global_idx += len(group_changes)
+
+    # True add/remove only after section rescue failed to pair them.
+    removed_changes = _changes_from_orphan_chunks(
+        section_key=section_key,
+        diff_type="removed",
+        chunks=orphan_chunks_t1,
+        idx_offset=global_idx - 1,
+    )
+    all_changes.extend(removed_changes)
+    global_idx += len(removed_changes)
+    added_changes = _changes_from_orphan_chunks(
+        section_key=section_key,
+        diff_type="added",
+        chunks=orphan_chunks_t2,
+        idx_offset=global_idx - 1,
+    )
+    all_changes.extend(added_changes)
 
     return all_changes

@@ -47,7 +47,11 @@ from vigilance.text_analysis_pipeline import (
     TextAnalysisQualityError,
     run_text_analysis_pipeline,
 )
-from vigilance.text_analysis.chunk_alignment import _tfidf_similarity_matrix_from_texts
+from vigilance.text_analysis.chunk_alignment import (
+    _reassemble_adjacent_one_to_many,
+    _tfidf_similarity_matrix_from_texts,
+)
+from vigilance.text_analysis.chunking import TextChunk
 from vigilance.text_analysis.semantic_chunking import SemanticChunkingError
 from vigilance.text_analysis.comparison import (
     ChunkComparisonLLMResponse,
@@ -3163,7 +3167,14 @@ def test_chunk_subsection_text_splits_long_paragraphs_into_chunks() -> None:
         section_title="Gestion des risques",
     )
 
-    assert [chunk.chunk_id for chunk in chunks] == ["c00", "c01", "c02", "c03", "c04", "c05"]
+    assert [chunk.chunk_id for chunk in chunks] == [
+        "risque_de_stratégie_c00",
+        "risque_de_stratégie_c01",
+        "risque_de_stratégie_c02",
+        "risque_de_stratégie_c03",
+        "risque_de_stratégie_c04",
+        "risque_de_stratégie_c05",
+    ]
     assert [chunk.kind for chunk in chunks] == ["paragraph"] * 6
     assert chunks[0].hierarchy_path == "Gestion des risques > Risque de stratégie"
     assert chunks[5].text.startswith("Notre performance financière")
@@ -3340,10 +3351,10 @@ def test_align_chunks_tfidf_matches_shifted_chunks_and_marks_added() -> None:
     }
     added = [alignment for alignment in alignments if alignment.alignment_type == "possible_added"]
 
-    assert ("c00", "c00") in matched_pairs
-    assert ("c01", "c02") in matched_pairs
+    assert ("risque_de_stratégie_c00", "risque_de_stratégie_c00") in matched_pairs
+    assert ("risque_de_stratégie_c01", "risque_de_stratégie_c02") in matched_pairs
     assert len(added) == 1
-    assert added[0].chunk_t2.chunk_id == "c01"
+    assert added[0].chunk_t2.chunk_id == "risque_de_stratégie_c01"
     assert added[0].candidates_t1_for_t2
 
 
@@ -3361,9 +3372,9 @@ def test_align_chunks_tfidf_enforces_one_to_one() -> None:
     added = [alignment for alignment in alignments if alignment.alignment_type == "possible_added"]
 
     assert len(matched) == 1
-    assert matched[0].chunk_t1.chunk_id == "c00"
+    assert matched[0].chunk_t1.chunk_id == "risque_de_stratégie_c00"
     assert len(added) == 1
-    assert added[0].chunk_t2.chunk_id == "c01"
+    assert added[0].chunk_t2.chunk_id == "risque_de_stratégie_c01"
 
 
 def test_align_chunks_tfidf_handles_empty_sklearn_vocabulary() -> None:
@@ -3779,33 +3790,37 @@ def test_compare_section_texts_sends_chunked_subsection_bodies(monkeypatch) -> N
         "Le risque de stratégie s'entend de la possibilité d'une perte financière ou d'une atteinte à la "
         "réputation attribuable à des stratégies commerciales inefficaces et à des réponses inadéquates."
     )
-    paragraph_b = (
+    paragraph_b_t1 = (
         "Le groupe Stratégies de l'organisation supervise le processus de planification stratégique et "
         "travaille avec les secteurs d'activité afin de détecter, de surveiller et d'atténuer les risques."
+    )
+    paragraph_b_t2 = (
+        "Le groupe Stratégies de l'organisation supervise le processus de planification stratégique et "
+        "travaille avec les secteurs d'activité afin de détecter, de surveiller, de mesurer et d'atténuer "
+        "les risques émergents."
     )
 
     _compare_section_texts(
         client=object(),
         model="gpt-4o",
         section_key="gestion_risques",
-        text_t1=f"### Risque de stratégie\n\n{paragraph_a}\n\n{paragraph_b}",
-        text_t2=f"### Risque de stratégie\n\n{paragraph_a}\n\n{paragraph_b}",
+        text_t1=f"### Risque de stratégie\n\n{paragraph_a}\n\n{paragraph_b_t1}",
+        text_t2=f"### Risque de stratégie\n\n{paragraph_a}\n\n{paragraph_b_t2}",
     )
 
-    assert "[c00 | paragraph | Gestion des risques > Risque de stratégie]" in captured["text_t1"]
-    assert "[c01 | paragraph | Gestion des risques > Risque de stratégie]" in captured["text_t1"]
-    assert paragraph_a in captured["text_t1"]
-    assert paragraph_b in captured["text_t2"]
+    assert (
+        "[risque_de_stratégie_c01 | paragraph | Gestion des risques > Risque de stratégie]"
+        in captured["text_t1"]
+    )
+    assert paragraph_b_t1 in captured["text_t1"]
+    assert paragraph_b_t2 in captured["text_t2"]
 
 
 def test_compare_section_texts_sends_tfidf_alignment_context(monkeypatch) -> None:
-    calls: list[dict[str, str]] = []
-
-    def fake_single_call(*, client, model, section_key, heading_label, heading_slug, text_t1, text_t2, idx_offset):
-        calls.append({"text_t1": text_t1, "text_t2": text_t2})
-        return []
-
-    monkeypatch.setattr("vigilance.text_analysis_pipeline._compare_texts_single_call", fake_single_call)
+    monkeypatch.setattr(
+        "vigilance.text_analysis_pipeline._compare_texts_single_call",
+        lambda **kw: [],
+    )
 
     previous = (
         "Le cadre de gouvernance du risque stratégique prévoit une surveillance indépendante, "
@@ -3816,7 +3831,7 @@ def test_compare_section_texts_sends_tfidf_alignment_context(monkeypatch) -> Non
         "analytiques et la surveillance des nouveaux outils numériques."
     )
 
-    _compare_section_texts(
+    changes = _compare_section_texts(
         client=object(),
         model="gpt-4o",
         section_key="gestion_risques",
@@ -3824,12 +3839,19 @@ def test_compare_section_texts_sends_tfidf_alignment_context(monkeypatch) -> Non
         text_t2=f"### Risque de stratégie\n\n{previous}\n\n{added}",
     )
 
-    joined_t1 = "\n".join(call["text_t1"] for call in calls)
-    joined_t2 = "\n".join(call["text_t2"] for call in calls)
-    assert "[a00 | matched_strong" in joined_t1
-    assert "[a01 | possible_added" in joined_t2
-    assert "Meilleurs candidats T1 à vérifier" in joined_t2
-    assert "[c00 | paragraph | Gestion des risques > Risque de stratégie]" in joined_t1
+    added_changes = [change for change in changes if change["diff_type"] == "added"]
+    matched = [
+        change
+        for change in changes
+        if previous in (change.get("source_text_t1") or "") and previous in (change.get("source_text_t2") or "")
+    ]
+    assert len(matched) == 1
+    assert matched[0]["diff_type"] in {"unchanged", "modified"}
+    assert matched[0]["alignment_type"] == "matched_strong"
+    assert matched[0]["chunk_id_t1"] == "risque_de_stratégie_c00"
+    assert len(added_changes) == 1
+    assert added_changes[0]["source_text_t2"] == added
+    assert added_changes[0]["alignment_type"] == "unmatched_added"
 
 
 def test_compare_section_texts_chunk_change_carries_alignment_metadata(monkeypatch) -> None:
@@ -3876,14 +3898,15 @@ def test_compare_section_texts_chunk_change_carries_alignment_metadata(monkeypat
         text_t2="### Risque de stratégie\n\n" + "\n\n".join(paragraphs_t2),
     )
 
-    assert len(changes) == 1
-    assert changes[0]["source_scope"] == "chunk"
-    assert changes[0]["alignment_id"] == "a01"
-    assert changes[0]["alignment_type"] == "matched_strong"
-    assert changes[0]["chunk_id_t1"] == "c01"
-    assert changes[0]["chunk_id_t2"] == "c01"
-    assert changes[0]["source_text_t1"] == paragraphs_t1[1]
-    assert changes[0]["source_text_t2"] == paragraphs_t2[1]
+    modified = [change for change in changes if change["diff_type"] == "modified"]
+    assert len(modified) == 1
+    assert modified[0]["source_scope"] == "chunk"
+    assert modified[0]["alignment_id"] == "a01"
+    assert modified[0]["alignment_type"] == "matched_strong"
+    assert modified[0]["chunk_id_t1"] == "risque_de_stratégie_c01"
+    assert modified[0]["chunk_id_t2"] == "risque_de_stratégie_c01"
+    assert modified[0]["source_text_t1"] == paragraphs_t1[1]
+    assert modified[0]["source_text_t2"] == paragraphs_t2[1]
 
 
 def test_compare_section_texts_chunk_change_never_keeps_full_multichunk_body(monkeypatch) -> None:
@@ -3932,13 +3955,28 @@ def test_compare_section_texts_chunk_change_never_keeps_full_multichunk_body(mon
         text_t2=f"### Risque de stratégie\n\n{body_t2}",
     )
 
-    assert len(changes) == 1
-    assert changes[0]["source_scope"] == "chunk"
-    assert changes[0]["alignment_id"] == "a01"
-    assert changes[0]["source_text_t1"] == paragraphs_t1[1]
-    assert changes[0]["source_text_t2"] == paragraphs_t2[1]
-    assert changes[0]["source_text_t1"] != body_t1
-    assert changes[0]["source_text_t2"] != body_t2
+    modified = [change for change in changes if change["diff_type"] == "modified"]
+    assert len(modified) == 1
+    assert modified[0]["source_scope"] == "chunk"
+    assert modified[0]["alignment_id"] == "a01"
+    assert modified[0]["source_text_t1"] == paragraphs_t1[1]
+    assert modified[0]["source_text_t2"] == paragraphs_t2[1]
+    assert modified[0]["source_text_t1"] != body_t1
+    assert modified[0]["source_text_t2"] != body_t2
+
+
+def _paragraph_index_embedding(texts: list[str]) -> list[list[float]]:
+    vectors: list[list[float]] = []
+    for text in texts:
+        index = 0
+        for candidate in range(6):
+            if f"Le paragraphe {candidate} " in text:
+                index = candidate
+                break
+        vector = [0.0] * 6
+        vector[index] = 1.0
+        vectors.append(vector)
+    return vectors
 
 
 def test_compare_section_texts_splits_large_alignment_set_into_batches(monkeypatch) -> None:
@@ -3949,42 +3987,65 @@ def test_compare_section_texts_splits_large_alignment_set_into_batches(monkeypat
         return []
 
     monkeypatch.setattr("vigilance.text_analysis_pipeline._compare_texts_single_call", fake_single_call)
+    monkeypatch.setattr(
+        "vigilance.text_analysis.chunk_alignment._embed_texts",
+        lambda client, texts, model="text-embedding-3-small": _paragraph_index_embedding(texts),
+    )
 
-    paragraphs = [
+    paragraphs_t1 = [
         (
             f"Le paragraphe {index} décrit un contrôle stratégique distinct, une responsabilité de gouvernance "
             f"et un mécanisme de surveillance propre au risque de stratégie pour produire un chunk autonome."
         )
         for index in range(6)
     ]
-    body = "\n\n".join(paragraphs)
+    paragraphs_t2 = [
+        paragraph + " La version courante ajoute une précision de suivi opérationnel."
+        for paragraph in paragraphs_t1
+    ]
+    body_t1 = "\n\n".join(paragraphs_t1)
+    body_t2 = "\n\n".join(paragraphs_t2)
 
     _compare_section_texts(
         client=object(),
         model="gpt-4o",
         section_key="gestion_risques",
-        text_t1=f"### Risque de stratégie\n\n{body}",
-        text_t2=f"### Risque de stratégie\n\n{body}",
+        text_t1=f"### Risque de stratégie\n\n{body_t1}",
+        text_t2=f"### Risque de stratégie\n\n{body_t2}",
     )
 
     assert len(calls) == 2
-    first_batch = next(call for call in calls if "[c00 |" in call["text_t1"])
-    second_batch = next(call for call in calls if "[c05 |" in call["text_t1"])
-    assert "[c04 |" in first_batch["text_t1"]
-    assert "[c05 |" not in first_batch["text_t1"]
-    assert "[c00 |" not in second_batch["text_t1"]
+    first_batch = next(call for call in calls if "[risque_de_stratégie_c00 |" in call["text_t1"])
+    second_batch = next(call for call in calls if "[risque_de_stratégie_c05 |" in call["text_t1"])
+    assert "[risque_de_stratégie_c04 |" in first_batch["text_t1"]
+    assert "[risque_de_stratégie_c05 |" not in first_batch["text_t1"]
+    assert "[risque_de_stratégie_c00 |" not in second_batch["text_t1"]
 
 
 def test_compare_section_texts_merges_parallel_batch_results_in_source_order(monkeypatch) -> None:
+    paragraphs_t1 = [
+        (
+            f"Le paragraphe {index} décrit un contrôle stratégique distinct, une responsabilité de gouvernance "
+            f"et un mécanisme de surveillance propre au risque de stratégie pour produire un chunk autonome."
+        )
+        for index in range(6)
+    ]
+    paragraphs_t2 = [
+        paragraph + " La version courante ajoute une précision de suivi opérationnel."
+        for paragraph in paragraphs_t1
+    ]
+
     def fake_single_call(*, client, model, section_key, heading_label, heading_slug, text_t1, text_t2, idx_offset):
-        if "[c05 |" in text_t2:
+        if "[risque_de_stratégie_c05 |" in text_t2:
             alignment_id = "a05"
             label = "second_batch"
-            source = paragraphs[5]
+            source_t1 = paragraphs_t1[5]
+            source_t2 = paragraphs_t2[5]
         else:
             alignment_id = "a00"
             label = "first_batch"
-            source = paragraphs[0]
+            source_t1 = paragraphs_t1[0]
+            source_t2 = paragraphs_t2[0]
         return [
             {
                 "change_id": f"temporary_{label}",
@@ -3992,10 +4053,10 @@ def test_compare_section_texts_merges_parallel_batch_results_in_source_order(mon
                 "subsection_heading": heading_label,
                 "diff_type": "modified",
                 "alignment_id": alignment_id,
-                "semantic_text_t1": source,
-                "semantic_text_t2": source,
-                "source_text_t1": source,
-                "source_text_t2": source,
+                "semantic_text_t1": source_t1,
+                "semantic_text_t2": source_t2,
+                "source_text_t1": source_t1,
+                "source_text_t2": source_t2,
                 "source_block_ids_t1": [],
                 "source_block_ids_t2": [],
                 "source_refs_t1": [],
@@ -4004,32 +4065,30 @@ def test_compare_section_texts_merges_parallel_batch_results_in_source_order(mon
                 "pages_t2": [],
                 "source_resolution_t1": "markdown",
                 "source_resolution_t2": "markdown",
-                "evidence_t1": {"pages": [], "snippet": source},
-                "evidence_t2": {"pages": [], "snippet": source},
+                "evidence_t1": {"pages": [], "snippet": source_t1},
+                "evidence_t2": {"pages": [], "snippet": source_t2},
                 "change_summary": label,
+                "alignment_decision": "same_disclosure",
+                "alignment_confidence": "high",
+                "alignment_rationale": "ok",
             }
         ]
 
     monkeypatch.setattr("vigilance.text_analysis_pipeline._compare_texts_single_call", fake_single_call)
-
-    paragraphs = [
-        (
-            f"Le paragraphe {index} décrit un contrôle stratégique distinct, une responsabilité de gouvernance "
-            f"et un mécanisme de surveillance propre au risque de stratégie pour produire un chunk autonome."
-        )
-        for index in range(6)
-    ]
-    body = "\n\n".join(paragraphs)
+    monkeypatch.setattr(
+        "vigilance.text_analysis.chunk_alignment._embed_texts",
+        lambda client, texts, model="text-embedding-3-small": _paragraph_index_embedding(texts),
+    )
 
     changes = _compare_section_texts(
         client=object(),
         model="gpt-4o",
         section_key="gestion_risques",
-        text_t1=f"### Risque de stratégie\n\n{body}",
-        text_t2=f"### Risque de stratégie\n\n{body}",
+        text_t1=f"### Risque de stratégie\n\n" + "\n\n".join(paragraphs_t1),
+        text_t2=f"### Risque de stratégie\n\n" + "\n\n".join(paragraphs_t2),
     )
 
-    assert [change["source_text_t2"] for change in changes] == [paragraphs[0], paragraphs[5]]
+    assert [change["source_text_t2"] for change in changes] == [paragraphs_t2[0], paragraphs_t2[5]]
     assert [change["change_id"] for change in changes] == [
         "gestion_risques_risque_de_stratégie_change_001",
         "gestion_risques_risque_de_stratégie_change_002",
@@ -4043,10 +4102,17 @@ def test_compare_section_texts_reports_batch_id_on_batch_failure(monkeypatch) ->
         raise RuntimeError("boom")
 
     monkeypatch.setattr("vigilance.text_analysis_pipeline._compare_texts_single_call", fake_single_call)
+    monkeypatch.setattr(
+        "vigilance.text_analysis.chunk_alignment._embed_texts",
+        lambda client, texts, model="text-embedding-3-small": [[1.0, 0.0] for _ in texts],
+    )
 
-    paragraph = (
+    paragraph_t1 = (
         "Le risque stratégique est surveillé par un cadre de gouvernance précis avec des contrôles internes "
         "et des rapports réguliers destinés au conseil afin de former un chunk autonome."
+    )
+    paragraph_t2 = (
+        paragraph_t1 + " La version courante ajoute une précision sur le suivi trimestriel du comité."
     )
 
     with pytest.raises(RuntimeError, match="b00"):
@@ -4054,8 +4120,8 @@ def test_compare_section_texts_reports_batch_id_on_batch_failure(monkeypatch) ->
             client=object(),
             model="gpt-4o",
             section_key="gestion_risques",
-            text_t1=f"### Risque de stratégie\n\n{paragraph}",
-            text_t2=f"### Risque de stratégie\n\n{paragraph}",
+            text_t1=f"### Risque de stratégie\n\n{paragraph_t1}",
+            text_t2=f"### Risque de stratégie\n\n{paragraph_t2}",
         )
 
 
@@ -4130,6 +4196,211 @@ def test_compare_section_texts_chunks_unmatched_long_subsection(monkeypatch) -> 
     added = [change for change in changes if change["diff_type"] == "added"]
     assert [change["source_text_t2"] for change in added] == paragraphs
     assert all(change["source_scope"] == "chunk" for change in added)
+
+
+def test_reassemble_adjacent_ignores_cross_subsection_order_collision() -> None:
+    """Orders locaux à chaque sous-section ne doivent pas déclencher un groupement."""
+    moved = (
+        "Les comités de gestion qui supervisent les questions liées aux risques, notamment "
+        "le Comité de gestion du capital de l'organisation (CGCO), réunissent des membres "
+        "de la haute direction pour superviser la gestion des risques."
+    )
+    footnote = "1 Relations hiérarchiques indiquées en pointillés."
+    matched = ChunkAlignment(
+        alignment_id="a00",
+        alignment_type="matched_strong",
+        chunk_t1=TextChunk(
+            chunk_id="surveillance_c13",
+            kind="paragraph",
+            text=moved,
+            subsection_heading="Surveillance du Conseil",
+            hierarchy_path="Gestion des risques > Surveillance du Conseil",
+            order=13,
+        ),
+        chunk_t2=TextChunk(
+            chunk_id="appetit_c03",
+            kind="paragraph",
+            text=moved,
+            subsection_heading="Cadre d'appétit pour le risque",
+            hierarchy_path="Gestion des risques > Cadre d'appétit pour le risque",
+            order=3,
+        ),
+        similarity_score=1.0,
+        candidates_t1_for_t2=[],
+        candidates_t2_for_t1=[],
+        reason="hybrid_tfidf_embedding",
+    )
+    unmatched_added = ChunkAlignment(
+        alignment_id="a01",
+        alignment_type="possible_added",
+        chunk_t1=None,
+        chunk_t2=TextChunk(
+            chunk_id="surveillance_c02",
+            kind="paragraph",
+            text=footnote,
+            subsection_heading="Surveillance du Conseil",
+            hierarchy_path="Gestion des risques > Surveillance du Conseil",
+            order=2,
+        ),
+        similarity_score=0.0,
+        candidates_t1_for_t2=[],
+        candidates_t2_for_t1=[],
+        reason="unmatched_t2",
+    )
+
+    result = _reassemble_adjacent_one_to_many([matched, unmatched_added])
+
+    assert len(result) == 2
+    assert {alignment.alignment_type for alignment in result} == {
+        "matched_strong",
+        "possible_added",
+    }
+    assert all(alignment.reason != "adjacent_many_to_one_reassembled" for alignment in result)
+
+
+def test_compare_section_texts_rescues_cross_subsection_move(monkeypatch) -> None:
+    """Un paragraphe déplacé entre sous-sections ne doit pas devenir added+removed."""
+    moved = (
+        "Les comités de gestion qui supervisent les questions liées aux risques, notamment "
+        "le Comité de gestion du capital de l'organisation (CGCO), le Comité de gestion des "
+        "risques (CGR) et le Comité de gestion de l'actif et du passif (CGAP), réunissent des "
+        "membres de la haute direction pour superviser la gestion des risques à l'échelle "
+        "de l'entreprise."
+    )
+    filler_a = (
+        "Le conseil d'administration supervise la stratégie globale de gestion des risques "
+        "et s'assure que les politiques sont appliquées de manière cohérente."
+    )
+    filler_b = (
+        "L'appétit pour le risque formalise les limites quantitatives et qualitatives que "
+        "la banque accepte dans la conduite de ses activités."
+    )
+    monkeypatch.setattr(
+        "vigilance.text_analysis_pipeline._compare_texts_single_call",
+        lambda **kw: [],
+    )
+    monkeypatch.setattr(
+        "vigilance.text_analysis_pipeline._resolve_orphan_subsections",
+        lambda **kw: [],
+    )
+
+    changes = _compare_section_texts(
+        client=object(),
+        model="gpt-4o",
+        section_key="gestion_risques",
+        text_t1=(
+            f"### Surveillance du Conseil\n\n{filler_a}\n\n{moved}\n\n"
+            f"### Cadre d'appétit pour le risque\n\n{filler_b}"
+        ),
+        text_t2=(
+            f"### Surveillance du Conseil\n\n{filler_a}\n\n"
+            f"### Cadre d'appétit pour le risque\n\n{filler_b}\n\n{moved}"
+        ),
+    )
+
+    moved_removed = [
+        change
+        for change in changes
+        if change["diff_type"] == "removed" and moved in (change.get("source_text_t1") or "")
+    ]
+    moved_added = [
+        change
+        for change in changes
+        if change["diff_type"] == "added" and moved in (change.get("source_text_t2") or "")
+    ]
+    rescued = [
+        change
+        for change in changes
+        if moved in (change.get("source_text_t1") or "")
+        and moved in (change.get("source_text_t2") or "")
+    ]
+
+    assert moved_removed == []
+    assert moved_added == []
+    assert len(rescued) == 1
+    assert rescued[0]["diff_type"] in {"unchanged", "modified"}
+    assert "Surveillance du Conseil" in rescued[0]["subsection_heading"]
+    assert "Cadre d'appétit pour le risque" in rescued[0]["subsection_heading"]
+    assert rescued[0].get("alignment_reason") == "section_rescue"
+
+
+def test_compare_section_texts_keeps_true_addition_after_section_rescue(monkeypatch) -> None:
+    """Un vrai ajout sans contrepartie T1 reste added après la Phase B."""
+    shared = (
+        "La banque surveille régulièrement le risque de marché et produit des rapports "
+        "trimestriels destinés au comité des risques."
+    )
+    genuine_addition = (
+        "Une nouvelle exigence réglementaire impose désormais une divulgation distincte "
+        "sur les scénarios de crise liés aux droits de douane internationaux."
+    )
+    monkeypatch.setattr(
+        "vigilance.text_analysis_pipeline._compare_texts_single_call",
+        lambda **kw: [],
+    )
+    monkeypatch.setattr(
+        "vigilance.text_analysis_pipeline._resolve_orphan_subsections",
+        lambda **kw: [],
+    )
+
+    changes = _compare_section_texts(
+        client=object(),
+        model="gpt-4o",
+        section_key="gestion_risques",
+        text_t1=f"### Risque de marché\n\n{shared}",
+        text_t2=f"### Risque de marché\n\n{shared}\n\n### Faits nouveaux\n\n{genuine_addition}",
+    )
+
+    added = [change for change in changes if change["diff_type"] == "added"]
+    assert len(added) == 1
+    assert added[0]["source_text_t2"] == genuine_addition
+    assert added[0]["subsection_heading"] == "Faits nouveaux"
+
+
+def test_compare_section_texts_local_match_unchanged_same_subsection(monkeypatch) -> None:
+    """Un match local Phase A reste dans la même sous-section sans section_rescue."""
+    previous = (
+        "La mesure du rendement du capital ajusté en fonction du risque est calculée "
+        "périodiquement pour chacun des secteurs d'exploitation de la Banque."
+    )
+    current = (
+        "La mesure du rendement du capital ajusté en fonction du risque est calculée "
+        "trimestriellement pour chacun des secteurs d'exploitation de la Banque."
+    )
+    monkeypatch.setattr(
+        "vigilance.text_analysis_pipeline._resolve_orphan_subsections",
+        lambda **kw: [],
+    )
+    monkeypatch.setattr(
+        "vigilance.text_analysis_pipeline._call_structured_completion_with_correction",
+        lambda *args, **kwargs: ChunkComparisonLLMResponse(
+            changes=[
+                {
+                    "alignment_id": "a00",
+                    "diff_type": "modified",
+                    "text_t1": previous,
+                    "text_t2": current,
+                    "change_summary": "Fréquence de calcul mise à jour.",
+                    "alignment_decision": "same_disclosure",
+                    "alignment_confidence": "high",
+                    "alignment_rationale": "Même divulgation avec fréquence modifiée.",
+                }
+            ]
+        ),
+    )
+
+    changes = _compare_section_texts(
+        client=object(),
+        model="gpt-4o",
+        section_key="gestion_capital",
+        text_t1=f"### Cadre de gestion du capital\n\n{previous}",
+        text_t2=f"### Cadre de gestion du capital\n\n{current}",
+    )
+
+    assert len(changes) == 1
+    assert changes[0]["diff_type"] == "modified"
+    assert changes[0]["subsection_heading"] == "Cadre de gestion du capital"
+    assert changes[0].get("alignment_reason") != "section_rescue"
 
 
 def test_compare_section_texts_deduplicates_multiple_llm_details_for_one_alignment(monkeypatch) -> None:
@@ -4891,10 +5162,15 @@ def test_resolve_orphan_subsections_short_body_uses_title_only_fallback(monkeypa
     assert matches[0]["embedding_score"] is None
 
 
-def test_bmo_risque_de_strategie_2024_t4_chunks_into_six() -> None:
+def test_bmo_risque_de_strategie_2024_t4_chunks_into_six(monkeypatch) -> None:
     md_path = Path("outputs/resultats/bmo/2025_t4_vs_2024_t4/text_extraction_2024_t4.md")
     if not md_path.exists():
         pytest.skip("Artefact local BMO 2024 T4 absent.")
+
+    monkeypatch.setattr(
+        "vigilance.text_analysis.chunking._requires_semantic_partition",
+        lambda text: False,
+    )
 
     section_text = _extract_section_text_from_markdown(md_path.read_text(encoding="utf-8"), "gestion_risques")
     subsections = dict(_parse_subsections(section_text))
@@ -4906,17 +5182,29 @@ def test_bmo_risque_de_strategie_2024_t4_chunks_into_six() -> None:
         section_title="Gestion des risques",
     )
 
-    assert [chunk.chunk_id for chunk in chunks] == ["c00", "c01", "c02", "c03", "c04", "c05"]
+    assert [chunk.chunk_id for chunk in chunks] == [
+        "risque_de_stratégie_c00",
+        "risque_de_stratégie_c01",
+        "risque_de_stratégie_c02",
+        "risque_de_stratégie_c03",
+        "risque_de_stratégie_c04",
+        "risque_de_stratégie_c05",
+    ]
     assert all(chunk.kind == "paragraph" for chunk in chunks)
     assert chunks[0].text.startswith("Le risque de stratégie s'entend")
     assert chunks[-1].text.startswith("Notre performance financière dépend")
 
 
-def test_bmo_risque_de_strategie_tfidf_alignment_stays_local() -> None:
+def test_bmo_risque_de_strategie_tfidf_alignment_stays_local(monkeypatch) -> None:
     previous_path = Path("outputs/resultats/bmo/2025_t4_vs_2024_t4/text_extraction_2024_t4.md")
     current_path = Path("outputs/resultats/bmo/2025_t4_vs_2024_t4/text_extraction_2025_t4.md")
     if not previous_path.exists() or not current_path.exists():
         pytest.skip("Artefacts locaux BMO T4 absents.")
+
+    monkeypatch.setattr(
+        "vigilance.text_analysis.chunking._requires_semantic_partition",
+        lambda text: False,
+    )
 
     previous_section = _extract_section_text_from_markdown(previous_path.read_text(encoding="utf-8"), "gestion_risques")
     current_section = _extract_section_text_from_markdown(current_path.read_text(encoding="utf-8"), "gestion_risques")
@@ -4943,11 +5231,11 @@ def test_bmo_risque_de_strategie_tfidf_alignment_stays_local() -> None:
 
     assert len(chunks_t1) == 6
     assert len(chunks_t2) == 5
-    assert matched_by_t2["c02"] == "c02"
-    assert matched_by_t2["c03"] == "c04"
-    assert matched_by_t2["c04"] == "c05"
+    assert matched_by_t2["risque_de_stratégie_c02"] == "risque_de_stratégie_c02"
+    assert matched_by_t2["risque_de_stratégie_c03"] == "risque_de_stratégie_c04"
+    assert matched_by_t2["risque_de_stratégie_c04"] == "risque_de_stratégie_c05"
     assert len(removed) == 1
-    assert removed[0].chunk_t1.chunk_id == "c03"
+    assert removed[0].chunk_t1.chunk_id == "risque_de_stratégie_c03"
     assert all("Risque de stratégie" in chunk.hierarchy_path for chunk in [*chunks_t1, *chunks_t2])
 
 
