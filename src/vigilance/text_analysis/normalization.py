@@ -40,9 +40,47 @@ _NUMBERED_TABLE_CAPTION_RE = re.compile(
     r"^\s*T\d+\b.+" + _TABLE_CAPTION_UNIT_RE.pattern,
     flags=re.IGNORECASE,
 )
+_REPORT_BANK_NAME_PATTERN = (
+    r"(?:"
+    r"banque\s+(?:nationale\s+du\s+canada|scotia|royale\s+du\s+canada|td)"
+    r"|bmo(?:\s+groupe\s+financier)?"
+    r"|groupe\s+banque\s+td"
+    r"|cibc"
+    r"|rbc"
+    r"|bns"
+    r"|bnc"
+    r"|td"
+    r")"
+)
+_REPORT_TITLE_PATTERN = (
+    r"(?:\d{1,3}e\s+)?rapport\s+"
+    r"(?:annuel|du\s+(?:premier|deuxi[eè]me|troisi[eè]me|quatri[eè]me)\s+"
+    r"trimestre(?:\s+de)?)"
+)
+_REPORT_PAGE_CHROME_SUFFIX_PATTERN = r"(?:\s+rapport\s+de\s+gestion)?"
+_BANK_FIRST_REPORT_PAGE_CHROME_RE = re.compile(
+    r"^\s*\d{1,3}\s*(?:\|\s*)?"
+    + _REPORT_BANK_NAME_PATTERN
+    + r"\s*(?:[-–—]\s*)?"
+    + _REPORT_TITLE_PATTERN
+    + r"\s*(?:[-–—]\s*)?20\d{2}"
+    + _REPORT_PAGE_CHROME_SUFFIX_PATTERN
+    + r"\s*$",
+    flags=re.IGNORECASE,
+)
+_REPORT_FIRST_BANK_PAGE_CHROME_RE = re.compile(
+    r"^\s*\d{1,3}\s*(?:\|\s*)?"
+    + _REPORT_TITLE_PATTERN
+    + r"\s*(?:[-–—]\s*)?"
+    + _REPORT_BANK_NAME_PATTERN
+    + r"\s*(?:[-–—]\s*)?20\d{2}"
+    + _REPORT_PAGE_CHROME_SUFFIX_PATTERN
+    + r"\s*$",
+    flags=re.IGNORECASE,
+)
 _BNC_ANNUAL_REPORT_CHROME_RE = re.compile(
-    r"^\s*(?:\d{1,3}\s+)?banque\s+nationale\s+du\s+canada\s+"
-    r"rapport\s+annuel\s+20\d{2}(?:\s+\d{1,3})?\s*$",
+    r"^\s*banque\s+nationale\s+du\s+canada\s+rapport\s+annuel\s+"
+    r"20\d{2}(?:\s+\d{1,3})?\s*$",
     flags=re.IGNORECASE,
 )
 _BNC_MANAGEMENT_RUNNING_HEADER_RE = re.compile(
@@ -131,10 +169,12 @@ def _looks_like_table_caption_title(text: str) -> bool:
 
 
 def _is_running_report_chrome(text: str) -> bool:
-    """Indique un en-tête ou pied de page récurrent du rapport annuel BNC."""
+    """Indique un en-tête ou pied de page récurrent d'un rapport bancaire."""
     value = str(text or "").strip()
     return bool(
-        _BNC_ANNUAL_REPORT_CHROME_RE.fullmatch(value)
+        _BANK_FIRST_REPORT_PAGE_CHROME_RE.fullmatch(value)
+        or _REPORT_FIRST_BANK_PAGE_CHROME_RE.fullmatch(value)
+        or _BNC_ANNUAL_REPORT_CHROME_RE.fullmatch(value)
         or _BNC_MANAGEMENT_RUNNING_HEADER_RE.fullmatch(value)
     )
 

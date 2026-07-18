@@ -83,7 +83,10 @@ from vigilance.text_analysis.extraction import (
     _augment_table_regions_with_composite_grids,
     _docling_page_batches,
 )
-from vigilance.text_analysis.normalization import _infer_table_footnote_bboxes
+from vigilance.text_analysis.normalization import (
+    _infer_table_footnote_bboxes,
+    _is_running_report_chrome,
+)
 from vigilance.text_analysis.markdown import _is_out_of_scope_accounting_heading
 
 
@@ -1423,6 +1426,44 @@ def test_build_section_audit_excludes_running_chrome_and_table_unit_label() -> N
         ("table", "table_like_block"),
         ("header_footer", "running_header_footer"),
     ]
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "78 | Banque Scotia – Rapport annuel 2025",
+        "44 Banque Scotia - Rapport du deuxième trimestre de 2025",
+        "74 Banque Royale du Canada – Rapport annuel 2025 Rapport de gestion",
+        "58 BMO Groupe financier – 208e Rapport annuel – 2025",
+        "31 RAPPORT ANNUEL CIBC 2025",
+        "76 GROUPE BANQUE TD – RAPPORT ANNUEL 2024 RAPPORT DE GESTION",
+        "65 Banque Nationale du Canada Rapport annuel 2025",
+    ],
+)
+def test_running_report_chrome_recognizes_supported_bank_page_labels(text: str) -> None:
+    assert _is_running_report_chrome(text) is True
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "78 | Rapport annuel 2025",
+        "78 | Banque Scotia – États financiers 2025",
+        "78 | Banque Scotia – Rapport annuel",
+        (
+            "1 Des détails sont présentés à la note 16 des états financiers consolidés "
+            "audités du Rapport annuel de BMO pour 2025."
+        ),
+        (
+            "2 La Banque Scotia explique dans son Rapport annuel 2025 que la gestion "
+            "des risques demeure une priorité."
+        ),
+    ],
+)
+def test_running_report_chrome_preserves_numbered_narrative_and_incomplete_labels(
+    text: str,
+) -> None:
+    assert _is_running_report_chrome(text) is False
 
 
 def test_inferred_table_footnote_zone_covers_bnc_visual_gap() -> None:
