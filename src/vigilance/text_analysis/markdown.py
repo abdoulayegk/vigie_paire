@@ -9,6 +9,7 @@ from typing import Any
 from vigilance.cli.quarter_logic import normalize_quarter
 from vigilance.config.loader import load_config
 from vigilance.text_analysis.constants import _OUT_OF_SCOPE_ACCOUNTING_HEADING_PATTERNS, _SECTION_LABELS
+from vigilance.text_analysis.list_items import format_list_item_markdown, parse_list_item_line
 from vigilance.text_analysis.models import PDFBlock, SectionAudit
 from vigilance.text_analysis.normalization import (
     _looks_like_footnote,
@@ -316,7 +317,17 @@ def _build_text_extraction_markdown_from_blocks(
                 lines.append(_format_heading_line("###", heading_text, heading_page))
                 lines.append("")
                 pending_headings.clear()
-            lines.append(text)
+            parsed_list_item = parse_list_item_line(text)
+            if parsed_list_item is not None:
+                lines.append(
+                    format_list_item_markdown(
+                        parsed_list_item.text,
+                        marker=parsed_list_item.marker,
+                        indent=parsed_list_item.indent,
+                    )
+                )
+            else:
+                lines.append(text)
             lines.append("")
     # Un titre final sans bloc narratif propre est conservé par l'audit, pas
     # par le markdown utilisé pour le matching.

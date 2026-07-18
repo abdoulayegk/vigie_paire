@@ -1185,7 +1185,7 @@ def test_build_docling_markdown_keeps_narrative_around_bns_d22_figure() -> None:
 def test_text_extraction_cache_schema_invalidates_legacy_markdown() -> None:
     legacy = "## Gestion du capital\n\nTexte narratif.\n"
     previous_schema = (
-        "<!-- vigilance-text-extraction-schema: 4 -->\n\n"
+        "<!-- vigilance-text-extraction-schema: 5 -->\n\n"
         "## Gestion du capital\n\nTexte narratif.\n"
     )
 
@@ -2282,6 +2282,48 @@ def test_parse_docling_markdown_preserves_one_table_boundary() -> None:
     assert segments[-1].follows_table is True
 
 
+@pytest.mark.parametrize(
+    ("line", "expected_marker", "expected_text"),
+    [
+        ("- élément Markdown", "-", "élément Markdown"),
+        ("* élément avec astérisque", "-", "élément avec astérisque"),
+        ("+ élément avec signe plus", "-", "élément avec signe plus"),
+        ("•élément avec puce Unicode", "-", "élément avec puce Unicode"),
+        ("\x81 élément avec puce PDF", "-", "élément avec puce PDF"),
+        ("-  élément avec double puce", "-", "élément avec double puce"),
+        ("[] élément avec case vide", "-", "élément avec case vide"),
+        ("[x] élément avec case cochée", "-", "élément avec case cochée"),
+        ("12) élément numéroté", "12)", "élément numéroté"),
+    ],
+)
+def test_parse_docling_markdown_normalizes_explicit_list_markers(
+    line: str,
+    expected_marker: str,
+    expected_text: str,
+) -> None:
+    segments = _parse_docling_markdown(line)
+
+    assert len(segments) == 1
+    assert segments[0].kind == "list_item"
+    assert segments[0].list_marker == expected_marker
+    assert segments[0].text == expected_text
+
+
+@pytest.mark.parametrize(
+    "line",
+    [
+        "1 Des détails sont présentés dans le Rapport annuel.",
+        "-0,5 % représente la variation observée.",
+        "La Banque identifie les risques; elle évalue ensuite leur incidence.",
+    ],
+)
+def test_parse_docling_markdown_does_not_infer_lists_from_numbered_prose(line: str) -> None:
+    segments = _parse_docling_markdown(line)
+
+    assert len(segments) == 1
+    assert segments[0].kind == "paragraph"
+
+
 def test_matchable_segments_drop_table_caption_chain_and_resume_parent_heading() -> None:
     segments = [
         DoclingSegment(kind="heading", text="Activités de négociation"),
@@ -2692,6 +2734,94 @@ def test_build_text_extraction_markdown_from_docling_keeps_headings_and_order() 
     assert "Texte hors périmètre" not in markdown
     assert markdown.index("### OBJECTIFS") < markdown.index("Les objectifs de la Banque")
     assert markdown.index("Les objectifs de la Banque") < markdown.index("### SOURCES DES FONDS PROPRES")
+
+
+def test_docling_bns_list_survives_canonical_markdown_and_chunking() -> None:
+    heading = "Composantes du cadre de gestion du risque"
+    introduction = (
+        "Le cadre de gestion du risque de la Banque se compose de cinq principaux éléments :"
+    )
+    list_items = [
+        "la gouvernance du risque;",
+        "l'appétence au risque;",
+        "les outils de gestion du risque;",
+        "l'identification et l'évaluation des risques;",
+        "la culture du risque.",
+    ]
+    audit = SectionAudit(
+        section_key="gestion_risques",
+        section_title="Gestion des risques",
+        start_page=74,
+        end_page=75,
+        anchor_page=74,
+        anchor_text="Gestion des risques",
+        anchor_bbox_norm=[0.04, 0.05, 0.90, 0.08],
+        included_blocks=[
+            PDFBlock(
+                "p074_d002",
+                74,
+                [0.04, 0.20, 0.90, 0.25],
+                introduction,
+                2,
+                "narrative",
+                True,
+                "",
+                "paragraph",
+            ),
+            *[
+                PDFBlock(
+                    f"p075_d{index:03d}",
+                    75,
+                    [0.08, 0.20 + index * 0.04, 0.90, 0.23 + index * 0.04],
+                    item,
+                    index + 3,
+                    "narrative",
+                    True,
+                    "",
+                    "list_item",
+                )
+                for index, item in enumerate(list_items)
+            ],
+        ],
+        excluded_blocks=[
+            PDFBlock(
+                "p074_d001",
+                74,
+                [0.04, 0.14, 0.70, 0.17],
+                heading,
+                1,
+                "other",
+                False,
+                "non_narrative_block",
+                "section_header",
+                heading_level=2,
+            )
+        ],
+    )
+    raw_docling = (
+        f"## Gestion des risques\n\n## {heading}\n\n{introduction}\n\n"
+        + "\n\n".join(f"- \x81 {item}" for item in list_items)
+        + "\n"
+    )
+
+    markdown = _build_text_extraction_markdown_from_docling(
+        [audit],
+        raw_docling_markdown=raw_docling,
+    )
+    section_text = _extract_section_text_from_markdown(markdown, "gestion_risques")
+    subsection_body = dict(_parse_subsections(section_text))[heading]
+    chunks = _chunk_subsection_text(
+        subsection_body,
+        subsection_heading=heading,
+        section_title="Gestion des risques",
+    )
+
+    assert "\x81" not in markdown
+    assert [line for line in markdown.splitlines() if line.startswith("- ")] == [
+        f"- {item}" for item in list_items
+    ]
+    assert [chunk.kind for chunk in chunks] == ["paragraph", "list"]
+    assert chunks[1].text.splitlines() == list_items
 
 
 def test_docling_heading_does_not_match_words_inside_capital_paragraph() -> None:

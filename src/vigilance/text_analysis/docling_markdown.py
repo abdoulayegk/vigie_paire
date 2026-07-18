@@ -7,6 +7,10 @@ import re
 from dataclasses import dataclass
 
 from vigilance.text_analysis.constants import _SECTION_LABELS
+from vigilance.text_analysis.list_items import (
+    format_list_item_markdown,
+    parse_list_item_line,
+)
 from vigilance.text_analysis.markdown import (
     _format_heading_line,
     _is_docling_heading_block,
@@ -32,7 +36,6 @@ _SECTION_ORDER = {
 }
 
 _HEADING_LINE_RE = re.compile(r"^(#{1,6})\s+(.+)$")
-_LIST_ITEM_RE = re.compile(r"^[-*]\s+(.+)$")
 _TABLE_ROW_RE = re.compile(r"^\|.+\|$")
 _EXPLICIT_FOOTNOTE_MARKER_RE = re.compile(
     r"^\s*(?:\(?\d{1,2}\)|[¹²³⁴⁵⁶⁷⁸⁹]+|[*†‡]{1,3}|"
@@ -115,6 +118,8 @@ class DoclingSegment:
     bbox_norm: list[float] | None = None
     source_block_id: str | None = None
     source_block_type: str | None = None
+    list_marker: str | None = None
+    list_indent: int = 0
 
 
 def _has_table_footnote_cue(text: str) -> bool:
@@ -174,17 +179,17 @@ def _parse_docling_markdown(md_content: str) -> list[DoclingSegment]:
             follows_table = False
             continue
 
-        list_match = _LIST_ITEM_RE.match(line)
-        if list_match:
-            text = list_match.group(1).strip()
-            if text:
-                segments.append(
-                    DoclingSegment(
-                        kind="list_item",
-                        text=text,
-                        follows_table=follows_table,
-                    )
+        list_item = parse_list_item_line(raw_line)
+        if list_item is not None:
+            segments.append(
+                DoclingSegment(
+                    kind="list_item",
+                    text=list_item.text,
+                    follows_table=follows_table,
+                    list_marker=list_item.marker,
+                    list_indent=list_item.indent,
                 )
+            )
             follows_table = False
             continue
 
@@ -691,13 +696,16 @@ def _merge_missing_audited_segments(
 
     merged = list(segments)
     for block in sorted(missing, key=lambda item: (item.page, item.y0, item.bbox_norm[0])):
+        parsed_list_item = parse_list_item_line(str(block.text or ""))
         recovered = DoclingSegment(
-            kind="paragraph",
-            text=str(block.text or "").strip(),
+            kind="list_item" if parsed_list_item is not None else "paragraph",
+            text=(parsed_list_item.text if parsed_list_item is not None else str(block.text or "").strip()),
             page=int(block.page),
             bbox_norm=list(block.bbox_norm),
             source_block_id=str(block.block_id),
             source_block_type=str(block.block_type),
+            list_marker=parsed_list_item.marker if parsed_list_item is not None else None,
+            list_indent=parsed_list_item.indent if parsed_list_item is not None else 0,
         )
         recovered_key = _segment_position_key(recovered)
         insert_at = len(merged)
@@ -765,7 +773,16 @@ def _build_text_extraction_markdown_from_docling(
                 lines.append("")
                 continue
 
-            lines.append(segment.text)
+            if segment.kind == "list_item":
+                lines.append(
+                    format_list_item_markdown(
+                        segment.text,
+                        marker=segment.list_marker or "-",
+                        indent=segment.list_indent,
+                    )
+                )
+            else:
+                lines.append(segment.text)
             lines.append("")
 
     rendered = "\n".join(lines).strip() + "\n"
