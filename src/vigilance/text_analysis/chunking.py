@@ -6,6 +6,7 @@ import re
 from dataclasses import dataclass
 from typing import Any
 
+from vigilance.text_analysis.list_items import parse_list_item_line
 from vigilance.text_analysis.normalization import _is_not_applicable_marker
 from vigilance.text_analysis.semantic_chunking import (
     SemanticChunkingError,
@@ -14,11 +15,7 @@ from vigilance.text_analysis.semantic_chunking import (
 )
 
 
-_BULLET_LINE_RE = re.compile(r"^\s*(?:\[\s*(?:x|X)?\s*\]\s*|[-*•‰]\s+|\d{1,3}[.)]\s+)")
 _HEADING_LINE_RE = re.compile(r"^\s*#{2,6}\s+")
-_LEADING_LIST_MARKER_RE = re.compile(
-    r"^\s*(?:\[\s*(?:x|X)?\s*\]\s*|[-*•‰]\s+|\d{1,3}[.)]\s+)",
-)
 _MARKDOWN_TABLE_DIVIDER_RE = re.compile(
     r"^\s*\|?\s*:?-{3,}:?\s*(?:\|\s*:?-{3,}:?\s*)+\|?\s*$"
 )
@@ -39,7 +36,7 @@ class TextChunk:
 
 def _is_bullet_line(line: str) -> bool:
     """Indique si une ligne démarre une puce ou un item numéroté simple."""
-    return bool(_BULLET_LINE_RE.match(str(line or "")))
+    return parse_list_item_line(line) is not None
 
 
 def _is_heading_line(line: str) -> bool:
@@ -49,11 +46,13 @@ def _is_heading_line(line: str) -> bool:
 
 def _strip_list_markers(text: str) -> str:
     """Retire les puces de présentation sans séparer les éléments de liste."""
-    return "\n".join(
-        _LEADING_LIST_MARKER_RE.sub("", line).strip()
-        for line in str(text or "").splitlines()
-        if _LEADING_LIST_MARKER_RE.sub("", line).strip()
-    )
+    stripped_lines: list[str] = []
+    for line in str(text or "").splitlines():
+        parsed = parse_list_item_line(line)
+        cleaned = parsed.text if parsed is not None else line.strip()
+        if cleaned:
+            stripped_lines.append(cleaned)
+    return "\n".join(stripped_lines)
 
 
 def _is_narrative_comparison_candidate(text: str) -> bool:
