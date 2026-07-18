@@ -398,16 +398,21 @@ def _call_structured_completion_with_correction(
             if validation_attempt >= max_retries:
                 raise
             validation_attempt += 1
+            validation_detail = json.dumps(
+                exc.errors(include_input=True),
+                ensure_ascii=False,
+                default=str,
+            )
             logger.warning(
-                "Triage validation failed on attempt %d/%d, retrying with correction. Error: %s",
+                "Triage validation failed on attempt %d/%d, retrying with correction. Details: %s",
                 validation_attempt,
                 max_retries + 1,
-                exc,
+                validation_detail,
             )
             default_validation_message = (
                 "Ta réponse précédente a échoué la validation du schéma "
                 "ou des invariants AMF. Détail de l'erreur :\n"
-                f"{exc}\n\n"
+                f"{validation_detail}\n\n"
                 "Corrige TOUS les invariants violés et renvoie le batch "
                 "COMPLET (tous les change_index) en respectant strictement "
                 "le schéma. Rappel des invariants stricts : "
@@ -433,7 +438,7 @@ def _call_structured_completion_with_correction(
                     "role": "user",
                     "content": (
                         f"{validation_retry_message or default_validation_message}\n\n"
-                        f"Détail de l'erreur :\n{exc}"
+                        f"Détail de l'erreur :\n{validation_detail}"
                         if validation_retry_message
                         else default_validation_message
                     ),

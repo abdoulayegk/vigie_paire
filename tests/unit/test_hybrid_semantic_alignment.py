@@ -103,8 +103,8 @@ def test_hybrid_alignment_skips_non_reciprocal_pairs(monkeypatch) -> None:
         for alignment in hybrid
         if alignment.chunk_t1 and alignment.chunk_t2
     }
-    assert ("c00", "c01") in matched
-    assert ("c01", "c00") in matched
+    assert ("risque_de_stratégie_c00", "risque_de_stratégie_c01") in matched
+    assert ("risque_de_stratégie_c01", "risque_de_stratégie_c00") in matched
     assert not any(alignment.alignment_type.startswith("possible_") for alignment in hybrid)
 
 

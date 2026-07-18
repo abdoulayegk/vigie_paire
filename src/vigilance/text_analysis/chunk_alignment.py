@@ -427,26 +427,37 @@ def _reassemble_adjacent_one_to_many(alignments: list[ChunkAlignment]) -> list[C
     passage is almost verbatim.  It addresses threshold-driven splits without
     collapsing distinct but templated disclosures (for example separate debt
     issuances) into a single change.
+
+    Adjacency is scoped to the same subsection heading: ``order`` is local to
+    each subsection, so pooling orphans section-wide (Phase B rescue) must not
+    treat unrelated chunks with coincidentally consecutive orders as neighbors.
+    A proposal is kept only when it improves on the current pair's verbatim
+    similarity, so a near-perfect 1:1 match is never diluted by a weaker group.
     """
     proposals: list[tuple[float, ChunkAlignment, ChunkAlignment, TextChunk | None, TextChunk | None]] = []
     paired = [alignment for alignment in alignments if alignment.chunk_t1 and alignment.chunk_t2]
 
     for matched in paired:
         assert matched.chunk_t1 is not None and matched.chunk_t2 is not None
+        matched_verbatim = _sequence_similarity(matched.chunk_t1.text, matched.chunk_t2.text)
         for unmatched in alignments:
             if unmatched.alignment_type == "possible_removed" and unmatched.chunk_t1:
+                if unmatched.chunk_t1.subsection_heading != matched.chunk_t1.subsection_heading:
+                    continue
                 if abs(unmatched.chunk_t1.order - matched.chunk_t1.order) != 1:
                     continue
                 grouped_t1 = _group_adjacent_chunks([unmatched.chunk_t1, matched.chunk_t1])
                 score = _sequence_similarity(grouped_t1.text, matched.chunk_t2.text)
-                if score >= _ADJACENT_GROUP_SEQUENCE_THRESHOLD:
+                if score >= _ADJACENT_GROUP_SEQUENCE_THRESHOLD and score > matched_verbatim:
                     proposals.append((score, unmatched, matched, grouped_t1, matched.chunk_t2))
             elif unmatched.alignment_type == "possible_added" and unmatched.chunk_t2:
+                if unmatched.chunk_t2.subsection_heading != matched.chunk_t2.subsection_heading:
+                    continue
                 if abs(unmatched.chunk_t2.order - matched.chunk_t2.order) != 1:
                     continue
                 grouped_t2 = _group_adjacent_chunks([matched.chunk_t2, unmatched.chunk_t2])
                 score = _sequence_similarity(matched.chunk_t1.text, grouped_t2.text)
-                if score >= _ADJACENT_GROUP_SEQUENCE_THRESHOLD:
+                if score >= _ADJACENT_GROUP_SEQUENCE_THRESHOLD and score > matched_verbatim:
                     proposals.append((score, unmatched, matched, matched.chunk_t1, grouped_t2))
 
     # A chunk can be adjacent to two possible pairs.  Keep the strongest

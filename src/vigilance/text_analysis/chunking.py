@@ -230,10 +230,13 @@ def _chunk_subsection_text(
     subsection = str(subsection_heading or "").strip()
     section = str(section_title or "").strip()
     hierarchy_path = f"{section} > {subsection}" if section and subsection else section or subsection
+    # Prefixed IDs stay unique when orphans from several subsections are
+    # later merged for a section-wide rescue pass.
+    id_prefix = _chunk_id_prefix(subsection)
 
     return [
         TextChunk(
-            chunk_id=f"c{index:02d}",
+            chunk_id=f"{id_prefix}c{index:02d}" if id_prefix else f"c{index:02d}",
             kind=kind,
             text=chunk_text,
             subsection_heading=subsection,
@@ -242,6 +245,13 @@ def _chunk_subsection_text(
         )
         for index, (kind, chunk_text) in enumerate(split_candidates)
     ]
+
+
+def _chunk_id_prefix(subsection_heading: str) -> str:
+    """Slug stable pour préfixer les chunk_id d'une sous-section."""
+    slug = re.sub(r"[^\w]+", "_", str(subsection_heading or "").strip().lower(), flags=re.UNICODE)
+    slug = slug.strip("_")[:40].strip("_")
+    return f"{slug}_" if slug else ""
 
 
 def _format_chunks_for_prompt(chunks: list[TextChunk]) -> str:
