@@ -227,6 +227,9 @@ banks:
       - "Etats financiers consolides"
       - "Annexes"
     matching_overrides:
+      # Recuperation hybride limitee a RBC pendant la phase de validation.
+      hybrid_embedding_recovery_enabled: true
+      hybrid_embedding_quarters: ["t4"]
       few_indicators_max_count: 6
       overlap_floor_min_few_indicators: 0.25
       overlap_threshold: 0.50
@@ -680,6 +683,14 @@ trend_detection:
     OTHER: 0.7
 
 matching_thresholds:
+  # Recuperation hybride GPT + embeddings. Desactivee globalement; RBC seule
+  # l'active dans matching_overrides pendant la phase de validation.
+  hybrid_embedding_recovery_enabled: false
+  hybrid_embedding_quarters: []
+  hybrid_embedding_model: "text-embedding-3-large"
+  hybrid_embedding_top_k: 5
+  hybrid_min_confidence: 0.75
+
   # --- Recall-first engine (default) ---
   # Global Hungarian assignment + progressive elimination + rescue passes.
   # Toggle with recall_first_engine_enabled.  All rf_* params below are

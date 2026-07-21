@@ -18,6 +18,10 @@ from typing import Any, Callable, Literal, TypedDict
 
 from vigilance.comparison_inspector import _inspect_matched_pairs
 from vigilance.comparison_io import _coerce_float, _coerce_int, _require_string
+from vigilance.comparison_rbc_hybrid_matching import (
+    partition_trusted_rbc_primary_pairs,
+    run_rbc_hybrid_recovery,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -732,6 +736,13 @@ def _empty_matching_result(
         "inspector_passes_total": 0,
         "inspector_rejected_total": 0,
         "inspector_confirmed_total": 0,
+        "hybrid_recovery_executed": 0,
+        "hybrid_primary_pairs_released_total": 0,
+        "hybrid_candidate_pairs_total": 0,
+        "hybrid_judge_calls_total": 0,
+        "hybrid_final_inspector_calls_total": 0,
+        "hybrid_pairs_rejected_total": 0,
+        "hybrid_embedding_calls_total": 0,
     }
 
 
@@ -990,6 +1001,11 @@ def _match_tables(
     model: str,
     call_openai_json: Callable[..., dict[str, Any]],
     usage_recorder: list[dict[str, Any]] | None = None,
+    hybrid_recovery_enabled: bool = False,
+    hybrid_embedding_model: str = "text-embedding-3-large",
+    hybrid_top_k: int = 5,
+    hybrid_min_confidence: float = 0.75,
+    call_openai_embeddings: Callable[..., list[list[float]]] | None = None,
 ) -> dict[str, Any]:
     """Orchestre l'appariement complet en deux etapes avec inspection intermediaire.
 
@@ -1003,6 +1019,11 @@ def _match_tables(
         model: Identifiant du modele OpenAI a utiliser.
         call_openai_json: Callable injecte pour appeler l'API OpenAI.
         usage_recorder: Liste optionnelle pour enregistrer les metriques d'utilisation.
+        hybrid_recovery_enabled: Active la recuperation hybride RBC opt-in.
+        hybrid_embedding_model: Modele utilise pour la recherche de candidats.
+        hybrid_top_k: Nombre de candidats embeddings presentes par tableau courant.
+        hybrid_min_confidence: Confiance LLM minimale avant l'affectation globale.
+        call_openai_embeddings: Callable injecte pour calculer les embeddings.
 
     Returns:
         Dictionnaire contenant les paires appariees, tableaux ajoutes/supprimes,
@@ -1046,6 +1067,20 @@ def _match_tables(
     rejected_stage1_pairs = inspector_result["rejected_pairs"]
     inspector_stats = inspector_result.get("inspection_stats", {})
 
+    released_primary_pairs: list[dict[str, Any]] = []
+    if hybrid_recovery_enabled:
+        confirmed_stage1_pairs, released_primary_pairs = partition_trusted_rbc_primary_pairs(
+            confirmed_stage1_pairs,
+            previous_cards,
+            current_cards,
+        )
+        rejected_stage1_pairs = rejected_stage1_pairs + released_primary_pairs
+        if released_primary_pairs:
+            logger.info(
+                "RBC hybrid audit released %d weak primary pairs back to recovery",
+                len(released_primary_pairs),
+            )
+
     if rejected_stage1_pairs:
         logger.info(
             "Match Inspector rejected %d pairs — returning to unresolved pool",
@@ -1059,9 +1094,12 @@ def _match_tables(
         if str(item.get("previous_table_id", "") or "").strip()
     }
     # Unresolved = original unresolved + rejected CQ tables
-    unresolved_ids = [item["current_table_id"] for item in stage1_decisions if item.get("decision") == "unresolved"] + [
-        item["current_table_id"] for item in rejected_stage1_pairs
-    ]
+    unresolved_ids = list(
+        dict.fromkeys(
+            [item["current_table_id"] for item in stage1_decisions if item.get("decision") == "unresolved"]
+            + [item["current_table_id"] for item in rejected_stage1_pairs]
+        )
+    )
     unresolved_lookup = {card["table_id"]: card for card in current_cards}
     unresolved_current_cards = [
         unresolved_lookup[table_id] for table_id in unresolved_ids if table_id in unresolved_lookup
@@ -1075,21 +1113,55 @@ def _match_tables(
         "matching_validation_failures_total": 0,
         "matching_pairs_llm_duplicates_total": 0,
         "matching_pairs_llm_deduped_total": 0,
+        "hybrid_recovery_executed": 0,
+        "hybrid_candidate_pairs_total": 0,
+        "hybrid_judge_calls_total": 0,
+        "hybrid_final_inspector_calls_total": 0,
+        "hybrid_pairs_rejected_total": 0,
+        "hybrid_embedding_calls_total": 0,
         "warnings": [],
     }
     tables_added: list[dict[str, str]] = []
 
     if unresolved_current_cards and remaining_previous_cards:
-        stage2 = _run_matching_stage(
-            remaining_previous_cards,
-            unresolved_current_cards,
-            stage="recovery",
-            allowed_decisions={"matched", "added"},
-            model=model,
-            call_openai_json=call_openai_json,
-            usage_recorder=usage_recorder,
-            consumed_previous_ids=used_previous_stage1,
-        )
+        if hybrid_recovery_enabled and call_openai_embeddings is not None:
+            stage2 = run_rbc_hybrid_recovery(
+                remaining_previous_cards,
+                unresolved_current_cards,
+                model=model,
+                embedding_model=hybrid_embedding_model,
+                top_k=hybrid_top_k,
+                min_confidence=hybrid_min_confidence,
+                call_openai_json=call_openai_json,
+                call_openai_embeddings=call_openai_embeddings,
+                usage_recorder=usage_recorder,
+            )
+        elif hybrid_recovery_enabled:
+            stage2 = {
+                **stage2_metrics,
+                "executed": True,
+                "hybrid_recovery_executed": 1,
+                "warnings": ["rbc_hybrid_embeddings_callback_missing"],
+                "current_table_decisions": [
+                    {
+                        "current_table_id": str(card.get("table_id", "")),
+                        "decision": "added",
+                        "reason": "RBC hybrid embedding retrieval was unavailable; left unmatched for review.",
+                    }
+                    for card in unresolved_current_cards
+                ],
+            }
+        else:
+            stage2 = _run_matching_stage(
+                remaining_previous_cards,
+                unresolved_current_cards,
+                stage="recovery",
+                allowed_decisions={"matched", "added"},
+                model=model,
+                call_openai_json=call_openai_json,
+                usage_recorder=usage_recorder,
+                consumed_previous_ids=used_previous_stage1,
+            )
         stage2_metrics = stage2
         stage2_decisions = list(stage2.get("current_table_decisions", []) or [])
         tables_added = _matching_decisions_to_table_refs(
@@ -1099,14 +1171,10 @@ def _match_tables(
     elif unresolved_current_cards:
         tables_added = [
             {
-                "table_id": str(item.get("current_table_id", "") or ""),
-                "reason": (
-                    str(item.get("reason", "") or "").strip()
-                    or "No previous business table remained available for matching."
-                ),
+                "table_id": str(card.get("table_id", "") or ""),
+                "reason": "No previous business table remained available for matching.",
             }
-            for item in stage1_decisions
-            if item.get("decision") == "unresolved"
+            for card in unresolved_current_cards
         ]
 
     matched_pairs = confirmed_stage1_pairs + _matching_decisions_to_pairs(stage2_decisions)
@@ -1151,6 +1219,15 @@ def _match_tables(
         "unmatched_after_rescue_total": len(tables_added) + len(tables_removed),
         "inspector_rejected_total": _coerce_int(inspector_stats.get("rejected")),
         "inspector_confirmed_total": _coerce_int(inspector_stats.get("confirmed")),
+        "hybrid_recovery_executed": _coerce_int(stage2_metrics.get("hybrid_recovery_executed")),
+        "hybrid_primary_pairs_released_total": len(released_primary_pairs),
+        "hybrid_candidate_pairs_total": _coerce_int(stage2_metrics.get("hybrid_candidate_pairs_total")),
+        "hybrid_judge_calls_total": _coerce_int(stage2_metrics.get("hybrid_judge_calls_total")),
+        "hybrid_final_inspector_calls_total": _coerce_int(
+            stage2_metrics.get("hybrid_final_inspector_calls_total")
+        ),
+        "hybrid_pairs_rejected_total": _coerce_int(stage2_metrics.get("hybrid_pairs_rejected_total")),
+        "hybrid_embedding_calls_total": _coerce_int(stage2_metrics.get("hybrid_embedding_calls_total")),
     }
 
 
@@ -1161,6 +1238,11 @@ def _run_table_matching(
     model: str,
     call_openai_json: Callable[..., dict[str, Any]],
     usage_recorder: list[dict[str, Any]] | None = None,
+    hybrid_recovery_enabled: bool = False,
+    hybrid_embedding_model: str = "text-embedding-3-large",
+    hybrid_top_k: int = 5,
+    hybrid_min_confidence: float = 0.75,
+    call_openai_embeddings: Callable[..., list[list[float]]] | None = None,
 ) -> dict[str, Any]:
     """Point d'entree principal de l'appariement des tableaux.
 
@@ -1173,6 +1255,11 @@ def _run_table_matching(
         model: Identifiant du modele OpenAI a utiliser.
         call_openai_json: Callable injecte pour appeler l'API OpenAI.
         usage_recorder: Liste optionnelle pour enregistrer les metriques d'utilisation.
+        hybrid_recovery_enabled: Active la recuperation hybride RBC opt-in.
+        hybrid_embedding_model: Modele utilise pour la recherche de candidats.
+        hybrid_top_k: Nombre de candidats embeddings presentes par tableau courant.
+        hybrid_min_confidence: Confiance LLM minimale avant l'affectation globale.
+        call_openai_embeddings: Callable injecte pour calculer les embeddings.
 
     Returns:
         Dictionnaire structure contenant ``matched_pairs``, ``tables_added``,
@@ -1184,6 +1271,11 @@ def _run_table_matching(
         model=model,
         call_openai_json=call_openai_json,
         usage_recorder=usage_recorder,
+        hybrid_recovery_enabled=hybrid_recovery_enabled,
+        hybrid_embedding_model=hybrid_embedding_model,
+        hybrid_top_k=hybrid_top_k,
+        hybrid_min_confidence=hybrid_min_confidence,
+        call_openai_embeddings=call_openai_embeddings,
     )
     result["matched_pairs"] = _sort_matched_pairs(result["matched_pairs"], previous_cards)
     tables_added = list(result.get("tables_added", []) or [])
@@ -1209,5 +1301,16 @@ def _run_table_matching(
         "matching_pairs_llm_deduped_total": _coerce_int(result.get("matching_pairs_llm_deduped_total")),
         "inspector_rejected_total": _coerce_int(result.get("inspector_rejected_total")),
         "inspector_confirmed_total": _coerce_int(result.get("inspector_confirmed_total")),
+        "hybrid_recovery_executed": _coerce_int(result.get("hybrid_recovery_executed")),
+        "hybrid_primary_pairs_released_total": _coerce_int(
+            result.get("hybrid_primary_pairs_released_total")
+        ),
+        "hybrid_candidate_pairs_total": _coerce_int(result.get("hybrid_candidate_pairs_total")),
+        "hybrid_judge_calls_total": _coerce_int(result.get("hybrid_judge_calls_total")),
+        "hybrid_final_inspector_calls_total": _coerce_int(
+            result.get("hybrid_final_inspector_calls_total")
+        ),
+        "hybrid_pairs_rejected_total": _coerce_int(result.get("hybrid_pairs_rejected_total")),
+        "hybrid_embedding_calls_total": _coerce_int(result.get("hybrid_embedding_calls_total")),
         "warnings": _normalize_matching_warnings(result.get("warnings", [])),
     }

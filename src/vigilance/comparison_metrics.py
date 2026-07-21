@@ -195,6 +195,13 @@ _MATCHING_METRIC_KEYS = (
     "matching_pairs_llm_deduped_total",
     "inspector_rejected_total",
     "inspector_confirmed_total",
+    "hybrid_recovery_executed",
+    "hybrid_primary_pairs_released_total",
+    "hybrid_candidate_pairs_total",
+    "hybrid_judge_calls_total",
+    "hybrid_final_inspector_calls_total",
+    "hybrid_pairs_rejected_total",
+    "hybrid_embedding_calls_total",
 )
 
 
