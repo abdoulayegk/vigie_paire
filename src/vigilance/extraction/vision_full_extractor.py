@@ -1524,10 +1524,44 @@ def _count_real_indicators(indicators: list[Any]) -> int:
     return count
 
 
+_SUPERSCRIPT_FOOTNOTE_TRANSLATION = str.maketrans(
+    "⁰¹²³⁴⁵⁶⁷⁸⁹",
+    "0123456789",
+)
+
+
+def _normalize_footnote_marker_id(value: Any) -> str:
+    """Normalise un identifiant de note vers sa forme canonique sans decoration."""
+    text = str(value or "").strip().translate(_SUPERSCRIPT_FOOTNOTE_TRANSLATION)
+    while len(text) >= 2 and (text[0], text[-1]) in {
+        ("(", ")"),
+        ("[", "]"),
+        ("{", "}"),
+    }:
+        text = text[1:-1].strip()
+    return text.lower()
+
+
+def _extract_footnote_marker_ids(values: list[Any]) -> set[str]:
+    """Extrait les marqueurs visibles dans des titres, en-tetes ou indicateurs."""
+    markers: set[str] = set()
+    for value in values:
+        text = str(value or "").strip()
+        if not text:
+            continue
+        for match in re.finditer(r"[⁰¹²³⁴-⁹*†‡]+", text):
+            marker = _normalize_footnote_marker_id(match.group(0))
+            if marker:
+                markers.add(marker)
+        for match in re.finditer(r"\(\s*([0-9a-zA-Z]{1,2})\s*\)", text):
+            marker = _normalize_footnote_marker_id(match.group(1))
+            if marker:
+                markers.add(marker)
+    return markers
+
+
 def _grade_extraction_quality(result: VisionFullResult | None) -> list[str]:
     """Evalue la qualite de l'extraction et retourne une liste de critiques."""
-    import re
-
     if result is None:
         return []
 
@@ -1542,15 +1576,11 @@ def _grade_extraction_quality(result: VisionFullResult | None) -> list[str]:
 
     # 2. Orphaned Footnote Marker Check
     found_footnote_ids = {
-        str(fn.get("id")).strip() for fn in footnotes if isinstance(fn, dict) and str(fn.get("id", "")).strip()
+        _normalize_footnote_marker_id(fn.get("id"))
+        for fn in footnotes
+        if isinstance(fn, dict) and _normalize_footnote_marker_id(fn.get("id"))
     }
-
-    referenced_markers = set()
-    for ind in indicators:
-        if isinstance(ind, str):
-            matches = re.findall(r"\(([a-zA-Z0-9]{1,2})\)", ind)
-            for m in matches:
-                referenced_markers.add(m.strip())
+    referenced_markers = _extract_footnote_marker_ids(indicators)
 
     missing_footnotes = referenced_markers - found_footnote_ids
     if missing_footnotes and len(missing_footnotes) <= 4:
@@ -1589,7 +1619,11 @@ def _collect_incompleteness_reasons(
     if result is None:
         return ["missing_result"]
     reasons: list[str] = []
-    expected_ids = expected_footnote_ids or set()
+    expected_ids = {
+        marker
+        for value in (expected_footnote_ids or set())
+        if (marker := _normalize_footnote_marker_id(value))
+    }
     title = str(result.table_title or "").strip()
     summary = str(result.table_summary or "").strip()
     if "output_budget_truncated" in set(result.retry_reasons or []):
@@ -1620,9 +1654,10 @@ def _collect_incompleteness_reasons(
 
     if bbox_norm and len(bbox_norm) >= 4 and bbox_norm[3] < 0.92 and expected_ids:
         found_ids = {
-            str(item.get("id") or "").strip()
+            _normalize_footnote_marker_id(item.get("id"))
             for item in list(result.footnotes_content or [])
-            if isinstance(item, dict) and str(item.get("id") or "").strip()
+            if isinstance(item, dict)
+            and _normalize_footnote_marker_id(item.get("id"))
         }
         if not expected_ids.issubset(found_ids):
             reasons.append("missing_expected_footnotes")
@@ -1644,11 +1679,16 @@ def _candidate_quality_score(
     title = str(result.table_title or "").strip()
     summary = str(result.table_summary or "").strip()
     found_footnotes = {
-        str(item.get("id") or "").strip()
+        _normalize_footnote_marker_id(item.get("id"))
         for item in list(result.footnotes_content or [])
-        if isinstance(item, dict) and str(item.get("id") or "").strip()
+        if isinstance(item, dict)
+        and _normalize_footnote_marker_id(item.get("id"))
     }
-    expected_ids = expected_footnote_ids or set()
+    expected_ids = {
+        marker
+        for value in (expected_footnote_ids or set())
+        if (marker := _normalize_footnote_marker_id(value))
+    }
     right_column_bleed = _right_column_bleed_score(
         result,
         baseline_result=baseline_result,
@@ -2673,9 +2713,16 @@ class VisionFullExtractor:
         vision_cfg = vision_cfg or {}
         expected_markers = vision_cfg.get("expected_markers")
         if isinstance(expected_markers, list):
-            expected_set = {str(m).strip() for m in expected_markers[:10]}
+            allowed_marker_ids = {
+                marker
+                for value in expected_markers[:10]
+                if (marker := _normalize_footnote_marker_id(value))
+            }
         else:
-            expected_set = set()
+            allowed_marker_ids = set()
+        # Le profil de banque declare les marqueurs possibles. Seuls ceux
+        # observes dans le tableau courant deviennent obligatoires.
+        expected_set: set[str] = set()
         base_max_completion_tokens = max(
             1,
             min(
@@ -2708,33 +2755,11 @@ class VisionFullExtractor:
         def _footnote_ids(r: VisionFullResult) -> set[str]:
             """Retourne l'ensemble des identifiants de footnotes extraits du résultat."""
             return {
-                str(item.get("id") or "").strip()
+                _normalize_footnote_marker_id(item.get("id"))
                 for item in list(r.footnotes_content or [])
-                if isinstance(item, dict) and str(item.get("id") or "").strip()
+                if isinstance(item, dict)
+                and _normalize_footnote_marker_id(item.get("id"))
             }
-
-        def _extract_markers_from_indicators(indicators: list[str]) -> set[str]:
-            """Détecte les marqueurs de footnote (²³*†‡, (1), (a)…) présents dans les libellés."""
-            import re
-
-            markers = set()
-            for text in indicators:
-                text_lower = text.lower()
-                for m in re.finditer(r"[²³*†‡]", text):
-                    val = m.group(0)
-                    if val == "²":
-                        markers.add("2")
-                    elif val == "³":
-                        markers.add("3")
-                    else:
-                        markers.add(val)
-                for m in re.finditer(r"\(\s*([0-9a-z])\s*\)", text_lower):
-                    if m.start() <= 1:
-                        prefix = text[: m.start()]
-                        if not any(c.isalnum() for c in prefix):
-                            continue
-                    markers.add(m.group(1))
-            return markers
 
         def _needs_recrop(result: VisionFullResult | None) -> bool:
             """Indique si le résultat porte des signaux d'incomplétude justifiant un re-crop."""
@@ -2821,10 +2846,16 @@ class VisionFullExtractor:
             bottom_extension_used=initial_bottom_extension,
         )
 
-        if first is not None and first.indicators:
-            found_markers = _extract_markers_from_indicators([str(item).strip() for item in list(first.indicators)])
-            if found_markers:
-                expected_set.update(found_markers)
+        if first is not None:
+            marker_sources: list[Any] = [
+                first.table_title,
+                *list(first.headers or []),
+                *list(first.indicators or []),
+            ]
+            found_markers = _extract_footnote_marker_ids(marker_sources)
+            if allowed_marker_ids:
+                found_markers &= allowed_marker_ids
+            expected_set.update(found_markers)
 
         initial_is_suspect = _is_trivial_result(first, bbox_norm=bbox_norm)
         initial_rejection_reasons = _collect_incompleteness_reasons(
