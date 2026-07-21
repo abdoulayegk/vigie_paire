@@ -848,6 +848,38 @@
     border-radius: 3px;
 }
 
+/* Progression et filtres de la revue textuelle */
+.text-review-sticky-tools {
+    position: sticky;
+    top: 0.75rem;
+    z-index: 12;
+    padding-top: 0.1rem;
+    background: #f8f9fa;
+}
+
+.text-review-progress-banner {
+    margin-bottom: 0.75rem;
+    background-color: #ffffff;
+    border-color: #dee2e6 !important;
+    font-size: 0.9rem;
+    box-shadow: 0 0.15rem 0.4rem rgba(33, 37, 41, 0.05);
+}
+
+.text-review-progress-bar {
+    height: 7px;
+    border-radius: 4px;
+}
+
+.text-review-remaining-button {
+    line-height: 1.2;
+}
+
+@media (max-width: 991.98px) {
+    .text-review-sticky-tools {
+        position: static;
+    }
+}
+
 /* Cockpit de vigie - onglet read-only */
 .vigie-cockpit {
     --cockpit-bg: #07111d;

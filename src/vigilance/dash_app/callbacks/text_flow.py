@@ -25,13 +25,22 @@ def _filename_period(label: str) -> str:
     Output("text-analysis-tab-content", "children"),
     Input("store-text-comparison", "data"),
     Input("store-show-results-page", "data"),
+    State("store-text-review-filters", "data"),
     prevent_initial_call=True,
 )
-def render_text_analysis(text_data, show_results):
+def render_text_analysis(text_data, show_results, text_filters=None):
     """Reconstruit le layout du tab quand les données arrivent."""
     if not show_results:
         raise PreventUpdate
-    return build_text_analysis_tab(text_data)
+    filters = text_filters if isinstance(text_filters, dict) else {}
+    kwargs = {
+        "filter_impact": filters.get("impact"),
+        "filter_action": filters.get("action"),
+        "filter_status": filters.get("status", "remaining"),
+    }
+    if "section" in filters:
+        kwargs["filter_section"] = filters.get("section")
+    return build_text_analysis_tab(text_data, **kwargs)
 
 
 @callback(
@@ -41,13 +50,56 @@ def render_text_analysis(text_data, show_results):
     Input("text-filter-section", "value"),
     Input("text-filter-impact", "value"),
     Input("text-filter-action", "value"),
+    Input("text-filter-status", "value"),
     prevent_initial_call=True,
 )
-def filter_text_cards(text_data, filter_section, filter_impact, filter_action):
+def filter_text_cards(
+    text_data,
+    filter_section,
+    filter_impact,
+    filter_action,
+    filter_status=None,
+):
     """Filtre et trie les cartes analytiques selon les dropdowns."""
     if not text_data:
         raise PreventUpdate
-    return build_filtered_text_cards(text_data, filter_section, filter_impact, filter_action)
+    return build_filtered_text_cards(
+        text_data,
+        filter_section,
+        filter_impact,
+        filter_action,
+        filter_status,
+    )
+
+
+@callback(
+    Output("store-text-review-filters", "data"),
+    Input("text-filter-section", "value"),
+    Input("text-filter-impact", "value"),
+    Input("text-filter-action", "value"),
+    Input("text-filter-status", "value"),
+    prevent_initial_call=True,
+)
+def remember_text_review_filters(section, impact, action, status):
+    """Mémorise le contexte de travail pendant les décisions analystes."""
+    return {
+        "section": section,
+        "impact": impact,
+        "action": action,
+        "status": status or "remaining",
+    }
+
+
+@callback(
+    Output("text-filter-status", "value"),
+    Input("text-progress-remaining", "n_clicks"),
+    prevent_initial_call=True,
+)
+def show_remaining_text_changes(n_clicks):
+    """Active la file à traiter depuis le compteur de progression."""
+    if not n_clicks:
+        raise PreventUpdate
+    return "remaining"
 
 
 @callback(

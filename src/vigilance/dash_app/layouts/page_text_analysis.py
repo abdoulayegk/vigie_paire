@@ -160,6 +160,8 @@ _TEXT_REVIEW_STATUS_BADGES: dict[str, tuple[str, str]] = {
     "skipped": ("Passé", "secondary"),
 }
 
+_UNSET = object()
+
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -1124,6 +1126,98 @@ def _count_auditable_text_changes(section_comparisons: list[dict[str, Any]]) -> 
     return total
 
 
+def _text_review_progress(section_comparisons: list[dict[str, Any]]) -> dict[str, int]:
+    """Calcule les décisions de revue sur le périmètre textuel auditable."""
+    counts = {"approved": 0, "rejected": 0, "skipped": 0, "pending": 0}
+    for section in section_comparisons:
+        for change in section.get("all_block_comparisons") or []:
+            if change.get("diff_type") == "unchanged":
+                continue
+            review = change.get("_analyst_review") or {}
+            status = str(review.get("status") or "pending").strip().lower()
+            counts[status if status in counts else "pending"] += 1
+
+    total = sum(counts.values())
+    decided = counts["approved"] + counts["rejected"]
+    remaining = counts["pending"] + counts["skipped"]
+    percent = round(decided / total * 100) if total else 0
+    return {
+        **counts,
+        "total": total,
+        "decided": decided,
+        "remaining": remaining,
+        "percent": percent,
+    }
+
+
+def _build_text_review_progress(section_comparisons: list[dict[str, Any]]) -> html.Div:
+    """Construit la bannière globale d'avancement de la revue textuelle."""
+    progress = _text_review_progress(section_comparisons)
+    percent = progress["percent"]
+    complete = bool(progress["total"]) and progress["remaining"] == 0
+
+    summary_items: list[Any] = [
+        html.Span(
+            (
+                f"{progress['decided']} / {progress['total']} "
+                f"{('décision rendue' if progress['decided'] == 1 else 'décisions rendues')}"
+            ),
+            className="fw-semibold me-2",
+        ),
+        dbc.Badge(
+            _plural_count(progress["approved"], "validé", "validés"),
+            color="success",
+            className="me-1",
+        ),
+        dbc.Badge(
+            _plural_count(progress["rejected"], "rejeté", "rejetés"),
+            color="danger",
+            className="me-1",
+        ),
+        dbc.Button(
+            f"{progress['remaining']} à traiter",
+            id="text-progress-remaining",
+            color="primary" if progress["remaining"] else "success",
+            outline=bool(progress["remaining"]),
+            size="sm",
+            className="text-review-remaining-button",
+            disabled=not progress["remaining"],
+            title="Afficher les changements qui nécessitent encore une décision",
+        ),
+    ]
+    if progress["skipped"]:
+        summary_items.append(
+            html.Span(
+                f"dont {_plural_count(progress['skipped'], 'passé', 'passés')} à reprendre",
+                className="small text-muted ms-2",
+            )
+        )
+
+    return html.Div(
+        [
+            html.Div(
+                [
+                    html.Span("Avancement de la revue textuelle", className="fw-semibold"),
+                    dbc.Badge(
+                        "Revue complète" if complete else f"{percent}%",
+                        color="success" if complete else "primary",
+                        className="ms-auto",
+                    ),
+                ],
+                className="d-flex align-items-center mb-2",
+            ),
+            dbc.Progress(
+                value=percent,
+                color="success" if complete else "primary",
+                className="text-review-progress-bar mb-2",
+            ),
+            html.Div(summary_items, className="d-flex align-items-center flex-wrap gap-1"),
+        ],
+        id="text-review-progress",
+        className="text-review-progress-banner px-3 py-2 rounded border",
+    )
+
+
 def _section_has_auditable_text_changes(section: dict[str, Any]) -> bool:
     """Indique si une section contient au moins un changement texte affichable."""
     for change in section.get("all_block_comparisons") or []:
@@ -1162,6 +1256,7 @@ def build_filtered_text_cards(
     filter_section: str | None,
     filter_impact: str | None,
     filter_action: str | None,
+    filter_status: str | None = None,
 ) -> tuple[list[Any], str]:
     """Construit les cartes texte selon les filtres courants."""
     items: list[tuple[tuple[int, int, str, str, str], dict[str, Any], str]] = []
@@ -1179,6 +1274,13 @@ def build_filtered_text_cards(
             if diff_type == "unchanged":
                 continue
             triage = change.get("genai_triage") or {}
+
+            review = change.get("_analyst_review") or {}
+            review_status = str(review.get("status") or "pending").strip().lower()
+            if filter_status == "remaining" and review_status not in {"pending", "skipped"}:
+                continue
+            if filter_status in {"approved", "rejected", "skipped"} and review_status != filter_status:
+                continue
 
             impact = (triage.get("impact_level") or "MINEUR").upper()
             action = (triage.get("action_requise") or "aucune").lower()
@@ -1230,10 +1332,13 @@ def build_filtered_text_cards(
 
 def _build_filter_bar(
     section_options: list[dict],
-    default_section: str | None,
+    selected_section: str | None,
+    selected_impact: str | None,
+    selected_action: str | None,
+    selected_status: str,
     initial_count: str,
 ) -> html.Div:
-    """Barre de filtres : section / impact / action + compteur."""
+    """Barre de filtres : section / impact / action / décision + compteur."""
     return html.Div(
         dbc.Row(
             [
@@ -1241,11 +1346,11 @@ def _build_filter_bar(
                     dcc.Dropdown(
                         id="text-filter-section",
                         options=section_options,
-                        value=default_section,
+                        value=selected_section,
                         placeholder="Toutes les sections",
                         clearable=True,
                     ),
-                    md=4,
+                    md=3,
                 ),
                 dbc.Col(
                     dcc.Dropdown(
@@ -1255,10 +1360,11 @@ def _build_filter_bar(
                             {"label": "Modéré", "value": "MODERE"},
                             {"label": "Mineur", "value": "MINEUR"},
                         ],
+                        value=selected_impact,
                         placeholder="Tous les impacts",
                         clearable=True,
                     ),
-                    md=3,
+                    md=2,
                 ),
                 dbc.Col(
                     dcc.Dropdown(
@@ -1270,13 +1376,33 @@ def _build_filter_bar(
                             {"label": "Information", "value": "information"},
                             {"label": "Aucune", "value": "aucune"},
                         ],
+                        value=selected_action,
                         placeholder="Toutes les actions",
                         clearable=True,
                     ),
                     md=3,
                 ),
                 dbc.Col(
-                    html.Span(initial_count, id="text-filter-count", className="small text-muted align-self-center"),
+                    dcc.Dropdown(
+                        id="text-filter-status",
+                        options=[
+                            {"label": "À traiter", "value": "remaining"},
+                            {"label": "Validés", "value": "approved"},
+                            {"label": "Rejetés", "value": "rejected"},
+                            {"label": "Passés", "value": "skipped"},
+                            {"label": "Toutes les décisions", "value": "all"},
+                        ],
+                        value=selected_status,
+                        clearable=False,
+                    ),
+                    md=2,
+                ),
+                dbc.Col(
+                    html.Span(
+                        initial_count,
+                        id="text-filter-count",
+                        className="small text-muted align-self-center",
+                    ),
                     md=2,
                     className="d-flex",
                 ),
@@ -1292,11 +1418,22 @@ def _build_filter_bar(
 # ---------------------------------------------------------------------------
 
 
-def build_text_analysis_tab(text_data: dict[str, Any] | None) -> html.Div:
+def build_text_analysis_tab(
+    text_data: dict[str, Any] | None,
+    *,
+    filter_section: str | None | object = _UNSET,
+    filter_impact: str | None = None,
+    filter_action: str | None = None,
+    filter_status: str | None = "remaining",
+) -> html.Div:
     """Construit l'onglet analyse textuelle — vue analyste.
 
     Args:
         text_data: Contenu de text_comparison.json, ou None si non disponible.
+        filter_section: Section sélectionnée, ``None`` pour toutes les sections.
+        filter_impact: Niveau d'impact sélectionné.
+        filter_action: Action de vigie sélectionnée.
+        filter_status: Statut de décision sélectionné.
 
     Returns:
         html.Div contenant banner + filtres + container de cartes (vide,
@@ -1335,11 +1472,23 @@ def build_text_analysis_tab(text_data: dict[str, Any] | None) -> html.Div:
             seen.add(key)
 
     default_section = _default_text_section(section_comparisons)
+    if filter_section is _UNSET:
+        selected_section = default_section
+    elif filter_section is None or filter_section in seen:
+        selected_section = filter_section
+    else:
+        selected_section = default_section
+    selected_status = (
+        filter_status
+        if filter_status in {"remaining", "approved", "rejected", "skipped", "all"}
+        else "remaining"
+    )
     initial_cards, initial_count = build_filtered_text_cards(
         text_data,
-        default_section,
-        None,
-        None,
+        selected_section,
+        filter_impact,
+        filter_action,
+        selected_status,
     )
 
     return html.Div(
@@ -1351,7 +1500,20 @@ def build_text_analysis_tab(text_data: dict[str, Any] | None) -> html.Div:
                 q_prev,
                 auditable_changes=_count_auditable_text_changes(section_comparisons),
             ),
-            _build_filter_bar(section_options, default_section, initial_count),
+            html.Div(
+                [
+                    _build_text_review_progress(section_comparisons),
+                    _build_filter_bar(
+                        section_options,
+                        selected_section,
+                        filter_impact,
+                        filter_action,
+                        selected_status,
+                        initial_count,
+                    ),
+                ],
+                className="text-review-sticky-tools",
+            ),
             html.Div(initial_cards, id="text-cards-container"),
         ],
         className="pt-3",

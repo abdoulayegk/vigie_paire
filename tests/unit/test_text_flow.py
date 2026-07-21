@@ -4,7 +4,12 @@ from typing import Any
 
 from dash.development.base_component import Component
 
-from vigilance.dash_app.callbacks.text_flow import download_text_excel, filter_text_cards
+from vigilance.dash_app.callbacks.text_flow import (
+    download_text_excel,
+    filter_text_cards,
+    render_text_analysis,
+    show_remaining_text_changes,
+)
 from vigilance.dash_app.layouts.page_text_analysis import build_text_analysis_tab
 
 
@@ -289,6 +294,163 @@ def test_text_analysis_banner_uses_auditable_text_total_not_retained_total() -> 
     assert "Exemple brut à ne pas afficher" not in text
     assert "retenu(s) pour revue experte" not in text
     assert "17 pertinents / 32 analysés" not in text
+
+
+def test_text_review_progress_counts_decisions_and_keeps_skipped_remaining() -> None:
+    changes = [
+        {
+            "change_id": "approved_1",
+            "diff_type": "modified",
+            "source_text_t2": "Validé un",
+            "_analyst_review": {"status": "approved"},
+        },
+        {
+            "change_id": "approved_2",
+            "diff_type": "modified",
+            "source_text_t2": "Validé deux",
+            "_analyst_review": {"status": "approved"},
+        },
+        {
+            "change_id": "rejected_1",
+            "diff_type": "modified",
+            "source_text_t2": "Rejeté un",
+            "_analyst_review": {"status": "rejected"},
+        },
+        {
+            "change_id": "skipped_1",
+            "diff_type": "modified",
+            "source_text_t2": "Passé un",
+            "_analyst_review": {"status": "skipped"},
+        },
+        {
+            "change_id": "pending_1",
+            "diff_type": "modified",
+            "source_text_t2": "En attente un",
+        },
+        {
+            "change_id": "unchanged_1",
+            "diff_type": "unchanged",
+            "source_text_t2": "Stable",
+        },
+    ]
+    text_data = {
+        "bank_code": "bnc",
+        "quarter_current": "2025_t2",
+        "quarter_previous": "2025_t1",
+        "global_summary": {"counts": {"by_impact": {}}},
+        "section_comparisons": [
+            {
+                "section_key": "gestion_risques",
+                "section_title": "Gestion des risques",
+                "all_block_comparisons": changes,
+            }
+        ],
+    }
+
+    view = build_text_analysis_tab(text_data)
+    rendered = _flat_text(view)
+    progress = _find_by_id(view, "text-review-progress")
+    progress_bar = next(
+        child
+        for child in progress.children
+        if isinstance(child, Component) and child.__class__.__name__ == "Progress"
+    )
+
+    assert "3 / 5 décisions rendues" in rendered
+    assert "2 validés" in rendered
+    assert "1 rejeté" in rendered
+    assert "2 à traiter" in rendered
+    assert "dont 1 passé à reprendre" in rendered
+    assert progress_bar.value == 60
+    assert "Passé un" in rendered
+    assert "En attente un" in rendered
+    assert "Validé un" not in rendered
+
+
+def test_text_review_status_filter_and_remaining_shortcut() -> None:
+    text_data = {
+        "section_comparisons": [
+            {
+                "section_key": "gestion_risques",
+                "section_title": "Gestion des risques",
+                "all_block_comparisons": [
+                    {
+                        "change_id": "approved",
+                        "diff_type": "modified",
+                        "source_text_t2": "Décision validée",
+                        "_analyst_review": {"status": "approved"},
+                    },
+                    {
+                        "change_id": "pending",
+                        "diff_type": "modified",
+                        "source_text_t2": "Décision attendue",
+                    },
+                ],
+            }
+        ]
+    }
+
+    approved_cards, approved_count = filter_text_cards(
+        text_data,
+        None,
+        None,
+        None,
+        "approved",
+    )
+    remaining_cards, remaining_count = filter_text_cards(
+        text_data,
+        None,
+        None,
+        None,
+        "remaining",
+    )
+
+    assert approved_count == "1 changement(s) affiché(s)"
+    assert "Décision validée" in _flat_text(approved_cards)
+    assert "Décision attendue" not in _flat_text(approved_cards)
+    assert remaining_count == "1 changement(s) affiché(s)"
+    assert "Décision attendue" in _flat_text(remaining_cards)
+    assert show_remaining_text_changes(1) == "remaining"
+
+
+def test_text_analysis_preserves_filters_when_review_store_changes() -> None:
+    text_data = {
+        "bank_code": "bnc",
+        "quarter_current": "2025_t2",
+        "quarter_previous": "2025_t1",
+        "global_summary": {"counts": {"by_impact": {}}},
+        "section_comparisons": [
+            {
+                "section_key": "gestion_risques",
+                "section_title": "Gestion des risques",
+                "all_block_comparisons": [
+                    {
+                        "change_id": "risk_1",
+                        "diff_type": "modified",
+                        "source_text_t2": "Risque validé",
+                        "genai_triage": {
+                            "impact_level": "MAJEUR",
+                            "action_requise": "revue_prioritaire",
+                        },
+                        "_analyst_review": {"status": "approved"},
+                    }
+                ],
+            }
+        ],
+    }
+    filters = {
+        "section": None,
+        "impact": "MAJEUR",
+        "action": "revue_prioritaire",
+        "status": "approved",
+    }
+
+    view = render_text_analysis(text_data, True, filters)
+
+    assert _find_by_id(view, "text-filter-section").value is None
+    assert _find_by_id(view, "text-filter-impact").value == "MAJEUR"
+    assert _find_by_id(view, "text-filter-action").value == "revue_prioritaire"
+    assert _find_by_id(view, "text-filter-status").value == "approved"
 
 
 def test_text_analysis_tab_selects_first_auditable_section_by_default() -> None:
