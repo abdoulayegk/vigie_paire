@@ -14,10 +14,14 @@ from __future__ import annotations
 
 import json
 import logging
-from typing import Any, Callable, TypedDict
+from typing import Any, Callable, Literal, TypedDict
 
 from vigilance.comparison_inspector import _inspect_matched_pairs
 from vigilance.comparison_io import _coerce_float, _coerce_int, _require_string
+from vigilance.comparison_rbc_hybrid_matching import (
+    partition_trusted_rbc_primary_pairs,
+    run_rbc_hybrid_recovery,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +30,8 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 _MATCHING_VALIDATION_ATTEMPTS = 3
+_PREVIOUS_ID_PREFIX = "PQ::"
+_CURRENT_ID_PREFIX = "CQ::"
 
 PRIMARY_MATCH_SYSTEM_PROMPT = """
 You are a brutal, ultra-strict financial table matcher for Canadian bank reports.
@@ -134,6 +140,35 @@ If no reasonable remaining match exists:
 Output must be valid JSON following the response_schema.
 """
 
+MATCHING_REPAIR_SYSTEM_PROMPT = """
+You are a structural repair agent for a financial table matching ledger.
+
+The primary matcher already made the business decisions. Preserve every locked
+decision and repair ONLY the current-table decisions explicitly listed in the
+repair payload. Do not redo the full matching exercise.
+
+IDENTIFIER CONTRACT:
+- Every Previous Quarter identifier starts with `PQ::`.
+- Every Current Quarter identifier starts with `CQ::`.
+- Never place a `CQ::` identifier in `previous_table_id`.
+- Never place a `PQ::` identifier in `current_table_id`.
+- Use only identifiers permitted by the response schema.
+
+Return one decision for every requested CQ identifier and use each PQ
+identifier at most once. Prefer `unresolved` or `added` over a speculative
+match. Return JSON only.
+"""
+
+MATCHING_ADJUDICATOR_SYSTEM_PROMPT = """
+You are the final independent adjudicator for structurally invalid financial
+table matching decisions.
+
+Review only the remaining disputed Current Quarter tables. Respect the locked
+ledger, the `PQ::`/`CQ::` identifier namespaces, and the exact identifier enums
+in the response schema. Choose a match only when the table evidence is strong;
+otherwise return `unresolved` or `added`. Return JSON only.
+"""
+
 
 # ---------------------------------------------------------------------------
 # TypedDict interfaces (annotation-only)
@@ -198,15 +233,331 @@ def _normalize_matching_warnings(items: Any) -> list[str]:
     return out
 
 
+def _previous_alias(table_id: str) -> str:
+    """Retourne l'identifiant explicitement espace de noms du trimestre precedent."""
+    return f"{_PREVIOUS_ID_PREFIX}{table_id}"
+
+
+def _current_alias(table_id: str) -> str:
+    """Retourne l'identifiant explicitement espace de noms du trimestre courant."""
+    return f"{_CURRENT_ID_PREFIX}{table_id}"
+
+
+def _decode_previous_alias(value: Any) -> str:
+    """Decode un alias PQ tout en acceptant les IDs bruts des anciens appelants."""
+    text = str(value or "").strip()
+    return text[len(_PREVIOUS_ID_PREFIX) :] if text.startswith(_PREVIOUS_ID_PREFIX) else text
+
+
+def _decode_current_alias(value: Any) -> str:
+    """Decode un alias CQ tout en acceptant les IDs bruts des anciens appelants."""
+    text = str(value or "").strip()
+    return text[len(_CURRENT_ID_PREFIX) :] if text.startswith(_CURRENT_ID_PREFIX) else text
+
+
+def _alias_table_card(card: dict[str, Any], *, previous: bool) -> dict[str, Any]:
+    """Copie une fiche de tableau en remplacant son ID par un alias PQ/CQ."""
+    aliased = dict(card)
+    table_id = str(card.get("table_id", "") or "")
+    aliased["table_id"] = _previous_alias(table_id) if previous else _current_alias(table_id)
+    return aliased
+
+
+def _canonical_matching_item(item: dict[str, Any]) -> dict[str, Any]:
+    """Construit une decision canonique a partir d'un item structurellement valide."""
+    decision = str(item.get("decision", "") or "").strip().lower()
+    normalized: dict[str, Any] = {
+        "current_table_id": _decode_current_alias(item.get("current_table_id")),
+        "decision": decision,
+        "reason": str(item.get("reason", "") or "").strip(),
+    }
+    if decision == "matched":
+        normalized["previous_table_id"] = _decode_previous_alias(item.get("previous_table_id"))
+        normalized["match_confidence"] = max(
+            0.0,
+            min(1.0, _coerce_float(item.get("match_confidence"))),
+        )
+    return normalized
+
+
+def _analyze_matching_candidate(
+    data: dict[str, Any],
+    *,
+    previous_ids: set[str],
+    current_ids: set[str],
+    allowed_decisions: set[str],
+    consumed_previous_ids: set[str] | None = None,
+) -> dict[str, Any]:
+    """Separe les decisions verrouillables des decisions a reparer.
+
+    Cette analyse est strictement structurelle : elle ne choisit jamais une
+    correspondance metier. Elle preserve seulement les decisions deja valides.
+    """
+    consumed_previous = set(consumed_previous_ids or ())
+    raw_items = [item for item in list(data.get("current_table_decisions", []) or []) if isinstance(item, dict)]
+
+    current_occurrences: dict[str, list[dict[str, Any]]] = {}
+    previous_occurrences: dict[str, list[str]] = {}
+    unknown_current_ids: set[str] = set()
+    unknown_previous_ids: set[str] = set()
+
+    for item in raw_items:
+        current_id = _decode_current_alias(item.get("current_table_id"))
+        if current_id not in current_ids:
+            if current_id:
+                unknown_current_ids.add(current_id)
+            continue
+        current_occurrences.setdefault(current_id, []).append(item)
+        decision = str(item.get("decision", "") or "").strip().lower()
+        if decision != "matched":
+            continue
+        previous_id = _decode_previous_alias(item.get("previous_table_id"))
+        if previous_id in previous_ids:
+            previous_occurrences.setdefault(previous_id, []).append(current_id)
+        elif previous_id:
+            unknown_previous_ids.add(previous_id)
+
+    duplicate_current_ids = {current_id for current_id, items in current_occurrences.items() if len(items) != 1}
+    duplicate_previous_assignments = {
+        previous_id: sorted(set(assigned_current_ids))
+        for previous_id, assigned_current_ids in previous_occurrences.items()
+        if len(assigned_current_ids) > 1
+    }
+    missing_current_ids = current_ids - set(current_occurrences)
+    repair_current_ids = set(missing_current_ids) | set(duplicate_current_ids)
+    locked_decisions: list[dict[str, Any]] = []
+
+    for current_id in sorted(current_ids):
+        items = current_occurrences.get(current_id, [])
+        if len(items) != 1 or current_id in repair_current_ids:
+            repair_current_ids.add(current_id)
+            continue
+        item = items[0]
+        decision = str(item.get("decision", "") or "").strip().lower()
+        previous_id = _decode_previous_alias(item.get("previous_table_id"))
+        confidence_raw = item.get("match_confidence")
+        confidence_supplied = confidence_raw is not None and str(confidence_raw).strip() != ""
+
+        is_valid = decision in allowed_decisions
+        if decision == "matched":
+            is_valid = bool(
+                is_valid
+                and previous_id in previous_ids
+                and previous_id not in consumed_previous
+                and previous_id not in duplicate_previous_assignments
+            )
+        else:
+            is_valid = bool(is_valid and not previous_id and not confidence_supplied)
+
+        if not is_valid:
+            repair_current_ids.add(current_id)
+            continue
+        locked_decisions.append(_canonical_matching_item(item))
+
+    used_locked_previous_ids = {
+        str(item.get("previous_table_id", "") or "") for item in locked_decisions if item.get("decision") == "matched"
+    }
+    available_previous_ids = previous_ids - consumed_previous - used_locked_previous_ids
+
+    invalid_decisions = [
+        dict(item)
+        for item in raw_items
+        if _decode_current_alias(item.get("current_table_id")) in repair_current_ids
+        or _decode_current_alias(item.get("current_table_id")) not in current_ids
+    ]
+    diagnostics = {
+        "missing_current_table_ids": sorted(missing_current_ids),
+        "duplicate_current_table_ids": sorted(duplicate_current_ids),
+        "duplicate_previous_assignments": duplicate_previous_assignments,
+        "unknown_current_table_ids": sorted(unknown_current_ids),
+        "unknown_previous_table_ids": sorted(unknown_previous_ids),
+        "wrong_namespace_previous_ids": sorted(unknown_previous_ids & current_ids),
+    }
+    return {
+        "locked_decisions": locked_decisions,
+        "repair_current_ids": repair_current_ids,
+        "available_previous_ids": available_previous_ids,
+        "invalid_decisions": invalid_decisions,
+        "diagnostics": diagnostics,
+        "warnings": _normalize_matching_warnings(data.get("warnings", [])),
+    }
+
+
+def _build_matching_repair_response_model(
+    *,
+    current_aliases: list[str],
+    previous_aliases: list[str],
+    allowed_decisions: set[str],
+) -> type:
+    """Construit un schema OpenAI dont les IDs sont des enums fermes PQ/CQ."""
+    from pydantic import ConfigDict, Field, create_model
+
+    current_id_type = Literal.__getitem__(tuple(current_aliases))
+    previous_id_type = Literal.__getitem__(tuple(["", *previous_aliases]))
+    decision_type = Literal.__getitem__(tuple(sorted(allowed_decisions)))
+    decision_model = create_model(
+        "MatchingRepairDecision",
+        __config__=ConfigDict(extra="forbid"),
+        current_table_id=(current_id_type, ...),
+        decision=(decision_type, ...),
+        reason=(str, ...),
+        previous_table_id=(previous_id_type, ""),
+        match_confidence=(float | None, Field(default=None, ge=0.0, le=1.0)),
+    )
+    return create_model(
+        "MatchingRepairResponse",
+        __config__=ConfigDict(extra="forbid"),
+        current_table_decisions=(list[decision_model], ...),
+        warnings=(list[str], Field(default_factory=list)),
+    )
+
+
+def _build_matching_repair_prompt(
+    *,
+    stage: str,
+    repair_round: int,
+    previous_cards: list[dict[str, Any]],
+    current_cards: list[dict[str, Any]],
+    current_ids: set[str],
+    allowed_decisions: set[str],
+    validation_feedback: str,
+    repair_state: dict[str, Any],
+) -> dict[str, Any]:
+    """Construit le prompt cible du reparateur ou de l'arbitre."""
+    repair_current_ids = set(repair_state["repair_current_ids"])
+    available_previous_ids = set(repair_state["available_previous_ids"])
+    repair_allowed_decisions = set(allowed_decisions)
+    if not available_previous_ids:
+        repair_allowed_decisions.discard("matched")
+
+    current_aliases = [_current_alias(table_id) for table_id in sorted(repair_current_ids)]
+    previous_aliases = [_previous_alias(table_id) for table_id in sorted(available_previous_ids)]
+    return {
+        "stage": stage,
+        "agent_role": "matching_structure_repair" if repair_round == 1 else "matching_final_adjudicator",
+        "task": "Repair only the structurally invalid decisions. Locked decisions are preserved by the application and must not be returned.",
+        "rules": [
+            "Return exactly one decision for every required_repair_current_table_id.",
+            "Use CQ:: identifiers only in current_table_id.",
+            "Use PQ:: identifiers only in previous_table_id.",
+            "Use each PQ:: identifier at most once.",
+            "For a non-matched decision, return previous_table_id as an empty string and match_confidence as null.",
+            "Do not return locked decisions or any unrequested current table.",
+            "Prefer unresolved or added when the evidence is ambiguous.",
+        ],
+        "validation_feedback": validation_feedback,
+        "validation_diagnostics": repair_state["diagnostics"],
+        "invalid_decisions": repair_state["invalid_decisions"],
+        "locked_decisions": repair_state["locked_decisions"],
+        # Kept for observability and backward-compatible diagnostics.
+        "required_current_table_ids": sorted(current_ids),
+        "required_repair_current_table_ids": current_aliases,
+        "allowed_previous_table_ids": previous_aliases,
+        "allowed_decisions": sorted(repair_allowed_decisions),
+        "previous_tables": [
+            _alias_table_card(card, previous=True)
+            for card in previous_cards
+            if str(card.get("table_id", "") or "") in available_previous_ids
+        ],
+        "current_tables": [
+            _alias_table_card(card, previous=False)
+            for card in current_cards
+            if str(card.get("table_id", "") or "") in repair_current_ids
+        ],
+        "response_schema": {
+            "current_table_decisions": [
+                {
+                    "current_table_id": f"one_of_{current_aliases}",
+                    "decision": f"one_of_{sorted(repair_allowed_decisions)}",
+                    "reason": "short evidence-grounded explanation",
+                    "previous_table_id": f"one_of_{['', *previous_aliases]}",
+                    "match_confidence": "number_0_to_1_or_null",
+                }
+            ],
+            "warnings": ["string"],
+        },
+    }
+
+
+def _merge_matching_repair_response(
+    repair_data: dict[str, Any],
+    *,
+    repair_state: dict[str, Any],
+) -> dict[str, Any]:
+    """Fusionne les seules decisions reparees avec le registre verrouille."""
+    repair_current_ids = set(repair_state["repair_current_ids"])
+    repaired_decisions: list[dict[str, Any]] = []
+    for item in list(repair_data.get("current_table_decisions", []) or []):
+        if not isinstance(item, dict):
+            continue
+        decoded = dict(item)
+        decoded["current_table_id"] = _decode_current_alias(item.get("current_table_id"))
+        decoded["previous_table_id"] = _decode_previous_alias(item.get("previous_table_id"))
+        if decoded["current_table_id"] in repair_current_ids:
+            repaired_decisions.append(decoded)
+    return {
+        "current_table_decisions": [
+            *list(repair_state["locked_decisions"]),
+            *repaired_decisions,
+        ],
+        "warnings": _normalize_matching_warnings(
+            [
+                *list(repair_state.get("warnings", []) or []),
+                *list(repair_data.get("warnings", []) or []),
+            ]
+        ),
+    }
+
+
+def _build_matching_fail_soft_response(
+    data: dict[str, Any],
+    *,
+    stage: str,
+    previous_ids: set[str],
+    current_ids: set[str],
+    allowed_decisions: set[str],
+    consumed_previous_ids: set[str] | None = None,
+) -> dict[str, Any]:
+    """Preserve les decisions valides et place les conflits en revue non bloquante."""
+    repair_state = _analyze_matching_candidate(
+        data,
+        previous_ids=previous_ids,
+        current_ids=current_ids,
+        allowed_decisions=allowed_decisions,
+        consumed_previous_ids=consumed_previous_ids,
+    )
+    fallback_decision = "unresolved" if "unresolved" in allowed_decisions else "added"
+    repair_ids = sorted(set(repair_state["repair_current_ids"]))
+    fallback_items = [
+        {
+            "current_table_id": current_id,
+            "decision": fallback_decision,
+            "reason": (
+                f"Structural matching repair exhausted; this table requires review after the {stage} matching stage."
+            ),
+        }
+        for current_id in repair_ids
+    ]
+    return {
+        "current_table_decisions": [
+            *list(repair_state["locked_decisions"]),
+            *fallback_items,
+        ],
+        "warnings": _normalize_matching_warnings(
+            [
+                *list(repair_state.get("warnings", []) or []),
+                f"matching_structure_repair_exhausted:{','.join(repair_ids)}",
+            ]
+        ),
+    }
+
+
 def _sort_matched_pairs(
     pairs: list[dict[str, Any]],
     previous_cards: list[dict[str, Any]],
 ) -> list[dict[str, Any]]:
     """Trie les paires appariees selon l'ordre d'apparition des tableaux precedents."""
-    order = {
-        str(card.get("table_id", "") or ""): index
-        for index, card in enumerate(previous_cards)
-    }
+    order = {str(card.get("table_id", "") or ""): index for index, card in enumerate(previous_cards)}
     return sorted(
         pairs,
         key=lambda item: (
@@ -255,22 +606,15 @@ def _normalize_matching_response(
 
     for item in list(data.get("current_table_decisions", []) or []):
         if not isinstance(item, dict):
-            raise _MatchingValidationError(
-                "current_table_decisions items must be objects"
-            )
-        current_table_id = _require_string(
-            item.get("current_table_id"), "current_table_id"
-        )
+            raise _MatchingValidationError("current_table_decisions items must be objects")
+        current_table_id = _require_string(item.get("current_table_id"), "current_table_id")
         decision = _require_string(item.get("decision"), "decision").lower()
         if decision not in allowed_decisions:
             raise _MatchingValidationError(
-                "Invalid matching decision returned by GPT: "
-                f"{decision!r}; allowed={sorted(allowed_decisions)}"
+                f"Invalid matching decision returned by GPT: {decision!r}; allowed={sorted(allowed_decisions)}"
             )
         if current_table_id not in current_ids:
-            raise _MatchingValidationError(
-                f"Unknown current_table_id returned by GPT: {current_table_id}"
-            )
+            raise _MatchingValidationError(f"Unknown current_table_id returned by GPT: {current_table_id}")
         if current_table_id in used_current:
             duplicate_total += 1
             raise _MatchingValidationError(
@@ -287,24 +631,15 @@ def _normalize_matching_response(
 
         previous_table_id = str(item.get("previous_table_id", "") or "").strip()
         confidence_raw = item.get("match_confidence")
-        confidence_supplied = (
-            confidence_raw is not None and str(confidence_raw).strip() != ""
-        )
+        confidence_supplied = confidence_raw is not None and str(confidence_raw).strip() != ""
 
         if decision == "matched":
             if not previous_table_id:
-                raise _MatchingValidationError(
-                    "Matched decisions must include previous_table_id."
-                )
+                raise _MatchingValidationError("Matched decisions must include previous_table_id.")
             if previous_table_id not in previous_ids:
-                raise _MatchingValidationError(
-                    f"Unknown previous_table_id returned by GPT: {previous_table_id}"
-                )
+                raise _MatchingValidationError(f"Unknown previous_table_id returned by GPT: {previous_table_id}")
             raw_total += 1
-            if (
-                previous_table_id in consumed_previous
-                or previous_table_id in used_previous
-            ):
+            if previous_table_id in consumed_previous or previous_table_id in used_previous:
                 duplicate_total += 1
                 raise _MatchingValidationError(
                     f"Duplicate or reused previous_table_id returned by GPT: {previous_table_id}",
@@ -319,13 +654,9 @@ def _normalize_matching_response(
             used_previous.add(previous_table_id)
         else:
             if previous_table_id:
-                raise _MatchingValidationError(
-                    f"{decision!r} decisions must not include previous_table_id."
-                )
+                raise _MatchingValidationError(f"{decision!r} decisions must not include previous_table_id.")
             if confidence_supplied:
-                raise _MatchingValidationError(
-                    f"{decision!r} decisions must not include match_confidence."
-                )
+                raise _MatchingValidationError(f"{decision!r} decisions must not include match_confidence.")
 
         current_table_decisions.append(normalized_item)
 
@@ -333,8 +664,7 @@ def _normalize_matching_response(
         missing = sorted(current_ids - used_current)
         extra = sorted(used_current - current_ids)
         raise _MatchingValidationError(
-            "Matching output must cover exactly the business current tables. "
-            f"missing={missing} extra={extra}"
+            f"Matching output must cover exactly the business current tables. missing={missing} extra={extra}"
         )
 
     return {
@@ -406,6 +736,13 @@ def _empty_matching_result(
         "inspector_passes_total": 0,
         "inspector_rejected_total": 0,
         "inspector_confirmed_total": 0,
+        "hybrid_recovery_executed": 0,
+        "hybrid_primary_pairs_released_total": 0,
+        "hybrid_candidate_pairs_total": 0,
+        "hybrid_judge_calls_total": 0,
+        "hybrid_final_inspector_calls_total": 0,
+        "hybrid_pairs_rejected_total": 0,
+        "hybrid_embedding_calls_total": 0,
     }
 
 
@@ -447,9 +784,7 @@ def _build_matching_stage_prompt(
     }
     if "matched" in allowed_decisions:
         response_item["previous_table_id"] = "string_required_when_decision_is_matched"
-        response_item["match_confidence"] = (
-            "number_0_to_1_required_when_decision_is_matched"
-        )
+        response_item["match_confidence"] = "number_0_to_1_required_when_decision_is_matched"
 
     if stage == "primary":
         task = (
@@ -517,9 +852,11 @@ def _run_matching_stage(
 ) -> dict[str, Any]:
     """Execute une etape d'appariement (primaire ou recuperation) avec validation.
 
-    Appelle le LLM via ``call_openai_json`` et valide la reponse. En cas
-    d'echec de validation, re-essaie jusqu'a ``_MATCHING_VALIDATION_ATTEMPTS``
-    fois en injectant le retour d'erreur dans le prompt.
+    Appelle d'abord le matcher existant sans modifier son comportement. Si sa
+    reponse est structurellement invalide, repare uniquement les decisions en
+    conflit avec des identifiants PQ/CQ fermes, puis fait arbitrer les conflits
+    persistants. Une derniere degradation non bloquante garde les decisions
+    valides et classe le reliquat en ``unresolved`` ou ``added``.
 
     Args:
         previous_cards: Fiches des tableaux du trimestre precedent.
@@ -535,40 +872,85 @@ def _run_matching_stage(
         Dictionnaire normalise contenant les decisions, avertissements et
         metriques de validation.
 
-    Raises:
-        RuntimeError: Si la reponse reste invalide apres toutes les tentatives.
     """
     previous_ids = {card["table_id"] for card in previous_cards}
     current_ids = {card["table_id"] for card in current_cards}
-    system_prompt = (
-        PRIMARY_MATCH_SYSTEM_PROMPT
-        if stage == "primary"
-        else RECOVERY_MATCH_SYSTEM_PROMPT
-    )
+    system_prompt = PRIMARY_MATCH_SYSTEM_PROMPT if stage == "primary" else RECOVERY_MATCH_SYSTEM_PROMPT
     validation_feedback = ""
     validation_retries_total = 0
     matching_validation_failures_total = 0
     matching_pairs_llm_duplicates_total = 0
+    candidate_data: dict[str, Any] = {}
 
     for attempt in range(_MATCHING_VALIDATION_ATTEMPTS):
-        prompt = _build_matching_stage_prompt(
-            stage=stage,
-            previous_cards=previous_cards,
-            current_cards=current_cards,
-            current_ids=current_ids,
-            previous_ids=previous_ids,
-            allowed_decisions=allowed_decisions,
-            validation_feedback=validation_feedback,
-        )
-        data = call_openai_json(
-            model=model,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": json.dumps(prompt, ensure_ascii=False)},
-            ],
-            usage_recorder=usage_recorder,
-            call_kind="matching",
-        )
+        if attempt == 0:
+            prompt = _build_matching_stage_prompt(
+                stage=stage,
+                previous_cards=previous_cards,
+                current_cards=current_cards,
+                current_ids=current_ids,
+                previous_ids=previous_ids,
+                allowed_decisions=allowed_decisions,
+                validation_feedback="",
+            )
+            data = call_openai_json(
+                model=model,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {
+                        "role": "user",
+                        "content": json.dumps(prompt, ensure_ascii=False),
+                    },
+                ],
+                usage_recorder=usage_recorder,
+                call_kind="matching",
+            )
+        else:
+            repair_state = _analyze_matching_candidate(
+                candidate_data,
+                previous_ids=previous_ids,
+                current_ids=current_ids,
+                allowed_decisions=allowed_decisions,
+                consumed_previous_ids=consumed_previous_ids,
+            )
+            repair_prompt = _build_matching_repair_prompt(
+                stage=stage,
+                repair_round=attempt,
+                previous_cards=previous_cards,
+                current_cards=current_cards,
+                current_ids=current_ids,
+                allowed_decisions=allowed_decisions,
+                validation_feedback=validation_feedback,
+                repair_state=repair_state,
+            )
+            response_model = _build_matching_repair_response_model(
+                current_aliases=list(repair_prompt["required_repair_current_table_ids"]),
+                previous_aliases=list(repair_prompt["allowed_previous_table_ids"]),
+                allowed_decisions=set(repair_prompt["allowed_decisions"]),
+            )
+            repair_data = call_openai_json(
+                model=model,
+                messages=[
+                    {
+                        "role": "system",
+                        "content": (
+                            MATCHING_REPAIR_SYSTEM_PROMPT if attempt == 1 else MATCHING_ADJUDICATOR_SYSTEM_PROMPT
+                        ),
+                    },
+                    {
+                        "role": "user",
+                        "content": json.dumps(repair_prompt, ensure_ascii=False),
+                    },
+                ],
+                usage_recorder=usage_recorder,
+                call_kind="matching",
+                response_model=response_model,
+            )
+            data = _merge_matching_repair_response(
+                repair_data,
+                repair_state=repair_state,
+            )
+        candidate_data = data
         try:
             normalized = _normalize_matching_response(
                 data,
@@ -579,26 +961,35 @@ def _run_matching_stage(
             )
             normalized["executed"] = True
             normalized["validation_retries_total"] = validation_retries_total
-            normalized["matching_validation_failures_total"] = (
-                matching_validation_failures_total
-            )
-            normalized["matching_pairs_llm_duplicates_total"] += (
-                matching_pairs_llm_duplicates_total
-            )
+            normalized["matching_validation_failures_total"] = matching_validation_failures_total
+            normalized["matching_pairs_llm_duplicates_total"] += matching_pairs_llm_duplicates_total
             return normalized
         except _MatchingValidationError as exc:
             validation_feedback = str(exc)
             validation_retries_total += 1
-            matching_validation_failures_total += int(
-                getattr(exc, "validation_failures", 1)
-            )
-            matching_pairs_llm_duplicates_total += int(
-                getattr(exc, "duplicate_count", 0)
-            )
+            matching_validation_failures_total += int(getattr(exc, "validation_failures", 1))
+            matching_pairs_llm_duplicates_total += int(getattr(exc, "duplicate_count", 0))
             if attempt + 1 >= _MATCHING_VALIDATION_ATTEMPTS:
-                raise RuntimeError(
-                    f"GPT matching output remained structurally invalid: {exc}"
-                ) from exc
+                fallback_data = _build_matching_fail_soft_response(
+                    candidate_data,
+                    stage=stage,
+                    previous_ids=previous_ids,
+                    current_ids=current_ids,
+                    allowed_decisions=allowed_decisions,
+                    consumed_previous_ids=consumed_previous_ids,
+                )
+                normalized = _normalize_matching_response(
+                    fallback_data,
+                    previous_ids=previous_ids,
+                    current_ids=current_ids,
+                    allowed_decisions=allowed_decisions,
+                    consumed_previous_ids=consumed_previous_ids,
+                )
+                normalized["executed"] = True
+                normalized["validation_retries_total"] = validation_retries_total
+                normalized["matching_validation_failures_total"] = matching_validation_failures_total
+                normalized["matching_pairs_llm_duplicates_total"] += matching_pairs_llm_duplicates_total
+                return normalized
 
     raise RuntimeError("Unreachable matching validation loop")
 
@@ -610,6 +1001,11 @@ def _match_tables(
     model: str,
     call_openai_json: Callable[..., dict[str, Any]],
     usage_recorder: list[dict[str, Any]] | None = None,
+    hybrid_recovery_enabled: bool = False,
+    hybrid_embedding_model: str = "text-embedding-3-large",
+    hybrid_top_k: int = 5,
+    hybrid_min_confidence: float = 0.75,
+    call_openai_embeddings: Callable[..., list[list[float]]] | None = None,
 ) -> dict[str, Any]:
     """Orchestre l'appariement complet en deux etapes avec inspection intermediaire.
 
@@ -623,6 +1019,11 @@ def _match_tables(
         model: Identifiant du modele OpenAI a utiliser.
         call_openai_json: Callable injecte pour appeler l'API OpenAI.
         usage_recorder: Liste optionnelle pour enregistrer les metriques d'utilisation.
+        hybrid_recovery_enabled: Active la recuperation hybride RBC opt-in.
+        hybrid_embedding_model: Modele utilise pour la recherche de candidats.
+        hybrid_top_k: Nombre de candidats embeddings presentes par tableau courant.
+        hybrid_min_confidence: Confiance LLM minimale avant l'affectation globale.
+        call_openai_embeddings: Callable injecte pour calculer les embeddings.
 
     Returns:
         Dictionnaire contenant les paires appariees, tableaux ajoutes/supprimes,
@@ -666,6 +1067,20 @@ def _match_tables(
     rejected_stage1_pairs = inspector_result["rejected_pairs"]
     inspector_stats = inspector_result.get("inspection_stats", {})
 
+    released_primary_pairs: list[dict[str, Any]] = []
+    if hybrid_recovery_enabled:
+        confirmed_stage1_pairs, released_primary_pairs = partition_trusted_rbc_primary_pairs(
+            confirmed_stage1_pairs,
+            previous_cards,
+            current_cards,
+        )
+        rejected_stage1_pairs = rejected_stage1_pairs + released_primary_pairs
+        if released_primary_pairs:
+            logger.info(
+                "RBC hybrid audit released %d weak primary pairs back to recovery",
+                len(released_primary_pairs),
+            )
+
     if rejected_stage1_pairs:
         logger.info(
             "Match Inspector rejected %d pairs — returning to unresolved pool",
@@ -679,20 +1094,17 @@ def _match_tables(
         if str(item.get("previous_table_id", "") or "").strip()
     }
     # Unresolved = original unresolved + rejected CQ tables
-    unresolved_ids = [
-        item["current_table_id"]
-        for item in stage1_decisions
-        if item.get("decision") == "unresolved"
-    ] + [item["current_table_id"] for item in rejected_stage1_pairs]
+    unresolved_ids = list(
+        dict.fromkeys(
+            [item["current_table_id"] for item in stage1_decisions if item.get("decision") == "unresolved"]
+            + [item["current_table_id"] for item in rejected_stage1_pairs]
+        )
+    )
     unresolved_lookup = {card["table_id"]: card for card in current_cards}
     unresolved_current_cards = [
-        unresolved_lookup[table_id]
-        for table_id in unresolved_ids
-        if table_id in unresolved_lookup
+        unresolved_lookup[table_id] for table_id in unresolved_ids if table_id in unresolved_lookup
     ]
-    remaining_previous_cards = [
-        card for card in previous_cards if card["table_id"] not in used_previous_stage1
-    ]
+    remaining_previous_cards = [card for card in previous_cards if card["table_id"] not in used_previous_stage1]
 
     stage2_decisions: list[dict[str, Any]] = []
     stage2_metrics = {
@@ -701,21 +1113,55 @@ def _match_tables(
         "matching_validation_failures_total": 0,
         "matching_pairs_llm_duplicates_total": 0,
         "matching_pairs_llm_deduped_total": 0,
+        "hybrid_recovery_executed": 0,
+        "hybrid_candidate_pairs_total": 0,
+        "hybrid_judge_calls_total": 0,
+        "hybrid_final_inspector_calls_total": 0,
+        "hybrid_pairs_rejected_total": 0,
+        "hybrid_embedding_calls_total": 0,
         "warnings": [],
     }
     tables_added: list[dict[str, str]] = []
 
     if unresolved_current_cards and remaining_previous_cards:
-        stage2 = _run_matching_stage(
-            remaining_previous_cards,
-            unresolved_current_cards,
-            stage="recovery",
-            allowed_decisions={"matched", "added"},
-            model=model,
-            call_openai_json=call_openai_json,
-            usage_recorder=usage_recorder,
-            consumed_previous_ids=used_previous_stage1,
-        )
+        if hybrid_recovery_enabled and call_openai_embeddings is not None:
+            stage2 = run_rbc_hybrid_recovery(
+                remaining_previous_cards,
+                unresolved_current_cards,
+                model=model,
+                embedding_model=hybrid_embedding_model,
+                top_k=hybrid_top_k,
+                min_confidence=hybrid_min_confidence,
+                call_openai_json=call_openai_json,
+                call_openai_embeddings=call_openai_embeddings,
+                usage_recorder=usage_recorder,
+            )
+        elif hybrid_recovery_enabled:
+            stage2 = {
+                **stage2_metrics,
+                "executed": True,
+                "hybrid_recovery_executed": 1,
+                "warnings": ["rbc_hybrid_embeddings_callback_missing"],
+                "current_table_decisions": [
+                    {
+                        "current_table_id": str(card.get("table_id", "")),
+                        "decision": "added",
+                        "reason": "RBC hybrid embedding retrieval was unavailable; left unmatched for review.",
+                    }
+                    for card in unresolved_current_cards
+                ],
+            }
+        else:
+            stage2 = _run_matching_stage(
+                remaining_previous_cards,
+                unresolved_current_cards,
+                stage="recovery",
+                allowed_decisions={"matched", "added"},
+                model=model,
+                call_openai_json=call_openai_json,
+                usage_recorder=usage_recorder,
+                consumed_previous_ids=used_previous_stage1,
+            )
         stage2_metrics = stage2
         stage2_decisions = list(stage2.get("current_table_decisions", []) or [])
         tables_added = _matching_decisions_to_table_refs(
@@ -725,19 +1171,13 @@ def _match_tables(
     elif unresolved_current_cards:
         tables_added = [
             {
-                "table_id": str(item.get("current_table_id", "") or ""),
-                "reason": (
-                    str(item.get("reason", "") or "").strip()
-                    or "No previous business table remained available for matching."
-                ),
+                "table_id": str(card.get("table_id", "") or ""),
+                "reason": "No previous business table remained available for matching.",
             }
-            for item in stage1_decisions
-            if item.get("decision") == "unresolved"
+            for card in unresolved_current_cards
         ]
 
-    matched_pairs = confirmed_stage1_pairs + _matching_decisions_to_pairs(
-        stage2_decisions
-    )
+    matched_pairs = confirmed_stage1_pairs + _matching_decisions_to_pairs(stage2_decisions)
     used_previous_all = {
         str(item.get("previous_table_id", "") or "").strip()
         for item in matched_pairs
@@ -752,8 +1192,7 @@ def _match_tables(
         if card["table_id"] not in used_previous_all
     ]
     warnings = _normalize_matching_warnings(
-        list(stage1.get("warnings", []) or [])
-        + list(stage2_metrics.get("warnings", []) or [])
+        list(stage1.get("warnings", []) or []) + list(stage2_metrics.get("warnings", []) or [])
     )
 
     return {
@@ -762,38 +1201,33 @@ def _match_tables(
         "tables_added": tables_added,
         "tables_removed": tables_removed,
         "warnings": warnings,
-        "matching_pairs_llm_duplicates_total": _coerce_int(
-            stage1.get("matching_pairs_llm_duplicates_total")
-        )
+        "matching_pairs_llm_duplicates_total": _coerce_int(stage1.get("matching_pairs_llm_duplicates_total"))
         + _coerce_int(stage2_metrics.get("matching_pairs_llm_duplicates_total")),
-        "matching_pairs_llm_deduped_total": _coerce_int(
-            stage1.get("matching_pairs_llm_deduped_total")
-        )
+        "matching_pairs_llm_deduped_total": _coerce_int(stage1.get("matching_pairs_llm_deduped_total"))
         + _coerce_int(stage2_metrics.get("matching_pairs_llm_deduped_total")),
         "validation_retries_total": _coerce_int(stage1.get("validation_retries_total"))
         + _coerce_int(stage2_metrics.get("validation_retries_total")),
-        "matching_validation_failures_total": _coerce_int(
-            stage1.get("matching_validation_failures_total")
-        )
+        "matching_validation_failures_total": _coerce_int(stage1.get("matching_validation_failures_total"))
         + _coerce_int(stage2_metrics.get("matching_validation_failures_total")),
-        "stage1_validation_retries_total": _coerce_int(
-            stage1.get("validation_retries_total")
-        ),
-        "stage2_validation_retries_total": _coerce_int(
-            stage2_metrics.get("validation_retries_total")
-        ),
+        "stage1_validation_retries_total": _coerce_int(stage1.get("validation_retries_total")),
+        "stage2_validation_retries_total": _coerce_int(stage2_metrics.get("validation_retries_total")),
         "unresolved_after_stage1_total": len(unresolved_current_cards),
-        "matched_in_stage2_total": len(
-            [item for item in stage2_decisions if item.get("decision") == "matched"]
-        ),
-        "matching_passes_total": int(bool(stage1.get("executed")))
-        + int(bool(stage2_metrics.get("executed"))),
+        "matched_in_stage2_total": len([item for item in stage2_decisions if item.get("decision") == "matched"]),
+        "matching_passes_total": int(bool(stage1.get("executed"))) + int(bool(stage2_metrics.get("executed"))),
         "inspector_passes_total": _coerce_int(inspector_stats.get("total_inspected")),
-        "unmatched_after_primary_total": len(unresolved_current_cards)
-        + len(remaining_previous_cards),
+        "unmatched_after_primary_total": len(unresolved_current_cards) + len(remaining_previous_cards),
         "unmatched_after_rescue_total": len(tables_added) + len(tables_removed),
         "inspector_rejected_total": _coerce_int(inspector_stats.get("rejected")),
         "inspector_confirmed_total": _coerce_int(inspector_stats.get("confirmed")),
+        "hybrid_recovery_executed": _coerce_int(stage2_metrics.get("hybrid_recovery_executed")),
+        "hybrid_primary_pairs_released_total": len(released_primary_pairs),
+        "hybrid_candidate_pairs_total": _coerce_int(stage2_metrics.get("hybrid_candidate_pairs_total")),
+        "hybrid_judge_calls_total": _coerce_int(stage2_metrics.get("hybrid_judge_calls_total")),
+        "hybrid_final_inspector_calls_total": _coerce_int(
+            stage2_metrics.get("hybrid_final_inspector_calls_total")
+        ),
+        "hybrid_pairs_rejected_total": _coerce_int(stage2_metrics.get("hybrid_pairs_rejected_total")),
+        "hybrid_embedding_calls_total": _coerce_int(stage2_metrics.get("hybrid_embedding_calls_total")),
     }
 
 
@@ -804,6 +1238,11 @@ def _run_table_matching(
     model: str,
     call_openai_json: Callable[..., dict[str, Any]],
     usage_recorder: list[dict[str, Any]] | None = None,
+    hybrid_recovery_enabled: bool = False,
+    hybrid_embedding_model: str = "text-embedding-3-large",
+    hybrid_top_k: int = 5,
+    hybrid_min_confidence: float = 0.75,
+    call_openai_embeddings: Callable[..., list[list[float]]] | None = None,
 ) -> dict[str, Any]:
     """Point d'entree principal de l'appariement des tableaux.
 
@@ -816,6 +1255,11 @@ def _run_table_matching(
         model: Identifiant du modele OpenAI a utiliser.
         call_openai_json: Callable injecte pour appeler l'API OpenAI.
         usage_recorder: Liste optionnelle pour enregistrer les metriques d'utilisation.
+        hybrid_recovery_enabled: Active la recuperation hybride RBC opt-in.
+        hybrid_embedding_model: Modele utilise pour la recherche de candidats.
+        hybrid_top_k: Nombre de candidats embeddings presentes par tableau courant.
+        hybrid_min_confidence: Confiance LLM minimale avant l'affectation globale.
+        call_openai_embeddings: Callable injecte pour calculer les embeddings.
 
     Returns:
         Dictionnaire structure contenant ``matched_pairs``, ``tables_added``,
@@ -827,10 +1271,13 @@ def _run_table_matching(
         model=model,
         call_openai_json=call_openai_json,
         usage_recorder=usage_recorder,
+        hybrid_recovery_enabled=hybrid_recovery_enabled,
+        hybrid_embedding_model=hybrid_embedding_model,
+        hybrid_top_k=hybrid_top_k,
+        hybrid_min_confidence=hybrid_min_confidence,
+        call_openai_embeddings=call_openai_embeddings,
     )
-    result["matched_pairs"] = _sort_matched_pairs(
-        result["matched_pairs"], previous_cards
-    )
+    result["matched_pairs"] = _sort_matched_pairs(result["matched_pairs"], previous_cards)
     tables_added = list(result.get("tables_added", []) or [])
     tables_removed = list(result.get("tables_removed", []) or [])
     return {
@@ -840,39 +1287,30 @@ def _run_table_matching(
         "matching_passes_total": _coerce_int(result.get("matching_passes_total")),
         "inspector_passes_total": _coerce_int(result.get("inspector_passes_total")),
         "audit_passes_total": 0,
-        "matching_output_retries_total": _coerce_int(
-            result.get("validation_retries_total")
-        ),
-        "matching_validation_failures_total": _coerce_int(
-            result.get("matching_validation_failures_total")
-        ),
-        "stage1_validation_retries_total": _coerce_int(
-            result.get("stage1_validation_retries_total")
-        ),
-        "stage2_validation_retries_total": _coerce_int(
-            result.get("stage2_validation_retries_total")
-        ),
-        "unresolved_after_stage1_total": _coerce_int(
-            result.get("unresolved_after_stage1_total")
-        ),
+        "matching_output_retries_total": _coerce_int(result.get("validation_retries_total")),
+        "matching_validation_failures_total": _coerce_int(result.get("matching_validation_failures_total")),
+        "stage1_validation_retries_total": _coerce_int(result.get("stage1_validation_retries_total")),
+        "stage2_validation_retries_total": _coerce_int(result.get("stage2_validation_retries_total")),
+        "unresolved_after_stage1_total": _coerce_int(result.get("unresolved_after_stage1_total")),
         "matched_in_stage2_total": _coerce_int(result.get("matched_in_stage2_total")),
         "unmatched_previous_table_ids": [item["table_id"] for item in tables_removed],
         "unmatched_current_table_ids": [item["table_id"] for item in tables_added],
-        "unmatched_after_primary_total": _coerce_int(
-            result.get("unmatched_after_primary_total")
-        ),
-        "unmatched_after_rescue_total": _coerce_int(
-            result.get("unmatched_after_rescue_total")
-        ),
-        "matching_pairs_llm_duplicates_total": _coerce_int(
-            result.get("matching_pairs_llm_duplicates_total")
-        ),
-        "matching_pairs_llm_deduped_total": _coerce_int(
-            result.get("matching_pairs_llm_deduped_total")
-        ),
+        "unmatched_after_primary_total": _coerce_int(result.get("unmatched_after_primary_total")),
+        "unmatched_after_rescue_total": _coerce_int(result.get("unmatched_after_rescue_total")),
+        "matching_pairs_llm_duplicates_total": _coerce_int(result.get("matching_pairs_llm_duplicates_total")),
+        "matching_pairs_llm_deduped_total": _coerce_int(result.get("matching_pairs_llm_deduped_total")),
         "inspector_rejected_total": _coerce_int(result.get("inspector_rejected_total")),
-        "inspector_confirmed_total": _coerce_int(
-            result.get("inspector_confirmed_total")
+        "inspector_confirmed_total": _coerce_int(result.get("inspector_confirmed_total")),
+        "hybrid_recovery_executed": _coerce_int(result.get("hybrid_recovery_executed")),
+        "hybrid_primary_pairs_released_total": _coerce_int(
+            result.get("hybrid_primary_pairs_released_total")
         ),
+        "hybrid_candidate_pairs_total": _coerce_int(result.get("hybrid_candidate_pairs_total")),
+        "hybrid_judge_calls_total": _coerce_int(result.get("hybrid_judge_calls_total")),
+        "hybrid_final_inspector_calls_total": _coerce_int(
+            result.get("hybrid_final_inspector_calls_total")
+        ),
+        "hybrid_pairs_rejected_total": _coerce_int(result.get("hybrid_pairs_rejected_total")),
+        "hybrid_embedding_calls_total": _coerce_int(result.get("hybrid_embedding_calls_total")),
         "warnings": _normalize_matching_warnings(result.get("warnings", [])),
     }

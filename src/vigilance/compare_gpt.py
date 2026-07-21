@@ -48,7 +48,7 @@ from vigilance.comparison_visual_sanity import (
     visual_sanity_check,
     visual_sanity_check_table_event,
 )
-from vigilance.config import resolve_openai_model
+from vigilance.config import get_matching_thresholds, resolve_openai_model
 from vigilance.extraction.section_taxonomy import canonicalize_section
 from vigilance.utils.genai import get_openai_api_key
 from vigilance.utils.matching_normalizer import (
@@ -222,6 +222,42 @@ def _call_openai_json(
     raise RuntimeError(f"OpenAI comparison call failed: {last_error}")
 
 
+def _call_openai_embeddings(
+    *,
+    model: str,
+    inputs: list[str],
+    usage_recorder: list[dict[str, Any]] | None = None,
+    call_kind: str = "comparison_embeddings",
+) -> list[list[float]]:
+    """Encoder les vues de tableaux par lots pour la recuperation hybride RBC."""
+    if not inputs:
+        return []
+    api_key = get_openai_api_key()
+    if not api_key:
+        raise RuntimeError("OPENAI_API_KEY is not configured")
+
+    from openai import OpenAI
+
+    client = OpenAI(api_key=api_key)
+    vectors: list[list[float]] = []
+    for start in range(0, len(inputs), 96):
+        response = client.embeddings.create(model=model, input=inputs[start : start + 96])
+        ordered = sorted(response.data, key=lambda item: item.index)
+        vectors.extend([list(item.embedding) for item in ordered])
+        if usage_recorder is not None:
+            prompt_tokens, completion_tokens, total_tokens = _extract_usage_metrics(response)
+            usage_recorder.append(
+                {
+                    "model": model,
+                    "call_kind": call_kind,
+                    "prompt_tokens": prompt_tokens,
+                    "completion_tokens": completion_tokens,
+                    "total_tokens": total_tokens,
+                }
+            )
+    return vectors
+
+
 def compare_reports_gpt4o(
     previous_dir: Path | str,
     current_dir: Path | str,
@@ -318,6 +354,20 @@ def compare_reports_gpt4o(
     quarter_current = str(current_payload.get("quarter", "") or "")
     model_name = str(model or resolve_openai_model("default_genai", config_path=config_path))
     usage_records: list[dict[str, Any]] = []
+    matching_settings = get_matching_thresholds(
+        config_path or "configs/bank_profiles.yaml",
+        bank_code=bank_code,
+    )
+    configured_hybrid_quarters = {
+        str(value or "").strip().lower()
+        for value in list(matching_settings.get("hybrid_embedding_quarters", []) or [])
+        if str(value or "").strip()
+    }
+    hybrid_recovery_enabled = (
+        bank_code.strip().lower() == "rbc"
+        and bool(matching_settings.get("hybrid_embedding_recovery_enabled", False))
+        and quarter_current.strip().lower() in configured_hybrid_quarters
+    )
 
     match_result = _run_table_matching(
         previous_cards,
@@ -325,6 +375,13 @@ def compare_reports_gpt4o(
         model=model_name,
         call_openai_json=_call_openai_json,
         usage_recorder=usage_records,
+        hybrid_recovery_enabled=hybrid_recovery_enabled,
+        hybrid_embedding_model=str(
+            matching_settings.get("hybrid_embedding_model", "text-embedding-3-large")
+        ),
+        hybrid_top_k=max(1, int(matching_settings.get("hybrid_embedding_top_k", 5) or 5)),
+        hybrid_min_confidence=float(matching_settings.get("hybrid_min_confidence", 0.75) or 0.75),
+        call_openai_embeddings=_call_openai_embeddings,
     )
     tables_added: list[dict[str, Any]] = []
     for item in match_result["tables_added"]:
@@ -388,14 +445,24 @@ def compare_reports_gpt4o(
         for entry in previous_business_tables
         if any(r.get("table_id") == entry.get("table_id") for r in match_result.get("tables_removed", []))
     ]
-    da_result = _devil_advocate_review(
-        da_added_cards,
-        da_removed_cards,
-        low_confidence_pairs,
-        model=model_name,
-        call_openai_json=_call_openai_json,
-        usage_recorder=usage_records,
-    )
+    # Le recuperateur RBC inclut deja une inspection finale fail-closed. Une
+    # promotion ulterieure non inspectee recreerait precisement les cascades
+    # que cette voie opt-in cherche a eliminer.
+    if hybrid_recovery_enabled:
+        da_result: dict[str, Any] = {
+            "new_matches": [],
+            "contested_pairs": [],
+            "warnings": [],
+        }
+    else:
+        da_result = _devil_advocate_review(
+            da_added_cards,
+            da_removed_cards,
+            low_confidence_pairs,
+            model=model_name,
+            call_openai_json=_call_openai_json,
+            usage_recorder=usage_records,
+        )
     # Promote new matches found by Devil's Advocate
     for new_match in da_result.get("new_matches", []):
         prev_id = str(new_match.get("previous_table_id", "") or "").strip()
