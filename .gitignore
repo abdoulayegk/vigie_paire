@@ -94,9 +94,7 @@ session.log
 /logs/
 /Documentation/
 /docs/_build/
-/data/raw/
-/data/interim/
-/data/processed/
+/data/
 /_lib/
 
 # PDFs ignores par defaut
