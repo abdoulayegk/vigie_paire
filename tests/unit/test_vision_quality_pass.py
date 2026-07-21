@@ -7,6 +7,7 @@ import pytest
 from vigilance.extraction.vision_full_extractor import (
     VisionFullExtractor,
     VisionFullResult,
+    _normalize_footnote_marker_id,
 )
 from vigilance.extraction.vision_qa_inspector import QAResult
 
@@ -71,6 +72,104 @@ def test_quality_pass_accepts_complete_initial_result(monkeypatch) -> None:
     assert result.acceptance_reason == "initial_complete"
     assert result.selected_candidate_name == "initial"
     assert calls == [(b"initial", False)]
+
+
+def test_footnote_marker_id_normalizes_parenthetical_and_superscript_forms() -> None:
+    assert _normalize_footnote_marker_id("(1)") == "1"
+    assert _normalize_footnote_marker_id("¹") == "1"
+    assert _normalize_footnote_marker_id("1") == "1"
+    assert _normalize_footnote_marker_id("(10)") == "10"
+
+
+def test_expected_marker_catalog_does_not_force_absent_markers(monkeypatch) -> None:
+    extractor = VisionFullExtractor(api_key="test-key", model="gpt-4o-test")
+    calls: list[tuple[bytes, bool]] = []
+
+    def fake_extract(**kwargs):
+        calls.append((kwargs["crop_bytes"], bool(kwargs.get("rescue_mode"))))
+        return _result(
+            title="Tableau de capital",
+            summary="Ratios de capital reglementaires",
+            indicators=["Ratio CET1", "Ratio Tier 1", "Ratio de levier"],
+            headers=["Mesure", "Valeur"],
+        )
+
+    monkeypatch.setattr(extractor, "extract", fake_extract)
+
+    result = extractor.extract_with_quality_pass(
+        crop_bytes=b"initial",
+        bank_code="rbc",
+        bbox_norm=[0.1, 0.2, 0.9, 0.8],
+        vision_cfg={"expected_markers": ["(1)", "(2)", "(3)", "(4)"]},
+    )
+
+    assert result is not None
+    assert result.extraction_status == "ok"
+    assert "missing_expected_footnotes" not in result.rejection_reasons
+    assert calls == [(b"initial", False)]
+
+
+def test_observed_markers_accept_mixed_footnote_id_formats(monkeypatch) -> None:
+    extractor = VisionFullExtractor(api_key="test-key", model="gpt-4o-test")
+    calls: list[tuple[bytes, bool]] = []
+
+    def fake_extract(**kwargs):
+        calls.append((kwargs["crop_bytes"], bool(kwargs.get("rescue_mode"))))
+        return _result(
+            title="Ratio de liquidite (1)",
+            summary="Ratio de liquidite a court terme",
+            indicators=["Actifs liquides", "Sorties de tresorerie (3)", "Ratio"],
+            headers=["Valeur non ponderee²", "Valeur ajustee"],
+            footnotes=[
+                {"id": "1", "text": "Methode de calcul"},
+                {"id": "(2)", "text": "Valeurs non ponderees"},
+                {"id": "³", "text": "Depots stables"},
+            ],
+        )
+
+    monkeypatch.setattr(extractor, "extract", fake_extract)
+
+    result = extractor.extract_with_quality_pass(
+        crop_bytes=b"initial",
+        bank_code="rbc",
+        bbox_norm=[0.1, 0.2, 0.9, 0.8],
+        vision_cfg={"expected_markers": ["(1)", "(2)", "(3)"]},
+    )
+
+    assert result is not None
+    assert result.extraction_status == "ok"
+    assert "missing_expected_footnotes" not in result.rejection_reasons
+    assert calls == [(b"initial", False)]
+
+
+def test_observed_missing_marker_still_forces_rescue(monkeypatch) -> None:
+    extractor = VisionFullExtractor(api_key="test-key", model="gpt-4o-test")
+    calls: list[bool] = []
+
+    def fake_extract(**kwargs):
+        rescue_mode = bool(kwargs.get("rescue_mode"))
+        calls.append(rescue_mode)
+        return _result(
+            title="Ratio de liquidite (1)",
+            summary="Ratio de liquidite a court terme",
+            indicators=["Actifs liquides", "Sorties de tresorerie", "Ratio"],
+            headers=["Mesure", "Valeur"],
+            footnotes=([{"id": "1", "text": "Methode de calcul"}] if rescue_mode else []),
+        )
+
+    monkeypatch.setattr(extractor, "extract", fake_extract)
+
+    result = extractor.extract_with_quality_pass(
+        crop_bytes=b"initial",
+        bank_code="rbc",
+        bbox_norm=[0.1, 0.2, 0.9, 0.8],
+        vision_cfg={"expected_markers": ["(1)", "(2)", "(3)"]},
+    )
+
+    assert result is not None
+    assert result.extraction_status == "rescued"
+    assert "missing_expected_footnotes" in result.rejection_reasons
+    assert calls == [False, True]
 
 
 def test_quality_pass_forces_rescue_when_summary_missing(monkeypatch) -> None:
