@@ -19,6 +19,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from vigilance.utils.genai import get_openai_api_key
 
 logger = logging.getLogger(__name__)
+OPENAI_VISION_QA_TIMEOUT_SECONDS = 120.0
 
 
 # ---------------------------------------------------------------------------
@@ -134,7 +135,10 @@ Respond STRICTLY using the required JSON schema format."""
 
         from openai import OpenAI
 
-        client = OpenAI(api_key=self.api_key)
+        client = OpenAI(
+            api_key=self.api_key,
+            timeout=OPENAI_VISION_QA_TIMEOUT_SECONDS,
+        )
         last_exc: Exception | None = None
         for attempt in range(3):
             try:

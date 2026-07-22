@@ -9,7 +9,11 @@ from vigilance.extraction.vision_full_extractor import (
     VisionFullExtractor,
     VisionFullResult,
 )
-from vigilance.extraction.vision_qa_inspector import QAResult, VisionTableInspector
+from vigilance.extraction.vision_qa_inspector import (
+    OPENAI_VISION_QA_TIMEOUT_SECONDS,
+    QAResult,
+    VisionTableInspector,
+)
 from vigilance.utils.openai_schema import build_strict_openai_response_format
 
 
@@ -131,7 +135,8 @@ def test_qa_inspector_uses_openai_compatible_strict_schema(monkeypatch) -> None:
             )
 
     class FakeOpenAI:
-        def __init__(self, api_key: str) -> None:
+        def __init__(self, **kwargs) -> None:
+            captured["client_kwargs"] = kwargs
             self.beta = SimpleNamespace(
                 chat=SimpleNamespace(completions=FakeParseCompletions())
             )
@@ -150,6 +155,11 @@ def test_qa_inspector_uses_openai_compatible_strict_schema(monkeypatch) -> None:
     assert captured["model"] == "gpt-4o-test"
     assert captured["response_format"] is QAResult
     assert isinstance(captured["messages"], list)
+    assert captured["client_kwargs"] == {
+        "api_key": "test-key",
+        "timeout": OPENAI_VISION_QA_TIMEOUT_SECONDS,
+    }
+    assert OPENAI_VISION_QA_TIMEOUT_SECONDS == 120.0
 
 
 def test_strict_schema_builder_rejects_map_like_objects() -> None:

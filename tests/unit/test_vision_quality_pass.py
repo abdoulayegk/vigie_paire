@@ -5,11 +5,14 @@ from pathlib import Path
 import pytest
 
 from vigilance.extraction.vision_full_extractor import (
+    OPENAI_VISION_TIMEOUT_SECONDS,
     VisionFullExtractor,
     VisionFullResult,
     _normalize_footnote_marker_id,
+    _select_targeted_rescue_variant,
 )
 from vigilance.extraction.vision_qa_inspector import QAResult
+from vigilance.utils.page_layout_context import clamp_variant_crop_to_neighbors
 
 
 def _result(
@@ -43,6 +46,129 @@ def _stub_qa_inspector(monkeypatch) -> None:
             justification="test stub",
         ),
     )
+
+
+def test_vision_client_uses_direct_120_second_timeout(monkeypatch) -> None:
+    captured: list[dict] = []
+
+    class FakeOpenAI:
+        def __init__(self, **kwargs) -> None:
+            captured.append(kwargs)
+
+    monkeypatch.setattr("openai.OpenAI", FakeOpenAI)
+
+    extractor = VisionFullExtractor(api_key="test-key", model="gpt-4o-test")
+    extractor._ensure_client()
+
+    assert captured == [
+        {
+            "api_key": "test-key",
+            "timeout": OPENAI_VISION_TIMEOUT_SECONDS,
+        }
+    ]
+    assert OPENAI_VISION_TIMEOUT_SECONDS == 120.0
+
+
+@pytest.mark.parametrize(
+    "reasons,critiques,qa_missing,expected",
+    [
+        (["missing_expected_footnotes"], [], "", "bottom_extended"),
+        ([], ["notes de bas de page manquantes"], "", "bottom_extended"),
+        (["top_context_missing_title"], [], "", "top_extended"),
+        (["generic_page_title"], [], "", "top_trim"),
+        (["dominant_contamination"], [], "", "tight_body"),
+        (["low_density_vertical"], [], "", "body_expanded"),
+        (["missing_table_summary"], [], "", "same_crop_rescue"),
+    ],
+)
+def test_targeted_rescue_router_selects_one_relevant_variant(
+    reasons,
+    critiques,
+    qa_missing,
+    expected,
+) -> None:
+    assert (
+        _select_targeted_rescue_variant(reasons, critiques, qa_missing)
+        == expected
+    )
+
+
+def test_quality_pass_uses_only_bottom_extension_for_missing_footnote(
+    monkeypatch,
+) -> None:
+    extractor = VisionFullExtractor(api_key="test-key", model="gpt-4o-test")
+    variant_calls: list[dict] = []
+    inspected_images: list[bytes] = []
+
+    def fake_inspect(self, image_bytes, extracted_json):
+        inspected_images.append(image_bytes)
+        return QAResult(
+            is_perfect=True,
+            missing_elements=[],
+            justification="complete",
+        )
+
+    monkeypatch.setattr(
+        "vigilance.extraction.vision_qa_inspector.VisionTableInspector.inspect_extraction",
+        fake_inspect,
+    )
+
+    def fake_variant_crop(**kwargs) -> bytes:
+        variant_calls.append(kwargs)
+        return b"bottom_extended"
+
+    def fake_extract(**kwargs):
+        if kwargs["crop_bytes"] == b"bottom_extended":
+            return _result(
+                title="Ratio de liquidite (1)",
+                summary="Ratio de liquidite a court terme",
+                indicators=["Actifs liquides", "Sorties de tresorerie", "Ratio"],
+                headers=["Mesure", "Valeur"],
+                footnotes=[{"id": "1", "text": "Methode de calcul"}],
+            )
+        return _result(
+            title="Ratio de liquidite (1)",
+            summary="Ratio de liquidite a court terme",
+            indicators=["Actifs liquides", "Sorties de tresorerie", "Ratio"],
+            headers=["Mesure", "Valeur"],
+        )
+
+    monkeypatch.setattr(extractor, "extract", fake_extract)
+
+    result = extractor.extract_with_quality_pass(
+        crop_bytes=b"initial",
+        bank_code="rbc",
+        bbox_norm=[0.1, 0.2, 0.9, 0.8],
+        vision_cfg={"expected_markers": ["(1)"]},
+        initial_bottom_extension=0.02,
+        get_variant_crop_fn=fake_variant_crop,
+    )
+
+    assert result is not None
+    assert result.selected_candidate_name == "bottom_extended"
+    assert variant_calls == [{"bottom_extension": 0.08}]
+    assert inspected_images == [b"initial", b"bottom_extended"]
+
+
+def test_variant_crop_is_clamped_before_a_close_following_table() -> None:
+    table_bbox = [0.1, 0.1, 0.9, 0.4]
+    next_table_top = 0.413
+    page_map = {
+        30: [
+            (1, table_bbox),
+            (2, [0.1, next_table_top, 0.9, 0.8]),
+        ]
+    }
+
+    safe_bbox, safe_bottom, _safe_top = clamp_variant_crop_to_neighbors(
+        table_idx=1,
+        page_num=30,
+        table_bbox=table_bbox,
+        page_table_map=page_map,
+        bottom_extension=0.06,
+    )
+
+    assert safe_bbox[3] + safe_bottom <= next_table_top - 0.005 + 1e-9
 
 
 def test_quality_pass_accepts_complete_initial_result(monkeypatch) -> None:

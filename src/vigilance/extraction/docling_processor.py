@@ -1263,18 +1263,38 @@ class DoclingProcessor:
                             *,
                             bbox_override: list[float] | None = None,
                             bottom_extension: float | None = None,
+                            top_extension: float | None = None,
                         ) -> bytes:
-                            """Variante de crop avec bbox et extension verticale optionnelles."""
+                            """Variante de crop bornee par les tableaux voisins."""
+                            from ..utils.page_layout_context import (
+                                clamp_variant_crop_to_neighbors,
+                            )
+
+                            safe_bbox, safe_bottom, safe_top = (
+                                clamp_variant_crop_to_neighbors(
+                                    table_idx=idx,
+                                    page_num=page_num,
+                                    table_bbox=table_bbox,
+                                    page_table_map=page_table_map,
+                                    bbox_override=bbox_override,
+                                    bottom_extension=(
+                                        initial_bottom_ext
+                                        if bottom_extension is None
+                                        else float(bottom_extension)
+                                    ),
+                                    top_extension=(
+                                        top_extension_title
+                                        if top_extension is None
+                                        else float(top_extension)
+                                    ),
+                                )
+                            )
                             return crop_table_region_to_bytes(
                                 str(pdf_path),
                                 page_num,
-                                bbox_override or table_bbox,
-                                bottom_extension=(
-                                    initial_bottom_ext
-                                    if bottom_extension is None
-                                    else float(bottom_extension)
-                                ),
-                                top_extension=top_extension_title,
+                                safe_bbox,
+                                bottom_extension=safe_bottom,
+                                top_extension=safe_top,
                                 horizontal_padding=horizontal_padding,
                                 dpi=vision_crop_dpi,
                             )
@@ -1295,6 +1315,7 @@ class DoclingProcessor:
                                 bbox_norm=table_bbox,
                                 vision_cfg=vision_extraction_cfg,
                                 initial_bottom_extension=initial_bottom_ext,
+                                initial_top_extension=top_extension_title,
                                 get_recrop_fn=_recrop,
                                 get_variant_crop_fn=_variant_crop,
                                 reference_text=reference_text,

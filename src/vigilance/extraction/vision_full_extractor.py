@@ -28,6 +28,7 @@ from .vision_cache import (
 logger = logging.getLogger(__name__)
 
 _EXTRACTION_METHOD = "vision_full_gpt4o"
+OPENAI_VISION_TIMEOUT_SECONDS = 120.0
 
 _RECROP_EXTENSION_INCREMENT = 0.06
 _DEFAULT_MAX_COMPLETION_TOKENS = 120000
@@ -1664,6 +1665,72 @@ def _collect_incompleteness_reasons(
     return reasons
 
 
+def _select_targeted_rescue_variant(
+    rejection_reasons: list[str],
+    quality_critiques: list[str] | None = None,
+    qa_missing_elements: str = "",
+) -> str:
+    """Choisir un seul recadrage de secours a partir du signal d'echec.
+
+    La priorite va aux notes de bas de page, puis au contexte haut, a la
+    contamination et enfin a la densite du corps du tableau. Un probleme
+    purement semantique (resume absent, critique QA generique) conserve le
+    recadrage initial et renforce seulement l'instruction d'extraction.
+    """
+    reasons = {
+        str(value or "").strip()
+        for value in rejection_reasons
+        if str(value or "").strip()
+    }
+    diagnostic_text = " ".join(
+        [*(quality_critiques or []), qa_missing_elements]
+    ).casefold()
+
+    footnote_signal = bool(
+        "missing_expected_footnotes" in reasons
+        or "footnote" in diagnostic_text
+        or "note de bas de page" in diagnostic_text
+        or "notes de bas de page" in diagnostic_text
+        or "renvois de notes" in diagnostic_text
+    )
+    if footnote_signal:
+        return "bottom_extended"
+
+    top_context_signal = bool(
+        "top_context_missing_title" in reasons
+        or "titre manquant" in diagnostic_text
+        or "missing title" in diagnostic_text
+        or "en-tête manquant" in diagnostic_text
+        or "en-têtes manquants" in diagnostic_text
+        or "missing header" in diagnostic_text
+    )
+    if top_context_signal:
+        return "top_extended"
+
+    if "generic_page_title" in reasons:
+        return "top_trim"
+
+    contamination_reasons = {
+        "generic_title_without_support",
+        "dominant_contamination",
+        "narrative_indicator_contamination",
+    }
+    if reasons & contamination_reasons:
+        return "tight_body"
+
+    body_reasons = {
+        "missing_result",
+        "output_budget_truncated",
+        "no_viable_indicators",
+        "weak_indicator_only",
+        "low_density_vertical",
+    }
+    if reasons & body_reasons:
+        return "body_expanded"
+
+    return "same_crop_rescue"
+
+
 def _candidate_quality_score(
     result: VisionFullResult | None,
     *,
@@ -1908,7 +1975,10 @@ class VisionFullExtractor:
 
             if not self._api_key:
                 raise ValueError("OPENAI_API_KEY required for Vision extraction")
-            self._client = OpenAI(api_key=self._api_key)
+            self._client = OpenAI(
+                api_key=self._api_key,
+                timeout=OPENAI_VISION_TIMEOUT_SECONDS,
+            )
         except ImportError as e:
             raise ImportError("openai package required: pip install openai") from e
 
@@ -2696,6 +2766,7 @@ class VisionFullExtractor:
         bbox_norm: list[float] | None = None,
         vision_cfg: dict[str, Any] | None = None,
         initial_bottom_extension: float = 0.0,
+        initial_top_extension: float = 0.0,
         get_recrop_fn: Any = None,
         get_variant_crop_fn: Any = None,
         reference_text: str | None = None,
@@ -2703,12 +2774,14 @@ class VisionFullExtractor:
         """Extraction avec passe de qualite deterministe.
 
         Flux :
-        - recadrage initial au budget configure (64k par defaut)
-        - sauvetage sur le meme recadrage a 128k uniquement si troncature detectee
-        - recadrage optionnel au budget configure
-        - sauvetage du recadrage a 128k uniquement si troncature detectee
+        - extraction initiale avec consensus si active
+        - choix d'un seul recadrage cible selon la cause d'incompletude
+        - une variante de repli seulement si le sauvetage cible est inutilisable
+        - inspection QA finale du recadrage effectivement selectionne
+        - budget 128k de secours uniquement si une troncature est detectee
 
         get_recrop_fn(bottom_extension: float) -> bytes | None
+        get_variant_crop_fn(bbox_override=..., bottom_extension=..., top_extension=...)
         """
         vision_cfg = vision_cfg or {}
         expected_markers = vision_cfg.get("expected_markers")
@@ -2912,6 +2985,10 @@ class VisionFullExtractor:
             )
 
         candidates: list[tuple[str, VisionFullResult | None]] = [("initial", first)]
+        candidate_crops: dict[str, bytes] = {"initial": crop_bytes}
+        candidate_bottom_extensions: dict[str, float] = {
+            "initial": initial_bottom_extension
+        }
         no_table_evidence = 0
         if first is not None and first.no_table_detected and _is_trivial_result(first, bbox_norm=bbox_norm):
             no_table_evidence += 1
@@ -2936,20 +3013,6 @@ class VisionFullExtractor:
                 + "\n- ".join(initial_quality_critiques)
             )
 
-        same_crop_rescue = _run_pass(
-            crop_bytes_for_pass=crop_bytes,
-            bottom_extension_used=initial_bottom_extension,
-            rescue_mode=True,
-            rescue_instruction=base_rescue_instruction,
-        )
-        candidates.append(("same_crop_rescue", same_crop_rescue))
-        if (
-            same_crop_rescue is not None
-            and same_crop_rescue.no_table_detected
-            and _is_trivial_result(same_crop_rescue, bbox_norm=bbox_norm)
-        ):
-            no_table_evidence += 1
-
         def _append_candidate(
             name: str,
             crop_bytes_for_pass: bytes | None,
@@ -2957,11 +3020,13 @@ class VisionFullExtractor:
             bottom_extension_used: float,
             candidate_bbox: list[float] | None = None,
             custom_rescue_instr: str | None = None,
-        ) -> None:
+        ) -> VisionFullResult | None:
             """Lance une passe pour un crop alternatif et ajoute le résultat aux candidats."""
             nonlocal no_table_evidence
             if not crop_bytes_for_pass:
-                return
+                return None
+            candidate_crops[name] = crop_bytes_for_pass
+            candidate_bottom_extensions[name] = bottom_extension_used
             result = _run_pass(
                 crop_bytes_for_pass=crop_bytes_for_pass,
                 bottom_extension_used=bottom_extension_used,
@@ -2975,60 +3040,148 @@ class VisionFullExtractor:
                 and _is_trivial_result(result, bbox_norm=candidate_bbox or bbox_norm)
             ):
                 no_table_evidence += 1
+            return result
 
-        if get_variant_crop_fn is not None and bbox_norm and len(bbox_norm) >= 4:
+        def _build_variant_crop(
+            name: str,
+        ) -> tuple[bytes | None, float, list[float] | None]:
+            """Construire uniquement le crop demande par le diagnostic."""
+            if name == "same_crop_rescue":
+                return crop_bytes, initial_bottom_extension, bbox_norm
+
+            if get_variant_crop_fn is None or not bbox_norm or len(bbox_norm) < 4:
+                if name == "bottom_extended" and get_recrop_fn is not None:
+                    extension = initial_bottom_extension + _RECROP_EXTENSION_INCREMENT
+                    return get_recrop_fn(extension), extension, bbox_norm
+                return None, initial_bottom_extension, bbox_norm
+
             left, top, right, bottom = [float(v) for v in bbox_norm[:4]]
             height = max(0.0, bottom - top)
             width = max(0.0, right - left)
 
-            top_trim_bbox = [
-                left,
-                min(bottom, top + min(height * 0.12, 0.06)),
-                right,
-                bottom,
-            ]
-            _append_candidate(
-                "top_trim",
-                get_variant_crop_fn(
-                    bbox_override=top_trim_bbox,
-                    bottom_extension=initial_bottom_extension,
-                ),
-                bottom_extension_used=initial_bottom_extension,
-                candidate_bbox=top_trim_bbox,
-            )
-
-            recrop_ext = initial_bottom_extension + _RECROP_EXTENSION_INCREMENT
-            _append_candidate(
-                "bottom_extended",
-                get_variant_crop_fn(bottom_extension=recrop_ext),
-                bottom_extension_used=recrop_ext,
-            )
-
-            tight_bbox = [
-                max(0.0, left + min(width * 0.015, 0.01)),
-                min(bottom, top + min(height * 0.08, 0.04)),
-                min(1.0, right - min(width * 0.015, 0.01)),
-                bottom,
-            ]
-            if tight_bbox[2] > tight_bbox[0] and tight_bbox[3] > tight_bbox[1]:
-                _append_candidate(
-                    "tight_body",
-                    get_variant_crop_fn(
-                        bbox_override=tight_bbox,
-                        bottom_extension=max(0.0, initial_bottom_extension * 0.5),
-                    ),
-                    bottom_extension_used=max(0.0, initial_bottom_extension * 0.5),
-                    candidate_bbox=tight_bbox,
+            if name == "bottom_extended":
+                extension = initial_bottom_extension + _RECROP_EXTENSION_INCREMENT
+                return (
+                    get_variant_crop_fn(bottom_extension=extension),
+                    extension,
+                    bbox_norm,
                 )
-        elif get_recrop_fn is not None:
-            recrop_ext = initial_bottom_extension + _RECROP_EXTENSION_INCREMENT
-            _append_candidate(
-                "bottom_extended",
-                get_recrop_fn(recrop_ext),
-                bottom_extension_used=recrop_ext,
-            )
 
-        usable_candidates = [item for item in candidates if item[1] is not None and _is_viable_result(item[1])]
+            if name == "top_extended":
+                return (
+                    get_variant_crop_fn(
+                        bottom_extension=initial_bottom_extension,
+                        top_extension=(
+                            initial_top_extension + _RECROP_EXTENSION_INCREMENT
+                        ),
+                    ),
+                    initial_bottom_extension,
+                    bbox_norm,
+                )
+
+            if name == "top_trim":
+                candidate_bbox = [
+                    left,
+                    min(bottom, top + min(height * 0.12, 0.06)),
+                    right,
+                    bottom,
+                ]
+                return (
+                    get_variant_crop_fn(
+                        bbox_override=candidate_bbox,
+                        bottom_extension=initial_bottom_extension,
+                    ),
+                    initial_bottom_extension,
+                    candidate_bbox,
+                )
+
+            if name == "tight_body":
+                candidate_bbox = [
+                    max(0.0, left + min(width * 0.015, 0.01)),
+                    min(bottom, top + min(height * 0.08, 0.04)),
+                    min(1.0, right - min(width * 0.015, 0.01)),
+                    bottom,
+                ]
+                if (
+                    candidate_bbox[2] <= candidate_bbox[0]
+                    or candidate_bbox[3] <= candidate_bbox[1]
+                ):
+                    return None, initial_bottom_extension, bbox_norm
+                extension = max(0.0, initial_bottom_extension * 0.5)
+                return (
+                    get_variant_crop_fn(
+                        bbox_override=candidate_bbox,
+                        bottom_extension=extension,
+                    ),
+                    extension,
+                    candidate_bbox,
+                )
+
+            if name == "body_expanded":
+                candidate_bbox = [
+                    max(0.0, left - min(width * 0.015, 0.01)),
+                    max(0.0, top - min(height * 0.08, 0.04)),
+                    min(1.0, right + min(width * 0.015, 0.01)),
+                    min(1.0, bottom + min(height * 0.10, 0.05)),
+                ]
+                return (
+                    get_variant_crop_fn(
+                        bbox_override=candidate_bbox,
+                        bottom_extension=initial_bottom_extension,
+                    ),
+                    initial_bottom_extension,
+                    candidate_bbox,
+                )
+
+            return None, initial_bottom_extension, bbox_norm
+
+        target_variant = _select_targeted_rescue_variant(
+            initial_rejection_reasons,
+            initial_quality_critiques,
+            qa_missing_str,
+        )
+        logger.info(
+            "Vision full: targeted rescue variant=%s reasons=%s",
+            target_variant,
+            initial_rejection_reasons,
+        )
+
+        target_crop, target_bottom_extension, target_bbox = _build_variant_crop(
+            target_variant
+        )
+        primary_rescue = _append_candidate(
+            target_variant,
+            target_crop,
+            bottom_extension_used=target_bottom_extension,
+            candidate_bbox=target_bbox,
+        )
+        same_crop_rescue = (
+            primary_rescue if target_variant == "same_crop_rescue" else None
+        )
+
+        if primary_rescue is None or not _is_viable_result(primary_rescue):
+            fallback_variant = (
+                "body_expanded"
+                if target_variant == "same_crop_rescue"
+                else "same_crop_rescue"
+            )
+            fallback_crop, fallback_bottom_extension, fallback_bbox = (
+                _build_variant_crop(fallback_variant)
+            )
+            fallback_result = _append_candidate(
+                fallback_variant,
+                fallback_crop,
+                bottom_extension_used=fallback_bottom_extension,
+                candidate_bbox=fallback_bbox,
+            )
+            if fallback_variant == "same_crop_rescue":
+                same_crop_rescue = fallback_result
+
+        usable_candidates = [
+            item
+            for item in candidates
+            if item[1] is not None and _is_viable_result(item[1])
+        ]
         if usable_candidates:
             best_name, best_result = max(
                 usable_candidates,
@@ -3040,6 +3193,15 @@ class VisionFullExtractor:
                 ),
             )
             assert best_result is not None
+            best_crop_bytes = candidate_crops.get(best_name, crop_bytes)
+            best_bottom_extension = candidate_bottom_extensions.get(
+                best_name,
+                initial_bottom_extension,
+            )
+            selected_used_variant_crop = best_name not in {
+                "initial",
+                "same_crop_rescue",
+            }
 
             # --- Post-rescue QA inspection ---
             # The QA Inspector only ran on `first` when it had zero rejection
@@ -3056,7 +3218,10 @@ class VisionFullExtractor:
 
                 _best_dict = _dataclasses.asdict(best_result)
                 _post_qa_inspector = _VisionTableInspector(model="gpt-4o")
-                _post_qa_result = _post_qa_inspector.inspect_extraction(crop_bytes, _best_dict)
+                _post_qa_result = _post_qa_inspector.inspect_extraction(
+                    best_crop_bytes,
+                    _best_dict,
+                )
 
                 if not _post_qa_result.is_perfect and _post_qa_result.missing_elements:
                     _missing_str = ", ".join(_post_qa_result.missing_elements)
@@ -3074,8 +3239,8 @@ class VisionFullExtractor:
                         "Reread the image carefully, line-by-line, top to bottom."
                     )
                     _targeted = _run_pass(
-                        crop_bytes_for_pass=crop_bytes,
-                        bottom_extension_used=initial_bottom_extension,
+                        crop_bytes_for_pass=best_crop_bytes,
+                        bottom_extension_used=best_bottom_extension,
                         rescue_mode=True,
                         rescue_instruction=_targeted_instr,
                     )
@@ -3094,7 +3259,7 @@ class VisionFullExtractor:
                 best_result,
                 rescue_used=best_name != "initial" or best_result.rescue_used,
                 recrop_attempted=len(candidates) > 1,
-                recrop_used=best_name != "initial",
+                recrop_used=selected_used_variant_crop,
                 recrop_failed_incomplete=False,
                 extraction_status=final_status,
             )

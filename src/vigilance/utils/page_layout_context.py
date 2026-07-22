@@ -39,6 +39,74 @@ def build_page_table_map(
     return by_page
 
 
+def clamp_variant_crop_to_neighbors(
+    table_idx: int,
+    page_num: int,
+    table_bbox: list[float],
+    page_table_map: dict[int, list[PageBboxEntry]],
+    *,
+    bbox_override: list[float] | None = None,
+    bottom_extension: float = 0.0,
+    top_extension: float = 0.0,
+    safety_margin: float = 0.005,
+) -> tuple[list[float], float, float]:
+    """Limiter un recadrage de secours aux tableaux voisins de la page.
+
+    Les variantes peuvent agrandir la bbox ou ses extensions, mais ne doivent
+    jamais traverser la marge de securite precedant le tableau suivant ou
+    suivant le tableau precedent.
+    """
+    base = [float(value) for value in table_bbox[:4]]
+    candidate = [float(value) for value in (bbox_override or table_bbox)[:4]]
+    if len(base) < 4 or len(candidate) < 4:
+        return base, max(0.0, bottom_extension), max(0.0, top_extension)
+
+    left, top, right, bottom = candidate
+    left = max(0.0, min(left, 1.0))
+    top = max(0.0, min(top, 1.0))
+    right = max(left, min(right, 1.0))
+    bottom = max(top, min(bottom, 1.0))
+
+    page_tables = page_table_map.get(page_num, [])
+    current_pos = next(
+        (
+            position
+            for position, (idx, _bbox) in enumerate(page_tables)
+            if idx == table_idx
+        ),
+        None,
+    )
+    upper_boundary = 0.0
+    lower_boundary = 1.0
+    if current_pos is not None:
+        if current_pos > 0:
+            upper_boundary = float(page_tables[current_pos - 1][1][3])
+        if current_pos < len(page_tables) - 1:
+            lower_boundary = float(page_tables[current_pos + 1][1][1])
+
+    if current_pos is not None and current_pos > 0:
+        top = max(top, upper_boundary + safety_margin)
+    if current_pos is not None and current_pos < len(page_tables) - 1:
+        bottom = min(bottom, lower_boundary - safety_margin)
+
+    if right <= left or bottom <= top:
+        left, top, right, bottom = base
+
+    safe_top_extension = min(
+        max(0.0, float(top_extension)),
+        max(0.0, top - upper_boundary - safety_margin),
+    )
+    safe_bottom_extension = min(
+        max(0.0, float(bottom_extension)),
+        max(0.0, lower_boundary - bottom - safety_margin),
+    )
+    return (
+        [left, top, right, bottom],
+        safe_bottom_extension,
+        safe_top_extension,
+    )
+
+
 def compute_dynamic_extensions(
     table_idx: int,
     page_num: int,
