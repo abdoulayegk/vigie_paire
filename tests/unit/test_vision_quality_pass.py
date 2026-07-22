@@ -87,10 +87,7 @@ def test_targeted_rescue_router_selects_one_relevant_variant(
     qa_missing,
     expected,
 ) -> None:
-    assert (
-        _select_targeted_rescue_variant(reasons, critiques, qa_missing)
-        == expected
-    )
+    assert _select_targeted_rescue_variant(reasons, critiques, qa_missing) == expected
 
 
 def test_quality_pass_uses_only_bottom_extension_for_missing_footnote(
@@ -148,6 +145,58 @@ def test_quality_pass_uses_only_bottom_extension_for_missing_footnote(
     assert result.selected_candidate_name == "bottom_extended"
     assert variant_calls == [{"bottom_extension": 0.08}]
     assert inspected_images == [b"initial", b"bottom_extended"]
+
+
+def test_quality_pass_uses_page_context_after_incomplete_targeted_rescue(
+    monkeypatch,
+) -> None:
+    extractor = VisionFullExtractor(api_key="test-key", model="gpt-4o-test")
+    page_context_calls: list[bool] = []
+
+    def fake_variant_crop(**kwargs) -> bytes:
+        return b"bottom_extended"
+
+    def fake_page_context_crop() -> dict:
+        page_context_calls.append(True)
+        return {
+            "crop_bytes": b"page_context",
+            "bbox_norm": [0.08, 0.18, 0.92, 0.43],
+            "bottom_extension": 0.05,
+            "confidence": 0.96,
+        }
+
+    def fake_extract(**kwargs):
+        crop = kwargs["crop_bytes"]
+        if crop == b"page_context":
+            return _result(
+                title="Ratios de liquidite (1)",
+                summary="Ratios reglementaires de liquidite",
+                indicators=["Actifs liquides", "Sorties nettes", "Ratio LCR"],
+                headers=["Mesure", "T2 2026"],
+                footnotes=[{"id": "1", "text": "Methode de calcul complete"}],
+            )
+        return _result(
+            title="Ratios de liquidite (1)",
+            summary="Ratios reglementaires de liquidite",
+            indicators=["Actifs liquides", "Sorties nettes", "Ratio LCR"],
+            headers=["Mesure", "T2 2026"],
+        )
+
+    monkeypatch.setattr(extractor, "extract", fake_extract)
+
+    result = extractor.extract_with_quality_pass(
+        crop_bytes=b"initial",
+        bank_code="rbc",
+        bbox_norm=[0.1, 0.2, 0.9, 0.42],
+        vision_cfg={"expected_markers": ["(1)"]},
+        get_variant_crop_fn=fake_variant_crop,
+        get_page_context_crop_fn=fake_page_context_crop,
+    )
+
+    assert result is not None
+    assert result.selected_candidate_name == "page_context_rescue"
+    assert result.extraction_status == "rescued"
+    assert page_context_calls == [True]
 
 
 def test_variant_crop_is_clamped_before_a_close_following_table() -> None:

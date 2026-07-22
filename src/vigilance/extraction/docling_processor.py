@@ -164,9 +164,7 @@ def _build_indicator_reference_text(
             for part in _REFERENCE_TEXT_SPLIT_RE.split(line)
             if re.sub(r"\s+", " ", part).strip()
         ]
-        if len(parts) >= 3 and all(
-            _looks_short_textual_header_fragment(part) for part in parts[:3]
-        ):
+        if len(parts) >= 3 and all(_looks_short_textual_header_fragment(part) for part in parts[:3]):
             return None
 
     return text[:max_chars]
@@ -270,8 +268,7 @@ SECTION_TITLE_PATTERNS = [
 
 # Compiler les patterns
 COMPILED_SECTION_PATTERNS = [
-    (re.compile(pattern, re.IGNORECASE), name, phase)
-    for pattern, name, phase in SECTION_TITLE_PATTERNS
+    (re.compile(pattern, re.IGNORECASE), name, phase) for pattern, name, phase in SECTION_TITLE_PATTERNS
 ]
 
 
@@ -508,17 +505,11 @@ def _compute_vision_quality_summary(tables: list[Any]) -> dict[str, Any]:
             partial += 1
         elif status == "failed":
             failed += 1
-        retry_reasons = {
-            str(value).strip() for value in list(dm.get("retry_reasons") or []) if str(value).strip()
-        }
+        retry_reasons = {str(value).strip() for value in list(dm.get("retry_reasons") or []) if str(value).strip()}
         if "output_budget_truncated" in retry_reasons:
             truncated += 1
         conf = dm.get("vision_extraction_confidence", 1.0)
-        if (
-            isinstance(conf, (int, float))
-            and conf < 0.85
-            and status in ("ok", "partial")
-        ):
+        if isinstance(conf, (int, float)) and conf < 0.85 and status in ("ok", "partial"):
             low_confidence += 1
         if dm.get("crop_reject_reason"):
             bbox_rejected += 1
@@ -605,9 +596,7 @@ class DoclingProcessor:
         self._initialized = False
 
         # Charger les patterns configurables
-        self.bank_code_for_patterns: str | None = (
-            None  # Sera set lors de extract_document
-        )
+        self.bank_code_for_patterns: str | None = None  # Sera set lors de extract_document
         self.extraction_patterns = None
         try:
             from ..utils.pattern_loader import get_patterns
@@ -645,13 +634,9 @@ class DoclingProcessor:
             pipeline_options = PdfPipelineOptions()
             pipeline_options.do_ocr = self.use_ocr
             pipeline_options.do_table_structure = True
-            pipeline_options.do_picture_description = (
-                False  # Desactiver pour acceleration
-            )
+            pipeline_options.do_picture_description = False  # Desactiver pour acceleration
 
-            _raw_threads = os.environ.get("DOCLING_NUM_THREADS") or os.environ.get(
-                "OMP_NUM_THREADS"
-            )
+            _raw_threads = os.environ.get("DOCLING_NUM_THREADS") or os.environ.get("OMP_NUM_THREADS")
             num_threads = int(_raw_threads) if _raw_threads else (os.cpu_count() or 8)
             default_device = "mps" if sys.platform == "darwin" else "auto"
             device_str = os.environ.get("DOCLING_DEVICE", default_device)
@@ -669,16 +654,12 @@ class DoclingProcessor:
                     "mps": AcceleratorDevice.MPS,
                 }
                 device = device_map.get(device_str.lower(), AcceleratorDevice.AUTO)
-                pipeline_options.accelerator_options = AcceleratorOptions(
-                    num_threads=num_threads, device=device
-                )
+                pipeline_options.accelerator_options = AcceleratorOptions(num_threads=num_threads, device=device)
             except ImportError:
                 pass  # Utiliser les options par defaut de Docling
 
             self._converter = DocumentConverter(
-                format_options={
-                    InputFormat.PDF: PdfFormatOption(pipeline_options=pipeline_options)
-                }
+                format_options={InputFormat.PDF: PdfFormatOption(pipeline_options=pipeline_options)}
             )
             self._initialized = True
             logger.info(
@@ -689,14 +670,10 @@ class DoclingProcessor:
             )
 
         except ImportError as e:
-            logger.warning(
-                f"Docling non disponible: {e}. Utilisation de l'extraction de secours."
-            )
+            logger.warning(f"Docling non disponible: {e}. Utilisation de l'extraction de secours.")
             self._initialized = True
         except Exception as e:
-            logger.warning(
-                f"Erreur initialisation Docling: {e}. Utilisation de l'extraction de secours."
-            )
+            logger.warning(f"Erreur initialisation Docling: {e}. Utilisation de l'extraction de secours.")
             self._initialized = True
 
     def extract_document(
@@ -734,9 +711,7 @@ class DoclingProcessor:
         Returns:
             ExtractedDocument avec tout le contenu extrait
         """
-        use_vision_extraction = _resolve_vision_extraction_enabled(
-            bank_code, use_vision_extraction
-        )
+        use_vision_extraction = _resolve_vision_extraction_enabled(bank_code, use_vision_extraction)
 
         pdf_path = _coerce_pdf_path(pdf_path)
         if not pdf_path.exists():
@@ -751,16 +726,13 @@ class DoclingProcessor:
                 self.bank_code_for_patterns = bank_code
                 logger.debug(f"Patterns rechargés pour banque: {bank_code}")
             except Exception as e:
-                logger.warning(
-                    f"Impossible de recharger les patterns pour {bank_code}: {e}"
-                )
+                logger.warning(f"Impossible de recharger les patterns pour {bank_code}: {e}")
 
         # Verifier et nettoyer la memoire si necessaire
         if MEMORY_UTILS_AVAILABLE:
             if check_memory_threshold():
                 logger.warning(
-                    f"Haute utilisation memoire ({get_memory_usage_mb():.0f}MB), "
-                    "nettoyage avant extraction..."
+                    f"Haute utilisation memoire ({get_memory_usage_mb():.0f}MB), nettoyage avant extraction..."
                 )
                 cleanup_memory(force=True)
 
@@ -790,10 +762,7 @@ class DoclingProcessor:
         use_chunked = total_pages > CHUNK_SIZE_PAGES and page_ranges is None
 
         if use_chunked and MEMORY_UTILS_AVAILABLE:
-            logger.info(
-                f"Document volumineux ({total_pages} pages), "
-                f"traitement par chunks de {CHUNK_SIZE_PAGES} pages"
-            )
+            logger.info(f"Document volumineux ({total_pages} pages), traitement par chunks de {CHUNK_SIZE_PAGES} pages")
             result = self._extract_chunked(
                 pdf_path,
                 bank_code,
@@ -814,9 +783,7 @@ class DoclingProcessor:
                 use_vision_extraction=use_vision_extraction,
             )
         else:
-            result = self._docling_unavailable_document(
-                pdf_path, bank_code, quarter, year, page_ranges
-            )
+            result = self._docling_unavailable_document(pdf_path, bank_code, quarter, year, page_ranges)
 
         # Sauvegarder dans le cache si active
         if self.use_cache and self._cache and section:
@@ -917,8 +884,7 @@ class DoclingProcessor:
 
         for start_page, end_page in processor.iterate_pages(total_pages):
             logger.info(
-                f"Traitement pages {start_page}-{end_page}/{total_pages} "
-                f"(memoire: {get_memory_usage_mb():.0f}MB)"
+                f"Traitement pages {start_page}-{end_page}/{total_pages} (memoire: {get_memory_usage_mb():.0f}MB)"
             )
 
             # Extraire ce chunk
@@ -935,9 +901,7 @@ class DoclingProcessor:
                     use_vision_extraction=use_vision_extraction,
                 )
             else:
-                chunk_result = self._docling_unavailable_document(
-                    pdf_path, bank_code, quarter, year, page_ranges
-                )
+                chunk_result = self._docling_unavailable_document(pdf_path, bank_code, quarter, year, page_ranges)
 
             # Accumuler les resultats
             all_tables.extend(chunk_result.all_tables)
@@ -1004,9 +968,7 @@ class DoclingProcessor:
                     bbox_top=t.get("bbox_top"),
                     page_local_role=t.get("page_local_role"),
                     first_column_groups=t.get("first_column_groups"),
-                    hierarchical_indicator_signature=t.get(
-                        "hierarchical_indicator_signature"
-                    ),
+                    hierarchical_indicator_signature=t.get("hierarchical_indicator_signature"),
                     title_reliability=t.get("title_reliability"),
                     debug_metrics=t.get("debug_metrics", {}),
                     extraction_method=t.get("extraction_method"),
@@ -1027,12 +989,8 @@ class DoclingProcessor:
                         headers=t.get("headers", []),
                         rows=t.get("rows", []),
                         first_column_indicators=t.get("first_column_indicators", []),
-                        first_column_indicators_raw=t.get(
-                            "first_column_indicators_raw"
-                        ),
-                        footnotes=normalize_footnotes_to_canonical(
-                            t.get("footnotes", [])
-                        ),
+                        first_column_indicators_raw=t.get("first_column_indicators_raw"),
+                        footnotes=normalize_footnotes_to_canonical(t.get("footnotes", [])),
                         section=t.get("section"),
                         section_phase=t.get("section_phase"),
                         table_number=t.get("table_number"),
@@ -1048,9 +1006,7 @@ class DoclingProcessor:
                         bbox_top=t.get("bbox_top"),
                         page_local_role=t.get("page_local_role"),
                         first_column_groups=t.get("first_column_groups"),
-                        hierarchical_indicator_signature=t.get(
-                            "hierarchical_indicator_signature"
-                        ),
+                        hierarchical_indicator_signature=t.get("hierarchical_indicator_signature"),
                         title_reliability=t.get("title_reliability"),
                         debug_metrics=t.get("debug_metrics", {}),
                         extraction_method=t.get("extraction_method"),
@@ -1081,17 +1037,13 @@ class DoclingProcessor:
             metadata=data.get("metadata", {}),
         )
 
-    def _is_page_in_ranges(
-        self, page_num: int, page_ranges: list[tuple[int, int]] | None
-    ) -> bool:
+    def _is_page_in_ranges(self, page_num: int, page_ranges: list[tuple[int, int]] | None) -> bool:
         """Verifier si une page est dans les plages cibles."""
         if page_ranges is None:
             return True
         return any(start <= page_num <= end for start, end in page_ranges)
 
-    def _normalize_page_ranges(
-        self, page_ranges: list[tuple[int, int]] | None
-    ) -> list[tuple[int, int]]:
+    def _normalize_page_ranges(self, page_ranges: list[tuple[int, int]] | None) -> list[tuple[int, int]]:
         """Normaliser les plages pour garantir start >= 1 et end >= start."""
         if not page_ranges:
             return []
@@ -1103,9 +1055,7 @@ class DoclingProcessor:
                 start = int(start_raw)
                 end = int(end_raw)
             except (TypeError, ValueError):
-                logger.warning(
-                    "Plage de pages invalide ignoree a l'index %s: %s", idx, page_range
-                )
+                logger.warning("Plage de pages invalide ignoree a l'index %s: %s", idx, page_range)
                 continue
 
             start_norm = max(1, start)
@@ -1131,9 +1081,7 @@ class DoclingProcessor:
         normalized.sort(key=lambda r: (r[0], r[1]))
         return normalized
 
-    def _build_docling_page_range(
-        self, page_ranges: list[tuple[int, int]] | None
-    ) -> tuple[int, int] | None:
+    def _build_docling_page_range(self, page_ranges: list[tuple[int, int]] | None) -> tuple[int, int] | None:
         """Construire une plage Docling compatible (start, end), indexee a 1."""
         normalized = self._normalize_page_ranges(page_ranges)
         if not normalized:
@@ -1178,6 +1126,7 @@ class DoclingProcessor:
         top_extension_title = shared["top_extension_title"]
         horizontal_padding = shared["horizontal_padding"]
         vision_extractor = shared["vision_extractor"]
+        page_table_locator = shared.get("page_table_locator")
         schema_failure_flag = shared["schema_failure_flag"]
         vision_schema_error_cls = shared["vision_schema_error_cls"]
         schema_failure_policy = shared["schema_failure_policy"]
@@ -1216,21 +1165,15 @@ class DoclingProcessor:
                     vision_extraction_attempted = False
                     vision_schema_contract_failed = True
                     warnings_list = ["Vision disabled after schema contract failure"]
-                    vision_extraction_disabled_reason = shared.get(
-                        "vision_extraction_disabled_reason"
-                    )
+                    vision_extraction_disabled_reason = shared.get("vision_extraction_disabled_reason")
                 else:
                     from ..utils.pdf_crop import is_bbox_sane
 
-                    sane, crop_reject_reason, bbox_sanity_profile = is_bbox_sane(
-                        table_bbox, vision_extraction_cfg
-                    )
+                    sane, crop_reject_reason, bbox_sanity_profile = is_bbox_sane(table_bbox, vision_extraction_cfg)
                     if not sane:
                         vision_extraction_attempted = True
                         vision_status_str = "failed"
-                        warnings_list = [
-                            f"bbox sanity gate: {crop_reject_reason or 'rejected'}; Vision skipped"
-                        ]
+                        warnings_list = [f"bbox sanity gate: {crop_reject_reason or 'rejected'}; Vision skipped"]
                     else:
                         # Dynamic crop extensions based on page layout context
                         from ..utils.page_layout_context import compute_dynamic_extensions
@@ -1259,37 +1202,29 @@ class DoclingProcessor:
                                 dpi=vision_crop_dpi,
                             )
 
-                        def _variant_crop(
+                        def _render_variant_crop(
                             *,
                             bbox_override: list[float] | None = None,
                             bottom_extension: float | None = None,
                             top_extension: float | None = None,
-                        ) -> bytes:
-                            """Variante de crop bornee par les tableaux voisins."""
+                        ) -> tuple[bytes, list[float], float, float]:
+                            """Rendre une variante et retourner sa geometrie effective."""
                             from ..utils.page_layout_context import (
                                 clamp_variant_crop_to_neighbors,
                             )
 
-                            safe_bbox, safe_bottom, safe_top = (
-                                clamp_variant_crop_to_neighbors(
-                                    table_idx=idx,
-                                    page_num=page_num,
-                                    table_bbox=table_bbox,
-                                    page_table_map=page_table_map,
-                                    bbox_override=bbox_override,
-                                    bottom_extension=(
-                                        initial_bottom_ext
-                                        if bottom_extension is None
-                                        else float(bottom_extension)
-                                    ),
-                                    top_extension=(
-                                        top_extension_title
-                                        if top_extension is None
-                                        else float(top_extension)
-                                    ),
-                                )
+                            safe_bbox, safe_bottom, safe_top = clamp_variant_crop_to_neighbors(
+                                table_idx=idx,
+                                page_num=page_num,
+                                table_bbox=table_bbox,
+                                page_table_map=page_table_map,
+                                bbox_override=bbox_override,
+                                bottom_extension=(
+                                    initial_bottom_ext if bottom_extension is None else float(bottom_extension)
+                                ),
+                                top_extension=(top_extension_title if top_extension is None else float(top_extension)),
                             )
-                            return crop_table_region_to_bytes(
+                            rendered = crop_table_region_to_bytes(
                                 str(pdf_path),
                                 page_num,
                                 safe_bbox,
@@ -1298,6 +1233,78 @@ class DoclingProcessor:
                                 horizontal_padding=horizontal_padding,
                                 dpi=vision_crop_dpi,
                             )
+                            return rendered, safe_bbox, safe_bottom, safe_top
+
+                        def _variant_crop(
+                            *,
+                            bbox_override: list[float] | None = None,
+                            bottom_extension: float | None = None,
+                            top_extension: float | None = None,
+                        ) -> bytes:
+                            """Variante de crop bornee par les tableaux voisins."""
+                            rendered, _bbox, _bottom, _top = _render_variant_crop(
+                                bbox_override=bbox_override,
+                                bottom_extension=bottom_extension,
+                                top_extension=top_extension,
+                            )
+                            return rendered
+
+                        def _page_context_crop() -> dict[str, Any] | None:
+                            """Localiser la page puis rendre uniquement le tableau corrige."""
+                            if page_table_locator is None:
+                                return None
+                            from .page_table_locator import build_page_table_crop_plan
+                            from .pdf_preview import render_pdf_page
+
+                            page_image = render_pdf_page(
+                                str(pdf_path),
+                                page_num,
+                                scale=1.5,
+                                format="png",
+                            )
+                            if not page_image:
+                                return None
+                            layout = page_table_locator.locate_page(
+                                page_image,
+                                page_num,
+                                pdf_sha=pdf_sha,
+                            )
+                            if layout is None:
+                                return None
+                            plan = build_page_table_crop_plan(
+                                layout,
+                                table_bbox,
+                                min_confidence=page_table_locator.min_confidence,
+                            )
+                            if plan is None:
+                                logger.info(
+                                    "Vision page-context: no safe match for page=%s table=%s",
+                                    page_num,
+                                    idx,
+                                )
+                                return None
+                            rendered, safe_bbox, safe_bottom, safe_top = _render_variant_crop(
+                                bbox_override=list(plan.bbox_norm),
+                                bottom_extension=plan.bottom_extension,
+                                top_extension=plan.top_extension,
+                            )
+                            if not rendered:
+                                return None
+                            logger.info(
+                                "Vision page-context: corrected crop page=%s table=%s "
+                                "confidence=%.2f tables_on_page=%s",
+                                page_num,
+                                idx,
+                                plan.confidence,
+                                plan.table_count,
+                            )
+                            return {
+                                "crop_bytes": rendered,
+                                "bbox_norm": safe_bbox,
+                                "bottom_extension": safe_bottom,
+                                "top_extension": safe_top,
+                                "confidence": plan.confidence,
+                            }
 
                         crop_bytes = _recrop(initial_bottom_ext)
                         if not crop_bytes:
@@ -1318,20 +1325,15 @@ class DoclingProcessor:
                                 initial_top_extension=top_extension_title,
                                 get_recrop_fn=_recrop,
                                 get_variant_crop_fn=_variant_crop,
+                                get_page_context_crop_fn=_page_context_crop,
                                 reference_text=reference_text,
                             )
                             if vision_result is not None:
                                 title = vision_result.table_title or ""
-                                table_number, title_clean = self._extract_table_number(
-                                    title or None
-                                )
+                                table_number, title_clean = self._extract_table_number(title or None)
                                 title_raw = title or None
-                                table_summary = (
-                                    str(vision_result.table_summary or "").strip() or None
-                                )
-                                out_headers = (
-                                    [] if labels_only else (vision_result.headers or [])
-                                )
+                                table_summary = str(vision_result.table_summary or "").strip() or None
+                                out_headers = [] if labels_only else (vision_result.headers or [])
                                 out_rows = []
                                 indicators_raw_text = [
                                     str(item).strip()
@@ -1339,15 +1341,8 @@ class DoclingProcessor:
                                     if str(item).strip()
                                 ]
                                 indicators_spatial_raw = []
-                                indicators = [
-                                    normalize_indicator_for_comparison(text)
-                                    for text in indicators_raw_text
-                                ]
-                                footnotes = (
-                                    []
-                                    if labels_only
-                                    else vision_result.to_footnotes_list()
-                                )
+                                indicators = [normalize_indicator_for_comparison(text) for text in indicators_raw_text]
+                                footnotes = [] if labels_only else vision_result.to_footnotes_list()
                                 vision_status_str = vision_result.vision_status or "ok"
                                 extraction_status = (
                                     str(
@@ -1387,17 +1382,13 @@ class DoclingProcessor:
             else:
                 warnings_list = ["bbox invalid"]
 
-        requested_max_completion_tokens = int(
-            vision_extraction_cfg.get("vision_max_completion_tokens", 65536)
-        )
+        requested_max_completion_tokens = int(vision_extraction_cfg.get("vision_max_completion_tokens", 65536))
         debug_metrics: dict[str, Any] = {
             "vision_status": vision_status_str,
             "vision_extraction_attempted": vision_extraction_attempted,
             "vision_extraction_applied": vision_status_str in ("ok", "partial"),
             "vision_schema_contract_failed": vision_schema_contract_failed,
-            "has_reference_text": bool(
-                reference_text and len(reference_text.strip()) > 20
-            ),
+            "has_reference_text": bool(reference_text and len(reference_text.strip()) > 20),
             "warnings": warnings_list,
             "vision_max_completion_tokens_requested": requested_max_completion_tokens,
             "vision_max_completion_tokens_rescue_used": False,
@@ -1417,15 +1408,11 @@ class DoclingProcessor:
                 "vision_lean_mode",
                 "vision_rows_missing_from_fallback",
             }
-            failure_causes = [
-                code for code in warnings_list if code in known_failure_codes
-            ]
+            failure_causes = [code for code in warnings_list if code in known_failure_codes]
             if failure_causes:
                 debug_metrics["vision_failure_causes"] = failure_causes
         if vision_extraction_disabled_reason:
-            debug_metrics["vision_extraction_disabled_reason"] = (
-                vision_extraction_disabled_reason
-            )
+            debug_metrics["vision_extraction_disabled_reason"] = vision_extraction_disabled_reason
         if crop_reject_reason:
             debug_metrics["crop_reject_reason"] = crop_reject_reason
         if bbox_sanity_profile is not None:
@@ -1435,53 +1422,30 @@ class DoclingProcessor:
             if hasattr(vision_result, "retry_reasons"):
                 debug_metrics["retry_reasons"] = list(vision_result.retry_reasons or [])
             if hasattr(vision_result, "no_table_detected"):
-                debug_metrics["no_table_detected"] = bool(
-                    vision_result.no_table_detected
-                )
+                debug_metrics["no_table_detected"] = bool(vision_result.no_table_detected)
             if hasattr(vision_result, "recrop_attempted"):
                 debug_metrics["recrop_attempted"] = vision_result.recrop_attempted
             if hasattr(vision_result, "recrop_used"):
                 debug_metrics["recrop_used"] = vision_result.recrop_used
             if hasattr(vision_result, "recrop_failed_incomplete"):
-                debug_metrics["recrop_failed_incomplete"] = (
-                    vision_result.recrop_failed_incomplete
-                )
+                debug_metrics["recrop_failed_incomplete"] = vision_result.recrop_failed_incomplete
             if getattr(vision_result, "acceptance_reason", None):
                 debug_metrics["acceptance_reason"] = vision_result.acceptance_reason
             if hasattr(vision_result, "rejection_reasons"):
-                debug_metrics["rejection_reasons"] = list(
-                    vision_result.rejection_reasons or []
-                )
+                debug_metrics["rejection_reasons"] = list(vision_result.rejection_reasons or [])
             if getattr(vision_result, "selected_candidate_name", None):
-                debug_metrics["selected_candidate_name"] = (
-                    vision_result.selected_candidate_name
-                )
+                debug_metrics["selected_candidate_name"] = vision_result.selected_candidate_name
             if hasattr(vision_result, "no_table_evidence_count"):
-                debug_metrics["no_table_evidence_count"] = int(
-                    vision_result.no_table_evidence_count or 0
-                )
+                debug_metrics["no_table_evidence_count"] = int(vision_result.no_table_evidence_count or 0)
             if hasattr(vision_result, "summary_present"):
-                debug_metrics["summary_present"] = bool(
-                    vision_result.summary_present
-                )
+                debug_metrics["summary_present"] = bool(vision_result.summary_present)
             if hasattr(vision_result, "indicator_count"):
-                debug_metrics["indicator_count"] = int(
-                    vision_result.indicator_count or 0
-                )
+                debug_metrics["indicator_count"] = int(vision_result.indicator_count or 0)
             if hasattr(vision_result, "candidate_quality_rank"):
-                debug_metrics["candidate_quality_rank"] = list(
-                    vision_result.candidate_quality_rank or []
-                )
-            debug_metrics["vision_consensus_confidence"] = float(
-                getattr(vision_result, "confidence_score", 0.0)
-            )
-            if (
-                getattr(vision_result, "requested_max_completion_tokens", None)
-                is not None
-            ):
-                debug_metrics["vision_max_completion_tokens_requested"] = (
-                    vision_result.requested_max_completion_tokens
-                )
+                debug_metrics["candidate_quality_rank"] = list(vision_result.candidate_quality_rank or [])
+            debug_metrics["vision_consensus_confidence"] = float(getattr(vision_result, "confidence_score", 0.0))
+            if getattr(vision_result, "requested_max_completion_tokens", None) is not None:
+                debug_metrics["vision_max_completion_tokens_requested"] = vision_result.requested_max_completion_tokens
             debug_metrics["vision_max_completion_tokens_rescue_used"] = bool(
                 getattr(vision_result, "rescue_used", False)
             )
@@ -1491,9 +1455,7 @@ class DoclingProcessor:
             if getattr(vision_result, "prompt_tokens", None) is not None:
                 debug_metrics["vision_prompt_tokens"] = vision_result.prompt_tokens
             if getattr(vision_result, "completion_tokens", None) is not None:
-                debug_metrics["vision_completion_tokens"] = (
-                    vision_result.completion_tokens
-                )
+                debug_metrics["vision_completion_tokens"] = vision_result.completion_tokens
             if getattr(vision_result, "total_tokens", None) is not None:
                 debug_metrics["vision_total_tokens"] = vision_result.total_tokens
 
@@ -1505,9 +1467,7 @@ class DoclingProcessor:
             rows=out_rows,
             first_column_indicators=indicators,
             first_column_indicators_raw=indicators_raw_text,
-            first_column_indicators_spatial=indicators_spatial_raw
-            if indicators_spatial_raw
-            else None,
+            first_column_indicators_spatial=indicators_spatial_raw if indicators_spatial_raw else None,
             footnotes=footnotes,
             bbox=table_bbox,
             table_number=table_number,
@@ -1518,11 +1478,7 @@ class DoclingProcessor:
                 title_clean or title or title_raw,
                 bank_code=bank_code,
             ),
-            extraction_method=(
-                "vision_full_gpt4o"
-                if vision_status_str in ("ok", "partial")
-                else "vision_failed"
-            ),
+            extraction_method=("vision_full_gpt4o" if vision_status_str in ("ok", "partial") else "vision_failed"),
             debug_metrics=debug_metrics,
             extraction_status=extraction_status,
         )
@@ -1581,6 +1537,7 @@ class DoclingProcessor:
             # fallback_to_docling removed: Vision is the sole content source (Rules 1+5)
             schema_failure_policy = "fail_fast"
             vision_extractor = None
+            page_table_locator = None
             vision_model_name: str | None = None
             pdf_sha = ""
             vision_extraction_disabled_reason: str | None = None
@@ -1589,24 +1546,12 @@ class DoclingProcessor:
             if use_vision_extraction:
                 try:
                     vision_extraction_cfg = _get_vision_extraction_config(bank_code)
-                    bottom_extension_footnotes = float(
-                        vision_extraction_cfg.get("bottom_extension_footnotes", 0.12)
-                    )
-                    top_extension_title = float(
-                        vision_extraction_cfg.get("top_extension_title", 0.03)
-                    )
-                    horizontal_padding = float(
-                        vision_extraction_cfg.get("horizontal_padding", 0.02)
-                    )
+                    bottom_extension_footnotes = float(vision_extraction_cfg.get("bottom_extension_footnotes", 0.12))
+                    top_extension_title = float(vision_extraction_cfg.get("top_extension_title", 0.03))
+                    horizontal_padding = float(vision_extraction_cfg.get("horizontal_padding", 0.02))
                     # fallback_to_docling removed: Vision is the sole content source (Rules 1+5)
                     schema_failure_policy = (
-                        str(
-                            vision_extraction_cfg.get(
-                                "schema_failure_policy", "fail_fast"
-                            )
-                        )
-                        .strip()
-                        .lower()
+                        str(vision_extraction_cfg.get("schema_failure_policy", "fail_fast")).strip().lower()
                     )
                     if schema_failure_policy not in {
                         "fail_fast",
@@ -1615,6 +1560,7 @@ class DoclingProcessor:
                         schema_failure_policy = "fail_fast"
                     from ..config import resolve_openai_model
                     from ..utils.genai import get_openai_api_key
+                    from .page_table_locator import PageTableLocator
                     from .vision_cache import compute_pdf_sha256
                     from .vision_full_extractor import (
                         VisionFullExtractor,
@@ -1624,19 +1570,19 @@ class DoclingProcessor:
                     pdf_sha = compute_pdf_sha256(str(pdf_path))
                     api_key = self.openai_api_key or get_openai_api_key()
                     vision_model_name = resolve_openai_model("extraction_primary")
-                    vision_cache_enabled = bool(
-                        vision_extraction_cfg.get("vision_cache_enabled", True)
-                    )
+                    vision_cache_enabled = bool(vision_extraction_cfg.get("vision_cache_enabled", True))
                     if api_key:
                         vision_extractor = VisionFullExtractor(
                             api_key=api_key,
                             model=vision_model_name,
                             use_cache=vision_cache_enabled,
                         )
-                    else:
-                        logger.warning(
-                            "Vision extraction: OPENAI_API_KEY absente, desactivation"
+                        page_table_locator = PageTableLocator(
+                            api_key=api_key,
+                            model=vision_model_name,
                         )
+                    else:
+                        logger.warning("Vision extraction: OPENAI_API_KEY absente, desactivation")
                         use_vision_extraction = False
                     vision_schema_error_cls = VisionSchemaContractError
                 except Exception as e:
@@ -1647,26 +1593,16 @@ class DoclingProcessor:
             # Steps 2+3: Docling = structure only. Vision = single content source.
             # ---------------------------------------------------------------------------
             # Construire la liste des tableaux a traiter (dans les plages de pages).
-            vision_items: list[
-                tuple[int, int, list[float] | None, str, str | None]
-            ] = []
+            vision_items: list[tuple[int, int, list[float] | None, str, str | None]] = []
             for idx, table in enumerate(doc.tables):
                 page_num = table.prov[0].page_no if table.prov else 0
                 table_bbox: list[float] | None = None
                 try:
-                    if (
-                        table.prov
-                        and hasattr(table.prov[0], "bbox")
-                        and table.prov[0].bbox is not None
-                    ):
+                    if table.prov and hasattr(table.prov[0], "bbox") and table.prov[0].bbox is not None:
                         raw_bbox = table.prov[0].bbox
-                        page_obj = (
-                            doc.pages.get(page_num) if hasattr(doc, "pages") else None
-                        )
+                        page_obj = doc.pages.get(page_num) if hasattr(doc, "pages") else None
                         if page_obj and hasattr(page_obj, "size") and page_obj.size:
-                            norm = raw_bbox.to_top_left_origin(
-                                page_height=page_obj.size.height
-                            )
+                            norm = raw_bbox.to_top_left_origin(page_height=page_obj.size.height)
                             norm = norm.normalized(page_obj.size)
                             table_bbox = [norm.l, norm.t, norm.r, norm.b]
                         elif hasattr(raw_bbox, "as_tuple"):
@@ -1681,11 +1617,7 @@ class DoclingProcessor:
                     if hasattr(table, "text") and table.text:
                         _ref_raw = str(table.text).strip()
                         if len(_ref_raw) > 20:
-                            ref_max_chars = int(
-                                vision_extraction_cfg.get(
-                                    "vision_reference_text_max_chars", 6000
-                                )
-                            )
+                            ref_max_chars = int(vision_extraction_cfg.get("vision_reference_text_max_chars", 6000))
                             if ref_max_chars > 0:
                                 reference_text = _build_indicator_reference_text(
                                     _ref_raw,
@@ -1693,9 +1625,7 @@ class DoclingProcessor:
                                 )
                 except Exception:
                     pass
-                vision_items.append(
-                    (idx, page_num, table_bbox, table_id, reference_text)
-                )
+                vision_items.append((idx, page_num, table_bbox, table_id, reference_text))
 
             def _bbox_area(b: list[float]) -> float:
                 """Calculer l'aire d'une boite englobante."""
@@ -1783,16 +1713,13 @@ class DoclingProcessor:
                     "top_extension_title": top_extension_title,
                     "horizontal_padding": horizontal_padding,
                     "vision_extractor": vision_extractor,
+                    "page_table_locator": page_table_locator,
                     "schema_failure_flag": schema_failure_flag,
                     "vision_schema_error_cls": vision_schema_error_cls,
                     "schema_failure_policy": schema_failure_policy,
                     "labels_only": labels_only,
-                    "vision_crop_dpi": int(
-                        vision_extraction_cfg.get("vision_crop_dpi", 300)
-                    ),
-                    "vision_preprocess": vision_extraction_cfg.get(
-                        "vision_preprocess", True
-                    ),
+                    "vision_crop_dpi": int(vision_extraction_cfg.get("vision_crop_dpi", 300)),
+                    "vision_preprocess": vision_extraction_cfg.get("vision_preprocess", True),
                     "vision_model_name": vision_model_name,
                     "page_table_map": page_table_map,
                 }
@@ -1805,18 +1732,14 @@ class DoclingProcessor:
                             raise
                         schema_failure_flag[0] = True
                         shared["vision_extraction_disabled_reason"] = reason
-                vision_max_workers = int(
-                    vision_extraction_cfg.get("vision_extraction_max_workers", 4)
-                )
+                vision_max_workers = int(vision_extraction_cfg.get("vision_extraction_max_workers", 4))
                 max_workers = min(
                     max(1, vision_max_workers),
                     len(vision_items),
                 )
                 if max_workers <= 1:
                     for item in vision_items:
-                        _idx, extracted_table, pnum = self._vision_extract_one_table(
-                            item, shared
-                        )
+                        _idx, extracted_table, pnum = self._vision_extract_one_table(item, shared)
                         all_tables.append(extracted_table)
                         tables_by_page[pnum] = tables_by_page.get(pnum, 0) + 1
                 else:
@@ -1849,9 +1772,7 @@ class DoclingProcessor:
                         )
 
             if tables_by_page:
-                counts_str = ", ".join(
-                    f"p{k}:{v}" for k, v in sorted(tables_by_page.items())
-                )
+                counts_str = ", ".join(f"p{k}:{v}" for k, v in sorted(tables_by_page.items()))
                 logger.info("Docling tableaux par page: %s", counts_str)
 
             rejected_bbox_sanity = sum(
@@ -1895,7 +1816,6 @@ class DoclingProcessor:
             # Extraire le contenu textuel pour les sections
             text_content = doc.export_to_markdown()
 
-
             # Enrichir les titres manquants depuis le texte de la page (pdfplumber)
             # sans melanger contenu Docling/Vision : seul le champ titre est complete.
             all_tables = self._enrich_tables_with_titles(all_tables, pdf_path)
@@ -1932,9 +1852,7 @@ class DoclingProcessor:
                 e,
                 exc_info=True,
             )
-            return self._docling_unavailable_document(
-                pdf_path, bank_code, quarter, year, page_ranges, error=str(e)
-            )
+            return self._docling_unavailable_document(pdf_path, bank_code, quarter, year, page_ranges, error=str(e))
 
     @staticmethod
     def _normalize_text_lines(text: str) -> list[str]:
@@ -1959,6 +1877,7 @@ class DoclingProcessor:
             bank_code=self.bank_code_for_patterns,
             first_row_cells=first_row_cells,
         )
+
     def _title_quality_score(self, title: str | None) -> int:
         """Evaluer la qualite d'un titre.
 
@@ -1977,17 +1896,11 @@ class DoclingProcessor:
 
         number, inline = extract_table_number_and_inline_title(value)
         if number and inline:
-            inline_temporal = bool(
-                strip_temporal_expressions(
-                    inline, target="title", aggressive=True
-                ).strip()
-            )
+            inline_temporal = bool(strip_temporal_expressions(inline, target="title", aggressive=True).strip())
             if inline_temporal:
                 score += 1
 
-        temporal_free = strip_temporal_expressions(
-            value, target="title", aggressive=True
-        )
+        temporal_free = strip_temporal_expressions(value, target="title", aggressive=True)
         if temporal_free.strip():
             score += 1
 
@@ -2002,18 +1915,12 @@ class DoclingProcessor:
         if not lines:
             return []
 
-        number_indices = [
-            idx for idx, line in enumerate(lines) if is_table_number_line(line)
-        ]
+        number_indices = [idx for idx, line in enumerate(lines) if is_table_number_line(line)]
         candidates: list[dict[str, str]] = []
 
         if not number_indices:
             candidate = self._resolve_title_metadata_from_lines(lines)
-            if (
-                candidate.get("title")
-                or candidate.get("table_number")
-                or candidate.get("title_raw")
-            ):
+            if candidate.get("title") or candidate.get("table_number") or candidate.get("title_raw"):
                 candidates.append(candidate)
             return candidates
 
@@ -2096,9 +2003,7 @@ class DoclingProcessor:
 
         return titles_by_page
 
-    def _enrich_tables_with_titles(
-        self, tables: list[ExtractedTable], pdf_path: Path
-    ) -> list[ExtractedTable]:
+    def _enrich_tables_with_titles(self, tables: list[ExtractedTable], pdf_path: Path) -> list[ExtractedTable]:
         """Enrichit les tableaux sans titre en cherchant dans le texte PDF.
 
         Args:
@@ -2129,21 +2034,13 @@ class DoclingProcessor:
                 page_tables = tables_by_page[page_num]
 
                 # CIBC: un candidat par tableau (lignes page + first_column de chaque tableau)
-                if (
-                    bank_code == "cibc"
-                    and len(page_tables) >= 1
-                    and len(candidates) <= 1
-                ):
+                if bank_code == "cibc" and len(page_tables) >= 1 and len(candidates) <= 1:
                     lines = self._normalize_text_lines(page_text)
                     per_table_candidates: list[dict[str, str]] = []
                     for table in page_tables:
                         first_row_cells = list(table.first_column_indicators or [])
                         if not first_row_cells and getattr(table, "rows", None):
-                            first_row_cells = [
-                                str(row[0]).strip()
-                                for row in table.rows
-                                if row and len(row) > 0
-                            ]
+                            first_row_cells = [str(row[0]).strip() for row in table.rows if row and len(row) > 0]
                         cand = resolve_title_from_lines(
                             lines,
                             bank_code="cibc",
@@ -2191,15 +2088,11 @@ class DoclingProcessor:
                     candidate_title_raw = (candidate.get("title_raw") or "").strip()
                     candidate_number = (candidate.get("table_number") or "").strip()
                     candidate_unit = (candidate.get("unit_context") or "").strip()
-                    candidate_method = (
-                        candidate.get("resolution_method") or ""
-                    ).strip()
+                    candidate_method = (candidate.get("resolution_method") or "").strip()
 
                     # On remplace si le candidat est clairement meilleur semantiquement.
                     current_title = (table.title or "").strip()
-                    if self._title_quality_score(
-                        candidate_title
-                    ) > self._title_quality_score(current_title):
+                    if self._title_quality_score(candidate_title) > self._title_quality_score(current_title):
                         table.title = candidate_title or current_title or None
                         table.title_clean = candidate_title or table.title_clean
                     if candidate_method and not table.title_resolution_method:
@@ -2224,9 +2117,7 @@ class DoclingProcessor:
 
         return tables
 
-    def _enrich_tables_with_context(
-        self, tables: list[ExtractedTable], pdf_path: Path
-    ) -> list[ExtractedTable]:
+    def _enrich_tables_with_context(self, tables: list[ExtractedTable], pdf_path: Path) -> list[ExtractedTable]:
         """Enrichir les tableaux avec le contexte textuel avant/apres (pour table_type_classifier).
 
         Args:
@@ -2252,9 +2143,7 @@ class DoclingProcessor:
                         continue
                     page = pdf.pages[page_num - 1]
                     text = page.extract_text() or ""
-                    cb, ca = _extract_table_context_split(
-                        text, table.title or table.title_clean
-                    )
+                    cb, ca = _extract_table_context_split(text, table.title or table.title_clean)
                     table.context_before = cb
                     table.context_after = ca
         except (FileNotFoundError, OSError) as e:
@@ -2316,9 +2205,7 @@ class DoclingProcessor:
 
         return sections
 
-    def _associate_tables_with_sections(
-        self, tables: list[ExtractedTable], text_content: str
-    ) -> list[ExtractedTable]:
+    def _associate_tables_with_sections(self, tables: list[ExtractedTable], text_content: str) -> list[ExtractedTable]:
         """Associe chaque tableau à sa section parente basée sur la position dans le document.
 
         Args:
@@ -2344,9 +2231,7 @@ class DoclingProcessor:
                 # On ne peut pas directement mapper ligne -> page sans page_breaks
                 # Donc on utilise une heuristique : sections apparaissent avant leurs tableaux
                 # Pour l'instant, on assigne la dernière section vue
-                if section["line_num"] < (
-                    table.page_number * 50
-                ):  # Estimation ~50 lignes/page
+                if section["line_num"] < (table.page_number * 50):  # Estimation ~50 lignes/page
                     best_section = section
 
             if best_section:
@@ -2461,9 +2346,7 @@ def extract_section_content(
     end_page:
         Dernière page de la section (incluse).
     """
-    doc = extract_pdf_targeted(
-        pdf_path, bank_code, quarter, year, page_ranges=[(start_page, end_page)]
-    )
+    doc = extract_pdf_targeted(pdf_path, bank_code, quarter, year, page_ranges=[(start_page, end_page)])
 
     # Combiner tout le contenu
     text = ""
@@ -2556,9 +2439,7 @@ def extract_tables_docling_by_sections(
     try:
         from .extraction_debug_writer import write_extraction_debug
 
-        write_extraction_debug(
-            bank=bank_code, quarter=quarter, year=year, tables=tables
-        )
+        write_extraction_debug(bank=bank_code, quarter=quarter, year=year, tables=tables)
     except Exception:
         pass
 
@@ -2606,9 +2487,7 @@ def _assign_canonical_table_ids(tables: list[ExtractedTable]) -> None:
 
         if info is not None:
             index_on_page = int(info.get("table_index_on_page", 0) or 0)
-            tables_on_page = int(
-                info.get("tables_on_page", page_counts.get(page, 1)) or 1
-            )
+            tables_on_page = int(info.get("tables_on_page", page_counts.get(page, 1)) or 1)
             bbox_top = info.get("bbox_top")
             page_local_role = str(
                 info.get(
@@ -2625,9 +2504,7 @@ def _assign_canonical_table_ids(tables: list[ExtractedTable]) -> None:
 
         table_id = f"tbl_p{page:03d}_i{index_on_page:02d}"
         if table_id in used_ids:
-            raise ValueError(
-                f"Duplicate canonical table_id generated: {table_id!r} on page {page}"
-            )
+            raise ValueError(f"Duplicate canonical table_id generated: {table_id!r} on page {page}")
 
         table.table_index_on_page = index_on_page
         table.tables_on_page = tables_on_page
