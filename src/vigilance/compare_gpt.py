@@ -62,6 +62,7 @@ logger = logging.getLogger(__name__)
 MATCH_PROMPT_VERSION = "table_match_v8"
 DIFF_PROMPT_VERSION = "table_diff_v4"
 COMPARISON_SCHEMA_VERSION = 3
+OPENAI_COMPARISON_TIMEOUT_SECONDS = 120.0
 
 
 REFERENCE_RESOLUTION_RULE = "t2->t1 meme annee; t3->t2 meme annee; t1->t3 annee precedente; t4->t4 annee precedente"
@@ -159,7 +160,13 @@ def _call_openai_json(
 
     from openai import OpenAI
 
-    client = OpenAI(api_key=api_key)
+    client = OpenAI(
+        api_key=api_key,
+        timeout=OPENAI_COMPARISON_TIMEOUT_SECONDS,
+        # Les retries sont geres par la boucle applicative ci-dessous afin
+        # d'eviter de multiplier les tentatives avec celles du SDK.
+        max_retries=0,
+    )
     last_error: Exception | None = None
     use_structured = response_model is not None
     for attempt in range(api_retry_max + 1):
@@ -238,7 +245,10 @@ def _call_openai_embeddings(
 
     from openai import OpenAI
 
-    client = OpenAI(api_key=api_key)
+    client = OpenAI(
+        api_key=api_key,
+        timeout=OPENAI_COMPARISON_TIMEOUT_SECONDS,
+    )
     vectors: list[list[float]] = []
     for start in range(0, len(inputs), 96):
         response = client.embeddings.create(model=model, input=inputs[start : start + 96])

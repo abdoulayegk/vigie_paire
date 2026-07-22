@@ -2,12 +2,16 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
 from vigilance.compare_gpt import (
     DIFF_PROMPT_VERSION,
     MATCH_PROMPT_VERSION,
+    OPENAI_COMPARISON_TIMEOUT_SECONDS,
+    _call_openai_embeddings,
+    _call_openai_json,
     compare_reports_gpt4o,
     normalize_quarter,
     resolve_reference_period,
@@ -72,6 +76,44 @@ def test_normalize_quarter_and_reference_period() -> None:
     assert normalize_quarter("Q2") == "t2"
     assert resolve_reference_period(2026, "t2") == (2026, "t1")
     assert resolve_reference_period(2026, "t1") == (2025, "t3")
+
+
+def test_comparison_openai_clients_use_direct_120_second_timeout(monkeypatch) -> None:
+    client_kwargs: list[dict] = []
+
+    class FakeOpenAI:
+        def __init__(self, **kwargs) -> None:
+            client_kwargs.append(kwargs)
+            self.chat = SimpleNamespace(
+                completions=SimpleNamespace(
+                    create=lambda **_kwargs: SimpleNamespace(
+                        choices=[
+                            SimpleNamespace(
+                                message=SimpleNamespace(content="{}"),
+                            )
+                        ]
+                    )
+                )
+            )
+            self.embeddings = SimpleNamespace(
+                create=lambda **_kwargs: SimpleNamespace(
+                    data=[SimpleNamespace(index=0, embedding=[0.25, 0.75])]
+                )
+            )
+
+    monkeypatch.setattr("vigilance.compare_gpt.get_openai_api_key", lambda: "test-key")
+    monkeypatch.setattr("openai.OpenAI", FakeOpenAI)
+
+    assert _call_openai_json(model="gpt-test", messages=[]) == {}
+    assert _call_openai_embeddings(model="embedding-test", inputs=["table"]) == [
+        [0.25, 0.75]
+    ]
+    assert [kwargs["timeout"] for kwargs in client_kwargs] == [
+        OPENAI_COMPARISON_TIMEOUT_SECONDS,
+        OPENAI_COMPARISON_TIMEOUT_SECONDS,
+    ]
+    assert client_kwargs[0]["max_retries"] == 0
+    assert "max_retries" not in client_kwargs[1]
 
 
 def test_compare_reports_gpt4o_uses_canonical_prompt_cards_and_gpt_diff(
