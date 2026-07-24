@@ -75,6 +75,7 @@ def test_write_compact_report_artifacts_outputs_consistent_json(tmp_path: Path) 
                 "bbox_source": "page_context_locator",
                 "bbox_confidence": 0.96,
                 "bbox_verified": True,
+                "bbox_verification_reason": "single_region_confirmed",
             },
         ),
     ]
@@ -115,6 +116,7 @@ def test_write_compact_report_artifacts_outputs_consistent_json(tmp_path: Path) 
         "bbox_source": "page_context_locator",
         "bbox_confidence": 0.96,
         "bbox_verified": True,
+        "bbox_verification_reason": "single_region_confirmed",
     }
 
     empty_table = tables_payload["tables"][1]

@@ -271,3 +271,62 @@ def test_page_context_bbox_replaces_docling_bbox_and_preserves_suspect_status(
     assert table.debug_metrics["bbox_source"] == "page_context_inventory"
     assert table.debug_metrics["bbox_confidence"] == 0.97
     assert table.debug_metrics["bbox_verified"] is True
+
+
+def test_unresolved_near_full_page_bbox_is_preserved_as_suspect(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    original_bbox = [0.01, 0.01, 0.99, 0.99]
+
+    monkeypatch.setattr(
+        "vigilance.utils.pdf_crop.is_bbox_sane",
+        lambda *_args, **_kwargs: (
+            False,
+            "bbox_near_full_page",
+            {"width": 0.98, "height": 0.98},
+        ),
+    )
+
+    processor = DoclingProcessor()
+    _, table, _ = processor._vision_extract_one_table(
+        (7, 32, original_bbox, "tableau_7", None),
+        {
+            "pdf_path": tmp_path / "report.pdf",
+            "bank_code": "rbc",
+            "quarter": "t2",
+            "year": 2026,
+            "pdf_sha": "pdf-sha",
+            "vision_extraction_cfg": {},
+            "bottom_extension_footnotes": 0.0,
+            "top_extension_title": 0.0,
+            "horizontal_padding": 0.0,
+            "vision_extractor": object(),
+            "page_table_locator": None,
+            "schema_failure_flag": [False],
+            "vision_schema_error_cls": RuntimeError,
+            "schema_failure_policy": "fail_fast",
+            "labels_only": False,
+            "page_table_map": {},
+            "page_context_seed": {
+                7: {
+                    "bbox_original": original_bbox,
+                    "bbox_source": "near_full_page_unresolved",
+                    "table_count": 2,
+                    "bbox_verification_reason": (
+                        "near_full_page_multiple_regions"
+                    ),
+                }
+            },
+        },
+    )
+
+    assert table.bbox == original_bbox
+    assert table.extraction_status == "suspect_unresolved"
+    assert table.debug_metrics["bbox_source"] == "near_full_page_unresolved"
+    assert table.debug_metrics["bbox_verified"] is False
+    assert table.debug_metrics["page_context_table_count"] == 2
+    assert (
+        table.debug_metrics["bbox_verification_reason"]
+        == "near_full_page_multiple_regions"
+    )

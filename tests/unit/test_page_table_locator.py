@@ -8,6 +8,7 @@ from vigilance.extraction.page_table_locator import (
     OPENAI_PAGE_LOCATOR_TIMEOUT_SECONDS,
     PageTableLocator,
     _parse_page_layout,
+    build_near_full_page_crop_plan,
     build_page_table_crop_plan,
     should_use_page_context_rescue,
 )
@@ -60,6 +61,26 @@ def test_crop_plan_rejects_low_confidence_locator_region() -> None:
 
     assert layout is not None
     assert build_page_table_crop_plan(layout, [0.09, 0.19, 0.91, 0.42]) is None
+
+
+def test_near_full_page_plan_accepts_one_reliable_region() -> None:
+    payload = _layout_payload()
+    payload["tables"] = payload["tables"][:1]
+    payload["table_count"] = 1
+    layout = _parse_page_layout(payload, page_number=30)
+
+    assert layout is not None
+    plan = build_near_full_page_crop_plan(layout)
+
+    assert plan is not None
+    assert plan.bbox_norm == (0.08, 0.18, 0.92, 0.43)
+
+
+def test_near_full_page_plan_refuses_multiple_reliable_regions() -> None:
+    layout = _parse_page_layout(_layout_payload(), page_number=30)
+
+    assert layout is not None
+    assert build_near_full_page_crop_plan(layout) is None
 
 
 def test_invalid_title_and_footnote_associations_are_not_used() -> None:

@@ -218,6 +218,7 @@ def _compact_table_entry(table: Any) -> dict[str, Any]:
             "locator_merge_collapsed",
             "locator_merged_table_ids",
             "locator_original_bboxes",
+            "bbox_verification_reason",
         )
         bbox_provenance = {
             key: debug_metrics[key]

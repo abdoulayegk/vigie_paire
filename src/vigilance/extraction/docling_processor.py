@@ -1209,6 +1209,16 @@ class DoclingProcessor:
                         vision_extraction_attempted = True
                         vision_status_str = "failed"
                         warnings_list = [f"bbox sanity gate: {crop_reject_reason or 'rejected'}; Vision skipped"]
+                        if crop_reject_reason == "bbox_near_full_page":
+                            extraction_status = "suspect_unresolved"
+                            warnings_list.append(
+                                str(
+                                    page_context_observation.get(
+                                        "bbox_verification_reason"
+                                    )
+                                    or "near_full_page_verification_unresolved"
+                                )
+                            )
                     else:
                         # Dynamic crop extensions based on page layout context
                         from ..utils.page_layout_context import compute_dynamic_extensions
@@ -1552,13 +1562,23 @@ class DoclingProcessor:
                 }
             )
         else:
+            unresolved_source = str(
+                page_context_observation.get("bbox_source") or "docling"
+            )
             debug_metrics.update(
                 {
                     "bbox_original": original_table_bbox,
                     "bbox_final": final_table_bbox,
-                    "bbox_source": "docling",
+                    "bbox_source": unresolved_source,
                     "bbox_verified": False,
+                    "page_context_table_count": page_context_observation.get(
+                        "table_count"
+                    ),
                 }
+            )
+        if page_context_observation.get("bbox_verification_reason"):
+            debug_metrics["bbox_verification_reason"] = str(
+                page_context_observation["bbox_verification_reason"]
             )
         # Recrop and completeness (from vision result when available)
         if vision_result is not None:
@@ -1788,6 +1808,137 @@ class DoclingProcessor:
                     pass
                 vision_items.append((idx, page_num, table_bbox, table_id, reference_text))
 
+            # Une bbox presque pleine page ne constitue pas une ancre fiable.
+            # Faire verifier la page complete avant le garde-fou du worker :
+            # une seule region Vision fiable est corrigee, sinon le candidat
+            # est conserve et marque comme suspect.
+            if page_table_locator is not None:
+                from ..utils.pdf_crop import is_bbox_sane
+                from .page_table_locator import (
+                    build_near_full_page_crop_plan,
+                )
+                from .pdf_preview import render_pdf_page
+
+                near_full_positions_by_page: dict[int, list[int]] = {}
+                for position, item in enumerate(vision_items):
+                    _item_idx, item_page, item_bbox, _item_id, _item_reference = item
+                    if not item_bbox:
+                        continue
+                    sane, reject_reason, _profile = is_bbox_sane(
+                        item_bbox,
+                        vision_extraction_cfg,
+                    )
+                    if not sane and reject_reason == "bbox_near_full_page":
+                        near_full_positions_by_page.setdefault(
+                            item_page,
+                            [],
+                        ).append(position)
+
+                for near_full_page, positions in near_full_positions_by_page.items():
+                    layout = None
+                    try:
+                        page_image = render_pdf_page(
+                            str(pdf_path),
+                            near_full_page,
+                            scale=1.5,
+                            format="png",
+                        )
+                        if page_image:
+                            layout = page_table_locator.locate_page(
+                                page_image,
+                                near_full_page,
+                                pdf_sha=pdf_sha,
+                            )
+                    except Exception as exc:
+                        logger.warning(
+                            "Near-full-page bbox verification failed page=%s "
+                            "(non-fatal): %s",
+                            near_full_page,
+                            exc,
+                        )
+
+                    reliable_region_count = (
+                        sum(
+                            region.confidence
+                            >= page_table_locator.min_confidence
+                            for region in layout.tables
+                        )
+                        if layout is not None
+                        else 0
+                    )
+                    plan = (
+                        build_near_full_page_crop_plan(
+                            layout,
+                            min_confidence=page_table_locator.min_confidence,
+                        )
+                        if layout is not None and len(positions) == 1
+                        else None
+                    )
+                    plan_reject_reason = None
+                    if plan is not None:
+                        plan_sane, plan_reject_reason, _plan_profile = (
+                            is_bbox_sane(
+                                list(plan.bbox_norm),
+                                vision_extraction_cfg,
+                            )
+                        )
+                        if not plan_sane:
+                            plan = None
+
+                    for position in positions:
+                        item_idx, item_page, item_bbox, item_id, item_reference = (
+                            vision_items[position]
+                        )
+                        if plan is not None:
+                            corrected_bbox = list(plan.bbox_norm)
+                            page_context_seed[item_idx] = {
+                                "bbox_original": list(item_bbox or []),
+                                "bbox_norm": corrected_bbox,
+                                "bbox_source": "page_context_near_full_page",
+                                "confidence": plan.confidence,
+                                "title_text": plan.title_text,
+                                "continuation": plan.continuation,
+                                "table_count": plan.table_count,
+                                "bbox_verification_reason": (
+                                    "near_full_page_single_region_confirmed"
+                                ),
+                            }
+                            vision_items[position] = (
+                                item_idx,
+                                item_page,
+                                corrected_bbox,
+                                item_id,
+                                item_reference,
+                            )
+                            continue
+
+                        if len(positions) > 1:
+                            verification_reason = (
+                                "near_full_page_multiple_docling_candidates"
+                            )
+                        elif layout is None:
+                            verification_reason = (
+                                "near_full_page_locator_unavailable"
+                            )
+                        elif reliable_region_count == 0:
+                            verification_reason = (
+                                "near_full_page_no_reliable_region"
+                            )
+                        elif plan_reject_reason:
+                            verification_reason = (
+                                "near_full_page_locator_bbox_unsafe"
+                            )
+                        else:
+                            verification_reason = "near_full_page_multiple_regions"
+                        page_context_seed[item_idx] = {
+                            "bbox_original": list(item_bbox or []),
+                            "bbox_source": "near_full_page_unresolved",
+                            "table_count": (
+                                len(layout.tables) if layout is not None else 0
+                            ),
+                            "bbox_verification_reason": verification_reason,
+                        }
+
             # Inventaire pleine page optionnel : il corrige les boites Docling
             # existantes et cree les candidats que Docling n'a pas vus du tout.
             if (
@@ -1900,6 +2051,16 @@ class DoclingProcessor:
                     for position in page_item_positions:
                         _item_idx, _item_page, item_bbox, _item_id, _item_reference = vision_items[position]
                         if not item_bbox:
+                            continue
+                        if str(
+                            page_context_seed.get(_item_idx, {}).get(
+                                "bbox_source"
+                            )
+                            or ""
+                        ) in {
+                            "page_context_near_full_page",
+                            "near_full_page_unresolved",
+                        }:
                             continue
                         plan = build_page_table_crop_plan(
                             layout,
