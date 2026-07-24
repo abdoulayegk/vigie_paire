@@ -163,6 +163,9 @@ def test_quality_pass_uses_page_context_after_incomplete_targeted_rescue(
             "bbox_norm": [0.08, 0.18, 0.92, 0.43],
             "bottom_extension": 0.05,
             "confidence": 0.96,
+            "title_text": "Ratios de liquidite",
+            "continuation": False,
+            "table_count": 2,
         }
 
     def fake_extract(**kwargs):
@@ -196,6 +199,54 @@ def test_quality_pass_uses_page_context_after_incomplete_targeted_rescue(
     assert result is not None
     assert result.selected_candidate_name == "page_context_rescue"
     assert result.extraction_status == "rescued"
+    assert result.selected_bbox_norm == [0.08, 0.18, 0.92, 0.43]
+    assert result.bbox_source == "page_context_locator"
+    assert result.bbox_confidence == pytest.approx(0.96)
+    assert result.page_context_title == "Ratios de liquidite"
+    assert result.page_context_continuation is False
+    assert result.page_context_table_count == 2
+    assert page_context_calls == [True]
+
+
+def test_quality_pass_uses_page_context_when_targeted_pass_returns_none(
+    monkeypatch,
+) -> None:
+    extractor = VisionFullExtractor(api_key="test-key", model="gpt-4o-test")
+    page_context_calls: list[bool] = []
+
+    def fake_extract(**kwargs):
+        if kwargs["crop_bytes"] == b"page_context":
+            return _result(
+                title="Prêts douteux bruts",
+                summary="Prêts douteux par portefeuille",
+                indicators=["Prêts aux particuliers", "Prêts aux entreprises", "Total"],
+                headers=["Portefeuille", "T2 2026"],
+            )
+        return None
+
+    monkeypatch.setattr(extractor, "extract", fake_extract)
+
+    result = extractor.extract_with_quality_pass(
+        crop_bytes=b"initial",
+        bank_code="rbc",
+        bbox_norm=[0.1, 0.2, 0.9, 0.42],
+        get_variant_crop_fn=lambda **_kwargs: b"targeted",
+        get_page_context_crop_fn=lambda: (
+            page_context_calls.append(True)
+            or {
+                "crop_bytes": b"page_context",
+                "bbox_norm": [0.08, 0.18, 0.92, 0.43],
+                "confidence": 0.97,
+                "title_text": "Prêts douteux bruts",
+                "continuation": False,
+                "table_count": 1,
+            }
+        ),
+    )
+
+    assert result is not None
+    assert result.selected_candidate_name == "page_context_rescue"
+    assert result.selected_bbox_norm == [0.08, 0.18, 0.92, 0.43]
     assert page_context_calls == [True]
 
 

@@ -66,6 +66,18 @@ def test_run_tables_exports_first_column_indicators_region_table(tmp_path: Path,
                     "Total",
                 ],
                 extraction_method="vision_full_gpt4o",
+                extraction_status="rescued",
+                bbox=[0.08, 0.18, 0.92, 0.43],
+                title_clean="Marges de crédit sur valeur domiciliaire",
+                table_summary="Encours des marges par région",
+                title_raw="TABLEAU 24 - Marges de crédit sur valeur domiciliaire",
+                debug_metrics={
+                    "bbox_original": [0.10, 0.20, 0.90, 0.40],
+                    "bbox_final": [0.08, 0.18, 0.92, 0.43],
+                    "bbox_source": "page_context_locator",
+                    "bbox_confidence": 0.96,
+                    "bbox_verified": True,
+                },
                 footnotes=[],
                 content_source="vision_gpt4o",
             )
@@ -107,3 +119,6 @@ def test_run_tables_exports_first_column_indicators_region_table(tmp_path: Path,
         "États-Unis",
         "Total",
     ]
+    assert table["extraction_status"] == "rescued"
+    assert table["bbox"] == [0.08, 0.18, 0.92, 0.43]
+    assert table["debug_metrics"]["bbox_source"] == "page_context_locator"

@@ -777,6 +777,12 @@ class VisionFullResult:
     candidate_quality_rank: list[int] = field(default_factory=list)
     qa_inspected: bool = False
     confidence_score: float = 0.0
+    selected_bbox_norm: list[float] | None = None
+    bbox_source: str = "docling"
+    bbox_confidence: float | None = None
+    page_context_title: str = ""
+    page_context_continuation: bool | None = None
+    page_context_table_count: int | None = None
 
     def to_footnotes_list(self) -> list[dict[str, str]]:
         """Retourne une copie de la liste des notes de bas de page."""
@@ -1885,6 +1891,12 @@ def _cache_payload_from_result(result: VisionFullResult) -> dict[str, Any]:
         "indicator_count": result.indicator_count,
         "candidate_quality_rank": result.candidate_quality_rank,
         "confidence_score": result.confidence_score,
+        "selected_bbox_norm": result.selected_bbox_norm,
+        "bbox_source": result.bbox_source,
+        "bbox_confidence": result.bbox_confidence,
+        "page_context_title": result.page_context_title,
+        "page_context_continuation": result.page_context_continuation,
+        "page_context_table_count": result.page_context_table_count,
     }
 
 
@@ -2143,6 +2155,29 @@ class VisionFullExtractor:
                                 if isinstance(value, (int, float))
                             ],
                             confidence_score=float(cached.get("confidence_score", 0.0)),
+                            selected_bbox_norm=(
+                                [float(value) for value in cached.get("selected_bbox_norm", [])]
+                                if isinstance(cached.get("selected_bbox_norm"), list)
+                                and len(cached.get("selected_bbox_norm", [])) == 4
+                                else None
+                            ),
+                            bbox_source=str(cached.get("bbox_source") or "docling"),
+                            bbox_confidence=(
+                                float(cached.get("bbox_confidence"))
+                                if cached.get("bbox_confidence") is not None
+                                else None
+                            ),
+                            page_context_title=str(cached.get("page_context_title") or ""),
+                            page_context_continuation=(
+                                bool(cached.get("page_context_continuation"))
+                                if cached.get("page_context_continuation") is not None
+                                else None
+                            ),
+                            page_context_table_count=(
+                                int(cached.get("page_context_table_count"))
+                                if cached.get("page_context_table_count") is not None
+                                else None
+                            ),
                         )
 
         try:
@@ -2977,6 +3012,16 @@ class VisionFullExtractor:
         candidates: list[tuple[str, VisionFullResult | None]] = [("initial", first)]
         candidate_crops: dict[str, bytes] = {"initial": crop_bytes}
         candidate_bottom_extensions: dict[str, float] = {"initial": initial_bottom_extension}
+        candidate_geometry: dict[str, dict[str, Any]] = {
+            "initial": {
+                "bbox_norm": list(bbox_norm) if bbox_norm else None,
+                "bbox_source": "docling",
+                "bbox_confidence": None,
+                "page_context_title": "",
+                "page_context_continuation": None,
+                "page_context_table_count": None,
+            }
+        }
         no_table_evidence = 0
         if first is not None and first.no_table_detected and _is_trivial_result(first, bbox_norm=bbox_norm):
             no_table_evidence += 1
@@ -3015,6 +3060,14 @@ class VisionFullExtractor:
                 return None
             candidate_crops[name] = crop_bytes_for_pass
             candidate_bottom_extensions[name] = bottom_extension_used
+            candidate_geometry[name] = {
+                "bbox_norm": list(candidate_bbox or bbox_norm or []),
+                "bbox_source": "docling_variant" if name != "initial" else "docling",
+                "bbox_confidence": None,
+                "page_context_title": "",
+                "page_context_continuation": None,
+                "page_context_table_count": None,
+            }
             result = _run_pass(
                 crop_bytes_for_pass=crop_bytes_for_pass,
                 bottom_extension_used=bottom_extension_used,
@@ -3186,6 +3239,25 @@ class VisionFullExtractor:
                     candidate_bbox=page_bbox,
                     custom_rescue_instr=locator_instruction,
                 )
+                if "page_context_rescue" in candidate_geometry:
+                    candidate_geometry["page_context_rescue"] = {
+                        "bbox_norm": list(page_bbox or []),
+                        "bbox_source": "page_context_locator",
+                        "bbox_confidence": locator_confidence,
+                        "page_context_title": str(
+                            page_context.get("title_text") or ""
+                        ).strip(),
+                        "page_context_continuation": (
+                            bool(page_context.get("continuation"))
+                            if page_context.get("continuation") is not None
+                            else None
+                        ),
+                        "page_context_table_count": (
+                            int(page_context.get("table_count"))
+                            if page_context.get("table_count") is not None
+                            else None
+                        ),
+                    }
 
         if (primary_rescue is None or not _is_viable_result(primary_rescue)) and not _is_viable_result(
             page_context_rescue
@@ -3218,6 +3290,7 @@ class VisionFullExtractor:
                 best_name,
                 initial_bottom_extension,
             )
+            best_geometry = dict(candidate_geometry.get(best_name, {}))
             selected_used_variant_crop = best_name not in {
                 "initial",
                 "same_crop_rescue",
@@ -3282,6 +3355,22 @@ class VisionFullExtractor:
                 recrop_used=selected_used_variant_crop,
                 recrop_failed_incomplete=False,
                 extraction_status=final_status,
+                selected_bbox_norm=(
+                    list(best_geometry.get("bbox_norm") or [])
+                    if len(list(best_geometry.get("bbox_norm") or [])) == 4
+                    else None
+                ),
+                bbox_source=str(best_geometry.get("bbox_source") or "docling"),
+                bbox_confidence=best_geometry.get("bbox_confidence"),
+                page_context_title=str(
+                    best_geometry.get("page_context_title") or ""
+                ),
+                page_context_continuation=best_geometry.get(
+                    "page_context_continuation"
+                ),
+                page_context_table_count=best_geometry.get(
+                    "page_context_table_count"
+                ),
             )
             finalized = _finalize_selected_candidate(
                 selected,

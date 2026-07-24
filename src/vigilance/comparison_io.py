@@ -314,6 +314,12 @@ def _table_detail(entry: dict[str, Any]) -> dict[str, Any]:
 def _table_snapshot(entry: dict[str, Any]) -> dict[str, Any]:
     """Construit un instantane complet d'un tableau incluant le statut et la bbox."""
     indicators = [str(value).strip() for value in list(entry.get("indicators", []) or []) if str(value).strip()]
+    if isinstance(entry.get("bbox_provenance"), dict):
+        bbox_provenance = entry["bbox_provenance"]
+    elif isinstance(entry.get("debug_metrics"), dict):
+        bbox_provenance = entry["debug_metrics"]
+    else:
+        bbox_provenance = {}
     return {
         "table_id": str(entry.get("table_id", "") or ""),
         "title": str(entry.get("title", "") or ""),
@@ -322,6 +328,14 @@ def _table_snapshot(entry: dict[str, Any]) -> dict[str, Any]:
         "page": entry.get("page"),
         "section": str(entry.get("section", "") or "unknown_section"),
         "bbox": entry.get("bbox"),
+        "bbox_source": str(bbox_provenance.get("bbox_source") or ""),
+        "bbox_confidence": bbox_provenance.get("bbox_confidence"),
+        "page_context_title": str(
+            bbox_provenance.get("page_context_title") or ""
+        ),
+        "page_context_continuation": bbox_provenance.get(
+            "page_context_continuation"
+        ),
         "row_count": int(entry.get("row_count", len(indicators)) or 0),
         "headers": [str(value).strip() for value in list(entry.get("headers", []) or []) if str(value).strip()],
         "indicators": indicators,

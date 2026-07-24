@@ -331,13 +331,21 @@ def _to_artifacts(
                 extraction_method=extraction_method,
                 quarter=quarter,
                 pdf_path=pdf_path,
+                title_clean=getattr(table, "title_clean", None),
+                table_summary=getattr(table, "table_summary", None),
+                title_raw=getattr(table, "title_raw", None),
+                row_count=len(vision_raw_indicators) or len(rows),
                 title_reliability=classify_rbc_title_reliability(
                     getattr(table, "title_clean", None)
                     or getattr(table, "title", None),
                     bank_code=bank,
                 ),
                 footnotes=canonical_footnotes,
+                debug_metrics=dict(getattr(table, "debug_metrics", {}) or {}),
                 content_source=content_source,
+                extraction_status=str(
+                    getattr(table, "extraction_status", "ok") or "ok"
+                ),
             )
         )
     return artifacts

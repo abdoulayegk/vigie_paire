@@ -12,6 +12,7 @@ from vigilance.compare_gpt import (
     OPENAI_COMPARISON_TIMEOUT_SECONDS,
     _call_openai_embeddings,
     _call_openai_json,
+    _resolve_visual_table_anchor,
     compare_reports_gpt4o,
     normalize_quarter,
     resolve_reference_period,
@@ -76,6 +77,73 @@ def test_normalize_quarter_and_reference_period() -> None:
     assert normalize_quarter("Q2") == "t2"
     assert resolve_reference_period(2026, "t2") == (2026, "t1")
     assert resolve_reference_period(2026, "t1") == (2025, "t3")
+
+
+def test_visual_anchor_uses_summary_and_indicators_when_title_changed() -> None:
+    event = _table(
+        table_id="removed_t1",
+        page=28,
+        section="risk_management",
+        title="Prêts douteux bruts",
+        table_summary="Prêts douteux par portefeuille",
+        headers=["Portefeuille", "T1 2026"],
+        indicators=["Prêts aux particuliers", "Prêts aux entreprises", "Total"],
+        bbox=[0.08, 0.18, 0.92, 0.52],
+    )
+    opposite = {
+        "correct": _table(
+            table_id="current_zero_rows",
+            page=32,
+            section="risk_management",
+            title="Créances dépréciées",
+            table_summary="Prêts douteux par portefeuille",
+            headers=["Portefeuille", "T2 2026"],
+            indicators=["Prêts aux particuliers", "Prêts aux entreprises", "Total"],
+            bbox=[0.08, 0.20, 0.92, 0.55],
+            extraction_status="suspect_unresolved",
+        ),
+        "wrong": _table(
+            table_id="allowance",
+            page=33,
+            section="risk_management",
+            title="Correction de valeur pour pertes de crédit",
+            table_summary="Corrections de valeur",
+            headers=["Catégorie", "T2 2026"],
+            indicators=["Solde d'ouverture", "Dotations", "Solde de clôture"],
+            bbox=[0.08, 0.12, 0.92, 0.60],
+        ),
+    }
+
+    resolved = _resolve_visual_table_anchor(event, opposite)
+
+    assert resolved is opposite["correct"]
+
+
+def test_visual_anchor_refuses_an_ambiguous_weak_candidate() -> None:
+    event = _table(
+        table_id="removed",
+        page=10,
+        section="risk_management",
+        title="",
+        table_summary="",
+        headers=[],
+        indicators=[],
+        bbox=[0.1, 0.2, 0.9, 0.6],
+    )
+    opposite = {
+        "first": _table(
+            table_id="first",
+            page=11,
+            section="risk_management",
+            title="Tableau A",
+            table_summary="",
+            headers=[],
+            indicators=[],
+            bbox=[0.1, 0.2, 0.9, 0.6],
+        )
+    }
+
+    assert _resolve_visual_table_anchor(event, opposite) is None
 
 
 def test_comparison_openai_clients_use_direct_120_second_timeout(monkeypatch) -> None:

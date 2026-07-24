@@ -21,6 +21,7 @@ def _table(
     rows: list[list[str]] | None = None,
     table_index_on_page: int | None = None,
     extraction_status: str = "ok",
+    debug_metrics: dict | None = None,
 ) -> SimpleNamespace:
     return SimpleNamespace(
         table_id=table_id,
@@ -37,6 +38,7 @@ def _table(
         footnotes=footnotes,
         table_index_on_page=table_index_on_page,
         extraction_status=extraction_status,
+        debug_metrics=debug_metrics or {},
     )
 
 
@@ -67,6 +69,13 @@ def test_write_compact_report_artifacts_outputs_consistent_json(tmp_path: Path) 
             headers=["Indicator", "Amount"],
             rows=[["Pertes de credit", "10"]],
             table_index_on_page=2,
+            debug_metrics={
+                "bbox_original": [0.12, 0.22, 0.78, 0.65],
+                "bbox_final": [0.1, 0.2, 0.8, 0.7],
+                "bbox_source": "page_context_locator",
+                "bbox_confidence": 0.96,
+                "bbox_verified": True,
+            },
         ),
     ]
 
@@ -100,6 +109,13 @@ def test_write_compact_report_artifacts_outputs_consistent_json(tmp_path: Path) 
     assert risk_table["row_count"] == 2
     assert risk_table["indicators"] == ["Pertes de credit", "Total"]
     assert risk_table["footnotes"] == [{"id": "1", "text": "Note de risque"}]
+    assert risk_table["bbox_provenance"] == {
+        "bbox_original": [0.12, 0.22, 0.78, 0.65],
+        "bbox_final": [0.1, 0.2, 0.8, 0.7],
+        "bbox_source": "page_context_locator",
+        "bbox_confidence": 0.96,
+        "bbox_verified": True,
+    }
 
     empty_table = tables_payload["tables"][1]
     assert empty_table["section"] == "unknown_section"

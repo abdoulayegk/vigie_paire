@@ -51,6 +51,7 @@ def test_crop_plan_includes_associated_title_and_footnotes_without_neighbor() ->
     assert plan.top_extension == pytest.approx(0.045)
     assert plan.bottom_extension == pytest.approx(0.055)
     assert plan.bbox_norm[3] + plan.bottom_extension < 0.55
+    assert plan.continuation is False
     assert plan.table_count == 2
 
 
@@ -113,10 +114,10 @@ def test_page_locator_client_has_direct_120_second_timeout(monkeypatch) -> None:
     assert OPENAI_PAGE_LOCATOR_TIMEOUT_SECONDS == 120.0
 
 
-def test_page_context_trigger_requires_a_geometric_result() -> None:
+def test_page_context_trigger_accepts_missing_targeted_result() -> None:
     assert should_use_page_context_rescue(
         True,
         ["low_density_vertical"],
     )
-    assert not should_use_page_context_rescue(False, ["missing_result"])
+    assert should_use_page_context_rescue(False, ["missing_result"])
     assert not should_use_page_context_rescue(True, ["missing_table_summary"])

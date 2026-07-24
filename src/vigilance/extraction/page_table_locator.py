@@ -30,6 +30,7 @@ _GEOMETRY_RESCUE_REASONS = {
     "generic_page_title",
     "generic_title_without_support",
     "low_density_vertical",
+    "missing_result",
     "missing_expected_footnotes",
     "narrative_indicator_contamination",
     "no_viable_indicators",
@@ -168,6 +169,7 @@ class PageTableCropPlan:
     bottom_extension: float
     confidence: float
     title_text: str
+    continuation: bool
     table_count: int
 
 
@@ -409,6 +411,7 @@ def build_page_table_crop_plan(
         bottom_extension=max(0.0, safe_bottom - table_bbox[3]),
         confidence=best.confidence,
         title_text=best.title_text,
+        continuation=best.continuation,
         table_count=len(layout.tables),
     )
 
@@ -417,13 +420,13 @@ def should_use_page_context_rescue(
     rescue_result_available: bool,
     rejection_reasons: list[str],
 ) -> bool:
-    """Declencher la page complete seulement apres un resultat cible incomplet.
+    """Declencher la page complete lorsqu'un recadrage peut expliquer l'echec.
 
-    Un echec de transport sans resultat ou un probleme purement semantique
-    (resume absent) ne justifie pas une analyse supplementaire de la page.
+    L'absence totale de resultat est precisement un cas ou la page complete
+    doit pouvoir verifier la geometrie. Le parametre ``rescue_result_available``
+    est conserve pour compatibilite avec les appelants existants.
     """
-    if not rescue_result_available:
-        return False
+    _ = rescue_result_available
     reasons = {str(reason or "").strip() for reason in rejection_reasons}
     return bool(reasons & _GEOMETRY_RESCUE_REASONS)
 

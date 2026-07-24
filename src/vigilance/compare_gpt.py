@@ -7,6 +7,7 @@ import logging
 import shutil
 import time
 from datetime import datetime
+from difflib import SequenceMatcher
 from pathlib import Path
 from typing import Any
 
@@ -52,6 +53,7 @@ from vigilance.config import get_matching_thresholds, resolve_openai_model
 from vigilance.extraction.section_taxonomy import canonicalize_section
 from vigilance.utils.genai import get_openai_api_key
 from vigilance.utils.matching_normalizer import (
+    is_generic_title,
     normalize_for_matching,
     strip_temporal_expressions,
 )
@@ -131,6 +133,198 @@ def _normalize_table_anchor_title(value: Any) -> str:
     """Normaliser le titre d'une table pour l'ancrage visuel."""
     raw = strip_temporal_expressions(str(value or ""), target="title", aggressive=True)
     return normalize_for_matching(raw, target="title")
+
+
+def _snapshot_has_visual_render_anchor(snapshot: dict[str, Any]) -> bool:
+    """Verifier qu'un snapshot peut etre rendu sur sa page PDF."""
+    try:
+        page = int(snapshot.get("page") or 0)
+    except (TypeError, ValueError):
+        return False
+    return page > 0 and normalize_proof_bbox(snapshot.get("bbox")) is not None
+
+
+def _normalized_anchor_values(
+    snapshot: dict[str, Any],
+    field: str,
+    *,
+    target: str,
+) -> list[str]:
+    """Normaliser une valeur scalaire ou une liste pour le score d'ancrage."""
+    raw_value = snapshot.get(field)
+    raw_values = raw_value if isinstance(raw_value, list) else [raw_value]
+    normalized: list[str] = []
+    for value in raw_values:
+        if target == "title" and is_generic_title(str(value or "")):
+            continue
+        text = (
+            _normalize_table_anchor_title(value)
+            if target == "title"
+            else normalize_for_matching(str(value or ""), target=target)
+        )
+        if text and text not in normalized:
+            normalized.append(text)
+    return normalized
+
+
+def _best_text_similarity(left: list[str], right: list[str]) -> float:
+    """Retourner la meilleure similarite textuelle entre deux petits ensembles."""
+    if not left or not right:
+        return 0.0
+    return max(
+        SequenceMatcher(None, first, second).ratio()
+        for first in left
+        for second in right
+    )
+
+
+def _jaccard_anchor_values(left: list[str], right: list[str]) -> float:
+    """Calculer le Jaccard de deux listes normalisees."""
+    left_set = set(left)
+    right_set = set(right)
+    if not left_set or not right_set:
+        return 0.0
+    return len(left_set & right_set) / len(left_set | right_set)
+
+
+def _resolve_visual_table_anchor(
+    event_snapshot: dict[str, Any],
+    opposite_snapshots: dict[str, dict[str, Any]],
+) -> dict[str, Any] | None:
+    """Resoudre une ancre opposee avec plusieurs signaux et une marge.
+
+    Le titre exact reste le signal le plus fort, mais un titre reformule ou
+    absent peut etre compense par le resume, les indicateurs et les en-tetes.
+    Aucun candidat n'est retenu si le score est faible ou ambigu.
+    """
+    event_section = _normalize_table_anchor_section(event_snapshot.get("section"))
+    event_titles = _normalized_anchor_values(
+        {
+            "values": [
+                event_snapshot.get("title"),
+                event_snapshot.get("page_context_title"),
+            ]
+        },
+        "values",
+        target="title",
+    )
+    event_summaries = _normalized_anchor_values(
+        event_snapshot,
+        "table_summary",
+        target="generic",
+    )
+    event_indicators = _normalized_anchor_values(
+        event_snapshot,
+        "indicators",
+        target="indicator",
+    )
+    event_headers = _normalized_anchor_values(
+        event_snapshot,
+        "headers",
+        target="header",
+    )
+
+    scored: list[tuple[float, dict[str, Any]]] = []
+    for candidate in opposite_snapshots.values():
+        if not _snapshot_has_visual_render_anchor(candidate):
+            continue
+        candidate_section = _normalize_table_anchor_section(
+            candidate.get("section")
+        )
+        if event_section and candidate_section != event_section:
+            continue
+
+        candidate_titles = _normalized_anchor_values(
+            {
+                "values": [
+                    candidate.get("title"),
+                    candidate.get("page_context_title"),
+                ]
+            },
+            "values",
+            target="title",
+        )
+        candidate_summaries = _normalized_anchor_values(
+            candidate,
+            "table_summary",
+            target="generic",
+        )
+        candidate_indicators = _normalized_anchor_values(
+            candidate,
+            "indicators",
+            target="indicator",
+        )
+        candidate_headers = _normalized_anchor_values(
+            candidate,
+            "headers",
+            target="header",
+        )
+
+        score = 0.0
+        if set(event_titles) & set(candidate_titles):
+            score += 6.0
+        else:
+            title_similarity = _best_text_similarity(
+                event_titles,
+                candidate_titles,
+            )
+            if title_similarity >= 0.72:
+                score += 4.0 * title_similarity
+
+        if set(event_summaries) & set(candidate_summaries):
+            score += 4.0
+        else:
+            summary_similarity = _best_text_similarity(
+                event_summaries,
+                candidate_summaries,
+            )
+            if summary_similarity >= 0.76:
+                score += 2.5 * summary_similarity
+
+        indicator_overlap = _jaccard_anchor_values(
+            event_indicators,
+            candidate_indicators,
+        )
+        if indicator_overlap >= 0.20:
+            score += 4.0 * indicator_overlap
+        if (
+            event_indicators
+            and candidate_indicators
+            and event_indicators[0] == candidate_indicators[0]
+        ):
+            score += 1.0
+
+        header_overlap = _jaccard_anchor_values(
+            event_headers,
+            candidate_headers,
+        )
+        if header_overlap >= 0.25:
+            score += 1.5 * header_overlap
+
+        try:
+            event_rows = int(event_snapshot.get("row_count") or 0)
+            candidate_rows = int(candidate.get("row_count") or 0)
+        except (TypeError, ValueError):
+            event_rows = candidate_rows = 0
+        if event_rows > 0 and candidate_rows > 0:
+            size_ratio = min(event_rows, candidate_rows) / max(
+                event_rows,
+                candidate_rows,
+            )
+            if size_ratio >= 0.60:
+                score += 0.5 * size_ratio
+
+        if score > 0:
+            scored.append((score, candidate))
+
+    if not scored:
+        return None
+    scored.sort(key=lambda item: item[0], reverse=True)
+    best_score, best_candidate = scored[0]
+    second_score = scored[1][0] if len(scored) > 1 else 0.0
+    if best_score < 4.0 or best_score - second_score < 0.75:
+        return None
+    return best_candidate
 
 
 def _call_openai_json(
@@ -548,34 +742,15 @@ def compare_reports_gpt4o(
                 return candidate
         return "ok"
 
-    def _snapshot_has_render_anchor(snapshot: dict[str, Any]) -> bool:
-        """Indique si le snapshot porte un ancrage de rendu visuel exploitable."""
-        try:
-            page = int(snapshot.get("page") or 0)
-        except (TypeError, ValueError):
-            return False
-        return page > 0 and normalize_proof_bbox(snapshot.get("bbox")) is not None
-
     def _resolve_opposite_table_anchor(
         event_snapshot: dict[str, Any],
         opposite_snapshots: dict[str, dict[str, Any]],
     ) -> dict[str, Any] | None:
         """Trouve l'ancrage de tableau correspondant dans le trimestre opposé."""
-        normalized_section = _normalize_table_anchor_section(event_snapshot.get("section"))
-        normalized_title = _normalize_table_anchor_title(event_snapshot.get("title"))
-        if not normalized_section or not normalized_title:
-            return None
-
-        candidates = [
-            snapshot
-            for snapshot in opposite_snapshots.values()
-            if _snapshot_has_render_anchor(snapshot)
-            and _normalize_table_anchor_section(snapshot.get("section")) == normalized_section
-            and _normalize_table_anchor_title(snapshot.get("title")) == normalized_title
-        ]
-        if len(candidates) != 1:
-            return None
-        return candidates[0]
+        return _resolve_visual_table_anchor(
+            event_snapshot,
+            opposite_snapshots,
+        )
 
     def _render_pair_proofs(
         previous_table_snapshot: dict[str, Any],
