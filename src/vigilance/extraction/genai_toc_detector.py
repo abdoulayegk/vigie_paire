@@ -40,6 +40,44 @@ class SectionDetectionResult:
     confidence: float
 
 
+@dataclass
+class TOCBoundaryRole:
+    """Repere de debut et de fin lu dans la TDM annuelle."""
+
+    section_type: str
+    title_found: str
+    start_page: int
+    successor_title: str
+    successor_page: int
+    confidence: float
+
+
+@dataclass
+class AnnualTOCAnalysis:
+    """Lecture Vision complete d'une TDM annuelle."""
+
+    is_master_toc: bool
+    confidence: float
+    page_number: int
+    entries: list[dict]
+    boundaries: list[TOCBoundaryRole]
+    warnings: list[str]
+    raw_response: str | None = None
+
+
+@dataclass
+class PageTransitionValidation:
+    """Validation Vision d'une transition entre deux pages physiques."""
+
+    confirmed: bool
+    confidence: float
+    observed_title: str
+    previous_page_belongs_to_prior_section: bool
+    candidate_page_starts_expected_section: bool
+    reason: str
+    raw_response: str | None = None
+
+
 class GenAITOCDetector:
     """Détecteur GenAI de Table des Matières pour rapports bancaires.
 
@@ -131,6 +169,73 @@ Réponds en JSON :
     ]
 }"""
 
+    ANNUAL_TOC_ANALYSIS_PROMPT = """Tu analyses une page complète d'un rapport annuel bancaire canadien.
+
+OBJECTIF
+1. Déterminer si cette page est la table des matières PRINCIPALE du rapport de gestion.
+2. Extraire fidèlement toutes les entrées visibles (titre et numéro de page imprimé).
+3. Identifier les limites des chapitres de gestion du capital et de gestion des risques.
+
+Une table des matières principale couvre plusieurs grands chapitres du rapport. Ne classe pas comme
+table des matières principale un sommaire interne à une section, une liste de tableaux, un index,
+un glossaire, ni un tableau financier.
+
+Pour chaque section cible :
+- capital_management : gestion du capital, fonds propres ou Capital Management;
+- risk_management : gestion des risques, gestion du risque ou Risk Management.
+
+Le successeur est la première entrée au même niveau hiérarchique que la section cible, ou le premier
+nouveau chapitre qui commence après sa portée complète. Ne saute pas un chapitre intermédiaire comme
+« Titrisation et arrangements hors bilan », « Instruments financiers » ou « Contrôles et procédures ».
+Ce n'est toutefois pas une sous-section interne comme risque de crédit, risque de marché ou risque
+opérationnel.
+
+Si un grand titre n'a aucun numéro propre, utilise le numéro de sa première sous-entrée numérotée.
+N'infère jamais son numéro depuis l'entrée précédente. Préserve les titres visibles et signale toute
+ambiguïté dans warnings.
+
+Réponds uniquement avec cet objet JSON :
+{
+  "is_master_toc": true,
+  "confidence": 0.0,
+  "entries": [
+    {"title": "Titre exact", "page": 12, "level": 0}
+  ],
+  "boundaries": [
+    {
+      "section_type": "capital_management",
+      "title_found": "Titre exact de début",
+      "start_page": 53,
+      "successor_title": "Titre exact du chapitre suivant",
+      "successor_page": 62,
+      "confidence": 0.95
+    }
+  ],
+  "warnings": []
+}"""
+
+    PAGE_TRANSITION_PROMPT = """Tu reçois deux pages physiques complètes et consécutives d'un rapport bancaire.
+La PREMIÈRE IMAGE est la page précédente. La DEUXIÈME IMAGE est la page candidate.
+
+Vérifie si la deuxième page commence réellement le grand chapitre attendu ci-dessous :
+- rôle canonique : {section_type}
+- titre attendu ou équivalent sémantique : {expected_title}
+
+Un titre seulement mentionné dans une phrase, un en-tête courant, une table des matières, une note ou
+un renvoi n'est pas un début de chapitre. Le titre peut toutefois varier légèrement ou être bilingue.
+La page précédente doit encore appartenir au chapitre antérieur, sauf si la mise en page explique
+clairement une transition sur la même page.
+
+Réponds uniquement avec cet objet JSON :
+{{
+  "confirmed": true,
+  "confidence": 0.0,
+  "observed_title": "Titre réellement visible",
+  "previous_page_belongs_to_prior_section": true,
+  "candidate_page_starts_expected_section": true,
+  "reason": "Justification courte"
+}}"""
+
     def __init__(self, api_key: str | None = None, model: str = "gpt-4o"):
         """Initialiser le détecteur GenAI.
 
@@ -152,7 +257,11 @@ Réponds en JSON :
             try:
                 from openai import OpenAI
 
-                self._client = OpenAI(api_key=self.api_key)
+                self._client = OpenAI(
+                    api_key=self.api_key,
+                    timeout=120.0,
+                    max_retries=1,
+                )
             except ImportError:
                 logger.error("openai non installé")
                 return None
@@ -232,6 +341,164 @@ Réponds en JSON :
         except Exception as e:
             logger.error(f"Erreur API Vision: {e}")
             return None
+
+    def _call_vision_api_images(
+        self,
+        prompt: str,
+        images_base64: list[str],
+        *,
+        max_completion_tokens: int = 4000,
+    ) -> dict | None:
+        """Appeler Vision avec plusieurs pages complètes dans un ordre explicite."""
+        if not self.client or not images_base64:
+            return None
+
+        content: list[dict] = [{"type": "text", "text": prompt}]
+        for index, image_base64 in enumerate(images_base64, start=1):
+            content.extend(
+                [
+                    {
+                        "type": "text",
+                        "text": f"IMAGE {index} sur {len(images_base64)}",
+                    },
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:image/png;base64,{image_base64}",
+                            "detail": "high",
+                        },
+                    },
+                ]
+            )
+
+        try:
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=[{"role": "user", "content": content}],
+                temperature=0,
+                max_completion_tokens=max_completion_tokens,
+                response_format={"type": "json_object"},
+            )
+            raw_content = response.choices[0].message.content or ""
+            parsed = json.loads(raw_content)
+            return parsed if isinstance(parsed, dict) else None
+        except Exception as e:
+            logger.error("Erreur API Vision multi-pages: %s", e)
+            return None
+
+    @staticmethod
+    def _safe_int(value: object) -> int:
+        """Convertir un numéro de page Vision sans lever d'exception."""
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            return 0
+
+    def analyze_annual_toc_page(
+        self,
+        pdf_path: str | Path,
+        page_num: int,
+    ) -> AnnualTOCAnalysis:
+        """Classifier et lire en un appel une TDM annuelle candidate."""
+        raw_pdf_path = str(pdf_path or "").strip()
+        if not raw_pdf_path:
+            return AnnualTOCAnalysis(False, 0.0, page_num, [], [], [])
+        image_b64 = self._page_to_base64(Path(raw_pdf_path), page_num)
+        if not image_b64:
+            return AnnualTOCAnalysis(False, 0.0, page_num, [], [], [])
+
+        result = self._call_vision_api_images(
+            self.ANNUAL_TOC_ANALYSIS_PROMPT,
+            [image_b64],
+            max_completion_tokens=6000,
+        )
+        if not result:
+            return AnnualTOCAnalysis(False, 0.0, page_num, [], [], [])
+
+        entries = result.get("entries")
+        if not isinstance(entries, list):
+            entries = []
+
+        boundaries: list[TOCBoundaryRole] = []
+        for raw_boundary in result.get("boundaries", []):
+            if not isinstance(raw_boundary, dict):
+                continue
+            section_type = str(raw_boundary.get("section_type") or "").strip()
+            if section_type not in {"capital_management", "risk_management"}:
+                continue
+            start_page = self._safe_int(raw_boundary.get("start_page"))
+            successor_page = self._safe_int(raw_boundary.get("successor_page"))
+            if start_page <= 0 or successor_page <= start_page:
+                continue
+            boundaries.append(
+                TOCBoundaryRole(
+                    section_type=section_type,
+                    title_found=str(raw_boundary.get("title_found") or "").strip(),
+                    start_page=start_page,
+                    successor_title=str(raw_boundary.get("successor_title") or "").strip(),
+                    successor_page=successor_page,
+                    confidence=float(raw_boundary.get("confidence") or 0.0),
+                )
+            )
+
+        warnings = result.get("warnings")
+        if not isinstance(warnings, list):
+            warnings = []
+        return AnnualTOCAnalysis(
+            is_master_toc=bool(result.get("is_master_toc")),
+            confidence=float(result.get("confidence") or 0.0),
+            page_number=page_num,
+            entries=[entry for entry in entries if isinstance(entry, dict)],
+            boundaries=boundaries,
+            warnings=[str(warning) for warning in warnings if str(warning).strip()],
+            raw_response=json.dumps(result, ensure_ascii=False),
+        )
+
+    def validate_section_transition(
+        self,
+        pdf_path: str | Path,
+        previous_page: int,
+        candidate_page: int,
+        *,
+        section_type: str,
+        expected_title: str,
+    ) -> PageTransitionValidation:
+        """Valider sur pages complètes qu'un chapitre commence à la page candidate."""
+        raw_pdf_path = str(pdf_path or "").strip()
+        if not raw_pdf_path:
+            return PageTransitionValidation(False, 0.0, "", False, False, "")
+        pdf_path = Path(raw_pdf_path)
+        images = [
+            image
+            for page in (previous_page, candidate_page)
+            if page > 0 and (image := self._page_to_base64(pdf_path, page))
+        ]
+        if not images:
+            return PageTransitionValidation(False, 0.0, "", False, False, "")
+
+        result = self._call_vision_api_images(
+            self.PAGE_TRANSITION_PROMPT.format(
+                section_type=section_type,
+                expected_title=expected_title,
+            ),
+            images,
+            max_completion_tokens=1200,
+        )
+        if not result:
+            return PageTransitionValidation(False, 0.0, "", False, False, "")
+        return PageTransitionValidation(
+            confirmed=bool(result.get("confirmed")),
+            confidence=float(result.get("confidence") or 0.0),
+            observed_title=str(result.get("observed_title") or "").strip(),
+            previous_page_belongs_to_prior_section=bool(
+                result.get("previous_page_belongs_to_prior_section")
+            ),
+            candidate_page_starts_expected_section=bool(
+                result.get("candidate_page_starts_expected_section")
+            ),
+            reason=str(result.get("reason") or "").strip(),
+            raw_response=json.dumps(result, ensure_ascii=False),
+        )
 
     def detect_toc_page(
         self, pdf_path: str | Path, page_num: int
@@ -374,7 +641,7 @@ Réponds en JSON :
         pdf_path = Path(raw_pdf_path)
 
         if search_pages is None:
-            search_pages = list(range(2, 11))  # Pages 2-10
+            search_pages = list(range(2, 31))  # Rapports annuels: TDM souvent vers p.15
 
         logger.info(f"GenAI: Recherche TDM pages {search_pages[0]}-{search_pages[-1]}")
 
