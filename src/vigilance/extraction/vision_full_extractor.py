@@ -18,6 +18,7 @@ from ..utils.openai_schema import (
     build_strict_openai_response_format,
     validate_strict_openai_response_format,
 )
+from .page_table_locator import should_use_page_context_rescue
 from .vision_cache import (
     cache_get,
     cache_put,
@@ -1621,9 +1622,7 @@ def _collect_incompleteness_reasons(
         return ["missing_result"]
     reasons: list[str] = []
     expected_ids = {
-        marker
-        for value in (expected_footnote_ids or set())
-        if (marker := _normalize_footnote_marker_id(value))
+        marker for value in (expected_footnote_ids or set()) if (marker := _normalize_footnote_marker_id(value))
     }
     title = str(result.table_title or "").strip()
     summary = str(result.table_summary or "").strip()
@@ -1657,8 +1656,7 @@ def _collect_incompleteness_reasons(
         found_ids = {
             _normalize_footnote_marker_id(item.get("id"))
             for item in list(result.footnotes_content or [])
-            if isinstance(item, dict)
-            and _normalize_footnote_marker_id(item.get("id"))
+            if isinstance(item, dict) and _normalize_footnote_marker_id(item.get("id"))
         }
         if not expected_ids.issubset(found_ids):
             reasons.append("missing_expected_footnotes")
@@ -1677,14 +1675,8 @@ def _select_targeted_rescue_variant(
     purement semantique (resume absent, critique QA generique) conserve le
     recadrage initial et renforce seulement l'instruction d'extraction.
     """
-    reasons = {
-        str(value or "").strip()
-        for value in rejection_reasons
-        if str(value or "").strip()
-    }
-    diagnostic_text = " ".join(
-        [*(quality_critiques or []), qa_missing_elements]
-    ).casefold()
+    reasons = {str(value or "").strip() for value in rejection_reasons if str(value or "").strip()}
+    diagnostic_text = " ".join([*(quality_critiques or []), qa_missing_elements]).casefold()
 
     footnote_signal = bool(
         "missing_expected_footnotes" in reasons
@@ -1748,13 +1740,10 @@ def _candidate_quality_score(
     found_footnotes = {
         _normalize_footnote_marker_id(item.get("id"))
         for item in list(result.footnotes_content or [])
-        if isinstance(item, dict)
-        and _normalize_footnote_marker_id(item.get("id"))
+        if isinstance(item, dict) and _normalize_footnote_marker_id(item.get("id"))
     }
     expected_ids = {
-        marker
-        for value in (expected_footnote_ids or set())
-        if (marker := _normalize_footnote_marker_id(value))
+        marker for value in (expected_footnote_ids or set()) if (marker := _normalize_footnote_marker_id(value))
     }
     right_column_bleed = _right_column_bleed_score(
         result,
@@ -2769,6 +2758,7 @@ class VisionFullExtractor:
         initial_top_extension: float = 0.0,
         get_recrop_fn: Any = None,
         get_variant_crop_fn: Any = None,
+        get_page_context_crop_fn: Any = None,
         reference_text: str | None = None,
     ) -> VisionFullResult | None:
         """Extraction avec passe de qualite deterministe.
@@ -2782,14 +2772,13 @@ class VisionFullExtractor:
 
         get_recrop_fn(bottom_extension: float) -> bytes | None
         get_variant_crop_fn(bbox_override=..., bottom_extension=..., top_extension=...)
+        get_page_context_crop_fn() -> dict | None
         """
         vision_cfg = vision_cfg or {}
         expected_markers = vision_cfg.get("expected_markers")
         if isinstance(expected_markers, list):
             allowed_marker_ids = {
-                marker
-                for value in expected_markers[:10]
-                if (marker := _normalize_footnote_marker_id(value))
+                marker for value in expected_markers[:10] if (marker := _normalize_footnote_marker_id(value))
             }
         else:
             allowed_marker_ids = set()
@@ -2830,8 +2819,7 @@ class VisionFullExtractor:
             return {
                 _normalize_footnote_marker_id(item.get("id"))
                 for item in list(r.footnotes_content or [])
-                if isinstance(item, dict)
-                and _normalize_footnote_marker_id(item.get("id"))
+                if isinstance(item, dict) and _normalize_footnote_marker_id(item.get("id"))
             }
 
         def _needs_recrop(result: VisionFullResult | None) -> bool:
@@ -2860,17 +2848,19 @@ class VisionFullExtractor:
             *,
             crop_bytes_for_pass: bytes,
             bottom_extension_used: float,
+            bbox_for_pass: list[float] | None = None,
             rescue_mode: bool = False,
             rescue_instruction: str = "",
         ) -> VisionFullResult | None:
             """Exécute une passe complète d'extraction Vision avec rescue éventuel."""
+            effective_bbox = bbox_for_pass or bbox_norm
             if consensus_enabled and not rescue_mode:
                 primary = self.extract_with_consensus(
                     crop_bytes=crop_bytes_for_pass,
                     bank_code=bank_code,
                     pdf_sha=pdf_sha,
                     page_number=page_number,
-                    bbox_norm=bbox_norm,
+                    bbox_norm=effective_bbox,
                     vision_cfg=vision_cfg,
                     bottom_extension_used=bottom_extension_used,
                     reference_text=reference_text,
@@ -2884,7 +2874,7 @@ class VisionFullExtractor:
                     bank_code=bank_code,
                     pdf_sha=pdf_sha,
                     page_number=page_number,
-                    bbox_norm=bbox_norm,
+                    bbox_norm=effective_bbox,
                     vision_cfg=vision_cfg,
                     bottom_extension_used=bottom_extension_used,
                     reference_text=reference_text,
@@ -2902,7 +2892,7 @@ class VisionFullExtractor:
                     bank_code=bank_code,
                     pdf_sha=pdf_sha,
                     page_number=page_number,
-                    bbox_norm=bbox_norm,
+                    bbox_norm=effective_bbox,
                     vision_cfg=vision_cfg,
                     bottom_extension_used=bottom_extension_used,
                     reference_text=reference_text,
@@ -2986,9 +2976,7 @@ class VisionFullExtractor:
 
         candidates: list[tuple[str, VisionFullResult | None]] = [("initial", first)]
         candidate_crops: dict[str, bytes] = {"initial": crop_bytes}
-        candidate_bottom_extensions: dict[str, float] = {
-            "initial": initial_bottom_extension
-        }
+        candidate_bottom_extensions: dict[str, float] = {"initial": initial_bottom_extension}
         no_table_evidence = 0
         if first is not None and first.no_table_detected and _is_trivial_result(first, bbox_norm=bbox_norm):
             no_table_evidence += 1
@@ -3030,6 +3018,7 @@ class VisionFullExtractor:
             result = _run_pass(
                 crop_bytes_for_pass=crop_bytes_for_pass,
                 bottom_extension_used=bottom_extension_used,
+                bbox_for_pass=candidate_bbox,
                 rescue_mode=True,
                 rescue_instruction=custom_rescue_instr if custom_rescue_instr is not None else base_rescue_instruction,
             )
@@ -3071,9 +3060,7 @@ class VisionFullExtractor:
                 return (
                     get_variant_crop_fn(
                         bottom_extension=initial_bottom_extension,
-                        top_extension=(
-                            initial_top_extension + _RECROP_EXTENSION_INCREMENT
-                        ),
+                        top_extension=(initial_top_extension + _RECROP_EXTENSION_INCREMENT),
                     ),
                     initial_bottom_extension,
                     bbox_norm,
@@ -3102,10 +3089,7 @@ class VisionFullExtractor:
                     min(1.0, right - min(width * 0.015, 0.01)),
                     bottom,
                 ]
-                if (
-                    candidate_bbox[2] <= candidate_bbox[0]
-                    or candidate_bbox[3] <= candidate_bbox[1]
-                ):
+                if candidate_bbox[2] <= candidate_bbox[0] or candidate_bbox[3] <= candidate_bbox[1]:
                     return None, initial_bottom_extension, bbox_norm
                 extension = max(0.0, initial_bottom_extension * 0.5)
                 return (
@@ -3146,28 +3130,68 @@ class VisionFullExtractor:
             initial_rejection_reasons,
         )
 
-        target_crop, target_bottom_extension, target_bbox = _build_variant_crop(
-            target_variant
-        )
+        target_crop, target_bottom_extension, target_bbox = _build_variant_crop(target_variant)
         primary_rescue = _append_candidate(
             target_variant,
             target_crop,
             bottom_extension_used=target_bottom_extension,
             candidate_bbox=target_bbox,
         )
-        same_crop_rescue = (
-            primary_rescue if target_variant == "same_crop_rescue" else None
-        )
+        same_crop_rescue = primary_rescue if target_variant == "same_crop_rescue" else None
 
-        if primary_rescue is None or not _is_viable_result(primary_rescue):
-            fallback_variant = (
-                "body_expanded"
-                if target_variant == "same_crop_rescue"
-                else "same_crop_rescue"
-            )
-            fallback_crop, fallback_bottom_extension, fallback_bbox = (
-                _build_variant_crop(fallback_variant)
-            )
+        page_context_rescue: VisionFullResult | None = None
+        primary_rescue_reasons = _collect_incompleteness_reasons(
+            primary_rescue,
+            bbox_norm=target_bbox or bbox_norm,
+            expected_footnote_ids=expected_set,
+        )
+        if primary_rescue is not None and _grade_extraction_quality(primary_rescue):
+            primary_rescue_reasons.append("quality_critiques")
+        if "qa_inspector_failed" in initial_rejection_reasons:
+            primary_rescue_reasons.append("qa_inspector_failed")
+
+        if get_page_context_crop_fn is not None and should_use_page_context_rescue(
+            primary_rescue is not None,
+            primary_rescue_reasons,
+        ):
+            try:
+                page_context = get_page_context_crop_fn()
+            except Exception as exc:
+                logger.warning("Vision page-context crop failed (non-fatal): %s", exc)
+                page_context = None
+            if isinstance(page_context, dict):
+                page_crop = page_context.get("crop_bytes")
+                page_bbox_raw = page_context.get("bbox_norm")
+                page_bbox = (
+                    [float(value) for value in page_bbox_raw]
+                    if isinstance(page_bbox_raw, (list, tuple)) and len(page_bbox_raw) == 4
+                    else bbox_norm
+                )
+                page_bottom_extension = max(
+                    0.0,
+                    float(page_context.get("bottom_extension", 0.0) or 0.0),
+                )
+                locator_confidence = float(page_context.get("confidence", 0.0) or 0.0)
+                locator_instruction = (
+                    "A page-level geometric locator independently corrected the "
+                    "table boundaries with confidence "
+                    f"{locator_confidence:.2f}. Read ONLY this corrected crop. "
+                    "Extract every first-column row label and every visible footnote; "
+                    "do not include neighboring narrative text or another table."
+                )
+                page_context_rescue = _append_candidate(
+                    "page_context_rescue",
+                    page_crop if isinstance(page_crop, bytes) else None,
+                    bottom_extension_used=page_bottom_extension,
+                    candidate_bbox=page_bbox,
+                    custom_rescue_instr=locator_instruction,
+                )
+
+        if (primary_rescue is None or not _is_viable_result(primary_rescue)) and not _is_viable_result(
+            page_context_rescue
+        ):
+            fallback_variant = "body_expanded" if target_variant == "same_crop_rescue" else "same_crop_rescue"
+            fallback_crop, fallback_bottom_extension, fallback_bbox = _build_variant_crop(fallback_variant)
             fallback_result = _append_candidate(
                 fallback_variant,
                 fallback_crop,
@@ -3177,11 +3201,7 @@ class VisionFullExtractor:
             if fallback_variant == "same_crop_rescue":
                 same_crop_rescue = fallback_result
 
-        usable_candidates = [
-            item
-            for item in candidates
-            if item[1] is not None and _is_viable_result(item[1])
-        ]
+        usable_candidates = [item for item in candidates if item[1] is not None and _is_viable_result(item[1])]
         if usable_candidates:
             best_name, best_result = max(
                 usable_candidates,
