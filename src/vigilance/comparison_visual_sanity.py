@@ -27,12 +27,16 @@ changes between two quarterly banking table proof renders.
 
 You receive:
 1. The final proof render for the Previous Quarter (PQ): full page with the
-   target table region highlighted.
+   target table region highlighted when an exact table anchor exists.
 2. The final proof render for the Current Quarter (CQ): full page with the
-   target table region highlighted.
+   target table region highlighted when an exact table anchor exists.
 3. A typed list of alleged changes.
 
-The highlighted region indicates the target table or expected table region.
+For an added or removed table, one proof may intentionally show the inferred
+opposite-quarter page without a highlighted region because no corresponding
+table anchor exists. In that case, inspect the entire inferred page for the
+alleged table or a clearly equivalent table.
+The highlighted region, when present, indicates the target table.
 Use the proof renders as the final source of truth.
 
 Your mission:
@@ -84,6 +88,7 @@ def render_visual_sanity_proof(
     page: Any,
     bbox: Any,
     dpi: int = PROOF_RENDER_DPI,
+    allow_full_page_fallback: bool = False,
 ) -> tuple[bytes | None, str]:
     """Genere une image d'epreuve finale pour le controle visuel de coherence.
 
@@ -92,6 +97,7 @@ def render_visual_sanity_proof(
         page: Numero ou reference de la page cible.
         bbox: Coordonnees de la zone du tableau (bounding box).
         dpi: Resolution de rendu PDF (defaut :data:`PROOF_RENDER_DPI`).
+        allow_full_page_fallback: Rendre la page entiere quand la bbox manque.
 
     Returns:
         Tuple ``(image_bytes, status)`` ou *status* est l'un de :
@@ -103,7 +109,7 @@ def render_visual_sanity_proof(
         page=page,
         bbox=bbox,
         dpi=dpi,
-        allow_full_page_fallback=False,
+        allow_full_page_fallback=allow_full_page_fallback,
     )
     if status == "ok":
         return raw, "ok"

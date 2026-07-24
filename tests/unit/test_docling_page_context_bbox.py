@@ -4,8 +4,59 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from vigilance.extraction.docling_processor import DoclingProcessor
+from vigilance.extraction.docling_processor import (
+    DoclingProcessor,
+    _is_locator_merge_conflict,
+)
 from vigilance.extraction.vision_full_extractor import VisionFullResult
+
+
+def test_page_context_inventory_padding_includes_section_boundaries() -> None:
+    processor = DoclingProcessor()
+
+    padded = processor._pad_page_ranges([(6, 8), (29, 47), (47, 52)], 2)
+
+    assert padded == [(4, 10), (27, 49), (45, 54)]
+    assert processor._is_page_in_ranges(9, padded) is True
+    assert processor._is_page_in_ranges(10, padded) is True
+    assert processor._is_page_in_ranges(11, padded) is False
+
+
+def test_page_context_inventory_padding_never_creates_page_zero() -> None:
+    processor = DoclingProcessor()
+
+    assert processor._pad_page_ranges([(1, 2)], 2) == [(1, 4)]
+
+
+def test_locator_merge_conflict_preserves_distinct_docling_blocks() -> None:
+    first_original = [0.06, 0.36, 0.96, 0.61]
+    second_original = [0.06, 0.63, 0.96, 0.87]
+    merged_locator = [0.06, 0.36, 0.96, 0.87]
+
+    assert (
+        _is_locator_merge_conflict(
+            first_original,
+            second_original,
+            merged_locator,
+            merged_locator,
+        )
+        is True
+    )
+
+
+def test_locator_same_region_is_not_conflict_for_duplicate_docling_boxes() -> None:
+    original = [0.06, 0.18, 0.96, 0.75]
+    corrected = [0.05, 0.17, 0.97, 0.76]
+
+    assert (
+        _is_locator_merge_conflict(
+            original,
+            original,
+            corrected,
+            corrected,
+        )
+        is False
+    )
 
 
 def test_page_context_bbox_replaces_docling_bbox_and_preserves_suspect_status(

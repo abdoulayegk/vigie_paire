@@ -7,7 +7,7 @@ import json
 import logging
 import re
 import time
-from dataclasses import dataclass, field, replace
+from dataclasses import dataclass, field, fields, replace
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
@@ -39,6 +39,7 @@ _RESCUE_MAX_COMPLETION_TOKENS = 128000
 _MAX_COMPLETION_TOKENS_SAFE_FALLBACK = 16384
 _DEFAULT_REFERENCE_TEXT_MAX_CHARS = 6000
 _MODEL_ROLE = "extraction_primary"
+_QUALITY_PASS_CACHE_VERSION = "v2"
 _GENERIC_PAGE_TITLES = {
     "rapport de gestion",
     "management's discussion and analysis",
@@ -1321,6 +1322,32 @@ def _looks_narrative_indicator(text: str) -> bool:
     )
 
 
+def _structural_indicator_count(result: VisionFullResult | None) -> int:
+    """Compter les lignes reelles, meme lorsqu'elles sont peu discriminantes.
+
+    Des libelles comme ``Canada``, ``Autres`` ou ``Total`` sont faibles pour
+    identifier un tableau entre deux trimestres, mais restent de vraies lignes
+    et ne doivent pas faire passer une extraction non vide pour un artefact.
+    """
+    if result is None:
+        return 0
+    count = 0
+    for raw in list(result.indicators or []):
+        text = str(raw or "").strip()
+        if not text:
+            continue
+        if _is_generic_page_title(text):
+            continue
+        if not any(char.isalpha() for char in text):
+            continue
+        if _is_period_like_indicator(text):
+            continue
+        if _looks_narrative_indicator(text):
+            continue
+        count += 1
+    return count
+
+
 def _looks_compact_textual_header(text: str) -> bool:
     """Verifie si le texte ressemble a un en-tete de colonne textuel compact."""
     normalized = re.sub(r"\s+", " ", str(text or "").strip())
@@ -1441,14 +1468,17 @@ def _narrative_indicator_count(result: VisionFullResult | None) -> int:
 
 
 def _contamination_score(result: VisionFullResult | None) -> int:
-    """Calcule un score de contamination combine (titres generiques, indicateurs faibles/narratifs)."""
+    """Calcule un score de contamination reel (titre generique et narration).
+
+    Les indicateurs faibles restent peu discriminants pour le matching, mais
+    ne constituent pas une contamination de l'extraction.
+    """
     if result is None:
         return 99
     title = str(result.table_title or "").strip()
     score = 0
     if title and _is_generic_page_title(title):
         score += 2
-    score += _weak_indicator_count(result)
     score += 2 * _narrative_indicator_count(result)
     return score
 
@@ -1457,9 +1487,9 @@ def _has_dominant_contamination(result: VisionFullResult | None) -> bool:
     """Verifie si la contamination domine les indicateurs viables."""
     if result is None:
         return True
-    viable_count = _viable_indicator_count(result)
+    structural_count = _structural_indicator_count(result)
     score = _contamination_score(result)
-    return viable_count <= 0 or score >= (viable_count + 1)
+    return structural_count <= 0 or score >= (structural_count + 1)
 
 
 def _has_generic_title_without_support(result: VisionFullResult | None) -> bool:
@@ -1484,7 +1514,7 @@ def _has_strong_non_summary_signals(result: VisionFullResult | None) -> bool:
         return False
     if _has_dominant_contamination(result):
         return False
-    viable_indicators = _viable_indicator_count(result)
+    structural_indicators = _structural_indicator_count(result)
     headers = [str(v).strip() for v in list(result.headers or []) if str(v).strip()]
     footnotes = [
         item
@@ -1492,22 +1522,22 @@ def _has_strong_non_summary_signals(result: VisionFullResult | None) -> bool:
         if isinstance(item, dict) and (str(item.get("id") or "").strip() or str(item.get("text") or "").strip())
     ]
     title = str(result.table_title or "").strip()
-    if viable_indicators >= 3:
+    if structural_indicators >= 3:
         return True
-    if viable_indicators >= 2 and (headers or footnotes or (title and not _is_generic_page_title(title))):
+    if structural_indicators >= 2 and (headers or footnotes or (title and not _is_generic_page_title(title))):
         return True
-    if viable_indicators >= 1 and len(headers) >= 2 and bool(footnotes):
+    if structural_indicators >= 1 and len(headers) >= 2 and bool(footnotes):
         return True
     return False
 
 
 def _is_viable_result(result: VisionFullResult | None) -> bool:
-    """Verifie si le resultat est viable (indicateurs presents et contamination faible)."""
+    """Verifie si le resultat contient des lignes reelles et peu de contamination."""
     if result is None:
         return False
     if result.no_table_detected:
         return False
-    return _viable_indicator_count(result) > 0 and not _has_dominant_contamination(result)
+    return _structural_indicator_count(result) > 0 and not _has_dominant_contamination(result)
 
 
 _DATE_RE = re.compile(
@@ -1603,16 +1633,10 @@ def _grade_extraction_quality(result: VisionFullResult | None) -> list[str]:
     # Headers are SECONDARY priority. Retrying for empty headers wastes API calls
     # with no impact on indicator or footnote completeness.
 
-    # 4. Truncated Extraction Check (many headers, few real indicators)
-    headers = result.headers or []
-    real_indicator_count = _count_real_indicators(indicators)
-    if len(headers) >= 3 and real_indicator_count <= 2:
-        critiques.append(
-            f"Vous avez extrait {len(headers)} headers de colonnes mais seulement "
-            f"{real_indicator_count} indicateur(s) réel(s). Un tableau avec {len(headers)} colonnes "
-            "a forcément beaucoup plus de lignes de données. "
-            "Relisez l'image ENTIÈREMENT du haut vers le bas et extrayez TOUTES les lignes."
-        )
+    # 4. Le nombre de colonnes ne permet pas d'inferer le nombre de lignes.
+    # Un tableau financier de 2 lignes et 4 colonnes peut etre parfaitement
+    # complet. Les vrais signaux de troncature sont traites par la geometrie,
+    # la densite verticale et l'inspection visuelle du crop.
 
     return critiques
 
@@ -1634,7 +1658,8 @@ def _collect_incompleteness_reasons(
     summary = str(result.table_summary or "").strip()
     if "output_budget_truncated" in set(result.retry_reasons or []):
         reasons.append("output_budget_truncated")
-    if _viable_indicator_count(result) == 0:
+    structural_count = _structural_indicator_count(result)
+    if structural_count == 0:
         reasons.append("no_viable_indicators")
     if not summary:
         reasons.append("missing_table_summary")
@@ -1645,8 +1670,6 @@ def _collect_incompleteness_reasons(
         reasons.append("dominant_contamination")
     if _narrative_indicator_count(result) > 0:
         reasons.append("narrative_indicator_contamination")
-    if _weak_indicator_count(result) > 0 and _viable_indicator_count(result) == 0:
-        reasons.append("weak_indicator_only")
     if _has_dominant_contamination(result):
         reasons.append("dominant_contamination")
     if bbox_norm and len(bbox_norm) >= 4 and bbox_norm[1] < 0.15 and not title:
@@ -1654,8 +1677,7 @@ def _collect_incompleteness_reasons(
 
     if bbox_norm and len(bbox_norm) >= 4:
         bbox_height = max(0.0, float(bbox_norm[3]) - float(bbox_norm[1]))
-        viable = _viable_indicator_count(result)
-        if bbox_height > 0.25 and viable <= 2:
+        if bbox_height > 0.25 and structural_count <= 2:
             reasons.append("low_density_vertical")
 
     if bbox_norm and len(bbox_norm) >= 4 and bbox_norm[3] < 0.92 and expected_ids:
@@ -1785,7 +1807,7 @@ def _finalize_selected_candidate(
     combined_rejection_reasons = list(dict.fromkeys(initial_rejection_reasons + selected_rejection_reasons))
     summary_present = bool(str(selected.table_summary or "").strip())
     contamination_is_low = not _has_dominant_contamination(selected)
-    viable_count = _viable_indicator_count(selected)
+    structural_count = _structural_indicator_count(selected)
     headers = [str(v).strip() for v in list(selected.headers or []) if str(v).strip()]
     footnotes = [
         item
@@ -1798,7 +1820,7 @@ def _finalize_selected_candidate(
         )
         contamination_is_low = False
 
-    if summary_present and contamination_is_low and viable_count > 0:
+    if summary_present and contamination_is_low and structural_count > 0:
         acceptance_reason = (
             "initial_complete"
             if best_name == "initial" and not initial_rejection_reasons
@@ -1817,7 +1839,7 @@ def _finalize_selected_candidate(
     if (
         not summary_present
         and contamination_is_low
-        and viable_count >= 3
+        and structural_count >= 3
         and (len(headers) >= 2 or bool(footnotes))
         and _has_strong_non_summary_signals(selected)
     ):
@@ -1882,6 +1904,9 @@ def _cache_payload_from_result(result: VisionFullResult) -> dict[str, Any]:
         "completion_tokens": result.completion_tokens,
         "total_tokens": result.total_tokens,
         "rescue_used": result.rescue_used,
+        "recrop_attempted": result.recrop_attempted,
+        "recrop_used": result.recrop_used,
+        "recrop_failed_incomplete": result.recrop_failed_incomplete,
         "extraction_status": result.extraction_status,
         "acceptance_reason": result.acceptance_reason,
         "rejection_reasons": result.rejection_reasons,
@@ -1890,6 +1915,7 @@ def _cache_payload_from_result(result: VisionFullResult) -> dict[str, Any]:
         "summary_present": result.summary_present,
         "indicator_count": result.indicator_count,
         "candidate_quality_rank": result.candidate_quality_rank,
+        "qa_inspected": result.qa_inspected,
         "confidence_score": result.confidence_score,
         "selected_bbox_norm": result.selected_bbox_norm,
         "bbox_source": result.bbox_source,
@@ -1898,6 +1924,61 @@ def _cache_payload_from_result(result: VisionFullResult) -> dict[str, Any]:
         "page_context_continuation": result.page_context_continuation,
         "page_context_table_count": result.page_context_table_count,
     }
+
+
+def _result_from_cache_payload(payload: dict[str, Any]) -> VisionFullResult | None:
+    """Reconstruire un resultat Vision valide depuis un payload de cache."""
+    indicators_raw = payload.get("indicators")
+    if not isinstance(indicators_raw, list):
+        return None
+    indicators: list[str] = []
+    for item in indicators_raw:
+        if isinstance(item, str) and item.strip():
+            indicators.append(item.strip())
+        elif isinstance(item, dict) and item.get("text"):
+            indicators.append(str(item.get("text") or "").strip())
+
+    footnotes_raw = payload.get("footnotes_content", [])
+    if isinstance(footnotes_raw, dict):
+        footnotes = [
+            {"id": str(key), "text": str(value)}
+            for key, value in footnotes_raw.items()
+            if str(key).strip() and str(value).strip()
+        ]
+    elif isinstance(footnotes_raw, list):
+        footnotes = [
+            {
+                "id": str(item.get("id") or item.get("marker") or "").strip(),
+                "text": str(item.get("text") or "").strip(),
+            }
+            for item in footnotes_raw
+            if isinstance(item, dict)
+            and (item.get("id") or item.get("marker"))
+            and item.get("text")
+        ]
+    else:
+        footnotes = []
+
+    values = {
+        key: value
+        for key, value in payload.items()
+        if key in {item.name for item in fields(VisionFullResult)}
+    }
+    values.update(
+        {
+            "table_title": str(payload.get("table_title") or ""),
+            "table_summary": str(payload.get("table_summary") or ""),
+            "headers": list(payload.get("headers") or []),
+            "indicators": indicators,
+            "footnotes_content": footnotes,
+            "no_table_detected": bool(payload.get("no_table_detected", False)),
+            "extraction_method": _EXTRACTION_METHOD,
+        }
+    )
+    try:
+        return VisionFullResult(**values)
+    except (TypeError, ValueError):
+        return None
 
 
 class VisionFullExtractor:
@@ -2054,131 +2135,16 @@ class VisionFullExtractor:
                 cache_dir = get_vision_cache_dir()
                 cached = cache_get(cache_dir, cache_key)
                 if cached:
-                    indicators = cached.get("indicators")
-                    fn_content_raw = cached.get("footnotes_content", [])
-                    retry_reasons = [
-                        str(value).strip()
-                        for value in list(cached.get("retry_reasons", []) or [])
-                        if str(value).strip()
-                    ]
-                    if isinstance(indicators, list):
-                        migrated_indicators: list[str] = []
-                        for item in indicators:
-                            if isinstance(item, str) and item.strip():
-                                migrated_indicators.append(item.strip())
-                            elif isinstance(item, dict) and item.get("text"):
-                                migrated_indicators.append(str(item.get("text") or "").strip())
-                        indicators = migrated_indicators
-                    else:
-                        indicators = None
-                    if isinstance(indicators, list):
-                        if isinstance(fn_content_raw, dict):
-                            fn_content: list[dict[str, str]] = [
-                                {"id": str(k), "text": str(v)}
-                                for k, v in fn_content_raw.items()
-                                if str(k).strip() and str(v).strip()
-                            ]
-                        elif isinstance(fn_content_raw, list):
-                            fn_content = [
-                                item
-                                for item in fn_content_raw
-                                if isinstance(item, dict)
-                                and (item.get("id") or item.get("marker"))
-                                and item.get("text")
-                            ]
-                            fn_content = [
-                                {
-                                    "id": str(item.get("id") or item.get("marker") or "").strip(),
-                                    "text": str(item.get("text", "")).strip(),
-                                }
-                                for item in fn_content
-                            ]
-                        else:
-                            fn_content = []
+                    cached_result = _result_from_cache_payload(cached)
+                    if (
+                        cached_result is not None
+                        and _structural_indicator_count(cached_result) > 0
+                    ):
                         logger.info(
                             "VisionFull cache hit: %d indicators",
-                            len(indicators),
+                            len(cached_result.indicators),
                         )
-                        return VisionFullResult(
-                            table_title=str(cached.get("table_title") or ""),
-                            table_summary=str(cached.get("table_summary") or ""),
-                            headers=list(cached.get("headers") or []),
-                            indicators=indicators,
-                            footnotes_content=fn_content,
-                            no_table_detected=bool(cached.get("no_table_detected", False)),
-                            extraction_method=_EXTRACTION_METHOD,
-                            vision_status=str(cached.get("vision_status") or "ok"),
-                            warnings=list(cached.get("warnings") or []),
-                            retry_reasons=retry_reasons,
-                            requested_max_completion_tokens=(
-                                int(cached.get("requested_max_completion_tokens"))
-                                if cached.get("requested_max_completion_tokens") is not None
-                                else configured_max_completion_tokens
-                            ),
-                            finish_reason=(
-                                str(cached.get("finish_reason")) if cached.get("finish_reason") is not None else None
-                            ),
-                            prompt_tokens=(
-                                int(cached.get("prompt_tokens")) if cached.get("prompt_tokens") is not None else None
-                            ),
-                            completion_tokens=(
-                                int(cached.get("completion_tokens"))
-                                if cached.get("completion_tokens") is not None
-                                else None
-                            ),
-                            total_tokens=(
-                                int(cached.get("total_tokens")) if cached.get("total_tokens") is not None else None
-                            ),
-                            rescue_used=bool(cached.get("rescue_used", False)),
-                            extraction_status=str(cached.get("extraction_status") or "ok").strip() or "ok",
-                            acceptance_reason=(
-                                str(cached.get("acceptance_reason")).strip()
-                                if cached.get("acceptance_reason") is not None
-                                else None
-                            ),
-                            rejection_reasons=[
-                                str(value).strip()
-                                for value in list(cached.get("rejection_reasons", []) or [])
-                                if str(value).strip()
-                            ],
-                            selected_candidate_name=(
-                                str(cached.get("selected_candidate_name")).strip()
-                                if cached.get("selected_candidate_name") is not None
-                                else None
-                            ),
-                            no_table_evidence_count=int(cached.get("no_table_evidence_count") or 0),
-                            summary_present=bool(cached.get("summary_present", False)),
-                            indicator_count=int(cached.get("indicator_count") or 0),
-                            candidate_quality_rank=[
-                                int(value)
-                                for value in list(cached.get("candidate_quality_rank", []) or [])
-                                if isinstance(value, (int, float))
-                            ],
-                            confidence_score=float(cached.get("confidence_score", 0.0)),
-                            selected_bbox_norm=(
-                                [float(value) for value in cached.get("selected_bbox_norm", [])]
-                                if isinstance(cached.get("selected_bbox_norm"), list)
-                                and len(cached.get("selected_bbox_norm", [])) == 4
-                                else None
-                            ),
-                            bbox_source=str(cached.get("bbox_source") or "docling"),
-                            bbox_confidence=(
-                                float(cached.get("bbox_confidence"))
-                                if cached.get("bbox_confidence") is not None
-                                else None
-                            ),
-                            page_context_title=str(cached.get("page_context_title") or ""),
-                            page_context_continuation=(
-                                bool(cached.get("page_context_continuation"))
-                                if cached.get("page_context_continuation") is not None
-                                else None
-                            ),
-                            page_context_table_count=(
-                                int(cached.get("page_context_table_count"))
-                                if cached.get("page_context_table_count") is not None
-                                else None
-                            ),
-                        )
+                        return cached_result
 
         try:
             self._ensure_client()
@@ -2428,7 +2394,11 @@ class VisionFullExtractor:
                                         completion_tokens=retry_completion_tokens,
                                         total_tokens=retry_total_tokens,
                                     )
-                                    if self._use_cache and cache_key:
+                                    if (
+                                        self._use_cache
+                                        and cache_key
+                                        and _structural_indicator_count(result) > 0
+                                    ):
                                         cache_dir = get_vision_cache_dir()
                                         cache_put(
                                             cache_dir,
@@ -2505,7 +2475,11 @@ class VisionFullExtractor:
                                         completion_tokens=retry_completion_tokens,
                                         total_tokens=retry_total_tokens,
                                     )
-                                    if self._use_cache and cache_key:
+                                    if (
+                                        self._use_cache
+                                        and cache_key
+                                        and _structural_indicator_count(result) > 0
+                                    ):
                                         cache_dir = get_vision_cache_dir()
                                         cache_put(
                                             cache_dir,
@@ -2576,7 +2550,11 @@ class VisionFullExtractor:
                 total_tokens=total_tokens,
             )
 
-            if self._use_cache and cache_key:
+            if (
+                self._use_cache
+                and cache_key
+                and _structural_indicator_count(result) > 0
+            ):
                 cache_dir = get_vision_cache_dir()
                 cache_put(
                     cache_dir,
@@ -2848,6 +2826,61 @@ class VisionFullExtractor:
                 _MAX_COMPLETION_TOKENS_API_LIMIT,
             ),
         )
+        quality_cache_key = ""
+        if (
+            self._use_cache
+            and pdf_sha
+            and page_number
+            and bbox_norm
+            and len(bbox_norm) == 4
+        ):
+            bbox_with_context = list(bbox_norm)
+            bbox_with_context[1] = max(
+                0.0,
+                bbox_with_context[1] - initial_top_extension,
+            )
+            bbox_with_context[3] = min(
+                1.0,
+                bbox_with_context[3] + initial_bottom_extension,
+            )
+            base_quality_key = make_cache_key(
+                pdf_sha,
+                page_number,
+                bbox_with_context,
+                max_completion_tokens=base_max_completion_tokens,
+            )
+            if base_quality_key:
+                quality_cache_key = (
+                    f"quality_pass_{_QUALITY_PASS_CACHE_VERSION}_"
+                    f"{base_quality_key}"
+                )
+                cached_quality = cache_get(
+                    get_vision_cache_dir(),
+                    quality_cache_key,
+                )
+                if cached_quality:
+                    cached_result = _result_from_cache_payload(cached_quality)
+                    if cached_result is not None:
+                        logger.info(
+                            "VisionFull quality cache hit: %d indicators",
+                            len(cached_result.indicators),
+                        )
+                        return cached_result
+
+        def _cache_quality_result(result: VisionFullResult) -> VisionFullResult:
+            """Persister la decision finale, y compris les passes de sauvetage."""
+            accepted_status = str(result.extraction_status or "").strip()
+            cacheable = (
+                accepted_status in {"ok", "rescued"}
+                and _structural_indicator_count(result) > 0
+            )
+            if self._use_cache and quality_cache_key and cacheable:
+                cache_put(
+                    get_vision_cache_dir(),
+                    quality_cache_key,
+                    _cache_payload_from_result(result),
+                )
+            return result
 
         def _footnote_ids(r: VisionFullResult) -> set[str]:
             """Retourne l'ensemble des identifiants de footnotes extraits du résultat."""
@@ -2999,14 +3032,16 @@ class VisionFullExtractor:
 
         if not initial_is_suspect and not initial_rejection_reasons:
             assert first is not None
-            return _build_result_debug_metadata(
-                replace(first, extraction_status="ok", qa_inspected=passed_qa),
-                acceptance_reason="initial_complete",
-                rejection_reasons=[],
-                selected_candidate_name="initial",
-                no_table_evidence_count=0,
-                bbox_norm=bbox_norm,
-                expected_footnote_ids=expected_set,
+            return _cache_quality_result(
+                _build_result_debug_metadata(
+                    replace(first, extraction_status="ok", qa_inspected=passed_qa),
+                    acceptance_reason="initial_complete",
+                    rejection_reasons=[],
+                    selected_candidate_name="initial",
+                    no_table_evidence_count=0,
+                    bbox_norm=bbox_norm,
+                    expected_footnote_ids=expected_set,
+                )
             )
 
         candidates: list[tuple[str, VisionFullResult | None]] = [("initial", first)]
@@ -3381,7 +3416,7 @@ class VisionFullExtractor:
                 expected_footnote_ids=expected_set,
             )
             if finalized is not None:
-                return finalized
+                return _cache_quality_result(finalized)
 
         if no_table_evidence >= 2:
             fallback = (
@@ -3402,21 +3437,26 @@ class VisionFullExtractor:
                 if _override_status == "rescued"
                 else "confirmed_no_table_after_repeated_no_table_evidence"
             )
-            return _build_result_debug_metadata(
-                replace(
-                    fallback,
-                    no_table_detected=(_override_status == "confirmed_no_table"),
-                    recrop_attempted=len(candidates) > 1,
-                    recrop_used=False,
-                    recrop_failed_incomplete=False,
-                    extraction_status=_override_status,
-                ),
-                acceptance_reason=_override_reason,
-                rejection_reasons=initial_rejection_reasons or ["no_table_evidence"],
-                selected_candidate_name="same_crop_rescue" if same_crop_rescue else "initial",
-                no_table_evidence_count=no_table_evidence,
-                bbox_norm=bbox_norm,
-                expected_footnote_ids=expected_set,
+            return _cache_quality_result(
+                _build_result_debug_metadata(
+                    replace(
+                        fallback,
+                        no_table_detected=(_override_status == "confirmed_no_table"),
+                        recrop_attempted=len(candidates) > 1,
+                        recrop_used=False,
+                        recrop_failed_incomplete=False,
+                        extraction_status=_override_status,
+                    ),
+                    acceptance_reason=_override_reason,
+                    rejection_reasons=initial_rejection_reasons
+                    or ["no_table_evidence"],
+                    selected_candidate_name=(
+                        "same_crop_rescue" if same_crop_rescue else "initial"
+                    ),
+                    no_table_evidence_count=no_table_evidence,
+                    bbox_norm=bbox_norm,
+                    expected_footnote_ids=expected_set,
+                )
             )
 
         fallback: VisionFullResult = same_crop_rescue or first  # type: ignore[assignment]
@@ -3448,7 +3488,7 @@ class VisionFullExtractor:
             expected_footnote_ids=expected_set,
         )
         if finalized_fallback is not None:
-            return finalized_fallback
+            return _cache_quality_result(finalized_fallback)
 
         # Fallback rejected by acceptance gate → demote to confirmed_no_table.
         fallback_rejection_reasons = list(
@@ -3467,19 +3507,24 @@ class VisionFullExtractor:
             if _override_status_fb == "rescued"
             else "confirmed_no_table_after_rescue_exhaustion"
         )
-        return _build_result_debug_metadata(
-            replace(
-                fallback,
-                no_table_detected=(_override_status_fb == "confirmed_no_table"),
-                recrop_attempted=len(candidates) > 1,
-                recrop_used=False,
-                recrop_failed_incomplete=True,
-                extraction_status=_override_status_fb,
-            ),
-            acceptance_reason=_override_reason_fb,
-            rejection_reasons=fallback_rejection_reasons or ["rescue_exhausted"],
-            selected_candidate_name=fallback_candidate_name,
-            no_table_evidence_count=no_table_evidence,
-            bbox_norm=bbox_norm,
-            expected_footnote_ids=expected_set,
+        return _cache_quality_result(
+            _build_result_debug_metadata(
+                replace(
+                    fallback,
+                    no_table_detected=(
+                        _override_status_fb == "confirmed_no_table"
+                    ),
+                    recrop_attempted=len(candidates) > 1,
+                    recrop_used=False,
+                    recrop_failed_incomplete=True,
+                    extraction_status=_override_status_fb,
+                ),
+                acceptance_reason=_override_reason_fb,
+                rejection_reasons=fallback_rejection_reasons
+                or ["rescue_exhausted"],
+                selected_candidate_name=fallback_candidate_name,
+                no_table_evidence_count=no_table_evidence,
+                bbox_norm=bbox_norm,
+                expected_footnote_ids=expected_set,
+            )
         )

@@ -93,6 +93,48 @@ def test_page_locator_cache_reuses_one_call_for_tables_on_same_page(monkeypatch)
     assert calls == [b"page-image"]
 
 
+def test_page_locator_persistent_cache_stabilizes_separate_runs(
+    tmp_path,
+    monkeypatch,
+) -> None:
+    expected = _parse_page_layout(_layout_payload(), page_number=30)
+    first_locator = PageTableLocator(
+        api_key="test-key",
+        model="gpt-4o-test",
+        use_cache=True,
+        cache_dir=str(tmp_path),
+    )
+    calls: list[bytes] = []
+
+    def fake_locate(page_image_bytes: bytes, page_number: int):
+        calls.append(page_image_bytes)
+        return expected
+
+    monkeypatch.setattr(first_locator, "_locate_uncached", fake_locate)
+    first = first_locator.locate_page(b"page-image", 30, pdf_sha="same-pdf")
+
+    second_locator = PageTableLocator(
+        api_key="test-key",
+        model="gpt-4o-test",
+        use_cache=True,
+        cache_dir=str(tmp_path),
+    )
+
+    def fail_if_called(*_args):
+        raise AssertionError("persistent cache should avoid a second API call")
+
+    monkeypatch.setattr(second_locator, "_locate_uncached", fail_if_called)
+    second = second_locator.locate_page(
+        b"different-render",
+        30,
+        pdf_sha="same-pdf",
+    )
+
+    assert first == expected
+    assert second == expected
+    assert calls == [b"page-image"]
+
+
 def test_page_locator_client_has_direct_120_second_timeout(monkeypatch) -> None:
     captured: list[dict] = []
 

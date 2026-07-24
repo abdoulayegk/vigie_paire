@@ -21,6 +21,7 @@ from vigilance.comparison_io import (
     _coerce_int,
     _coerce_pathlike,
     _extract_usage_metrics,
+    _is_boundary_inventory_candidate,
     _load_tables_payload,
     _make_run_id,
     _merge_extraction_suspect_side,
@@ -106,13 +107,14 @@ def _visual_sanity_meta(
     applied: bool,
     rejected_count: int,
     render_status: str,
+    render_mode: str = "full",
 ) -> dict[str, Any]:
     """Construire le bloc de metadonnees de la verification visuelle."""
     return {
         "visual_sanity_applied": applied,
         "visual_sanity_rejected_count": int(rejected_count),
         "visual_sanity_scope": ["indicators", "footnotes", "tables"],
-        "visual_sanity_render_mode": "full",
+        "visual_sanity_render_mode": render_mode,
         "visual_sanity_render_status": render_status,
     }
 
@@ -325,6 +327,82 @@ def _resolve_visual_table_anchor(
     if best_score < 4.0 or best_score - second_score < 0.75:
         return None
     return best_candidate
+
+
+def _infer_opposite_page_from_matched_pairs(
+    event_snapshot: dict[str, Any],
+    matched_pairs: list[dict[str, Any]],
+    event_snapshots: dict[str, dict[str, Any]],
+    opposite_snapshots: dict[str, dict[str, Any]],
+    *,
+    event_side: str,
+) -> int | None:
+    """Estimer la page opposee a partir des paires voisines deja appariees."""
+    try:
+        event_page = int(event_snapshot.get("page") or 0)
+    except (TypeError, ValueError):
+        return None
+    if event_page < 1 or event_side not in {"previous", "current"}:
+        return None
+
+    event_id_key = (
+        "previous_table_id" if event_side == "previous" else "current_table_id"
+    )
+    opposite_id_key = (
+        "current_table_id" if event_side == "previous" else "previous_table_id"
+    )
+    page_map: dict[int, list[int]] = {}
+    for pair in matched_pairs:
+        event_id = str(pair.get(event_id_key, "") or "").strip()
+        opposite_id = str(pair.get(opposite_id_key, "") or "").strip()
+        event_anchor = event_snapshots.get(event_id, {})
+        opposite_anchor = opposite_snapshots.get(opposite_id, {})
+        try:
+            event_anchor_page = int(event_anchor.get("page") or 0)
+            opposite_anchor_page = int(opposite_anchor.get("page") or 0)
+        except (TypeError, ValueError):
+            continue
+        if event_anchor_page < 1 or opposite_anchor_page < 1:
+            continue
+        page_map.setdefault(event_anchor_page, []).append(opposite_anchor_page)
+
+    anchors = sorted(
+        (
+            source_page,
+            round(sum(target_pages) / len(target_pages)),
+        )
+        for source_page, target_pages in page_map.items()
+        if target_pages
+    )
+    if not anchors:
+        return None
+
+    previous_anchor = next(
+        (
+            anchor
+            for anchor in reversed(anchors)
+            if anchor[0] <= event_page
+        ),
+        None,
+    )
+    next_anchor = next(
+        (anchor for anchor in anchors if anchor[0] >= event_page),
+        None,
+    )
+    if previous_anchor and next_anchor:
+        source_span = next_anchor[0] - previous_anchor[0]
+        if source_span <= 0:
+            return max(1, previous_anchor[1])
+        progress = (event_page - previous_anchor[0]) / source_span
+        inferred = previous_anchor[1] + progress * (
+            next_anchor[1] - previous_anchor[1]
+        )
+        return max(1, round(inferred))
+    if previous_anchor:
+        return max(1, event_page + previous_anchor[1] - previous_anchor[0])
+    if next_anchor:
+        return max(1, event_page + next_anchor[1] - next_anchor[0])
+    return None
 
 
 def _call_openai_json(
@@ -587,6 +665,53 @@ def compare_reports_gpt4o(
         hybrid_min_confidence=float(matching_settings.get("hybrid_min_confidence", 0.75) or 0.75),
         call_openai_embeddings=_call_openai_embeddings,
     )
+
+    def _exclude_unmatched_boundary_candidates(
+        items: list[dict[str, Any]],
+        snapshots: dict[str, dict[str, Any]],
+        *,
+        side: str,
+    ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+        """Garder les candidats de bordure pour le matching, pas comme changements."""
+        kept: list[dict[str, Any]] = []
+        excluded: list[dict[str, Any]] = []
+        for item in items:
+            table_id = str(item.get("table_id", "") or "").strip()
+            snapshot = snapshots.get(table_id, {})
+            if not _is_boundary_inventory_candidate(snapshot):
+                kept.append(item)
+                continue
+            excluded.append(
+                {
+                    **item,
+                    **snapshot,
+                    "scope_side": side,
+                    "exclusion_reason": (
+                        "Tableau detecte uniquement sur une page limitrophe ajoutee "
+                        "pour l'appariement; son absence de correspondance ne constitue "
+                        "pas un ajout ou un retrait dans le perimetre compare."
+                    ),
+                }
+            )
+        return kept, excluded
+
+    (
+        match_result["tables_added"],
+        boundary_scope_exclusions_current,
+    ) = _exclude_unmatched_boundary_candidates(
+        list(match_result.get("tables_added", []) or []),
+        current_snapshots,
+        side="current",
+    )
+    (
+        match_result["tables_removed"],
+        boundary_scope_exclusions_previous,
+    ) = _exclude_unmatched_boundary_candidates(
+        list(match_result.get("tables_removed", []) or []),
+        previous_snapshots,
+        side="previous",
+    )
+
     tables_added: list[dict[str, Any]] = []
     for item in match_result["tables_added"]:
         table_id = item["table_id"]
@@ -777,21 +902,38 @@ def compare_reports_gpt4o(
         *,
         event_type: str,
         event_snapshot: dict[str, Any],
-    ) -> tuple[bytes | None, bytes | None, str]:
+    ) -> tuple[bytes | None, bytes | None, str, str]:
         """Rend les deux preuves visuelles pour un événement (ajout / retrait de tableau)."""
         normalized_event_type = str(event_type or "").strip().lower()
+        render_mode = "full"
         if normalized_event_type == "table_added":
             opposite_anchor = _resolve_opposite_table_anchor(
                 event_snapshot,
                 previous_snapshots,
             )
             if opposite_anchor is None:
-                return None, None, "skipped_missing_anchor"
-            previous_render, previous_status = render_visual_sanity_proof(
-                source_pdf_previous,
-                page=opposite_anchor.get("page"),
-                bbox=opposite_anchor.get("bbox"),
-            )
+                opposite_page = _infer_opposite_page_from_matched_pairs(
+                    event_snapshot,
+                    match_result["matched_pairs"],
+                    current_snapshots,
+                    previous_snapshots,
+                    event_side="current",
+                )
+                if opposite_page is None:
+                    return None, None, "skipped_missing_anchor", render_mode
+                render_mode = "full_page_context_fallback"
+                previous_render, previous_status = render_visual_sanity_proof(
+                    source_pdf_previous,
+                    page=opposite_page,
+                    bbox=None,
+                    allow_full_page_fallback=True,
+                )
+            else:
+                previous_render, previous_status = render_visual_sanity_proof(
+                    source_pdf_previous,
+                    page=opposite_anchor.get("page"),
+                    bbox=opposite_anchor.get("bbox"),
+                )
             current_render, current_status = render_visual_sanity_proof(
                 source_pdf_current,
                 page=event_snapshot.get("page"),
@@ -803,7 +945,18 @@ def compare_reports_gpt4o(
                 current_snapshots,
             )
             if opposite_anchor is None:
-                return None, None, "skipped_missing_anchor"
+                opposite_page = _infer_opposite_page_from_matched_pairs(
+                    event_snapshot,
+                    match_result["matched_pairs"],
+                    previous_snapshots,
+                    current_snapshots,
+                    event_side="previous",
+                )
+                if opposite_page is None:
+                    return None, None, "skipped_missing_anchor", render_mode
+                render_mode = "full_page_context_fallback"
+            else:
+                opposite_page = opposite_anchor.get("page")
             previous_render, previous_status = render_visual_sanity_proof(
                 source_pdf_previous,
                 page=event_snapshot.get("page"),
@@ -811,13 +964,15 @@ def compare_reports_gpt4o(
             )
             current_render, current_status = render_visual_sanity_proof(
                 source_pdf_current,
-                page=opposite_anchor.get("page"),
-                bbox=opposite_anchor.get("bbox"),
+                page=opposite_page,
+                bbox=None if opposite_anchor is None else opposite_anchor.get("bbox"),
+                allow_full_page_fallback=opposite_anchor is None,
             )
         return (
             previous_render,
             current_render,
             _worst_render_status([previous_status, current_status]),
+            render_mode,
         )
 
     for pair in match_result["matched_pairs"]:
@@ -904,7 +1059,12 @@ def compare_reports_gpt4o(
     if _sanity_check_enabled:
         filtered_tables_added: list[dict[str, Any]] = []
         for item in tables_added:
-            previous_render, current_render, render_status = _render_table_event_proofs(
+            (
+                previous_render,
+                current_render,
+                render_status,
+                render_mode,
+            ) = _render_table_event_proofs(
                 event_type="table_added",
                 event_snapshot=item,
             )
@@ -914,6 +1074,7 @@ def compare_reports_gpt4o(
                         applied=False,
                         rejected_count=0,
                         render_status=render_status,
+                        render_mode=render_mode,
                     )
                 )
                 filtered_tables_added.append(item)
@@ -929,13 +1090,19 @@ def compare_reports_gpt4o(
                 usage_recorder=usage_records,
             )
             item.update({key: value for key, value in verdict.items() if key != "confirmed"})
+            item["visual_sanity_render_mode"] = render_mode
             if verdict.get("confirmed", True):
                 filtered_tables_added.append(item)
         tables_added = filtered_tables_added
 
         filtered_tables_removed: list[dict[str, Any]] = []
         for item in tables_removed:
-            previous_render, current_render, render_status = _render_table_event_proofs(
+            (
+                previous_render,
+                current_render,
+                render_status,
+                render_mode,
+            ) = _render_table_event_proofs(
                 event_type="table_removed",
                 event_snapshot=item,
             )
@@ -945,6 +1112,7 @@ def compare_reports_gpt4o(
                         applied=False,
                         rejected_count=0,
                         render_status=render_status,
+                        render_mode=render_mode,
                     )
                 )
                 filtered_tables_removed.append(item)
@@ -960,6 +1128,7 @@ def compare_reports_gpt4o(
                 usage_recorder=usage_records,
             )
             item.update({key: value for key, value in verdict.items() if key != "confirmed"})
+            item["visual_sanity_render_mode"] = render_mode
             if verdict.get("confirmed", True):
                 filtered_tables_removed.append(item)
         tables_removed = filtered_tables_removed
@@ -1084,6 +1253,8 @@ def compare_reports_gpt4o(
             "artifacts_confirmed_current": artifacts_confirmed_current,
             "extraction_suspects_previous": extraction_suspects_previous,
             "extraction_suspects_current": extraction_suspects_current,
+            "boundary_scope_exclusions_previous": boundary_scope_exclusions_previous,
+            "boundary_scope_exclusions_current": boundary_scope_exclusions_current,
         },
         "pair_comparisons": pair_comparisons,
         "run_metrics": run_metrics,
@@ -1095,6 +1266,12 @@ def compare_reports_gpt4o(
             "artifacts_confirmed_current_total": len(artifacts_confirmed_current),
             "extraction_suspects_previous_total": len(extraction_suspects_previous),
             "extraction_suspects_current_total": len(extraction_suspects_current),
+            "boundary_scope_exclusions_previous_total": len(
+                boundary_scope_exclusions_previous
+            ),
+            "boundary_scope_exclusions_current_total": len(
+                boundary_scope_exclusions_current
+            ),
             "indicator_changes_total": indicator_changes_total,
             "footnote_changes_total": footnote_changes_total,
             "high_priority_items_total": high_priority_items_total,

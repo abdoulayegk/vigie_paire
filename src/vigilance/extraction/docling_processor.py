@@ -96,6 +96,43 @@ configure_mupdf_runtime(fitz)
 _REFERENCE_TEXT_SPLIT_RE = re.compile(r"\s{2,}|\t+|\s+\|\s+")
 
 
+def _bbox_area(bbox: list[float]) -> float:
+    """Calculer l'aire d'une boite englobante normalisee."""
+    if not bbox or len(bbox) < 4:
+        return 0.0
+    width = max(0.0, float(bbox[2]) - float(bbox[0]))
+    height = max(0.0, float(bbox[3]) - float(bbox[1]))
+    return width * height
+
+
+def _bbox_overlap_ratio(first: list[float], second: list[float]) -> float:
+    """Calculer l'intersection rapportee a la plus petite des deux boites."""
+    if len(first) < 4 or len(second) < 4:
+        return 0.0
+    x0 = max(first[0], second[0])
+    y0 = max(first[1], second[1])
+    x1 = min(first[2], second[2])
+    y1 = min(first[3], second[3])
+    if x1 <= x0 or y1 <= y0:
+        return 0.0
+    intersection = (x1 - x0) * (y1 - y0)
+    denominator = min(_bbox_area(first), _bbox_area(second))
+    return intersection / denominator if denominator > 0 else 0.0
+
+
+def _is_locator_merge_conflict(
+    first_original: list[float],
+    second_original: list[float],
+    first_corrected: list[float],
+    second_corrected: list[float],
+) -> bool:
+    """Detecter quand le locator fusionne deux blocs Docling distincts."""
+    return bool(
+        _bbox_overlap_ratio(first_corrected, second_corrected) >= 0.90
+        and _bbox_overlap_ratio(first_original, second_original) < 0.20
+    )
+
+
 def _coerce_pdf_path(pdf_path: str | Path | os.PathLike[str] | None) -> Path:
     """Valider et convertir un chemin PDF en objet Path."""
     if pdf_path is None:
@@ -1043,6 +1080,21 @@ class DoclingProcessor:
             return True
         return any(start <= page_num <= end for start, end in page_ranges)
 
+    def _pad_page_ranges(
+        self,
+        page_ranges: list[tuple[int, int]] | None,
+        padding: int,
+    ) -> list[tuple[int, int]] | None:
+        """Etendre les plages ciblees pour verifier leurs pages limitrophes."""
+        normalized = self._normalize_page_ranges(page_ranges)
+        if not normalized:
+            return None
+        safe_padding = max(0, int(padding))
+        return [
+            (max(1, start - safe_padding), end + safe_padding)
+            for start, end in normalized
+        ]
+
     def _normalize_page_ranges(self, page_ranges: list[tuple[int, int]] | None) -> list[tuple[int, int]]:
         """Normaliser les plages pour garantir start >= 1 et end >= start."""
         if not page_ranges:
@@ -1267,6 +1319,11 @@ class DoclingProcessor:
                             """Localiser la page puis rendre uniquement le tableau corrige."""
                             if page_table_locator is None:
                                 return None
+                            if (
+                                page_context_observation.get("bbox_source")
+                                == "page_context_inventory_conflict_preserved_docling"
+                            ):
+                                return None
                             from .page_table_locator import build_page_table_crop_plan
                             from .pdf_preview import render_pdf_page
 
@@ -1300,7 +1357,10 @@ class DoclingProcessor:
                             page_context_observation.update(
                                 {
                                     "bbox_norm": list(plan.bbox_norm),
-                                    "bbox_source": "page_context_locator",
+                                    "bbox_source": (
+                                        page_context_observation.get("bbox_source")
+                                        or "page_context_locator"
+                                    ),
                                     "confidence": plan.confidence,
                                     "title_text": plan.title_text,
                                     "continuation": plan.continuation,
@@ -1710,6 +1770,7 @@ class DoclingProcessor:
                                     0.85,
                                 )
                             ),
+                            use_cache=vision_cache_enabled,
                         )
                     else:
                         logger.warning("Vision extraction: OPENAI_API_KEY absente, desactivation")
@@ -1758,31 +1819,6 @@ class DoclingProcessor:
                     pass
                 vision_items.append((idx, page_num, table_bbox, table_id, reference_text))
 
-            def _bbox_area(b: list[float]) -> float:
-                """Calculer l'aire d'une boite englobante."""
-                if not b or len(b) < 4:
-                    return 0.0
-                w = max(0.0, float(b[2]) - float(b[0]))
-                h = max(0.0, float(b[3]) - float(b[1]))
-                return w * h
-
-            def _bbox_overlap_ratio(a: list[float], b: list[float]) -> float:
-                """Calculer le ratio de chevauchement entre deux boites englobantes."""
-                if len(a) < 4 or len(b) < 4:
-                    return 0.0
-                x0 = max(a[0], b[0])
-                y0 = max(a[1], b[1])
-                x1 = min(a[2], b[2])
-                y1 = min(a[3], b[3])
-                if x1 <= x0 or y1 <= y0:
-                    return 0.0
-                inter = (x1 - x0) * (y1 - y0)
-                area_a = _bbox_area(a)
-                area_b = _bbox_area(b)
-                if area_a <= 0 or area_b <= 0:
-                    return 0.0
-                return inter / min(area_a, area_b)
-
             # Inventaire pleine page optionnel : il corrige les boites Docling
             # existantes et cree les candidats que Docling n'a pas vus du tout.
             if (
@@ -1797,6 +1833,19 @@ class DoclingProcessor:
                 from .page_table_locator import build_page_table_crop_plan
                 from .pdf_preview import render_pdf_page
 
+                inventory_page_padding = max(
+                    0,
+                    int(
+                        vision_extraction_cfg.get(
+                            "page_context_inventory_page_padding",
+                            0,
+                        )
+                    ),
+                )
+                inventory_page_ranges = self._pad_page_ranges(
+                    effective_page_ranges,
+                    inventory_page_padding,
+                )
                 page_numbers: list[int] = []
                 if hasattr(doc, "pages"):
                     try:
@@ -1805,7 +1854,7 @@ class DoclingProcessor:
                             for page_number in doc.pages.keys()
                             if self._is_page_in_ranges(
                                 int(page_number),
-                                effective_page_ranges,
+                                inventory_page_ranges,
                             )
                         )
                     except Exception:
@@ -1829,6 +1878,17 @@ class DoclingProcessor:
                         )
                     ),
                 )
+                excluded_new_table_titles = [
+                    str(value or "").strip().casefold()
+                    for value in list(
+                        vision_extraction_cfg.get(
+                            "page_context_inventory_excluded_title_patterns",
+                            [],
+                        )
+                        or []
+                    )
+                    if str(value or "").strip()
+                ]
                 corrected_count = 0
                 added_count = 0
                 next_synthetic_idx = (
@@ -1867,10 +1927,9 @@ class DoclingProcessor:
                         for position, item in enumerate(vision_items)
                         if item[1] == inventory_page
                     ]
+                    planned_positions: list[tuple[int, list[float], Any]] = []
                     for position in page_item_positions:
-                        item_idx, item_page, item_bbox, item_id, item_reference = (
-                            vision_items[position]
-                        )
+                        _item_idx, _item_page, item_bbox, _item_id, _item_reference = vision_items[position]
                         if not item_bbox:
                             continue
                         plan = build_page_table_crop_plan(
@@ -1880,11 +1939,46 @@ class DoclingProcessor:
                         )
                         if plan is None:
                             continue
+                        planned_positions.append(
+                            (position, list(item_bbox), plan)
+                        )
+
+                    merge_conflict_positions: set[int] = set()
+                    for plan_index, first_planned in enumerate(
+                        planned_positions
+                    ):
+                        first_position, first_original, first_plan = first_planned
+                        for second_planned in planned_positions[plan_index + 1 :]:
+                            (
+                                second_position,
+                                second_original,
+                                second_plan,
+                            ) = second_planned
+                            if _is_locator_merge_conflict(
+                                first_original,
+                                second_original,
+                                list(first_plan.bbox_norm),
+                                list(second_plan.bbox_norm),
+                            ):
+                                merge_conflict_positions.update(
+                                    {first_position, second_position}
+                                )
+
+                    for position, item_bbox, plan in planned_positions:
+                        item_idx, item_page, _bbox, item_id, item_reference = (
+                            vision_items[position]
+                        )
                         corrected_bbox = list(plan.bbox_norm)
+                        bbox_source = "page_context_inventory"
+                        if position in merge_conflict_positions:
+                            corrected_bbox = list(item_bbox)
+                            bbox_source = (
+                                "page_context_inventory_conflict_preserved_docling"
+                            )
                         page_context_seed[item_idx] = {
                             "bbox_original": list(item_bbox),
                             "bbox_norm": corrected_bbox,
-                            "bbox_source": "page_context_inventory",
+                            "bbox_source": bbox_source,
                             "confidence": plan.confidence,
                             "title_text": plan.title_text,
                             "continuation": plan.continuation,
@@ -1897,7 +1991,10 @@ class DoclingProcessor:
                             item_id,
                             item_reference,
                         )
-                        if corrected_bbox != list(item_bbox):
+                        if (
+                            position not in merge_conflict_positions
+                            and corrected_bbox != list(item_bbox)
+                        ):
                             corrected_count += 1
 
                     current_page_boxes = [
@@ -1908,6 +2005,20 @@ class DoclingProcessor:
                     for region_index, region in enumerate(layout.tables, start=1):
                         region_bbox = list(region.table_bbox)
                         if region.confidence < new_table_min_confidence:
+                            continue
+                        normalized_region_title = str(
+                            region.title_text or ""
+                        ).casefold()
+                        if any(
+                            pattern in normalized_region_title
+                            for pattern in excluded_new_table_titles
+                        ):
+                            logger.info(
+                                "Vision page inventory ignored configured "
+                                "non-table region page=%s title=%s",
+                                inventory_page,
+                                region.title_text,
+                            )
                             continue
                         if any(
                             _bbox_overlap_ratio(region_bbox, existing_bbox) >= 0.20
@@ -1931,7 +2042,14 @@ class DoclingProcessor:
                         page_context_seed[synthetic_idx] = {
                             "bbox_original": None,
                             "bbox_norm": region_bbox,
-                            "bbox_source": "page_context_inventory_new_candidate",
+                            "bbox_source": (
+                                "page_context_inventory_new_candidate"
+                                if self._is_page_in_ranges(
+                                    inventory_page,
+                                    effective_page_ranges,
+                                )
+                                else "page_context_inventory_boundary_candidate"
+                            ),
                             "confidence": region.confidence,
                             "title_text": region.title_text,
                             "continuation": region.continuation,
@@ -1941,8 +2059,9 @@ class DoclingProcessor:
                         added_count += 1
 
                 logger.info(
-                    "Vision page inventory pages=%s corrected=%s added=%s",
+                    "Vision page inventory pages=%s padding=%s corrected=%s added=%s",
                     len(page_numbers),
+                    inventory_page_padding,
                     corrected_count,
                     added_count,
                 )

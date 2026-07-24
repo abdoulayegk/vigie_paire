@@ -8,6 +8,7 @@ et leurs notes. Il n'extrait jamais les indicateurs ni les valeurs du tableau.
 from __future__ import annotations
 
 import base64
+import hashlib
 import json
 import logging
 import math
@@ -18,11 +19,13 @@ from typing import Any
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from ..utils.openai_schema import build_strict_openai_response_format
+from .vision_cache import cache_get, cache_put, get_vision_cache_dir
 
 logger = logging.getLogger(__name__)
 
 OPENAI_PAGE_LOCATOR_TIMEOUT_SECONDS = 120.0
 DEFAULT_PAGE_LOCATOR_MIN_CONFIDENCE = 0.85
+_PAGE_LOCATOR_CACHE_VERSION = "v1"
 _MAX_TABLES_PER_PAGE = 16
 _MIN_NEIGHBOR_GAP = 0.005
 _GEOMETRY_RESCUE_REASONS = {
@@ -305,6 +308,28 @@ def _parse_page_layout(
     return PageTableLayout(page_number=page_number, tables=tuple(regions))
 
 
+def _page_layout_cache_payload(layout: PageTableLayout) -> dict[str, Any]:
+    """Serialiser un inventaire valide dans le format du schema du locator."""
+    tables = [
+        {
+            "table_bbox": list(region.table_bbox),
+            "title_bbox": (
+                list(region.title_bbox) if region.title_bbox is not None else None
+            ),
+            "footnotes_bbox": (
+                list(region.footnotes_bbox)
+                if region.footnotes_bbox is not None
+                else None
+            ),
+            "title_text": region.title_text,
+            "continuation": region.continuation,
+            "confidence": region.confidence,
+        }
+        for region in layout.tables
+    ]
+    return {"tables": tables, "table_count": len(tables)}
+
+
 def build_page_table_crop_plan(
     layout: PageTableLayout,
     target_bbox: list[float],
@@ -440,10 +465,14 @@ class PageTableLocator:
         model: str,
         *,
         min_confidence: float = DEFAULT_PAGE_LOCATOR_MIN_CONFIDENCE,
+        use_cache: bool = False,
+        cache_dir: str | None = None,
     ) -> None:
         self._api_key = api_key
         self._model = model
         self._min_confidence = min_confidence
+        self._use_cache = use_cache
+        self._cache_dir = cache_dir or get_vision_cache_dir()
         self._client: Any = None
         self._client_lock = threading.Lock()
         self._cache_lock = threading.Lock()
@@ -520,7 +549,7 @@ class PageTableLocator:
         *,
         pdf_sha: str = "",
     ) -> PageTableLayout | None:
-        """Localiser la page avec cache et appel unique en cas de concurrence."""
+        """Localiser la page avec caches memoire/persistant et appel unique."""
         cache_key = f"{pdf_sha or 'document'}:{page_number}"
         with self._cache_lock:
             if cache_key in self._page_cache:
@@ -539,7 +568,28 @@ class PageTableLocator:
 
         result: PageTableLayout | None = None
         try:
-            result = self._locate_uncached(page_image_bytes, page_number)
+            persistent_key = ""
+            if self._use_cache and pdf_sha:
+                raw_key = (
+                    f"{_PAGE_LOCATOR_CACHE_VERSION}|{self._model}|"
+                    f"{pdf_sha}|{page_number}"
+                )
+                persistent_key = (
+                    "page_locator_"
+                    + hashlib.sha256(raw_key.encode("utf-8")).hexdigest()
+                )
+                cached = cache_get(self._cache_dir, persistent_key)
+                if cached is not None:
+                    result = _parse_page_layout(cached, page_number)
+
+            if result is None:
+                result = self._locate_uncached(page_image_bytes, page_number)
+                if result is not None and persistent_key:
+                    cache_put(
+                        self._cache_dir,
+                        persistent_key,
+                        _page_layout_cache_payload(result),
+                    )
             return result
         finally:
             with self._cache_lock:

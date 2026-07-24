@@ -12,11 +12,13 @@ from vigilance.compare_gpt import (
     OPENAI_COMPARISON_TIMEOUT_SECONDS,
     _call_openai_embeddings,
     _call_openai_json,
+    _infer_opposite_page_from_matched_pairs,
     _resolve_visual_table_anchor,
     compare_reports_gpt4o,
     normalize_quarter,
     resolve_reference_period,
 )
+from vigilance.comparison_io import _is_boundary_inventory_candidate
 
 
 def _table(
@@ -77,6 +79,177 @@ def test_normalize_quarter_and_reference_period() -> None:
     assert normalize_quarter("Q2") == "t2"
     assert resolve_reference_period(2026, "t2") == (2026, "t1")
     assert resolve_reference_period(2026, "t1") == (2025, "t3")
+
+
+def test_boundary_inventory_candidate_supports_canonical_and_flattened_metadata() -> None:
+    source = "page_context_inventory_boundary_candidate"
+
+    assert _is_boundary_inventory_candidate(
+        {"bbox_provenance": {"bbox_source": source}}
+    )
+    assert _is_boundary_inventory_candidate(
+        {"debug_metrics": {"bbox_source": source}}
+    )
+    assert _is_boundary_inventory_candidate({"bbox_source": source})
+    assert not _is_boundary_inventory_candidate(
+        {"bbox_source": "page_context_inventory_new_candidate"}
+    )
+
+
+def test_infer_opposite_page_interpolates_between_neighboring_matches() -> None:
+    previous = {
+        "prev_40": {"page": 40},
+        "prev_43": {"page": 43},
+    }
+    current = {
+        "curr_46": {"page": 46},
+        "curr_48": {"page": 48},
+    }
+    pairs = [
+        {
+            "previous_table_id": "prev_40",
+            "current_table_id": "curr_46",
+        },
+        {
+            "previous_table_id": "prev_43",
+            "current_table_id": "curr_48",
+        },
+    ]
+
+    assert (
+        _infer_opposite_page_from_matched_pairs(
+            {"page": 41},
+            pairs,
+            previous,
+            current,
+            event_side="previous",
+        )
+        == 47
+    )
+    assert (
+        _infer_opposite_page_from_matched_pairs(
+            {"page": 52},
+            pairs,
+            current,
+            previous,
+            event_side="current",
+        )
+        == 47
+    )
+
+
+def test_compare_excludes_unmatched_boundary_candidates_from_change_counts(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    previous_dir = tmp_path / "extractions" / "bnc" / "2025" / "t1"
+    current_dir = tmp_path / "extractions" / "bnc" / "2025" / "t2"
+    previous_real = _table(
+        table_id="prev_real",
+        page=20,
+        section="risk_management",
+        title="Ancien tableau",
+        table_summary="Ancien tableau reel",
+        headers=["Poste", "T1"],
+        indicators=["Total"],
+    )
+    previous_boundary = _table(
+        table_id="prev_boundary",
+        page=10,
+        section="risk_management",
+        title="Tableau limitrophe precedent",
+        table_summary="Candidat utile seulement a l'appariement",
+        headers=["Poste", "T1"],
+        indicators=["Canada"],
+    )
+    previous_boundary["bbox_provenance"] = {
+        "bbox_source": "page_context_inventory_boundary_candidate"
+    }
+    current_real = _table(
+        table_id="curr_real",
+        page=30,
+        section="capital_management",
+        title="Nouveau tableau",
+        table_summary="Nouveau tableau reel",
+        headers=["Poste", "T2"],
+        indicators=["Total"],
+    )
+    current_boundary = _table(
+        table_id="curr_boundary",
+        page=49,
+        section="capital_management",
+        title="Tableau limitrophe courant",
+        table_summary="Candidat utile seulement a l'appariement",
+        headers=["Poste", "T2"],
+        indicators=["Autres"],
+    )
+    current_boundary["debug_metrics"] = {
+        "bbox_source": "page_context_inventory_boundary_candidate"
+    }
+    _write_tables_json(
+        previous_dir / "tables.json",
+        bank="bnc",
+        year=2025,
+        quarter="t1",
+        tables=[previous_real, previous_boundary],
+    )
+    _write_tables_json(
+        current_dir / "tables.json",
+        bank="bnc",
+        year=2025,
+        quarter="t2",
+        tables=[current_real, current_boundary],
+    )
+
+    monkeypatch.setattr(
+        "vigilance.compare_gpt._run_table_matching",
+        lambda *_args, **_kwargs: {
+            "matched_pairs": [],
+            "tables_added": [
+                {"table_id": "curr_real", "reason": "Ajout reel."},
+                {"table_id": "curr_boundary", "reason": "Non apparie."},
+            ],
+            "tables_removed": [
+                {"table_id": "prev_real", "reason": "Retrait reel."},
+                {"table_id": "prev_boundary", "reason": "Non apparie."},
+            ],
+        },
+    )
+    monkeypatch.setattr(
+        "vigilance.compare_gpt._devil_advocate_review",
+        lambda *_args, **_kwargs: {
+            "new_matches": [],
+            "contested_pairs": [],
+            "warnings": [],
+        },
+    )
+
+    comparison_path = compare_reports_gpt4o(
+        previous_dir=previous_dir,
+        current_dir=current_dir,
+        out_root=tmp_path / "comparisons",
+        model="gpt-4o-test",
+    )
+
+    payload = json.loads(comparison_path.read_text(encoding="utf-8"))
+    assert [item["table_id"] for item in payload["matching"]["tables_added"]] == [
+        "curr_real"
+    ]
+    assert [item["table_id"] for item in payload["matching"]["tables_removed"]] == [
+        "prev_real"
+    ]
+    assert [
+        item["table_id"]
+        for item in payload["matching"]["boundary_scope_exclusions_current"]
+    ] == ["curr_boundary"]
+    assert [
+        item["table_id"]
+        for item in payload["matching"]["boundary_scope_exclusions_previous"]
+    ] == ["prev_boundary"]
+    assert payload["summary"]["tables_added_total"] == 1
+    assert payload["summary"]["tables_removed_total"] == 1
+    assert payload["summary"]["boundary_scope_exclusions_current_total"] == 1
+    assert payload["summary"]["boundary_scope_exclusions_previous_total"] == 1
 
 
 def test_visual_anchor_uses_summary_and_indicators_when_title_changed() -> None:

@@ -56,6 +56,10 @@ class TableSnapshot(TypedDict):
     page: int | None
     section: str
     bbox: object
+    bbox_source: str
+    bbox_confidence: object
+    page_context_title: str
+    page_context_continuation: object
     row_count: int
     headers: list[str]
     indicators: list[str]
@@ -68,10 +72,10 @@ class TableSnapshot(TypedDict):
 
 
 def _is_ghost_table(entry: dict[str, Any]) -> bool:
-    """Retourne True si le tableau a 0 indicateur viable (pas un vrai tableau)."""
+    """Retourne True si le tableau n'a aucune ligne structurelle ni en-tete."""
     from vigilance.extraction.vision_full_extractor import (
         VisionFullResult,
-        _viable_indicator_count,
+        _structural_indicator_count,
     )
 
     indicators = list(entry.get("indicators", []) or [])
@@ -85,7 +89,21 @@ def _is_ghost_table(entry: dict[str, Any]) -> bool:
         indicators=indicators,
         footnotes_content=[],
     )
-    return _viable_indicator_count(probe) == 0 and len(headers) == 0
+    return _structural_indicator_count(probe) == 0 and len(headers) == 0
+
+
+def _is_boundary_inventory_candidate(entry: dict[str, Any]) -> bool:
+    """Identifier un tableau trouve uniquement dans la marge de pages inspectee."""
+    sources: list[Any] = [entry.get("bbox_source")]
+    for container_name in ("bbox_provenance", "debug_metrics"):
+        container = entry.get(container_name)
+        if isinstance(container, dict):
+            sources.append(container.get("bbox_source"))
+    return any(
+        str(source or "").strip()
+        == "page_context_inventory_boundary_candidate"
+        for source in sources
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -383,7 +401,9 @@ def _partition_tables_by_status(
                 }
             )
             continue
-        # Ghost table filter: 0 real indicators = not a real table
+        # Ghost filter: aucune ligne structurelle et aucun en-tete.
+        # Les libelles peu discriminants (Canada, Autres, Total) restent des
+        # lignes reelles et ne doivent pas faire disparaitre un petit tableau.
         if _is_ghost_table(entry):
             ghost_ids.append(table_id)
             continue

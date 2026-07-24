@@ -250,6 +250,68 @@ def test_quality_pass_uses_page_context_when_targeted_pass_returns_none(
     assert page_context_calls == [True]
 
 
+def test_quality_pass_accepts_compact_two_row_table_without_self_healing(
+    monkeypatch,
+) -> None:
+    extractor = VisionFullExtractor(api_key="test-key", model="gpt-4o-test")
+    extraction_calls: list[bytes] = []
+
+    def fake_extract(**kwargs):
+        extraction_calls.append(kwargs["crop_bytes"])
+        return _result(
+            title="Répartition géographique",
+            summary="Répartition par région",
+            indicators=["Canada", "Total"],
+            headers=["Catégorie", "T1 2026", "T2 2026", "Variation"],
+        )
+
+    monkeypatch.setattr(extractor, "extract", fake_extract)
+
+    result = extractor.extract_with_quality_pass(
+        crop_bytes=b"initial",
+        bank_code="rbc",
+        bbox_norm=[0.10, 0.20, 0.90, 0.40],
+        vision_cfg={},
+        get_variant_crop_fn=lambda **_kwargs: b"unexpected_rescue",
+    )
+
+    assert result is not None
+    assert result.extraction_status == "ok"
+    assert result.selected_candidate_name == "initial"
+    assert result.recrop_attempted is False
+    assert extraction_calls == [b"initial"]
+
+
+def test_quality_pass_preserves_three_generic_rows_without_summary(
+    monkeypatch,
+) -> None:
+    extractor = VisionFullExtractor(api_key="test-key", model="gpt-4o-test")
+
+    monkeypatch.setattr(
+        extractor,
+        "extract",
+        lambda **_kwargs: _result(
+            title="Répartition géographique",
+            summary="",
+            indicators=["Canada", "Autres", "Total"],
+            headers=["Catégorie", "Valeur"],
+        ),
+    )
+
+    result = extractor.extract_with_quality_pass(
+        crop_bytes=b"initial",
+        bank_code="rbc",
+        bbox_norm=[0.10, 0.20, 0.90, 0.40],
+        vision_cfg={},
+        get_variant_crop_fn=lambda **_kwargs: b"same_crop",
+    )
+
+    assert result is not None
+    assert result.extraction_status == "rescued"
+    assert result.indicators == ["Canada", "Autres", "Total"]
+    assert result.acceptance_reason == "rescued_without_summary_strong_structure"
+
+
 def test_variant_crop_is_clamped_before_a_close_following_table() -> None:
     table_bbox = [0.1, 0.1, 0.9, 0.4]
     next_table_top = 0.413
@@ -905,3 +967,130 @@ def test_extract_cache_hit_preserves_decision_metadata(
     assert result.selected_candidate_name == "top_trim"
     assert result.rejection_reasons == ["missing_table_summary"]
     assert result.candidate_quality_rank == [1, 0, 1, 2, 1, 2, 1]
+
+
+def test_extract_ignores_cached_result_without_structural_rows(
+    monkeypatch,
+) -> None:
+    extractor = VisionFullExtractor(
+        api_key="test-key",
+        model="gpt-4o-test",
+        use_cache=True,
+    )
+    monkeypatch.setattr(
+        "vigilance.extraction.vision_full_extractor.cache_get",
+        lambda *_args: {
+            "table_title": "Correction de valeur",
+            "table_summary": "",
+            "headers": [],
+            "indicators": [],
+            "footnotes_content": [],
+            "no_table_detected": True,
+        },
+    )
+    attempted: list[bool] = []
+
+    def fake_ensure_client() -> None:
+        attempted.append(True)
+        extractor._client = None
+
+    monkeypatch.setattr(extractor, "_ensure_client", fake_ensure_client)
+
+    result = extractor.extract(
+        crop_bytes=b"retry-this-crop",
+        bank_code="rbc",
+        pdf_sha="same-pdf",
+        page_number=33,
+        bbox_norm=[0.1, 0.2, 0.9, 0.8],
+        vision_cfg={},
+    )
+
+    assert result is None
+    assert attempted == [True]
+
+
+def test_quality_pass_cache_preserves_final_self_healing_decision(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    extractor = VisionFullExtractor(
+        api_key="test-key",
+        model="gpt-4o-test",
+        use_cache=True,
+    )
+    monkeypatch.setattr(
+        "vigilance.extraction.vision_full_extractor.get_vision_cache_dir",
+        lambda: tmp_path,
+    )
+    calls: list[bytes] = []
+
+    def fake_extract(**kwargs):
+        calls.append(kwargs["crop_bytes"])
+        return _result(
+            title="Petit tableau",
+            summary="Répartition géographique",
+            indicators=["Canada", "Autres", "Total"],
+            headers=["Région", "T2 2026"],
+        )
+
+    monkeypatch.setattr(extractor, "extract", fake_extract)
+    kwargs = {
+        "crop_bytes": b"stable-crop",
+        "bank_code": "rbc",
+        "pdf_sha": "same-pdf",
+        "page_number": 9,
+        "bbox_norm": [0.1, 0.2, 0.9, 0.8],
+        "vision_cfg": {},
+    }
+
+    first = extractor.extract_with_quality_pass(**kwargs)
+    second = extractor.extract_with_quality_pass(**kwargs)
+
+    assert first is not None
+    assert second is not None
+    assert first.indicators == ["Canada", "Autres", "Total"]
+    assert second.indicators == first.indicators
+    assert second.extraction_status == first.extraction_status
+    assert second.qa_inspected is True
+    assert calls == [b"stable-crop"]
+
+
+def test_quality_pass_does_not_cache_unresolved_empty_candidate(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    extractor = VisionFullExtractor(
+        api_key="test-key",
+        model="gpt-4o-test",
+        use_cache=True,
+    )
+    monkeypatch.setattr(
+        "vigilance.extraction.vision_full_extractor.get_vision_cache_dir",
+        lambda: tmp_path,
+    )
+    calls: list[bytes] = []
+
+    def fake_extract(**kwargs):
+        calls.append(kwargs["crop_bytes"])
+        return _result(no_table_detected=True)
+
+    monkeypatch.setattr(extractor, "extract", fake_extract)
+    kwargs = {
+        "crop_bytes": b"unresolved-crop",
+        "bank_code": "rbc",
+        "pdf_sha": "same-pdf",
+        "page_number": 31,
+        "bbox_norm": [0.1, 0.2, 0.9, 0.8],
+        "vision_cfg": {},
+    }
+
+    first = extractor.extract_with_quality_pass(**kwargs)
+    calls_after_first = len(calls)
+    second = extractor.extract_with_quality_pass(**kwargs)
+
+    assert first is not None
+    assert second is not None
+    assert first.indicators == []
+    assert second.indicators == []
+    assert calls_after_first > 0
+    assert len(calls) > calls_after_first
