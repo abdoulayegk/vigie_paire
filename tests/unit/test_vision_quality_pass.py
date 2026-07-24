@@ -8,6 +8,8 @@ from vigilance.extraction.vision_full_extractor import (
     OPENAI_VISION_TIMEOUT_SECONDS,
     VisionFullExtractor,
     VisionFullResult,
+    _PROMPT_BASE,
+    _PROMPT_BASE_PRECISION,
     _normalize_footnote_marker_id,
     _select_targeted_rescue_variant,
 )
@@ -280,6 +282,74 @@ def test_quality_pass_accepts_compact_two_row_table_without_self_healing(
     assert result.selected_candidate_name == "initial"
     assert result.recrop_attempted is False
     assert extraction_calls == [b"initial"]
+
+
+def test_prompts_keep_dates_when_they_are_body_row_labels() -> None:
+    required_rule = "body data row"
+
+    assert required_rule in _PROMPT_BASE
+    assert required_rule in _PROMPT_BASE_PRECISION
+    assert "same horizontal row contains data values" in _PROMPT_BASE
+    assert "same horizontal row contains data values" in _PROMPT_BASE_PRECISION
+
+
+def test_quality_pass_recovers_date_labeled_horizontal_rows_from_page_context(
+    monkeypatch,
+) -> None:
+    extractor = VisionFullExtractor(api_key="test-key", model="gpt-4o-test")
+    rescue_instructions: list[str] = []
+
+    def fake_extract(**kwargs):
+        if kwargs.get("rescue_mode"):
+            rescue_instructions.append(str(kwargs.get("rescue_instruction") or ""))
+        if kwargs["crop_bytes"] == b"page_context":
+            return _result(
+                title="TABLEAU 22",
+                summary="Prêts garantis par un bien immobilier au Canada",
+                indicators=["Au 31 janvier 2025", "Au 31 octobre 2024"],
+                headers=[
+                    "Prêts hypothécaires à l’habitation",
+                    "Marges de crédit sur la valeur domiciliaire",
+                    "Total",
+                ],
+            )
+        return _result(
+            title="TABLEAU 22",
+            summary="Prêts garantis par un bien immobilier au Canada",
+            indicators=[],
+            headers=[
+                "Prêts hypothécaires à l’habitation",
+                "Marges de crédit sur la valeur domiciliaire",
+                "Total",
+            ],
+        )
+
+    monkeypatch.setattr(extractor, "extract", fake_extract)
+
+    result = extractor.extract_with_quality_pass(
+        crop_bytes=b"initial",
+        bank_code="bmo",
+        bbox_norm=[0.056, 0.726, 0.936, 0.786],
+        vision_cfg={},
+        get_variant_crop_fn=lambda **_kwargs: b"targeted",
+        get_page_context_crop_fn=lambda: {
+            "crop_bytes": b"page_context",
+            "bbox_norm": [0.056, 0.726, 0.936, 0.786],
+            "confidence": 0.96,
+            "title_text": "Prêts garantis par un bien immobilier au Canada",
+            "continuation": False,
+            "table_count": 1,
+        },
+    )
+
+    assert result is not None
+    assert result.extraction_status == "rescued"
+    assert result.selected_candidate_name == "page_context_rescue"
+    assert result.indicators == ["Au 31 janvier 2025", "Au 31 octobre 2024"]
+    assert any(
+        "dates or periods" in instruction.lower()
+        for instruction in rescue_instructions
+    )
 
 
 def test_quality_pass_preserves_three_generic_rows_without_summary(

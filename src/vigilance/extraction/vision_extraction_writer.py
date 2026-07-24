@@ -215,6 +215,9 @@ def _compact_table_entry(table: Any) -> dict[str, Any]:
             "page_context_title",
             "page_context_continuation",
             "page_context_table_count",
+            "locator_merge_collapsed",
+            "locator_merged_table_ids",
+            "locator_original_bboxes",
         )
         bbox_provenance = {
             key: debug_metrics[key]

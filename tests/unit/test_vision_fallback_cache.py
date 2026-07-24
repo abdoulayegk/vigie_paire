@@ -5,6 +5,19 @@ from __future__ import annotations
 import tempfile
 
 
+def test_cache_key_uses_date_row_prompt_version() -> None:
+    """Le prompt qui conserve les dates-lignes ne reutilise pas le cache v6."""
+    from vigilance.extraction.vision_cache import make_cache_key
+
+    key = make_cache_key(
+        "pdf-sha",
+        39,
+        [0.056, 0.726, 0.936, 0.786],
+        max_completion_tokens=120000,
+    )
+
+    assert key.startswith("v7_")
+
 
 def test_cache_get_ignores_corrupted_indicators_string() -> None:
     """When cache stores indicators as string instead of list, integration ignores it."""

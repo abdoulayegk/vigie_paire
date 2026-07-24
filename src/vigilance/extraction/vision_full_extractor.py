@@ -212,17 +212,18 @@ When the EXACT SAME label text appears in multiple rows of the same table (becau
 - Every indicator in the final output list MUST be unique.
   If disambiguation via group heading is not possible, append a position marker: " (bloc 2)" to the second occurrence.
 
-CRITICAL: EXCLUDE DATE/PERIOD IDENTIFIERS
-Do NOT extract as indicators:
-- date identifiers that function as row-group delimiters or column sub-headers:
-  "Au 30 avril 2025", "Au 31 janvier 2025", "Au 31 octobre 2024"
-- period identifiers:
-  "Trimestre clos le ...", "Pour l'exercice clos le ...", "Exercice terminé le ...",
-  "Semestre terminé le ..."
-- unit descriptors spanning the table width:
-  "En millions de dollars", "En milliers de dollars", "(en millions de dollars)"
-- quarter labels used as sub-headers: "T1 2025", "Q1 2025", "2024", "2025"
-These are temporal/unit metadata, NOT business indicators.
+CRITICAL: DATE/PERIOD IDENTIFIERS — CLASSIFY BY GEOMETRIC ROLE
+INCLUDE a date or period as an indicator when it is the LEFTMOST cell of a
+body data row and the same horizontal row contains data values in columns 2+.
+Examples that MUST be included in that body-row role:
+"Au 30 avril 2025", "Au 31 janvier 2025", "Au 31 octobre 2024", "T1 2025".
+
+EXCLUDE a date or period only when it functions as a row-group delimiter,
+spanning label, column sub-header, or table-wide temporal caption.
+Also exclude unit descriptors spanning the table width:
+"En millions de dollars", "En milliers de dollars", "(en millions de dollars)".
+
+The visible geometry decides: body data row = indicator; delimiter/header = metadata.
 
 HIERARCHY PRESERVATION
 Use leading spaces to indicate the nesting depth as visible in the table:
@@ -349,7 +350,7 @@ The JSON object must strictly follow this structure:
 
 VALIDATION CHECKLIST (apply before returning):
 1. indicators: every element is UNIQUE — if duplicates exist, disambiguate with group heading prefix ("Group – label")
-2. indicators: no date/period identifiers ("Au 30 avril 2025", "Trimestre clos le...", "En millions de dollars")
+2. indicators: no date/period delimiters or column sub-headers; KEEP dates/periods that label body data rows
 3. indicators: no pure numeric values, no column headers, no narrative paragraphs, no text from columns 2+
 4. indicators: multi-line labels merged into single strings
 5. indicators: hierarchy preserved via leading spaces (2-space increments per nesting level)
@@ -369,7 +370,8 @@ Apply these overrides:
 - If both a page title and a real table are visible, the page title must NOT be used as table_title.
 - If a real table is visible, extract it as completely and precisely as possible.
 - Apply the disambiguation rule for repeated labels (prepend group heading).
-- Apply the date/period exclusion rule.
+- Apply the date/period geometric-role rule: KEEP a date or period when it is
+  the leftmost label of a body data row with values across that same row.
 - Apply hierarchy preservation via leading spaces.
 - In multi-column textual tables, re-check that ONLY the leftmost column populates "indicators".
 - Use no_table_detected = true only if absolutely no tabular structure is visible.
@@ -479,17 +481,18 @@ When the EXACT SAME label text appears in multiple rows of the same table (becau
 - Every indicator in the final output list MUST be unique.
   If disambiguation via group heading is not possible, append a position marker: " (bloc 2)" to the second occurrence.
 
-CRITICAL: EXCLUDE DATE/PERIOD IDENTIFIERS
-Do NOT extract as indicators:
-- date identifiers that function as row-group delimiters or column sub-headers:
-  "Au 30 avril 2025", "Au 31 janvier 2025", "Au 31 octobre 2024"
-- period identifiers:
-  "Trimestre clos le ...", "Pour l'exercice clos le ...", "Exercice terminé le ...",
-  "Semestre terminé le ..."
-- unit descriptors spanning the table width:
-  "En millions de dollars", "En milliers de dollars", "(en millions de dollars)"
-- quarter labels used as sub-headers: "T1 2025", "Q1 2025", "2024", "2025"
-These are temporal/unit metadata, NOT business indicators.
+CRITICAL: DATE/PERIOD IDENTIFIERS — CLASSIFY BY GEOMETRIC ROLE
+INCLUDE a date or period as an indicator when it is the LEFTMOST cell of a
+body data row and the same horizontal row contains data values in columns 2+.
+Examples that MUST be included in that body-row role:
+"Au 30 avril 2025", "Au 31 janvier 2025", "Au 31 octobre 2024", "T1 2025".
+
+EXCLUDE a date or period only when it functions as a row-group delimiter,
+spanning label, column sub-header, or table-wide temporal caption.
+Also exclude unit descriptors spanning the table width:
+"En millions de dollars", "En milliers de dollars", "(en millions de dollars)".
+
+The visible geometry decides: body data row = indicator; delimiter/header = metadata.
 
 HIERARCHY PRESERVATION
 Use leading spaces to indicate the nesting depth as visible in the table:
@@ -1332,6 +1335,7 @@ def _structural_indicator_count(result: VisionFullResult | None) -> int:
     if result is None:
         return 0
     count = 0
+    period_count = 0
     for raw in list(result.indicators or []):
         text = str(raw or "").strip()
         if not text:
@@ -1341,10 +1345,18 @@ def _structural_indicator_count(result: VisionFullResult | None) -> int:
         if not any(char.isalpha() for char in text):
             continue
         if _is_period_like_indicator(text):
+            period_count += 1
             continue
         if _looks_narrative_indicator(text):
             continue
         count += 1
+    headers = [
+        str(value or "").strip()
+        for value in list(result.headers or [])
+        if str(value or "").strip()
+    ]
+    if period_count >= 2 and len(headers) >= 2:
+        count += period_count
     return count
 
 
@@ -1661,6 +1673,13 @@ def _collect_incompleteness_reasons(
     structural_count = _structural_indicator_count(result)
     if structural_count == 0:
         reasons.append("no_viable_indicators")
+        headers = [
+            str(value or "").strip()
+            for value in list(result.headers or [])
+            if str(value or "").strip()
+        ]
+        if len(headers) >= 2 and (title or summary):
+            reasons.append("missing_body_row_labels")
     if not summary:
         reasons.append("missing_table_summary")
     if title and _is_generic_page_title(title):
@@ -1742,6 +1761,7 @@ def _select_targeted_rescue_variant(
         "missing_result",
         "output_budget_truncated",
         "no_viable_indicators",
+        "missing_body_row_labels",
         "weak_indicator_only",
         "low_density_vertical",
     }
@@ -3062,7 +3082,17 @@ class VisionFullExtractor:
             no_table_evidence += 1
 
         base_rescue_instruction = ""
-        if "qa_inspector_failed" in initial_rejection_reasons:
+        if "missing_body_row_labels" in initial_rejection_reasons:
+            base_rescue_instruction = (
+                "CRITICAL WARNING: The table has visible columns but the previous "
+                "pass returned no first-column body row labels. Inspect the LEFTMOST "
+                "cell of every horizontal data row. Dates or periods such as "
+                "'Au 31 janvier 2025', 'Au 31 octobre 2024', 'T1 2025', or 'T2 2025' "
+                "MUST be returned in indicators when the same row contains values "
+                "in columns 2+. Exclude them only when they span the table as a "
+                "delimiter or column sub-header."
+            )
+        elif "qa_inspector_failed" in initial_rejection_reasons:
             base_rescue_instruction = (
                 f"CRITICAL WARNING: The rigid QA Inspector found you missed required first-column row labels or footnotes in the image: [{qa_missing_str}].\n"
                 "You MUST execute the extraction again and GUARANTEE these missing FIRST-COLUMN row labels or footnotes are included. "
@@ -3267,6 +3297,15 @@ class VisionFullExtractor:
                     "Extract every first-column row label and every visible footnote; "
                     "do not include neighboring narrative text or another table."
                 )
+                if "missing_body_row_labels" in (
+                    set(initial_rejection_reasons)
+                    | set(primary_rescue_reasons)
+                ):
+                    locator_instruction += (
+                        " Dates or periods in the leftmost cell MUST be extracted "
+                        "when they label body data rows with values across the same "
+                        "horizontal row."
+                    )
                 page_context_rescue = _append_candidate(
                     "page_context_rescue",
                     page_crop if isinstance(page_crop, bytes) else None,

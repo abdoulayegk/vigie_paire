@@ -82,6 +82,12 @@ from .docling_normalization import (
     _extract_table_context_split,
     # _is_footnote_row and _merge_fragmented_cells removed: Docling content no longer extracted.
 )
+from .locator_merge_reconciliation import (
+    _bbox_area,
+    _bbox_overlap_ratio,
+    _is_locator_merge_conflict,
+    _reconcile_on_demand_locator_merges,
+)
 
 from .table_title_resolver import (
     extract_table_number_and_inline_title,
@@ -94,43 +100,6 @@ logger = logging.getLogger(__name__)
 configure_mupdf_runtime(fitz)
 
 _REFERENCE_TEXT_SPLIT_RE = re.compile(r"\s{2,}|\t+|\s+\|\s+")
-
-
-def _bbox_area(bbox: list[float]) -> float:
-    """Calculer l'aire d'une boite englobante normalisee."""
-    if not bbox or len(bbox) < 4:
-        return 0.0
-    width = max(0.0, float(bbox[2]) - float(bbox[0]))
-    height = max(0.0, float(bbox[3]) - float(bbox[1]))
-    return width * height
-
-
-def _bbox_overlap_ratio(first: list[float], second: list[float]) -> float:
-    """Calculer l'intersection rapportee a la plus petite des deux boites."""
-    if len(first) < 4 or len(second) < 4:
-        return 0.0
-    x0 = max(first[0], second[0])
-    y0 = max(first[1], second[1])
-    x1 = min(first[2], second[2])
-    y1 = min(first[3], second[3])
-    if x1 <= x0 or y1 <= y0:
-        return 0.0
-    intersection = (x1 - x0) * (y1 - y0)
-    denominator = min(_bbox_area(first), _bbox_area(second))
-    return intersection / denominator if denominator > 0 else 0.0
-
-
-def _is_locator_merge_conflict(
-    first_original: list[float],
-    second_original: list[float],
-    first_corrected: list[float],
-    second_corrected: list[float],
-) -> bool:
-    """Detecter quand le locator fusionne deux blocs Docling distincts."""
-    return bool(
-        _bbox_overlap_ratio(first_corrected, second_corrected) >= 0.90
-        and _bbox_overlap_ratio(first_original, second_original) < 0.20
-    )
 
 
 def _coerce_pdf_path(pdf_path: str | Path | os.PathLike[str] | None) -> Path:
@@ -2185,6 +2154,21 @@ class DoclingProcessor:
                             len(vision_items),
                             max_workers,
                         )
+
+            raw_table_count = len(all_tables)
+            all_tables = _reconcile_on_demand_locator_merges(all_tables)
+            collapsed_locator_tables = raw_table_count - len(all_tables)
+            if collapsed_locator_tables:
+                logger.info(
+                    "Vision page-context: %d duplicate(s) semantique(s) "
+                    "du locator a la demande consolide(s)",
+                    collapsed_locator_tables,
+                )
+                tables_by_page = {}
+                for table in all_tables:
+                    tables_by_page[table.page_number] = (
+                        tables_by_page.get(table.page_number, 0) + 1
+                    )
 
             if tables_by_page:
                 counts_str = ", ".join(f"p{k}:{v}" for k, v in sorted(tables_by_page.items()))
