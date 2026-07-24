@@ -56,6 +56,10 @@ class TableSnapshot(TypedDict):
     page: int | None
     section: str
     bbox: object
+    bbox_source: str
+    bbox_confidence: object
+    page_context_title: str
+    page_context_continuation: object
     row_count: int
     headers: list[str]
     indicators: list[str]
@@ -68,10 +72,10 @@ class TableSnapshot(TypedDict):
 
 
 def _is_ghost_table(entry: dict[str, Any]) -> bool:
-    """Retourne True si le tableau a 0 indicateur viable (pas un vrai tableau)."""
+    """Retourne True si le tableau n'a aucune ligne structurelle ni en-tete."""
     from vigilance.extraction.vision_full_extractor import (
         VisionFullResult,
-        _viable_indicator_count,
+        _structural_indicator_count,
     )
 
     indicators = list(entry.get("indicators", []) or [])
@@ -85,7 +89,21 @@ def _is_ghost_table(entry: dict[str, Any]) -> bool:
         indicators=indicators,
         footnotes_content=[],
     )
-    return _viable_indicator_count(probe) == 0 and len(headers) == 0
+    return _structural_indicator_count(probe) == 0 and len(headers) == 0
+
+
+def _is_boundary_inventory_candidate(entry: dict[str, Any]) -> bool:
+    """Identifier un tableau trouve uniquement dans la marge de pages inspectee."""
+    sources: list[Any] = [entry.get("bbox_source")]
+    for container_name in ("bbox_provenance", "debug_metrics"):
+        container = entry.get(container_name)
+        if isinstance(container, dict):
+            sources.append(container.get("bbox_source"))
+    return any(
+        str(source or "").strip()
+        == "page_context_inventory_boundary_candidate"
+        for source in sources
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -314,6 +332,12 @@ def _table_detail(entry: dict[str, Any]) -> dict[str, Any]:
 def _table_snapshot(entry: dict[str, Any]) -> dict[str, Any]:
     """Construit un instantane complet d'un tableau incluant le statut et la bbox."""
     indicators = [str(value).strip() for value in list(entry.get("indicators", []) or []) if str(value).strip()]
+    if isinstance(entry.get("bbox_provenance"), dict):
+        bbox_provenance = entry["bbox_provenance"]
+    elif isinstance(entry.get("debug_metrics"), dict):
+        bbox_provenance = entry["debug_metrics"]
+    else:
+        bbox_provenance = {}
     return {
         "table_id": str(entry.get("table_id", "") or ""),
         "title": str(entry.get("title", "") or ""),
@@ -322,6 +346,14 @@ def _table_snapshot(entry: dict[str, Any]) -> dict[str, Any]:
         "page": entry.get("page"),
         "section": str(entry.get("section", "") or "unknown_section"),
         "bbox": entry.get("bbox"),
+        "bbox_source": str(bbox_provenance.get("bbox_source") or ""),
+        "bbox_confidence": bbox_provenance.get("bbox_confidence"),
+        "page_context_title": str(
+            bbox_provenance.get("page_context_title") or ""
+        ),
+        "page_context_continuation": bbox_provenance.get(
+            "page_context_continuation"
+        ),
         "row_count": int(entry.get("row_count", len(indicators)) or 0),
         "headers": [str(value).strip() for value in list(entry.get("headers", []) or []) if str(value).strip()],
         "indicators": indicators,
@@ -369,7 +401,9 @@ def _partition_tables_by_status(
                 }
             )
             continue
-        # Ghost table filter: 0 real indicators = not a real table
+        # Ghost filter: aucune ligne structurelle et aucun en-tete.
+        # Les libelles peu discriminants (Canada, Autres, Total) restent des
+        # lignes reelles et ne doivent pas faire disparaitre un petit tableau.
         if _is_ghost_table(entry):
             ghost_ids.append(table_id)
             continue

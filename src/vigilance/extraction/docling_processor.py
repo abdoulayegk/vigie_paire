@@ -82,6 +82,12 @@ from .docling_normalization import (
     _extract_table_context_split,
     # _is_footnote_row and _merge_fragmented_cells removed: Docling content no longer extracted.
 )
+from .locator_merge_reconciliation import (
+    _bbox_area,
+    _bbox_overlap_ratio,
+    _is_locator_merge_conflict,
+    _reconcile_on_demand_locator_merges,
+)
 
 from .table_title_resolver import (
     extract_table_number_and_inline_title,
@@ -1043,6 +1049,21 @@ class DoclingProcessor:
             return True
         return any(start <= page_num <= end for start, end in page_ranges)
 
+    def _pad_page_ranges(
+        self,
+        page_ranges: list[tuple[int, int]] | None,
+        padding: int,
+    ) -> list[tuple[int, int]] | None:
+        """Etendre les plages ciblees pour verifier leurs pages limitrophes."""
+        normalized = self._normalize_page_ranges(page_ranges)
+        if not normalized:
+            return None
+        safe_padding = max(0, int(padding))
+        return [
+            (max(1, start - safe_padding), end + safe_padding)
+            for start, end in normalized
+        ]
+
     def _normalize_page_ranges(self, page_ranges: list[tuple[int, int]] | None) -> list[tuple[int, int]]:
         """Normaliser les plages pour garantir start >= 1 et end >= start."""
         if not page_ranges:
@@ -1155,6 +1176,20 @@ class DoclingProcessor:
         bbox_sanity_profile: dict[str, Any] | None = None
         vision_result: Any = None
         extraction_status = "ok"
+        page_context_observation: dict[str, Any] = dict(
+            shared.get("page_context_seed", {}).get(idx, {})
+        )
+        seeded_original_bbox = page_context_observation.get("bbox_original")
+        if "bbox_original" in page_context_observation:
+            original_table_bbox = (
+                list(seeded_original_bbox)
+                if isinstance(seeded_original_bbox, (list, tuple))
+                and len(seeded_original_bbox) == 4
+                else None
+            )
+        else:
+            original_table_bbox = list(table_bbox) if table_bbox else None
+        final_table_bbox = list(table_bbox) if table_bbox else None
 
         if vision_extractor and table_bbox and len(table_bbox) == 4:
             vision_extraction_attempted = True
@@ -1253,6 +1288,11 @@ class DoclingProcessor:
                             """Localiser la page puis rendre uniquement le tableau corrige."""
                             if page_table_locator is None:
                                 return None
+                            if (
+                                page_context_observation.get("bbox_source")
+                                == "page_context_inventory_conflict_preserved_docling"
+                            ):
+                                return None
                             from .page_table_locator import build_page_table_crop_plan
                             from .pdf_preview import render_pdf_page
 
@@ -1283,6 +1323,19 @@ class DoclingProcessor:
                                     idx,
                                 )
                                 return None
+                            page_context_observation.update(
+                                {
+                                    "bbox_norm": list(plan.bbox_norm),
+                                    "bbox_source": (
+                                        page_context_observation.get("bbox_source")
+                                        or "page_context_locator"
+                                    ),
+                                    "confidence": plan.confidence,
+                                    "title_text": plan.title_text,
+                                    "continuation": plan.continuation,
+                                    "table_count": plan.table_count,
+                                }
+                            )
                             rendered, safe_bbox, safe_bottom, safe_top = _render_variant_crop(
                                 bbox_override=list(plan.bbox_norm),
                                 bottom_extension=plan.bottom_extension,
@@ -1304,6 +1357,9 @@ class DoclingProcessor:
                                 "bottom_extension": safe_bottom,
                                 "top_extension": safe_top,
                                 "confidence": plan.confidence,
+                                "title_text": plan.title_text,
+                                "continuation": plan.continuation,
+                                "table_count": plan.table_count,
                             }
 
                         crop_bytes = _recrop(initial_bottom_ext)
@@ -1330,6 +1386,32 @@ class DoclingProcessor:
                             )
                             if vision_result is not None:
                                 title = vision_result.table_title or ""
+                                selected_bbox = getattr(
+                                    vision_result,
+                                    "selected_bbox_norm",
+                                    None,
+                                )
+                                if isinstance(selected_bbox, list) and len(selected_bbox) == 4:
+                                    final_table_bbox = [float(value) for value in selected_bbox]
+                                elif isinstance(
+                                    page_context_observation.get("bbox_norm"),
+                                    (list, tuple),
+                                ) and len(page_context_observation["bbox_norm"]) == 4:
+                                    final_table_bbox = [
+                                        float(value)
+                                        for value in page_context_observation["bbox_norm"]
+                                    ]
+                                locator_title = str(
+                                    getattr(
+                                        vision_result,
+                                        "page_context_title",
+                                        "",
+                                    )
+                                    or page_context_observation.get("title_text")
+                                    or ""
+                                ).strip()
+                                if not title and locator_title:
+                                    title = locator_title
                                 table_number, title_clean = self._extract_table_number(title or None)
                                 title_raw = title or None
                                 table_summary = str(vision_result.table_summary or "").strip() or None
@@ -1356,6 +1438,14 @@ class DoclingProcessor:
                                     or "ok"
                                 )
                                 warnings_list = list(vision_result.warnings or [])
+                                if (
+                                    extraction_status == "confirmed_no_table"
+                                    and page_context_observation.get("bbox_norm")
+                                ):
+                                    extraction_status = "suspect_unresolved"
+                                    warnings_list.append(
+                                        "page_context_locator_confirms_table_region"
+                                    )
                             else:
                                 vision_status_str = "failed"
                                 warnings_list = ["VisionFullExtractor returned None"]
@@ -1381,6 +1471,26 @@ class DoclingProcessor:
                 warnings_list = ["no bbox from Docling"]
             else:
                 warnings_list = ["bbox invalid"]
+
+        if page_context_observation.get("bbox_norm"):
+            observed_bbox = page_context_observation.get("bbox_norm")
+            if isinstance(observed_bbox, (list, tuple)) and len(observed_bbox) == 4:
+                final_table_bbox = [float(value) for value in observed_bbox]
+            if not title:
+                locator_title = str(
+                    page_context_observation.get("title_text") or ""
+                ).strip()
+                if locator_title:
+                    title = locator_title
+                    table_number, title_clean = self._extract_table_number(
+                        title
+                    )
+                    title_raw = title
+            if vision_result is None and extraction_status == "ok":
+                extraction_status = "suspect_unresolved"
+                warnings_list.append(
+                    "page_context_locator_confirms_table_region_without_extraction"
+                )
 
         requested_max_completion_tokens = int(vision_extraction_cfg.get("vision_max_completion_tokens", 65536))
         debug_metrics: dict[str, Any] = {
@@ -1417,6 +1527,39 @@ class DoclingProcessor:
             debug_metrics["crop_reject_reason"] = crop_reject_reason
         if bbox_sanity_profile is not None:
             debug_metrics["bbox_sanity_profile"] = bbox_sanity_profile
+        if page_context_observation.get("bbox_norm"):
+            debug_metrics.update(
+                {
+                    "bbox_original": original_table_bbox,
+                    "bbox_final": final_table_bbox,
+                    "bbox_source": str(
+                        page_context_observation.get("bbox_source")
+                        or "page_context_locator"
+                    ),
+                    "bbox_confidence": float(
+                        page_context_observation.get("confidence", 0.0) or 0.0
+                    ),
+                    "bbox_verified": True,
+                    "page_context_title": str(
+                        page_context_observation.get("title_text") or ""
+                    ),
+                    "page_context_continuation": page_context_observation.get(
+                        "continuation"
+                    ),
+                    "page_context_table_count": page_context_observation.get(
+                        "table_count"
+                    ),
+                }
+            )
+        else:
+            debug_metrics.update(
+                {
+                    "bbox_original": original_table_bbox,
+                    "bbox_final": final_table_bbox,
+                    "bbox_source": "docling",
+                    "bbox_verified": False,
+                }
+            )
         # Recrop and completeness (from vision result when available)
         if vision_result is not None:
             if hasattr(vision_result, "retry_reasons"):
@@ -1469,7 +1612,17 @@ class DoclingProcessor:
             first_column_indicators_raw=indicators_raw_text,
             first_column_indicators_spatial=indicators_spatial_raw if indicators_spatial_raw else None,
             footnotes=footnotes,
-            bbox=table_bbox,
+            bbox=final_table_bbox,
+            tables_on_page=(
+                int(page_context_observation["table_count"])
+                if page_context_observation.get("table_count") is not None
+                else None
+            ),
+            bbox_top=(
+                float(final_table_bbox[1])
+                if final_table_bbox and len(final_table_bbox) == 4
+                else None
+            ),
             table_number=table_number,
             title_clean=title_clean,
             table_summary=table_summary,
@@ -1580,6 +1733,13 @@ class DoclingProcessor:
                         page_table_locator = PageTableLocator(
                             api_key=api_key,
                             model=vision_model_name,
+                            min_confidence=float(
+                                vision_extraction_cfg.get(
+                                    "page_context_min_confidence",
+                                    0.85,
+                                )
+                            ),
+                            use_cache=vision_cache_enabled,
                         )
                     else:
                         logger.warning("Vision extraction: OPENAI_API_KEY absente, desactivation")
@@ -1594,6 +1754,7 @@ class DoclingProcessor:
             # ---------------------------------------------------------------------------
             # Construire la liste des tableaux a traiter (dans les plages de pages).
             vision_items: list[tuple[int, int, list[float] | None, str, str | None]] = []
+            page_context_seed: dict[int, dict[str, Any]] = {}
             for idx, table in enumerate(doc.tables):
                 page_num = table.prov[0].page_no if table.prov else 0
                 table_bbox: list[float] | None = None
@@ -1627,30 +1788,252 @@ class DoclingProcessor:
                     pass
                 vision_items.append((idx, page_num, table_bbox, table_id, reference_text))
 
-            def _bbox_area(b: list[float]) -> float:
-                """Calculer l'aire d'une boite englobante."""
-                if not b or len(b) < 4:
-                    return 0.0
-                w = max(0.0, float(b[2]) - float(b[0]))
-                h = max(0.0, float(b[3]) - float(b[1]))
-                return w * h
+            # Inventaire pleine page optionnel : il corrige les boites Docling
+            # existantes et cree les candidats que Docling n'a pas vus du tout.
+            if (
+                page_table_locator is not None
+                and bool(
+                    vision_extraction_cfg.get(
+                        "page_context_inventory_enabled",
+                        False,
+                    )
+                )
+            ):
+                from .page_table_locator import build_page_table_crop_plan
+                from .pdf_preview import render_pdf_page
 
-            def _bbox_overlap_ratio(a: list[float], b: list[float]) -> float:
-                """Calculer le ratio de chevauchement entre deux boites englobantes."""
-                if len(a) < 4 or len(b) < 4:
-                    return 0.0
-                x0 = max(a[0], b[0])
-                y0 = max(a[1], b[1])
-                x1 = min(a[2], b[2])
-                y1 = min(a[3], b[3])
-                if x1 <= x0 or y1 <= y0:
-                    return 0.0
-                inter = (x1 - x0) * (y1 - y0)
-                area_a = _bbox_area(a)
-                area_b = _bbox_area(b)
-                if area_a <= 0 or area_b <= 0:
-                    return 0.0
-                return inter / min(area_a, area_b)
+                inventory_page_padding = max(
+                    0,
+                    int(
+                        vision_extraction_cfg.get(
+                            "page_context_inventory_page_padding",
+                            0,
+                        )
+                    ),
+                )
+                inventory_page_ranges = self._pad_page_ranges(
+                    effective_page_ranges,
+                    inventory_page_padding,
+                )
+                page_numbers: list[int] = []
+                if hasattr(doc, "pages"):
+                    try:
+                        page_numbers = sorted(
+                            int(page_number)
+                            for page_number in doc.pages.keys()
+                            if self._is_page_in_ranges(
+                                int(page_number),
+                                inventory_page_ranges,
+                            )
+                        )
+                    except Exception:
+                        page_numbers = []
+                max_inventory_pages = max(
+                    1,
+                    int(
+                        vision_extraction_cfg.get(
+                            "page_context_inventory_max_pages",
+                            80,
+                        )
+                    ),
+                )
+                page_numbers = page_numbers[:max_inventory_pages]
+                new_table_min_confidence = max(
+                    page_table_locator.min_confidence,
+                    float(
+                        vision_extraction_cfg.get(
+                            "page_context_inventory_new_table_min_confidence",
+                            0.93,
+                        )
+                    ),
+                )
+                excluded_new_table_titles = [
+                    str(value or "").strip().casefold()
+                    for value in list(
+                        vision_extraction_cfg.get(
+                            "page_context_inventory_excluded_title_patterns",
+                            [],
+                        )
+                        or []
+                    )
+                    if str(value or "").strip()
+                ]
+                corrected_count = 0
+                added_count = 0
+                next_synthetic_idx = (
+                    max((item[0] for item in vision_items), default=-1) + 1
+                )
+
+                for inventory_page in page_numbers:
+                    try:
+                        page_image = render_pdf_page(
+                            str(pdf_path),
+                            inventory_page,
+                            scale=1.5,
+                            format="png",
+                        )
+                        layout = (
+                            page_table_locator.locate_page(
+                                page_image,
+                                inventory_page,
+                                pdf_sha=pdf_sha,
+                            )
+                            if page_image
+                            else None
+                        )
+                    except Exception as exc:
+                        logger.warning(
+                            "Vision page inventory failed page=%s (non-fatal): %s",
+                            inventory_page,
+                            exc,
+                        )
+                        continue
+                    if layout is None:
+                        continue
+
+                    page_item_positions = [
+                        position
+                        for position, item in enumerate(vision_items)
+                        if item[1] == inventory_page
+                    ]
+                    planned_positions: list[tuple[int, list[float], Any]] = []
+                    for position in page_item_positions:
+                        _item_idx, _item_page, item_bbox, _item_id, _item_reference = vision_items[position]
+                        if not item_bbox:
+                            continue
+                        plan = build_page_table_crop_plan(
+                            layout,
+                            item_bbox,
+                            min_confidence=page_table_locator.min_confidence,
+                        )
+                        if plan is None:
+                            continue
+                        planned_positions.append(
+                            (position, list(item_bbox), plan)
+                        )
+
+                    merge_conflict_positions: set[int] = set()
+                    for plan_index, first_planned in enumerate(
+                        planned_positions
+                    ):
+                        first_position, first_original, first_plan = first_planned
+                        for second_planned in planned_positions[plan_index + 1 :]:
+                            (
+                                second_position,
+                                second_original,
+                                second_plan,
+                            ) = second_planned
+                            if _is_locator_merge_conflict(
+                                first_original,
+                                second_original,
+                                list(first_plan.bbox_norm),
+                                list(second_plan.bbox_norm),
+                            ):
+                                merge_conflict_positions.update(
+                                    {first_position, second_position}
+                                )
+
+                    for position, item_bbox, plan in planned_positions:
+                        item_idx, item_page, _bbox, item_id, item_reference = (
+                            vision_items[position]
+                        )
+                        corrected_bbox = list(plan.bbox_norm)
+                        bbox_source = "page_context_inventory"
+                        if position in merge_conflict_positions:
+                            corrected_bbox = list(item_bbox)
+                            bbox_source = (
+                                "page_context_inventory_conflict_preserved_docling"
+                            )
+                        page_context_seed[item_idx] = {
+                            "bbox_original": list(item_bbox),
+                            "bbox_norm": corrected_bbox,
+                            "bbox_source": bbox_source,
+                            "confidence": plan.confidence,
+                            "title_text": plan.title_text,
+                            "continuation": plan.continuation,
+                            "table_count": plan.table_count,
+                        }
+                        vision_items[position] = (
+                            item_idx,
+                            item_page,
+                            corrected_bbox,
+                            item_id,
+                            item_reference,
+                        )
+                        if (
+                            position not in merge_conflict_positions
+                            and corrected_bbox != list(item_bbox)
+                        ):
+                            corrected_count += 1
+
+                    current_page_boxes = [
+                        list(item[2])
+                        for item in vision_items
+                        if item[1] == inventory_page and item[2]
+                    ]
+                    for region_index, region in enumerate(layout.tables, start=1):
+                        region_bbox = list(region.table_bbox)
+                        if region.confidence < new_table_min_confidence:
+                            continue
+                        normalized_region_title = str(
+                            region.title_text or ""
+                        ).casefold()
+                        if any(
+                            pattern in normalized_region_title
+                            for pattern in excluded_new_table_titles
+                        ):
+                            logger.info(
+                                "Vision page inventory ignored configured "
+                                "non-table region page=%s title=%s",
+                                inventory_page,
+                                region.title_text,
+                            )
+                            continue
+                        if any(
+                            _bbox_overlap_ratio(region_bbox, existing_bbox) >= 0.20
+                            for existing_bbox in current_page_boxes
+                        ):
+                            continue
+                        synthetic_idx = next_synthetic_idx
+                        next_synthetic_idx += 1
+                        synthetic_id = (
+                            f"tableau_page_context_p{inventory_page}_{region_index}"
+                        )
+                        vision_items.append(
+                            (
+                                synthetic_idx,
+                                inventory_page,
+                                region_bbox,
+                                synthetic_id,
+                                None,
+                            )
+                        )
+                        page_context_seed[synthetic_idx] = {
+                            "bbox_original": None,
+                            "bbox_norm": region_bbox,
+                            "bbox_source": (
+                                "page_context_inventory_new_candidate"
+                                if self._is_page_in_ranges(
+                                    inventory_page,
+                                    effective_page_ranges,
+                                )
+                                else "page_context_inventory_boundary_candidate"
+                            ),
+                            "confidence": region.confidence,
+                            "title_text": region.title_text,
+                            "continuation": region.continuation,
+                            "table_count": len(layout.tables),
+                        }
+                        current_page_boxes.append(region_bbox)
+                        added_count += 1
+
+                logger.info(
+                    "Vision page inventory pages=%s padding=%s corrected=%s added=%s",
+                    len(page_numbers),
+                    inventory_page_padding,
+                    corrected_count,
+                    added_count,
+                )
 
             def _detect_overlapping_bboxes(
                 items: list[tuple[int, int, list[float] | None, str, str | None]],
@@ -1722,6 +2105,7 @@ class DoclingProcessor:
                     "vision_preprocess": vision_extraction_cfg.get("vision_preprocess", True),
                     "vision_model_name": vision_model_name,
                     "page_table_map": page_table_map,
+                    "page_context_seed": page_context_seed,
                 }
                 if vision_extractor:
                     try:
@@ -1770,6 +2154,21 @@ class DoclingProcessor:
                             len(vision_items),
                             max_workers,
                         )
+
+            raw_table_count = len(all_tables)
+            all_tables = _reconcile_on_demand_locator_merges(all_tables)
+            collapsed_locator_tables = raw_table_count - len(all_tables)
+            if collapsed_locator_tables:
+                logger.info(
+                    "Vision page-context: %d duplicate(s) semantique(s) "
+                    "du locator a la demande consolide(s)",
+                    collapsed_locator_tables,
+                )
+                tables_by_page = {}
+                for table in all_tables:
+                    tables_by_page[table.page_number] = (
+                        tables_by_page.get(table.page_number, 0) + 1
+                    )
 
             if tables_by_page:
                 counts_str = ", ".join(f"p{k}:{v}" for k, v in sorted(tables_by_page.items()))

@@ -204,6 +204,28 @@ def _compact_table_entry(table: Any) -> dict[str, Any]:
     entry["row_count"] = len(indicators)
     entry["indicators"] = indicators
     entry["footnotes"] = _compact_footnotes(table)
+    debug_metrics = getattr(table, "debug_metrics", None)
+    if isinstance(debug_metrics, dict):
+        provenance_keys = (
+            "bbox_original",
+            "bbox_final",
+            "bbox_source",
+            "bbox_confidence",
+            "bbox_verified",
+            "page_context_title",
+            "page_context_continuation",
+            "page_context_table_count",
+            "locator_merge_collapsed",
+            "locator_merged_table_ids",
+            "locator_original_bboxes",
+        )
+        bbox_provenance = {
+            key: debug_metrics[key]
+            for key in provenance_keys
+            if key in debug_metrics and debug_metrics[key] is not None
+        }
+        if bbox_provenance:
+            entry["bbox_provenance"] = bbox_provenance
     return entry
 
 

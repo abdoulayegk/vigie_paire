@@ -130,6 +130,12 @@ def table_artifact_from_dict(d: dict[str, Any]) -> TableArtifact:
     debug_metrics = d.get("debug_metrics")
     if debug_metrics is not None and not isinstance(debug_metrics, dict):
         debug_metrics = None
+    bbox_provenance = d.get("bbox_provenance")
+    if isinstance(bbox_provenance, dict):
+        debug_metrics = {
+            **(debug_metrics or {}),
+            **bbox_provenance,
+        }
     extraction_status = str(d.get("extraction_status") or "ok").strip() or "ok"
     return TableArtifact(
         bank_code=bank_code,

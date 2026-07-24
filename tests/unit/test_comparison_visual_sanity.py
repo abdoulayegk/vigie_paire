@@ -110,6 +110,25 @@ def test_render_visual_sanity_proof_reports_missing_bbox_without_fallback() -> N
     assert status == "skipped_missing_bbox"
 
 
+def test_render_visual_sanity_proof_allows_full_page_fallback(
+    monkeypatch,
+) -> None:
+    monkeypatch.setattr(
+        "vigilance.comparison_visual_sanity.render_full_proof_bytes",
+        lambda *args, **kwargs: (b"page-proof", "ok", "full_without_bbox"),
+    )
+
+    raw, status = render_visual_sanity_proof(
+        "/tmp/report.pdf",
+        page=4,
+        bbox=None,
+        allow_full_page_fallback=True,
+    )
+
+    assert raw == b"page-proof"
+    assert status == "ok"
+
+
 def test_visual_sanity_check_skips_when_no_visual_items() -> None:
     diff_result = {
         "technical_diff": {

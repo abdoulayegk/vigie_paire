@@ -8,6 +8,8 @@ from vigilance.extraction.vision_full_extractor import (
     OPENAI_VISION_TIMEOUT_SECONDS,
     VisionFullExtractor,
     VisionFullResult,
+    _PROMPT_BASE,
+    _PROMPT_BASE_PRECISION,
     _normalize_footnote_marker_id,
     _select_targeted_rescue_variant,
 )
@@ -163,6 +165,9 @@ def test_quality_pass_uses_page_context_after_incomplete_targeted_rescue(
             "bbox_norm": [0.08, 0.18, 0.92, 0.43],
             "bottom_extension": 0.05,
             "confidence": 0.96,
+            "title_text": "Ratios de liquidite",
+            "continuation": False,
+            "table_count": 2,
         }
 
     def fake_extract(**kwargs):
@@ -196,7 +201,185 @@ def test_quality_pass_uses_page_context_after_incomplete_targeted_rescue(
     assert result is not None
     assert result.selected_candidate_name == "page_context_rescue"
     assert result.extraction_status == "rescued"
+    assert result.selected_bbox_norm == [0.08, 0.18, 0.92, 0.43]
+    assert result.bbox_source == "page_context_locator"
+    assert result.bbox_confidence == pytest.approx(0.96)
+    assert result.page_context_title == "Ratios de liquidite"
+    assert result.page_context_continuation is False
+    assert result.page_context_table_count == 2
     assert page_context_calls == [True]
+
+
+def test_quality_pass_uses_page_context_when_targeted_pass_returns_none(
+    monkeypatch,
+) -> None:
+    extractor = VisionFullExtractor(api_key="test-key", model="gpt-4o-test")
+    page_context_calls: list[bool] = []
+
+    def fake_extract(**kwargs):
+        if kwargs["crop_bytes"] == b"page_context":
+            return _result(
+                title="Prêts douteux bruts",
+                summary="Prêts douteux par portefeuille",
+                indicators=["Prêts aux particuliers", "Prêts aux entreprises", "Total"],
+                headers=["Portefeuille", "T2 2026"],
+            )
+        return None
+
+    monkeypatch.setattr(extractor, "extract", fake_extract)
+
+    result = extractor.extract_with_quality_pass(
+        crop_bytes=b"initial",
+        bank_code="rbc",
+        bbox_norm=[0.1, 0.2, 0.9, 0.42],
+        get_variant_crop_fn=lambda **_kwargs: b"targeted",
+        get_page_context_crop_fn=lambda: (
+            page_context_calls.append(True)
+            or {
+                "crop_bytes": b"page_context",
+                "bbox_norm": [0.08, 0.18, 0.92, 0.43],
+                "confidence": 0.97,
+                "title_text": "Prêts douteux bruts",
+                "continuation": False,
+                "table_count": 1,
+            }
+        ),
+    )
+
+    assert result is not None
+    assert result.selected_candidate_name == "page_context_rescue"
+    assert result.selected_bbox_norm == [0.08, 0.18, 0.92, 0.43]
+    assert page_context_calls == [True]
+
+
+def test_quality_pass_accepts_compact_two_row_table_without_self_healing(
+    monkeypatch,
+) -> None:
+    extractor = VisionFullExtractor(api_key="test-key", model="gpt-4o-test")
+    extraction_calls: list[bytes] = []
+
+    def fake_extract(**kwargs):
+        extraction_calls.append(kwargs["crop_bytes"])
+        return _result(
+            title="Répartition géographique",
+            summary="Répartition par région",
+            indicators=["Canada", "Total"],
+            headers=["Catégorie", "T1 2026", "T2 2026", "Variation"],
+        )
+
+    monkeypatch.setattr(extractor, "extract", fake_extract)
+
+    result = extractor.extract_with_quality_pass(
+        crop_bytes=b"initial",
+        bank_code="rbc",
+        bbox_norm=[0.10, 0.20, 0.90, 0.40],
+        vision_cfg={},
+        get_variant_crop_fn=lambda **_kwargs: b"unexpected_rescue",
+    )
+
+    assert result is not None
+    assert result.extraction_status == "ok"
+    assert result.selected_candidate_name == "initial"
+    assert result.recrop_attempted is False
+    assert extraction_calls == [b"initial"]
+
+
+def test_prompts_keep_dates_when_they_are_body_row_labels() -> None:
+    required_rule = "body data row"
+
+    assert required_rule in _PROMPT_BASE
+    assert required_rule in _PROMPT_BASE_PRECISION
+    assert "same horizontal row contains data values" in _PROMPT_BASE
+    assert "same horizontal row contains data values" in _PROMPT_BASE_PRECISION
+
+
+def test_quality_pass_recovers_date_labeled_horizontal_rows_from_page_context(
+    monkeypatch,
+) -> None:
+    extractor = VisionFullExtractor(api_key="test-key", model="gpt-4o-test")
+    rescue_instructions: list[str] = []
+
+    def fake_extract(**kwargs):
+        if kwargs.get("rescue_mode"):
+            rescue_instructions.append(str(kwargs.get("rescue_instruction") or ""))
+        if kwargs["crop_bytes"] == b"page_context":
+            return _result(
+                title="TABLEAU 22",
+                summary="Prêts garantis par un bien immobilier au Canada",
+                indicators=["Au 31 janvier 2025", "Au 31 octobre 2024"],
+                headers=[
+                    "Prêts hypothécaires à l’habitation",
+                    "Marges de crédit sur la valeur domiciliaire",
+                    "Total",
+                ],
+            )
+        return _result(
+            title="TABLEAU 22",
+            summary="Prêts garantis par un bien immobilier au Canada",
+            indicators=[],
+            headers=[
+                "Prêts hypothécaires à l’habitation",
+                "Marges de crédit sur la valeur domiciliaire",
+                "Total",
+            ],
+        )
+
+    monkeypatch.setattr(extractor, "extract", fake_extract)
+
+    result = extractor.extract_with_quality_pass(
+        crop_bytes=b"initial",
+        bank_code="bmo",
+        bbox_norm=[0.056, 0.726, 0.936, 0.786],
+        vision_cfg={},
+        get_variant_crop_fn=lambda **_kwargs: b"targeted",
+        get_page_context_crop_fn=lambda: {
+            "crop_bytes": b"page_context",
+            "bbox_norm": [0.056, 0.726, 0.936, 0.786],
+            "confidence": 0.96,
+            "title_text": "Prêts garantis par un bien immobilier au Canada",
+            "continuation": False,
+            "table_count": 1,
+        },
+    )
+
+    assert result is not None
+    assert result.extraction_status == "rescued"
+    assert result.selected_candidate_name == "page_context_rescue"
+    assert result.indicators == ["Au 31 janvier 2025", "Au 31 octobre 2024"]
+    assert any(
+        "dates or periods" in instruction.lower()
+        for instruction in rescue_instructions
+    )
+
+
+def test_quality_pass_preserves_three_generic_rows_without_summary(
+    monkeypatch,
+) -> None:
+    extractor = VisionFullExtractor(api_key="test-key", model="gpt-4o-test")
+
+    monkeypatch.setattr(
+        extractor,
+        "extract",
+        lambda **_kwargs: _result(
+            title="Répartition géographique",
+            summary="",
+            indicators=["Canada", "Autres", "Total"],
+            headers=["Catégorie", "Valeur"],
+        ),
+    )
+
+    result = extractor.extract_with_quality_pass(
+        crop_bytes=b"initial",
+        bank_code="rbc",
+        bbox_norm=[0.10, 0.20, 0.90, 0.40],
+        vision_cfg={},
+        get_variant_crop_fn=lambda **_kwargs: b"same_crop",
+    )
+
+    assert result is not None
+    assert result.extraction_status == "rescued"
+    assert result.indicators == ["Canada", "Autres", "Total"]
+    assert result.acceptance_reason == "rescued_without_summary_strong_structure"
 
 
 def test_variant_crop_is_clamped_before_a_close_following_table() -> None:
@@ -854,3 +1037,130 @@ def test_extract_cache_hit_preserves_decision_metadata(
     assert result.selected_candidate_name == "top_trim"
     assert result.rejection_reasons == ["missing_table_summary"]
     assert result.candidate_quality_rank == [1, 0, 1, 2, 1, 2, 1]
+
+
+def test_extract_ignores_cached_result_without_structural_rows(
+    monkeypatch,
+) -> None:
+    extractor = VisionFullExtractor(
+        api_key="test-key",
+        model="gpt-4o-test",
+        use_cache=True,
+    )
+    monkeypatch.setattr(
+        "vigilance.extraction.vision_full_extractor.cache_get",
+        lambda *_args: {
+            "table_title": "Correction de valeur",
+            "table_summary": "",
+            "headers": [],
+            "indicators": [],
+            "footnotes_content": [],
+            "no_table_detected": True,
+        },
+    )
+    attempted: list[bool] = []
+
+    def fake_ensure_client() -> None:
+        attempted.append(True)
+        extractor._client = None
+
+    monkeypatch.setattr(extractor, "_ensure_client", fake_ensure_client)
+
+    result = extractor.extract(
+        crop_bytes=b"retry-this-crop",
+        bank_code="rbc",
+        pdf_sha="same-pdf",
+        page_number=33,
+        bbox_norm=[0.1, 0.2, 0.9, 0.8],
+        vision_cfg={},
+    )
+
+    assert result is None
+    assert attempted == [True]
+
+
+def test_quality_pass_cache_preserves_final_self_healing_decision(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    extractor = VisionFullExtractor(
+        api_key="test-key",
+        model="gpt-4o-test",
+        use_cache=True,
+    )
+    monkeypatch.setattr(
+        "vigilance.extraction.vision_full_extractor.get_vision_cache_dir",
+        lambda: tmp_path,
+    )
+    calls: list[bytes] = []
+
+    def fake_extract(**kwargs):
+        calls.append(kwargs["crop_bytes"])
+        return _result(
+            title="Petit tableau",
+            summary="Répartition géographique",
+            indicators=["Canada", "Autres", "Total"],
+            headers=["Région", "T2 2026"],
+        )
+
+    monkeypatch.setattr(extractor, "extract", fake_extract)
+    kwargs = {
+        "crop_bytes": b"stable-crop",
+        "bank_code": "rbc",
+        "pdf_sha": "same-pdf",
+        "page_number": 9,
+        "bbox_norm": [0.1, 0.2, 0.9, 0.8],
+        "vision_cfg": {},
+    }
+
+    first = extractor.extract_with_quality_pass(**kwargs)
+    second = extractor.extract_with_quality_pass(**kwargs)
+
+    assert first is not None
+    assert second is not None
+    assert first.indicators == ["Canada", "Autres", "Total"]
+    assert second.indicators == first.indicators
+    assert second.extraction_status == first.extraction_status
+    assert second.qa_inspected is True
+    assert calls == [b"stable-crop"]
+
+
+def test_quality_pass_does_not_cache_unresolved_empty_candidate(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    extractor = VisionFullExtractor(
+        api_key="test-key",
+        model="gpt-4o-test",
+        use_cache=True,
+    )
+    monkeypatch.setattr(
+        "vigilance.extraction.vision_full_extractor.get_vision_cache_dir",
+        lambda: tmp_path,
+    )
+    calls: list[bytes] = []
+
+    def fake_extract(**kwargs):
+        calls.append(kwargs["crop_bytes"])
+        return _result(no_table_detected=True)
+
+    monkeypatch.setattr(extractor, "extract", fake_extract)
+    kwargs = {
+        "crop_bytes": b"unresolved-crop",
+        "bank_code": "rbc",
+        "pdf_sha": "same-pdf",
+        "page_number": 31,
+        "bbox_norm": [0.1, 0.2, 0.9, 0.8],
+        "vision_cfg": {},
+    }
+
+    first = extractor.extract_with_quality_pass(**kwargs)
+    calls_after_first = len(calls)
+    second = extractor.extract_with_quality_pass(**kwargs)
+
+    assert first is not None
+    assert second is not None
+    assert first.indicators == []
+    assert second.indicators == []
+    assert calls_after_first > 0
+    assert len(calls) > calls_after_first

@@ -118,8 +118,10 @@ def bbox_sanity_profile(bbox_norm: list[float]) -> dict:
     h = b_norm - t_norm
     area = w * h
     aspect = w / h if h > 0 else 0.0
-    # Near-full-page if area or any dimension is above threshold
-    near_full = area >= 0.90 or w >= 0.95 or h >= 0.95
+    # Une table financiere peut legitimement occuper presque toute la largeur
+    # (ou la hauteur) sans etre un crop pleine page. Il faut que l'aire soit
+    # quasi totale, ou que les deux dimensions le soient simultanement.
+    near_full = area >= 0.90 or (w >= 0.95 and h >= 0.95)
     profile: dict = {
         "width_norm": round(w, 6),
         "height_norm": round(h, 6),
@@ -173,8 +175,10 @@ def is_bbox_sane(
         return False, "bbox_area_too_large", profile
     if (
         area >= near_full_threshold
-        or w >= near_full_threshold
-        or h >= near_full_threshold
+        or (
+            w >= near_full_threshold
+            and h >= near_full_threshold
+        )
     ):
         profile["reject_reason"] = "bbox_near_full_page"
         return False, "bbox_near_full_page", profile
