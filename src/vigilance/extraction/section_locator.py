@@ -147,6 +147,7 @@ class SectionMapping:
     toc_reliable: bool = False
     toc_used: bool = False
     override_applied: bool = False
+    boundary_validation: dict = field(default_factory=dict)
 
     def to_dict(self) -> dict:
         """Convertir le mapping de sections en dictionnaire serialisable.
@@ -190,6 +191,7 @@ class SectionMapping:
             "toc_reliable": self.toc_reliable,
             "toc_used": self.toc_used,
             "override_applied": self.override_applied,
+            "boundary_validation": self.boundary_validation,
         }
 
 
@@ -2037,6 +2039,63 @@ class SectionLocator:
         # ETAPE 4.7: Recalage specifique CIBC des 2 sections cibles sur titres reels
         sections = self._refine_cibc_target_sections(sections, text_by_page, total_pages)
 
+        # ETAPE 4.75: Pour les rapports annuels, valider la TDM et les
+        # transitions physiques avec la couche Docling + Vision indépendante.
+        boundary_validation: dict = {}
+        if self._is_t4_quarter():
+            try:
+                from .annual_section_boundary_validator import AnnualSectionBoundaryValidator
+
+                front_pages = list(range(1, min(31, total_pages + 1)))
+                candidate_pages = sorted(
+                    front_pages,
+                    key=lambda page: (
+                        self._score_toc_candidate_page(
+                            page,
+                            text_by_page.get(page, ""),
+                        ),
+                        1 if 15 <= page <= 20 else 0,
+                        1 if 10 <= page <= 25 else 0,
+                        -abs(page - 17),
+                    ),
+                    reverse=True,
+                )[:12]
+                outcome = AnnualSectionBoundaryValidator(
+                    bank_code=self.bank_code or "",
+                    year=self.year,
+                ).validate(
+                    pdf_path,
+                    sections,
+                    text_by_page,
+                    candidate_pages,
+                )
+                sections = outcome.sections
+                boundary_validation = outcome.diagnostics
+                if outcome.toc_entries:
+                    toc_entries = [
+                        TocEntry(
+                            title=entry.title,
+                            page=entry.page,
+                            level=entry.level,
+                            raw_line=f"[{entry.source}] {entry.title} {entry.page}",
+                        )
+                        for entry in outcome.toc_entries
+                    ]
+                    toc_sections = self._detect_sections_from_full_toc(toc_entries)
+                    toc_score = self._assess_toc_quality(toc_entries, toc_sections, total_pages)
+                    toc_reliable = toc_score >= 0.6
+                    toc_used = toc_used or boundary_validation.get("status") in {
+                        "verified",
+                        "partial",
+                    }
+            except Exception as exc:
+                logger.warning("Validation annuelle Docling + Vision indisponible: %s", exc)
+                boundary_validation = {
+                    "enabled": True,
+                    "status": "error",
+                    "warnings": [str(exc)],
+                }
+
         # ETAPE 4.8: Normaliser la taxonomie des sections en sortie.
         for section in sections:
             section.section_type = canonicalize_section(section.section_type)
@@ -2071,6 +2130,7 @@ class SectionLocator:
             toc_reliable=toc_reliable,
             toc_used=toc_used,
             override_applied=override_applied,
+            boundary_validation=boundary_validation,
         )
 
         logger.info(f"Sections localisees: {len(sections)}")
