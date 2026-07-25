@@ -87,12 +87,8 @@ def test_download_text_excel_reload_latest_payload_before_export(monkeypatch) ->
     assert response["filename"] == "veille_textuelle_TD_T1_2026.xlsx"
 
 
-def test_filter_text_cards_sorts_by_impact_then_new_idea_and_keeps_non_pertinent() -> None:
-    """Le filtrage Dash garde les changements non pertinents pour revue humaine.
-
-    Tri : impact d'abord, puis nouvelle idée. Les is_relevant=False
-    restent visibles afin que l'analyste puisse contester le triage.
-    """
+def test_filter_text_cards_prioritizes_qualitative_and_keeps_secondary_accessible() -> None:
+    """La vue principale masque le bruit, qui reste accessible par filtre."""
     text_data = {
         "section_comparisons": [
             {
@@ -156,9 +152,19 @@ def test_filter_text_cards_sorts_by_impact_then_new_idea_and_keeps_non_pertinent
     }
 
     cards, count_text = filter_text_cards(text_data, None, None, None)
+    all_cards, all_count_text = filter_text_cards(
+        text_data,
+        None,
+        None,
+        None,
+        None,
+        "all",
+    )
 
-    assert count_text == "3 changement(s) affiché(s)"
-    assert len(cards) == 3
+    assert count_text == "2 changements qualitatifs affichés"
+    assert len(cards) == 2
+    assert all_count_text == "3 changements affichés"
+    assert len(all_cards) == 3
     # La structure de la carte est : badge_row, themes_row?, meta, side_by_side, ...
     # Le side-by-side rend les textes T1/T2 dans des spans imbriqués.
     # On aplatit tous les enfants pour vérifier la présence des phrases.
@@ -177,15 +183,15 @@ def test_filter_text_cards_sorts_by_impact_then_new_idea_and_keeps_non_pertinent
 
     first_text = _flat_text(cards[0])
     second_text = _flat_text(cards[1])
-    third_text = _flat_text(cards[2])
     # Tri : impact d'abord, puis nouvelle idée
     assert "Majeur existant" in first_text
     assert "Nouvelle idée" in second_text
-    assert "Variation chiffree" in third_text
-    assert "Non pertinent" in third_text
+    assert "Variation chiffree" not in _flat_text(cards)
+    assert "Variation chiffree" in _flat_text(all_cards)
+    assert "Secondaire / bruit" in _flat_text(all_cards)
 
 
-def test_filter_text_cards_keeps_minor_date_updates_and_reformulations() -> None:
+def test_filter_text_cards_places_dates_and_reformulations_in_secondary_scope() -> None:
     text_data = {
         "section_comparisons": [
             {
@@ -233,16 +239,96 @@ def test_filter_text_cards_keeps_minor_date_updates_and_reformulations() -> None
         ]
     }
 
-    cards, count_text = filter_text_cards(text_data, None, None, None)
+    cards, count_text = filter_text_cards(
+        text_data,
+        None,
+        None,
+        None,
+        None,
+        "secondary",
+    )
     rendered = _flat_text(cards)
     compact = " ".join(rendered.split())
 
-    assert count_text == "2 changement(s) affiché(s)"
+    assert count_text == "2 changements secondaires affichés"
     assert "Données au 31 janvier." in compact
     assert "Données au 30 avril." in compact
     assert "La banque surveille ce risque." in compact
     assert "Ce risque est surveillé par la banque." in compact
     assert rendered.count("Non pertinent") == 2
+
+
+def test_filter_text_cards_groups_atomic_ideas_under_their_parent_context() -> None:
+    parent_context = (
+        "Notre cadre d’appétit pour le risque s’articule autour de cinq objectifs."
+    )
+    text_data = {
+        "bank_code": "bmo",
+        "section_comparisons": [
+            {
+                "section_key": "gestion_risques",
+                "section_title": "Cadre d’appétit pour le risque",
+                "all_block_comparisons": [
+                    {
+                        "change_id": "ai",
+                        "diff_type": "modified",
+                        "unit_role_t1": "item",
+                        "unit_role_t2": "item",
+                        "parent_chunk_id_t1": "parent-1",
+                        "parent_chunk_id_t2": "parent-1",
+                        "parent_context_t2": parent_context,
+                        "change_summary": (
+                            "Le T2 ajoute la surveillance des risques liés à "
+                            "l’intelligence artificielle."
+                        ),
+                        "source_text_t1": "Surveiller les risques technologiques.",
+                        "source_text_t2": (
+                            "Surveiller les risques technologiques et ceux liés à l’IA."
+                        ),
+                        "genai_triage": {
+                            "is_relevant": True,
+                            "nouvelle_idee": True,
+                            "impact_level": "MODERE",
+                        },
+                    },
+                    {
+                        "change_id": "crisis",
+                        "diff_type": "modified",
+                        "unit_role_t1": "item",
+                        "unit_role_t2": "item",
+                        "parent_chunk_id_t1": "parent-1",
+                        "parent_chunk_id_t2": "parent-1",
+                        "parent_context_t2": parent_context,
+                        "change_summary": (
+                            "Le T2 ajoute le renforcement de sa capacité à absorber "
+                            "les périodes de crise."
+                        ),
+                        "source_text_t1": "Maintenir une solide situation de capital.",
+                        "source_text_t2": (
+                            "Maintenir une situation permettant d’absorber les crises."
+                        ),
+                        "genai_triage": {
+                            "is_relevant": True,
+                            "nouvelle_idee": True,
+                            "impact_level": "MODERE",
+                        },
+                    },
+                ],
+            }
+        ],
+    }
+
+    groups, count_text = filter_text_cards(text_data, None, None, None)
+    rendered = _flat_text(groups)
+
+    assert count_text == "2 changements qualitatifs affichés"
+    assert len(groups) == 1
+    assert "Bloc de liste analysé" in rendered
+    assert "2 idées modifiées" in rendered
+    assert parent_context in rendered
+    assert "BMO ajoute la surveillance des risques liés à l’intelligence artificielle." in rendered
+    assert "BMO ajoute le renforcement de sa capacité à absorber les périodes de crise." in rendered
+    assert rendered.count("Changement constaté") == 2
 
 
 def test_text_analysis_banner_uses_auditable_text_total_not_retained_total() -> None:
@@ -405,10 +491,10 @@ def test_text_review_status_filter_and_remaining_shortcut() -> None:
         "remaining",
     )
 
-    assert approved_count == "1 changement(s) affiché(s)"
+    assert approved_count == "1 changement qualitatif affiché"
     assert "Décision validée" in _flat_text(approved_cards)
     assert "Décision attendue" not in _flat_text(approved_cards)
-    assert remaining_count == "1 changement(s) affiché(s)"
+    assert remaining_count == "1 changement qualitatif affiché"
     assert "Décision attendue" in _flat_text(remaining_cards)
     assert show_remaining_text_changes(1) == "remaining"
 
@@ -440,6 +526,7 @@ def test_text_analysis_preserves_filters_when_review_store_changes() -> None:
     }
     filters = {
         "section": None,
+        "scope": "all",
         "impact": "MAJEUR",
         "action": "revue_prioritaire",
         "status": "approved",
@@ -448,6 +535,7 @@ def test_text_analysis_preserves_filters_when_review_store_changes() -> None:
     view = render_text_analysis(text_data, True, filters)
 
     assert _find_by_id(view, "text-filter-section").value is None
+    assert _find_by_id(view, "text-filter-scope").value == "all"
     assert _find_by_id(view, "text-filter-impact").value == "MAJEUR"
     assert _find_by_id(view, "text-filter-action").value == "revue_prioritaire"
     assert _find_by_id(view, "text-filter-status").value == "approved"
@@ -494,13 +582,13 @@ def test_text_analysis_tab_selects_first_auditable_section_by_default() -> None:
     text = _flat_text(view)
 
     assert section_dropdown.value == "gestion_capital"
-    assert "1 changement(s) affiché(s)" in text
+    assert "1 changement qualitatif affiché" in text
     assert "Nouveau" in text
     assert "capital" in text
     assert "Nouveau risque" not in text
 
 
-def test_text_analysis_replaces_t1_t2_aliases_with_selected_quarters() -> None:
+def test_text_analysis_keeps_quarters_in_evidence_but_uses_bank_in_narrative() -> None:
     text_data = {
         "bank_code": "bnc",
         "quarter_current": "2026_t4",
@@ -545,6 +633,7 @@ def test_text_analysis_replaces_t1_t2_aliases_with_selected_quarters() -> None:
     assert "BNC · T4 2026 vs T4 2025" in rendered
     assert "Courant - T4 2026" in rendered
     assert "Précédent - T4 2025" in rendered
-    assert "Le T4 2026 ajoute une précision absente du T4 2025" in rendered
-    assert "Comparer la posture entre T4 2025 et T4 2026" in rendered
+    assert "BNC ajoute une précision absente du rapport précédent" in rendered
+    assert "Comparer la posture entre rapport précédent et rapport courant" in rendered
     assert "Le T2 ajoute une précision absente du T1" not in rendered
+    assert "Le T4 2026 ajoute" not in rendered

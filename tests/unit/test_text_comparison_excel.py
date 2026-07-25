@@ -604,3 +604,60 @@ def test_what_changed_for_display_prefers_relevance_reason() -> None:
     assert "fragments" not in what.lower()
     assert "passages" not in what.lower()
     assert what.startswith("Le rapport courant")
+
+
+def test_excel_uses_bank_subject_instead_of_period_aliases() -> None:
+    payload = {
+        "bank_code": "td",
+        "section_comparisons": [
+            {
+                "section_key": "gestion_risques",
+                "section_title": "Gestion des risques",
+                "all_block_comparisons": [
+                    {
+                        "diff_type": "modified",
+                        "source_text_t1": "Les facteurs existants sont décrits.",
+                        "source_text_t2": (
+                            "L’incapacité à atteindre les cibles financières est ajoutée."
+                        ),
+                        "change_summary": (
+                            "Le T2 ajoute l’incapacité à atteindre les cibles financières "
+                            "parmi les facteurs pouvant créer un écart par rapport aux attentes "
+                            "des investisseurs et des analystes."
+                        ),
+                        "genai_triage": {
+                            "is_relevant": True,
+                            "nouvelle_idee": True,
+                            "impact_level": "MAJEUR",
+                            "relevance_reason": (
+                                "Le T2 ajoute l’incapacité à atteindre les cibles financières "
+                                "parmi les facteurs pouvant créer un écart par rapport aux "
+                                "attentes des investisseurs et des analystes."
+                            ),
+                        },
+                    }
+                ],
+            }
+        ],
+    }
+
+    raw = generate_text_comparison_excel(payload, output_path=None)
+    workbook = load_workbook(io.BytesIO(raw))
+    ws = workbook["Analyse complète"]
+    summaries = {
+        str(ws.cell(row, _column(ws, "Ce qui change")).value or "")
+        for row in range(2, ws.max_row + 1)
+    }
+    justifications = {
+        str(ws.cell(row, _column(ws, "Justification de pertinence (IA)")).value or "")
+        for row in range(2, ws.max_row + 1)
+    }
+
+    expected = (
+        "TD ajoute l’incapacité à atteindre les cibles financières parmi les "
+        "facteurs pouvant créer un écart par rapport aux attentes des investisseurs "
+        "et des analystes."
+    )
+    assert summaries == {expected}
+    assert justifications == {expected}
+    assert all("T1" not in value and "T2" not in value for value in summaries | justifications)

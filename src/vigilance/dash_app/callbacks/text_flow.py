@@ -34,6 +34,7 @@ def render_text_analysis(text_data, show_results, text_filters=None):
         raise PreventUpdate
     filters = text_filters if isinstance(text_filters, dict) else {}
     kwargs = {
+        "filter_scope": filters.get("scope", "qualitative"),
         "filter_impact": filters.get("impact"),
         "filter_action": filters.get("action"),
         "filter_status": filters.get("status", "remaining"),
@@ -51,6 +52,7 @@ def render_text_analysis(text_data, show_results, text_filters=None):
     Input("text-filter-impact", "value"),
     Input("text-filter-action", "value"),
     Input("text-filter-status", "value"),
+    Input("text-filter-scope", "value"),
     prevent_initial_call=True,
 )
 def filter_text_cards(
@@ -59,6 +61,7 @@ def filter_text_cards(
     filter_impact,
     filter_action,
     filter_status=None,
+    filter_scope="qualitative",
 ):
     """Filtre et trie les cartes analytiques selon les dropdowns."""
     if not text_data:
@@ -69,21 +72,24 @@ def filter_text_cards(
         filter_impact,
         filter_action,
         filter_status,
+        filter_scope,
     )
 
 
 @callback(
     Output("store-text-review-filters", "data"),
     Input("text-filter-section", "value"),
+    Input("text-filter-scope", "value"),
     Input("text-filter-impact", "value"),
     Input("text-filter-action", "value"),
     Input("text-filter-status", "value"),
     prevent_initial_call=True,
 )
-def remember_text_review_filters(section, impact, action, status):
+def remember_text_review_filters(section, scope, impact, action, status):
     """Mémorise le contexte de travail pendant les décisions analystes."""
     return {
         "section": section,
+        "scope": scope or "qualitative",
         "impact": impact,
         "action": action,
         "status": status or "remaining",
