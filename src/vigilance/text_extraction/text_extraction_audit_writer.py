@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-TEXT_EXTRACTION_AUDIT_SCHEMA_VERSION = 1
+TEXT_EXTRACTION_AUDIT_SCHEMA_VERSION = 2
 
 
 def get_text_extraction_audit_path(
@@ -15,6 +15,11 @@ def get_text_extraction_audit_path(
 ) -> Path:
     """Retourne le chemin canonique d'un artefact d'extraction texte auditée."""
     return out_dir / f"text_extraction_{quarter_label.lower()}.json"
+
+
+def get_canonical_text_extraction_audit_path(canonical_markdown_path: Path) -> Path:
+    """Retourne l'audit JSON placé à côté du Markdown canonique."""
+    return canonical_markdown_path.with_name("text_extraction.audit.json")
 
 
 def write_text_extraction_audit(

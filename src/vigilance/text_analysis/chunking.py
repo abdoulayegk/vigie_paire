@@ -6,6 +6,7 @@ import re
 from dataclasses import dataclass
 from typing import Any
 
+from vigilance.text_analysis.boundary_repair import RepairableBlock, repair_block_boundaries
 from vigilance.text_analysis.list_items import parse_list_item_line
 from vigilance.text_analysis.normalization import _is_not_applicable_marker
 from vigilance.text_analysis.semantic_chunking import (
@@ -113,6 +114,43 @@ def _split_candidate_blocks(text: str) -> list[tuple[str, str]]:
     return candidates
 
 
+def _split_repairable_blocks(text: str) -> list[RepairableBlock]:
+    """Découpe le Markdown tout en conservant les barrières structurelles."""
+    candidates: list[RepairableBlock] = []
+    current: list[str] = []
+    hard_boundary_before = False
+
+    def flush_current() -> None:
+        nonlocal hard_boundary_before
+        if not current:
+            return
+        cleaned = "\n".join(line.rstrip() for line in current).strip()
+        if cleaned:
+            candidates.append(
+                RepairableBlock(
+                    kind=_candidate_kind(current),
+                    text=cleaned,
+                    hard_boundary_before=hard_boundary_before,
+                )
+            )
+            hard_boundary_before = False
+        current.clear()
+
+    for raw_line in str(text or "").splitlines():
+        line = raw_line.rstrip()
+        if _is_heading_line(line):
+            flush_current()
+            hard_boundary_before = True
+            continue
+        if not line.strip():
+            flush_current()
+            continue
+        current.append(line)
+
+    flush_current()
+    return candidates
+
+
 def _group_adjacent_lists(candidates: list[tuple[str, str]]) -> list[tuple[str, str]]:
     """Regroupe les blocs de liste consécutifs pour garder une liste en un chunk."""
     grouped: list[tuple[str, str]] = []
@@ -186,7 +224,8 @@ def _chunk_subsection_text(
     ``min_chars`` reste accepté uniquement pour compatibilité d'appel.
     """
     _ = min_chars
-    candidates = _split_candidate_blocks(text)
+    repair_result = repair_block_boundaries(_split_repairable_blocks(text))
+    candidates = [(block.kind, block.text) for block in repair_result.blocks]
     candidates = _merge_short_labels_with_following(candidates)
     candidates = _group_adjacent_lists(candidates)
     filtered_candidates: list[tuple[str, str]] = []

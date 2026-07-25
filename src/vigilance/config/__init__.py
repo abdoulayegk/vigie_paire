@@ -210,6 +210,36 @@ def get_vision_extraction_config(
     return base
 
 
+def get_text_extraction_config(
+    config_path: str | Path = "configs/bank_profiles.yaml",
+    bank_code: str | None = None,
+) -> dict[str, Any]:
+    """Charge les options de nettoyage et d'arbitrage du Markdown canonique."""
+    defaults: dict[str, Any] = {
+        "boundary_vision_enabled": True,
+        "boundary_vision_confidence_min": 0.90,
+        "boundary_vision_max_calls_per_report": 12,
+        "boundary_vision_timeout_sec": 120,
+        "boundary_vision_dpi": 200,
+    }
+    path = _resolve_config_path(config_path)
+    if not path.exists():
+        return defaults
+    try:
+        cfg = load_config(path)
+    except Exception:
+        return defaults
+    global_block = cfg.get("text_extraction")
+    base = {**defaults, **global_block} if isinstance(global_block, dict) else defaults
+    if bank_code:
+        banks = cfg.get("banks")
+        bank_cfg = banks.get(str(bank_code).strip().lower()) if isinstance(banks, dict) else None
+        bank_block = bank_cfg.get("text_extraction") if isinstance(bank_cfg, dict) else None
+        if isinstance(bank_block, dict):
+            base = {**base, **bank_block}
+    return base
+
+
 def get_llm_model_config(
     config_path: str | Path = "configs/bank_profiles.yaml",
 ) -> dict[str, str]:
@@ -390,6 +420,7 @@ __all__ = [
     "load_bank_profiles",
     "resolve_openai_model",
     "get_vision_extraction_config",
+    "get_text_extraction_config",
     "get_quality_gate_config",
     "get_validation_config",
 ]

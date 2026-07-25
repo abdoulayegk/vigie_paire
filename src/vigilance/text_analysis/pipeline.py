@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from vigilance.cli.quarter_logic import normalize_quarter, resolve_previous_quarter
+from vigilance.config import get_text_extraction_config
 from vigilance.text_analysis.comparison import _compare_section_texts
 from vigilance.text_analysis.constants import UNIFIED_TEXT_SCHEMA_VERSION, _SECTION_LABELS, _T4_TEXT_TARGET_SECTIONS
 from vigilance.text_analysis.extraction import _extract_audits_for_pdf
@@ -36,6 +37,12 @@ from vigilance.text_extraction.text_extraction_markdown_writer import (
     stamp_text_extraction_cache_schema,
     write_text_extraction_markdown,
 )
+from vigilance.text_extraction.text_extraction_audit_writer import (
+    TEXT_EXTRACTION_AUDIT_SCHEMA_VERSION,
+    get_canonical_text_extraction_audit_path,
+    write_text_extraction_audit,
+)
+from vigilance.text_analysis.vision_boundary_validator import build_text_boundary_validator
 
 logger = logging.getLogger(__name__)
 
@@ -113,16 +120,53 @@ def _prepare_period_extraction(
         sections=filtered_sections,
         raw_docling_markdown_path=raw_docling_markdown_path,
     )
+    audit_events: list[dict[str, Any]] = []
+    boundary_validator = build_text_boundary_validator(
+        pdf_path=pdf_path,
+        project_root=project_root,
+        config=get_text_extraction_config(bank_code=bank_code),
+    )
     md = stamp_text_extraction_cache_schema(
         _build_text_extraction_markdown(
             audits,
             raw_docling_markdown=raw_docling_markdown,
+            boundary_validator=boundary_validator,
+            audit_events=audit_events,
         )
     )
 
     md_path.parent.mkdir(parents=True, exist_ok=True)
     md_path.write_text(md, encoding="utf-8")
     logger.info("Écriture du .md canonique: %s", md_path)
+    action_counts: dict[str, int] = {}
+    reason_counts: dict[str, int] = {}
+    for event in audit_events:
+        action = str(event.get("action") or "unknown")
+        reason = str(event.get("reason") or "unspecified")
+        action_counts[action] = action_counts.get(action, 0) + 1
+        reason_counts[reason] = reason_counts.get(reason, 0) + 1
+    audit_path = get_canonical_text_extraction_audit_path(md_path)
+    write_text_extraction_audit(
+        {
+            "schema_version": TEXT_EXTRACTION_AUDIT_SCHEMA_VERSION,
+            "artifact_type": "canonical_text_extraction_audit",
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "bank_code": bank_code,
+            "year": year,
+            "quarter": quarter.lower(),
+            "source_pdf": str(pdf_path),
+            "canonical_markdown": str(md_path),
+            "summary": {
+                "total_events": len(audit_events),
+                "actions": action_counts,
+                "reasons": reason_counts,
+                "vision_calls": int(getattr(boundary_validator, "calls_made", 0)),
+            },
+            "events": audit_events,
+        },
+        audit_path,
+    )
+    logger.info("Écriture de l'audit du Markdown canonique: %s", audit_path)
 
     page_idx_by_key = {a.section_key: _build_block_page_index(a) for a in audits}
     section_range_by_key = {a.section_key: (a.start_page, a.end_page) for a in audits}
@@ -251,6 +295,26 @@ def run_text_extraction_pipeline(
                 bank_code,
                 year_current,
                 quarter_current,
+            )
+        ),
+        "canonical_extraction_audit_t1": str(
+            get_canonical_text_extraction_audit_path(
+                get_canonical_text_extraction_md_path(
+                    project_root,
+                    bank_code,
+                    year_previous,
+                    quarter_previous,
+                )
+            )
+        ),
+        "canonical_extraction_audit_t2": str(
+            get_canonical_text_extraction_audit_path(
+                get_canonical_text_extraction_md_path(
+                    project_root,
+                    bank_code,
+                    year_current,
+                    quarter_current,
+                )
             )
         ),
     }

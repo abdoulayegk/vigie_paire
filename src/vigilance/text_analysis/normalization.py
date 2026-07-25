@@ -6,6 +6,7 @@ import json
 import re
 from typing import Any
 
+from vigilance.text_analysis.canonical_cleanup import is_quarterly_running_chrome
 from vigilance.text_analysis.constants import (
     _BPS_RE,
     _FOOTNOTE_MARKER_RE,
@@ -172,7 +173,8 @@ def _is_running_report_chrome(text: str) -> bool:
     """Indique un en-tête ou pied de page récurrent d'un rapport bancaire."""
     value = str(text or "").strip()
     return bool(
-        _BANK_FIRST_REPORT_PAGE_CHROME_RE.fullmatch(value)
+        is_quarterly_running_chrome(value)
+        or _BANK_FIRST_REPORT_PAGE_CHROME_RE.fullmatch(value)
         or _REPORT_FIRST_BANK_PAGE_CHROME_RE.fullmatch(value)
         or _BNC_ANNUAL_REPORT_CHROME_RE.fullmatch(value)
         or _BNC_MANAGEMENT_RUNNING_HEADER_RE.fullmatch(value)
