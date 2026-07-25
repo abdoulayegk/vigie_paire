@@ -15,6 +15,7 @@ from dash import dcc, html
 
 from vigilance.analyst_change_presentation import (
     build_change_presentation,
+    business_relevance_paragraph,
     canonicalize_analyst_narrative,
     change_scope,
 )
@@ -436,6 +437,7 @@ def _build_observed_block(
     change_summary: str,
     relevance_reason: str = "",
     observed_text: str = "",
+    business_relevance: str = "",
 ) -> html.Div:
     """Affiche le résumé métier canonique et l'impact contextualisé."""
     impact_label = _IMPACT_BADGE.get(
@@ -457,6 +459,22 @@ def _build_observed_block(
                 className="small fw-semibold text-primary mb-1",
             ),
             html.P(observed, className="small mb-2"),
+            (
+                html.Div(
+                    [
+                        html.Div(
+                            "Pertinence métier",
+                            className="small fw-semibold text-primary mb-1",
+                        ),
+                        html.P(
+                            business_relevance,
+                            className="small mb-2",
+                        ),
+                    ]
+                )
+                if business_relevance
+                else None
+            ),
             html.Div(
                 f"Impact {impact_domain} — {impact_label}",
                 className="small fw-semibold text-muted",
@@ -505,12 +523,11 @@ def _build_ai_details(
         )
 
     detail_sections: list = []
-    pertinence = sanitize_analyst_french(justification_sections.get("Pertinence métier", ""))
     surveillance = sanitize_analyst_french(
         justification_sections.get("Point de surveillance", "")
     )
     subject = sanitize_analyst_french(justification_sections.get("Sujet détecté", ""))
-    if pertinence or surveillance or subject or impact_sections:
+    if surveillance or subject or impact_sections:
         impact_label = _IMPACT_BADGE.get(
             impact_level,
             (impact_level.capitalize(), "secondary"),
@@ -523,7 +540,6 @@ def _build_ai_details(
                         className="fw-semibold mb-2",
                     ),
                     _ai_detail_item("Domaine détecté", subject or impact_domain),
-                    _ai_detail_item("Pertinence métier", pertinence),
                     _ai_detail_item("Point de surveillance", surveillance),
                     _ai_detail_item(
                         "Conséquence probable",
@@ -808,6 +824,15 @@ def _build_change_card(
         _TRIAGE_DETAIL_LABELS,
     )
     impact_domain = _impact_domain(themes_amf, section_title)
+    business_relevance = ""
+    if presentation.scope == "qualitative":
+        business_relevance = business_relevance_paragraph(
+            str(triage.get("relevance_reason") or ""),
+            justification_sections.get("Pertinence métier", ""),
+            str(triage.get("explanation") or ""),
+            summary=presentation.summary,
+            bank_code=bank_code,
+        )
 
     evidence_t1 = change.get("evidence_t1") or {}
     evidence_t2 = change.get("evidence_t2") or {}
@@ -918,6 +943,7 @@ def _build_change_card(
             bank_code=bank_code,
         ),
         observed_text=presentation.summary,
+        business_relevance=business_relevance,
     )
 
     posture_proof_block, ai_details = _build_ai_details(

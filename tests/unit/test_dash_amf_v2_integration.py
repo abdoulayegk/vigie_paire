@@ -234,6 +234,11 @@ def test_text_analysis_change_card_renders_amf_fields() -> None:
     assert "Preuve de posture" in text
     assert "Voir les détails de l’évaluation IA" in text
     assert "Changement constaté" in text
+    assert "Pertinence métier" in text
+    assert (
+        "La modification peut changer la manière dont la banque applique le cadre "
+        "réglementaire."
+    ) in text
     assert "Voir la preuve source" in text
     assert "Conséquence probable" in text
     assert "Limite de l’analyse" in text
@@ -251,6 +256,7 @@ def test_text_analysis_change_card_renders_amf_fields() -> None:
     details_text = _flatten_text(details)
     assert "Voir les détails de l’évaluation IA" in details_text
     assert "Changement constaté" not in details_text
+    assert "Pertinence métier" not in details_text
 
     card_body = getattr(card, "children")
     card_sections = [_flatten_text(child) for child in getattr(card_body, "children")]
@@ -462,8 +468,11 @@ def test_text_analysis_shows_observed_change_before_fold() -> None:
     assert "Changement constaté" in card_sections[observed_index]
     assert "…" not in card_sections[observed_index].split("Changement constaté", 1)[-1][:200]
     assert "Impact facteurs de risque — Majeur" in card_sections[observed_index]
-    assert "Pertinence métier" not in card_sections[observed_index]
-    assert "Pertinence métier" in card_sections[details_index]
+    assert "Pertinence métier" in card_sections[observed_index]
+    assert "Le retrait modifie le niveau de détail fourni." in card_sections[
+        observed_index
+    ]
+    assert "Pertinence métier" not in card_sections[details_index]
 
 
 def test_text_analysis_change_card_keeps_non_pertinent() -> None:

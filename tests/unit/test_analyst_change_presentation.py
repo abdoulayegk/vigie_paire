@@ -4,6 +4,7 @@ import pytest
 
 from vigilance.analyst_change_presentation import (
     build_change_presentation,
+    business_relevance_paragraph,
     canonicalize_analyst_narrative,
     change_scope,
 )
@@ -90,6 +91,26 @@ def test_build_change_presentation_keeps_only_the_main_factual_sentence() -> Non
     assert presentation.summary == (
         "BMO ajoute la surveillance des risques liés à l’IA."
     )
+
+
+def test_business_relevance_removes_repeated_factual_sentence() -> None:
+    summary = "CIBC introduit une nouvelle section sur les risques liés à l’IA."
+
+    result = business_relevance_paragraph(
+        (
+            "Le rapport courant introduit une nouvelle section sur les risques "
+            "liés à l’IA. Cet ajout permet de comparer la gouvernance et les "
+            "pratiques de gestion de l’IA entre les banques."
+        ),
+        summary=summary,
+        bank_code="cibc",
+    )
+
+    assert result == (
+        "Cet ajout permet de comparer la gouvernance et les pratiques de gestion "
+        "de l’IA entre les banques."
+    )
+    assert result.count("introduit une nouvelle section") == 0
 
 
 def test_canonicalize_narrative_preserves_structured_sections() -> None:

@@ -75,13 +75,23 @@ Une carte est organisée dans l'ordre suivant :
 1. nature du changement et badges de priorité;
 2. section et pages concernées;
 3. phrase métier sous « Changement constaté »;
-4. preuve source repliée;
-5. preuve de posture, si disponible;
-6. détails de l'évaluation automatisée repliés;
-7. décision et commentaire de l'analyste.
+4. paragraphe distinct sous « Pertinence métier »;
+5. preuve source repliée;
+6. preuve de posture, si disponible;
+7. détails de l'évaluation automatisée repliés;
+8. décision et commentaire de l'analyste.
 
 Ce séquencement permet de comprendre le changement avant d'examiner les
 preuves et l'interprétation.
+
+Le premier paragraphe décrit uniquement le fait observé. Le second explique
+pourquoi ce fait mérite l'attention de la vigie. La phrase factuelle répétée
+dans la justification générée est retirée automatiquement afin que les deux
+paragraphes restent complémentaires.
+
+La pertinence métier visible est limitée aux changements qualitatifs. Les
+variations chiffrées, reformulations et autres changements secondaires
+n'affichent pas ce deuxième paragraphe dans leur vue de contrôle.
 
 ## Listes et unités atomiques
 

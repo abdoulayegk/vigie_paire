@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass
+from difflib import SequenceMatcher
 from typing import Any
 
 from vigilance.i18n.fr import sanitize_analyst_french
@@ -139,6 +140,62 @@ def _first_complete_sentence(value: str) -> str:
     if match:
         return value[: match.end()].strip()
     return value
+
+
+def _sentence_parts(value: str) -> list[str]:
+    normalized = " ".join(str(value or "").split()).strip()
+    if not normalized:
+        return []
+    return [
+        part.strip()
+        for part in re.split(
+            r"(?<=[.!?])\s+(?=[A-ZÀ-ÖØ-Þ])",
+            normalized,
+        )
+        if part.strip()
+    ]
+
+
+def _sentence_comparison_key(value: str) -> str:
+    return re.sub(r"[^\w]+", " ", value.casefold(), flags=re.UNICODE).strip()
+
+
+def _duplicates_summary(sentence: str, summary: str) -> bool:
+    sentence_key = _sentence_comparison_key(sentence)
+    summary_key = _sentence_comparison_key(summary)
+    if not sentence_key or not summary_key:
+        return False
+    if sentence_key == summary_key:
+        return True
+    if min(len(sentence_key), len(summary_key)) >= 60 and (
+        sentence_key in summary_key or summary_key in sentence_key
+    ):
+        return True
+    return SequenceMatcher(None, sentence_key, summary_key, autojunk=False).ratio() >= 0.88
+
+
+def business_relevance_paragraph(
+    *candidates: str,
+    summary: str,
+    bank_code: str | None,
+    limit: int = 420,
+) -> str:
+    """Retourne la pertinence métier sans répéter le résumé factuel."""
+    for candidate in candidates:
+        narrative = canonicalize_analyst_narrative(
+            candidate,
+            bank_code=bank_code,
+        )
+        relevant_sentences = [
+            sentence
+            for sentence in _sentence_parts(narrative)
+            if not _duplicates_summary(sentence, summary)
+        ]
+        if not relevant_sentences:
+            continue
+        paragraph = " ".join(relevant_sentences[:2])
+        return _truncate_at_sentence(paragraph, limit)
+    return ""
 
 
 def change_scope(change: dict[str, Any]) -> str:
