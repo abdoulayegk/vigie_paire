@@ -159,6 +159,23 @@ def _prepare_subsection_alignments(
     )
 
 
+def _atomic_unit_metadata(
+    chunk_t1: TextChunk | None,
+    chunk_t2: TextChunk | None,
+) -> dict[str, Any]:
+    """Expose la filiation des unités sans modifier leur preuve source."""
+    return {
+        "unit_role_t1": chunk_t1.unit_role if chunk_t1 else None,
+        "unit_role_t2": chunk_t2.unit_role if chunk_t2 else None,
+        "parent_chunk_id_t1": chunk_t1.parent_chunk_id if chunk_t1 else None,
+        "parent_chunk_id_t2": chunk_t2.parent_chunk_id if chunk_t2 else None,
+        "atomic_marker_t1": chunk_t1.atomic_marker if chunk_t1 else None,
+        "atomic_marker_t2": chunk_t2.atomic_marker if chunk_t2 else None,
+        "parent_context_t1": chunk_t1.parent_context if chunk_t1 else "",
+        "parent_context_t2": chunk_t2.parent_context if chunk_t2 else "",
+    }
+
+
 def _exact_diff_change_for_strong_alignment(
     *,
     alignment: ChunkAlignment,
@@ -174,11 +191,13 @@ def _exact_diff_change_for_strong_alignment(
         return None
     text_t1 = alignment.chunk_t1.text
     text_t2 = alignment.chunk_t2.text
-    similarity = _sequence_similarity(text_t1, text_t2)
+    comparison_t1 = alignment.chunk_t1.comparison_text or text_t1
+    comparison_t2 = alignment.chunk_t2.comparison_text or text_t2
+    similarity = _sequence_similarity(comparison_t1, comparison_t2)
     if similarity < _EXACT_DIFF_STRONG_SEQUENCE_THRESHOLD:
         return None
-    normalized_t1 = re.sub(r"\s+", " ", text_t1).strip()
-    normalized_t2 = re.sub(r"\s+", " ", text_t2).strip()
+    normalized_t1 = re.sub(r"\s+", " ", comparison_t1).strip()
+    normalized_t2 = re.sub(r"\s+", " ", comparison_t2).strip()
     if normalized_t1 == normalized_t2:
         diff_type = "unchanged"
         summary = "Passages alignés identiques après normalisation."
@@ -220,6 +239,7 @@ def _exact_diff_change_for_strong_alignment(
         "alignment_reason": alignment.reason,
         "tfidf_score": alignment.tfidf_score,
         "embedding_score": alignment.embedding_score,
+        **_atomic_unit_metadata(alignment.chunk_t1, alignment.chunk_t2),
     }
 
 
@@ -409,6 +429,10 @@ def _compare_texts_single_call(
                         "Lorsque le texte contient des blocs [c00], [c01], etc., "
                         "utilise ces bornes pour aligner les idées comparables, "
                         "mais ne recopie pas ces balises dans text_t1 ou text_t2. "
+                        "Dans un bloc enumeration_item ou list_item, les marqueurs "
+                        "i), ii), 1), 2) ou les puces sont structurels : une simple "
+                        "renumérotation ou un déplacement ne constitue pas un changement "
+                        "de divulgation si le contenu demeure le même. "
                         "Lorsque le texte contient des blocs [a00 | matched_strong], "
                         "[a00 | matched_grouped], [a00 | matched_weak], [a00 | ambiguous], [a00 | possible_added] "
                         "ou [a00 | possible_removed], ces alignements hybrides "
@@ -603,6 +627,7 @@ def _attach_alignment_metadata(
                 "alignment_reason": alignment.reason,
                 "tfidf_score": alignment.tfidf_score,
                 "embedding_score": alignment.embedding_score,
+                **_atomic_unit_metadata(alignment.chunk_t1, alignment.chunk_t2),
             }
         )
         scoped.append(scoped_change)
@@ -850,6 +875,10 @@ def _changes_from_orphan_chunks(
                 "change_summary": (
                     f"Passage de sous-section "
                     f"{'ajouté' if diff_type == 'added' else 'supprimé'}: {heading}"
+                ),
+                **_atomic_unit_metadata(
+                    chunk if diff_type == "removed" else None,
+                    chunk if diff_type == "added" else None,
                 ),
             }
         )

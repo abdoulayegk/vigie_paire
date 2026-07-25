@@ -2862,8 +2862,19 @@ def test_docling_bns_list_survives_canonical_markdown_and_chunking() -> None:
     assert [line for line in markdown.splitlines() if line.startswith("- ")] == [
         f"- {item}" for item in list_items
     ]
-    assert [chunk.kind for chunk in chunks] == ["paragraph", "list"]
-    assert chunks[1].text.splitlines() == list_items
+    assert [chunk.kind for chunk in chunks] == [
+        "list_context",
+        "list_item",
+        "list_item",
+        "list_item",
+        "list_item",
+        "list_item",
+    ]
+    assert chunks[0].text == introduction.replace(" :", ":")
+    assert [chunk.comparison_text for chunk in chunks[1:]] == list_items
+    assert {chunk.parent_chunk_id for chunk in chunks[1:]} == {
+        chunks[0].chunk_id
+    }
 
 
 def test_docling_heading_does_not_match_words_inside_capital_paragraph() -> None:
@@ -3352,7 +3363,7 @@ def test_chunk_subsection_text_splits_long_paragraphs_into_chunks() -> None:
     assert chunks[5].text.startswith("Notre performance financière")
 
 
-def test_chunk_subsection_text_keeps_pdf_bullet_list_as_one_chunk() -> None:
+def test_chunk_subsection_text_splits_pdf_bullet_list_into_atomic_items() -> None:
     text = (
         "‰ est appropriée, compte tenu des ratios cibles de BMO pour les fonds propres réglementaires;\n\n"
         "‰ soutient les stratégies des groupes d'exploitation de BMO et tient compte du contexte du marché;\n\n"
@@ -3361,13 +3372,14 @@ def test_chunk_subsection_text_keeps_pdf_bullet_list_as_one_chunk() -> None:
 
     chunks = _chunk_subsection_text(text, subsection_heading="Objectif", section_title="Gestion du capital")
 
-    assert len(chunks) == 1
-    assert chunks[0].kind == "list"
-    assert "‰" not in chunks[0].text
-    assert chunks[0].text.count("\n") == 2
+    assert len(chunks) == 3
+    assert [chunk.kind for chunk in chunks] == ["list_item"] * 3
+    assert all(chunk.atomic_marker == "-" for chunk in chunks)
+    assert all("‰" not in chunk.comparison_text for chunk in chunks)
+    assert len({chunk.parent_chunk_id for chunk in chunks}) == 1
 
 
-def test_chunk_subsection_text_keeps_markdown_bullet_list_as_one_chunk() -> None:
+def test_chunk_subsection_text_splits_markdown_bullet_list_into_atomic_items() -> None:
     text = (
         "- premier élément de liste qui décrit une exigence de gouvernance;\n\n"
         "- deuxième élément de liste qui décrit une exigence de surveillance;\n\n"
@@ -3376,13 +3388,14 @@ def test_chunk_subsection_text_keeps_markdown_bullet_list_as_one_chunk() -> None
 
     chunks = _chunk_subsection_text(text, subsection_heading="Objectif", section_title="Gestion du capital")
 
-    assert len(chunks) == 1
-    assert chunks[0].kind == "list"
-    assert "- " not in chunks[0].text
-    assert chunks[0].text.count("\n") == 2
+    assert len(chunks) == 3
+    assert [chunk.kind for chunk in chunks] == ["list_item"] * 3
+    assert all(chunk.text.startswith("- ") for chunk in chunks)
+    assert all(not chunk.comparison_text.startswith("- ") for chunk in chunks)
+    assert len({chunk.parent_chunk_id for chunk in chunks}) == 1
 
 
-def test_chunk_subsection_text_groups_checkbox_list_without_brackets() -> None:
+def test_chunk_subsection_text_splits_checkbox_list_without_marker_noise() -> None:
     text = (
         "[] La Banque renforce ses contrôles de risque de crédit.\n\n"
         "[] Le cadre prévoit une surveillance accrue des portefeuilles sensibles.\n\n"
@@ -3391,13 +3404,13 @@ def test_chunk_subsection_text_groups_checkbox_list_without_brackets() -> None:
 
     chunks = _chunk_subsection_text(text, subsection_heading="Contrôles", section_title="Gestion des risques")
 
-    assert len(chunks) == 1
-    assert chunks[0].kind == "list"
-    assert "[" not in chunks[0].text
-    assert "]" not in chunks[0].text
-    assert "La Banque renforce" in chunks[0].text
-    assert "surveillance accrue" in chunks[0].text
-    assert "transmis périodiquement" in chunks[0].text
+    assert len(chunks) == 3
+    assert [chunk.kind for chunk in chunks] == ["list_item"] * 3
+    assert all("[" not in chunk.comparison_text for chunk in chunks)
+    assert all("]" not in chunk.comparison_text for chunk in chunks)
+    assert chunks[0].comparison_text.startswith("La Banque renforce")
+    assert "surveillance accrue" in chunks[1].comparison_text
+    assert "transmis périodiquement" in chunks[2].comparison_text
 
 
 def test_chunk_subsection_text_keeps_short_paragraph_independent() -> None:
