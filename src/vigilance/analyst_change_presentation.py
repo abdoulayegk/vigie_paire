@@ -54,6 +54,37 @@ _LEADING_ANALYSIS_LABEL_RE = re.compile(
     flags=re.IGNORECASE,
 )
 
+_GENERIC_RELEVANCE_PREFIX_RE = re.compile(
+    r"^(?:"
+    r"pour la vigie(?:\s+AMF|\s+prudentielle)?|"
+    r"dans le cadre de (?:cette\s+|l['’])analyse"
+    r")\s*[,;:–—-]\s*",
+    flags=re.IGNORECASE,
+)
+
+_GENERIC_RELEVANCE_OBSERVATION_RE = re.compile(
+    r"^il convient de noter que\s+",
+    flags=re.IGNORECASE,
+)
+
+_GENERIC_RELEVANCE_SENTENCE_RE = re.compile(
+    r"^(?:"
+    r"cette information est importante"
+    r"(?: pour (?:la vigie(?:\s+AMF|\s+prudentielle)?|"
+    r"l['’]analyse|la comparaison entre pairs))?|"
+    r"ce changement est pertinent pour la vigie"
+    r"(?:\s+AMF|\s+prudentielle)?"
+    r")\s*[.!?]?$",
+    flags=re.IGNORECASE,
+)
+
+_GENERIC_IMPORTANCE_CAUSE_RE = re.compile(
+    r"^cette information est importante"
+    r"(?: pour [^,.;]+)?\s*,?\s*"
+    r"(?:car elle|puisqu['’]elle)\s+",
+    flags=re.IGNORECASE,
+)
+
 _CURRENT_REPORT_SUBJECT_RE = re.compile(
     r"(^|(?<=[.!?:])\s+)"
     r"(?:le\s+)?(?:t2|rapport courant|texte courant|document courant)"
@@ -160,6 +191,30 @@ def _sentence_comparison_key(value: str) -> str:
     return re.sub(r"[^\w]+", " ", value.casefold(), flags=re.UNICODE).strip()
 
 
+def _capitalize_sentence_start(value: str) -> str:
+    match = re.search(r"[A-Za-zÀ-ÖØ-öø-ÿ]", value)
+    if match is None:
+        return value
+    index = match.start()
+    return f"{value[:index]}{value[index].upper()}{value[index + 1:]}"
+
+
+def _clean_business_relevance_sentence(value: str) -> str:
+    """Retire les introductions génériques sans altérer l'idée métier."""
+    sentence = " ".join(str(value or "").split()).strip()
+    if not sentence or _GENERIC_RELEVANCE_SENTENCE_RE.fullmatch(sentence):
+        return ""
+
+    previous = ""
+    while sentence != previous:
+        previous = sentence
+        sentence = _GENERIC_RELEVANCE_PREFIX_RE.sub("", sentence).strip()
+        sentence = _GENERIC_RELEVANCE_OBSERVATION_RE.sub("", sentence).strip()
+
+    sentence = _GENERIC_IMPORTANCE_CAUSE_RE.sub("Elle ", sentence).strip()
+    return _capitalize_sentence_start(sentence)
+
+
 def _duplicates_summary(sentence: str, summary: str) -> bool:
     sentence_key = _sentence_comparison_key(sentence)
     summary_key = _sentence_comparison_key(summary)
@@ -178,22 +233,23 @@ def business_relevance_paragraph(
     *candidates: str,
     summary: str,
     bank_code: str | None,
-    limit: int = 420,
+    limit: int = 720,
 ) -> str:
-    """Retourne la pertinence métier sans répéter le résumé factuel."""
+    """Retourne jusqu'à trois phrases métier sans répéter le résumé factuel."""
     for candidate in candidates:
         narrative = canonicalize_analyst_narrative(
             candidate,
             bank_code=bank_code,
         )
-        relevant_sentences = [
-            sentence
-            for sentence in _sentence_parts(narrative)
-            if not _duplicates_summary(sentence, summary)
-        ]
+        relevant_sentences: list[str] = []
+        for sentence in _sentence_parts(narrative):
+            cleaned_sentence = _clean_business_relevance_sentence(sentence)
+            if not cleaned_sentence or _duplicates_summary(cleaned_sentence, summary):
+                continue
+            relevant_sentences.append(cleaned_sentence)
         if not relevant_sentences:
             continue
-        paragraph = " ".join(relevant_sentences[:2])
+        paragraph = " ".join(relevant_sentences[:3])
         return _truncate_at_sentence(paragraph, limit)
     return ""
 

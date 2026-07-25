@@ -84,10 +84,40 @@ Une carte est organisée dans l'ordre suivant :
 Ce séquencement permet de comprendre le changement avant d'examiner les
 preuves et l'interprétation.
 
-Le premier paragraphe décrit uniquement le fait observé. Le second explique
-pourquoi ce fait mérite l'attention de la vigie. La phrase factuelle répétée
-dans la justification générée est retirée automatiquement afin que les deux
-paragraphes restent complémentaires.
+Le premier paragraphe décrit uniquement le fait observé. Le second contient
+jusqu'à trois phrases complémentaires :
+
+1. la signification métier du changement;
+2. les dimensions concrètes qu'il permet de comparer entre les banques;
+3. la limite d'interprétation, c'est-à-dire ce que le passage ne permet pas
+   encore de conclure.
+
+Pour les nouveaux rapports, le triage produit un constat factuel suivi de ces
+trois phrases. La phrase factuelle répétée est retirée automatiquement de la
+pertinence métier afin que les deux paragraphes restent complémentaires. Les
+anciens artefacts restent compatibles et affichent les phrases utiles déjà
+disponibles, sans inventer une limite absente de leur analyse.
+
+Les introductions génériques sont retirées de l'affichage, notamment « Pour
+la vigie », « Cette information est importante », « Il convient de noter que »
+et « Dans le cadre de cette analyse ». Leur suppression ne retire pas le
+contenu métier qui suit.
+
+Exemple :
+
+**Changement constaté**
+
+CIBC ajoute la surveillance des risques liés à l'intelligence artificielle à
+ses objectifs de gestion des risques.
+
+**Pertinence métier**
+
+Cet ajout fait passer l'intelligence artificielle d'un enjeu technologique
+implicite à une catégorie de risque explicitement reconnue par CIBC. Il permet
+de comparer la gouvernance, les responsabilités ainsi que les contrôles sur
+les modèles et les données déclarés par les banques. Le passage ne permet
+toutefois pas encore de conclure que ces mécanismes sont entièrement mis en
+œuvre.
 
 La pertinence métier visible est limitée aux changements qualitatifs. Les
 variations chiffrées, reformulations et autres changements secondaires

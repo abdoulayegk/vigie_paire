@@ -113,6 +113,55 @@ def test_business_relevance_removes_repeated_factual_sentence() -> None:
     assert result.count("introduit une nouvelle section") == 0
 
 
+def test_business_relevance_keeps_three_complementary_sentences() -> None:
+    summary = "CIBC ajoute la surveillance des risques liés à l’IA."
+
+    result = business_relevance_paragraph(
+        (
+            "Le rapport courant ajoute la surveillance des risques liés à l’IA. "
+            "Cet ajout fait passer l’intelligence artificielle d’un enjeu "
+            "technologique implicite à une catégorie de risque reconnue. "
+            "Il permet de comparer la gouvernance, les responsabilités et les "
+            "contrôles déclarés par les banques. Le passage ne permet toutefois "
+            "pas de conclure que ces mécanismes sont entièrement mis en œuvre."
+        ),
+        summary=summary,
+        bank_code="cibc",
+    )
+
+    assert result == (
+        "Cet ajout fait passer l’intelligence artificielle d’un enjeu "
+        "technologique implicite à une catégorie de risque reconnue. "
+        "Il permet de comparer la gouvernance, les responsabilités et les "
+        "contrôles déclarés par les banques. Le passage ne permet toutefois "
+        "pas de conclure que ces mécanismes sont entièrement mis en œuvre."
+    )
+    assert "CIBC ajoute" not in result
+
+
+def test_business_relevance_removes_generic_lead_ins() -> None:
+    result = business_relevance_paragraph(
+        (
+            "Cette information est importante pour la comparaison entre pairs. "
+            "Pour la vigie, cet ajout rend le risque explicite. "
+            "Dans le cadre de cette analyse, il permet de comparer les contrôles. "
+            "Il convient de noter que le passage ne démontre pas leur mise en œuvre."
+        ),
+        summary="CIBC ajoute un risque émergent.",
+        bank_code="cibc",
+    )
+
+    assert result == (
+        "Cet ajout rend le risque explicite. "
+        "Il permet de comparer les contrôles. "
+        "Le passage ne démontre pas leur mise en œuvre."
+    )
+    assert "Pour la vigie" not in result
+    assert "Cette information est importante" not in result
+    assert "Il convient de noter que" not in result
+    assert "Dans le cadre de cette analyse" not in result
+
+
 def test_canonicalize_narrative_preserves_structured_sections() -> None:
     narrative = (
         "Ce qui change : Le T2 ajoute une précision absente du T1.\n\n"
