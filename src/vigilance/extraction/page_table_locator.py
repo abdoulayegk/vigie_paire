@@ -441,6 +441,30 @@ def build_page_table_crop_plan(
     )
 
 
+def build_near_full_page_crop_plan(
+    layout: PageTableLayout,
+    *,
+    min_confidence: float = DEFAULT_PAGE_LOCATOR_MIN_CONFIDENCE,
+) -> PageTableCropPlan | None:
+    """Verifier une bbox presque pleine page sans choisir une region arbitraire.
+
+    La bbox Docling initiale recouvre trop de contenu pour servir d'ancre.
+    Le locator doit donc trouver exactement une region de tableau fiable.
+    """
+    reliable_regions = [
+        region
+        for region in layout.tables
+        if region.confidence >= min_confidence
+    ]
+    if len(reliable_regions) != 1:
+        return None
+    return build_page_table_crop_plan(
+        layout,
+        list(reliable_regions[0].table_bbox),
+        min_confidence=min_confidence,
+    )
+
+
 def should_use_page_context_rescue(
     rescue_result_available: bool,
     rejection_reasons: list[str],
