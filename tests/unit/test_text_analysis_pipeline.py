@@ -2061,20 +2061,21 @@ def test_docling_standalone_footnote_is_kept_without_table_context() -> None:
 
 
 @pytest.mark.parametrize(
-    ("text", "follows_table"),
+    ("text", "follows_table", "expected"),
     [
-        ("1 Les méthodes de présentation reposent sur la ligne directrice B-20.", False),
-        ("4 Comprennent la dette de premier rang et excluent des billets structurés.", False),
-        ("n. s. - non significatif", False),
+        ("1 Les méthodes de présentation reposent sur la ligne directrice B-20.", False, True),
+        ("4 Comprennent la dette de premier rang et excluent des billets structurés.", False, True),
+        ("n. s. - non significatif", False, False),
     ],
 )
-def test_docling_filter_keeps_note_forms_without_table_context(
+def test_docling_filter_handles_note_forms_without_table_context(
     text: str,
     follows_table: bool,
+    expected: bool,
 ) -> None:
     assert _should_keep_docling_segment(
         DoclingSegment(kind="paragraph", text=text, follows_table=follows_table)
-    ) is True
+    ) is expected
 
 
 @pytest.mark.parametrize("marker", ["s.o.", "S.O."])

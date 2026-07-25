@@ -264,6 +264,8 @@ def _build_text_extraction_markdown(
     section_audits: list[SectionAudit],
     *,
     raw_docling_markdown: str | None = None,
+    boundary_validator: Any | None = None,
+    audit_events: list[dict[str, Any]] | None = None,
 ) -> str:
     """Convertit une liste d'audits de sections en markdown source de vérité.
 
@@ -276,6 +278,8 @@ def _build_text_extraction_markdown(
         return _build_text_extraction_markdown_from_docling(
             section_audits,
             raw_docling_markdown=raw_docling_markdown,
+            boundary_validator=boundary_validator,
+            audit_events=audit_events,
         )
 
     return _build_text_extraction_markdown_from_blocks(section_audits)

@@ -4,8 +4,16 @@ from __future__ import annotations
 
 import logging
 import re
-from dataclasses import dataclass
+from typing import Any
 
+from vigilance.text_analysis.canonical_cleanup import cleanup_canonical_fragment
+from vigilance.text_analysis.docling_segment_repair import (
+    DoclingSegment,
+    _deduplicate_adjacent_docling_segments,
+    _repair_docling_segment_boundaries,
+    _repair_nonadjacent_dangling_boundaries,
+    _segment_audit_text,
+)
 from vigilance.text_analysis.constants import _SECTION_LABELS
 from vigilance.text_analysis.list_items import (
     format_list_item_markdown,
@@ -37,6 +45,7 @@ _SECTION_ORDER = {
 
 _HEADING_LINE_RE = re.compile(r"^(#{1,6})\s+(.+)$")
 _TABLE_ROW_RE = re.compile(r"^\|.+\|$")
+_DOCLING_IMAGE_MARKER_RE = re.compile(r"^<!--\s*image\s*-->$", flags=re.IGNORECASE)
 _EXPLICIT_FOOTNOTE_MARKER_RE = re.compile(
     r"^\s*(?:\(?\d{1,2}\)|[¹²³⁴⁵⁶⁷⁸⁹]+|[*†‡]{1,3}|"
     r"(?:note|source|s\.?\s*o\.?|n\.?\s*s\.?)\b)",
@@ -106,22 +115,6 @@ def _is_end_boundary_heading(segment: DoclingSegment, audits: list[SectionAudit]
     return False
 
 
-@dataclass(slots=True)
-class DoclingSegment:
-    """Segment parsé depuis le markdown natif Docling."""
-
-    kind: str
-    text: str
-    heading_level: int = 0
-    follows_table: bool = False
-    page: int | None = None
-    bbox_norm: list[float] | None = None
-    source_block_id: str | None = None
-    source_block_type: str | None = None
-    list_marker: str | None = None
-    list_indent: int = 0
-
-
 def _has_table_footnote_cue(text: str) -> bool:
     """Indique si un texte contient un indice lexical propre aux notes de tableau."""
     return _TABLE_FOOTNOTE_CUE_RE.search(str(text or "")) is not None
@@ -144,6 +137,7 @@ def _parse_docling_markdown(md_content: str) -> list[DoclingSegment]:
     segments: list[DoclingSegment] = []
     in_table = False
     follows_table = False
+    visual_note_context = False
     for raw_line in md_content.splitlines():
         line = raw_line.strip()
         if not line:
@@ -156,6 +150,16 @@ def _parse_docling_markdown(md_content: str) -> list[DoclingSegment]:
                 segments.append(DoclingSegment(kind="table", text="[table]"))
             in_table = True
             follows_table = False
+            visual_note_context = False
+            continue
+        if _DOCLING_IMAGE_MARKER_RE.fullmatch(line):
+            # Les graphiques Docling sont exportés comme images. Les lignes
+            # numérotées qui les suivent sont des notes visuelles au même titre
+            # que les notes sous une table Markdown.
+            segments.append(DoclingSegment(kind="table", text="[visual]"))
+            in_table = False
+            follows_table = True
+            visual_note_context = True
             continue
         if in_table:
             # Une table se termine normalement par une ligne vide, mais le
@@ -177,34 +181,51 @@ def _parse_docling_markdown(md_content: str) -> list[DoclingSegment]:
                     )
                 )
             follows_table = False
+            visual_note_context = False
             continue
 
         list_item = parse_list_item_line(raw_line)
         if list_item is not None:
+            is_visual_note = bool(
+                visual_note_context
+                and (
+                    _EXPLICIT_FOOTNOTE_MARKER_RE.match(line)
+                    or _is_bare_numeric_table_footnote(line, follows_table=True)
+                )
+            )
             segments.append(
                 DoclingSegment(
                     kind="list_item",
                     text=list_item.text,
-                    follows_table=follows_table,
+                    follows_table=follows_table or is_visual_note,
                     list_marker=list_item.marker,
                     list_indent=list_item.indent,
                 )
             )
             follows_table = False
+            visual_note_context = is_visual_note
             continue
 
         text = line
         if not text:
             follows_table = False
             continue
+        is_visual_note = bool(
+            visual_note_context
+            and (
+                _EXPLICIT_FOOTNOTE_MARKER_RE.match(text)
+                or _is_bare_numeric_table_footnote(text, follows_table=True)
+            )
+        )
         segments.append(
             DoclingSegment(
                 kind="paragraph",
                 text=text,
-                follows_table=follows_table,
+                follows_table=follows_table or is_visual_note,
             )
         )
         follows_table = False
+        visual_note_context = is_visual_note
     return segments
 
 
@@ -342,6 +363,8 @@ def _is_table_footnote_segment(segment: DoclingSegment) -> bool:
         return False
     if not segment.follows_table:
         return False
+    if segment.kind == "list_item" and re.fullmatch(r"\d{1,3}[.)]", str(segment.list_marker or "")):
+        return True
     return bool(
         _EXPLICIT_FOOTNOTE_MARKER_RE.match(text)
         or _is_bare_numeric_table_footnote(text, follows_table=True)
@@ -357,30 +380,41 @@ def _should_keep_docling_segment(segment: DoclingSegment, audits: list[SectionAu
     supprimer un montant, un pourcentage, un texte court ou une note autonome,
     à l'exception du marqueur autonome « s.o. ».
     """
+    return _docling_segment_exclusion_reason(segment, audits) is None
+
+
+def _docling_segment_exclusion_reason(
+    segment: DoclingSegment,
+    audits: list[SectionAudit] | None = None,
+) -> str | None:
+    """Retourne la raison stable d'exclusion, ou ``None`` si le segment est conservé."""
     text = str(segment.text or "").strip()
-    if not text:
-        return False
-    if _is_running_report_chrome(text) or _is_table_unit_label(text) or _is_chart_axis_label_row(text):
-        return False
-    if _is_not_applicable_marker(text):
-        return False
+    cleanup = cleanup_canonical_fragment(
+        text,
+        is_running_chrome=_is_running_report_chrome(text),
+        is_table_unit=_is_table_unit_label(text),
+        is_chart_axis=_is_chart_axis_label_row(text),
+        is_not_applicable=_is_not_applicable_marker(text),
+    )
+    if not cleanup.keep:
+        return cleanup.reason
 
     # Les notes confirmées par leur zone sous tableau sont les seules notes
     # exclues par les métadonnées PDF.
     if _is_confirmed_footnote_segment(segment, audits):
-        return False
+        return "confirmed_table_footnote"
 
     if _is_confirmed_table_segment(segment, audits):
-        return False
+        return "confirmed_table_content"
 
     if _is_table_footnote_segment(segment):
-        return False
+        return "table_footnote_after_table"
 
     if _is_confirmed_narrative_segment(segment, audits):
-        return True
+        return None
     if segment.kind == "heading":
-        return not _is_out_of_scope_accounting_heading(text)
-    return True
+        return "out_of_scope_accounting_heading" if _is_out_of_scope_accounting_heading(text) else None
+    return None
 
 
 def _is_audited_structural_heading(block: PDFBlock) -> bool:
@@ -397,11 +431,19 @@ def _is_audited_structural_heading(block: PDFBlock) -> bool:
 def _missing_audited_blocks(
     markdown: str,
     audits: list[SectionAudit],
+    *,
+    intentionally_removed_texts: set[str] | None = None,
 ) -> list[PDFBlock]:
     """Retourne les blocs audités absents du Markdown rendu."""
     rendered = _normalized_block_text(markdown)
+    removed = intentionally_removed_texts or set()
     if not rendered:
-        return [block for audit in audits for block in audit.included_blocks]
+        return [
+            block
+            for audit in audits
+            for block in audit.included_blocks
+            if _normalized_block_text(block.text) not in removed
+        ]
 
     missing: list[PDFBlock] = []
     for audit in audits:
@@ -413,7 +455,7 @@ def _missing_audited_blocks(
             if _looks_like_table_caption_title(block.text):
                 continue
             block_norm = _normalized_block_text(block.text)
-            if not block_norm or block_norm in rendered:
+            if not block_norm or block_norm in rendered or block_norm in removed:
                 continue
             missing.append(block)
     return missing
@@ -422,9 +464,15 @@ def _missing_audited_blocks(
 def _warn_on_missing_audited_narrative_blocks(
     markdown: str,
     audits: list[SectionAudit],
+    *,
+    intentionally_removed_texts: set[str] | None = None,
 ) -> list[PDFBlock]:
     """Journalise et retourne toute perte entre l'audit et le Markdown."""
-    missing = _missing_audited_blocks(markdown, audits)
+    missing = _missing_audited_blocks(
+        markdown,
+        audits,
+        intentionally_removed_texts=intentionally_removed_texts,
+    )
 
     if missing:
         logger.warning(
@@ -568,6 +616,8 @@ def _matching_section_keys(segment: DoclingSegment, audits: list[SectionAudit]) 
 def _assign_segments_to_sections(
     segments: list[DoclingSegment],
     audits: list[SectionAudit],
+    *,
+    audit_events: list[dict[str, Any]] | None = None,
 ) -> dict[str, list[DoclingSegment]]:
     """Répartit les segments Docling dans les sections AMF en conservant l'ordre."""
     assigned: dict[str, list[DoclingSegment]] = {audit.section_key: [] for audit in audits}
@@ -579,6 +629,26 @@ def _assign_segments_to_sections(
     stopped_sections: set[str] = set()
 
     for segment in segments:
+        cleanup = cleanup_canonical_fragment(
+            segment.text,
+            is_running_chrome=_is_running_report_chrome(segment.text),
+            is_table_unit=_is_table_unit_label(segment.text),
+            is_chart_axis=_is_chart_axis_label_row(segment.text),
+            is_not_applicable=_is_not_applicable_marker(segment.text),
+        )
+        if cleanup.changed:
+            if audit_events is not None:
+                audit_events.append(
+                    {
+                        "action": "canonicalize",
+                        "reason": "surface_normalization",
+                        "kind": segment.kind,
+                        "source_text": segment.text,
+                        "result_text": cleanup.text,
+                    }
+                )
+            segment.text = cleanup.text
+
         if segment.kind == "heading" and _is_end_boundary_heading(segment, audits):
             if current_section is not None:
                 stopped_sections.add(current_section)
@@ -590,7 +660,19 @@ def _assign_segments_to_sections(
                 assigned[current_section].append(segment)
             continue
 
-        if not _should_keep_docling_segment(segment, audits):
+        exclusion_reason = _docling_segment_exclusion_reason(segment, audits)
+        if exclusion_reason is not None:
+            if audit_events is not None:
+                audit_events.append(
+                    {
+                        "action": "remove",
+                        "reason": exclusion_reason,
+                        "kind": segment.kind,
+                        "text": _segment_audit_text(segment),
+                        "page": segment.page,
+                        "source_block_id": segment.source_block_id,
+                    }
+                )
             continue
 
         if segment.kind == "heading":
@@ -620,6 +702,45 @@ def _assign_segments_to_sections(
         assigned[current_section].append(segment)
 
     return assigned
+
+
+def _filter_reinserted_section_segments(
+    segments: list[DoclingSegment],
+    *,
+    audit: SectionAudit,
+    audit_events: list[dict[str, Any]] | None = None,
+) -> list[DoclingSegment]:
+    """Réapplique les exclusions certaines après le filet de réinsertion PDF."""
+    filtered: list[DoclingSegment] = []
+    previously_removed = {
+        _normalized_block_text(str(event.get("text") or "")): str(event.get("reason") or "")
+        for event in (audit_events or [])
+        if event.get("action") == "remove" and event.get("text")
+    }
+    for segment in segments:
+        if segment.kind == "table":
+            filtered.append(segment)
+            continue
+        source_text = _segment_audit_text(segment)
+        exclusion_reason = previously_removed.get(_normalized_block_text(source_text))
+        if not exclusion_reason:
+            exclusion_reason = _docling_segment_exclusion_reason(segment, [audit])
+        if exclusion_reason is None:
+            filtered.append(segment)
+            continue
+        if audit_events is not None:
+            audit_events.append(
+                {
+                    "action": "remove",
+                    "reason": exclusion_reason,
+                    "kind": segment.kind,
+                    "text": source_text,
+                    "page": segment.page,
+                    "source_block_id": segment.source_block_id,
+                    "stage": "post_reinsertion",
+                }
+            )
+    return filtered
 
 
 def _page_lookup_for_section(audit: SectionAudit) -> dict[str, int]:
@@ -723,10 +844,16 @@ def _build_text_extraction_markdown_from_docling(
     section_audits: list[SectionAudit],
     *,
     raw_docling_markdown: str,
+    boundary_validator: Any | None = None,
+    audit_events: list[dict[str, Any]] | None = None,
 ) -> str:
     """Construit le markdown filtré en s'alignant sur la structure Docling."""
     segments = _parse_docling_markdown(raw_docling_markdown)
-    assigned = _assign_segments_to_sections(segments, section_audits)
+    assigned = _assign_segments_to_sections(
+        segments,
+        section_audits,
+        audit_events=audit_events,
+    )
     ordered_audits = sorted(
         section_audits,
         key=lambda audit: (_SECTION_ORDER.get(audit.section_key, 99), audit.start_page),
@@ -740,7 +867,26 @@ def _build_text_extraction_markdown_from_docling(
             assigned.get(audit.section_key, []),
             audit,
         )
+        section_segments = _filter_reinserted_section_segments(
+            section_segments,
+            audit=audit,
+            audit_events=audit_events,
+        )
         section_segments = _matchable_section_segments(section_segments)
+        section_segments = _deduplicate_adjacent_docling_segments(
+            section_segments,
+            audit_events=audit_events,
+        )
+        section_segments = _repair_docling_segment_boundaries(
+            section_segments,
+            boundary_validator=boundary_validator,
+            audit_events=audit_events,
+        )
+        section_segments = _repair_nonadjacent_dangling_boundaries(
+            section_segments,
+            boundary_validator=boundary_validator,
+            audit_events=audit_events,
+        )
         if not section_segments:
             continue
 
@@ -786,7 +932,29 @@ def _build_text_extraction_markdown_from_docling(
             lines.append("")
 
     rendered = "\n".join(lines).strip() + "\n"
-    missing = _warn_on_missing_audited_narrative_blocks(rendered, section_audits)
+    intentionally_removed_texts = {
+        _normalized_block_text(str(event.get("text") or ""))
+        for event in (audit_events or [])
+        if event.get("action") == "remove"
+        and event.get("reason")
+        in {
+            "running_header_footer",
+            "table_unit_label",
+            "chart_axis_labels",
+            "standalone_not_applicable",
+            "table_marker_definition",
+            "confirmed_table_footnote",
+            "confirmed_table_content",
+            "table_footnote_after_table",
+            "adjacent_duplicate",
+        }
+    }
+    intentionally_removed_texts.discard("")
+    missing = _warn_on_missing_audited_narrative_blocks(
+        rendered,
+        section_audits,
+        intentionally_removed_texts=intentionally_removed_texts,
+    )
     if missing:
         raise TextAnalysisQualityError(
             "Markdown narratif incomplet après réinsertion locale: "

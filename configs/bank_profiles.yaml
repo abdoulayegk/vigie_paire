@@ -4,6 +4,13 @@ llm_models:
   extraction_primary: gpt-5.4
   default_genai: gpt-4o
 
+text_extraction:
+  boundary_vision_enabled: true
+  boundary_vision_confidence_min: 0.90
+  boundary_vision_max_calls_per_report: 12
+  boundary_vision_timeout_sec: 120
+  boundary_vision_dpi: 200
+
 vision_extraction:
   enabled: true
   bottom_extension_footnotes: 0.12
