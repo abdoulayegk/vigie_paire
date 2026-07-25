@@ -568,10 +568,12 @@ window.runMermaid = runMermaid;</script>
         <li><a href="api/vigilance.models.html#vigilance.models.comparison_models.IndicatorRename.analyst_assessment">(attribut IndicatorRename)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/vigilance.models.html#vigilance.models.comparison_models.AnalystAssessment">AnalystAssessment (classe dans vigilance.models.comparison_models)</a>
 </li>
+      <li><a href="api/vigilance.extraction.html#vigilance.extraction.genai_toc_detector.GenAITOCDetector.analyze_annual_toc_page">analyze_annual_toc_page() (méthode GenAITOCDetector)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/vigilance.extraction.html#vigilance.extraction.section_locator.LocatedSection.anchor_bbox_norm">anchor_bbox_norm (attribut LocatedSection)</a>
 </li>
       <li><a href="api/vigilance.extraction.html#vigilance.extraction.section_locator.LocatedSection.anchor_found">anchor_found (attribut LocatedSection)</a>
@@ -589,6 +591,10 @@ window.runMermaid = runMermaid;</script>
       <li><a href="api/vigilance.extraction.html#vigilance.extraction.table_annotator.annotate_table_image">annotate_table_image() (dans le module vigilance.extraction.table_annotator)</a>
 </li>
       <li><a href="api/vigilance.extraction.html#vigilance.extraction.table_annotator.annotate_table_with_changes">annotate_table_with_changes() (dans le module vigilance.extraction.table_annotator)</a>
+</li>
+      <li><a href="api/vigilance.extraction.html#vigilance.extraction.genai_toc_detector.GenAITOCDetector.ANNUAL_TOC_ANALYSIS_PROMPT">ANNUAL_TOC_ANALYSIS_PROMPT (attribut GenAITOCDetector)</a>
+</li>
+      <li><a href="api/vigilance.extraction.html#vigilance.extraction.genai_toc_detector.AnnualTOCAnalysis">AnnualTOCAnalysis (classe dans vigilance.extraction.genai_toc_detector)</a>
 </li>
       <li><a href="api/vigilance.html#vigilance.review_models_v2.ValidationStatus.APPROVED">APPROVED (attribut ValidationStatus)</a>
 </li>
@@ -652,6 +658,10 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="api/vigilance.extraction.html#vigilance.extraction.docling_processor.ExtractedTable.bbox_top">bbox_top (attribut ExtractedTable)</a>
 </li>
+      <li><a href="api/vigilance.extraction.html#vigilance.extraction.genai_toc_detector.AnnualTOCAnalysis.boundaries">boundaries (attribut AnnualTOCAnalysis)</a>
+</li>
+      <li><a href="api/vigilance.extraction.html#vigilance.extraction.section_locator.SectionMapping.boundary_validation">boundary_validation (attribut SectionMapping)</a>
+</li>
       <li><a href="api/vigilance.html#vigilance.comparison_analyst.build_analyst_assessment">build_analyst_assessment() (dans le module vigilance.comparison_analyst)</a>
 </li>
       <li><a href="api/vigilance.dash_app.layouts.html#vigilance.dash_app.layouts.page_results.build_analyst_kpi_card">build_analyst_kpi_card() (dans le module vigilance.dash_app.layouts.page_results)</a>
@@ -660,10 +670,10 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="api/vigilance.text_comparison.html#vigilance.text_comparison.justification.build_compact_triage_justification">build_compact_triage_justification() (dans le module vigilance.text_comparison.justification)</a>
 </li>
-      <li><a href="api/vigilance.html#vigilance.review_export.build_export_metadata">build_export_metadata() (dans le module vigilance.review_export)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/vigilance.html#vigilance.review_export.build_export_metadata">build_export_metadata() (dans le module vigilance.review_export)</a>
+</li>
       <li><a href="api/vigilance.dash_app.services.html#vigilance.dash_app.services.comparison_store.build_file_comparison_store">build_file_comparison_store() (dans le module vigilance.dash_app.services.comparison_store)</a>
 </li>
       <li><a href="api/vigilance.html#vigilance.ui_indicators.build_indicator_change_rows">build_indicator_change_rows() (dans le module vigilance.ui_indicators)</a>
@@ -725,6 +735,8 @@ window.runMermaid = runMermaid;</script>
       <li><a href="api/vigilance.extraction.html#vigilance.extraction.vision_cache.cache_get">cache_get() (dans le module vigilance.extraction.vision_cache)</a>
 </li>
       <li><a href="api/vigilance.extraction.html#vigilance.extraction.vision_cache.cache_put">cache_put() (dans le module vigilance.extraction.vision_cache)</a>
+</li>
+      <li><a href="api/vigilance.extraction.html#vigilance.extraction.genai_toc_detector.PageTransitionValidation.candidate_page_starts_expected_section">candidate_page_starts_expected_section (attribut PageTransitionValidation)</a>
 </li>
       <li><a href="api/vigilance.extraction.html#vigilance.extraction.vision_full_extractor.VisionFullResult.candidate_quality_rank">candidate_quality_rank (attribut VisionFullResult)</a>
 </li>
@@ -812,12 +824,12 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="api/vigilance.utils.html#vigilance.utils.page_layout_context.compute_dynamic_extensions">compute_dynamic_extensions() (dans le module vigilance.utils.page_layout_context)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/vigilance.report.html#vigilance.report.vigie_extract_schema.compute_features">compute_features() (dans le module vigilance.report.vigie_extract_schema)</a>
 </li>
       <li><a href="api/vigilance.dash_app.components.html#vigilance.dash_app.components.review_display_shared.compute_flag_state">compute_flag_state() (dans le module vigilance.dash_app.components.review_display_shared)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/vigilance.report.html#vigilance.report.vigie_extract_schema.compute_pdf_hash">compute_pdf_hash() (dans le module vigilance.report.vigie_extract_schema)</a>
 </li>
       <li><a href="api/vigilance.extraction.html#vigilance.extraction.vision_cache.compute_pdf_sha256">compute_pdf_sha256() (dans le module vigilance.extraction.vision_cache)</a>
@@ -828,12 +840,16 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="api/vigilance.utils.html#vigilance.utils.type_metier.compute_type_metier">compute_type_metier() (dans le module vigilance.utils.type_metier)</a>
 </li>
-      <li><a href="api/vigilance.extraction.html#vigilance.extraction.section_locator.LocatedSection.confidence">confidence (attribut LocatedSection)</a>
+      <li><a href="api/vigilance.extraction.html#vigilance.extraction.genai_toc_detector.AnnualTOCAnalysis.confidence">confidence (attribut AnnualTOCAnalysis)</a>
 
       <ul>
+        <li><a href="api/vigilance.extraction.html#vigilance.extraction.section_locator.LocatedSection.confidence">(attribut LocatedSection)</a>
+</li>
         <li><a href="api/vigilance.models.html#vigilance.models.comparison_models.MatchInspectorVerdict.confidence">(attribut MatchInspectorVerdict)</a>
 </li>
         <li><a href="api/vigilance.extraction.html#vigilance.extraction.page_title_assistant.PageTitleCandidate.confidence">(attribut PageTitleCandidate)</a>
+</li>
+        <li><a href="api/vigilance.extraction.html#vigilance.extraction.genai_toc_detector.PageTransitionValidation.confidence">(attribut PageTransitionValidation)</a>
 </li>
         <li><a href="api/vigilance.html#vigilance.review_models.ReviewItem.confidence">(attribut ReviewItem)</a>
 </li>
@@ -847,12 +863,16 @@ window.runMermaid = runMermaid;</script>
 </li>
         <li><a href="api/vigilance.models.html#vigilance.models.comparison_models.SinglePairInspectorResponse.confidence">(attribut SinglePairInspectorResponse)</a>
 </li>
+        <li><a href="api/vigilance.extraction.html#vigilance.extraction.genai_toc_detector.TOCBoundaryRole.confidence">(attribut TOCBoundaryRole)</a>
+</li>
         <li><a href="api/vigilance.extraction.html#vigilance.extraction.genai_toc_detector.TOCDetectionResult.confidence">(attribut TOCDetectionResult)</a>
 </li>
       </ul></li>
       <li><a href="api/vigilance.extraction.html#vigilance.extraction.vision_full_extractor.VisionFullResult.confidence_score">confidence_score (attribut VisionFullResult)</a>
 </li>
       <li><a href="api/vigilance.utils.html#vigilance.utils.pymupdf_utils.configure_mupdf_runtime">configure_mupdf_runtime() (dans le module vigilance.utils.pymupdf_utils)</a>
+</li>
+      <li><a href="api/vigilance.extraction.html#vigilance.extraction.genai_toc_detector.PageTransitionValidation.confirmed">confirmed (attribut PageTransitionValidation)</a>
 </li>
       <li><a href="api/vigilance.models.html#vigilance.models.comparison_models.DevilAdvocateResponse.confirmed_low_confidence">confirmed_low_confidence (attribut DevilAdvocateResponse)</a>
 </li>
@@ -986,8 +1006,12 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="api/vigilance.html#vigilance.genai_summary.enrich_result_with_genai">enrich_result_with_genai() (dans le module vigilance.genai_summary)</a>
 </li>
-      <li><a href="api/vigilance.extraction.html#vigilance.extraction.genai_toc_detector.TOCDetectionResult.entries">entries (attribut TOCDetectionResult)</a>
+      <li><a href="api/vigilance.extraction.html#vigilance.extraction.genai_toc_detector.AnnualTOCAnalysis.entries">entries (attribut AnnualTOCAnalysis)</a>
+
+      <ul>
+        <li><a href="api/vigilance.extraction.html#vigilance.extraction.genai_toc_detector.TOCDetectionResult.entries">(attribut TOCDetectionResult)</a>
 </li>
+      </ul></li>
       <li><a href="api/vigilance.utils.html#vigilance.utils.model_cost.estimate_openai_cost_usd">estimate_openai_cost_usd() (dans le module vigilance.utils.model_cost)</a>
 </li>
       <li><a href="api/vigilance.extraction.html#vigilance.extraction.table_annotator.estimate_row_positions">estimate_row_positions() (dans le module vigilance.extraction.table_annotator)</a>
@@ -1012,10 +1036,10 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="api/vigilance.html#vigilance.amf_taxonomy.extract_labeled_analysis">extract_labeled_analysis() (dans le module vigilance.amf_taxonomy)</a>
 </li>
-      <li><a href="api/vigilance.extract.html#vigilance.extract.pdf_text.extract_page_text">extract_page_text() (dans le module vigilance.extract.pdf_text)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/vigilance.extract.html#vigilance.extract.pdf_text.extract_page_text">extract_page_text() (dans le module vigilance.extract.pdf_text)</a>
+</li>
       <li><a href="api/vigilance.extraction.html#vigilance.extraction.page_title_assistant.PageTitleAssistant.extract_page_titles">extract_page_titles() (méthode PageTitleAssistant)</a>
 </li>
       <li><a href="api/vigilance.extract.html#vigilance.extract.pdf_text.extract_pages_text">extract_pages_text() (dans le module vigilance.extract.pdf_text)</a>
@@ -1396,10 +1420,10 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="api/vigilance.utils.html#vigilance.utils.indicator_cleaner.insert_space_after_change_tag">insert_space_after_change_tag() (dans le module vigilance.utils.indicator_cleaner)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/vigilance.extraction.html#vigilance.extraction.vision_qa_inspector.VisionTableInspector.inspect_extraction">inspect_extraction() (méthode VisionTableInspector)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/vigilance.models.html#vigilance.models.comparison_models.InspectorArtifactPair">InspectorArtifactPair (classe dans vigilance.models.comparison_models)</a>
 </li>
       <li><a href="api/vigilance.models.html#vigilance.models.comparison_models.InspectorRenamedVerdict">InspectorRenamedVerdict (classe dans vigilance.models.comparison_models)</a>
@@ -1427,6 +1451,8 @@ window.runMermaid = runMermaid;</script>
       <li><a href="api/vigilance.utils.html#vigilance.utils.indicator_cleaner.is_header_footer_table_title">is_header_footer_table_title() (dans le module vigilance.utils.indicator_cleaner)</a>
 </li>
       <li><a href="api/vigilance.extraction.html#vigilance.extraction.section_locator.VisualTextElement.is_likely_header">is_likely_header (propriété VisualTextElement)</a>
+</li>
+      <li><a href="api/vigilance.extraction.html#vigilance.extraction.genai_toc_detector.AnnualTOCAnalysis.is_master_toc">is_master_toc (attribut AnnualTOCAnalysis)</a>
 </li>
       <li><a href="api/vigilance.utils.html#vigilance.utils.matching_normalizer.is_non_indicator_line">is_non_indicator_line() (dans le module vigilance.utils.matching_normalizer)</a>
 </li>
@@ -2001,10 +2027,12 @@ window.runMermaid = runMermaid;</script>
 <h2 id="O">O</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api/vigilance.models.html#vigilance.models.comparison_models.VisualSanityCheckResponse.overall_assessment">overall_assessment (attribut VisualSanityCheckResponse)</a>
+      <li><a href="api/vigilance.extraction.html#vigilance.extraction.genai_toc_detector.PageTransitionValidation.observed_title">observed_title (attribut PageTransitionValidation)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/vigilance.models.html#vigilance.models.comparison_models.VisualSanityCheckResponse.overall_assessment">overall_assessment (attribut VisualSanityCheckResponse)</a>
+</li>
       <li><a href="api/vigilance.extraction.html#vigilance.extraction.section_locator.SectionMapping.override_applied">override_applied (attribut SectionMapping)</a>
 </li>
   </ul></td>
@@ -2043,9 +2071,11 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="api/vigilance.html#vigilance.review_models_v2.ChangeType.PAGE_MOVED">PAGE_MOVED (attribut ChangeType)</a>
 </li>
-      <li><a href="api/vigilance.extraction.html#vigilance.extraction.docling_processor.ExtractedTable.page_number">page_number (attribut ExtractedTable)</a>
+      <li><a href="api/vigilance.extraction.html#vigilance.extraction.genai_toc_detector.AnnualTOCAnalysis.page_number">page_number (attribut AnnualTOCAnalysis)</a>
 
       <ul>
+        <li><a href="api/vigilance.extraction.html#vigilance.extraction.docling_processor.ExtractedTable.page_number">(attribut ExtractedTable)</a>
+</li>
         <li><a href="api/vigilance.extraction.html#vigilance.extraction.pdf_preview.PagePreview.page_number">(attribut PagePreview)</a>
 </li>
         <li><a href="api/vigilance.extraction.html#vigilance.extraction.page_title_assistant.PageTitleResult.page_number">(attribut PageTitleResult)</a>
@@ -2069,6 +2099,8 @@ window.runMermaid = runMermaid;</script>
       </ul></li>
       <li><a href="api/vigilance.extraction.html#vigilance.extraction.page_title_assistant.PageTitleResponse.page_table_titles">page_table_titles (attribut PageTitleResponse)</a>
 </li>
+      <li><a href="api/vigilance.extraction.html#vigilance.extraction.genai_toc_detector.GenAITOCDetector.PAGE_TRANSITION_PROMPT">PAGE_TRANSITION_PROMPT (attribut GenAITOCDetector)</a>
+</li>
       <li><a href="api/vigilance.extraction.html#vigilance.extraction.section_locator.VisualTextElement.page_width">page_width (attribut VisualTextElement)</a>
 </li>
       <li><a href="api/vigilance.extraction.html#vigilance.extraction.pdf_preview.PagePreview">PagePreview (classe dans vigilance.extraction.pdf_preview)</a>
@@ -2083,10 +2115,12 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="api/vigilance.extraction.html#vigilance.extraction.page_title_assistant.PageTitleResult">PageTitleResult (classe dans vigilance.extraction.page_title_assistant)</a>
 </li>
-      <li><a href="api/vigilance.report.html#vigilance.report.vigie_extract_schema.parse_first_column">parse_first_column() (dans le module vigilance.report.vigie_extract_schema)</a>
+      <li><a href="api/vigilance.extraction.html#vigilance.extraction.genai_toc_detector.PageTransitionValidation">PageTransitionValidation (classe dans vigilance.extraction.genai_toc_detector)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/vigilance.report.html#vigilance.report.vigie_extract_schema.parse_first_column">parse_first_column() (dans le module vigilance.report.vigie_extract_schema)</a>
+</li>
       <li><a href="api/vigilance.report.html#vigilance.report.vigie_extract_schema.parse_footnotes">parse_footnotes() (dans le module vigilance.report.vigie_extract_schema)</a>
 </li>
       <li><a href="api/vigilance.html#vigilance.quarter_utils.parse_quarter_ref">parse_quarter_ref() (dans le module vigilance.quarter_utils)</a>
@@ -2122,6 +2156,8 @@ window.runMermaid = runMermaid;</script>
       <li><a href="api/vigilance.html#vigilance.quarter_utils.previous_comparable_quarter">previous_comparable_quarter() (dans le module vigilance.quarter_utils)</a>
 </li>
       <li><a href="api/vigilance.models.html#vigilance.models.comparison_models.FootnoteRename.previous_id">previous_id (attribut FootnoteRename)</a>
+</li>
+      <li><a href="api/vigilance.extraction.html#vigilance.extraction.genai_toc_detector.PageTransitionValidation.previous_page_belongs_to_prior_section">previous_page_belongs_to_prior_section (attribut PageTransitionValidation)</a>
 </li>
       <li><a href="api/vigilance.models.html#vigilance.models.comparison_models.DevilAdvocateConfirmation.previous_table_id">previous_table_id (attribut DevilAdvocateConfirmation)</a>
 
@@ -2193,8 +2229,14 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="api/vigilance.extraction.html#vigilance.extraction.section_locator.TocEntry.raw_line">raw_line (attribut TocEntry)</a>
 </li>
-      <li><a href="api/vigilance.extraction.html#vigilance.extraction.genai_toc_detector.TOCDetectionResult.raw_response">raw_response (attribut TOCDetectionResult)</a>
+      <li><a href="api/vigilance.extraction.html#vigilance.extraction.genai_toc_detector.AnnualTOCAnalysis.raw_response">raw_response (attribut AnnualTOCAnalysis)</a>
+
+      <ul>
+        <li><a href="api/vigilance.extraction.html#vigilance.extraction.genai_toc_detector.PageTransitionValidation.raw_response">(attribut PageTransitionValidation)</a>
 </li>
+        <li><a href="api/vigilance.extraction.html#vigilance.extraction.genai_toc_detector.TOCDetectionResult.raw_response">(attribut TOCDetectionResult)</a>
+</li>
+      </ul></li>
       <li><a href="api/vigilance.report.html#vigilance.report.vigie_extract_schema.FootnoteEntry.raw_text">raw_text (attribut FootnoteEntry)</a>
 </li>
       <li><a href="api/vigilance.utils.html#vigilance.utils.rbc_table_signals.RbcFirstColumnSignals">RbcFirstColumnSignals (classe dans vigilance.utils.rbc_table_signals)</a>
@@ -2226,6 +2268,8 @@ window.runMermaid = runMermaid;</script>
 </li>
         <li><a href="api/vigilance.models.html#vigilance.models.comparison_models.MatchInspectorVerdict.reason">(attribut MatchInspectorVerdict)</a>
 </li>
+        <li><a href="api/vigilance.extraction.html#vigilance.extraction.genai_toc_detector.PageTransitionValidation.reason">(attribut PageTransitionValidation)</a>
+</li>
         <li><a href="api/vigilance.models.html#vigilance.models.comparison_models.SanityCheckItem.reason">(attribut SanityCheckItem)</a>
 </li>
         <li><a href="api/vigilance.models.html#vigilance.models.comparison_models.SinglePairInspectorResponse.reason">(attribut SinglePairInspectorResponse)</a>
@@ -2249,10 +2293,10 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="api/vigilance.models.html#vigilance.models.comparison_models.AnalystAssessment.relevance_level">relevance_level (attribut AnalystAssessment)</a>
 </li>
-      <li><a href="api/vigilance.html#vigilance.amf_taxonomy.TriageAMFCompactLLMResultWithIndex.relevance_reason">relevance_reason (attribut TriageAMFCompactLLMResultWithIndex)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/vigilance.html#vigilance.amf_taxonomy.TriageAMFCompactLLMResultWithIndex.relevance_reason">relevance_reason (attribut TriageAMFCompactLLMResultWithIndex)</a>
+</li>
       <li><a href="api/vigilance.models.html#vigilance.models.comparison_models.InspectorArtifactPair.removed">removed (attribut InspectorArtifactPair)</a>
 </li>
       <li><a href="api/vigilance.html#vigilance.review_models.ReviewItem.removed_indicators">removed_indicators (attribut ReviewItem)</a>
@@ -2378,6 +2422,8 @@ window.runMermaid = runMermaid;</script>
 </li>
         <li><a href="api/vigilance.extraction.html#vigilance.extraction.pdf_preview.SectionPreview.section_type">(attribut SectionPreview)</a>
 </li>
+        <li><a href="api/vigilance.extraction.html#vigilance.extraction.genai_toc_detector.TOCBoundaryRole.section_type">(attribut TOCBoundaryRole)</a>
+</li>
       </ul></li>
       <li><a href="api/vigilance.extraction.html#vigilance.extraction.genai_toc_detector.SectionDetectionResult">SectionDetectionResult (classe dans vigilance.extraction.genai_toc_detector)</a>
 </li>
@@ -2403,10 +2449,10 @@ window.runMermaid = runMermaid;</script>
       </ul></li>
       <li><a href="api/vigilance.extraction.html#vigilance.extraction.vision_full_extractor.VisionFullResult.selected_bbox_norm">selected_bbox_norm (attribut VisionFullResult)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/vigilance.extraction.html#vigilance.extraction.vision_full_extractor.VisionFullResult.selected_candidate_name">selected_candidate_name (attribut VisionFullResult)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/vigilance.html#vigilance.review_state.set_review_status">set_review_status() (dans le module vigilance.review_state)</a>
 </li>
       <li><a href="api/vigilance.models.html#vigilance.models.comparison_models.MatchInspectorVerdict.shared_indicators">shared_indicators (attribut MatchInspectorVerdict)</a>
@@ -2454,6 +2500,8 @@ window.runMermaid = runMermaid;</script>
 </li>
         <li><a href="api/vigilance.extraction.html#vigilance.extraction.pdf_preview.SectionPreview.start_page">(attribut SectionPreview)</a>
 </li>
+        <li><a href="api/vigilance.extraction.html#vigilance.extraction.genai_toc_detector.TOCBoundaryRole.start_page">(attribut TOCBoundaryRole)</a>
+</li>
       </ul></li>
       <li><a href="api/vigilance.models.html#vigilance.models.section_models.SectionRange.start_page_pdf">start_page_pdf (attribut SectionRange)</a>
 </li>
@@ -2476,6 +2524,10 @@ window.runMermaid = runMermaid;</script>
       <li><a href="api/vigilance.utils.html#vigilance.utils.indicator_cleaner.strip_units_from_table_title">strip_units_from_table_title() (dans le module vigilance.utils.indicator_cleaner)</a>
 </li>
       <li><a href="api/vigilance.html#vigilance.review_models_v2.ChangeType.STRUCTURE_CHANGE">STRUCTURE_CHANGE (attribut ChangeType)</a>
+</li>
+      <li><a href="api/vigilance.extraction.html#vigilance.extraction.genai_toc_detector.TOCBoundaryRole.successor_page">successor_page (attribut TOCBoundaryRole)</a>
+</li>
+      <li><a href="api/vigilance.extraction.html#vigilance.extraction.genai_toc_detector.TOCBoundaryRole.successor_title">successor_title (attribut TOCBoundaryRole)</a>
 </li>
       <li><a href="api/vigilance.extraction.html#vigilance.extraction.vision_full_extractor.VisionFullResult.summary_present">summary_present (attribut VisionFullResult)</a>
 </li>
@@ -2621,10 +2673,10 @@ window.runMermaid = runMermaid;</script>
 </li>
       <li><a href="api/vigilance.utils.html#vigilance.utils.text_normalizer.TextNormalizer">TextNormalizer (classe dans vigilance.utils.text_normalizer)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/vigilance.html#vigilance.amf_taxonomy.TriageAMFCompactLLMResultWithIndex.themes_amf">themes_amf (attribut TriageAMFCompactLLMResultWithIndex)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/vigilance.extraction.html#vigilance.extraction.docling_processor.ExtractedSection.title">title (attribut ExtractedSection)</a>
 
       <ul>
@@ -2647,6 +2699,8 @@ window.runMermaid = runMermaid;</script>
         <li><a href="api/vigilance.extraction.html#vigilance.extraction.genai_toc_detector.SectionDetectionResult.title_found">(attribut SectionDetectionResult)</a>
 </li>
         <li><a href="api/vigilance.extraction.html#vigilance.extraction.pdf_preview.SectionPreview.title_found">(attribut SectionPreview)</a>
+</li>
+        <li><a href="api/vigilance.extraction.html#vigilance.extraction.genai_toc_detector.TOCBoundaryRole.title_found">(attribut TOCBoundaryRole)</a>
 </li>
       </ul></li>
       <li><a href="api/vigilance.extraction.html#vigilance.extraction.page_title_assistant.PageTitleCandidate.title_full">title_full (attribut PageTitleCandidate)</a>
@@ -2704,6 +2758,8 @@ window.runMermaid = runMermaid;</script>
       <li><a href="api/vigilance.extraction.html#vigilance.extraction.section_locator.SectionMapping.toc_score">toc_score (attribut SectionMapping)</a>
 </li>
       <li><a href="api/vigilance.extraction.html#vigilance.extraction.section_locator.SectionMapping.toc_used">toc_used (attribut SectionMapping)</a>
+</li>
+      <li><a href="api/vigilance.extraction.html#vigilance.extraction.genai_toc_detector.TOCBoundaryRole">TOCBoundaryRole (classe dans vigilance.extraction.genai_toc_detector)</a>
 </li>
       <li><a href="api/vigilance.extraction.html#vigilance.extraction.genai_toc_detector.TOCDetectionResult">TOCDetectionResult (classe dans vigilance.extraction.genai_toc_detector)</a>
 </li>
@@ -2780,6 +2836,8 @@ window.runMermaid = runMermaid;</script>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/vigilance.extraction.html#vigilance.extraction.vision_full_extractor.VisionFullExtractor.validate_schema">validate_schema() (méthode VisionFullExtractor)</a>
+</li>
+      <li><a href="api/vigilance.extraction.html#vigilance.extraction.genai_toc_detector.GenAITOCDetector.validate_section_transition">validate_section_transition() (méthode GenAITOCDetector)</a>
 </li>
       <li><a href="api/vigilance.utils.html#vigilance.utils.openai_schema.validate_strict_openai_response_format">validate_strict_openai_response_format() (dans le module vigilance.utils.openai_schema)</a>
 </li>
@@ -3652,9 +3710,11 @@ window.runMermaid = runMermaid;</script>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/vigilance.dash_app.services.html#vigilance.dash_app.services.comparison_store.ComparisonPayloadBundle.warning">warning (attribut ComparisonPayloadBundle)</a>
 </li>
-      <li><a href="api/vigilance.html#vigilance.comparison_matching.MatchingResult.warnings">warnings (attribut MatchingResult)</a>
+      <li><a href="api/vigilance.extraction.html#vigilance.extraction.genai_toc_detector.AnnualTOCAnalysis.warnings">warnings (attribut AnnualTOCAnalysis)</a>
 
       <ul>
+        <li><a href="api/vigilance.html#vigilance.comparison_matching.MatchingResult.warnings">(attribut MatchingResult)</a>
+</li>
         <li><a href="api/vigilance.extraction.html#vigilance.extraction.vision_full_extractor.VisionFullResult.warnings">(attribut VisionFullResult)</a>
 </li>
       </ul></li>
