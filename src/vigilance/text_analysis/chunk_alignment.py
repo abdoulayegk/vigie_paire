@@ -13,6 +13,11 @@ from typing import Any
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
+from vigilance.text_analysis.atomic_alignment import (
+    atomic_marker_match_priority,
+    atomic_roles_compatible,
+    atomic_similarity_text,
+)
 from vigilance.text_analysis.chunking import TextChunk
 from vigilance.text_analysis.openai_client import _embed_texts
 
@@ -93,6 +98,7 @@ class ChunkCandidate:
     target_chunk: TextChunk
     tfidf_score: float = 0.0
     embedding_score: float = 0.0
+    marker_match: bool = False
 
 
 @dataclass(slots=True)
@@ -160,7 +166,9 @@ def _tfidf_similarity_matrix_from_texts(texts: list[str]) -> list[list[float]]:
 
 def _tfidf_similarity_matrix(chunks: list[TextChunk]) -> list[list[float]]:
     """Calcule une matrice cosine TF-IDF locale pour des chunks."""
-    return _tfidf_similarity_matrix_from_texts([chunk.text for chunk in chunks])
+    return _tfidf_similarity_matrix_from_texts(
+        [atomic_similarity_text(chunk) for chunk in chunks]
+    )
 
 
 def _candidate_lookup(
@@ -178,6 +186,8 @@ def _candidate_lookup(
     for source_index, source in enumerate(source_chunks):
         candidates = []
         for target_index, target in enumerate(target_chunks):
+            if not atomic_roles_compatible(source, target):
+                continue
             score = similarity_matrix[source_offset + source_index][target_offset + target_index]
             candidates.append(
                 ChunkCandidate(
@@ -187,9 +197,16 @@ def _candidate_lookup(
                     target_chunk=target,
                     tfidf_score=score if score_kind == "tfidf" else 0.0,
                     embedding_score=score if score_kind == "embedding" else 0.0,
+                    marker_match=atomic_marker_match_priority(source, target),
                 )
             )
-        candidates.sort(key=lambda candidate: (-candidate.score, abs(source.order - candidate.target_chunk.order)))
+        candidates.sort(
+            key=lambda candidate: (
+                -candidate.score,
+                -int(candidate.marker_match),
+                abs(source.order - candidate.target_chunk.order),
+            )
+        )
         lookup[source.chunk_id] = candidates[:limit] if limit else candidates
     return lookup
 
@@ -224,7 +241,10 @@ def _embedding_similarity_matrix(
         return []
     embeddings = _embed_texts(
         client,
-        [_truncate_for_embedding(chunk.text) for chunk in chunks],
+        [
+            _truncate_for_embedding(atomic_similarity_text(chunk))
+            for chunk in chunks
+        ],
         model=embedding_model,
     )
     matrix: list[list[float]] = []
@@ -255,6 +275,7 @@ def _merge_candidate_lookups(
                         target_chunk=candidate.target_chunk,
                         tfidf_score=candidate.tfidf_score,
                         embedding_score=candidate.embedding_score,
+                        marker_match=candidate.marker_match,
                     )
                     continue
                 tfidf_score = max(existing.tfidf_score, candidate.tfidf_score)
@@ -266,6 +287,7 @@ def _merge_candidate_lookups(
                     target_chunk=existing.target_chunk,
                     tfidf_score=tfidf_score,
                     embedding_score=embedding_score,
+                    marker_match=existing.marker_match or candidate.marker_match,
                 )
         ranked = sorted(
             by_target.values(),
@@ -273,6 +295,7 @@ def _merge_candidate_lookups(
                 -candidate.score,
                 -candidate.embedding_score,
                 -candidate.tfidf_score,
+                -int(candidate.marker_match),
                 abs(candidate.target_chunk.order),
             ),
         )
@@ -349,7 +372,9 @@ def _hybrid_alignment_type(
     strong_embedding = embedding_score >= _EMBEDDING_STRONG_THRESHOLD
     strong_tfidf = tfidf_score >= _STRONG_THRESHOLD
     # Boilerplate proche avec faits chiffrés distincts: laisser GPT trancher.
-    if _numeric_fact_tokens(chunk_t1.text) != _numeric_fact_tokens(chunk_t2.text):
+    if _numeric_fact_tokens(atomic_similarity_text(chunk_t1)) != _numeric_fact_tokens(
+        atomic_similarity_text(chunk_t2)
+    ):
         if hybrid_score >= _WEAK_THRESHOLD:
             return "ambiguous"
     if (
@@ -406,6 +431,18 @@ def _group_adjacent_chunks(chunks: list[TextChunk]) -> TextChunk:
         subsection_heading=first.subsection_heading,
         hierarchy_path=first.hierarchy_path,
         order=first.order,
+        comparison_text=" ".join(
+            atomic_similarity_text(chunk)
+            for chunk in ordered
+            if atomic_similarity_text(chunk)
+        ),
+        unit_role="grouped",
+        parent_chunk_id=(
+            first.parent_chunk_id
+            if all(chunk.parent_chunk_id == first.parent_chunk_id for chunk in ordered)
+            else None
+        ),
+        parent_context=first.parent_context,
     )
 
 
@@ -527,23 +564,34 @@ def _align_chunks_tfidf(
         top_k=top_k,
     )
 
-    scored_pairs: list[tuple[float, int, TextChunk, TextChunk]] = []
+    scored_pairs: list[tuple[float, bool, int, TextChunk, TextChunk]] = []
     for index_t1, chunk_t1 in enumerate(chunks_t1):
         for index_t2, chunk_t2 in enumerate(chunks_t2):
+            if not atomic_roles_compatible(chunk_t1, chunk_t2):
+                continue
             scored_pairs.append(
                 (
                     similarity_matrix[offset_t1 + index_t1][offset_t2 + index_t2],
+                    atomic_marker_match_priority(chunk_t1, chunk_t2),
                     abs(chunk_t1.order - chunk_t2.order),
                     chunk_t1,
                     chunk_t2,
                 )
             )
-    scored_pairs.sort(key=lambda item: (-item[0], item[1], item[2].order, item[3].order))
+    scored_pairs.sort(
+        key=lambda item: (
+            -item[0],
+            -int(item[1]),
+            item[2],
+            item[3].order,
+            item[4].order,
+        )
+    )
 
     used_t1: set[str] = set()
     used_t2: set[str] = set()
     alignments: list[ChunkAlignment] = []
-    for score, _distance, chunk_t1, chunk_t2 in scored_pairs:
+    for score, _marker_match, _distance, chunk_t1, chunk_t2 in scored_pairs:
         if score < _WEAK_THRESHOLD:
             continue
         if chunk_t1.chunk_id in used_t1 or chunk_t2.chunk_id in used_t2:
@@ -684,9 +732,13 @@ def _align_chunks_hybrid(
     candidates_t2_to_t1 = _merge_candidate_lookups(tfidf_t2_to_t1, embedding_t2_to_t1, top_k=top_k)
     candidates_t1_to_t2 = _merge_candidate_lookups(tfidf_t1_to_t2, embedding_t1_to_t2, top_k=top_k)
 
-    scored_pairs: list[tuple[float, float, float, int, TextChunk, TextChunk]] = []
+    scored_pairs: list[
+        tuple[float, float, float, bool, int, TextChunk, TextChunk]
+    ] = []
     for index_t1, chunk_t1 in enumerate(chunks_t1):
         for index_t2, chunk_t2 in enumerate(chunks_t2):
+            if not atomic_roles_compatible(chunk_t1, chunk_t2):
+                continue
             hybrid_score, tfidf_score, embedding_score = _pair_score_from_matrices(
                 index_t1=index_t1,
                 index_t2=index_t2,
@@ -700,19 +752,36 @@ def _align_chunks_hybrid(
                     hybrid_score,
                     tfidf_score,
                     embedding_score,
+                    atomic_marker_match_priority(chunk_t1, chunk_t2),
                     abs(chunk_t1.order - chunk_t2.order),
                     chunk_t1,
                     chunk_t2,
                 )
             )
     scored_pairs.sort(
-        key=lambda item: (-item[0], -item[2], -item[1], item[3], item[4].order, item[5].order)
+        key=lambda item: (
+            -item[0],
+            -item[2],
+            -item[1],
+            -int(item[3]),
+            item[4],
+            item[5].order,
+            item[6].order,
+        )
     )
 
     used_t1: set[str] = set()
     used_t2: set[str] = set()
     alignments: list[ChunkAlignment] = []
-    for hybrid_score, tfidf_score, embedding_score, _distance, chunk_t1, chunk_t2 in scored_pairs:
+    for (
+        hybrid_score,
+        tfidf_score,
+        embedding_score,
+        _marker_match,
+        _distance,
+        chunk_t1,
+        chunk_t2,
+    ) in scored_pairs:
         credible = hybrid_score >= _WEAK_THRESHOLD or embedding_score >= _EMBEDDING_WEAK_THRESHOLD
         if not credible:
             continue

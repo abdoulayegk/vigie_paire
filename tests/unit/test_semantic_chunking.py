@@ -227,14 +227,16 @@ def test_numbers_are_neutralized_for_similarity_but_preserved_in_chunk(
     assert all("2024" not in text and "525" not in text for text in embedded_texts)
 
 
-def test_docling_private_bullet_is_grouped_as_one_list_chunk() -> None:
+def test_docling_private_bullets_become_atomic_list_items() -> None:
     text = " Première règle de gouvernance.\n Deuxième règle de surveillance."
 
     chunks = _chunk_subsection_text(text)
 
-    assert len(chunks) == 1
-    assert chunks[0].kind == "list"
-    assert chunks[0].text == "Première règle de gouvernance.\nDeuxième règle de surveillance."
+    assert len(chunks) == 2
+    assert [chunk.kind for chunk in chunks] == ["list_item", "list_item"]
+    assert [chunk.atomic_marker for chunk in chunks] == ["-", "-"]
+    assert chunks[0].comparison_text == "Première règle de gouvernance."
+    assert chunks[1].comparison_text == "Deuxième règle de surveillance."
 
 
 def test_hard_word_limit_splits_at_sentence_boundaries(

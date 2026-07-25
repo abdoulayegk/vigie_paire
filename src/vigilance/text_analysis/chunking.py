@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Any
 
+from vigilance.text_analysis.atomic_units import AtomicCandidate, split_atomic_candidate
 from vigilance.text_analysis.boundary_repair import RepairableBlock, repair_block_boundaries
 from vigilance.text_analysis.list_items import parse_list_item_line
 from vigilance.text_analysis.normalization import _is_not_applicable_marker
@@ -33,6 +34,11 @@ class TextChunk:
     subsection_heading: str
     hierarchy_path: str
     order: int
+    comparison_text: str = ""
+    unit_role: str = "standalone"
+    parent_chunk_id: str | None = None
+    atomic_marker: str | None = None
+    parent_context: str = ""
 
 
 def _is_bullet_line(line: str) -> bool:
@@ -206,6 +212,12 @@ def _merge_short_labels_with_following(
     return merged
 
 
+def _looks_like_list_context(text: str) -> bool:
+    """Reconnaît une introduction autonome qui annonce une liste."""
+    value = str(text or "").strip()
+    return _word_count(value) >= 5 and value.endswith(":")
+
+
 def _chunk_subsection_text(
     text: str,
     *,
@@ -228,20 +240,65 @@ def _chunk_subsection_text(
     candidates = [(block.kind, block.text) for block in repair_result.blocks]
     candidates = _merge_short_labels_with_following(candidates)
     candidates = _group_adjacent_lists(candidates)
-    filtered_candidates: list[tuple[str, str]] = []
-    for kind, candidate_text in candidates:
-        # Une liste est une seule unité sémantique : ses items restent groupés.
-        # Les marqueurs ``[]``/``[x]`` ne sont que de la mise en forme et ne
-        # doivent jamais entraîner l'exclusion de son contenu narratif.
-        normalized_candidate = _strip_list_markers(candidate_text) if kind == "list" else candidate_text
-        if not _is_narrative_comparison_candidate(normalized_candidate):
-            continue
-        filtered_candidates.append((kind, normalized_candidate))
+    filtered_candidates: list[AtomicCandidate] = []
+    for parent_index, (kind, candidate_text) in enumerate(candidates):
+        parent_key = f"p{parent_index:02d}"
+        atomic_candidates = split_atomic_candidate(
+            kind=kind,
+            text=candidate_text,
+            parent_key=parent_key,
+        )
+        if (
+            atomic_candidates is not None
+            and kind == "list"
+            and parent_index > 0
+            and candidates[parent_index - 1][0] == "paragraph"
+            and _looks_like_list_context(candidates[parent_index - 1][1])
+            and filtered_candidates
+        ):
+            context_text = candidates[parent_index - 1][1]
+            parent_key = f"p{parent_index - 1:02d}"
+            previous = filtered_candidates[-1]
+            if previous.text == context_text and previous.unit_role == "standalone":
+                filtered_candidates[-1] = replace(
+                    previous,
+                    kind="list_context",
+                    unit_role="context",
+                    parent_key=parent_key,
+                    parent_context=context_text,
+                )
+                atomic_candidates = [
+                    replace(
+                        candidate,
+                        parent_key=parent_key,
+                        parent_context=context_text,
+                    )
+                    for candidate in atomic_candidates
+                ]
+        if atomic_candidates is None:
+            # Une liste mono-item conserve le comportement historique. Les
+            # marqueurs de présentation ne doivent pas influencer la similarité.
+            normalized_candidate = (
+                _strip_list_markers(candidate_text) if kind == "list" else candidate_text
+            )
+            atomic_candidates = [
+                AtomicCandidate(
+                    kind=kind,
+                    text=normalized_candidate,
+                    comparison_text=normalized_candidate,
+                )
+            ]
+        filtered_candidates.extend(
+            candidate
+            for candidate in atomic_candidates
+            if _is_narrative_comparison_candidate(candidate.comparison_text)
+        )
 
     complex_indexes = [
         index
-        for index, (kind, candidate_text) in enumerate(filtered_candidates)
-        if kind == "paragraph" and _requires_semantic_partition(candidate_text)
+        for index, candidate in enumerate(filtered_candidates)
+        if candidate.kind == "paragraph"
+        and _requires_semantic_partition(candidate.comparison_text)
     ]
     partitions_by_index: dict[int, list[str]] = {}
     if complex_indexes:
@@ -249,7 +306,9 @@ def _chunk_subsection_text(
             raise SemanticChunkingError(
                 "Un client OpenAI est requis pour découper les paragraphes complexes; aucun fallback n'est autorisé."
             )
-        complex_paragraphs = [filtered_candidates[index][1] for index in complex_indexes]
+        complex_paragraphs = [
+            filtered_candidates[index].comparison_text for index in complex_indexes
+        ]
         partitions = _semantic_partition_paragraphs(
             complex_paragraphs,
             client=client,
@@ -258,11 +317,24 @@ def _chunk_subsection_text(
         )
         partitions_by_index = dict(zip(complex_indexes, partitions, strict=True))
 
-    split_candidates: list[tuple[str, str]] = []
-    for index, (kind, candidate_text) in enumerate(filtered_candidates):
-        parts = partitions_by_index.get(index, [candidate_text])
+    split_candidates: list[AtomicCandidate] = []
+    for index, candidate in enumerate(filtered_candidates):
+        parts = partitions_by_index.get(index)
+        if parts is None:
+            split_candidates.append(candidate)
+            continue
         split_candidates.extend(
-            (kind, part) for part in parts if _is_narrative_comparison_candidate(part)
+            AtomicCandidate(
+                kind=candidate.kind,
+                text=part,
+                comparison_text=part,
+                unit_role=candidate.unit_role,
+                parent_key=candidate.parent_key,
+                marker=candidate.marker,
+                parent_context=candidate.parent_context,
+            )
+            for part in parts
+            if _is_narrative_comparison_candidate(part)
         )
 
     subsection = str(subsection_heading or "").strip()
@@ -272,17 +344,39 @@ def _chunk_subsection_text(
     # later merged for a section-wide rescue pass.
     id_prefix = _chunk_id_prefix(subsection)
 
-    return [
-        TextChunk(
-            chunk_id=f"{id_prefix}c{index:02d}" if id_prefix else f"c{index:02d}",
-            kind=kind,
-            text=chunk_text,
-            subsection_heading=subsection,
-            hierarchy_path=hierarchy_path,
-            order=index,
-        )
-        for index, (kind, chunk_text) in enumerate(split_candidates)
+    chunk_ids = [
+        f"{id_prefix}c{index:02d}" if id_prefix else f"c{index:02d}"
+        for index in range(len(split_candidates))
     ]
+    context_ids = {
+        candidate.parent_key: chunk_ids[index]
+        for index, candidate in enumerate(split_candidates)
+        if candidate.unit_role == "context" and candidate.parent_key
+    }
+    chunks: list[TextChunk] = []
+    for index, candidate in enumerate(split_candidates):
+        parent_chunk_id = None
+        if candidate.unit_role == "item" and candidate.parent_key:
+            parent_chunk_id = context_ids.get(
+                candidate.parent_key,
+                f"{id_prefix}parent_{candidate.parent_key}",
+            )
+        chunks.append(
+            TextChunk(
+                chunk_id=chunk_ids[index],
+                kind=candidate.kind,
+                text=candidate.text,
+                subsection_heading=subsection,
+                hierarchy_path=hierarchy_path,
+                order=index,
+                comparison_text=candidate.comparison_text,
+                unit_role=candidate.unit_role,
+                parent_chunk_id=parent_chunk_id,
+                atomic_marker=candidate.marker,
+                parent_context=candidate.parent_context,
+            )
+        )
+    return chunks
 
 
 def _chunk_id_prefix(subsection_heading: str) -> str:
