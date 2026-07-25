@@ -55,6 +55,35 @@ def _find_component_by_type(node: object, type_name: str) -> Component:
     raise LookupError(type_name)
 
 
+def _find_component_by_type_and_text(
+    node: object,
+    type_name: str,
+    expected_text: str,
+) -> Component:
+    """Retourne le composant du type demandé contenant un libellé précis."""
+    if isinstance(node, Component):
+        if type(node).__name__ == type_name and expected_text in _flatten_text(node):
+            return node
+        children = getattr(node, "children", None)
+        if isinstance(children, list):
+            for child in children:
+                try:
+                    return _find_component_by_type_and_text(
+                        child,
+                        type_name,
+                        expected_text,
+                    )
+                except LookupError:
+                    pass
+        elif children is not None:
+            return _find_component_by_type_and_text(
+                children,
+                type_name,
+                expected_text,
+            )
+    raise LookupError(f"{type_name}: {expected_text}")
+
+
 def _styled_texts(node: object) -> list[tuple[str, dict]]:
     """Retourne les textes portés par des composants stylés."""
     results: list[tuple[str, dict]] = []
@@ -194,7 +223,7 @@ def test_text_analysis_change_card_renders_amf_fields() -> None:
             "action_requise": "revue_prioritaire",
         },
     }
-    card = _build_change_card(change, "Gestion des risques")
+    card = _build_change_card(change, "Gestion des risques", bank_code="BNC")
     assert card is not None
     text = _flatten_text(card)
     assert "Nouvelle idée" in text
@@ -204,7 +233,13 @@ def test_text_analysis_change_card_renders_amf_fields() -> None:
     assert "Posture renforcée" in text
     assert "Preuve de posture" in text
     assert "Voir les détails de l’évaluation IA" in text
-    assert "Éléments observés" in text
+    assert "Changement constaté" in text
+    assert "Pertinence métier" in text
+    assert (
+        "La modification peut changer la manière dont la banque applique le cadre "
+        "réglementaire."
+    ) in text
+    assert "Voir la preuve source" in text
     assert "Conséquence probable" in text
     assert "Limite de l’analyse" in text
     assert "Mise en œuvre En cours" in text
@@ -212,11 +247,16 @@ def test_text_analysis_change_card_renders_amf_fields() -> None:
     assert "Modif. méthodologie" in text
     assert "Revue prioritaire" in text
 
-    details = _find_component_by_type(card, "Details")
+    details = _find_component_by_type_and_text(
+        card,
+        "Details",
+        "Voir les détails de l’évaluation IA",
+    )
     assert getattr(details, "open", None) is False
     details_text = _flatten_text(details)
     assert "Voir les détails de l’évaluation IA" in details_text
-    assert "Éléments observés" not in details_text
+    assert "Changement constaté" not in details_text
+    assert "Pertinence métier" not in details_text
 
     card_body = getattr(card, "children")
     card_sections = [_flatten_text(child) for child in getattr(card_body, "children")]
@@ -224,14 +264,17 @@ def test_text_analysis_change_card_renders_amf_fields() -> None:
         index for index, value in enumerate(card_sections) if "Preuve de posture" in value
     )
     observed_index = next(
-        index for index, value in enumerate(card_sections) if "Éléments observés" in value
+        index for index, value in enumerate(card_sections) if "Changement constaté" in value
+    )
+    evidence_index = next(
+        index for index, value in enumerate(card_sections) if "Voir la preuve source" in value
     )
     details_index = next(
         index
         for index, value in enumerate(card_sections)
         if "Voir les détails de l’évaluation IA" in value
     )
-    assert observed_index < proof_index < details_index
+    assert observed_index < evidence_index < proof_index < details_index
 
     badge_row = getattr(card_body, "children")[0]
     badge_text = _flatten_text(badge_row)
@@ -260,7 +303,11 @@ def test_text_analysis_change_card_shows_unchanged_posture() -> None:
     text = _flatten_text(card)
 
     assert "Posture inchangée" in text
-    details = _find_component_by_type(card, "Details")
+    details = _find_component_by_type_and_text(
+        card,
+        "Details",
+        "Voir les détails de l’évaluation IA",
+    )
     details_text = _flatten_text(details)
     assert "Voir les détails de l’évaluation IA" in details_text
     assert "Impact données — Mineur" in details_text
@@ -286,7 +333,11 @@ def test_text_analysis_change_card_always_exposes_ai_details_fold() -> None:
     }
 
     card = _build_change_card(change, "Gestion du capital")
-    details = _find_component_by_type(card, "Details")
+    details = _find_component_by_type_and_text(
+        card,
+        "Details",
+        "Voir les détails de l’évaluation IA",
+    )
     details_text = _flatten_text(details)
 
     assert getattr(details, "open", None) is False
@@ -398,11 +449,11 @@ def test_text_analysis_shows_observed_change_before_fold() -> None:
         },
     }
 
-    card = _build_change_card(change, "Gestion des risques")
+    card = _build_change_card(change, "Gestion des risques", bank_code="BNC")
     card_body = getattr(card, "children")
     card_sections = [_flatten_text(child) for child in getattr(card_body, "children")]
     observed_index = next(
-        index for index, value in enumerate(card_sections) if "Éléments observés" in value
+        index for index, value in enumerate(card_sections) if "Changement constaté" in value
     )
     details_index = next(
         index
@@ -411,14 +462,17 @@ def test_text_analysis_shows_observed_change_before_fold() -> None:
     )
 
     assert observed_index < details_index
-    assert "rapport courant retire la description du contexte géopolitique" in card_sections[
+    assert "BNC retire la description du contexte géopolitique" in card_sections[
         observed_index
     ]
-    assert "Éléments observés" in card_sections[observed_index]
-    assert "…" not in card_sections[observed_index].split("Éléments observés", 1)[-1][:200]
+    assert "Changement constaté" in card_sections[observed_index]
+    assert "…" not in card_sections[observed_index].split("Changement constaté", 1)[-1][:200]
     assert "Impact facteurs de risque — Majeur" in card_sections[observed_index]
-    assert "Pertinence métier" not in card_sections[observed_index]
-    assert "Pertinence métier" in card_sections[details_index]
+    assert "Pertinence métier" in card_sections[observed_index]
+    assert "Le retrait modifie le niveau de détail fourni." in card_sections[
+        observed_index
+    ]
+    assert "Pertinence métier" not in card_sections[details_index]
 
 
 def test_text_analysis_change_card_keeps_non_pertinent() -> None:

@@ -633,7 +633,8 @@ class TriageAMFLLMBatch(BaseModel):
     triages: list[TriageAMFLLMResultWithIndex]
 
 
-COMPACT_RELEVANCE_REASON_SENTENCE_COUNT = 2
+COMPACT_RELEVANT_REASON_SENTENCE_COUNT = 4
+COMPACT_SECONDARY_REASON_SENTENCE_COUNT = 2
 _COMPACT_SENTENCE_END_RE = re.compile(
     r"(?P<mark>[.!?]+)(?P<closers>[\u00bb\u201d\"')\]]*)(?=\s+|$)"
 )
@@ -710,25 +711,23 @@ def _strip_compact_sentence_ending(value: str) -> str:
     return f"{value[: match.start('mark')].rstrip()}{match.group('closers')}"
 
 
-def _collapse_compact_reason_to_two_sentences(value: str) -> str:
-    """Fusionne les phrases excédentaires sans supprimer leur contenu lexical.
-
-    La première phrase reste la description factuelle. Les phrases suivantes
-    sont réunies avec des points-virgules pour former l'interprétation
-    comparative attendue par les consommateurs aval.
-    """
+def _collapse_compact_reason_to_sentence_count(
+    value: str,
+    sentence_count: int,
+) -> str:
+    """Fusionne les phrases excédentaires sans supprimer leur contenu lexical."""
     normalized = " ".join(str(value or "").split())
     parts = _compact_complete_sentence_parts(normalized)
-    if len(parts) <= COMPACT_RELEVANCE_REASON_SENTENCE_COUNT:
+    if len(parts) <= sentence_count:
         return normalized
 
-    first_sentence = parts[0]
-    comparative_clauses = [
+    preserved_sentences = parts[: sentence_count - 1]
+    final_clauses = [
         _strip_compact_sentence_ending(part)
-        for part in parts[1:]
+        for part in parts[sentence_count - 1 :]
     ]
-    second_sentence = "; ".join(comparative_clauses).strip()
-    return f"{first_sentence} {second_sentence}."
+    final_sentence = "; ".join(final_clauses).strip()
+    return " ".join([*preserved_sentences, f"{final_sentence}."])
 
 
 def count_complete_sentences(value: str) -> int:
@@ -754,8 +753,10 @@ class TriageAMFCompactLLMResultWithIndex(BaseModel):
     nouvelle_idee: bool = False
     relevance_reason: str = Field(
         description=(
-            "Exactement deux phrases complètes : la première décrit factuellement "
-            "le changement et la seconde en donne l'interprétation comparative."
+            "Pour un changement pertinent, exactement quatre phrases complètes : "
+            "constat factuel, signification métier, comparaison entre banques et "
+            "limite d'interprétation. Pour un changement secondaire, exactement "
+            "deux phrases : constat factuel et motif de non-pertinence."
         )
     )
 
@@ -773,14 +774,7 @@ class TriageAMFCompactLLMResultWithIndex(BaseModel):
                 "relevance_reason doit se terminer par une phrase complète "
                 "ponctuée par '.', '!' ou '?'"
             )
-        normalized = _collapse_compact_reason_to_two_sentences(normalized)
         sentence_parts = _compact_complete_sentence_parts(normalized)
-        if len(sentence_parts) != COMPACT_RELEVANCE_REASON_SENTENCE_COUNT:
-            raise ValueError(
-                "relevance_reason doit contenir exactement "
-                f"{COMPACT_RELEVANCE_REASON_SENTENCE_COUNT} phrases complètes; "
-                f"reçu {len(sentence_parts)}"
-            )
         if count_complete_sentences(normalized) != len(sentence_parts):
             raise ValueError(
                 "chaque phrase de relevance_reason doit contenir du contenu lexical"
@@ -789,6 +783,24 @@ class TriageAMFCompactLLMResultWithIndex(BaseModel):
 
     @model_validator(mode="after")
     def _check_compact_invariants(self) -> "TriageAMFCompactLLMResultWithIndex":
+        expected_sentence_count = (
+            COMPACT_RELEVANT_REASON_SENTENCE_COUNT
+            if self.is_relevant
+            else COMPACT_SECONDARY_REASON_SENTENCE_COUNT
+        )
+        normalized_reason = _collapse_compact_reason_to_sentence_count(
+            self.relevance_reason,
+            expected_sentence_count,
+        )
+        received_sentence_count = count_complete_sentences(normalized_reason)
+        if received_sentence_count != expected_sentence_count:
+            raise ValueError(
+                "relevance_reason doit contenir exactement "
+                f"{expected_sentence_count} phrases complètes; "
+                f"reçu {received_sentence_count}"
+            )
+        self.relevance_reason = normalized_reason
+
         if self.is_relevant:
             if not self.themes_amf:
                 raise ValueError(

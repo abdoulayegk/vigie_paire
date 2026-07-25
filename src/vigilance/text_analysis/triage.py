@@ -12,7 +12,7 @@ from typing import Any, Literal
 from pydantic import BaseModel, Field, ValidationError
 
 from vigilance.amf_taxonomy import (
-    COMPACT_RELEVANCE_REASON_SENTENCE_COUNT,
+    COMPACT_SECONDARY_REASON_SENTENCE_COUNT,
     THEMES_AMF_ANALYST_SUBJECTS,
     THEMES_AMF_DESCRIPTIONS,
     THEMES_AMF_PIPELINE_2,
@@ -307,7 +307,7 @@ def _local_relevance_reason(
     if any(not sentence.endswith((".", "!", "?")) for sentence in sentences):
         raise ValueError("Chaque phrase locale doit être complète et ponctuée.")
     result = " ".join(sentences)
-    if count_complete_sentences(result) != COMPACT_RELEVANCE_REASON_SENTENCE_COUNT:
+    if count_complete_sentences(result) != COMPACT_SECONDARY_REASON_SENTENCE_COUNT:
         raise ValueError(
             "Une justification locale doit contenir exactement deux phrases complètes."
         )
@@ -1134,7 +1134,7 @@ def _propagate_triage_to_group(
 _FEW_SHOT_TRIAGE_AMF = """\
 Exemple 1 — ajout cyber pertinent
 Input : {"change_index": 1, "diff_type": "added", "change_summary": "Ajout d’exercices annuels de simulation de cyberattaque."}
-Output : {"change_index": 1, "is_relevant": true, "themes_amf": ["RISQUE_EMERGENT", "CONTROLE_CONFORMITE"], "nouvelle_idee": true, "relevance_reason": "Le rapport courant indique que la banque réalise désormais des simulations annuelles de cyberattaque avec ses unités d’affaires, une pratique qui n’était pas mentionnée dans le rapport précédent. Cette évolution témoigne d’un renforcement des mécanismes de résilience et permet de comparer plus précisément le degré de préparation opérationnelle déclaré par les banques."}
+Output : {"change_index": 1, "is_relevant": true, "themes_amf": ["RISQUE_EMERGENT", "CONTROLE_CONFORMITE"], "nouvelle_idee": true, "relevance_reason": "Le rapport courant indique que la banque réalise désormais des simulations annuelles de cyberattaque avec ses unités d’affaires, une pratique qui n’était pas mentionnée dans le rapport précédent. Cette évolution rend explicite un mécanisme de préparation aux incidents cybernétiques. Elle permet de comparer la fréquence, le périmètre et la participation des unités d’affaires aux exercices déclarés par les banques. Le passage ne précise toutefois ni les scénarios testés ni les résultats obtenus."}
 
 Exemple 2 — variation propre à la banque non pertinente
 Input : {"change_index": 1, "diff_type": "modified", "change_summary": "Le portefeuille hypothécaire passe de 287 G$ à 294 G$."}
@@ -1154,19 +1154,19 @@ Output : {"change_index": 1, "is_relevant": false, "themes_amf": [], "nouvelle_i
 
 Exemple 6 — transfert de responsabilité de gouvernance pertinent et substantiel
 Input : {"change_index": 1, "diff_type": "modified", "change_summary": "L’approbation de l’appétit pour le risque passe du comité de direction au conseil d’administration."}
-Output : {"change_index": 1, "is_relevant": true, "themes_amf": ["GOUVERNANCE_RISQUES"], "nouvelle_idee": true, "relevance_reason": "Le rapport courant transfère au conseil d’administration l’approbation de l’appétit pour le risque auparavant confiée au comité de direction. Ce transfert d’autorité modifie substantiellement la gouvernance et fournit un point important de comparaison des responsabilités entre les banques."}
+Output : {"change_index": 1, "is_relevant": true, "themes_amf": ["GOUVERNANCE_RISQUES"], "nouvelle_idee": true, "relevance_reason": "Le rapport courant transfère au conseil d’administration l’approbation de l’appétit pour le risque auparavant confiée au comité de direction. Ce transfert élève la décision au niveau de gouvernance ultime de la banque. Il permet de comparer l’autorité d’approbation, la répartition des responsabilités et le rôle du conseil entre les banques. Le passage ne précise toutefois pas si les mécanismes de suivi ou de reddition de comptes ont également changé."}
 
 Exemple 7 — comité renommé pertinent sans nouvelle idée substantielle
 Input : {"change_index": 1, "diff_type": "modified", "change_summary": "Le Comité de gestion des risques est renommé Comité des risques et de la conformité, sans modification de son mandat."}
-Output : {"change_index": 1, "is_relevant": true, "themes_amf": ["GOUVERNANCE_RISQUES"], "nouvelle_idee": false, "relevance_reason": "Le rapport courant renomme le Comité de gestion des risques en Comité des risques et de la conformité tout en maintenant son mandat. Ce changement de désignation reste pertinent pour suivre la structure de gouvernance entre les périodes, sans démontrer à lui seul une nouvelle responsabilité ou autorité."}
+Output : {"change_index": 1, "is_relevant": true, "themes_amf": ["GOUVERNANCE_RISQUES"], "nouvelle_idee": false, "relevance_reason": "Le rapport courant renomme le Comité de gestion des risques en Comité des risques et de la conformité tout en maintenant son mandat. Cette désignation rend la conformité plus visible dans la structure déclarée de gouvernance. Elle permet de comparer le nom, le positionnement et le périmètre affiché des comités entre les banques. Le passage ne démontre toutefois aucun changement de responsabilité, de mandat ou d’autorité."}
 
 Exemple 8 — changement réel de méthodologie pertinent et substantiel
 Input : {"change_index": 1, "diff_type": "modified", "change_summary": "La méthode standard de mesure du risque de crédit est remplacée par un modèle interne avancé."}
-Output : {"change_index": 1, "is_relevant": true, "themes_amf": ["MODIFICATION_METHODOLOGIE"], "nouvelle_idee": true, "relevance_reason": "Le rapport courant remplace la méthode standard de mesure du risque de crédit par un modèle interne avancé. Cette nouvelle base méthodologique modifie substantiellement la mesure déclarée et constitue un point prioritaire de comparaison entre les banques."}
+Output : {"change_index": 1, "is_relevant": true, "themes_amf": ["MODIFICATION_METHODOLOGIE"], "nouvelle_idee": true, "relevance_reason": "Le rapport courant remplace la méthode standard de mesure du risque de crédit par un modèle interne avancé. Cette nouvelle base méthodologique peut modifier la mesure et la sensibilité du risque déclaré. Elle permet de comparer les approches de modélisation, les hypothèses et le recours aux modèles internes entre les banques. Le passage ne fournit toutefois pas les paramètres ni les effets quantifiés nécessaires pour mesurer l’incidence du remplacement."}
 
 Exemple 9 — modification réelle de processus pertinente et substantielle
 Input : {"change_index": 1, "diff_type": "modified", "change_summary": "Les alertes de conformité sont désormais validées par une deuxième équipe avant leur clôture."}
-Output : {"change_index": 1, "is_relevant": true, "themes_amf": ["CONTROLE_CONFORMITE"], "nouvelle_idee": true, "relevance_reason": "Le rapport courant ajoute une seconde validation au processus de clôture des alertes de conformité. Cette modification réelle du processus renforce le dispositif de contrôle et fournit un point prioritaire de comparaison entre les banques."}
+Output : {"change_index": 1, "is_relevant": true, "themes_amf": ["CONTROLE_CONFORMITE"], "nouvelle_idee": true, "relevance_reason": "Le rapport courant ajoute une seconde validation au processus de clôture des alertes de conformité. Cette étape supplémentaire formalise un contrôle indépendant avant la clôture des alertes. Elle permet de comparer le nombre de validations, la séparation des responsabilités et le niveau de supervision entre les banques. Le passage ne précise toutefois ni l’identité de la deuxième équipe ni les critères utilisés pour valider la clôture."}
 """
 
 
@@ -1554,8 +1554,12 @@ def _triage_section_changes(
         "courant d’une banque canadienne pour une vigie AMF. Réponds uniquement "
         "avec le schéma compact demandé. Sois factuel, sans analyse IT, posture, "
         "niveau d’impact, action recommandée ni répétition des textes sources. "
-        "Rédige chaque relevance_reason en français uniquement, en exactement "
-        "deux phrases complètes, professionnelles et faciles à comprendre. "
+        "Rédige chaque relevance_reason en français uniquement, avec des phrases "
+        "complètes, professionnelles et faciles à comprendre. Pour un changement "
+        "pertinent, produis exactement quatre phrases : constat factuel, "
+        "signification métier, comparaison possible entre les banques et limite "
+        "d’interprétation. Pour un changement non pertinent, produis exactement "
+        "deux phrases : constat factuel et motif de non-pertinence. "
         "N’utilise jamais fragment, chunk, T1, T2 ni termes anglais. La longueur "
         "du changement ne détermine jamais sa pertinence : une modification très "
         "courte peut être substantielle si elle touche la gouvernance."
@@ -1595,12 +1599,18 @@ def _triage_section_changes(
         "contrôle ou de conformité, avec `nouvelle_idee=true`. Une reformulation "
         "qui ne change ni le fonctionnement, ni les étapes, ni les acteurs, ni les "
         "contrôles demeure non substantielle.\n"
-        "4. `relevance_reason` contient exactement deux phrases complètes, "
-        "professionnelles et faciles à comprendre, rédigées pour une analyste. "
-        "La première décrit factuellement le changement entre les rapports. "
-        "La seconde interprète ce changement et précise ce qu’il apporte à "
-        "l’analyse comparative entre les banques. N’écris pas « Ce changement "
-        "est pertinent pour la vigie AMF » ni « Ce changement n’est pas pertinent ». "
+        "4. Si `is_relevant=true`, `relevance_reason` contient exactement quatre "
+        "phrases complètes, professionnelles et faciles à comprendre. La première "
+        "décrit factuellement le changement entre les rapports. La deuxième "
+        "explique sa signification métier. La troisième précise les dimensions "
+        "concrètes à comparer entre les banques. La quatrième formule uniquement "
+        "une limite d’interprétation étayée par ce que le passage ne démontre ou "
+        "ne précise pas. Si `is_relevant=false`, utilise exactement deux phrases : "
+        "le constat factuel, puis le motif de non-pertinence. N’écris pas "
+        "« Ce changement est pertinent pour la vigie AMF », « Ce changement "
+        "n’est pas pertinent », « Pour la vigie », « Cette information est "
+        "importante », « Il convient de noter que » ni « Dans le cadre de cette "
+        "analyse ». "
         "Aucun titre, aucune liste, aucune rubrique et aucune consigne adressée "
         "à l’analyste. Interdit : fragment, chunk, T1, T2, termes anglais.\n"
         "5. Ne produis aucun champ d’impact, d’action, de posture, d’impact IT, "
@@ -1632,16 +1642,19 @@ def _triage_section_changes(
                 "thèmes AMF (préfère candidate_themes, sinon tout code de la "
                 "taxonomie AMF, sinon SUJET_EMERGENT_HORS_GRILLE); "
                 "is_relevant=false exige themes_amf=[] et "
-                "nouvelle_idee=false. Chaque relevance_reason doit contenir "
-                "exactement deux phrases complètes : une description factuelle "
-                "du changement, puis son interprétation et son apport à l’analyse "
-                "comparative."
+                "nouvelle_idee=false. Si is_relevant=true, chaque relevance_reason "
+                "doit contenir exactement quatre phrases complètes : constat "
+                "factuel, signification métier, dimensions de comparaison entre "
+                "banques et limite d’interprétation. Si is_relevant=false, il doit "
+                "contenir exactement deux phrases : constat factuel et motif de "
+                "non-pertinence."
             ),
             length_retry_message=(
                 "Renvoie immédiatement le même batch compact complet, sans aucun "
-                "commentaire hors schéma. Garde exactement deux phrases complètes "
-                "dans chaque relevance_reason : une description factuelle, puis "
-                "une interprétation comparative."
+                "commentaire hors schéma. Garde exactement quatre phrases dans "
+                "chaque relevance_reason pertinent (constat, signification, "
+                "comparaison, limite) et exactement deux phrases dans chaque "
+                "relevance_reason non pertinent (constat, motif)."
             ),
         )
     except ValidationError as exc:

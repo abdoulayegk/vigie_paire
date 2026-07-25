@@ -333,7 +333,11 @@ def test_triage_few_shots_request_compact_relevance_reason() -> None:
     assert len(outputs) == 9
     for output in outputs:
         validated = TriageAMFCompactLLMResultWithIndex(**output)
-        assert count_complete_sentences(validated.relevance_reason) == 2
+        expected_sentence_count = 4 if validated.is_relevant else 2
+        assert (
+            count_complete_sentences(validated.relevance_reason)
+            == expected_sentence_count
+        )
         assert (
             "Ce changement est pertinent pour la vigie AMF"
             not in validated.relevance_reason
@@ -5535,16 +5539,24 @@ def _valid_justification_non() -> str:
 def _compact_reason() -> str:
     return (
         "Le rapport courant ajoute un exercice annuel de simulation de cyberattaque "
-        "qui n’était pas décrit dans le rapport précédent. Cette évolution renforce "
-        "la lecture des pratiques de résilience et fournit un point de comparaison "
-        "concret entre les banques."
+        "qui n’était pas décrit dans le rapport précédent. Cette évolution rend "
+        "explicite un mécanisme de préparation aux incidents. Elle permet de "
+        "comparer la fréquence et le périmètre des exercices entre les banques. "
+        "Le passage ne précise toutefois ni les scénarios ni les résultats obtenus."
+    )
+
+
+def _compact_secondary_reason() -> str:
+    return (
+        "Le rapport courant met à jour une valeur propre à la banque. "
+        "Cette variation n’apporte aucun nouveau point de comparaison prudentielle."
     )
 
 
 # --- Invariants Pydantic ---
 
 
-def test_compact_triage_accepts_two_complete_relevance_reason_sentences() -> None:
+def test_compact_triage_accepts_four_complete_relevance_reason_sentences() -> None:
     result = TriageAMFCompactLLMResultWithIndex(
         change_index=1,
         is_relevant=True,
@@ -5552,7 +5564,7 @@ def test_compact_triage_accepts_two_complete_relevance_reason_sentences() -> Non
         nouvelle_idee=True,
         relevance_reason=f"  {_compact_reason().replace(' Cette', '   Cette')}  ",
     )
-    assert count_complete_sentences(result.relevance_reason) == 2
+    assert count_complete_sentences(result.relevance_reason) == 4
     assert "  " not in result.relevance_reason
     assert len(result.relevance_reason.split()) < 100
 
@@ -5622,18 +5634,21 @@ def test_compact_triage_counts_sentence_ending_with_uppercase_label() -> None:
         nouvelle_idee=True,
         relevance_reason=(
             "Le rapport courant retient désormais l’approche A. "
-            "Cette modification fournit une nouvelle base de comparaison des "
-            "méthodes déclarées par les banques."
+            "Cette modification change la base méthodologique déclarée. "
+            "Elle permet de comparer les méthodes retenues par les banques. "
+            "Le passage ne précise toutefois pas les paramètres de l’approche A."
         ),
     )
-    assert count_complete_sentences(result.relevance_reason) == 2
+    assert count_complete_sentences(result.relevance_reason) == 4
 
 
 def test_compact_triage_ignores_abbreviations_and_decimals_when_counting_sentences() -> None:
     reason = (
         "Le cadre de Bâle 3.1, présenté p. ex. à la p. 12 par M. Dupont, "
         "est maintenant détaillé dans le rapport. "
-        "2025 devient l’année de référence pour comparer son application entre les banques."
+        "Cette précision rend le cadre applicable plus explicite. "
+        "Elle permet de comparer son application entre les banques à partir de 2025. "
+        "Le passage ne précise toutefois pas les effets propres à chaque institution."
     )
     result = TriageAMFCompactLLMResultWithIndex(
         change_index=1,
@@ -5642,7 +5657,7 @@ def test_compact_triage_ignores_abbreviations_and_decimals_when_counting_sentenc
         nouvelle_idee=True,
         relevance_reason=reason,
     )
-    assert count_complete_sentences(result.relevance_reason) == 2
+    assert count_complete_sentences(result.relevance_reason) == 4
 
 
 def test_compact_triage_ignores_common_french_abbreviations_inside_sentence() -> None:
@@ -5653,11 +5668,13 @@ def test_compact_triage_ignores_common_french_abbreviations_inside_sentence() ->
         nouvelle_idee=True,
         relevance_reason=(
             "Le rapport détaille plusieurs mesures, etc. afin d’encadrer le contrôle, "
-            "c.-à-d. une revue annuelle documentée. Cette précision permet de "
-            "comparer la fréquence des contrôles déclarés par les banques."
+            "c.-à-d. une revue annuelle documentée. Cette précision formalise la "
+            "fréquence du contrôle déclaré. Elle permet de comparer la fréquence "
+            "des contrôles entre les banques. Le passage ne précise toutefois pas "
+            "les résultats de la revue."
         ),
     )
-    assert count_complete_sentences(result.relevance_reason) == 2
+    assert count_complete_sentences(result.relevance_reason) == 4
 
 
 @pytest.mark.parametrize("abbreviation", ["s. o.", "s.o."])
@@ -6255,12 +6272,12 @@ def test_triage_section_changes_converts_validation_error_to_triage_validation_e
     # 3 appels = 1 initial + 2 retries avant remontée
     assert client.call_count == 3
     retry_message = client._completions.calls[1]["messages"][-1]["content"]
-    assert "exactement deux phrases complètes" in retry_message
-    assert "description factuelle" in retry_message
-    assert "analyse comparative" in retry_message
+    assert "exactement quatre phrases complètes" in retry_message
+    assert "signification métier" in retry_message
+    assert "limite d’interprétation" in retry_message
 
 
-def test_triage_section_changes_length_retry_repeats_two_sentence_contract() -> None:
+def test_triage_section_changes_length_retry_repeats_sentence_contract() -> None:
     valid_batch = TriageAMFCompactLLMBatch(
         triages=[
             TriageAMFCompactLLMResultWithIndex(
@@ -6268,7 +6285,7 @@ def test_triage_section_changes_length_retry_repeats_two_sentence_contract() -> 
                 is_relevant=False,
                 themes_amf=[],
                 nouvelle_idee=False,
-                relevance_reason=_compact_reason(),
+                relevance_reason=_compact_secondary_reason(),
             )
         ]
     )
@@ -6299,8 +6316,9 @@ def test_triage_section_changes_length_retry_repeats_two_sentence_contract() -> 
     assert len(result) == 1
     assert client.call_count == 2
     retry_message = client._completions.calls[1]["messages"][-1]["content"]
-    assert "exactement deux phrases complètes" in retry_message
-    assert "interprétation comparative" in retry_message
+    assert "exactement quatre phrases" in retry_message
+    assert "constat, signification, comparaison, limite" in retry_message
+    assert "exactement deux phrases" in retry_message
 
 
 def test_triage_section_changes_propagates_runtime_error_unwrapped() -> None:
@@ -6340,7 +6358,7 @@ def test_triage_section_changes_processes_changes_one_by_one() -> None:
                         is_relevant=False,
                         themes_amf=[],
                         nouvelle_idee=False,
-                        relevance_reason=_compact_reason(),
+                        relevance_reason=_compact_secondary_reason(),
                     )
                 ]
             )
@@ -6409,14 +6427,14 @@ def test_triage_section_changes_batches_two_sides_of_one_semantic_distinct_decis
                 is_relevant=False,
                 themes_amf=[],
                 nouvelle_idee=False,
-                relevance_reason=_compact_reason(),
+                relevance_reason=_compact_secondary_reason(),
             ),
             TriageAMFCompactLLMResultWithIndex(
                 change_index=2,
                 is_relevant=False,
                 themes_amf=[],
                 nouvelle_idee=False,
-                relevance_reason=_compact_reason(),
+                relevance_reason=_compact_secondary_reason(),
             ),
         ]
     )
@@ -6488,7 +6506,7 @@ def test_triage_section_changes_reads_long_sources_as_full_evidence_packets() ->
                         is_relevant=False,
                         themes_amf=[],
                         nouvelle_idee=False,
-                        relevance_reason=_compact_reason(),
+                        relevance_reason=_compact_secondary_reason(),
                     )
                 ]
             )
@@ -6574,8 +6592,9 @@ def test_governance_new_idea_receives_major_priority() -> None:
                 relevance_reason=(
                     "Le rapport courant transfère au conseil d’administration "
                     "l’approbation de l’appétit pour le risque. Ce transfert "
-                    "d’autorité modifie la gouvernance et permet de comparer les "
-                    "responsabilités décisionnelles entre les banques."
+                    "d’autorité modifie la gouvernance déclarée. Il permet de "
+                    "comparer les responsabilités décisionnelles entre les banques. "
+                    "Le passage ne précise toutefois pas les mécanismes de suivi."
                 ),
             )
         ]
@@ -6635,8 +6654,10 @@ def test_real_methodology_or_process_change_receives_major_priority(
                 nouvelle_idee=True,
                 relevance_reason=(
                     "Le rapport courant modifie le fonctionnement décrit dans le "
-                    "rapport précédent. Cette évolution substantielle fournit un "
-                    "point prioritaire de comparaison entre les banques."
+                    "rapport précédent. Cette évolution change le dispositif "
+                    "déclaré par la banque. Elle fournit un point prioritaire de "
+                    "comparaison entre les banques. Le passage ne quantifie "
+                    "toutefois pas l’incidence de cette modification."
                 ),
             )
         ]
@@ -6692,8 +6713,10 @@ def test_committee_rename_stays_relevant_without_becoming_a_new_idea() -> None:
                 nouvelle_idee=False,
                 relevance_reason=(
                     "Le rapport courant renomme le comité par le nouvel acronyme "
-                    "CGRI sans modifier son mandat. Cette désignation reste utile "
-                    "pour suivre la structure de gouvernance entre les périodes."
+                    "CGRI sans modifier son mandat. Cette désignation rend la "
+                    "structure déclarée plus explicite. Elle permet de comparer "
+                    "les désignations des comités entre les banques. Le passage "
+                    "ne démontre toutefois aucun changement d’autorité."
                 ),
             )
         ]
@@ -6761,7 +6784,7 @@ def test_triage_section_changes_accepts_gpt_confirmed_semantic_alignment() -> No
                 is_relevant=False,
                 themes_amf=[],
                 nouvelle_idee=False,
-                relevance_reason=_compact_reason(),
+                relevance_reason=_compact_secondary_reason(),
             )
         ]
     )
@@ -6832,9 +6855,12 @@ def test_triage_section_changes_does_not_request_posture_or_it_impact() -> None:
     assert "justification_posture" not in prompt
     assert "impact_it_justification" not in prompt
     assert "relevance_reason" in prompt
-    assert "exactement deux phrases complètes" in prompt
+    assert "exactement quatre phrases" in prompt
+    assert "limite d’interprétation" in prompt
+    assert "exactement deux phrases" in prompt
     assert "La première décrit factuellement" in prompt
-    assert "La seconde interprète" in prompt
+    assert "La deuxième explique sa signification métier" in prompt
+    assert "La troisième précise les dimensions" in prompt
     assert "100 à 120 mots" not in prompt
     assert result[0]["genai_triage"]["impact_it"] == "INDETERMINE"
     assert result[0]["genai_triage"]["changement_posture"] == "INDETERMINE"

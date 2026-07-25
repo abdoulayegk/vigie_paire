@@ -13,11 +13,23 @@ from typing import Any
 import dash_bootstrap_components as dbc
 from dash import dcc, html
 
+from vigilance.analyst_change_presentation import (
+    build_change_presentation,
+    business_relevance_paragraph,
+    canonicalize_analyst_narrative,
+    change_scope,
+)
 from vigilance.amf_taxonomy import (
     IMPACT_IT_DETAIL_LABELS,
     POSTURE_DETAIL_LABELS,
     _compact_complete_sentence_parts,
     extract_labeled_analysis,
+)
+from vigilance.dash_app.components.text_change_presentation import (
+    atomic_parent_context,
+    atomic_parent_key,
+    build_atomic_change_group,
+    build_source_evidence_details,
 )
 from vigilance.i18n.fr import sanitize_analyst_french
 from vigilance.quarter_utils import quarter_label_from_payload
@@ -176,63 +188,6 @@ def _badge(label: str, color: str, **kwargs) -> dbc.Badge:
 def _plural_count(count: int, singular: str, plural: str) -> str:
     """Retourne un libellé compté avec accord simple."""
     return f"{count} {singular if count == 1 else plural}"
-
-
-def _has_specific_quarter_label(label: str, generic_label: str) -> bool:
-    """Indique si un libelle de periode peut remplacer les alias T1/T2."""
-    value = str(label or "").strip()
-    return bool(value) and value != generic_label
-
-
-def _localize_period_aliases(
-    value: str,
-    *,
-    current_quarter_label: str,
-    previous_quarter_label: str,
-) -> str:
-    """Remplace les périodes analytiques génériques par les vrais trimestres affichés.
-
-    Le pipeline texte utilise T2 ou « rapport courant » pour le rapport courant,
-    et T1 ou « rapport précédent » pour le rapport précédent, même lorsque la
-    paire comparée est T4 vs T4 N-1 ou T1 vs T3. Cette substitution reste
-    limitée aux textes d'analyse, jamais aux extraits
-    sources du rapport.
-    """
-    if not value:
-        return ""
-
-    replacements: dict[str, str] = {}
-    if _has_specific_quarter_label(current_quarter_label, "Trimestre courant"):
-        replacements["2"] = str(current_quarter_label).strip()
-    if _has_specific_quarter_label(previous_quarter_label, "Trimestre précédent"):
-        replacements["1"] = str(previous_quarter_label).strip()
-    if not replacements:
-        return value
-
-    def _replace(match: re.Match[str]) -> str:
-        return replacements.get(match.group(1), match.group(0))
-
-    localized = re.sub(
-        r"(?<![A-Za-z0-9])T([12])(?![A-Za-z0-9])",
-        _replace,
-        value,
-        flags=re.IGNORECASE,
-    )
-    if "2" in replacements:
-        localized = re.sub(
-            r"\brapport courant\b",
-            replacements["2"],
-            localized,
-            flags=re.IGNORECASE,
-        )
-    if "1" in replacements:
-        localized = re.sub(
-            r"\brapport précédent\b",
-            replacements["1"],
-            localized,
-            flags=re.IGNORECASE,
-        )
-    return localized
 
 
 def _build_executive_overview_text(
@@ -482,8 +437,9 @@ def _build_observed_block(
     change_summary: str,
     relevance_reason: str = "",
     observed_text: str = "",
+    business_relevance: str = "",
 ) -> html.Div:
-    """Affiche les faits observés et l'impact contextualisé avant les détails."""
+    """Affiche le résumé métier canonique et l'impact contextualisé."""
     impact_label = _IMPACT_BADGE.get(
         impact_level,
         (impact_level.capitalize(), "secondary"),
@@ -499,10 +455,26 @@ def _build_observed_block(
     return html.Div(
         [
             html.Div(
-                "Éléments observés",
+                "Changement constaté",
                 className="small fw-semibold text-primary mb-1",
             ),
             html.P(observed, className="small mb-2"),
+            (
+                html.Div(
+                    [
+                        html.Div(
+                            "Pertinence métier",
+                            className="small fw-semibold text-primary mb-1",
+                        ),
+                        html.P(
+                            business_relevance,
+                            className="small mb-2",
+                        ),
+                    ]
+                )
+                if business_relevance
+                else None
+            ),
             html.Div(
                 f"Impact {impact_domain} — {impact_label}",
                 className="small fw-semibold text-muted",
@@ -551,12 +523,11 @@ def _build_ai_details(
         )
 
     detail_sections: list = []
-    pertinence = sanitize_analyst_french(justification_sections.get("Pertinence métier", ""))
     surveillance = sanitize_analyst_french(
         justification_sections.get("Point de surveillance", "")
     )
     subject = sanitize_analyst_french(justification_sections.get("Sujet détecté", ""))
-    if pertinence or surveillance or subject or impact_sections:
+    if surveillance or subject or impact_sections:
         impact_label = _IMPACT_BADGE.get(
             impact_level,
             (impact_level.capitalize(), "secondary"),
@@ -569,7 +540,6 @@ def _build_ai_details(
                         className="fw-semibold mb-2",
                     ),
                     _ai_detail_item("Domaine détecté", subject or impact_domain),
-                    _ai_detail_item("Pertinence métier", pertinence),
                     _ai_detail_item("Point de surveillance", surveillance),
                     _ai_detail_item(
                         "Conséquence probable",
@@ -789,6 +759,7 @@ def _build_change_card(
     change: dict[str, Any],
     section_title: str,
     *,
+    bank_code: str = "",
     current_quarter_label: str = "Trimestre courant",
     previous_quarter_label: str = "Trimestre précédent",
 ) -> dbc.Card:
@@ -797,6 +768,7 @@ def _build_change_card(
     Args:
         change: Dict bloc issu de text_comparison.json.
         section_title: Nom affiché de la section/sous-section.
+        bank_code: Code court de la banque utilisé comme sujet du résumé.
         current_quarter_label: Libelle du trimestre courant, si disponible.
         previous_quarter_label: Libelle du trimestre precedent, si disponible.
 
@@ -810,6 +782,11 @@ def _build_change_card(
     if diff_type == "unchanged" or triage.get("source") == "skip":
         return None  # type: ignore[return-value]
 
+    presentation = build_change_presentation(
+        change,
+        bank_code=bank_code,
+        candidate_summary=what_changed_for_display(change),
+    )
     is_relevant = bool(triage.get("is_relevant", False))
     impact_level = (triage.get("impact_level") or "MINEUR").upper()
     impact_it_justification = str(
@@ -829,20 +806,17 @@ def _build_change_card(
     ).upper()
     action = (triage.get("action_requise") or "aucune").lower()
     nouvelle_idee = bool(triage.get("nouvelle_idee", False))
-    nouvelle_idee_justification = _localize_period_aliases(
+    nouvelle_idee_justification = canonicalize_analyst_narrative(
         build_text_triage_justification(change),
-        current_quarter_label=current_quarter_label,
-        previous_quarter_label=previous_quarter_label,
+        bank_code=bank_code,
     )
-    impact_it_justification = _localize_period_aliases(
+    impact_it_justification = canonicalize_analyst_narrative(
         impact_it_justification,
-        current_quarter_label=current_quarter_label,
-        previous_quarter_label=previous_quarter_label,
+        bank_code=bank_code,
     )
-    justification_posture = _localize_period_aliases(
+    justification_posture = canonicalize_analyst_narrative(
         justification_posture,
-        current_quarter_label=current_quarter_label,
-        previous_quarter_label=previous_quarter_label,
+        bank_code=bank_code,
     )
     themes_amf = list(triage.get("themes_amf") or [])
     justification_sections = extract_labeled_analysis(
@@ -850,6 +824,15 @@ def _build_change_card(
         _TRIAGE_DETAIL_LABELS,
     )
     impact_domain = _impact_domain(themes_amf, section_title)
+    business_relevance = ""
+    if presentation.scope == "qualitative":
+        business_relevance = business_relevance_paragraph(
+            str(triage.get("relevance_reason") or ""),
+            justification_sections.get("Pertinence métier", ""),
+            str(triage.get("explanation") or ""),
+            summary=presentation.summary,
+            bank_code=bank_code,
+        )
 
     evidence_t1 = change.get("evidence_t1") or {}
     evidence_t2 = change.get("evidence_t2") or {}
@@ -873,6 +856,7 @@ def _build_change_card(
     action_lbl, action_color = _ACTION_BADGE.get(action, (action.capitalize(), "secondary"))
 
     badge_children: list = []
+    badge_children.append(_badge(presentation.nature_label, "primary"))
     if nouvelle_idee:
         badge_children.append(
             dbc.Badge(
@@ -883,6 +867,16 @@ def _build_change_card(
         )
     if not is_relevant:
         badge_children.append(_badge("Non pertinent", "secondary"))
+    if presentation.scope == "secondary":
+        badge_children.append(_badge("Secondaire / bruit", "light", text_color="dark"))
+    if presentation.quality_status == "review":
+        badge_children.append(
+            _badge(
+                "Résumé à valider",
+                "warning",
+                title=", ".join(presentation.quality_issues),
+            )
+        )
     badge_children.append(_badge(impact_lbl, impact_color))
     posture_badge = _POSTURE_BADGE.get(changement_posture)
     if posture_badge:
@@ -937,30 +931,19 @@ def _build_change_card(
         current_quarter_label=current_quarter_label,
         previous_quarter_label=previous_quarter_label,
     )
-
-    # Bloc preuve source : retiré du nouveau design — la preuve EST le texte
-    # source affiché dans le side-by-side avec les highlights AMF v2.
-    evidence_block = None
+    evidence_block = build_source_evidence_details(text_block)
 
     observed_block = _build_observed_block(
         impact_level=impact_level,
         impact_domain=impact_domain,
         justification_sections=justification_sections,
-        change_summary=_localize_period_aliases(
-            str(change.get("change_summary") or "").strip(),
-            current_quarter_label=current_quarter_label,
-            previous_quarter_label=previous_quarter_label,
-        ),
-        relevance_reason=_localize_period_aliases(
+        change_summary=presentation.summary,
+        relevance_reason=canonicalize_analyst_narrative(
             str(triage.get("relevance_reason") or "").strip(),
-            current_quarter_label=current_quarter_label,
-            previous_quarter_label=previous_quarter_label,
+            bank_code=bank_code,
         ),
-        observed_text=_localize_period_aliases(
-            what_changed_for_display(change),
-            current_quarter_label=current_quarter_label,
-            previous_quarter_label=previous_quarter_label,
-        ),
+        observed_text=presentation.summary,
+        business_relevance=business_relevance,
     )
 
     posture_proof_block, ai_details = _build_ai_details(
@@ -1039,9 +1022,8 @@ def _build_change_card(
             badge_row,
             themes_row,
             meta,
-            text_block,
-            evidence_block,
             observed_block,
+            evidence_block,
             posture_proof_block,
             ai_details,
             review_controls,
@@ -1257,11 +1239,13 @@ def build_filtered_text_cards(
     filter_impact: str | None,
     filter_action: str | None,
     filter_status: str | None = None,
+    filter_scope: str | None = "qualitative",
 ) -> tuple[list[Any], str]:
     """Construit les cartes texte selon les filtres courants."""
     items: list[tuple[tuple[int, int, str, str, str], dict[str, Any], str]] = []
     current_label = quarter_label_from_payload(text_data, "current")
     previous_label = quarter_label_from_payload(text_data, "previous")
+    bank_code = str(text_data.get("bank_code") or "").strip()
     for sec in text_data.get("section_comparisons") or []:
         key = sec.get("section_key", "")
         title = sec.get("section_title") or _SECTION_LABELS.get(key, key)
@@ -1274,6 +1258,13 @@ def build_filtered_text_cards(
             if diff_type == "unchanged":
                 continue
             triage = change.get("genai_triage") or {}
+            scope = change_scope(change)
+            if scope == "hidden":
+                continue
+            if filter_scope == "qualitative" and scope != "qualitative":
+                continue
+            if filter_scope == "secondary" and scope != "secondary":
+                continue
 
             review = change.get("_analyst_review") or {}
             review_status = str(review.get("status") or "pending").strip().lower()
@@ -1310,19 +1301,64 @@ def build_filtered_text_cards(
 
     items.sort(key=lambda x: x[0])
 
-    cards = []
-    for _, change, title in items:
-        card = _build_change_card(
-            change,
-            title,
-            current_quarter_label=current_label,
-            previous_quarter_label=previous_label,
-        )
-        if card is not None:
-            cards.append(card)
+    grouped_items: dict[
+        tuple[str, str, str, str],
+        list[tuple[dict[str, Any], str]],
+    ] = {}
+    for index, (_, change, title) in enumerate(items):
+        atomic_key = atomic_parent_key(change, section_title=title)
+        if atomic_key is None:
+            group_key = ("single", str(index), "", "")
+        else:
+            group_key = ("atomic", *atomic_key)
+        grouped_items.setdefault(group_key, []).append((change, title))
 
-    count_text = f"{len(cards)} changement(s) affiché(s)"
-    return cards or _empty_text_state(), count_text
+    rendered: list[Any] = []
+    displayed_count = 0
+    for group_key, grouped_changes in grouped_items.items():
+        group_cards: list[dbc.Card] = []
+        for change, title in grouped_changes:
+            card = _build_change_card(
+                change,
+                title,
+                bank_code=bank_code,
+                current_quarter_label=current_label,
+                previous_quarter_label=previous_label,
+            )
+            if card is not None:
+                group_cards.append(card)
+        if not group_cards:
+            continue
+        displayed_count += len(group_cards)
+        if group_key[0] == "atomic":
+            rendered.append(
+                build_atomic_change_group(
+                    parent_context=atomic_parent_context(grouped_changes[0][0]),
+                    cards=group_cards,
+                )
+            )
+        else:
+            rendered.extend(group_cards)
+
+    if filter_scope == "secondary":
+        count_text = _plural_count(
+            displayed_count,
+            "changement secondaire affiché",
+            "changements secondaires affichés",
+        )
+    elif filter_scope == "all":
+        count_text = _plural_count(
+            displayed_count,
+            "changement affiché",
+            "changements affichés",
+        )
+    else:
+        count_text = _plural_count(
+            displayed_count,
+            "changement qualitatif affiché",
+            "changements qualitatifs affichés",
+        )
+    return rendered or _empty_text_state(), count_text
 
 
 # ---------------------------------------------------------------------------
@@ -1333,13 +1369,14 @@ def build_filtered_text_cards(
 def _build_filter_bar(
     section_options: list[dict],
     selected_section: str | None,
+    selected_scope: str,
     selected_impact: str | None,
     selected_action: str | None,
     selected_status: str,
     initial_count: str,
 ) -> html.Div:
     """Barre de filtres : section / impact / action / décision + compteur."""
-    return html.Div(
+    filters = html.Div(
         dbc.Row(
             [
                 dbc.Col(
@@ -1349,6 +1386,28 @@ def _build_filter_bar(
                         value=selected_section,
                         placeholder="Toutes les sections",
                         clearable=True,
+                    ),
+                    md=3,
+                ),
+                dbc.Col(
+                    dcc.Dropdown(
+                        id="text-filter-scope",
+                        options=[
+                            {
+                                "label": "Changements qualitatifs",
+                                "value": "qualitative",
+                            },
+                            {
+                                "label": "Tous les changements",
+                                "value": "all",
+                            },
+                            {
+                                "label": "Secondaires / bruit",
+                                "value": "secondary",
+                            },
+                        ],
+                        value=selected_scope,
+                        clearable=False,
                     ),
                     md=3,
                 ),
@@ -1380,7 +1439,7 @@ def _build_filter_bar(
                         placeholder="Toutes les actions",
                         clearable=True,
                     ),
-                    md=3,
+                    md=2,
                 ),
                 dbc.Col(
                     dcc.Dropdown(
@@ -1397,18 +1456,20 @@ def _build_filter_bar(
                     ),
                     md=2,
                 ),
-                dbc.Col(
-                    html.Span(
-                        initial_count,
-                        id="text-filter-count",
-                        className="small text-muted align-self-center",
-                    ),
-                    md=2,
-                    className="d-flex",
-                ),
             ],
             className="g-2 align-items-center",
         ),
+        className="mb-2",
+    )
+    return html.Div(
+        [
+            filters,
+            html.Div(
+                initial_count,
+                id="text-filter-count",
+                className="small text-muted mt-2",
+            ),
+        ],
         className="mb-3 p-3 bg-white rounded border",
     )
 
@@ -1422,6 +1483,7 @@ def build_text_analysis_tab(
     text_data: dict[str, Any] | None,
     *,
     filter_section: str | None | object = _UNSET,
+    filter_scope: str | None = "qualitative",
     filter_impact: str | None = None,
     filter_action: str | None = None,
     filter_status: str | None = "remaining",
@@ -1431,6 +1493,7 @@ def build_text_analysis_tab(
     Args:
         text_data: Contenu de text_comparison.json, ou None si non disponible.
         filter_section: Section sélectionnée, ``None`` pour toutes les sections.
+        filter_scope: Périmètre qualitatif, secondaire ou complet.
         filter_impact: Niveau d'impact sélectionné.
         filter_action: Action de vigie sélectionnée.
         filter_status: Statut de décision sélectionné.
@@ -1483,12 +1546,18 @@ def build_text_analysis_tab(
         if filter_status in {"remaining", "approved", "rejected", "skipped", "all"}
         else "remaining"
     )
+    selected_scope = (
+        filter_scope
+        if filter_scope in {"qualitative", "secondary", "all"}
+        else "qualitative"
+    )
     initial_cards, initial_count = build_filtered_text_cards(
         text_data,
         selected_section,
         filter_impact,
         filter_action,
         selected_status,
+        selected_scope,
     )
 
     return html.Div(
@@ -1506,6 +1575,7 @@ def build_text_analysis_tab(
                     _build_filter_bar(
                         section_options,
                         selected_section,
+                        selected_scope,
                         filter_impact,
                         filter_action,
                         selected_status,

@@ -8,8 +8,9 @@ import re
 from pathlib import Path
 from typing import Any
 
-from vigilance.text_comparison.justification import build_text_triage_justification
+from vigilance.analyst_change_presentation import canonicalize_analyst_narrative
 from vigilance.i18n.fr import impact_label_fr, sanitize_analyst_french
+from vigilance.text_comparison.justification import build_text_triage_justification
 from vigilance.vigie_columns import build_text_vigie_display_row
 
 logger = logging.getLogger(__name__)
@@ -202,11 +203,8 @@ def _published_change_types(change: dict[str, Any]) -> tuple[str, ...]:
 
 
 def _published_change_summary(change_type: str, display_summary: str) -> str:
-    """Rendre explicite le côté Ajout ou Suppression d'un remplacement."""
-    if change_type == "Ajout":
-        return f"Ajout dans le texte courant — {display_summary}"
-    if change_type == "Suppression":
-        return f"Suppression du texte précédent — {display_summary}"
+    """Conserver la phrase métier; le type possède déjà sa propre colonne."""
+    _ = change_type
     return display_summary
 
 
@@ -217,6 +215,7 @@ def _published_change_summary(change_type: str, display_summary: str) -> str:
 def _collect_rows(text_comparison: dict[str, Any]) -> list[dict[str, Any]]:
     """Extrait et aplatit toutes les lignes de changement depuis ``text_comparison.json``."""
     rows: list[dict[str, Any]] = []
+    bank_code = str(text_comparison.get("bank_code") or "").strip()
     for section_comp in text_comparison.get("section_comparisons", []):
         section_key = section_comp.get("section_key", "")
         section_title = (
@@ -239,8 +238,14 @@ def _collect_rows(text_comparison: dict[str, Any]) -> list[dict[str, Any]]:
             display = build_text_vigie_display_row(
                 block_comp,
                 section_title=section_title,
+                bank_code=bank_code,
             )
             justification = display["relevance_reason"] or build_text_triage_justification(block_comp)
+            if bank_code:
+                justification = canonicalize_analyst_narrative(
+                    justification,
+                    bank_code=bank_code,
+                )
             analyst_review = block_comp.get("_analyst_review") or {}
             analyst_status = str(analyst_review.get("status") or "").strip().lower()
             nouvelle_idee = display["nouvelle_idee_label"]

@@ -10,6 +10,10 @@ from __future__ import annotations
 import re
 from typing import Any
 
+from vigilance.analyst_change_presentation import (
+    build_change_presentation,
+    canonicalize_analyst_narrative,
+)
 from vigilance.amf_taxonomy import (
     EXCLUSION_REASONS_DESCRIPTIONS,
     THEMES_AMF_ANALYST_SUBJECTS,
@@ -300,12 +304,19 @@ def build_text_vigie_display_row(
     change: dict[str, Any],
     *,
     section_title: str,
+    bank_code: str = "",
 ) -> dict[str, Any]:
     """Construit les huit champs analyste communs à Dash et Excel."""
     triage = change.get("genai_triage") or {}
     previous_text = str(change.get("source_text_t1") or "")
     current_text = str(change.get("source_text_t2") or "")
-    what_changed = what_changed_for_display(change)
+    candidate_summary = what_changed_for_display(change)
+    presentation = build_change_presentation(
+        change,
+        bank_code=bank_code,
+        candidate_summary=candidate_summary,
+    )
+    what_changed = presentation.summary if bank_code else candidate_summary
     category = derive_vigie_category(
         triage,
         text=" ".join((what_changed, previous_text, current_text)),
@@ -325,5 +336,14 @@ def build_text_vigie_display_row(
         "what_changed": what_changed,
         "nouvelle_idee": nouvelle_idee,
         "nouvelle_idee_label": "Oui" if nouvelle_idee else "Non",
-        "relevance_reason": relevance_reason_for_display(change),
+        "relevance_reason": (
+            canonicalize_analyst_narrative(
+                relevance_reason_for_display(change),
+                bank_code=bank_code,
+            )
+            if bank_code
+            else relevance_reason_for_display(change)
+        ),
+        "presentation_scope": presentation.scope,
+        "summary_quality": presentation.quality_status,
     }
