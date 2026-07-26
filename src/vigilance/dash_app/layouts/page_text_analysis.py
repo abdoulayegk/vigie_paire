@@ -14,8 +14,8 @@ import dash_bootstrap_components as dbc
 from dash import dcc, html
 
 from vigilance.analyst_change_presentation import (
+    build_analyst_narrative,
     build_change_presentation,
-    business_relevance_paragraph,
     canonicalize_analyst_narrative,
     change_scope,
 )
@@ -34,7 +34,6 @@ from vigilance.dash_app.components.text_change_presentation import (
 from vigilance.i18n.fr import sanitize_analyst_french
 from vigilance.quarter_utils import quarter_label_from_payload
 from vigilance.text_comparison.justification import build_text_triage_justification
-from vigilance.vigie_columns import what_changed_for_display
 
 # ---------------------------------------------------------------------------
 # Constantes d'affichage
@@ -782,10 +781,14 @@ def _build_change_card(
     if diff_type == "unchanged" or triage.get("source") == "skip":
         return None  # type: ignore[return-value]
 
+    analyst_narrative = build_analyst_narrative(
+        change,
+        bank_code=bank_code,
+    )
     presentation = build_change_presentation(
         change,
         bank_code=bank_code,
-        candidate_summary=what_changed_for_display(change),
+        candidate_summary=analyst_narrative.changement_constate,
     )
     is_relevant = bool(triage.get("is_relevant", False))
     impact_level = (triage.get("impact_level") or "MINEUR").upper()
@@ -824,15 +827,11 @@ def _build_change_card(
         _TRIAGE_DETAIL_LABELS,
     )
     impact_domain = _impact_domain(themes_amf, section_title)
-    business_relevance = ""
-    if presentation.scope == "qualitative":
-        business_relevance = business_relevance_paragraph(
-            str(triage.get("relevance_reason") or ""),
-            justification_sections.get("Pertinence métier", ""),
-            str(triage.get("explanation") or ""),
-            summary=presentation.summary,
-            bank_code=bank_code,
-        )
+    business_relevance = (
+        analyst_narrative.pertinence_metier
+        if presentation.scope == "qualitative"
+        else ""
+    )
 
     evidence_t1 = change.get("evidence_t1") or {}
     evidence_t2 = change.get("evidence_t2") or {}
@@ -938,10 +937,7 @@ def _build_change_card(
         impact_domain=impact_domain,
         justification_sections=justification_sections,
         change_summary=presentation.summary,
-        relevance_reason=canonicalize_analyst_narrative(
-            str(triage.get("relevance_reason") or "").strip(),
-            bank_code=bank_code,
-        ),
+        relevance_reason="",
         observed_text=presentation.summary,
         business_relevance=business_relevance,
     )

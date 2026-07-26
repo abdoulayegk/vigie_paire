@@ -5,6 +5,8 @@ from __future__ import annotations
 import re
 from typing import Any
 
+from vigilance.analyst_change_presentation import build_analyst_narrative
+
 _REQUIRED_JUSTIFICATION_MARKERS = (
     "Nouvel élément à surveiller :",
     "Sujet détecté :",
@@ -324,11 +326,24 @@ def build_compact_triage_justification(
         for theme in triage.get("themes_amf") or []
     ]
     subject = ", ".join(dict.fromkeys(subjects)) or "Changement non retenu"
-    relevance_reason = _clean(triage.get("relevance_reason"))
+    change_with_triage = {**change, "genai_triage": triage}
+    bank_code = str(
+        change.get("bank_code")
+        or triage.get("bank_code")
+        or ""
+    ).strip()
+    narrative = build_analyst_narrative(
+        change_with_triage,
+        bank_code=bank_code or None,
+    )
+    what_changed = narrative.changement_constate or _change_sentence(change)
+    relevance_reason = narrative.business_relevance
     if not relevance_reason:
-        relevance_reason = _fallback_pertinence(change, triage)
-    # Prefer the factual first sentence of relevance_reason — complete and analyst-ready.
-    what_changed = _first_complete_sentence(relevance_reason) or _change_sentence(change)
+        relevance_reason = (
+            "La justification métier structurée n’a pas été renseignée."
+            if narrative.source == "structured"
+            else _fallback_pertinence(change, triage)
+        )
     what_changed = sanitize_analyst_french(what_changed)
     relevance_reason = sanitize_analyst_french(relevance_reason)
     surveillance = (
@@ -356,7 +371,17 @@ def build_text_triage_justification(change: dict[str, Any]) -> str:
     if not isinstance(triage, dict) or not triage:
         return ""
 
-    if str(triage.get("relevance_reason") or "").strip():
+    if str(triage.get("relevance_reason") or "").strip() or any(
+        str(triage.get(field) or "").strip()
+        for field in (
+            "changement_constate",
+            "signification_metier",
+            "comparaison_interbanques",
+            "comparaison_interbancaire",
+            "limite_interpretation",
+            "motif_non_pertinence",
+        )
+    ):
         return build_compact_triage_justification(change, triage)
 
     explicit = str(triage.get("nouvelle_idee_justification") or "").strip()

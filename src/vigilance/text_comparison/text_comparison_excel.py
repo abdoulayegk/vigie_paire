@@ -8,9 +8,7 @@ import re
 from pathlib import Path
 from typing import Any
 
-from vigilance.analyst_change_presentation import canonicalize_analyst_narrative
 from vigilance.i18n.fr import impact_label_fr, sanitize_analyst_french
-from vigilance.text_comparison.justification import build_text_triage_justification
 from vigilance.vigie_columns import build_text_vigie_display_row
 
 logger = logging.getLogger(__name__)
@@ -240,12 +238,10 @@ def _collect_rows(text_comparison: dict[str, Any]) -> list[dict[str, Any]]:
                 section_title=section_title,
                 bank_code=bank_code,
             )
-            justification = display["relevance_reason"] or build_text_triage_justification(block_comp)
-            if bank_code:
-                justification = canonicalize_analyst_narrative(
-                    justification,
-                    bank_code=bank_code,
-                )
+            # La justification exportée contient seulement l'analyse métier
+            # (ou le motif de non-pertinence), jamais le constat déjà publié
+            # dans la colonne « Ce qui change ».
+            justification = display["business_relevance"]
             analyst_review = block_comp.get("_analyst_review") or {}
             analyst_status = str(analyst_review.get("status") or "").strip().lower()
             nouvelle_idee = display["nouvelle_idee_label"]

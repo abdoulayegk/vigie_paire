@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from vigilance.analyst_change_presentation import build_change_presentation
+
 
 _STRONG_AMF_THEMES_FOR_MODERE_RETENTION: frozenset[str] = frozenset(
     {
@@ -74,7 +76,11 @@ def _retained_change_sort_key(change: dict[str, Any]) -> tuple[int, int, int, st
     )
 
 
-def _build_global_summary(section_comparisons: list[dict[str, Any]]) -> dict[str, Any]:
+def _build_global_summary(
+    section_comparisons: list[dict[str, Any]],
+    *,
+    bank_code: str = "",
+) -> dict[str, Any]:
     """Agrège les statistiques de toutes les sections en un résumé global.
 
     Calcule les comptages par impact, catégorie et action requise, extrait
@@ -104,7 +110,17 @@ def _build_global_summary(section_comparisons: list[dict[str, Any]]) -> dict[str
         by_impact[impact] = by_impact.get(impact, 0) + 1
         by_category[category] = by_category.get(category, 0) + 1
         by_action[action] = by_action.get(action, 0) + 1
-        summary = str(change.get("change_summary") or "").strip()
+        summary = str(
+            triage.get("changement_constate")
+            or change.get("change_summary")
+            or ""
+        ).strip()
+        if summary and bank_code:
+            summary = build_change_presentation(
+                change,
+                bank_code=bank_code,
+                candidate_summary=summary,
+            ).summary
         if summary and len(highlights) < 5:
             highlights.append(summary)
 

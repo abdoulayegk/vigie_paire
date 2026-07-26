@@ -21,6 +21,7 @@ from reportlab.platypus import Flowable, PageBreak, Paragraph, SimpleDocTemplate
 from vigilance.dash_app.services.export_helpers import _is_high_priority_item
 from vigilance.dash_app.services.review_navigation import _table_decision_bucket
 from vigilance.quarter_utils import get_payload_quarter_context
+from vigilance.vigie_columns import build_text_vigie_display_row
 
 def _plot_layout(theme: str) -> dict[str, Any]:
     """Retourne le layout Plotly commun (couleurs adaptées au thème clair/sombre)."""
@@ -278,8 +279,14 @@ def _text_metrics(text_data: dict | None) -> dict[str, Any]:
     regulatory = 0
     confidences: list[float] = []
     top: list[dict[str, str]] = []
+    bank_code = str((text_data or {}).get("bank_code") or "")
     for change, section in exportable_changes:
         triage = change.get("genai_triage") or {}
+        display = build_text_vigie_display_row(
+            change,
+            section_title=section,
+            bank_code=bank_code,
+        )
         diff_type = str(change.get("diff_type") or "")
         if diff_type == "added":
             added_changes += 1
@@ -298,9 +305,7 @@ def _text_metrics(text_data: dict | None) -> dict[str, Any]:
             confidences.append(_safe_float(triage.get("confidence")))
         top.append(
             {
-                "summary": str(
-                    change.get("change_summary") or triage.get("explanation") or "Changement textuel détecté"
-                ),
+                "summary": str(display.get("what_changed") or "Changement textuel détecté"),
                 "impact": str(triage.get("impact_level") if triage.get("is_relevant") else "NON_PERTINENT").upper(),
                 "section": section,
             }
@@ -1194,13 +1199,23 @@ def _build_pdf_report(
     story.append(p("Annexe - changements détectés", "h1"))
     annex_rows = [["#", "Pipeline", "Type", "Section / tableau", "Résumé"]]
     for idx, (change, section) in enumerate(_text_changes(text_data, relevant_only=False)[:30], start=1):
+        display = build_text_vigie_display_row(
+            change,
+            section_title=section,
+            bank_code=bank,
+        )
         annex_rows.append(
             [
                 str(idx),
                 "Texte",
                 str(change.get("diff_type") or ""),
                 p(section, "body"),
-                p(change.get("change_summary") or change.get("source_text_t2") or change.get("source_text_t1"), "body"),
+                p(
+                    display.get("what_changed")
+                    or change.get("source_text_t2")
+                    or change.get("source_text_t1"),
+                    "body",
+                ),
             ]
         )
     for idx, row in enumerate(priority_rows[:10], start=len(annex_rows)):

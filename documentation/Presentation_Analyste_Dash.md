@@ -92,11 +92,17 @@ jusqu'à trois phrases complémentaires :
 3. la limite d'interprétation, c'est-à-dire ce que le passage ne permet pas
    encore de conclure.
 
-Pour les nouveaux rapports, le triage produit un constat factuel suivi de ces
-trois phrases. La phrase factuelle répétée est retirée automatiquement de la
-pertinence métier afin que les deux paragraphes restent complémentaires. Les
-anciens artefacts restent compatibles et affichent les phrases utiles déjà
-disponibles, sans inventer une limite absente de leur analyse.
+Pour les nouveaux rapports, le triage produit des unités distinctes : constat
+factuel, signification métier, dimensions de comparaison et limite
+d'interprétation. Pour un changement secondaire, il produit le constat et le
+motif de non-pertinence. La présentation assemble ensuite uniquement les unités
+utiles dans les deux paragraphes visibles. Elle ne recompte plus les phrases
+d'un paragraphe fusionné; une abréviation terminale comme « N.A. » ne peut donc
+plus invalider une analyse correcte.
+
+Les anciens artefacts restent compatibles : leur justification historique est
+projetée vers les mêmes deux paragraphes et le nom de la banque est rétabli au
+moment de la lecture, sans inventer une limite absente de leur analyse.
 
 Les introductions génériques sont retirées de l'affichage, notamment « Pour
 la vigie », « Cette information est importante », « Il convient de noter que »
@@ -154,6 +160,11 @@ automatiquement les règles suivantes :
 
 Dans ce cas, les extraits sources restent disponibles et aucune preuve n'est
 inventée.
+
+Le nom court de la banque est également transmis aux étapes de comparaison et
+de triage. Les nouvelles sorties doivent donc respecter le format analyste dès
+leur production; la normalisation à l'affichage demeure un filet de sécurité
+pour les anciennes sorties et les replis déterministes.
 
 ## Export Excel
 

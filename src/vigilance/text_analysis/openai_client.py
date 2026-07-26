@@ -345,6 +345,9 @@ def _call_structured_completion_with_correction(
       ``MAJEUR``). Ce type d'erreur est potentiellement corrigeable par
       re-prompt, donc on retry jusqu'à ``max_retries`` fois en injectant le
       détail de l'erreur dans la conversation pour permettre l'auto-correction.
+      Si le modèle renvoie exactement le même payload invalide après correction,
+      la relance suivante est supprimée puisqu'elle serait déterministe et
+      redondante.
     - Les erreurs de sortie tronquée par limite de longueur sont retentées une
       fois avec une consigne de concision. Les autres ``RuntimeError`` (refus
       du modèle, payload vide) remontent immédiatement.
@@ -355,6 +358,7 @@ def _call_structured_completion_with_correction(
     validation_attempt = 0
     transport_attempts = 0
     length_attempts = 0
+    previous_validation_payload_fingerprint: str | None = None
     while validation_attempt <= max_retries:
         try:
             return _call_structured_completion(
@@ -395,14 +399,35 @@ def _call_structured_completion_with_correction(
             )
             time.sleep(delay_seconds)
         except ValidationError as exc:
-            if validation_attempt >= max_retries:
-                raise
-            validation_attempt += 1
+            validation_errors = exc.errors(include_input=True)
             validation_detail = json.dumps(
-                exc.errors(include_input=True),
+                validation_errors,
                 ensure_ascii=False,
                 default=str,
             )
+            validation_payload_fingerprint = json.dumps(
+                [error.get("input") for error in validation_errors],
+                ensure_ascii=False,
+                sort_keys=True,
+                default=str,
+            )
+            if (
+                previous_validation_payload_fingerprint is not None
+                and validation_payload_fingerprint
+                == previous_validation_payload_fingerprint
+            ):
+                logger.error(
+                    "Triage validation returned an identical invalid payload; "
+                    "skipping redundant corrective retry. Details: %s",
+                    validation_detail,
+                )
+                raise
+            if validation_attempt >= max_retries:
+                raise
+            previous_validation_payload_fingerprint = (
+                validation_payload_fingerprint
+            )
+            validation_attempt += 1
             logger.warning(
                 "Triage validation failed on attempt %d/%d, retrying with correction. Details: %s",
                 validation_attempt,

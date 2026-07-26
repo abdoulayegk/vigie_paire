@@ -661,9 +661,14 @@ def test_deterministic_bank_specific_excludes_cwb_appetite_and_aprf() -> None:
         _deterministic_bank_specific_exclusion(appetite)
         == "operation_interne_banque"
     )
-    enriched = _prefilter_triage_result(appetite, "operation_interne_banque")
+    enriched = _prefilter_triage_result(
+        appetite,
+        "operation_interne_banque",
+        bank_code="bnc",
+    )
     reason = enriched["genai_triage"]["relevance_reason"]
     _assert_natural_analyst_copy(reason)
+    assert reason.startswith("BNC ")
     assert "acquisition" in reason.lower() or "opération" in reason.lower()
 
     emission = {
@@ -680,10 +685,14 @@ def test_deterministic_bank_specific_excludes_cwb_appetite_and_aprf() -> None:
         _deterministic_bank_specific_exclusion(emission)
         == "operation_interne_banque"
     )
-    emission_copy = _prefilter_triage_result(emission, "operation_interne_banque")
+    emission_copy = _prefilter_triage_result(
+        emission,
+        "operation_interne_banque",
+        bank_code="bnc",
+    )
     emission_reason = emission_copy["genai_triage"]["relevance_reason"]
     _assert_natural_analyst_copy(emission_reason)
-    assert "introduit" in emission_reason.lower()
+    assert emission_reason.startswith("BNC ajoute ")
     assert "cwb" in emission_reason.lower() or "acquisition" in emission_reason.lower()
 
     aprf = {

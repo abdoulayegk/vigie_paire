@@ -19,6 +19,7 @@ import time
 from pathlib import Path
 from typing import Any
 
+from vigilance.analyst_change_presentation import bank_subject
 from vigilance.amf_taxonomy import (
     IMPACT_IT_DETAIL_LABELS,
     POSTURE_DETAIL_LABELS,
@@ -190,7 +191,10 @@ _TRIAGE_SYSTEM_PROMPT = (
     "analyste ci-dessus (ex : IA, cybersécurité, risque climatique, "
     "conformité, capital, liquidité, méthode de calcul).\n"
     "  3) 'Ce qui change : ...' avec l'élément exact ajouté, retiré ou "
-    "modifié entre T1 et T2.\n"
+    "modifié entre T1 et T2. Le prompt utilisateur fournit la banque analysée; "
+    "commencer cette rubrique par son nom court suivi d'un verbe d'action direct. "
+    "T1, T2, rapport courant et rapport précédent restent du contexte technique "
+    "et ne doivent jamais être le sujet de cette phrase.\n"
     "  4) 'Pertinence métier : ...' avec une explication longue, concrète et "
     "formulée comme un analyste de vigie : commencer idéalement par "
     "'Ce changement met l'accent sur ...' ou 'Ce changement met en évidence ...'. "
@@ -335,17 +339,30 @@ IMPORTANT :
 # ---------------------------------------------------------------------------
 
 
-def _build_change_prompt(change: dict[str, Any], change_type: str) -> str:
+def _build_change_prompt(
+    change: dict[str, Any],
+    change_type: str,
+    *,
+    bank_code: str = "",
+) -> str:
     """Construit un prompt utilisateur decrivant un changement detecte pour le LLM.
 
     Args:
         change: Dictionnaire du changement (paire, tableau ajoute ou supprime).
         change_type: Type de changement : ``"pair"``, ``"added"`` ou ``"removed"``.
+        bank_code: Code court de la banque analysée.
 
     Returns:
         Texte du prompt formate pour l'appel LLM de triage.
     """
-    parts: list[str] = []
+    subject = bank_subject(bank_code)
+    parts: list[str] = [
+        f"Banque analysée : {subject}",
+        (
+            "Règle de rédaction : dans « Ce qui change », commencer exactement "
+            f"par « {subject} » suivi d'un verbe d'action direct."
+        ),
+    ]
     section = (
         change.get("section")
         or (change.get("current_table") or {}).get("section")
@@ -899,6 +916,7 @@ async def _triage_all_changes(
 
     client = AsyncOpenAI(api_key=api_key)
     semaphore = asyncio.Semaphore(max_concurrency)
+    bank_code = str(comparison.get("bank_code") or "")
 
     # -- Collect all tasks ------------------------------------------------
     tasks: list[tuple[str, int, str, asyncio.Task[dict[str, Any] | None]]] = []
@@ -912,7 +930,7 @@ async def _triage_all_changes(
             pair["genai_triage"] = _empty_triage_skeleton(source="skip")
             continue
 
-        prompt = _build_change_prompt(pair, "pair")
+        prompt = _build_change_prompt(pair, "pair", bank_code=bank_code)
 
         async def _run(p: str = prompt) -> dict[str, Any] | None:
             """Tâche async qui appelle le triage GPT pour un changement de paire."""
@@ -928,7 +946,7 @@ async def _triage_all_changes(
         tasks.append(("pair", idx, prompt, task))
 
     for idx, tbl in enumerate(tables_added):
-        prompt = _build_change_prompt(tbl, "added")
+        prompt = _build_change_prompt(tbl, "added", bank_code=bank_code)
 
         async def _run_added(p: str = prompt) -> dict[str, Any] | None:
             """Tâche async qui appelle le triage GPT pour un tableau ajouté."""
@@ -944,7 +962,7 @@ async def _triage_all_changes(
         tasks.append(("added", idx, prompt, task))
 
     for idx, tbl in enumerate(tables_removed):
-        prompt = _build_change_prompt(tbl, "removed")
+        prompt = _build_change_prompt(tbl, "removed", bank_code=bank_code)
 
         async def _run_removed(p: str = prompt) -> dict[str, Any] | None:
             """Tâche async qui appelle le triage GPT pour un tableau retiré."""

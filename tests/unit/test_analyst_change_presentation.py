@@ -3,6 +3,7 @@ from __future__ import annotations
 import pytest
 
 from vigilance.analyst_change_presentation import (
+    build_analyst_narrative,
     build_change_presentation,
     business_relevance_paragraph,
     canonicalize_analyst_narrative,
@@ -174,6 +175,103 @@ def test_canonicalize_narrative_preserves_structured_sections() -> None:
     assert "\n\nPertinence métier :" in result
     assert "T1" not in result
     assert "T2" not in result
+
+
+def test_structured_narrative_has_priority_and_preserves_bmo_na() -> None:
+    change = {
+        "diff_type": "modified",
+        "change_summary": "Résumé historique qui ne doit pas être publié.",
+        "genai_triage": {
+            "is_relevant": True,
+            "changement_constate": (
+                "Le rapport courant remplace BMO Harris Bank N.A. "
+                "par BMO Bank N.A."
+            ),
+            "signification_metier": (
+                "Cette mise à jour clarifie la dénomination juridique utilisée."
+            ),
+            "comparaison_interbanques": (
+                "Elle permet de comparer les entités juridiques visées par les banques."
+            ),
+            "limite_interpretation": (
+                "La divulgation ne démontre aucun changement de pratique."
+            ),
+            "motif_non_pertinence": "",
+            "relevance_reason": (
+                "RAISON LEGACY contradictoire qui ne doit jamais être reparsée."
+            ),
+        },
+    }
+
+    narrative = build_analyst_narrative(change, bank_code="bmo")
+
+    assert narrative.source == "structured"
+    assert narrative.changement_constate == (
+        "BMO remplace BMO Harris Bank N.A. par BMO Bank N.A."
+    )
+    assert narrative.pertinence_metier == (
+        "Cette mise à jour clarifie la dénomination juridique utilisée. "
+        "Elle permet de comparer les entités juridiques visées par les banques. "
+        "La divulgation ne démontre aucun changement de pratique."
+    )
+    assert narrative.business_relevance == narrative.pertinence_metier
+    assert narrative.motif_non_pertinence == ""
+    assert "LEGACY" not in narrative.business_relevance
+
+
+def test_structured_secondary_narrative_uses_only_non_relevance_reason() -> None:
+    change = {
+        "diff_type": "modified",
+        "genai_triage": {
+            "is_relevant": False,
+            "changement_constate": (
+                "BMO reformule la dénomination BMO Bank N.A. sans changer le fond."
+            ),
+            "signification_metier": "",
+            "comparaison_interbanques": "",
+            "limite_interpretation": "",
+            "motif_non_pertinence": (
+                "Cette reformulation ne crée aucune nouvelle pratique comparable."
+            ),
+            "relevance_reason": (
+                "BMO ajoute à tort un changement substantiel. "
+                "Cette phrase legacy ne doit pas être affichée."
+            ),
+        },
+    }
+
+    narrative = build_analyst_narrative(change, bank_code="bmo")
+
+    assert narrative.pertinence_metier == ""
+    assert narrative.motif_non_pertinence == (
+        "Cette reformulation ne crée aucune nouvelle pratique comparable."
+    )
+    assert narrative.business_relevance == narrative.motif_non_pertinence
+    assert "legacy" not in narrative.business_relevance.lower()
+
+
+def test_legacy_narrative_still_splits_factual_and_business_units() -> None:
+    change = {
+        "diff_type": "added",
+        "genai_triage": {
+            "is_relevant": True,
+            "relevance_reason": (
+                "Le rapport courant ajoute un contrôle annuel de cybersécurité. "
+                "Cet ajout rend la fréquence du contrôle comparable entre les banques."
+            ),
+        },
+    }
+
+    narrative = build_analyst_narrative(change, bank_code="cibc")
+
+    assert narrative.source == "legacy"
+    assert narrative.changement_constate == (
+        "CIBC ajoute un contrôle annuel de cybersécurité."
+    )
+    assert narrative.pertinence_metier == (
+        "Cet ajout rend la fréquence du contrôle comparable entre les banques."
+    )
+    assert "ajoute un contrôle annuel" not in narrative.business_relevance
 
 
 @pytest.mark.parametrize(

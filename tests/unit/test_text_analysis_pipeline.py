@@ -301,9 +301,10 @@ def test_drop_non_substantive_moderate_change() -> None:
 
 def test_default_triage_includes_amf_v2_and_legacy_fields() -> None:
     """Le triage par défaut produit le schéma AMF v2 + champs hérités pour rétro-compatibilité."""
-    triage = _default_triage()
+    triage = _default_triage("bmo")
 
-    assert triage["source"] == "gpt4o_triage_amf_compact_v1"
+    assert triage["source"] == "gpt4o_triage_amf_compact_v2"
+    assert triage["compact_schema_version"] == "analyst_compact_v2"
     assert triage["themes_amf"] == []
     assert triage["exclusion_reason"] == "non_pertinent_autre"
     assert triage["is_relevant"] is False
@@ -315,11 +316,18 @@ def test_default_triage_includes_amf_v2_and_legacy_fields() -> None:
     assert triage["statut_mise_en_oeuvre"] == "INDETERMINE"
     assert triage["confiance_posture"] == "INDETERMINE"
     assert triage["signals"]["methodology_change"] is False
-    assert count_complete_sentences(triage["relevance_reason"]) == 2
+    assert triage["changement_constate"].startswith("BMO ")
+    assert triage["signification_metier"] == ""
+    assert triage["comparaison_interbanques"] == ""
+    assert triage["limite_interpretation"] == ""
+    assert triage["motif_non_pertinence"]
+    assert triage["relevance_reason"] == (
+        f"{triage['changement_constate']} {triage['motif_non_pertinence']}"
+    )
 
 
-def test_triage_few_shots_request_compact_relevance_reason() -> None:
-    assert "relevance_reason" in _FEW_SHOT_TRIAGE_AMF
+def test_triage_few_shots_request_structured_analyst_fields() -> None:
+    assert "relevance_reason" not in _FEW_SHOT_TRIAGE_AMF
     assert "impact_it" not in _FEW_SHOT_TRIAGE_AMF
     assert "justification_posture" not in _FEW_SHOT_TRIAGE_AMF
     assert _FEW_SHOT_TRIAGE_AMF.count("Exemple ") == 9
@@ -333,11 +341,25 @@ def test_triage_few_shots_request_compact_relevance_reason() -> None:
     assert len(outputs) == 9
     for output in outputs:
         validated = TriageAMFCompactLLMResultWithIndex(**output)
-        expected_sentence_count = 4 if validated.is_relevant else 2
-        assert (
-            count_complete_sentences(validated.relevance_reason)
-            == expected_sentence_count
-        )
+        assert validated.changement_constate
+        assert validated.changement_constate.split(maxsplit=1)[0] in {
+            "BMO",
+            "BNC",
+            "BNS",
+            "CIBC",
+            "RBC",
+            "TD",
+        }
+        if validated.is_relevant:
+            assert validated.signification_metier
+            assert validated.comparaison_interbanques
+            assert validated.limite_interpretation
+            assert validated.motif_non_pertinence == ""
+        else:
+            assert validated.signification_metier == ""
+            assert validated.comparaison_interbanques == ""
+            assert validated.limite_interpretation == ""
+            assert validated.motif_non_pertinence
         assert (
             "Ce changement est pertinent pour la vigie AMF"
             not in validated.relevance_reason
@@ -3945,7 +3967,11 @@ def test_compare_section_texts_calls_gpt_once_per_subsection_pair(monkeypatch) -
     """Deux sous-sections appariées → deux appels GPT distincts."""
     calls: list[str] = []
 
-    def fake_single_call(*, client, model, section_key, heading_label, heading_slug, text_t1, text_t2, idx_offset):
+    def fake_single_call(
+        *, client, model, section_key, heading_label, heading_slug,
+        text_t1, text_t2, idx_offset, bank_code,
+    ):
+        assert bank_code == ""
         calls.append(heading_slug)
         return []
 
@@ -3968,7 +3994,11 @@ def test_compare_section_texts_calls_gpt_once_per_subsection_pair(monkeypatch) -
 def test_compare_section_texts_sends_chunked_subsection_bodies(monkeypatch) -> None:
     captured: dict[str, str] = {}
 
-    def fake_single_call(*, client, model, section_key, heading_label, heading_slug, text_t1, text_t2, idx_offset):
+    def fake_single_call(
+        *, client, model, section_key, heading_label, heading_slug,
+        text_t1, text_t2, idx_offset, bank_code,
+    ):
+        assert bank_code == ""
         captured["text_t1"] = text_t1
         captured["text_t2"] = text_t2
         return []
@@ -4171,7 +4201,11 @@ def _paragraph_index_embedding(texts: list[str]) -> list[list[float]]:
 def test_compare_section_texts_splits_large_alignment_set_into_batches(monkeypatch) -> None:
     calls: list[dict[str, str]] = []
 
-    def fake_single_call(*, client, model, section_key, heading_label, heading_slug, text_t1, text_t2, idx_offset):
+    def fake_single_call(
+        *, client, model, section_key, heading_label, heading_slug,
+        text_t1, text_t2, idx_offset, bank_code,
+    ):
+        assert bank_code == ""
         calls.append({"text_t1": text_t1, "text_t2": text_t2})
         return []
 
@@ -4224,7 +4258,11 @@ def test_compare_section_texts_merges_parallel_batch_results_in_source_order(mon
         for paragraph in paragraphs_t1
     ]
 
-    def fake_single_call(*, client, model, section_key, heading_label, heading_slug, text_t1, text_t2, idx_offset):
+    def fake_single_call(
+        *, client, model, section_key, heading_label, heading_slug,
+        text_t1, text_t2, idx_offset, bank_code,
+    ):
+        assert bank_code == ""
         if "[risque_de_stratégie_c05 |" in text_t2:
             alignment_id = "a05"
             label = "second_batch"
@@ -4762,7 +4800,11 @@ def test_compare_section_texts_resolves_renamed_subsection(monkeypatch) -> None:
     single_call_slugs: list[str] = []
     single_call_labels: list[str] = []
 
-    def fake_single_call(*, client, model, section_key, heading_label, heading_slug, text_t1, text_t2, idx_offset):
+    def fake_single_call(
+        *, client, model, section_key, heading_label, heading_slug,
+        text_t1, text_t2, idx_offset, bank_code,
+    ):
+        assert bank_code == ""
         single_call_slugs.append(heading_slug)
         single_call_labels.append(heading_label)
         return []
@@ -5553,147 +5595,199 @@ def _compact_secondary_reason() -> str:
     )
 
 
+def _compact_relevant_fields() -> dict[str, str]:
+    return {
+        "changement_constate": (
+            "BMO ajoute un exercice annuel de simulation de cyberattaque."
+        ),
+        "signification_metier": (
+            "Cette évolution rend explicite un mécanisme de préparation aux incidents."
+        ),
+        "comparaison_interbanques": (
+            "Elle permet de comparer la fréquence et le périmètre des exercices "
+            "entre les banques."
+        ),
+        "limite_interpretation": (
+            "La divulgation ne précise toutefois ni les scénarios ni les "
+            "résultats obtenus."
+        ),
+        "motif_non_pertinence": "",
+    }
+
+
+def _compact_secondary_fields() -> dict[str, str]:
+    return {
+        "changement_constate": (
+            "BMO met à jour une valeur propre à ses activités."
+        ),
+        "signification_metier": "",
+        "comparaison_interbanques": "",
+        "limite_interpretation": "",
+        "motif_non_pertinence": (
+            "Cette variation n’apporte aucun nouveau point de comparaison prudentielle."
+        ),
+    }
+
+
 # --- Invariants Pydantic ---
 
 
-def test_compact_triage_accepts_four_complete_relevance_reason_sentences() -> None:
+def test_compact_triage_accepts_separate_relevant_analyst_fields() -> None:
+    fields = _compact_relevant_fields()
+    fields["signification_metier"] = (
+        "  Cette évolution rend   explicite un mécanisme de préparation "
+        "aux incidents.  "
+    )
     result = TriageAMFCompactLLMResultWithIndex(
         change_index=1,
         is_relevant=True,
         themes_amf=["RISQUE_EMERGENT"],
         nouvelle_idee=True,
-        relevance_reason=f"  {_compact_reason().replace(' Cette', '   Cette')}  ",
+        **fields,
     )
-    assert count_complete_sentences(result.relevance_reason) == 4
-    assert "  " not in result.relevance_reason
-    assert len(result.relevance_reason.split()) < 100
+    assert result.signification_metier == (
+        "Cette évolution rend explicite un mécanisme de préparation aux incidents."
+    )
+    assert result.relevance_reason == " ".join(
+        (
+            result.changement_constate,
+            result.signification_metier,
+            result.comparaison_interbanques,
+            result.limite_interpretation,
+        )
+    )
 
 
-def test_compact_triage_rejects_single_sentence() -> None:
-    with pytest.raises(_PydValidationError, match="exactement 2 phrases complètes"):
+def test_compact_triage_rejects_missing_non_relevance_reason() -> None:
+    fields = _compact_secondary_fields()
+    fields["motif_non_pertinence"] = ""
+    with pytest.raises(_PydValidationError, match="motif_non_pertinence"):
         TriageAMFCompactLLMResultWithIndex(
             change_index=1,
             is_relevant=False,
             themes_amf=[],
             nouvelle_idee=False,
-            relevance_reason="Le rapport courant ajoute un nouveau contrôle de cybersécurité.",
+            **fields,
         )
 
 
-def test_compact_triage_collapses_extra_sentences_without_losing_content() -> None:
+def test_compact_triage_does_not_count_sentences_inside_semantic_fields() -> None:
+    fields = _compact_secondary_fields()
+    fields["motif_non_pertinence"] = (
+        "Cette mesure renforce le dispositif déclaré par la banque. "
+        "Elle précise la fréquence du contrôle. "
+        "Elle ne fournit toutefois aucun nouveau point de comparaison."
+    )
     result = TriageAMFCompactLLMResultWithIndex(
         change_index=1,
         is_relevant=False,
         themes_amf=[],
         nouvelle_idee=False,
-        relevance_reason=(
-            "Le rapport courant ajoute un nouveau contrôle de cybersécurité. "
-            "Cette mesure renforce le dispositif déclaré par la banque. "
-            "Elle précise la fréquence du contrôle. "
-            "Elle fournit un point de comparaison entre les banques."
-        ),
+        **fields,
     )
 
-    assert count_complete_sentences(result.relevance_reason) == 2
     assert "Cette mesure renforce le dispositif déclaré par la banque" in result.relevance_reason
     assert "Elle précise la fréquence du contrôle" in result.relevance_reason
-    assert "Elle fournit un point de comparaison entre les banques" in result.relevance_reason
-    assert result.relevance_reason.count(";") == 2
+    assert "Elle ne fournit toutefois aucun nouveau point de comparaison" in result.relevance_reason
 
 
-def test_compact_triage_rejects_incomplete_second_sentence() -> None:
-    with pytest.raises(_PydValidationError, match="se terminer par une phrase complète"):
-        TriageAMFCompactLLMResultWithIndex(
-            change_index=1,
-            is_relevant=False,
-            themes_amf=[],
-            nouvelle_idee=False,
-            relevance_reason=(
-                "Le rapport courant ajoute un nouveau contrôle de cybersécurité. "
-                "Cette mesure fournit un nouveau point de comparaison entre les banques"
-            ),
-        )
+def test_compact_triage_adds_terminal_period_to_lexical_field() -> None:
+    fields = _compact_secondary_fields()
+    fields["motif_non_pertinence"] = (
+        "Cette mesure ne fournit aucun nouveau point de comparaison entre les banques"
+    )
+    result = TriageAMFCompactLLMResultWithIndex(
+        change_index=1,
+        is_relevant=False,
+        themes_amf=[],
+        nouvelle_idee=False,
+        **fields,
+    )
+
+    assert result.motif_non_pertinence.endswith("banques.")
 
 
-def test_compact_triage_rejects_sentences_without_lexical_content() -> None:
+def test_compact_triage_rejects_field_without_lexical_content() -> None:
+    fields = _compact_secondary_fields()
+    fields["changement_constate"] = "."
     with pytest.raises(_PydValidationError, match="contenu lexical"):
         TriageAMFCompactLLMResultWithIndex(
             change_index=1,
             is_relevant=False,
             themes_amf=[],
             nouvelle_idee=False,
-            relevance_reason=". .",
+            **fields,
         )
 
 
-def test_compact_triage_counts_sentence_ending_with_uppercase_label() -> None:
+def test_compact_triage_accepts_field_ending_with_uppercase_label() -> None:
+    fields = _compact_relevant_fields()
+    fields["changement_constate"] = (
+        "BMO retient désormais l’approche A."
+    )
+    fields["limite_interpretation"] = (
+        "La divulgation ne précise toutefois pas les paramètres de l’approche A."
+    )
     result = TriageAMFCompactLLMResultWithIndex(
         change_index=1,
         is_relevant=True,
         themes_amf=["MODIFICATION_METHODOLOGIE"],
         nouvelle_idee=True,
-        relevance_reason=(
-            "Le rapport courant retient désormais l’approche A. "
-            "Cette modification change la base méthodologique déclarée. "
-            "Elle permet de comparer les méthodes retenues par les banques. "
-            "Le passage ne précise toutefois pas les paramètres de l’approche A."
-        ),
+        **fields,
     )
-    assert count_complete_sentences(result.relevance_reason) == 4
+    assert result.limite_interpretation.endswith("l’approche A.")
 
 
-def test_compact_triage_ignores_abbreviations_and_decimals_when_counting_sentences() -> None:
-    reason = (
-        "Le cadre de Bâle 3.1, présenté p. ex. à la p. 12 par M. Dupont, "
-        "est maintenant détaillé dans le rapport. "
-        "Cette précision rend le cadre applicable plus explicite. "
-        "Elle permet de comparer son application entre les banques à partir de 2025. "
-        "Le passage ne précise toutefois pas les effets propres à chaque institution."
+def test_compact_triage_accepts_abbreviations_and_decimals_in_semantic_field() -> None:
+    fields = _compact_relevant_fields()
+    fields["changement_constate"] = (
+        "BMO détaille le cadre de Bâle 3.1, présenté p. ex. à la p. 12 "
+        "par M. Dupont."
     )
     result = TriageAMFCompactLLMResultWithIndex(
         change_index=1,
         is_relevant=True,
         themes_amf=["EXIGENCES_REGLEMENTAIRES"],
         nouvelle_idee=True,
-        relevance_reason=reason,
+        **fields,
     )
-    assert count_complete_sentences(result.relevance_reason) == 4
+    assert "Bâle 3.1" in result.changement_constate
+    assert "M. Dupont." in result.changement_constate
 
 
-def test_compact_triage_ignores_common_french_abbreviations_inside_sentence() -> None:
+def test_compact_triage_accepts_common_french_abbreviations_inside_field() -> None:
+    fields = _compact_relevant_fields()
+    fields["changement_constate"] = (
+        "BMO détaille plusieurs mesures, etc. afin d’encadrer le contrôle, "
+        "c.-à-d. une revue annuelle documentée."
+    )
     result = TriageAMFCompactLLMResultWithIndex(
         change_index=1,
         is_relevant=True,
         themes_amf=["CONTROLE_CONFORMITE"],
         nouvelle_idee=True,
-        relevance_reason=(
-            "Le rapport détaille plusieurs mesures, etc. afin d’encadrer le contrôle, "
-            "c.-à-d. une revue annuelle documentée. Cette précision formalise la "
-            "fréquence du contrôle déclaré. Elle permet de comparer la fréquence "
-            "des contrôles entre les banques. Le passage ne précise toutefois pas "
-            "les résultats de la revue."
-        ),
+        **fields,
     )
-    assert count_complete_sentences(result.relevance_reason) == 4
+    assert "etc." in result.changement_constate
+    assert "c.-à-d." in result.changement_constate
 
 
 @pytest.mark.parametrize("abbreviation", ["s. o.", "s.o."])
-def test_compact_triage_ignores_sans_objet_abbreviation(
+def test_compact_triage_accepts_sans_objet_abbreviation(
     abbreviation: str,
 ) -> None:
+    fields = _compact_secondary_fields()
+    fields["changement_constate"] = (
+        f"BMO remplace une valeur par la mention « {abbreviation} - sans objet »."
+    )
     result = TriageAMFCompactLLMResultWithIndex(
         change_index=1,
         is_relevant=False,
         themes_amf=[],
         nouvelle_idee=False,
-        relevance_reason=(
-            f"La mention « {abbreviation} - sans objet » remplace une valeur "
-            "dans le rapport courant. Cette mise à jour n'apporte pas de nouvel "
-            "élément pour comparer les pratiques de gestion du capital entre "
-            "les banques."
-        ),
+        **fields,
     )
-    assert count_complete_sentences(result.relevance_reason) == 2
+    assert abbreviation in result.changement_constate
 
 
 def test_invariant_relevant_without_themes_raises() -> None:
@@ -6269,15 +6363,16 @@ def test_triage_section_changes_converts_validation_error_to_triage_validation_e
 
     assert exc_info.value.section_key == "gestion_risques"
     assert exc_info.value.validation_error is err
-    # 3 appels = 1 initial + 2 retries avant remontée
-    assert client.call_count == 3
+    # La deuxième réponse identique est détectée; une troisième relance
+    # déterministe et redondante n'est pas envoyée.
+    assert client.call_count == 2
     retry_message = client._completions.calls[1]["messages"][-1]["content"]
-    assert "exactement quatre phrases complètes" in retry_message
-    assert "signification métier" in retry_message
-    assert "limite d’interprétation" in retry_message
+    assert "cinq champs sémantiques" in retry_message
+    assert "signification_metier" in retry_message
+    assert "limite_interpretation" in retry_message
 
 
-def test_triage_section_changes_length_retry_repeats_sentence_contract() -> None:
+def test_triage_section_changes_length_retry_repeats_structured_contract() -> None:
     valid_batch = TriageAMFCompactLLMBatch(
         triages=[
             TriageAMFCompactLLMResultWithIndex(
@@ -6316,9 +6411,12 @@ def test_triage_section_changes_length_retry_repeats_sentence_contract() -> None
     assert len(result) == 1
     assert client.call_count == 2
     retry_message = client._completions.calls[1]["messages"][-1]["content"]
-    assert "exactement quatre phrases" in retry_message
-    assert "constat, signification, comparaison, limite" in retry_message
-    assert "exactement deux phrases" in retry_message
+    assert "changement_constate" in retry_message
+    assert "signification_metier" in retry_message
+    assert "comparaison_interbanques" in retry_message
+    assert "limite_interpretation" in retry_message
+    assert "motif_non_pertinence" in retry_message
+    assert "sans les fusionner" in retry_message
 
 
 def test_triage_section_changes_propagates_runtime_error_unwrapped() -> None:
@@ -6472,28 +6570,21 @@ def test_triage_section_changes_batches_two_sides_of_one_semantic_distinct_decis
 
 def test_triage_section_changes_reads_long_sources_as_full_evidence_packets() -> None:
     from vigilance.text_analysis.triage import (
-        _EvidencePacketBatch,
         _EvidencePacketCoherenceCheck,
         _EvidencePacketObservation,
     )
 
     def valid_response(**kwargs):
         response_format = kwargs["response_format"]
-        if response_format is _EvidencePacketBatch:
+        if response_format is _EvidencePacketObservation:
             return _make_parsed_response(
-                _EvidencePacketBatch(
-                    observations=[
-                        _EvidencePacketObservation(
-                            packet_index=1,
-                            factual_change="Le texte courant contient une preuve complète à qualifier.",
-                        )
-                    ]
+                _EvidencePacketObservation(
+                    factual_change="BMO présente une preuve complète à qualifier.",
                 )
             )
         if response_format is _EvidencePacketCoherenceCheck:
             return _make_parsed_response(
                 _EvidencePacketCoherenceCheck(
-                    packet_index=1,
                     verdict="supports",
                     reason="La décision proposée reste cohérente avec la preuve complète.",
                 )
@@ -6533,10 +6624,145 @@ def test_triage_section_changes_reads_long_sources_as_full_evidence_packets() ->
 
     evidence_call = client._completions.calls[0]
     evidence_prompt = evidence_call["messages"][1]["content"]
-    assert evidence_call["response_format"] is _EvidencePacketBatch
+    assert evidence_call["response_format"] is _EvidencePacketObservation
     assert long_source in evidence_prompt
     assert "texte tronque pour le triage" not in evidence_prompt
     assert client._completions.calls[-1]["response_format"] is _EvidencePacketCoherenceCheck
+
+
+def test_full_evidence_contract_rejects_a_collection_or_packet_index() -> None:
+    from vigilance.text_analysis.triage import _EvidencePacketObservation
+
+    with pytest.raises(_PydValidationError):
+        _EvidencePacketObservation.model_validate(
+            {
+                "observations": [
+                    {
+                        "packet_index": 1,
+                        "factual_change": "BMO présente un changement factuel.",
+                    }
+                ]
+            }
+        )
+
+    with pytest.raises(_PydValidationError, match="Extra inputs are not permitted"):
+        _EvidencePacketObservation.model_validate(
+            {
+                "packet_index": 2,
+                "factual_change": "BMO présente un changement factuel.",
+            }
+        )
+
+
+def test_full_evidence_invalid_response_is_corrected_then_pipeline_continues() -> None:
+    from vigilance.text_analysis.triage import (
+        _EvidencePacketCoherenceCheck,
+        _EvidencePacketObservation,
+    )
+
+    evidence_attempts = 0
+
+    def response_with_corrected_evidence(**kwargs):
+        nonlocal evidence_attempts
+        response_format = kwargs["response_format"]
+        if response_format is _EvidencePacketObservation:
+            evidence_attempts += 1
+            if evidence_attempts == 1:
+                _EvidencePacketObservation.model_validate(
+                    {"factual_change": "Trop court."}
+                )
+            return _make_parsed_response(
+                _EvidencePacketObservation(
+                    factual_change="BMO précise un changement dans sa preuve complète.",
+                )
+            )
+        if response_format is _EvidencePacketCoherenceCheck:
+            return _make_parsed_response(
+                _EvidencePacketCoherenceCheck(
+                    verdict="supports",
+                    reason="La preuve complète soutient la qualification proposée.",
+                )
+            )
+        return _make_parsed_response(
+            TriageAMFCompactLLMBatch(
+                triages=[
+                    TriageAMFCompactLLMResultWithIndex(
+                        change_index=1,
+                        is_relevant=False,
+                        themes_amf=[],
+                        nouvelle_idee=False,
+                        **_compact_secondary_fields(),
+                    )
+                ]
+            )
+        )
+
+    client = _FakeStructuredClient(response_with_corrected_evidence)
+    result = _triage_section_changes(
+        client=client,
+        model="gpt-4o",
+        section_key="gestion_risques",
+        bank_code="bmo",
+        changes=[
+            {
+                "diff_type": "modified",
+                "source_text_t1": "A" * 500,
+                "source_text_t2": "B" * 500,
+            }
+        ],
+    )
+
+    assert evidence_attempts == 2
+    assert result[0]["genai_triage"]["full_evidence_verified"] is True
+    retry_message = client._completions.calls[1]["messages"][-1]["content"]
+    assert "exactement un objet" in retry_message
+    assert "Détail de l'erreur" in retry_message
+
+
+def test_full_evidence_persistent_failure_marks_only_change_for_review() -> None:
+    from vigilance.text_analysis.triage import _EvidencePacketObservation
+
+    def response_with_invalid_evidence(**kwargs):
+        response_format = kwargs["response_format"]
+        if response_format is _EvidencePacketObservation:
+            _EvidencePacketObservation.model_validate(
+                {"factual_change": "Trop court."}
+            )
+        return _make_parsed_response(
+            TriageAMFCompactLLMBatch(
+                triages=[
+                    TriageAMFCompactLLMResultWithIndex(
+                        change_index=1,
+                        is_relevant=False,
+                        themes_amf=[],
+                        nouvelle_idee=False,
+                        **_compact_secondary_fields(),
+                    )
+                ]
+            )
+        )
+
+    client = _FakeStructuredClient(response_with_invalid_evidence)
+    result = _triage_section_changes(
+        client=client,
+        model="gpt-4o",
+        section_key="gestion_risques",
+        bank_code="bmo",
+        changes=[
+            {
+                "diff_type": "modified",
+                "source_text_t1": "A" * 500,
+                "source_text_t2": "B" * 500,
+            }
+        ],
+    )
+
+    triage = result[0]["genai_triage"]
+    assert triage["source"] == "triage_evidence_review_required"
+    assert triage["coherence_review_required"] is True
+    assert "section=gestion_risques" in triage["coherence_review_reason"]
+    assert "change_index=1" in triage["coherence_review_reason"]
+    assert "packet_index=1" in triage["coherence_review_reason"]
 
 
 def test_triage_section_changes_attaches_deterministic_change_segments() -> None:
@@ -6845,6 +7071,7 @@ def test_triage_section_changes_does_not_request_posture_or_it_impact() -> None:
         client=client,
         model="gpt-4o",
         section_key="gestion_risques",
+        bank_code="bmo",
         changes=changes,
     )
 
@@ -6854,14 +7081,16 @@ def test_triage_section_changes_does_not_request_posture_or_it_impact() -> None:
     )
     assert "justification_posture" not in prompt
     assert "impact_it_justification" not in prompt
-    assert "relevance_reason" in prompt
-    assert "exactement quatre phrases" in prompt
-    assert "limite d’interprétation" in prompt
-    assert "exactement deux phrases" in prompt
-    assert "La première décrit factuellement" in prompt
-    assert "La deuxième explique sa signification métier" in prompt
-    assert "La troisième précise les dimensions" in prompt
+    assert "Ne produis pas `relevance_reason`" in prompt
+    assert "changement_constate" in prompt
+    assert "signification_metier" in prompt
+    assert "comparaison_interbanques" in prompt
+    assert "limite_interpretation" in prompt
+    assert "motif_non_pertinence" in prompt
+    assert "Banque analysée : BMO" in prompt
     assert "100 à 120 mots" not in prompt
+    assert result[0]["genai_triage"]["compact_schema_version"] == "analyst_compact_v2"
+    assert result[0]["genai_triage"]["changement_constate"].startswith("BMO ")
     assert result[0]["genai_triage"]["impact_it"] == "INDETERMINE"
     assert result[0]["genai_triage"]["changement_posture"] == "INDETERMINE"
     assert result[0]["genai_triage"]["statut_mise_en_oeuvre"] == "INDETERMINE"

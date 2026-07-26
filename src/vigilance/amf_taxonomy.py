@@ -253,7 +253,7 @@ ActionRequise = Literal[
     "aucune",
 ]
 
-TRIAGE_SOURCE_VERSION = "gpt4o_triage_amf_compact_v1"
+TRIAGE_SOURCE_VERSION = "gpt4o_triage_amf_compact_v2"
 
 
 ChangeSegmentKind = Literal["added", "removed", "modified"]
@@ -684,7 +684,15 @@ def _is_non_terminal_compact_period(value: str, match: re.Match[str]) -> bool:
         return bool(suffix and suffix[0].islower())
     if token.casefold() == "etc":
         return bool(suffix and suffix[0].islower())
-    return bool(re.search(r"(?:\b[A-ZÀ-ÖØ-Þ]\.)+[A-ZÀ-ÖØ-Þ]$", prefix))
+    # Une suite d'initiales telle que ``N.A.`` est une abréviation interne
+    # seulement lorsque la phrase continue ensuite. Une majuscule après
+    # l'abréviation signale généralement une nouvelle phrase
+    # (``BMO Bank N.A. Cette reformulation...``).
+    return bool(
+        re.search(r"(?:\b[A-ZÀ-ÖØ-Þ]\.)+[A-ZÀ-ÖØ-Þ]$", prefix)
+        and suffix
+        and suffix[0].islower()
+    )
 
 
 def _compact_complete_sentence_parts(value: str) -> list[str]:
@@ -745,18 +753,46 @@ def _has_complete_sentence_ending(value: str) -> bool:
 
 
 class TriageAMFCompactLLMResultWithIndex(BaseModel):
-    """Décision AMF minimale demandée au LLM pour une validation rapide."""
+    """Décision AMF compacte avec unités analystes explicitement structurées.
+
+    ``relevance_reason`` demeure disponible comme propriété assemblée pour les
+    consommateurs historiques. Il n'est toutefois plus demandé au LLM et aucun
+    invariant ne dépend du comptage de phrases dans un paragraphe fusionné.
+    """
 
     change_index: int = Field(..., ge=1)
     is_relevant: bool
     themes_amf: list[ThemeAMF] = Field(default_factory=list, max_length=2)
     nouvelle_idee: bool = False
-    relevance_reason: str = Field(
+    changement_constate: str = Field(
         description=(
-            "Pour un changement pertinent, exactement quatre phrases complètes : "
-            "constat factuel, signification métier, comparaison entre banques et "
-            "limite d'interprétation. Pour un changement secondaire, exactement "
-            "deux phrases : constat factuel et motif de non-pertinence."
+            "Constat factuel autonome, commençant par le nom canonique de la "
+            "banque et décrivant directement ce qu'elle ajoute, retire, modifie "
+            "ou précise."
+        )
+    )
+    signification_metier: str = Field(
+        description=(
+            "Signification métier du changement pertinent; chaîne vide lorsque "
+            "is_relevant=false."
+        )
+    )
+    comparaison_interbanques: str = Field(
+        description=(
+            "Dimensions concrètes que le changement permet de comparer entre "
+            "banques; chaîne vide lorsque is_relevant=false."
+        )
+    )
+    limite_interpretation: str = Field(
+        description=(
+            "Limite d'interprétation étayée par les éléments non démontrés ou "
+            "non précisés; chaîne vide lorsque is_relevant=false."
+        )
+    )
+    motif_non_pertinence: str = Field(
+        description=(
+            "Motif métier expliquant la non-pertinence; chaîne vide lorsque "
+            "is_relevant=true."
         )
     )
 
@@ -765,53 +801,143 @@ class TriageAMFCompactLLMResultWithIndex(BaseModel):
     def _dedupe_compact_themes(cls, value: list[str]) -> list[str]:
         return list(dict.fromkeys(value))
 
-    @field_validator("relevance_reason")
+    @model_validator(mode="before")
     @classmethod
-    def _validate_relevance_reason_sentences(cls, value: str) -> str:
+    def _accept_legacy_relevance_reason(cls, data: object) -> object:
+        """Accepte encore un ancien payload monolithique à la construction.
+
+        Cette voie sert uniquement à la lecture d'artefacts ou aux appelants
+        historiques. Le schéma exposé au LLM exige les cinq champs structurés.
+        """
+        if not isinstance(data, dict):
+            return data
+        semantic_fields = (
+            "changement_constate",
+            "signification_metier",
+            "comparaison_interbanques",
+            "limite_interpretation",
+            "motif_non_pertinence",
+        )
+        if any(field in data for field in semantic_fields):
+            return data
+        legacy_reason = " ".join(str(data.get("relevance_reason") or "").split())
+        if not legacy_reason:
+            return data
+        if not _has_complete_sentence_ending(legacy_reason):
+            legacy_reason = legacy_reason.rstrip(" ,;:…") + "."
+
+        parts = _compact_complete_sentence_parts(legacy_reason)
+        migrated = dict(data)
+        is_relevant = bool(data.get("is_relevant"))
+        if is_relevant:
+            migrated.update(
+                {
+                    "changement_constate": parts[0] if len(parts) >= 1 else "",
+                    "signification_metier": parts[1] if len(parts) >= 2 else "",
+                    "comparaison_interbanques": parts[2] if len(parts) >= 3 else "",
+                    "limite_interpretation": (
+                        " ".join(parts[3:]) if len(parts) >= 4 else ""
+                    ),
+                    "motif_non_pertinence": "",
+                }
+            )
+        else:
+            migrated.update(
+                {
+                    "changement_constate": parts[0] if parts else "",
+                    "signification_metier": "",
+                    "comparaison_interbanques": "",
+                    "limite_interpretation": "",
+                    "motif_non_pertinence": (
+                        " ".join(parts[1:]) if len(parts) >= 2 else ""
+                    ),
+                }
+            )
+        return migrated
+
+    @field_validator(
+        "changement_constate",
+        "signification_metier",
+        "comparaison_interbanques",
+        "limite_interpretation",
+        "motif_non_pertinence",
+        mode="before",
+    )
+    @classmethod
+    def _normalize_semantic_field(cls, value: object) -> str:
         normalized = " ".join(str(value or "").split())
+        if not normalized:
+            return ""
+        if not re.search(r"[0-9A-Za-zÀ-ÖØ-öø-ÿ]", normalized):
+            raise ValueError("chaque champ renseigné doit contenir du contenu lexical")
         if not _has_complete_sentence_ending(normalized):
-            raise ValueError(
-                "relevance_reason doit se terminer par une phrase complète "
-                "ponctuée par '.', '!' ou '?'"
-            )
-        sentence_parts = _compact_complete_sentence_parts(normalized)
-        if count_complete_sentences(normalized) != len(sentence_parts):
-            raise ValueError(
-                "chaque phrase de relevance_reason doit contenir du contenu lexical"
-            )
+            normalized = normalized.rstrip(" ,;:…") + "."
         return normalized
 
     @model_validator(mode="after")
     def _check_compact_invariants(self) -> "TriageAMFCompactLLMResultWithIndex":
-        expected_sentence_count = (
-            COMPACT_RELEVANT_REASON_SENTENCE_COUNT
-            if self.is_relevant
-            else COMPACT_SECONDARY_REASON_SENTENCE_COUNT
-        )
-        normalized_reason = _collapse_compact_reason_to_sentence_count(
-            self.relevance_reason,
-            expected_sentence_count,
-        )
-        received_sentence_count = count_complete_sentences(normalized_reason)
-        if received_sentence_count != expected_sentence_count:
-            raise ValueError(
-                "relevance_reason doit contenir exactement "
-                f"{expected_sentence_count} phrases complètes; "
-                f"reçu {received_sentence_count}"
-            )
-        self.relevance_reason = normalized_reason
+        if not self.changement_constate:
+            raise ValueError("changement_constate est obligatoire")
 
         if self.is_relevant:
             if not self.themes_amf:
                 raise ValueError(
                     "is_relevant=True exige au moins un thème AMF dans themes_amf"
                 )
+            required_fields = {
+                "signification_metier": self.signification_metier,
+                "comparaison_interbanques": self.comparaison_interbanques,
+                "limite_interpretation": self.limite_interpretation,
+            }
+            missing_fields = [
+                field for field, value in required_fields.items() if not value
+            ]
+            if missing_fields:
+                raise ValueError(
+                    "is_relevant=True exige les champs non vides suivants : "
+                    + ", ".join(missing_fields)
+                )
+            if self.motif_non_pertinence:
+                raise ValueError(
+                    "is_relevant=True exige motif_non_pertinence vide"
+                )
         else:
             if self.themes_amf:
                 raise ValueError("is_relevant=False interdit themes_amf non vide")
             if self.nouvelle_idee:
                 raise ValueError("is_relevant=False interdit nouvelle_idee=True")
+            forbidden_fields = {
+                "signification_metier": self.signification_metier,
+                "comparaison_interbanques": self.comparaison_interbanques,
+                "limite_interpretation": self.limite_interpretation,
+            }
+            populated_fields = [
+                field for field, value in forbidden_fields.items() if value
+            ]
+            if populated_fields:
+                raise ValueError(
+                    "is_relevant=False exige les champs vides suivants : "
+                    + ", ".join(populated_fields)
+                )
+            if not self.motif_non_pertinence:
+                raise ValueError(
+                    "is_relevant=False exige motif_non_pertinence non vide"
+                )
         return self
+
+    @property
+    def relevance_reason(self) -> str:
+        """Assemble le texte historique sans analyser sa ponctuation interne."""
+        if self.is_relevant:
+            parts = (
+                self.changement_constate,
+                self.signification_metier,
+                self.comparaison_interbanques,
+                self.limite_interpretation,
+            )
+        else:
+            parts = (self.changement_constate, self.motif_non_pertinence)
+        return " ".join(part for part in parts if part)
 
 
 class TriageAMFCompactLLMBatch(BaseModel):
