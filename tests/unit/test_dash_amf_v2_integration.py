@@ -496,6 +496,41 @@ def test_text_analysis_change_card_keeps_non_pertinent() -> None:
     assert "Variation chiffrée" in text
 
 
+def test_text_analysis_hides_structured_non_relevance_reason_from_main_card() -> None:
+    change = {
+        "diff_type": "modified",
+        "source_text_t1": "BMO Harris Bank N.A. était mentionnée.",
+        "source_text_t2": "BMO Bank N.A. est désormais mentionnée.",
+        "genai_triage": {
+            "is_relevant": False,
+            "themes_amf": [],
+            "impact_level": "MINEUR",
+            "nouvelle_idee": False,
+            "exclusion_reason": "reformulation_mineure",
+            "changement_constate": (
+                "BMO remplace BMO Harris Bank N.A. par BMO Bank N.A."
+            ),
+            "signification_metier": "",
+            "comparaison_interbanques": "",
+            "limite_interpretation": "",
+            "motif_non_pertinence": (
+                "Cette reformulation ne révèle aucune nouvelle pratique comparable."
+            ),
+            "relevance_reason": (
+                "RAISON LEGACY qui ne doit pas être utilisée par la carte."
+            ),
+        },
+    }
+
+    card = _build_change_card(change, "Gestion des risques", bank_code="BMO")
+    text = _flatten_text(card)
+
+    assert "BMO remplace BMO Harris Bank N.A. par BMO Bank N.A." in text
+    assert "Pertinence métier" not in text
+    assert "Cette reformulation ne révèle aucune nouvelle pratique comparable" not in text
+    assert "RAISON LEGACY" not in text
+
+
 # --- Side-by-side avec highlights AMF v2 ---
 
 

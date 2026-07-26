@@ -9,6 +9,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, field_validator, model_validator
 
+from vigilance.analyst_change_presentation import bank_subject
 from vigilance.text_analysis.chunk_alignment import (
     _align_chunks_hybrid,
     _format_alignments_for_prompt,
@@ -336,6 +337,7 @@ def _compare_alignment_batch(
     model: str,
     section_key: str,
     batch: ComparisonBatch,
+    bank_code: str = "",
 ) -> list[dict[str, Any]]:
     """Compare un lot d'alignements via un appel LLM."""
     text_t1, text_t2 = _format_alignments_for_prompt(batch.alignments)
@@ -349,6 +351,7 @@ def _compare_alignment_batch(
             text_t1=text_t1,
             text_t2=text_t2,
             idx_offset=batch.idx_offset,
+            bank_code=bank_code,
         )
         scoped = _attach_alignment_metadata(changes, batch.alignments)
         return _materialize_semantic_alignment_decisions(scoped)
@@ -364,6 +367,7 @@ def _compare_alignment_batches(
     model: str,
     section_key: str,
     batches: list[ComparisonBatch],
+    bank_code: str = "",
 ) -> list[dict[str, Any]]:
     """Compare les lots d'alignements en parallèle puis restitue l'ordre source."""
     if not batches:
@@ -378,6 +382,7 @@ def _compare_alignment_batches(
                 model=model,
                 section_key=section_key,
                 batch=batch,
+                bank_code=bank_code,
             ): index
             for index, batch in enumerate(batches)
         }
@@ -401,12 +406,14 @@ def _compare_texts_single_call(
     text_t1: str,
     text_t2: str,
     idx_offset: int,
+    bank_code: str = "",
 ) -> list[dict[str, Any]]:
     """Appel GPT unique pour comparer deux corps de texte.
 
     Extrait la logique de comparaison GPT de ``_compare_section_texts`` pour
     permettre son appel répété par sous-section.
     """
+    subject = bank_subject(bank_code)
     try:
         raw = _call_structured_completion_with_correction(
             client,
@@ -422,10 +429,19 @@ def _compare_texts_single_call(
                         "le triage métier décidera ensuite de leur pertinence. "
                         "Rédige pour une analyste en vigie prudentielle : français soutenu, "
                         "phrases courtes, vocabulaire métier bancaire. "
+                        f"La banque analysée est {subject}. "
+                        f"Chaque change_summary doit commencer par « {subject} » suivi "
+                        "d'un verbe d'action direct et du changement précis. "
+                        "Cette règle s'applique aussi aux éléments inchangés, avec un verbe "
+                        "tel que « maintient ». "
                         "Interdit dans change_summary et alignment_rationale : fragment, chunk, "
                         "T1, T2, termes anglais, et formulations meta du type "
                         "« Les deux fragments traitent… ». "
-                        "Utilise « rapport précédent » et « rapport courant ». "
+                        "Les expressions « rapport précédent » et « rapport courant » "
+                        "peuvent seulement servir de contexte de comparaison; elles ne doivent "
+                        "jamais être le sujet grammatical de change_summary. "
+                        "N'inscris aucun trimestre, libellé de période ou commentaire sur le "
+                        "processus de comparaison dans change_summary. "
                         "Lorsque le texte contient des blocs [c00], [c01], etc., "
                         "utilise ces bornes pour aligner les idées comparables, "
                         "mais ne recopie pas ces balises dans text_t1 ou text_t2. "
@@ -457,8 +473,10 @@ def _compare_texts_single_call(
                         '"text_t1":"texte du paragraphe dans le rapport précédent, vide si added",'
                         '"text_t2":"texte du paragraphe dans le rapport courant, vide si removed",'
                         '"change_summary":"1 ou 2 phrases factuelles en français décrivant le '
-                        "changement (nommer BSIF, la banque, les montants ou dates exacts ; "
-                        "interdire fragment/chunk/T1/T2 et les formulations meta)\","
+                        f"changement; commencer exactement par {subject} suivi d'un verbe "
+                        "d'action direct; nommer le BSIF, les montants ou dates exacts lorsque "
+                        "pertinent; interdire fragment/chunk/T1/T2, les trimestres et les "
+                        "formulations meta\","
                         '"alignment_decision":"same_disclosure|distinct_disclosures|moved_text|uncertain",'
                         '"alignment_confidence":"high|medium|low",'
                         '"alignment_rationale":"justification concise en français de la décision"}]}.\n'
@@ -480,6 +498,7 @@ def _compare_texts_single_call(
                         "Important : si le texte change mais que le sens semble identique, "
                         "retourne quand même diff_type='modified' avec un résumé indiquant "
                         "qu'il s'agit probablement d'une reformulation.\n"
+                        f"Banque analysée : {subject}\n"
                         f"Section: {section_key}\n\n"
                         f"=== Rapport précédent ===\n{text_t1}\n\n"
                         f"=== Rapport courant ===\n{text_t2}\n"
@@ -488,7 +507,12 @@ def _compare_texts_single_call(
             ],
             response_format=ChunkComparisonLLMResponse,
             max_retries=1,
-            validation_retry_message=_CHUNK_COMPARISON_VALIDATION_RETRY_MESSAGE,
+            validation_retry_message=(
+                f"{_CHUNK_COMPARISON_VALIDATION_RETRY_MESSAGE} "
+                f'Chaque change_summary doit commencer exactement par "{subject} " suivi '
+                "d'un verbe d'action direct; n'utilise jamais rapport courant, rapport "
+                "précédent, T1, T2 ou un trimestre comme sujet."
+            ),
         )
     except Exception as exc:
         raise RuntimeError(f"Section comparison failed for {section_key}/{heading_slug}: {exc}") from exc
@@ -792,6 +816,7 @@ def _process_alignment_group(
     heading_slug: str,
     alignments: list[ChunkAlignment],
     idx_offset: int,
+    bank_code: str = "",
 ) -> list[dict[str, Any]]:
     """Exact-diff + LLM pour un groupe d'alignements déjà résolus."""
     if not alignments:
@@ -821,6 +846,7 @@ def _process_alignment_group(
         model=model,
         section_key=section_key,
         batches=batches,
+        bank_code=bank_code,
     )
     group_changes = _deduplicate_alignment_changes([*exact_changes, *llm_changes])
     return _reindex_changes(
@@ -920,6 +946,7 @@ def _compare_section_texts(
     section_key: str,
     text_t1: str,
     text_t2: str,
+    bank_code: str = "",
 ) -> list[dict[str, Any]]:
     """Compare deux sections markdown T1/T2 avec alignement cascade.
 
@@ -1139,6 +1166,7 @@ def _compare_section_texts(
             heading_slug=heading_slug,
             alignments=alignments,
             idx_offset=global_idx - 1,
+            bank_code=bank_code,
         )
         all_changes.extend(group_changes)
         global_idx += len(group_changes)

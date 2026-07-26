@@ -404,6 +404,7 @@ def run_text_analysis_pipeline(
         changes = _compare_section_texts(
             client=client,
             model=model,
+            bank_code=bank_code,
             section_key=section_key,
             text_t1=text_t1,
             text_t2=text_t2,
@@ -462,6 +463,7 @@ def run_text_analysis_pipeline(
         enriched = _triage_section_changes(
             client=client,
             model=model,
+            bank_code=bank_code,
             section_key=section_key,
             changes=non_unchanged,
         )
@@ -505,7 +507,10 @@ def run_text_analysis_pipeline(
             reconciliation_audit=reconciliation_audit,
         ),
     }
-    payload["global_summary"] = _build_global_summary(section_comparisons)
+    payload["global_summary"] = _build_global_summary(
+        section_comparisons,
+        bank_code=bank_code,
+    )
     payload["all_changes_summary"] = _build_global_summary(
         [
             {
@@ -513,7 +518,8 @@ def run_text_analysis_pipeline(
                 "block_comparisons": section.get("all_block_comparisons") or [],
             }
             for section in section_comparisons
-        ]
+        ],
+        bank_code=bank_code,
     )
 
     out_path = get_text_comparison_path(

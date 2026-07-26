@@ -632,7 +632,9 @@ def test_excel_uses_bank_subject_instead_of_period_aliases() -> None:
                             "relevance_reason": (
                                 "Le T2 ajoute l’incapacité à atteindre les cibles financières "
                                 "parmi les facteurs pouvant créer un écart par rapport aux "
-                                "attentes des investisseurs et des analystes."
+                                "attentes des investisseurs et des analystes. "
+                                "Cette précision permet de comparer les facteurs susceptibles "
+                                "d’accentuer les écarts aux attentes entre les banques."
                             ),
                         },
                     }
@@ -659,5 +661,146 @@ def test_excel_uses_bank_subject_instead_of_period_aliases() -> None:
         "et des analystes."
     )
     assert summaries == {expected}
-    assert justifications == {expected}
+    assert justifications == {
+        (
+            "Cette précision permet de comparer les facteurs susceptibles "
+            "d’accentuer les écarts aux attentes entre les banques."
+        )
+    }
     assert all("T1" not in value and "T2" not in value for value in summaries | justifications)
+
+
+def test_excel_prefers_structured_units_and_does_not_duplicate_bmo_fact() -> None:
+    payload = {
+        "bank_code": "bmo",
+        "section_comparisons": [
+            {
+                "section_key": "gestion_risques",
+                "section_title": "Gestion des risques",
+                "all_block_comparisons": [
+                    {
+                        "diff_type": "modified",
+                        "source_text_t1": "BMO Harris Bank N.A. est mentionnée.",
+                        "source_text_t2": "BMO Bank N.A. est mentionnée.",
+                        "genai_triage": {
+                            "is_relevant": True,
+                            "themes_amf": ["GOUVERNANCE_RISQUES"],
+                            "impact_level": "MINEUR",
+                            "nouvelle_idee": False,
+                            "changement_constate": (
+                                "Le rapport courant remplace BMO Harris Bank N.A. "
+                                "par BMO Bank N.A."
+                            ),
+                            "signification_metier": (
+                                "Cette mise à jour clarifie la dénomination juridique "
+                                "utilisée."
+                            ),
+                            "comparaison_interbanques": (
+                                "Elle permet de comparer les entités juridiques visées "
+                                "par les banques."
+                            ),
+                            "limite_interpretation": (
+                                "La divulgation ne démontre aucun changement de pratique."
+                            ),
+                            "motif_non_pertinence": "",
+                            "relevance_reason": (
+                                "RAISON LEGACY qui ne doit jamais être exportée."
+                            ),
+                        },
+                    }
+                ],
+            }
+        ],
+    }
+
+    raw = generate_text_comparison_excel(payload, output_path=None)
+    workbook = load_workbook(io.BytesIO(raw))
+    ws = workbook["Analyse complète"]
+    what_values = {
+        str(ws.cell(row, _column(ws, "Ce qui change")).value or "")
+        for row in range(2, ws.max_row + 1)
+    }
+    relevance_values = {
+        str(
+            ws.cell(
+                row,
+                _column(ws, "Justification de pertinence (IA)"),
+            ).value
+            or ""
+        )
+        for row in range(2, ws.max_row + 1)
+    }
+
+    fact = "BMO remplace BMO Harris Bank N.A. par BMO Bank N.A."
+    expected_relevance = (
+        "Cette mise à jour clarifie la dénomination juridique utilisée. "
+        "Elle permet de comparer les entités juridiques visées par les banques. "
+        "La divulgation ne démontre aucun changement de pratique."
+    )
+    assert what_values == {fact}
+    assert relevance_values == {expected_relevance}
+    assert all(fact not in value for value in relevance_values)
+    assert all("LEGACY" not in value for value in what_values | relevance_values)
+
+
+def test_excel_exports_structured_non_relevance_reason_without_factual_copy() -> None:
+    payload = {
+        "bank_code": "bmo",
+        "section_comparisons": [
+            {
+                "section_key": "gestion_capital",
+                "section_title": "Gestion du capital",
+                "all_block_comparisons": [
+                    {
+                        "diff_type": "added",
+                        "source_text_t2": (
+                            "La dénomination BMO Bank N.A. est désormais utilisée."
+                        ),
+                        "genai_triage": {
+                            "is_relevant": False,
+                            "themes_amf": [],
+                            "impact_level": "MINEUR",
+                            "nouvelle_idee": False,
+                            "exclusion_reason": "reformulation_mineure",
+                            "changement_constate": (
+                                "BMO actualise la dénomination BMO Bank N.A. "
+                                "dans sa divulgation."
+                            ),
+                            "signification_metier": "",
+                            "comparaison_interbanques": "",
+                            "limite_interpretation": "",
+                            "motif_non_pertinence": (
+                                "Cette actualisation rédactionnelle ne révèle aucune "
+                                "nouvelle pratique de gestion des fonds propres."
+                            ),
+                            "relevance_reason": (
+                                "RAISON LEGACY qui ne doit pas remplacer le motif."
+                            ),
+                        },
+                    }
+                ],
+            }
+        ],
+    }
+
+    raw = generate_text_comparison_excel(payload, output_path=None)
+    workbook = load_workbook(io.BytesIO(raw))
+    ws = workbook["Analyse complète"]
+    what = str(ws.cell(2, _column(ws, "Ce qui change")).value or "")
+    justification = str(
+        ws.cell(
+            2,
+            _column(ws, "Justification de pertinence (IA)"),
+        ).value
+        or ""
+    )
+
+    assert what == (
+        "BMO actualise la dénomination BMO Bank N.A. dans sa divulgation."
+    )
+    assert justification == (
+        "Cette actualisation rédactionnelle ne révèle aucune nouvelle pratique "
+        "de gestion des fonds propres."
+    )
+    assert what not in justification
+    assert "LEGACY" not in justification

@@ -9,17 +9,16 @@ import re
 import unicodedata
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field, ValidationError
+from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
+from vigilance.analyst_change_presentation import bank_subject as analyst_bank_subject
 from vigilance.amf_taxonomy import (
-    COMPACT_SECONDARY_REASON_SENTENCE_COUNT,
     THEMES_AMF_ANALYST_SUBJECTS,
     THEMES_AMF_DESCRIPTIONS,
     THEMES_AMF_PIPELINE_2,
     TRIAGE_SOURCE_VERSION,
     TriageAMFCompactLLMBatch,
     TriageValidationError,
-    count_complete_sentences,
     empty_triage_skeleton,
 )
 from vigilance.text_analysis.constants import (
@@ -57,6 +56,14 @@ _FULL_EVIDENCE_PACKET_LIMIT = 2400
 # reason so structured completions never hit finish_reason=length.
 _FULL_EVIDENCE_FACT_MAX_TOKENS = 500
 _FULL_EVIDENCE_VERIFICATION_MAX_TOKENS = 500
+_SEMANTIC_REASON_FIELDS = (
+    "changement_constate",
+    "signification_metier",
+    "comparaison_interbanques",
+    "limite_interpretation",
+    "motif_non_pertinence",
+)
+_ANALYST_FIELD_END_RE = re.compile(r"[.!?]+[\u00bb\u201d\"')\]]*$")
 _ISOLATED_DATE_RE = re.compile(
     r"\b(?:\d{1,2}\s+(?:janvier|février|fevrier|mars|avril|mai|juin|juillet|août|aout|"
     r"septembre|octobre|novembre|décembre|decembre)\s+\d{4}|\d{4}-\d{2}-\d{2})\b",
@@ -159,24 +166,161 @@ _THEME_STOPWORDS = frozenset(
 
 
 class _EvidencePacketObservation(BaseModel):
-    """Constat factuel sur un paquet complet de preuves T1/T2."""
+    """Constat factuel unique pour le paquet T1/T2 fourni dans l'appel."""
 
-    packet_index: int = Field(..., ge=1)
+    model_config = ConfigDict(extra="forbid")
+
     factual_change: str = Field(..., min_length=12, max_length=700)
 
 
-class _EvidencePacketBatch(BaseModel):
-    """Réponse de l'étape factuelle, sans qualification AMF."""
-
-    observations: list[_EvidencePacketObservation]
-
-
 class _EvidencePacketCoherenceCheck(BaseModel):
-    """Contrôle indépendant d'une décision sur une preuve exacte."""
+    """Contrôle unique pour le paquet de preuve fourni dans l'appel."""
 
-    packet_index: int = Field(..., ge=1)
+    model_config = ConfigDict(extra="forbid")
+
     verdict: Literal["supports", "contradicts", "insufficient"]
     reason: str = Field(..., min_length=12, max_length=700)
+
+
+def _normalize_local_analyst_field(value: str, *, field_name: str) -> str:
+    """Normalise et vérifie une unité sémantique produite localement."""
+    normalized = " ".join(str(value or "").split())
+    if not normalized:
+        raise ValueError(f"{field_name} doit être non vide.")
+    if not re.search(r"[0-9A-Za-zÀ-ÖØ-öø-ÿ]", normalized):
+        raise ValueError(f"{field_name} doit contenir du contenu lexical.")
+    if _ANALYST_FIELD_END_RE.search(normalized) is None:
+        normalized = normalized.rstrip(" ,;:…") + "."
+    return normalized
+
+
+def _ensure_bank_subject(value: str, bank_subject: str) -> str:
+    """Garantit un constat centré sur la banque, y compris pour un ancien texte."""
+    normalized = " ".join(str(value or "").split())
+    if not normalized:
+        return normalized
+    if normalized.casefold().startswith(bank_subject.casefold()):
+        return normalized
+
+    legacy_subjects = (
+        "Le rapport courant",
+        "Le rapport actuel",
+        "La banque",
+    )
+    for legacy_subject in legacy_subjects:
+        if normalized.casefold().startswith(legacy_subject.casefold()):
+            return f"{bank_subject}{normalized[len(legacy_subject):]}"
+
+    lowered_starts = {
+        "Le ": "le ",
+        "La ": "la ",
+        "Les ": "les ",
+        "Un ": "un ",
+        "Une ": "une ",
+        "Des ": "des ",
+        "Ce ": "ce ",
+        "Cette ": "cette ",
+        "Ces ": "ces ",
+    }
+    statement = normalized
+    for prefix, replacement in lowered_starts.items():
+        if statement.startswith(prefix):
+            statement = f"{replacement}{statement[len(prefix):]}"
+            break
+    return f"{bank_subject} indique que {statement}"
+
+
+def _semantic_reason_payload(
+    *,
+    is_relevant: bool,
+    changement_constate: str,
+    signification_metier: str = "",
+    comparaison_interbanques: str = "",
+    limite_interpretation: str = "",
+    motif_non_pertinence: str = "",
+) -> dict[str, str]:
+    """Construit les champs analystes et leur assemblage historique."""
+    raw_fields = {
+        "changement_constate": changement_constate,
+        "signification_metier": signification_metier,
+        "comparaison_interbanques": comparaison_interbanques,
+        "limite_interpretation": limite_interpretation,
+        "motif_non_pertinence": motif_non_pertinence,
+    }
+    applicable = (
+        {
+            "changement_constate",
+            "signification_metier",
+            "comparaison_interbanques",
+            "limite_interpretation",
+        }
+        if is_relevant
+        else {"changement_constate", "motif_non_pertinence"}
+    )
+    normalized_fields: dict[str, str] = {}
+    for field_name, value in raw_fields.items():
+        if field_name in applicable:
+            normalized_fields[field_name] = _normalize_local_analyst_field(
+                value,
+                field_name=field_name,
+            )
+        else:
+            normalized_fields[field_name] = ""
+    reason_order = (
+        (
+            "changement_constate",
+            "signification_metier",
+            "comparaison_interbanques",
+            "limite_interpretation",
+        )
+        if is_relevant
+        else ("changement_constate", "motif_non_pertinence")
+    )
+    normalized_fields["relevance_reason"] = " ".join(
+        normalized_fields[field_name] for field_name in reason_order
+    )
+    return normalized_fields
+
+
+def _secondary_analyst_justification(
+    *,
+    subject_label: str,
+    analyst_copy: dict[str, str],
+    surveillance_note: str,
+) -> str:
+    """Compose la note historique à partir des mêmes unités structurées."""
+    return (
+        "NON — Nouvel élément à surveiller : Non.\n\n"
+        f"Sujet détecté : {subject_label}.\n\n"
+        f"Ce qui change : {analyst_copy['changement_constate']}\n\n"
+        f"Pertinence métier : {analyst_copy['motif_non_pertinence']}\n\n"
+        f"Point de surveillance : {surveillance_note}"
+    )
+
+
+def _change_index_from_validation_error(
+    validation_error: ValidationError,
+) -> int | None:
+    """Récupère l'index métier depuis le payload ou la position du batch."""
+    try:
+        errors = validation_error.errors(include_input=True)
+    except Exception:  # noqa: BLE001
+        return None
+    for error in errors:
+        raw_input = error.get("input")
+        if isinstance(raw_input, dict):
+            try:
+                change_index = int(raw_input.get("change_index"))
+            except (TypeError, ValueError):
+                change_index = 0
+            if change_index >= 1:
+                return change_index
+    for error in errors:
+        location = tuple(error.get("loc") or ())
+        for offset, part in enumerate(location[:-1]):
+            if part == "triages" and isinstance(location[offset + 1], int):
+                return int(location[offset + 1]) + 1
+    return None
 
 
 def _split_full_evidence_text(text: str, *, limit: int = _FULL_EVIDENCE_PACKET_LIMIT) -> list[str]:
@@ -239,57 +383,73 @@ def _collect_full_evidence_observations(
     client: Any,
     model: str,
     change: dict[str, Any],
+    bank_code: str = "",
+    section_key: str = "",
+    change_index: int | None = None,
 ) -> list[dict[str, Any]]:
     """Lire toute preuve longue par appels factuels séparés et auditables."""
+    bank_subject = analyst_bank_subject(bank_code)
     packets = _build_full_evidence_packets(change)
     observations: list[dict[str, Any]] = []
     for packet in packets:
-        response = _call_structured_completion_with_correction(
-            client,
-            model=model,
-            messages=[
-                {
-                    "role": "system",
-                    "content": (
-                        "Tu lis une preuve textuelle complète T1/T2. Décris uniquement "
-                        "le fait observable entre les deux textes, sans catégorie AMF, "
-                        "sans priorité, sans posture et sans recommandation."
-                    ),
-                },
-                {
-                    "role": "user",
-                    "content": _json_dumps(
-                        {
-                            "diff_type": str(change.get("diff_type") or ""),
-                            "packet": packet,
-                        }
-                    ),
-                },
-            ],
-            response_format=_EvidencePacketBatch,
-            max_tokens=_FULL_EVIDENCE_FACT_MAX_TOKENS,
-            max_retries=1,
-            validation_retry_message=(
-                "Renvoie une seule observation factuelle pour le packet_index fourni, "
-                "sans qualification métier ni texte hors schéma."
-            ),
-            length_retry_message=(
-                "La réponse précédente a dépassé la limite de sortie. Renvoie "
-                "immédiatement une seule observation pour le packet_index fourni, "
-                "avec un factual_change concis (moins de 600 caractères), sans "
-                "qualification métier ni champ hors schéma."
-            ),
-        )
-        matching = [item for item in response.observations if item.packet_index == packet["packet_index"]]
-        if len(matching) != 1:
-            raise RuntimeError(
-                "La lecture de preuve complète doit retourner exactement une observation "
-                f"pour le paquet {packet['packet_index']}."
+        try:
+            response = _call_structured_completion_with_correction(
+                client,
+                model=model,
+                messages=[
+                    {
+                        "role": "system",
+                        "content": (
+                            "Tu lis un seul paquet de preuve textuelle complète T1/T2. "
+                            "Retourne exactement un constat factuel consolidé pour ce "
+                            "paquet. Décris uniquement le fait observable entre les deux "
+                            "textes, sans catégorie AMF, sans priorité, sans posture et "
+                            "sans recommandation. Ne retourne ni liste ni packet_index : "
+                            "le numéro du paquet est géré localement. La banque analysée "
+                            f"est {bank_subject}; commence factual_change par "
+                            f"{bank_subject} et un verbe d’action direct."
+                        ),
+                    },
+                    {
+                        "role": "user",
+                        "content": _json_dumps(
+                            {
+                                "diff_type": str(change.get("diff_type") or ""),
+                                "packet": packet,
+                            }
+                        ),
+                    },
+                ],
+                response_format=_EvidencePacketObservation,
+                max_tokens=_FULL_EVIDENCE_FACT_MAX_TOKENS,
+                max_retries=1,
+                validation_retry_message=(
+                    "Renvoie exactement un objet contenant uniquement factual_change, "
+                    "sans liste, sans packet_index, sans qualification métier ni texte "
+                    f"hors schéma. Commence factual_change par {bank_subject}."
+                ),
+                length_retry_message=(
+                    "La réponse précédente a dépassé la limite de sortie. Renvoie "
+                    "immédiatement un seul objet contenant factual_change, concis "
+                    "(moins de 600 caractères), sans liste, sans packet_index, sans "
+                    f"qualification métier ni champ hors schéma, commençant par "
+                    f"{bank_subject}."
+                ),
             )
+        except Exception as exc:
+            context_parts = [
+                f"section={section_key or 'inconnue'}",
+                f"change_index={change_index if change_index is not None else 'inconnu'}",
+                f"packet_index={packet['packet_index']}",
+            ]
+            raise RuntimeError(
+                "Lecture de preuve complète invalide "
+                f"[{', '.join(context_parts)}] : {exc}"
+            ) from exc
         observations.append(
             {
                 "packet_index": packet["packet_index"],
-                "factual_change": matching[0].factual_change,
+                "factual_change": response.factual_change,
             }
         )
     return observations
@@ -299,22 +459,15 @@ def _local_relevance_reason(
     factual_change: str,
     comparative_interpretation: str,
 ) -> str:
-    """Compose les deux phrases des qualifications locales sans remplissage."""
-    sentences = [
-        " ".join(str(sentence or "").split())
-        for sentence in (factual_change, comparative_interpretation)
-    ]
-    if any(not sentence.endswith((".", "!", "?")) for sentence in sentences):
-        raise ValueError("Chaque phrase locale doit être complète et ponctuée.")
-    result = " ".join(sentences)
-    if count_complete_sentences(result) != COMPACT_SECONDARY_REASON_SENTENCE_COUNT:
-        raise ValueError(
-            "Une justification locale doit contenir exactement deux phrases complètes."
-        )
-    return result
+    """Compatibilité : assemble deux unités sans recompter leurs phrases."""
+    return _semantic_reason_payload(
+        is_relevant=False,
+        changement_constate=factual_change,
+        motif_non_pertinence=comparative_interpretation,
+    )["relevance_reason"]
 
 
-def _default_triage() -> dict[str, Any]:
+def _default_triage(bank_code: str = "") -> dict[str, Any]:
     """Retourne un triage par défaut conservateur (non pertinent).
 
     Schéma cible AMF v2 (``themes_amf``, ``exclusion_reason``) **plus** les
@@ -323,10 +476,24 @@ def _default_triage() -> dict[str, Any]:
     consommateurs aval (review_export, review_models_v2, review_queue_normalizer)
     non encore migrés.
     """
+    bank_subject = analyst_bank_subject(bank_code)
+    analyst_copy = _semantic_reason_payload(
+        is_relevant=False,
+        changement_constate=(
+            f"{bank_subject} ne dispose pas d’une qualification AMF exploitable "
+            "pour ce changement."
+        ),
+        motif_non_pertinence=(
+            "L’élément est conservé dans la file de revue sans être présenté "
+            "comme une nouvelle idée, afin d’éviter une conclusion automatique "
+            "non étayée par les informations disponibles."
+        ),
+    )
     triage = empty_triage_skeleton()
     triage["source"] = TRIAGE_SOURCE_VERSION
     triage.update(
         {
+            "compact_schema_version": "analyst_compact_v2",
             "category": "NON_PERTINENT",
             "risk_type": "autre",
             "relevance_score": "FAIBLE",
@@ -334,11 +501,13 @@ def _default_triage() -> dict[str, Any]:
             "impact_description": "",
             "reference_reglementaire": "",
             "confidence": 0.0,
-            "relevance_reason": _local_relevance_reason(
-                "Le changement n’a pas reçu de qualification AMF exploitable.",
-                "Il est conservé dans la file de revue sans être présenté comme "
-                "une nouvelle idée, afin d’éviter une conclusion automatique "
-                "non étayée par les éléments disponibles.",
+            **analyst_copy,
+            "nouvelle_idee_justification": _secondary_analyst_justification(
+                subject_label="Élément non classifié",
+                analyst_copy=analyst_copy,
+                surveillance_note=(
+                    "Une revue des preuves est requise avant toute conclusion."
+                ),
             ),
             "signals": {
                 "regulatory_reference_added": False,
@@ -375,9 +544,26 @@ def _is_single_semantic_alignment_group(changes: list[dict[str, Any]]) -> bool:
     return len(changes) >= 2 and len(group_ids) == 1 and bool(next(iter(group_ids), ""))
 
 
-def _alignment_review_result(change: dict[str, Any]) -> dict[str, Any]:
+def _alignment_review_result(
+    change: dict[str, Any],
+    *,
+    bank_code: str = "",
+) -> dict[str, Any]:
     """Preserves the evidence while preventing an unsupported automatic verdict."""
-    triage = _default_triage()
+    bank_subject = analyst_bank_subject(bank_code)
+    analyst_copy = _semantic_reason_payload(
+        is_relevant=False,
+        changement_constate=(
+            f"{bank_subject} présente des passages qui pourraient décrire des "
+            "divulgations différentes, sans preuve d’alignement suffisante pour "
+            "conclure automatiquement."
+        ),
+        motif_non_pertinence=(
+            "L’élément reste visible avec ses extraits sources et nécessite une "
+            "revue avant toute qualification AMF."
+        ),
+    )
+    triage = _default_triage(bank_code)
     triage.update(
         {
             "source": "alignment_review_required",
@@ -387,12 +573,13 @@ def _alignment_review_result(change: dict[str, Any]) -> dict[str, Any]:
                 or "L'alignement entre les deux passages reste ambigu après la comparaison initiale. "
                 "Le changement est conservé pour revue, sans classification AMF automatique."
             ),
-            "relevance_reason": _local_relevance_reason(
-                "Les passages pourraient décrire des divulgations différentes, "
-                "mais l’alignement sémantique ne fournit pas une preuve suffisante "
-                "pour conclure automatiquement.",
-                "Le changement reste donc visible et doit être lu avec ses extraits "
-                "sources avant toute décision.",
+            **analyst_copy,
+            "nouvelle_idee_justification": _secondary_analyst_justification(
+                subject_label="Alignement à confirmer",
+                analyst_copy=analyst_copy,
+                surveillance_note=(
+                    "Lire les extraits sources avant toute décision."
+                ),
             ),
             # The analyst still sees the deterministic, verbatim difference;
             # no LLM-generated highlight is used for this unresolved pairing.
@@ -404,9 +591,26 @@ def _alignment_review_result(change: dict[str, Any]) -> dict[str, Any]:
     return enriched
 
 
-def _semantic_move_result(change: dict[str, Any]) -> dict[str, Any]:
+def _semantic_move_result(
+    change: dict[str, Any],
+    *,
+    bank_code: str = "",
+) -> dict[str, Any]:
     """Marks a GPT-confirmed text move as non-priority without human escalation."""
-    triage = _default_triage()
+    bank_subject = analyst_bank_subject(bank_code)
+    analyst_copy = _semantic_reason_payload(
+        is_relevant=False,
+        changement_constate=(
+            f"{bank_subject} déplace une divulgation sans modifier "
+            "substantiellement son sens, son niveau de détail ou son "
+            "rattachement métier."
+        ),
+        motif_non_pertinence=(
+            "Ce déplacement ne crée aucun nouvel élément à comparer entre les "
+            "banques."
+        ),
+    )
+    triage = _default_triage(bank_code)
     triage.update(
         {
             "source": "semantic_alignment_decision",
@@ -414,20 +618,13 @@ def _semantic_move_result(change: dict[str, Any]) -> dict[str, Any]:
             "alignment_confidence": str(change.get("alignment_confidence") or "medium"),
             "alignment_rationale": str(change.get("alignment_rationale") or "").strip(),
             "exclusion_reason": "deplacement_texte",
-            "relevance_reason": _local_relevance_reason(
-                "La comparaison confirme que la divulgation a été déplacée sans "
-                "modification substantielle de son sens, de son niveau de détail "
-                "ou de son rattachement métier.",
-                "Ce déplacement ne crée donc pas une nouvelle idée à surveiller.",
-            ),
-            "nouvelle_idee_justification": (
-                "NON — Nouvel élément à surveiller : Non.\n\n"
-                "Sujet détecté : Texte déplacé.\n\n"
-                "Ce qui change : Le premier appel GPT a confirmé que la même divulgation "
-                "a été déplacée sans changement sémantique substantiel.\n\n"
-                "Pertinence métier : Ce déplacement ne modifie pas la substance de la "
-                "divulgation ni la posture de risque.\n\n"
-                "Point de surveillance : Aucun suivi prioritaire n'est requis pour ce déplacement."
+            **analyst_copy,
+            "nouvelle_idee_justification": _secondary_analyst_justification(
+                subject_label="Texte déplacé",
+                analyst_copy=analyst_copy,
+                surveillance_note=(
+                    "Aucun suivi prioritaire n’est requis pour ce déplacement."
+                ),
             ),
             "change_segments": [],
         }
@@ -437,21 +634,81 @@ def _semantic_move_result(change: dict[str, Any]) -> dict[str, Any]:
     return enriched
 
 
-def _coherence_review_triage(change: dict[str, Any], reason: str) -> dict[str, Any]:
+def _coherence_review_triage(
+    change: dict[str, Any],
+    reason: str,
+    *,
+    bank_code: str = "",
+) -> dict[str, Any]:
     """Conserver un dossier visible quand le contrôle indépendant diverge."""
-    triage = _default_triage()
+    bank_subject = analyst_bank_subject(bank_code)
+    analyst_copy = _semantic_reason_payload(
+        is_relevant=False,
+        changement_constate=(
+            f"{bank_subject} présente un changement dont la qualification métier "
+            "ne concorde pas suffisamment avec la vérification indépendante des "
+            "preuves complètes."
+        ),
+        motif_non_pertinence=(
+            "Le dossier est conservé avec ses textes sources et ses pages afin "
+            "qu’un analyste confirme le type de changement et sa pertinence "
+            "avant toute conclusion de vigie."
+        ),
+    )
+    triage = _default_triage(bank_code)
     triage.update(
         {
             "source": "triage_coherence_review_required",
             "coherence_review_required": True,
             "coherence_review_reason": str(reason or "").strip(),
-            "relevance_reason": _local_relevance_reason(
-                "La qualification métier proposée ne concorde pas suffisamment avec "
-                "la vérification indépendante des preuves complètes.",
-                "Le dossier est "
-                "conservé avec ses textes sources et ses pages afin qu'un analyste "
-                "confirme le type de changement, la pertinence et l'existence d'une "
-                "nouvelle idée avant toute conclusion de vigie.",
+            **analyst_copy,
+            "nouvelle_idee_justification": _secondary_analyst_justification(
+                subject_label="Cohérence à confirmer",
+                analyst_copy=analyst_copy,
+                surveillance_note=(
+                    "Un analyste doit confirmer la qualification avant diffusion."
+                ),
+            ),
+            "change_segments": build_change_segments(change),
+        }
+    )
+    enriched = dict(change)
+    enriched["genai_triage"] = triage
+    return enriched
+
+
+def _evidence_read_review_triage(
+    change: dict[str, Any],
+    reason: str,
+    *,
+    bank_code: str = "",
+) -> dict[str, Any]:
+    """Conserver un changement dont la preuve complète n'a pas pu être lue."""
+    bank_subject = analyst_bank_subject(bank_code)
+    analyst_copy = _semantic_reason_payload(
+        is_relevant=False,
+        changement_constate=(
+            f"{bank_subject} présente un changement dont la preuve complète "
+            "n’a pas pu être validée automatiquement."
+        ),
+        motif_non_pertinence=(
+            "Le dossier est conservé avec ses textes sources et ses pages afin "
+            "qu’un analyste confirme le changement avant toute conclusion de vigie."
+        ),
+    )
+    triage = _default_triage(bank_code)
+    triage.update(
+        {
+            "source": "triage_evidence_review_required",
+            "coherence_review_required": True,
+            "coherence_review_reason": str(reason or "").strip(),
+            **analyst_copy,
+            "nouvelle_idee_justification": _secondary_analyst_justification(
+                subject_label="Preuve complète à confirmer",
+                analyst_copy=analyst_copy,
+                surveillance_note=(
+                    "Un analyste doit confirmer la lecture de la preuve avant diffusion."
+                ),
             ),
             "change_segments": build_change_segments(change),
         }
@@ -481,6 +738,8 @@ def _verify_triage_coherence(
                     "content": (
                         "Tu vérifies une décision de vigie bancaire de façon indépendante. "
                         "Compare la décision proposée au paquet de texte exact fourni. "
+                        "Tu traites un seul paquet : retourne un seul contrôle et ne "
+                        "retourne ni liste ni packet_index. "
                         "Réponds supports si le paquet l'appuie, contradicts s'il la "
                         "contredit, insufficient s'il ne permet pas de conclure. N'invente "
                         "aucun fait absent du paquet."
@@ -496,6 +755,10 @@ def _verify_triage_coherence(
                                 "is_relevant": triage.get("is_relevant"),
                                 "themes_amf": triage.get("themes_amf"),
                                 "nouvelle_idee": triage.get("nouvelle_idee"),
+                                **{
+                                    field_name: triage.get(field_name, "")
+                                    for field_name in _SEMANTIC_REASON_FIELDS
+                                },
                                 "relevance_reason": triage.get("relevance_reason"),
                             },
                         }
@@ -506,20 +769,18 @@ def _verify_triage_coherence(
             max_tokens=_FULL_EVIDENCE_VERIFICATION_MAX_TOKENS,
             max_retries=1,
             validation_retry_message=(
-                "Réponds avec le packet_index, supports, contradicts ou insufficient, "
-                "et une raison factuelle courte sans ajouter de thème."
+                "Réponds avec un seul objet contenant verdict (supports, contradicts "
+                "ou insufficient) et reason. Ne retourne ni liste ni packet_index, "
+                "et n’ajoute aucun thème."
             ),
             length_retry_message=(
                 "La réponse précédente a dépassé la limite de sortie. Renvoie "
-                "immédiatement packet_index, verdict (supports, contradicts ou "
-                "insufficient) et une reason factuelle concise (moins de 600 "
-                "caractères), sans thème ni champ hors schéma."
+                "immédiatement un seul objet contenant verdict (supports, contradicts "
+                "ou insufficient) et une reason factuelle concise (moins de 600 "
+                "caractères), sans liste, sans packet_index, sans thème ni champ "
+                "hors schéma."
             ),
         )
-        if response.packet_index != packet["packet_index"]:
-            raise RuntimeError(
-                "Le contrôle de cohérence doit répondre pour le paquet de preuve demandé."
-            )
         if response.verdict == "contradicts":
             return False, response.reason
         if response.verdict == "supports":
@@ -892,7 +1153,7 @@ def _deterministic_cosmetic_exclusion(change: dict[str, Any]) -> str | None:
 def _excerpt_for_analyst(text: str, *, limit: int = 160) -> str:
     """Tronque un extrait source pour une phrase analysée lisible (une seule phrase)."""
     value = re.sub(r"\s+", " ", str(text or "")).strip()
-    # Avoid internal sentence breaks that would break the 2-sentence relevance_reason.
+    # Conserve l'extrait dans une seule unité factuelle lisible.
     value = re.sub(r"[.!?]+", ",", value).strip(" ,;")
     if len(value) <= limit:
         return value
@@ -905,8 +1166,11 @@ def _excerpt_for_analyst(text: str, *, limit: int = 160) -> str:
 def _analyst_exclusion_copy(
     change: dict[str, Any],
     exclusion_reason: str,
+    *,
+    bank_code: str = "",
 ) -> tuple[str, str, str]:
     """Textes analyste naturels pour un changement exclu (sans jargon pipeline)."""
+    bank_subject = analyst_bank_subject(bank_code)
     diff_type = str(change.get("diff_type") or "").strip().lower()
     source_t2 = str(change.get("source_text_t2") or change.get("semantic_text_t2") or "")
     excerpt_t2 = _excerpt_for_analyst(source_t2)
@@ -919,20 +1183,19 @@ def _analyst_exclusion_copy(
         subject = "Opération interne propre à la banque"
         if diff_type == "added" and excerpt_t2:
             factual = (
-                "Le rapport courant introduit un passage sur "
-                f"« {excerpt_t2} », absent du rapport précédent et lié à une "
+                f"{bank_subject} ajoute un passage sur "
+                f"« {excerpt_t2} » lié à une "
                 "opération propre à la banque (acquisition, rachat ou émission)."
             )
         elif diff_type == "added":
             factual = (
-                "Le rapport courant introduit une information liée à une "
-                "opération propre à la banque (acquisition, rachat ou émission), "
-                "absente du rapport précédent."
+                f"{bank_subject} ajoute une information liée à une opération "
+                "propre à la banque (acquisition, rachat ou émission)."
             )
         else:
             factual = (
-                "Le passage est modifié et mentionne une opération propre à la "
-                "banque (acquisition, rachat ou émission)."
+                f"{bank_subject} modifie sa divulgation pour mentionner une "
+                "opération propre à la banque (acquisition, rachat ou émission)."
             )
         return factual, comparative, subject
 
@@ -940,21 +1203,21 @@ def _analyst_exclusion_copy(
         subject = "Variation chiffrée propre à la banque"
         if diff_type == "added":
             factual = (
-                "Le rapport courant introduit des montants ou pourcentages "
+                f"{bank_subject} ajoute des montants ou pourcentages "
                 "propres à la banque, sans nouvelle exigence réglementaire."
             )
         else:
             factual = (
-                "Seuls les chiffres, montants ou pourcentages diffèrent entre "
-                "les deux versions."
+                f"{bank_subject} met uniquement à jour des chiffres, montants "
+                "ou pourcentages propres à ses activités."
             )
         return factual, comparative, subject
 
     if exclusion_reason == "mise_a_jour_calendrier":
         subject = "Mise à jour de calendrier"
         factual = (
-            "Le passage est modifié : seules les dates ou échéances "
-            "d'application changent, sans nouvelle exigence."
+            f"{bank_subject} met uniquement à jour les dates ou échéances "
+            "d’application, sans ajouter de nouvelle exigence."
         )
         return factual, comparative, subject
 
@@ -962,33 +1225,47 @@ def _analyst_exclusion_copy(
     subject = "Changement cosmétique"
     if exclusion_reason == "deplacement_texte":
         factual = (
-            "Le même texte apparaît ailleurs dans le rapport courant, "
-            "sans nouveau contenu à comparer."
+            f"{bank_subject} déplace la même divulgation sans ajouter de "
+            "nouveau contenu."
         )
         subject = "Déplacement de texte"
     elif exclusion_reason == "formatage_visuel":
         factual = (
-            "Le passage est reformulé sans changement de fond "
+            f"{bank_subject} reformule le passage sans changement de fond "
             "(ponctuation ou formatage uniquement)."
         )
     elif diff_type == "added":
         factual = (
-            "Le rapport courant introduit une formulation différente "
+            f"{bank_subject} introduit une formulation différente "
             "sans changement de fond."
         )
     else:
-        factual = "Le passage est reformulé sans changement de fond."
+        factual = f"{bank_subject} reformule le passage sans changement de fond."
     return factual, comparative, subject
 
 
-def _prefilter_triage_result(change: dict[str, Any], exclusion_reason: str) -> dict[str, Any]:
-    triage = _default_triage()
-    factual, comparative, subject = _analyst_exclusion_copy(change, exclusion_reason)
+def _prefilter_triage_result(
+    change: dict[str, Any],
+    exclusion_reason: str,
+    *,
+    bank_code: str = "",
+) -> dict[str, Any]:
+    triage = _default_triage(bank_code)
+    factual, comparative, subject = _analyst_exclusion_copy(
+        change,
+        exclusion_reason,
+        bank_code=bank_code,
+    )
+    analyst_copy = _semantic_reason_payload(
+        is_relevant=False,
+        changement_constate=factual,
+        motif_non_pertinence=comparative,
+    )
     triage.update(
         {
             "source": "deterministic_prefilter",
             "exclusion_reason": exclusion_reason,
-            "relevance_reason": _local_relevance_reason(factual, comparative),
+            **analyst_copy,
             "nouvelle_idee_justification": (
                 "NON — Nouvel élément à surveiller : Non.\n\n"
                 f"Sujet détecté : {subject}.\n\n"
@@ -1008,9 +1285,18 @@ def _prefilter_triage_result(change: dict[str, Any], exclusion_reason: str) -> d
     return enriched
 
 
-def _cosmetic_triage_result(change: dict[str, Any], exclusion_reason: str) -> dict[str, Any]:
+def _cosmetic_triage_result(
+    change: dict[str, Any],
+    exclusion_reason: str,
+    *,
+    bank_code: str = "",
+) -> dict[str, Any]:
     """Compatibilité : délégué au préfiltre généraliste."""
-    return _prefilter_triage_result(change, exclusion_reason)
+    return _prefilter_triage_result(
+        change,
+        exclusion_reason,
+        bank_code=bank_code,
+    )
 
 
 def _triage_retrieval_text(change: dict[str, Any]) -> str:
@@ -1105,8 +1391,11 @@ def _propagate_triage_to_group(
     representative: dict[str, Any],
     members: list[dict[str, Any]],
     group_id: str,
+    bank_code: str = "",
 ) -> list[dict[str, Any]]:
-    triage = dict(representative.get("genai_triage") or _default_triage())
+    triage = dict(
+        representative.get("genai_triage") or _default_triage(bank_code)
+    )
     member_ids = [str(change.get("change_id") or "") for change in members]
     propagated: list[dict[str, Any]] = []
     for change in members:
@@ -1133,40 +1422,40 @@ def _propagate_triage_to_group(
 
 _FEW_SHOT_TRIAGE_AMF = """\
 Exemple 1 — ajout cyber pertinent
-Input : {"change_index": 1, "diff_type": "added", "change_summary": "Ajout d’exercices annuels de simulation de cyberattaque."}
-Output : {"change_index": 1, "is_relevant": true, "themes_amf": ["RISQUE_EMERGENT", "CONTROLE_CONFORMITE"], "nouvelle_idee": true, "relevance_reason": "Le rapport courant indique que la banque réalise désormais des simulations annuelles de cyberattaque avec ses unités d’affaires, une pratique qui n’était pas mentionnée dans le rapport précédent. Cette évolution rend explicite un mécanisme de préparation aux incidents cybernétiques. Elle permet de comparer la fréquence, le périmètre et la participation des unités d’affaires aux exercices déclarés par les banques. Le passage ne précise toutefois ni les scénarios testés ni les résultats obtenus."}
+Input : {"bank_subject": "CIBC", "change_index": 1, "diff_type": "added", "change_summary": "Ajout d’exercices annuels de simulation de cyberattaque."}
+Output : {"change_index": 1, "is_relevant": true, "themes_amf": ["RISQUE_EMERGENT", "CONTROLE_CONFORMITE"], "nouvelle_idee": true, "changement_constate": "CIBC ajoute des simulations annuelles de cyberattaque avec ses unités d’affaires.", "signification_metier": "Cette évolution rend explicite un mécanisme récurrent de préparation aux incidents cybernétiques.", "comparaison_interbanques": "Elle permet de comparer la fréquence, le périmètre et la participation des unités d’affaires aux exercices déclarés par les banques.", "limite_interpretation": "La divulgation ne précise toutefois ni les scénarios testés ni les résultats obtenus.", "motif_non_pertinence": ""}
 
 Exemple 2 — variation propre à la banque non pertinente
-Input : {"change_index": 1, "diff_type": "modified", "change_summary": "Le portefeuille hypothécaire passe de 287 G$ à 294 G$."}
-Output : {"change_index": 1, "is_relevant": false, "themes_amf": [], "nouvelle_idee": false, "relevance_reason": "Le portefeuille hypothécaire passe de 287 G$ à 294 G$, sans modification de la méthode de calcul ni du périmètre présenté. Cette variation reflète l’évolution normale des activités et n’apporte aucun nouvel élément sur les pratiques de gestion des risques à comparer entre les banques."}
+Input : {"bank_subject": "BMO", "change_index": 1, "diff_type": "modified", "change_summary": "Le portefeuille hypothécaire passe de 287 G$ à 294 G$."}
+Output : {"change_index": 1, "is_relevant": false, "themes_amf": [], "nouvelle_idee": false, "changement_constate": "BMO fait passer son portefeuille hypothécaire de 287 G$ à 294 G$, sans modifier la méthode de calcul ni le périmètre présenté.", "signification_metier": "", "comparaison_interbanques": "", "limite_interpretation": "", "motif_non_pertinence": "Cette variation reflète l’évolution normale des activités et n’apporte aucun nouvel élément sur les pratiques de gestion des risques à comparer entre les banques."}
 
 Exemple 3 — calendrier d’application non pertinent
-Input : {"change_index": 1, "diff_type": "modified", "change_summary": "Le BSIF reporte l’augmentation du coefficient de plancher jusqu’à nouvel ordre plutôt que jusqu’en 2027."}
-Output : {"change_index": 1, "is_relevant": false, "themes_amf": [], "nouvelle_idee": false, "relevance_reason": "Le rapport courant actualise seulement le calendrier d’application du coefficient de plancher annoncé par le BSIF, sans changer la nature de l’exigence. Cette mise à jour d’échéances n’apporte pas d’élément nouveau pour comparer les pratiques de gestion des fonds propres entre les banques."}
+Input : {"bank_subject": "RBC", "change_index": 1, "diff_type": "modified", "change_summary": "Le BSIF reporte l’augmentation du coefficient de plancher jusqu’à nouvel ordre plutôt que jusqu’en 2027."}
+Output : {"change_index": 1, "is_relevant": false, "themes_amf": [], "nouvelle_idee": false, "changement_constate": "RBC actualise uniquement le calendrier d’application du coefficient de plancher annoncé par le BSIF, sans changer la nature de l’exigence.", "signification_metier": "", "comparaison_interbanques": "", "limite_interpretation": "", "motif_non_pertinence": "Cette mise à jour d’échéances n’apporte aucun élément nouveau pour comparer les pratiques de gestion des fonds propres entre les banques."}
 
 Exemple 4 — acquisition interne non pertinente
-Input : {"change_index": 1, "diff_type": "added", "change_summary": "Inclusion de CWB dans le calcul du risque opérationnel à la suite de l’acquisition."}
-Output : {"change_index": 1, "is_relevant": false, "themes_amf": [], "nouvelle_idee": false, "relevance_reason": "Le rapport courant mentionne l’inclusion de CWB après une acquisition propre à la banque, sans décrire une nouvelle méthode de calcul partagée. Cette opération interne n’offre pas de base comparable sur les pratiques de gestion des risques entre institutions."}
+Input : {"bank_subject": "BNC", "change_index": 1, "diff_type": "added", "change_summary": "Inclusion de CWB dans le calcul du risque opérationnel à la suite de l’acquisition."}
+Output : {"change_index": 1, "is_relevant": false, "themes_amf": [], "nouvelle_idee": false, "changement_constate": "BNC inclut CWB dans le calcul du risque opérationnel à la suite de son acquisition, sans décrire une nouvelle méthode de calcul.", "signification_metier": "", "comparaison_interbanques": "", "limite_interpretation": "", "motif_non_pertinence": "Cette opération propre à la banque n’offre aucune base comparable sur les pratiques de gestion des risques entre institutions."}
 
 Exemple 5 — rachat d’actions non pertinent
-Input : {"change_index": 1, "diff_type": "modified", "change_summary": "Mise à jour des montants de rachat d’actions ordinaires au semestre."}
-Output : {"change_index": 1, "is_relevant": false, "themes_amf": [], "nouvelle_idee": false, "relevance_reason": "Le rapport courant met à jour les montants de rachat d’actions ordinaires déjà présentés, sans modifier le cadre réglementaire associé. Ce type de transaction propre à la banque n’éclaire pas la comparabilité des pratiques prudentielles entre pairs."}
+Input : {"bank_subject": "TD", "change_index": 1, "diff_type": "modified", "change_summary": "Mise à jour des montants de rachat d’actions ordinaires au semestre."}
+Output : {"change_index": 1, "is_relevant": false, "themes_amf": [], "nouvelle_idee": false, "changement_constate": "TD met à jour les montants de rachat d’actions ordinaires déjà présentés, sans modifier le cadre réglementaire associé.", "signification_metier": "", "comparaison_interbanques": "", "limite_interpretation": "", "motif_non_pertinence": "Cette transaction propre à la banque n’éclaire pas la comparabilité des pratiques prudentielles entre pairs."}
 
 Exemple 6 — transfert de responsabilité de gouvernance pertinent et substantiel
-Input : {"change_index": 1, "diff_type": "modified", "change_summary": "L’approbation de l’appétit pour le risque passe du comité de direction au conseil d’administration."}
-Output : {"change_index": 1, "is_relevant": true, "themes_amf": ["GOUVERNANCE_RISQUES"], "nouvelle_idee": true, "relevance_reason": "Le rapport courant transfère au conseil d’administration l’approbation de l’appétit pour le risque auparavant confiée au comité de direction. Ce transfert élève la décision au niveau de gouvernance ultime de la banque. Il permet de comparer l’autorité d’approbation, la répartition des responsabilités et le rôle du conseil entre les banques. Le passage ne précise toutefois pas si les mécanismes de suivi ou de reddition de comptes ont également changé."}
+Input : {"bank_subject": "RBC", "change_index": 1, "diff_type": "modified", "change_summary": "L’approbation de l’appétit pour le risque passe du comité de direction au conseil d’administration."}
+Output : {"change_index": 1, "is_relevant": true, "themes_amf": ["GOUVERNANCE_RISQUES"], "nouvelle_idee": true, "changement_constate": "RBC transfère au conseil d’administration l’approbation de l’appétit pour le risque auparavant confiée au comité de direction.", "signification_metier": "Ce transfert élève la décision au niveau de gouvernance ultime de la banque.", "comparaison_interbanques": "Il permet de comparer l’autorité d’approbation, la répartition des responsabilités et le rôle du conseil entre les banques.", "limite_interpretation": "La divulgation ne précise toutefois pas si les mécanismes de suivi ou de reddition de comptes ont également changé.", "motif_non_pertinence": ""}
 
 Exemple 7 — comité renommé pertinent sans nouvelle idée substantielle
-Input : {"change_index": 1, "diff_type": "modified", "change_summary": "Le Comité de gestion des risques est renommé Comité des risques et de la conformité, sans modification de son mandat."}
-Output : {"change_index": 1, "is_relevant": true, "themes_amf": ["GOUVERNANCE_RISQUES"], "nouvelle_idee": false, "relevance_reason": "Le rapport courant renomme le Comité de gestion des risques en Comité des risques et de la conformité tout en maintenant son mandat. Cette désignation rend la conformité plus visible dans la structure déclarée de gouvernance. Elle permet de comparer le nom, le positionnement et le périmètre affiché des comités entre les banques. Le passage ne démontre toutefois aucun changement de responsabilité, de mandat ou d’autorité."}
+Input : {"bank_subject": "CIBC", "change_index": 1, "diff_type": "modified", "change_summary": "Le Comité de gestion des risques est renommé Comité des risques et de la conformité, sans modification de son mandat."}
+Output : {"change_index": 1, "is_relevant": true, "themes_amf": ["GOUVERNANCE_RISQUES"], "nouvelle_idee": false, "changement_constate": "CIBC renomme le Comité de gestion des risques en Comité des risques et de la conformité tout en maintenant son mandat.", "signification_metier": "Cette désignation rend la conformité plus visible dans la structure déclarée de gouvernance.", "comparaison_interbanques": "Elle permet de comparer le nom, le positionnement et le périmètre affiché des comités entre les banques.", "limite_interpretation": "La divulgation ne démontre toutefois aucun changement de responsabilité, de mandat ou d’autorité.", "motif_non_pertinence": ""}
 
 Exemple 8 — changement réel de méthodologie pertinent et substantiel
-Input : {"change_index": 1, "diff_type": "modified", "change_summary": "La méthode standard de mesure du risque de crédit est remplacée par un modèle interne avancé."}
-Output : {"change_index": 1, "is_relevant": true, "themes_amf": ["MODIFICATION_METHODOLOGIE"], "nouvelle_idee": true, "relevance_reason": "Le rapport courant remplace la méthode standard de mesure du risque de crédit par un modèle interne avancé. Cette nouvelle base méthodologique peut modifier la mesure et la sensibilité du risque déclaré. Elle permet de comparer les approches de modélisation, les hypothèses et le recours aux modèles internes entre les banques. Le passage ne fournit toutefois pas les paramètres ni les effets quantifiés nécessaires pour mesurer l’incidence du remplacement."}
+Input : {"bank_subject": "BMO", "change_index": 1, "diff_type": "modified", "change_summary": "La méthode standard de mesure du risque de crédit est remplacée par un modèle interne avancé."}
+Output : {"change_index": 1, "is_relevant": true, "themes_amf": ["MODIFICATION_METHODOLOGIE"], "nouvelle_idee": true, "changement_constate": "BMO remplace la méthode standard de mesure du risque de crédit par un modèle interne avancé.", "signification_metier": "Cette nouvelle base méthodologique peut modifier la mesure et la sensibilité du risque déclaré.", "comparaison_interbanques": "Elle permet de comparer les approches de modélisation, les hypothèses et le recours aux modèles internes entre les banques.", "limite_interpretation": "La divulgation ne fournit toutefois pas les paramètres ni les effets quantifiés nécessaires pour mesurer l’incidence du remplacement.", "motif_non_pertinence": ""}
 
 Exemple 9 — modification réelle de processus pertinente et substantielle
-Input : {"change_index": 1, "diff_type": "modified", "change_summary": "Les alertes de conformité sont désormais validées par une deuxième équipe avant leur clôture."}
-Output : {"change_index": 1, "is_relevant": true, "themes_amf": ["CONTROLE_CONFORMITE"], "nouvelle_idee": true, "relevance_reason": "Le rapport courant ajoute une seconde validation au processus de clôture des alertes de conformité. Cette étape supplémentaire formalise un contrôle indépendant avant la clôture des alertes. Elle permet de comparer le nombre de validations, la séparation des responsabilités et le niveau de supervision entre les banques. Le passage ne précise toutefois ni l’identité de la deuxième équipe ni les critères utilisés pour valider la clôture."}
+Input : {"bank_subject": "BNS", "change_index": 1, "diff_type": "modified", "change_summary": "Les alertes de conformité sont désormais validées par une deuxième équipe avant leur clôture."}
+Output : {"change_index": 1, "is_relevant": true, "themes_amf": ["CONTROLE_CONFORMITE"], "nouvelle_idee": true, "changement_constate": "BNS ajoute une seconde validation au processus de clôture des alertes de conformité.", "signification_metier": "Cette étape supplémentaire formalise un contrôle indépendant avant la clôture des alertes.", "comparaison_interbanques": "Elle permet de comparer le nombre de validations, la séparation des responsabilités et le niveau de supervision entre les banques.", "limite_interpretation": "La divulgation ne précise toutefois ni l’identité de la deuxième équipe ni les critères utilisés pour valider la clôture.", "motif_non_pertinence": ""}
 """
 
 
@@ -1265,14 +1554,27 @@ def _persisted_triage_from_compact(
     compact: dict[str, Any],
     *,
     change: dict[str, Any],
+    bank_code: str = "",
 ) -> dict[str, Any]:
     """Ajoute localement les champs historiques sans les demander au LLM."""
     is_relevant = bool(compact.get("is_relevant", False))
     nouvelle_idee = bool(compact.get("nouvelle_idee", False))
     themes = list(compact.get("themes_amf") or [])
-    relevance_reason = " ".join(
-        str(compact.get("relevance_reason") or "").split()
+    bank_subject = analyst_bank_subject(bank_code)
+    analyst_copy = _semantic_reason_payload(
+        is_relevant=is_relevant,
+        changement_constate=_ensure_bank_subject(
+            str(compact.get("changement_constate") or ""),
+            bank_subject,
+        ),
+        signification_metier=str(compact.get("signification_metier") or ""),
+        comparaison_interbanques=str(
+            compact.get("comparaison_interbanques") or ""
+        ),
+        limite_interpretation=str(compact.get("limite_interpretation") or ""),
+        motif_non_pertinence=str(compact.get("motif_non_pertinence") or ""),
     )
+    relevance_reason = analyst_copy["relevance_reason"]
 
     # Recalculate exclusion on change + GPT reason (catches CWB framed as methodology).
     bank_exclusion = _deterministic_bank_specific_exclusion(change) or (
@@ -1296,8 +1598,14 @@ def _persisted_triage_from_compact(
         factual, comparative, _subject = _analyst_exclusion_copy(
             change,
             bank_exclusion,
+            bank_code=bank_code,
         )
-        relevance_reason = _local_relevance_reason(factual, comparative)
+        analyst_copy = _semantic_reason_payload(
+            is_relevant=False,
+            changement_constate=factual,
+            motif_non_pertinence=comparative,
+        )
+        relevance_reason = analyst_copy["relevance_reason"]
 
     change_corpus = " ".join(
         str(change.get(field) or "")
@@ -1332,11 +1640,13 @@ def _persisted_triage_from_compact(
         action_requise = "information"
 
     triage: dict[str, Any] = {
-        "compact_schema_version": "analyst_compact_v1",
+        "compact_schema_version": "analyst_compact_v2",
+        "bank_code": str(bank_code or "").strip().lower(),
+        "bank_subject": bank_subject,
         "is_relevant": is_relevant,
         "themes_amf": themes,
         "nouvelle_idee": nouvelle_idee,
-        "relevance_reason": relevance_reason,
+        **analyst_copy,
         "exclusion_reason": (
             None
             if is_relevant
@@ -1368,6 +1678,7 @@ def _triage_section_changes(
     model: str,
     section_key: str,
     changes: list[dict[str, Any]],
+    bank_code: str = "",
 ) -> list[dict[str, Any]]:
     """Qualifie metier les changements detectes et fusionne le triage.
 
@@ -1382,6 +1693,11 @@ def _triage_section_changes(
     """
     if not changes:
         return []
+    effective_bank_code = (
+        str(bank_code or "").strip().lower()
+        or str(changes[0].get("bank_code") or "").strip().lower()
+    )
+    bank_subject = analyst_bank_subject(effective_bank_code)
 
     # The first GPT call arbitrates the semantic relationship.  Only an
     # explicit ``uncertain`` result remains for a human; same and distinct
@@ -1390,9 +1706,19 @@ def _triage_section_changes(
         enriched: list[dict[str, Any]] = []
         for change in changes:
             if _requires_alignment_review(change):
-                enriched.append(_alignment_review_result(change))
+                enriched.append(
+                    _alignment_review_result(
+                        change,
+                        bank_code=effective_bank_code,
+                    )
+                )
             elif _is_semantic_text_move(change):
-                enriched.append(_semantic_move_result(change))
+                enriched.append(
+                    _semantic_move_result(
+                        change,
+                        bank_code=effective_bank_code,
+                    )
+                )
             else:
                 enriched.extend(
                     _triage_section_changes(
@@ -1400,6 +1726,7 @@ def _triage_section_changes(
                         model=model,
                         section_key=section_key,
                         changes=[change],
+                        bank_code=effective_bank_code,
                     )
                 )
         return enriched
@@ -1413,7 +1740,13 @@ def _triage_section_changes(
             or _deterministic_bank_specific_exclusion(change)
         )
         if exclusion:
-            prefiltered.append(_prefilter_triage_result(change, exclusion))
+            prefiltered.append(
+                _prefilter_triage_result(
+                    change,
+                    exclusion,
+                    bank_code=effective_bank_code,
+                )
+            )
         else:
             pending.append(change)
     if not pending:
@@ -1433,6 +1766,7 @@ def _triage_section_changes(
                         model=model,
                         section_key=section_key,
                         changes=members,
+                        bank_code=effective_bank_code,
                     )
                 )
                 continue
@@ -1441,6 +1775,7 @@ def _triage_section_changes(
                 model=model,
                 section_key=section_key,
                 changes=[members[0]],
+                bank_code=effective_bank_code,
             )
             if not representative_results:
                 continue
@@ -1450,6 +1785,7 @@ def _triage_section_changes(
                     representative=representative_results[0],
                     members=members,
                     group_id=group_id,
+                    bank_code=effective_bank_code,
                 )
             )
         return [*prefiltered, *grouped_results]
@@ -1469,6 +1805,7 @@ def _triage_section_changes(
                     model=model,
                     section_key=section_key,
                     changes=chunk,
+                    bank_code=effective_bank_code,
                 ): index
                 for index, chunk in enumerate(chunks)
             }
@@ -1491,18 +1828,34 @@ def _triage_section_changes(
     exact_segments_by_index: dict[int, list[dict[str, str]]] = {}
     full_evidence_by_index: dict[int, list[dict[str, Any]]] = {}
     full_evidence_packets_by_index: dict[int, list[dict[str, Any]]] = {}
+    full_evidence_failures_by_index: dict[int, str] = {}
     for idx, change in enumerate(changes, start=1):
         exact_segments = build_change_segments(change)
         exact_segments_by_index[idx] = exact_segments
         full_evidence = []
         if _requires_full_evidence_packets(change):
             full_evidence_packets_by_index[idx] = _build_full_evidence_packets(change)
-            full_evidence = _collect_full_evidence_observations(
-                client=client,
-                model=model,
-                change=change,
-            )
-            full_evidence_by_index[idx] = full_evidence
+            try:
+                full_evidence = _collect_full_evidence_observations(
+                    client=client,
+                    model=model,
+                    change=change,
+                    bank_code=effective_bank_code,
+                    section_key=section_key,
+                    change_index=idx,
+                )
+            except Exception as exc:
+                failure_reason = str(exc)
+                full_evidence_failures_by_index[idx] = failure_reason
+                logger.error(
+                    "full evidence read requires review section=%s "
+                    "change_index=%d error=%s",
+                    section_key,
+                    idx,
+                    failure_reason,
+                )
+            else:
+                full_evidence_by_index[idx] = full_evidence
         exact_segments_for_prompt = [
             {
                 "kind": str(segment.get("kind") or ""),
@@ -1519,6 +1872,7 @@ def _triage_section_changes(
         ]
         triage_inputs.append(
             {
+                "bank_subject": bank_subject,
                 "change_index": idx,
                 "diff_type": change["diff_type"],
                 "source_snippet_t1": _truncate_prompt_text(
@@ -1550,19 +1904,22 @@ def _triage_section_changes(
         )
 
     system_prompt = (
-        "Tu qualifies les changements entre le rapport précédent et le rapport "
-        "courant d’une banque canadienne pour une vigie AMF. Réponds uniquement "
-        "avec le schéma compact demandé. Sois factuel, sans analyse IT, posture, "
-        "niveau d’impact, action recommandée ni répétition des textes sources. "
-        "Rédige chaque relevance_reason en français uniquement, avec des phrases "
-        "complètes, professionnelles et faciles à comprendre. Pour un changement "
-        "pertinent, produis exactement quatre phrases : constat factuel, "
-        "signification métier, comparaison possible entre les banques et limite "
-        "d’interprétation. Pour un changement non pertinent, produis exactement "
-        "deux phrases : constat factuel et motif de non-pertinence. "
-        "N’utilise jamais fragment, chunk, T1, T2 ni termes anglais. La longueur "
-        "du changement ne détermine jamais sa pertinence : une modification très "
-        "courte peut être substantielle si elle touche la gouvernance."
+        "Tu qualifies des changements de divulgation d’une banque canadienne "
+        "pour une vigie AMF. Réponds uniquement avec le schéma compact demandé. "
+        f"La banque analysée est {bank_subject} et le champ "
+        f"`changement_constate` doit commencer exactement par « {bank_subject} » "
+        "suivi d’un verbe d’action direct, par exemple ajoute, retire, modifie, "
+        "précise, transfère ou renomme. N’utilise jamais « le rapport courant », "
+        "« le rapport précédent », « le passage », T1 ou T2 comme sujet du texte "
+        "analyste. Sois factuel, sans analyse IT, posture, niveau d’impact, action "
+        "recommandée ni répétition des textes sources. Rédige séparément, en "
+        "français, des phrases complètes, professionnelles et faciles à comprendre "
+        "dans `changement_constate`, `signification_metier`, "
+        "`comparaison_interbanques`, `limite_interpretation` et "
+        "`motif_non_pertinence`. Ne produis pas `relevance_reason`; il sera "
+        "assemblé localement. La longueur du changement ne détermine jamais sa "
+        "pertinence : une modification très courte peut être substantielle si "
+        "elle touche la gouvernance."
     )
 
 
@@ -1585,9 +1942,9 @@ def _triage_section_changes(
         "du nom d’un comité ou d’une instance de gouvernance reste pertinent même "
         "si son mandat demeure identique; utilise alors `GOUVERNANCE_RISQUES` et "
         "`nouvelle_idee=false`.\n"
-        "3. `nouvelle_idee=true` seulement si le rapport courant ajoute, retire "
-        "ou modifie substantiellement une information absente sous cette forme "
-        "dans le rapport précédent. Pour la gouvernance, considère comme substantiel "
+        f"3. `nouvelle_idee=true` seulement si {bank_subject} ajoute, retire "
+        "ou modifie substantiellement une information qui n’était pas divulguée "
+        "auparavant sous cette forme. Pour la gouvernance, considère comme substantiel "
         "tout changement démontré d’autorité décisionnelle, de mandat ou de rôle "
         "d’un comité, de ligne de défense, de responsabilité, de supervision, de reddition de "
         "comptes, de culture de risque, de rémunération liée au risque ou d’appétit "
@@ -1599,14 +1956,17 @@ def _triage_section_changes(
         "contrôle ou de conformité, avec `nouvelle_idee=true`. Une reformulation "
         "qui ne change ni le fonctionnement, ni les étapes, ni les acteurs, ni les "
         "contrôles demeure non substantielle.\n"
-        "4. Si `is_relevant=true`, `relevance_reason` contient exactement quatre "
-        "phrases complètes, professionnelles et faciles à comprendre. La première "
-        "décrit factuellement le changement entre les rapports. La deuxième "
-        "explique sa signification métier. La troisième précise les dimensions "
-        "concrètes à comparer entre les banques. La quatrième formule uniquement "
-        "une limite d’interprétation étayée par ce que le passage ne démontre ou "
-        "ne précise pas. Si `is_relevant=false`, utilise exactement deux phrases : "
-        "le constat factuel, puis le motif de non-pertinence. N’écris pas "
+        "4. Chaque champ renseigné doit être non vide, lexical et terminé par "
+        "« . », « ! » ou « ? ». Si `is_relevant=true`, renseigne "
+        "`changement_constate`, `signification_metier`, "
+        "`comparaison_interbanques` et `limite_interpretation`, puis laisse "
+        "`motif_non_pertinence` vide. `changement_constate` décrit factuellement "
+        f"l’action de {bank_subject}; `signification_metier` explique sa "
+        "signification concrète; `comparaison_interbanques` précise les dimensions "
+        "à comparer entre banques; `limite_interpretation` indique uniquement ce "
+        "que la preuve ne démontre ou ne précise pas. Si `is_relevant=false`, "
+        "renseigne seulement `changement_constate` et `motif_non_pertinence`, puis "
+        "laisse les trois champs analytiques vides. N’écris pas "
         "« Ce changement est pertinent pour la vigie AMF », « Ce changement "
         "n’est pas pertinent », « Pour la vigie », « Cette information est "
         "importante », « Il convient de noter que » ni « Dans le cadre de cette "
@@ -1614,8 +1974,12 @@ def _triage_section_changes(
         "Aucun titre, aucune liste, aucune rubrique et aucune consigne adressée "
         "à l’analyste. Interdit : fragment, chunk, T1, T2, termes anglais.\n"
         "5. Ne produis aucun champ d’impact, d’action, de posture, d’impact IT, "
-        "d’explication générale ou de justification multi-rubriques.\n\n"
+        "d’explication générale, de justification multi-rubriques ou "
+        "`relevance_reason`.\n\n"
+        f"Adapte les exemples à la banque analysée : remplace toujours leur sujet "
+        f"par {bank_subject} dans la réponse réelle.\n\n"
         f"{_FEW_SHOT_TRIAGE_AMF}\n\n"
+        f"Banque analysée : {bank_subject}\n"
         f"Section : {section_key}\n"
         f"Changements :\n{_json_dumps(triage_inputs)}"
     )
@@ -1642,25 +2006,30 @@ def _triage_section_changes(
                 "thèmes AMF (préfère candidate_themes, sinon tout code de la "
                 "taxonomie AMF, sinon SUJET_EMERGENT_HORS_GRILLE); "
                 "is_relevant=false exige themes_amf=[] et "
-                "nouvelle_idee=false. Si is_relevant=true, chaque relevance_reason "
-                "doit contenir exactement quatre phrases complètes : constat "
-                "factuel, signification métier, dimensions de comparaison entre "
-                "banques et limite d’interprétation. Si is_relevant=false, il doit "
-                "contenir exactement deux phrases : constat factuel et motif de "
-                "non-pertinence."
+                "nouvelle_idee=false. Corrige uniquement les cinq champs "
+                "sémantiques : is_relevant=true exige changement_constate, "
+                "signification_metier, comparaison_interbanques et "
+                "limite_interpretation non vides, avec motif_non_pertinence vide; "
+                "is_relevant=false exige changement_constate et "
+                "motif_non_pertinence non vides, avec les trois autres champs "
+                f"vides. Chaque changement_constate commence par {bank_subject} "
+                "et chaque champ renseigné est lexical et ponctué. Ne produis "
+                "pas relevance_reason."
             ),
             length_retry_message=(
                 "Renvoie immédiatement le même batch compact complet, sans aucun "
-                "commentaire hors schéma. Garde exactement quatre phrases dans "
-                "chaque relevance_reason pertinent (constat, signification, "
-                "comparaison, limite) et exactement deux phrases dans chaque "
-                "relevance_reason non pertinent (constat, motif)."
+                "commentaire hors schéma. Raccourcis séparément les champs "
+                "changement_constate, signification_metier, "
+                "comparaison_interbanques, limite_interpretation et "
+                "motif_non_pertinence sans les fusionner. Respecte les champs "
+                f"vides applicables et commence changement_constate par "
+                f"{bank_subject}. Ne produis pas relevance_reason."
             ),
         )
     except ValidationError as exc:
         raise TriageValidationError(
             section_key=section_key,
-            change_index=None,
+            change_index=_change_index_from_validation_error(exc),
             raw_payload=None,
             validation_error=exc,
         ) from exc
@@ -1716,6 +2085,7 @@ def _triage_section_changes(
         triage = _persisted_triage_from_compact(
             compact_dict,
             change=change,
+            bank_code=effective_bank_code,
         )
         triage["change_segments"] = (
             exact_segments_by_index.get(triage_obj.change_index, [])
@@ -1728,13 +2098,17 @@ def _triage_section_changes(
         if triage_obj.nouvelle_idee:
             nouvelle_idee_count += 1
         logger.info(
-            "compact triage validated section=%s change_index=%d is_relevant=%s themes=%s nouvelle_idee=%s reason_sentences=%d",
+            "compact triage validated section=%s change_index=%d is_relevant=%s themes=%s nouvelle_idee=%s semantic_fields=%s",
             section_key,
             triage_obj.change_index,
             triage_obj.is_relevant,
             triage_obj.themes_amf,
             triage_obj.nouvelle_idee,
-            count_complete_sentences(triage_obj.relevance_reason),
+            [
+                field_name
+                for field_name in _SEMANTIC_REASON_FIELDS
+                if getattr(triage_obj, field_name)
+            ],
         )
 
     logger.info(
@@ -1747,7 +2121,17 @@ def _triage_section_changes(
 
     enriched: list[dict[str, Any]] = []
     for idx, change in enumerate(changes, start=1):
-        triage = triage_map.get(idx, _default_triage())
+        evidence_failure_reason = full_evidence_failures_by_index.get(idx)
+        if evidence_failure_reason:
+            enriched.append(
+                _evidence_read_review_triage(
+                    change,
+                    evidence_failure_reason,
+                    bank_code=effective_bank_code,
+                )
+            )
+            continue
+        triage = triage_map.get(idx, _default_triage(effective_bank_code))
         evidence_observations = full_evidence_by_index.get(idx, [])
         if evidence_observations:
             coherent, coherence_reason = _verify_triage_coherence(
@@ -1758,7 +2142,13 @@ def _triage_section_changes(
                 evidence_packets=full_evidence_packets_by_index[idx],
             )
             if not coherent:
-                enriched.append(_coherence_review_triage(change, coherence_reason))
+                enriched.append(
+                    _coherence_review_triage(
+                        change,
+                        coherence_reason,
+                        bank_code=effective_bank_code,
+                    )
+                )
                 continue
             triage["full_evidence_verified"] = True
             triage["full_evidence_observations"] = evidence_observations

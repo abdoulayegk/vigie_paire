@@ -109,6 +109,27 @@ class AnalystChangePresentation:
     quality_issues: tuple[str, ...]
 
 
+@dataclass(frozen=True, slots=True)
+class AnalystNarrative:
+    """Unités sémantiques prêtes à être affichées à l'analyste.
+
+    ``pertinence_metier`` est réservée aux changements qualitatifs retenus.
+    ``motif_non_pertinence`` porte la justification des changements
+    secondaires. ``business_relevance`` offre une vue commune aux exports qui
+    affichent une seule colonne de justification.
+    """
+
+    changement_constate: str
+    pertinence_metier: str
+    motif_non_pertinence: str
+    source: str
+
+    @property
+    def business_relevance(self) -> str:
+        """Retourne l'analyse métier applicable à la décision de triage."""
+        return self.pertinence_metier or self.motif_non_pertinence
+
+
 def bank_subject(bank_code: str | None) -> str:
     """Retourne le sujet court utilisé dans les phrases analystes."""
     value = " ".join(str(bank_code or "").strip().split())
@@ -429,4 +450,236 @@ def build_change_presentation(
         scope=change_scope(change),
         quality_status="review" if unique_issues else "ready",
         quality_issues=unique_issues,
+    )
+
+
+_STRUCTURED_TRIAGE_FIELDS = frozenset(
+    {
+        "changement_constate",
+        "signification_metier",
+        "comparaison_interbanques",
+        "comparaison_interbancaire",
+        "limite_interpretation",
+        "motif_non_pertinence",
+    }
+)
+
+_LEGACY_CHANGE_SECTION_RE = re.compile(
+    r"(?:Ce qui change|Changement constaté)\s*:\s*"
+    r"(.*?)(?=\n\s*\n(?:Pertinence métier|Point de surveillance|Lecture de vigie)\s*:|$)",
+    flags=re.IGNORECASE | re.DOTALL,
+)
+
+_LEGACY_RELEVANCE_SECTION_RE = re.compile(
+    r"Pertinence métier\s*:\s*"
+    r"(.*?)(?=\n\s*\n(?:Point de surveillance|Lecture de vigie)\s*:|$)",
+    flags=re.IGNORECASE | re.DOTALL,
+)
+
+
+def _clean_narrative_unit(value: Any, *, bank_code: str | None) -> str:
+    """Normalise une unité structurée sans tenter d'en déduire la structure."""
+    if bank_code:
+        normalized = canonicalize_analyst_narrative(
+            str(value or ""),
+            bank_code=bank_code,
+        )
+    else:
+        normalized = "\n".join(
+            sanitize_analyst_french(" ".join(line.split()).strip())
+            for line in str(value or "").strip().splitlines()
+        ).strip()
+    normalized = _LEADING_ANALYSIS_LABEL_RE.sub("", normalized, count=1).strip()
+    if normalized and normalized[-1] not in ".!?":
+        normalized += "."
+    return normalized
+
+
+def _structured_business_paragraph(
+    values: tuple[Any, ...],
+    *,
+    summary: str,
+    bank_code: str | None,
+    limit: int,
+) -> str:
+    """Assemble les unités métier déjà structurées, sans lire le champ legacy."""
+    sentences: list[str] = []
+    seen: set[str] = set()
+    for value in values:
+        sentence = _clean_narrative_unit(value, bank_code=bank_code)
+        sentence = _clean_business_relevance_sentence(sentence)
+        key = _sentence_comparison_key(sentence)
+        if (
+            not sentence
+            or not key
+            or key in seen
+            or _duplicates_summary(sentence, summary)
+        ):
+            continue
+        if sentence[-1] not in ".!?":
+            sentence += "."
+        seen.add(key)
+        sentences.append(sentence)
+    return _truncate_at_sentence(" ".join(sentences), limit) if sentences else ""
+
+
+def _legacy_labeled_section(pattern: re.Pattern[str], value: Any) -> str:
+    """Extrait une rubrique uniquement pour la compatibilité des anciens JSON."""
+    match = pattern.search(str(value or ""))
+    return " ".join(match.group(1).split()).strip() if match else ""
+
+
+def _legacy_change_candidate(change: dict[str, Any], triage: dict[str, Any]) -> str:
+    justification = triage.get("nouvelle_idee_justification")
+    labeled_change = _legacy_labeled_section(
+        _LEGACY_CHANGE_SECTION_RE,
+        justification,
+    )
+    if labeled_change:
+        return labeled_change
+
+    compact_reason = " ".join(str(triage.get("relevance_reason") or "").split())
+    if compact_reason:
+        return _first_complete_sentence(compact_reason)
+    return str(
+        change.get("what_changed")
+        or change.get("change_summary")
+        or ""
+    ).strip()
+
+
+def build_analyst_narrative(
+    change: dict[str, Any],
+    *,
+    bank_code: str | None = None,
+    candidate_summary: str = "",
+    summary_limit: int = 320,
+    relevance_limit: int = 720,
+) -> AnalystNarrative:
+    """Construit les unités canoniques « constat » et « pertinence ».
+
+    Les nouveaux triages sont lus champ par champ. Dès qu'un de leurs champs
+    structurés est présent, ``relevance_reason`` n'est jamais découpé ni
+    utilisé pour compléter les unités manquantes. Le découpage d'une raison
+    compacte demeure uniquement un repli pour les artefacts historiques.
+    """
+    triage_value = change.get("genai_triage") or {}
+    triage = triage_value if isinstance(triage_value, dict) else {}
+    has_structured_fields = any(
+        str(triage.get(field) or "").strip()
+        for field in _STRUCTURED_TRIAGE_FIELDS
+    )
+
+    if has_structured_fields:
+        factual_candidate = str(
+            triage.get("changement_constate")
+            or candidate_summary
+            or change.get("what_changed")
+            or change.get("change_summary")
+            or ""
+        ).strip()
+        source = "structured"
+    else:
+        factual_candidate = (
+            str(candidate_summary or "").strip()
+            or _legacy_change_candidate(change, triage)
+        )
+        source = "legacy"
+
+    if not factual_candidate:
+        factual_candidate = _fallback_summary(
+            change,
+            subject=bank_subject(bank_code),
+        )
+
+    if bank_code:
+        changement_constate = build_change_presentation(
+            change,
+            bank_code=bank_code,
+            candidate_summary=factual_candidate,
+            limit=summary_limit,
+        ).summary
+    else:
+        changement_constate = _clean_narrative_unit(
+            factual_candidate,
+            bank_code=None,
+        )
+        changement_constate = _truncate_at_sentence(
+            changement_constate,
+            summary_limit,
+        )
+
+    if has_structured_fields:
+        if bool(triage.get("is_relevant", False)):
+            pertinence_metier = _structured_business_paragraph(
+                (
+                    triage.get("signification_metier"),
+                    triage.get("comparaison_interbanques")
+                    or triage.get("comparaison_interbancaire"),
+                    triage.get("limite_interpretation"),
+                ),
+                summary=changement_constate,
+                bank_code=bank_code,
+                limit=relevance_limit,
+            )
+            motif_non_pertinence = ""
+        else:
+            pertinence_metier = ""
+            motif_non_pertinence = _structured_business_paragraph(
+                (triage.get("motif_non_pertinence"),),
+                summary=changement_constate,
+                bank_code=bank_code,
+                limit=relevance_limit,
+            )
+    else:
+        legacy_justification = triage.get("nouvelle_idee_justification")
+        labeled_relevance = _legacy_labeled_section(
+            _LEGACY_RELEVANCE_SECTION_RE,
+            legacy_justification,
+        )
+        unstructured_legacy_justification = ""
+        if legacy_justification and not labeled_relevance:
+            unstructured_legacy_justification = re.sub(
+                r"^(?:OUI|NON)\s*[-—:]\s*",
+                "",
+                " ".join(str(legacy_justification).split()),
+                flags=re.IGNORECASE,
+            ).strip()
+        legacy_relevance = business_relevance_paragraph(
+            labeled_relevance,
+            str(triage.get("relevance_reason") or ""),
+            str(triage.get("explanation") or ""),
+            str(triage.get("impact_description") or ""),
+            summary=changement_constate,
+            bank_code=bank_code,
+            limit=relevance_limit,
+        )
+        if not legacy_relevance and unstructured_legacy_justification:
+            legacy_relevance = _truncate_at_sentence(
+                sanitize_analyst_french(unstructured_legacy_justification),
+                relevance_limit,
+            )
+        if not legacy_relevance:
+            exclusion_code = str(triage.get("exclusion_reason") or "").strip()
+            if exclusion_code:
+                from vigilance.amf_taxonomy import EXCLUSION_REASONS_DESCRIPTIONS
+
+                legacy_relevance = sanitize_analyst_french(
+                    EXCLUSION_REASONS_DESCRIPTIONS.get(
+                        exclusion_code,
+                        exclusion_code.replace("_", " "),
+                    )
+                )
+        if bool(triage.get("is_relevant", False)):
+            pertinence_metier = legacy_relevance
+            motif_non_pertinence = ""
+        else:
+            pertinence_metier = ""
+            motif_non_pertinence = legacy_relevance
+
+    return AnalystNarrative(
+        changement_constate=changement_constate,
+        pertinence_metier=pertinence_metier,
+        motif_non_pertinence=motif_non_pertinence,
+        source=source,
     )

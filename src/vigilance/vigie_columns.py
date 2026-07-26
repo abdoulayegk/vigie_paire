@@ -11,13 +11,10 @@ import re
 from typing import Any
 
 from vigilance.analyst_change_presentation import (
+    build_analyst_narrative,
     build_change_presentation,
-    canonicalize_analyst_narrative,
 )
-from vigilance.amf_taxonomy import (
-    EXCLUSION_REASONS_DESCRIPTIONS,
-    THEMES_AMF_ANALYST_SUBJECTS,
-)
+from vigilance.amf_taxonomy import THEMES_AMF_ANALYST_SUBJECTS
 
 
 _CATEGORY_LABELS: dict[str, str] = {
@@ -212,92 +209,19 @@ def subsection_label(change: dict[str, Any]) -> str:
 
 
 def relevance_reason_for_display(change: dict[str, Any]) -> str:
-    """Lit la raison compacte, avec repli compatible sur les anciens artefacts."""
-    from vigilance.i18n.fr import sanitize_analyst_french
-
-    triage = change.get("genai_triage") or {}
-    compact_reason = " ".join(str(triage.get("relevance_reason") or "").split())
-    if compact_reason:
-        return sanitize_analyst_french(compact_reason)
-
-    legacy_justification = str(
-        triage.get("nouvelle_idee_justification") or ""
-    ).strip()
-    match = re.search(
-        r"Pertinence métier\s*:\s*(.*?)(?=\n\s*\n(?:Point de surveillance|Lecture de vigie)\s*:|$)",
-        legacy_justification,
-        flags=re.IGNORECASE | re.DOTALL,
-    )
-    if match:
-        return sanitize_analyst_french(" ".join(match.group(1).split()))
-
-    explanation = " ".join(str(triage.get("explanation") or "").split())
-    if explanation:
-        return sanitize_analyst_french(explanation)
-    if legacy_justification:
-        cleaned_legacy = re.sub(
-            r"^(OUI|NON)\s*[-—:]\s*",
-            "",
-            " ".join(legacy_justification.split()),
-            flags=re.IGNORECASE,
-        ).strip()
-        if cleaned_legacy:
-            return sanitize_analyst_french(cleaned_legacy)
-
-    exclusion_code = str(triage.get("exclusion_reason") or "").strip()
-    if exclusion_code:
-        return EXCLUSION_REASONS_DESCRIPTIONS.get(exclusion_code, exclusion_code)
+    """Retourne uniquement l'analyse métier, jamais le constat factuel."""
+    relevance = build_analyst_narrative(change).business_relevance
+    if relevance:
+        return relevance
     return "La pertinence n’a pas encore été qualifiée par l’analyse automatisée."
 
 
-_META_SUMMARY_RE = re.compile(
-    r"^Les deux (?:fragments|passages)\b",
-    flags=re.IGNORECASE,
-)
-_CE_QUI_CHANGE_RE = re.compile(
-    r"Ce qui change\s*:\s*(.*?)(?=\n\s*\n(?:Pertinence métier|Point de surveillance|Lecture de vigie)\s*:|$)",
-    flags=re.IGNORECASE | re.DOTALL,
-)
-
-
 def what_changed_for_display(change: dict[str, Any], *, limit: int = 300) -> str:
-    """Texte « Ce qui change » pour analyste : phrase complète, sans meta GPT."""
-    from vigilance.amf_taxonomy import _compact_complete_sentence_parts
-    from vigilance.i18n.fr import sanitize_analyst_french
-
-    triage = change.get("genai_triage") or {}
-    # Prefer compact relevance_reason only (not Pertinence métier fallback).
-    compact_reason = " ".join(str(triage.get("relevance_reason") or "").split())
-    if compact_reason:
-        parts = _compact_complete_sentence_parts(compact_reason)
-        candidate = parts[0] if parts else compact_reason
-        value = sanitize_analyst_french(candidate)
-        if value:
-            return value if len(value) <= limit else _truncate_at_sentence(value, limit)
-
-    justification = str(triage.get("nouvelle_idee_justification") or "")
-    match = _CE_QUI_CHANGE_RE.search(justification)
-    if match:
-        value = sanitize_analyst_french(" ".join(match.group(1).split()))
-        if value:
-            return value if len(value) <= limit else _truncate_at_sentence(value, limit)
-
-    previous_text = str(change.get("source_text_t1") or "")
-    current_text = str(change.get("source_text_t2") or "")
-    summary = str(change.get("change_summary") or "").strip()
-    if summary and not _META_SUMMARY_RE.match(summary):
-        return summarize_change(
-            change,
-            previous_text=previous_text,
-            current_text=current_text,
-            limit=limit,
-        )
-    return summarize_change(
+    """Texte factuel canonique, structuré ou compatible avec les anciens JSON."""
+    return build_analyst_narrative(
         change,
-        previous_text=previous_text,
-        current_text=current_text,
-        limit=limit,
-    )
+        summary_limit=limit,
+    ).changement_constate
 
 
 def build_text_vigie_display_row(
@@ -310,13 +234,17 @@ def build_text_vigie_display_row(
     triage = change.get("genai_triage") or {}
     previous_text = str(change.get("source_text_t1") or "")
     current_text = str(change.get("source_text_t2") or "")
-    candidate_summary = what_changed_for_display(change)
+    narrative = build_analyst_narrative(
+        change,
+        bank_code=bank_code or None,
+    )
     presentation = build_change_presentation(
         change,
         bank_code=bank_code,
-        candidate_summary=candidate_summary,
+        candidate_summary=narrative.changement_constate,
     )
-    what_changed = presentation.summary if bank_code else candidate_summary
+    what_changed = presentation.summary if bank_code else narrative.changement_constate
+    business_relevance = narrative.business_relevance
     category = derive_vigie_category(
         triage,
         text=" ".join((what_changed, previous_text, current_text)),
@@ -336,14 +264,11 @@ def build_text_vigie_display_row(
         "what_changed": what_changed,
         "nouvelle_idee": nouvelle_idee,
         "nouvelle_idee_label": "Oui" if nouvelle_idee else "Non",
-        "relevance_reason": (
-            canonicalize_analyst_narrative(
-                relevance_reason_for_display(change),
-                bank_code=bank_code,
-            )
-            if bank_code
-            else relevance_reason_for_display(change)
-        ),
+        # ``relevance_reason`` reste un alias de compatibilité pour les
+        # consommateurs historiques. Il ne contient plus le constat factuel.
+        "relevance_reason": business_relevance,
+        "business_relevance": business_relevance,
+        "non_relevance_reason": narrative.motif_non_pertinence,
         "presentation_scope": presentation.scope,
         "summary_quality": presentation.quality_status,
     }

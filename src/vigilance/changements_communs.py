@@ -17,6 +17,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from vigilance.analyst_change_presentation import build_change_presentation
 from vigilance.config import resolve_openai_model
 from vigilance.ui_config import RESULTATS_DIR, TEXT_COMPARISON_DIR
 from vigilance.utils.genai import get_openai_api_key
@@ -628,11 +629,20 @@ def _record_from_block(
         or block_t2.get("text")
         or ""
     ).strip()
-    change_summary = str(block.get("change_summary") or "").strip()
-    if not any([text_before, text_after, change_summary]):
-        return None
-
     triage = block.get("genai_triage") if isinstance(block.get("genai_triage"), dict) else {}
+    raw_change_summary = str(
+        triage.get("changement_constate")
+        or block.get("change_summary")
+        or ""
+    ).strip()
+    if not any([text_before, text_after, raw_change_summary]):
+        return None
+    change_summary = build_change_presentation(
+        block,
+        bank_code=bank_code,
+        candidate_summary=raw_change_summary,
+    ).summary
+
     themes = tuple(str(theme) for theme in triage.get("themes_amf", []) or [])
     impact_level = str(triage.get("impact_level") or block.get("impact_level") or "").strip()
     impact_it = str(triage.get("impact_it") or "INDETERMINE").strip()
