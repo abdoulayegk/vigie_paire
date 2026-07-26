@@ -1253,15 +1253,33 @@ Pydantic après désérialisation.</p>
 <dt class="sig sig-object py" id="vigilance.amf_taxonomy.TriageAMFCompactLLMResultWithIndex">
 <span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">TriageAMFCompactLLMResultWithIndex</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.amf_taxonomy.TriageAMFCompactLLMResultWithIndex" title="Lien vers cette définition"></a></dt>
 <dd><p>Bases : <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
-<p>Décision AMF minimale demandée au LLM pour une validation rapide.</p>
+<p>Décision AMF compacte avec unités analystes explicitement structurées.</p>
+<p><code class="docutils literal notranslate"><span class="pre">relevance_reason</span></code> demeure disponible comme propriété assemblée pour les
+consommateurs historiques. Il n’est toutefois plus demandé au LLM et aucun
+invariant ne dépend du comptage de phrases dans un paragraphe fusionné.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="vigilance.amf_taxonomy.TriageAMFCompactLLMResultWithIndex.change_index">
 <span class="sig-name descname"><span class="pre">change_index</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#vigilance.amf_taxonomy.TriageAMFCompactLLMResultWithIndex.change_index" title="Lien vers cette définition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
+<dt class="sig sig-object py" id="vigilance.amf_taxonomy.TriageAMFCompactLLMResultWithIndex.changement_constate">
+<span class="sig-name descname"><span class="pre">changement_constate</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#vigilance.amf_taxonomy.TriageAMFCompactLLMResultWithIndex.changement_constate" title="Lien vers cette définition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="vigilance.amf_taxonomy.TriageAMFCompactLLMResultWithIndex.comparaison_interbanques">
+<span class="sig-name descname"><span class="pre">comparaison_interbanques</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#vigilance.amf_taxonomy.TriageAMFCompactLLMResultWithIndex.comparaison_interbanques" title="Lien vers cette définition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="vigilance.amf_taxonomy.TriageAMFCompactLLMResultWithIndex.is_relevant">
 <span class="sig-name descname"><span class="pre">is_relevant</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><a class="headerlink" href="#vigilance.amf_taxonomy.TriageAMFCompactLLMResultWithIndex.is_relevant" title="Lien vers cette définition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="vigilance.amf_taxonomy.TriageAMFCompactLLMResultWithIndex.limite_interpretation">
+<span class="sig-name descname"><span class="pre">limite_interpretation</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#vigilance.amf_taxonomy.TriageAMFCompactLLMResultWithIndex.limite_interpretation" title="Lien vers cette définition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
@@ -1271,13 +1289,24 @@ Pydantic après désérialisation.</p>
 </dd></dl>
 
 <dl class="py attribute">
+<dt class="sig sig-object py" id="vigilance.amf_taxonomy.TriageAMFCompactLLMResultWithIndex.motif_non_pertinence">
+<span class="sig-name descname"><span class="pre">motif_non_pertinence</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#vigilance.amf_taxonomy.TriageAMFCompactLLMResultWithIndex.motif_non_pertinence" title="Lien vers cette définition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
 <dt class="sig sig-object py" id="vigilance.amf_taxonomy.TriageAMFCompactLLMResultWithIndex.nouvelle_idee">
 <span class="sig-name descname"><span class="pre">nouvelle_idee</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></span><a class="headerlink" href="#vigilance.amf_taxonomy.TriageAMFCompactLLMResultWithIndex.nouvelle_idee" title="Lien vers cette définition"></a></dt>
 <dd></dd></dl>
 
-<dl class="py attribute">
+<dl class="py property">
 <dt class="sig sig-object py" id="vigilance.amf_taxonomy.TriageAMFCompactLLMResultWithIndex.relevance_reason">
-<span class="sig-name descname"><span class="pre">relevance_reason</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#vigilance.amf_taxonomy.TriageAMFCompactLLMResultWithIndex.relevance_reason" title="Lien vers cette définition"></a></dt>
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">relevance_reason</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#vigilance.amf_taxonomy.TriageAMFCompactLLMResultWithIndex.relevance_reason" title="Lien vers cette définition"></a></dt>
+<dd><p>Assemble le texte historique sans analyser sa ponctuation interne.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="vigilance.amf_taxonomy.TriageAMFCompactLLMResultWithIndex.signification_metier">
+<span class="sig-name descname"><span class="pre">signification_metier</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#vigilance.amf_taxonomy.TriageAMFCompactLLMResultWithIndex.signification_metier" title="Lien vers cette définition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
