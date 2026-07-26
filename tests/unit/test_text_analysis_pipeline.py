@@ -6568,7 +6568,74 @@ def test_triage_section_changes_batches_two_sides_of_one_semantic_distinct_decis
     assert '"change_index": 2' in prompt
 
 
-def test_triage_section_changes_reads_long_sources_as_full_evidence_packets() -> None:
+def test_triage_section_changes_sends_single_full_evidence_packet_directly_to_triage() -> None:
+    from vigilance.text_analysis.triage import (
+        _EvidencePacketCoherenceCheck,
+        _EvidencePacketObservation,
+    )
+
+    def valid_response(**kwargs):
+        response_format = kwargs["response_format"]
+        if response_format is _EvidencePacketObservation:
+            pytest.fail(
+                "Une preuve mono-paquet doit atteindre directement le triage."
+            )
+        if response_format is _EvidencePacketCoherenceCheck:
+            return _make_parsed_response(
+                _EvidencePacketCoherenceCheck(
+                    verdict="supports",
+                    reason="La décision proposée reste cohérente avec la preuve complète.",
+                )
+            )
+        return _make_parsed_response(
+            TriageAMFCompactLLMBatch(
+                triages=[
+                    TriageAMFCompactLLMResultWithIndex(
+                        change_index=1,
+                        is_relevant=False,
+                        themes_amf=[],
+                        nouvelle_idee=False,
+                        relevance_reason=_compact_secondary_reason(),
+                    )
+                ]
+            )
+        )
+
+    client = _FakeStructuredClient(valid_response)
+    long_semantic = "A" * 5000
+    long_source = "B" * 2000
+
+    result = _triage_section_changes(
+        client=client,
+        model="gpt-4o",
+        section_key="gestion_risques",
+        changes=[
+            {
+                "diff_type": "added",
+                "semantic_text_t1": "",
+                "semantic_text_t2": long_semantic,
+                "source_text_t1": "",
+                "source_text_t2": long_source,
+            }
+        ],
+    )
+
+    triage_call = client._completions.calls[0]
+    triage_prompt = triage_call["messages"][1]["content"]
+    assert client.call_count == 2
+    assert triage_call["response_format"] is TriageAMFCompactLLMBatch
+    assert '"full_evidence_exact_packet"' in triage_prompt
+    assert long_source in triage_prompt
+    assert client._completions.calls[-1]["response_format"] is _EvidencePacketCoherenceCheck
+    coherence_prompt = client._completions.calls[-1]["messages"][1]["content"]
+    assert long_source in coherence_prompt
+    triage = result[0]["genai_triage"]
+    assert triage["full_evidence_verified"] is True
+    assert triage["full_evidence_mode"] == "direct_exact_packet"
+    assert triage["full_evidence_observations"] == []
+
+
+def test_triage_section_changes_keeps_observation_workflow_for_multi_packet_evidence() -> None:
     from vigilance.text_analysis.triage import (
         _EvidencePacketCoherenceCheck,
         _EvidencePacketObservation,
@@ -6604,30 +6671,113 @@ def test_triage_section_changes_reads_long_sources_as_full_evidence_packets() ->
         )
 
     client = _FakeStructuredClient(valid_response)
-    long_semantic = "A" * 5000
-    long_source = "B" * 2000
-
-    _triage_section_changes(
+    long_source = "C" * 2500
+    result = _triage_section_changes(
         client=client,
         model="gpt-4o",
         section_key="gestion_risques",
+        bank_code="bmo",
         changes=[
             {
                 "diff_type": "added",
-                "semantic_text_t1": "",
-                "semantic_text_t2": long_semantic,
                 "source_text_t1": "",
                 "source_text_t2": long_source,
             }
         ],
     )
 
-    evidence_call = client._completions.calls[0]
-    evidence_prompt = evidence_call["messages"][1]["content"]
-    assert evidence_call["response_format"] is _EvidencePacketObservation
-    assert long_source in evidence_prompt
-    assert "texte tronque pour le triage" not in evidence_prompt
-    assert client._completions.calls[-1]["response_format"] is _EvidencePacketCoherenceCheck
+    response_formats = [
+        call["response_format"] for call in client._completions.calls
+    ]
+    assert response_formats == [
+        _EvidencePacketObservation,
+        _EvidencePacketObservation,
+        TriageAMFCompactLLMBatch,
+        _EvidencePacketCoherenceCheck,
+        _EvidencePacketCoherenceCheck,
+    ]
+    observation_calls = client._completions.calls[:2]
+    reassembled_observation_source = "".join(
+        json.loads(call["messages"][1]["content"])["packet"]["text_t2"]
+        for call in observation_calls
+    )
+    assert reassembled_observation_source == long_source
+    triage_prompt = client._completions.calls[2]["messages"][1]["content"]
+    assert '"full_evidence_exact_packet"' not in triage_prompt
+    triage = result[0]["genai_triage"]
+    assert triage["full_evidence_verified"] is True
+    assert triage["full_evidence_mode"] == "packet_observations"
+    assert len(triage["full_evidence_observations"]) == 2
+
+
+def test_full_evidence_packet_boundaries_preserve_every_character() -> None:
+    from vigilance.text_analysis.triage import _split_full_evidence_text
+
+    at_limit = "A" * 2400
+    over_limit = ("B" * 1300) + "\n" + ("C" * 1100)
+
+    at_limit_packets = _split_full_evidence_text(at_limit)
+    over_limit_packets = _split_full_evidence_text(over_limit)
+
+    assert len(at_limit_packets) == 1
+    assert len(over_limit_packets) == 2
+    assert "".join(at_limit_packets) == at_limit
+    assert "".join(over_limit_packets) == over_limit
+
+
+def test_single_full_evidence_packet_keeps_negative_coherence_guardrail() -> None:
+    from vigilance.text_analysis.triage import (
+        _EvidencePacketCoherenceCheck,
+        _EvidencePacketObservation,
+    )
+
+    def contradicting_response(**kwargs):
+        response_format = kwargs["response_format"]
+        if response_format is _EvidencePacketObservation:
+            pytest.fail(
+                "Une preuve mono-paquet ne doit pas déclencher de prélecture."
+            )
+        if response_format is _EvidencePacketCoherenceCheck:
+            return _make_parsed_response(
+                _EvidencePacketCoherenceCheck(
+                    verdict="contradicts",
+                    reason="La preuve exacte contredit la qualification proposée.",
+                )
+            )
+        return _make_parsed_response(
+            TriageAMFCompactLLMBatch(
+                triages=[
+                    TriageAMFCompactLLMResultWithIndex(
+                        change_index=1,
+                        is_relevant=False,
+                        themes_amf=[],
+                        nouvelle_idee=False,
+                        relevance_reason=_compact_secondary_reason(),
+                    )
+                ]
+            )
+        )
+
+    client = _FakeStructuredClient(contradicting_response)
+    result = _triage_section_changes(
+        client=client,
+        model="gpt-4o",
+        section_key="gestion_risques",
+        bank_code="bmo",
+        changes=[
+            {
+                "diff_type": "modified",
+                "source_text_t1": "A" * 500,
+                "source_text_t2": "B" * 500,
+            }
+        ],
+    )
+
+    triage = result[0]["genai_triage"]
+    assert client.call_count == 2
+    assert triage["source"] == "triage_coherence_review_required"
+    assert triage["coherence_review_required"] is True
+    assert "contredit" in triage["coherence_review_reason"]
 
 
 def test_full_evidence_contract_rejects_a_collection_or_packet_index() -> None:
@@ -6706,14 +6856,16 @@ def test_full_evidence_invalid_response_is_corrected_then_pipeline_continues() -
         changes=[
             {
                 "diff_type": "modified",
-                "source_text_t1": "A" * 500,
-                "source_text_t2": "B" * 500,
+                "source_text_t1": "A" * 2500,
+                "source_text_t2": "B" * 2500,
             }
         ],
     )
 
-    assert evidence_attempts == 2
+    assert evidence_attempts == 3
+    assert client.call_count == 6
     assert result[0]["genai_triage"]["full_evidence_verified"] is True
+    assert result[0]["genai_triage"]["full_evidence_mode"] == "packet_observations"
     retry_message = client._completions.calls[1]["messages"][-1]["content"]
     assert "exactement un objet" in retry_message
     assert "Détail de l'erreur" in retry_message
@@ -6751,13 +6903,14 @@ def test_full_evidence_persistent_failure_marks_only_change_for_review() -> None
         changes=[
             {
                 "diff_type": "modified",
-                "source_text_t1": "A" * 500,
-                "source_text_t2": "B" * 500,
+                "source_text_t1": "A" * 2500,
+                "source_text_t2": "B" * 2500,
             }
         ],
     )
 
     triage = result[0]["genai_triage"]
+    assert client.call_count == 3
     assert triage["source"] == "triage_evidence_review_required"
     assert triage["coherence_review_required"] is True
     assert "section=gestion_risques" in triage["coherence_review_reason"]

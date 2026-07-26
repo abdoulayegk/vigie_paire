@@ -387,7 +387,7 @@ def _collect_full_evidence_observations(
     section_key: str = "",
     change_index: int | None = None,
 ) -> list[dict[str, Any]]:
-    """Lire toute preuve longue par appels factuels séparés et auditables."""
+    """Lire une preuve multipaquet par appels factuels séparés et auditables."""
     bank_subject = analyst_bank_subject(bank_code)
     packets = _build_full_evidence_packets(change)
     observations: list[dict[str, Any]] = []
@@ -1828,34 +1828,47 @@ def _triage_section_changes(
     exact_segments_by_index: dict[int, list[dict[str, str]]] = {}
     full_evidence_by_index: dict[int, list[dict[str, Any]]] = {}
     full_evidence_packets_by_index: dict[int, list[dict[str, Any]]] = {}
+    direct_full_evidence_by_index: dict[int, dict[str, str]] = {}
+    full_evidence_mode_by_index: dict[int, str] = {}
     full_evidence_failures_by_index: dict[int, str] = {}
     for idx, change in enumerate(changes, start=1):
         exact_segments = build_change_segments(change)
         exact_segments_by_index[idx] = exact_segments
         full_evidence = []
         if _requires_full_evidence_packets(change):
-            full_evidence_packets_by_index[idx] = _build_full_evidence_packets(change)
-            try:
-                full_evidence = _collect_full_evidence_observations(
-                    client=client,
-                    model=model,
-                    change=change,
-                    bank_code=effective_bank_code,
-                    section_key=section_key,
-                    change_index=idx,
-                )
-            except Exception as exc:
-                failure_reason = str(exc)
-                full_evidence_failures_by_index[idx] = failure_reason
-                logger.error(
-                    "full evidence read requires review section=%s "
-                    "change_index=%d error=%s",
-                    section_key,
-                    idx,
-                    failure_reason,
-                )
+            packets = _build_full_evidence_packets(change)
+            full_evidence_packets_by_index[idx] = packets
+            if len(packets) == 1:
+                # Le texte exact tient déjà dans le prompt principal : une
+                # prélecture LLM le résumerait inutilement avant le triage.
+                direct_full_evidence_by_index[idx] = {
+                    "text_t1": str(packets[0].get("text_t1") or ""),
+                    "text_t2": str(packets[0].get("text_t2") or ""),
+                }
+                full_evidence_mode_by_index[idx] = "direct_exact_packet"
             else:
-                full_evidence_by_index[idx] = full_evidence
+                full_evidence_mode_by_index[idx] = "packet_observations"
+                try:
+                    full_evidence = _collect_full_evidence_observations(
+                        client=client,
+                        model=model,
+                        change=change,
+                        bank_code=effective_bank_code,
+                        section_key=section_key,
+                        change_index=idx,
+                    )
+                except Exception as exc:
+                    failure_reason = str(exc)
+                    full_evidence_failures_by_index[idx] = failure_reason
+                    logger.error(
+                        "full evidence read requires review section=%s "
+                        "change_index=%d error=%s",
+                        section_key,
+                        idx,
+                        failure_reason,
+                    )
+                else:
+                    full_evidence_by_index[idx] = full_evidence
         exact_segments_for_prompt = [
             {
                 "kind": str(segment.get("kind") or ""),
@@ -1870,38 +1883,40 @@ def _triage_section_changes(
             }
             for segment in exact_segments
         ]
-        triage_inputs.append(
-            {
-                "bank_subject": bank_subject,
-                "change_index": idx,
-                "diff_type": change["diff_type"],
-                "source_snippet_t1": _truncate_prompt_text(
-                    change.get("source_text_t1")
-                    or change.get("semantic_text_t1")
-                    or "",
-                    _TRIAGE_SOURCE_SNIPPET_LIMIT,
-                ),
-                "source_snippet_t2": _truncate_prompt_text(
-                    change.get("source_text_t2")
-                    or change.get("semantic_text_t2")
-                    or "",
-                    _TRIAGE_SOURCE_SNIPPET_LIMIT,
-                ),
-                "exact_change_segments": exact_segments_for_prompt,
-                "alignment_decision": str(change.get("alignment_decision") or ""),
-                "alignment_confidence": str(change.get("alignment_confidence") or ""),
-                "alignment_rationale": _truncate_prompt_text(
-                    str(change.get("alignment_rationale") or ""),
-                    _TRIAGE_SOURCE_SNIPPET_LIMIT,
-                ),
-                "change_summary": change.get("change_summary", ""),
-                "full_evidence_observations": full_evidence,
-                "candidate_themes": _candidate_themes_for_change(
-                    change,
-                    section_key=section_key,
-                ),
-            }
-        )
+        triage_input = {
+            "bank_subject": bank_subject,
+            "change_index": idx,
+            "diff_type": change["diff_type"],
+            "source_snippet_t1": _truncate_prompt_text(
+                change.get("source_text_t1")
+                or change.get("semantic_text_t1")
+                or "",
+                _TRIAGE_SOURCE_SNIPPET_LIMIT,
+            ),
+            "source_snippet_t2": _truncate_prompt_text(
+                change.get("source_text_t2")
+                or change.get("semantic_text_t2")
+                or "",
+                _TRIAGE_SOURCE_SNIPPET_LIMIT,
+            ),
+            "exact_change_segments": exact_segments_for_prompt,
+            "alignment_decision": str(change.get("alignment_decision") or ""),
+            "alignment_confidence": str(change.get("alignment_confidence") or ""),
+            "alignment_rationale": _truncate_prompt_text(
+                str(change.get("alignment_rationale") or ""),
+                _TRIAGE_SOURCE_SNIPPET_LIMIT,
+            ),
+            "change_summary": change.get("change_summary", ""),
+            "full_evidence_observations": full_evidence,
+            "candidate_themes": _candidate_themes_for_change(
+                change,
+                section_key=section_key,
+            ),
+        }
+        direct_full_evidence = direct_full_evidence_by_index.get(idx)
+        if direct_full_evidence is not None:
+            triage_input["full_evidence_exact_packet"] = direct_full_evidence
+        triage_inputs.append(triage_input)
 
     system_prompt = (
         "Tu qualifies des changements de divulgation d’une banque canadienne "
@@ -1975,7 +1990,12 @@ def _triage_section_changes(
         "à l’analyste. Interdit : fragment, chunk, T1, T2, termes anglais.\n"
         "5. Ne produis aucun champ d’impact, d’action, de posture, d’impact IT, "
         "d’explication générale, de justification multi-rubriques ou "
-        "`relevance_reason`.\n\n"
+        "`relevance_reason`.\n"
+        "6. Si `full_evidence_exact_packet` est présent, il contient les textes "
+        "T1/T2 complets et non tronqués pour ce changement. Fonde la qualification "
+        "sur cette preuve exacte plutôt que sur les `source_snippet_*`. "
+        "`full_evidence_observations` reste réservé aux preuves réellement "
+        "découpées en plusieurs paquets.\n\n"
         f"Adapte les exemples à la banque analysée : remplace toujours leur sujet "
         f"par {bank_subject} dans la réponse réelle.\n\n"
         f"{_FEW_SHOT_TRIAGE_AMF}\n\n"
@@ -2133,13 +2153,14 @@ def _triage_section_changes(
             continue
         triage = triage_map.get(idx, _default_triage(effective_bank_code))
         evidence_observations = full_evidence_by_index.get(idx, [])
-        if evidence_observations:
+        evidence_packets = full_evidence_packets_by_index.get(idx, [])
+        if evidence_packets:
             coherent, coherence_reason = _verify_triage_coherence(
                 client=client,
                 model=model,
                 change=change,
                 triage=triage,
-                evidence_packets=full_evidence_packets_by_index[idx],
+                evidence_packets=evidence_packets,
             )
             if not coherent:
                 enriched.append(
@@ -2151,6 +2172,7 @@ def _triage_section_changes(
                 )
                 continue
             triage["full_evidence_verified"] = True
+            triage["full_evidence_mode"] = full_evidence_mode_by_index[idx]
             triage["full_evidence_observations"] = evidence_observations
         enriched_change = dict(change)
         enriched_change["genai_triage"] = triage
