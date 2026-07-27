@@ -224,6 +224,46 @@ ExclusionReason = Literal[
 
 ImpactLevel = Literal["MAJEUR", "MODERE", "MINEUR"]
 
+MaterialityLevel = ImpactLevel
+
+ChangeNature = Literal[
+    "FORMATAGE",
+    "REFORMULATION_EQUIVALENTE",
+    "DEPLACEMENT",
+    "AJOUT_INFORMATION",
+    "RETRAIT_INFORMATION",
+    "MODIFICATION_TERMINOLOGIE",
+    "MODIFICATION_DEFINITION",
+    "MODIFICATION_PERIMETRE",
+    "MODIFICATION_GOUVERNANCE",
+    "MODIFICATION_RESPONSABILITES",
+    "MODIFICATION_METHODOLOGIE",
+    "MODIFICATION_CONTROLE",
+    "MODIFICATION_EXIGENCE_REGLEMENTAIRE",
+    "MODIFICATION_STATUT_MISE_EN_OEUVRE",
+    "VARIATION_CHIFFREE",
+    "AUTRE",
+]
+
+BusinessEquivalence = Literal[
+    "CONFIRMEE",
+    "PROBABLE",
+    "NON_DEMONTREE",
+    "REFUTEE",
+    "INDETERMINE",
+]
+
+MaterialityConfidence = Literal["ELEVEE", "MOYENNE", "FAIBLE", "INDETERMINE"]
+
+EvidenceSufficiency = Literal[
+    "SUFFISANTE",
+    "PARTIELLE",
+    "INSUFFISANTE",
+    "INDETERMINE",
+]
+
+DecisionStatus = Literal["CONFIRME", "PROVISOIRE", "A_CONFIRMER"]
+
 ImpactIT = Literal["ELEVE", "MOYEN", "FAIBLE", "INDETERMINE"]
 
 ChangementPosture = Literal[
@@ -253,7 +293,7 @@ ActionRequise = Literal[
     "aucune",
 ]
 
-TRIAGE_SOURCE_VERSION = "gpt4o_triage_amf_compact_v2"
+TRIAGE_SOURCE_VERSION = "gpt4o_triage_amf_materiality_v3"
 
 
 ChangeSegmentKind = Literal["added", "removed", "modified"]
@@ -325,6 +365,137 @@ POSTURE_DETAIL_LABELS = (
 )
 
 
+class MaterialityAssessment(BaseModel):
+    """Évaluation directe et auditable de la matérialité métier.
+
+    Les valeurs par défaut préservent la lecture des anciens artefacts qui ne
+    contiennent pas encore cette évaluation. Dès qu'un niveau direct est
+    fourni, la nature, la confiance et la suffisance de preuve doivent
+    également être évaluées.
+    """
+
+    materiality_level: MaterialityLevel | None = Field(
+        default=None,
+        description=(
+            "Niveau de matérialité métier décidé directement à partir des "
+            "preuves, indépendamment du champ nouvelle_idee."
+        ),
+    )
+    change_nature: list[ChangeNature] = Field(
+        default_factory=list,
+        max_length=3,
+        description=("Une à trois dimensions sémantiques décrivant la nature réelle du changement."),
+    )
+    business_equivalence: BusinessEquivalence = Field(
+        default="INDETERMINE",
+        description=(
+            "Degré auquel les formulations avant et après conservent le même "
+            "référent, périmètre, rôle et fonctionnement métier."
+        ),
+    )
+    materiality_confidence: MaterialityConfidence = Field(
+        default="INDETERMINE",
+        description="Confiance dans le niveau de matérialité attribué.",
+    )
+    evidence_sufficiency: EvidenceSufficiency = Field(
+        default="INDETERMINE",
+        description=("Suffisance du contexte et des preuves pour confirmer le jugement de matérialité."),
+    )
+    decision_status: DecisionStatus = Field(
+        default="PROVISOIRE",
+        description=("Statut du jugement : confirmé, provisoire ou à confirmer par une revue complémentaire."),
+    )
+    review_required: bool = Field(
+        default=False,
+        description=(
+            "Indique qu'une revue indépendante ou analyste est nécessaire "
+            "avant de considérer le niveau comme définitif."
+        ),
+    )
+    supporting_evidence: list[str] = Field(
+        default_factory=list,
+        max_length=5,
+        description=("Éléments factuels concis qui soutiennent le niveau de matérialité."),
+    )
+    counterarguments: list[str] = Field(
+        default_factory=list,
+        max_length=5,
+        description=(
+            "Éléments qui pourraient justifier un niveau inférieur, une équivalence ou une autre interprétation."
+        ),
+    )
+
+    @field_validator("change_nature")
+    @classmethod
+    def _dedupe_change_nature(cls, value: list[str]) -> list[str]:
+        """Supprime les dimensions dupliquées sans perdre leur ordre."""
+        return list(dict.fromkeys(value))
+
+    @field_validator("supporting_evidence", "counterarguments", mode="before")
+    @classmethod
+    def _default_materiality_evidence_lists(cls, value: object) -> object:
+        """Accepte les listes absentes/nulles des artefacts historiques."""
+        return [] if value is None else value
+
+    @field_validator("supporting_evidence", "counterarguments")
+    @classmethod
+    def _normalize_materiality_evidence(cls, value: list[str]) -> list[str]:
+        """Normalise et déduplique les preuves textuelles."""
+        normalized = [" ".join(item.split()) for item in value if item.strip()]
+        return list(dict.fromkeys(normalized))
+
+    @model_validator(mode="after")
+    def _check_materiality_assessment(self) -> "MaterialityAssessment":
+        """Garantit qu'une décision directe reste explicable et prudente."""
+        if self.materiality_level is not None:
+            if not self.change_nature:
+                raise ValueError("materiality_level exige au moins une valeur dans change_nature")
+            if self.materiality_confidence == "INDETERMINE":
+                raise ValueError("materiality_level exige materiality_confidence évaluée")
+            if self.evidence_sufficiency == "INDETERMINE":
+                raise ValueError("materiality_level exige evidence_sufficiency évaluée")
+            if self.evidence_sufficiency != "INSUFFISANTE" and not self.supporting_evidence:
+                raise ValueError("une preuve au moins est requise quand evidence_sufficiency n'est pas INSUFFISANTE")
+
+        if self.decision_status == "CONFIRME":
+            if self.materiality_level is None:
+                raise ValueError("decision_status=CONFIRME exige materiality_level")
+            if self.evidence_sufficiency != "SUFFISANTE":
+                raise ValueError("decision_status=CONFIRME exige evidence_sufficiency=SUFFISANTE")
+            if self.materiality_confidence not in {"ELEVEE", "MOYENNE"}:
+                raise ValueError("decision_status=CONFIRME exige une confiance ELEVEE ou MOYENNE")
+
+        uncertain_minor = self.materiality_level == "MINEUR" and self.business_equivalence in {
+            "PROBABLE",
+            "NON_DEMONTREE",
+            "REFUTEE",
+            "INDETERMINE",
+        }
+        if (
+            self.materiality_level in {"MODERE", "MAJEUR"}
+            and self.business_equivalence == "CONFIRMEE"
+        ):
+            raise ValueError(
+                "MODERE ou MAJEUR est incompatible avec une équivalence métier CONFIRMEE"
+            )
+        requires_review = (
+            self.decision_status == "A_CONFIRMER"
+            or (
+                self.materiality_level is not None
+                and self.decision_status == "PROVISOIRE"
+            )
+            or self.evidence_sufficiency == "INSUFFISANTE"
+            or self.materiality_confidence == "FAIBLE"
+            or uncertain_minor
+        )
+        if requires_review and not self.review_required:
+            raise ValueError(
+                "review_required=True est exigé pour une décision incertaine, "
+                "une preuve insuffisante ou un MINEUR sans équivalence démontrée"
+            )
+        return self
+
+
 def extract_labeled_analysis(
     text: str,
     labels: tuple[str, ...],
@@ -386,7 +557,7 @@ def _missing_justification_sections(text: str) -> list[str]:
     return missing
 
 
-class _TriageAMFResultBase(BaseModel):
+class _TriageAMFResultBase(MaterialityAssessment):
     """Sortie validée d'un triage GPT-4o pour un changement.
 
     Invariants garantis (toute violation lève ``pydantic.ValidationError``).
@@ -418,6 +589,7 @@ class _TriageAMFResultBase(BaseModel):
     nouvelle_idee_justification: str = ""
     action_requise: ActionRequise = "aucune"
     exclusion_reason: ExclusionReason | None = None
+
     @field_validator("themes_amf")
     @classmethod
     def _dedupe_themes(cls, value: list[str]) -> list[str]:
@@ -450,6 +622,35 @@ class _TriageAMFResultBase(BaseModel):
         normalized["nouvelle_idee_justification"] = synthesize_triage_justification_from_payload(
             normalized
         )
+        return normalized
+
+    @model_validator(mode="before")
+    @classmethod
+    def _synchronize_direct_and_legacy_materiality(cls, data: object) -> object:
+        """Synchronise le niveau direct avec ``impact_level`` historique.
+
+        Un ancien payload qui ne fournit que ``impact_level`` reste inchangé.
+        Lorsqu'un nouveau payload fournit seulement ``materiality_level``, sa
+        valeur alimente aussi le champ historique pour les consommateurs aval.
+        Si les deux valeurs sont explicites, elles doivent être identiques.
+        """
+        if not isinstance(data, dict):
+            return data
+
+        normalized = dict(data)
+        materiality_level = normalized.get("materiality_level")
+        if materiality_level is None:
+            return normalized
+
+        if "impact_level" not in normalized:
+            normalized["impact_level"] = materiality_level
+            return normalized
+
+        impact_level = normalized.get("impact_level")
+        if impact_level != materiality_level:
+            raise ValueError(
+                "materiality_level et impact_level doivent être identiques lorsqu'ils sont tous deux fournis"
+            )
         return normalized
 
     @model_validator(mode="before")
@@ -752,7 +953,7 @@ def _has_complete_sentence_ending(value: str) -> bool:
     return bool(parts) and value.endswith(parts[-1])
 
 
-class TriageAMFCompactLLMResultWithIndex(BaseModel):
+class TriageAMFCompactLLMResultWithIndex(MaterialityAssessment):
     """Décision AMF compacte avec unités analystes explicitement structurées.
 
     ``relevance_reason`` demeure disponible comme propriété assemblée pour les
@@ -906,6 +1107,10 @@ class TriageAMFCompactLLMResultWithIndex(BaseModel):
                 raise ValueError("is_relevant=False interdit themes_amf non vide")
             if self.nouvelle_idee:
                 raise ValueError("is_relevant=False interdit nouvelle_idee=True")
+            if self.materiality_level not in {None, "MINEUR"}:
+                raise ValueError(
+                    "is_relevant=False exige materiality_level=MINEUR"
+                )
             forbidden_fields = {
                 "signification_metier": self.signification_metier,
                 "comparaison_interbanques": self.comparaison_interbanques,
@@ -944,6 +1149,20 @@ class TriageAMFCompactLLMBatch(BaseModel):
     """Lot compact : une décision courte pour chaque changement demandé."""
 
     triages: list[TriageAMFCompactLLMResultWithIndex]
+
+
+class TriageAMFMaterialityLLMResultWithIndex(
+    TriageAMFCompactLLMResultWithIndex
+):
+    """Sortie v3 fraîche exigeant une décision directe de matérialité."""
+
+    materiality_level: MaterialityLevel
+
+
+class TriageAMFMaterialityLLMBatch(BaseModel):
+    """Lot v3 utilisé pour les nouvelles décisions du modèle."""
+
+    triages: list[TriageAMFMaterialityLLMResultWithIndex]
 
 
 def format_themes_for_prompt() -> str:

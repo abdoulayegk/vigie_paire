@@ -13,11 +13,14 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from vigilance.analyst_change_presentation import bank_subject as analyst_bank_subject
 from vigilance.amf_taxonomy import (
+    MaterialityAssessment,
+    MaterialityLevel,
     THEMES_AMF_ANALYST_SUBJECTS,
     THEMES_AMF_DESCRIPTIONS,
     THEMES_AMF_PIPELINE_2,
     TRIAGE_SOURCE_VERSION,
-    TriageAMFCompactLLMBatch,
+    TriageAMFCompactLLMResultWithIndex,
+    TriageAMFMaterialityLLMBatch,
     TriageValidationError,
     empty_triage_skeleton,
 )
@@ -33,6 +36,10 @@ from vigilance.text_analysis.openai_client import (
     _embed_texts,
     _truncate_prompt_text,
 )
+from vigilance.text_analysis.precedent_memory import (
+    PrecedentMemory,
+    PrecedentQuery,
+)
 from vigilance.text_comparison.change_segments import build_change_segments
 from vigilance.text_comparison.justification import build_compact_triage_justification
 
@@ -47,10 +54,11 @@ _BANK_NOISE_SEQUENCE_THRESHOLD = 0.92
 _TRIAGE_DEDUP_EMBEDDING_THRESHOLD = 0.92
 _TRIAGE_EMBEDDING_TRUNCATE_CHARS = 1800
 _DEFAULT_EMBEDDING_MODEL = "text-embedding-3-small"
+_RELATED_CHANGE_CONTEXT_LIMIT = 6
 _COMPACT_THEME_CANDIDATE_LIMIT = 6
-_COMPACT_COMPLETION_BASE_TOKENS = 350
-_COMPACT_COMPLETION_TOKENS_PER_CHANGE = 320
-_COMPACT_COMPLETION_MAX_TOKENS = 1200
+_COMPACT_COMPLETION_BASE_TOKENS = 500
+_COMPACT_COMPLETION_TOKENS_PER_CHANGE = 700
+_COMPACT_COMPLETION_MAX_TOKENS = 2400
 _FULL_EVIDENCE_PACKET_LIMIT = 2400
 # Must stay above the token equivalent of max_length=700 on factual_change /
 # reason so structured completions never hit finish_reason=length.
@@ -64,6 +72,50 @@ _SEMANTIC_REASON_FIELDS = (
     "motif_non_pertinence",
 )
 _ANALYST_FIELD_END_RE = re.compile(r"[.!?]+[\u00bb\u201d\"')\]]*$")
+_MATERIALITY_RANK = {"MINEUR": 0, "MODERE": 1, "MAJEUR": 2}
+_HARD_PREFILTER_EXCLUSIONS = frozenset(
+    {
+        "formatage_visuel",
+        "deplacement_texte",
+    }
+)
+_SENSITIVE_MATERIALITY_THEMES = frozenset(
+    {
+        "CAPITAL_REGLEMENTAIRE",
+        "FONDS_PROPRES_REGLEMENTAIRES",
+        "RATIOS_REGLEMENTAIRES",
+        "LIQUIDITE",
+        "EXIGENCES_REGLEMENTAIRES",
+        "NOUVELLE_MENTION_REGLEMENTAIRE",
+        "MONTANT_REGLEMENTAIRE",
+        "DIVULGATION_RETRAIT",
+        "MODIFICATION_TEXTE_RISQUE",
+        "MODIFICATION_METHODOLOGIE",
+        "FACTEUR_RISQUE_CHANGEMENT",
+        "HYPOTHESES_EXPLICATIONS_RISQUES",
+        "ESG_CLIMATIQUE",
+        "RISQUE_EMERGENT",
+        "RISQUE_DONNEES",
+        "RISQUE_TIERS_CLOUD",
+        "RISQUE_MACRO_GEOPOLITIQUE",
+        "GOUVERNANCE_RISQUES",
+        "CONTROLE_CONFORMITE",
+        "SUJET_EMERGENT_HORS_GRILLE",
+    }
+)
+_SENSITIVE_MATERIALITY_TEXT_RE = re.compile(
+    r"\b(?:"
+    r"capital|fonds?\s+propre|ad[ée]quation|suffisance|liquidit[ée]|"
+    r"ratio|seuil|plancher|apr|actifs?\s+pond[ée]r[ée]s?|"
+    r"gouvernance|comit[ée]|conseil|mandat|autor(?:it[ée]|ise|isation)|"
+    r"responsabilit[ée]|supervision|reddition|ligne\s+de\s+d[ée]fense|"
+    r"m[ée]thod(?:e|ologie)|mod[èe]le|processus|contr[oô]le|conformit[ée]|"
+    r"exigence|r[èe]gle(?:mentaire)?|bsif|divulgation|transparence|"
+    r"cyber|intelligence\s+artificielle|\bia\b|fraude|crypto|"
+    r"sanction|donn[ée]e|tiers|nuage|climat|esg|risque"
+    r")\b",
+    flags=re.IGNORECASE,
+)
 _ISOLATED_DATE_RE = re.compile(
     r"\b(?:\d{1,2}\s+(?:janvier|février|fevrier|mars|avril|mai|juin|juillet|août|aout|"
     r"septembre|octobre|novembre|décembre|decembre)\s+\d{4}|\d{4}-\d{2}-\d{2})\b",
@@ -180,6 +232,19 @@ class _EvidencePacketCoherenceCheck(BaseModel):
 
     verdict: Literal["supports", "contradicts", "insufficient"]
     reason: str = Field(..., min_length=12, max_length=700)
+
+
+class _ConsolidatedDossierAssessment(MaterialityAssessment):
+    """Jugement indépendant portant sur l'effet cumulé d'un dossier."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    materiality_level: MaterialityLevel
+    materiality_rationale: str = Field(
+        ...,
+        min_length=20,
+        max_length=900,
+    )
 
 
 def _normalize_local_analyst_field(value: str, *, field_name: str) -> str:
@@ -493,7 +558,7 @@ def _default_triage(bank_code: str = "") -> dict[str, Any]:
     triage["source"] = TRIAGE_SOURCE_VERSION
     triage.update(
         {
-            "compact_schema_version": "analyst_compact_v2",
+            "compact_schema_version": "analyst_materiality_v3",
             "category": "NON_PERTINENT",
             "risk_type": "autre",
             "relevance_score": "FAIBLE",
@@ -501,6 +566,15 @@ def _default_triage(bank_code: str = "") -> dict[str, Any]:
             "impact_description": "",
             "reference_reglementaire": "",
             "confidence": 0.0,
+            "materiality_level": None,
+            "change_nature": [],
+            "business_equivalence": "INDETERMINE",
+            "materiality_confidence": "INDETERMINE",
+            "evidence_sufficiency": "INSUFFISANTE",
+            "decision_status": "A_CONFIRMER",
+            "review_required": True,
+            "supporting_evidence": [],
+            "counterarguments": [],
             **analyst_copy,
             "nouvelle_idee_justification": _secondary_analyst_justification(
                 subject_label="Élément non classifié",
@@ -525,14 +599,26 @@ def _requires_alignment_review(change: dict[str, Any]) -> bool:
     """True only when the first GPT call explicitly cannot decide the relation."""
     decision = str(change.get("alignment_decision") or "").strip().lower()
     if decision in _SEMANTIC_ALIGNMENT_DECISIONS:
-        return decision == "uncertain"
+        if decision == "uncertain":
+            return True
+        if decision == "moved_text":
+            confidence = str(
+                change.get("alignment_confidence") or ""
+            ).strip().lower()
+            return confidence != "high"
+        return False
     # Cached artifacts from before semantic arbitration keep the former safe
     # fallback.  Fresh comparisons always carry ``alignment_decision``.
     return str(change.get("alignment_type") or "").strip().lower() == "ambiguous"
 
 
 def _is_semantic_text_move(change: dict[str, Any]) -> bool:
-    return str(change.get("alignment_decision") or "").strip().lower() == "moved_text"
+    return (
+        str(change.get("alignment_decision") or "").strip().lower()
+        == "moved_text"
+        and str(change.get("alignment_confidence") or "").strip().lower()
+        == "high"
+    )
 
 
 def _is_single_semantic_alignment_group(changes: list[dict[str, Any]]) -> bool:
@@ -618,6 +704,18 @@ def _semantic_move_result(
             "alignment_confidence": str(change.get("alignment_confidence") or "medium"),
             "alignment_rationale": str(change.get("alignment_rationale") or "").strip(),
             "exclusion_reason": "deplacement_texte",
+            "materiality_level": "MINEUR",
+            "impact_level": "MINEUR",
+            "change_nature": ["DEPLACEMENT"],
+            "business_equivalence": "CONFIRMEE",
+            "materiality_confidence": "ELEVEE",
+            "evidence_sufficiency": "SUFFISANTE",
+            "decision_status": "CONFIRME",
+            "review_required": False,
+            "supporting_evidence": [
+                "L'alignement sémantique confirme un déplacement sans modification substantielle."
+            ],
+            "counterarguments": [],
             **analyst_copy,
             "nouvelle_idee_justification": _secondary_analyst_justification(
                 subject_label="Texte déplacé",
@@ -738,6 +836,9 @@ def _verify_triage_coherence(
                     "content": (
                         "Tu vérifies une décision de vigie bancaire de façon indépendante. "
                         "Compare la décision proposée au paquet de texte exact fourni. "
+                        "Vérifie autant la pertinence et les thèmes que le niveau "
+                        "de matérialité, la nature du changement et l'équivalence "
+                        "métier proposées. "
                         "Tu traites un seul paquet : retourne un seul contrôle et ne "
                         "retourne ni liste ni packet_index. "
                         "Réponds supports si le paquet l'appuie, contradicts s'il la "
@@ -755,6 +856,33 @@ def _verify_triage_coherence(
                                 "is_relevant": triage.get("is_relevant"),
                                 "themes_amf": triage.get("themes_amf"),
                                 "nouvelle_idee": triage.get("nouvelle_idee"),
+                                "materiality_level": triage.get(
+                                    "materiality_level"
+                                ),
+                                "change_nature": triage.get(
+                                    "change_nature"
+                                ),
+                                "business_equivalence": triage.get(
+                                    "business_equivalence"
+                                ),
+                                "materiality_confidence": triage.get(
+                                    "materiality_confidence"
+                                ),
+                                "evidence_sufficiency": triage.get(
+                                    "evidence_sufficiency"
+                                ),
+                                "decision_status": triage.get(
+                                    "decision_status"
+                                ),
+                                "review_required": triage.get(
+                                    "review_required"
+                                ),
+                                "supporting_evidence": triage.get(
+                                    "supporting_evidence"
+                                ),
+                                "counterarguments": triage.get(
+                                    "counterarguments"
+                                ),
                                 **{
                                     field_name: triage.get(field_name, "")
                                     for field_name in _SEMANTIC_REASON_FIELDS
@@ -1150,6 +1278,63 @@ def _deterministic_cosmetic_exclusion(change: dict[str, Any]) -> str | None:
     return None
 
 
+def _is_proven_pure_numeric_change(change: dict[str, Any]) -> bool:
+    """True uniquement lorsque les chiffres sont la seule différence démontrée."""
+    diff_type = str(change.get("diff_type") or "").strip().lower()
+    if diff_type not in {"modified", "unchanged"}:
+        return False
+    text_t1 = str(change.get("source_text_t1") or change.get("semantic_text_t1") or "")
+    text_t2 = str(change.get("source_text_t2") or change.get("semantic_text_t2") or "")
+    if not text_t1.strip() or not text_t2.strip():
+        return False
+    if _numeric_tokens(text_t1) == _numeric_tokens(text_t2):
+        return False
+
+    combined = f"{text_t1} {text_t2}"
+    if (
+        _REGULATORY_REF_RE.search(combined)
+        or _METHODOLOGY_SIGNAL_RE.search(combined)
+        or _PROCESS_SIGNAL_RE.search(combined)
+        or _GOVERNANCE_SIGNAL_RE.search(combined)
+        or re.search(
+            r"\b(?:seuil|plancher|minimum|maximum|cible|exigence|coefficient|"
+            r"ratio\s+r[ée]glementaire|capital\s+requis)\b",
+            combined,
+            flags=re.IGNORECASE,
+        )
+    ):
+        return False
+    return _normalize_for_cosmetic(_mask_volatile_tokens(text_t1)) == (
+        _normalize_for_cosmetic(_mask_volatile_tokens(text_t2))
+    )
+
+
+def _triage_advisory_signals(change: dict[str, Any]) -> list[str]:
+    """Retourne des indices auditables sans imposer une décision métier."""
+    signals: list[str] = []
+    for signal in (
+        _deterministic_cosmetic_exclusion(change),
+        _deterministic_bank_specific_exclusion(change),
+    ):
+        if signal and signal not in signals:
+            signals.append(signal)
+    return signals
+
+
+def _hard_prefilter_exclusion(change: dict[str, Any]) -> str | None:
+    """Réserve l'exclusion automatique aux équivalences mécaniquement prouvées."""
+    cosmetic = _deterministic_cosmetic_exclusion(change)
+    if cosmetic in _HARD_PREFILTER_EXCLUSIONS:
+        return cosmetic
+    bank_signal = _deterministic_bank_specific_exclusion(change)
+    if (
+        bank_signal == "variation_numerique_propre_banque"
+        and _is_proven_pure_numeric_change(change)
+    ):
+        return bank_signal
+    return None
+
+
 def _excerpt_for_analyst(text: str, *, limit: int = 160) -> str:
     """Tronque un extrait source pour une phrase analysée lisible (une seule phrase)."""
     value = re.sub(r"\s+", " ", str(text or "")).strip()
@@ -1265,6 +1450,24 @@ def _prefilter_triage_result(
         {
             "source": "deterministic_prefilter",
             "exclusion_reason": exclusion_reason,
+            "materiality_level": "MINEUR",
+            "impact_level": "MINEUR",
+            "change_nature": [
+                {
+                    "formatage_visuel": "FORMATAGE",
+                    "deplacement_texte": "DEPLACEMENT",
+                    "variation_numerique_propre_banque": "VARIATION_CHIFFREE",
+                }.get(exclusion_reason, "REFORMULATION_EQUIVALENTE")
+            ],
+            "business_equivalence": "CONFIRMEE",
+            "materiality_confidence": "ELEVEE",
+            "evidence_sufficiency": "SUFFISANTE",
+            "decision_status": "CONFIRME",
+            "review_required": False,
+            "supporting_evidence": [
+                "La différence automatique est limitée à un élément mécaniquement vérifiable."
+            ],
+            "counterarguments": [],
             **analyst_copy,
             "nouvelle_idee_justification": (
                 "NON — Nouvel élément à surveiller : Non.\n\n"
@@ -1386,6 +1589,346 @@ def _group_semantic_triage_duplicates(
     return [sorted(members) for members in grouped.values()]
 
 
+def _change_context_for_dossier(change: dict[str, Any]) -> dict[str, Any]:
+    """Construit un contexte compact et factuel pour un changement relié."""
+    return {
+        "change_id": str(change.get("change_id") or ""),
+        "diff_type": str(change.get("diff_type") or ""),
+        "subsection_heading": str(change.get("subsection_heading") or ""),
+        "change_summary": _truncate_prompt_text(
+            str(change.get("change_summary") or ""),
+            _TRIAGE_SOURCE_SNIPPET_LIMIT,
+        ),
+        "source_snippet_t1": _truncate_prompt_text(
+            str(
+                change.get("source_text_t1")
+                or change.get("semantic_text_t1")
+                or ""
+            ),
+            _TRIAGE_SOURCE_SNIPPET_LIMIT,
+        ),
+        "source_snippet_t2": _truncate_prompt_text(
+            str(
+                change.get("source_text_t2")
+                or change.get("semantic_text_t2")
+                or ""
+            ),
+            _TRIAGE_SOURCE_SNIPPET_LIMIT,
+        ),
+    }
+
+
+def _annotate_triage_dossiers(
+    changes: list[dict[str, Any]],
+    *,
+    section_key: str,
+    groups: list[list[int]],
+) -> list[dict[str, Any]]:
+    """Ajoute le contexte relié sans copier le verdict d'un représentant."""
+    group_by_index: dict[int, tuple[str, list[int]]] = {}
+    for group_number, member_indexes in enumerate(groups, start=1):
+        if len(member_indexes) <= 1:
+            continue
+        group_id = f"{section_key}_triage_dossier_{group_number:03d}"
+        for member_index in member_indexes:
+            group_by_index[member_index] = (group_id, member_indexes)
+
+    annotated: list[dict[str, Any]] = []
+    for index, change in enumerate(changes):
+        enriched = dict(change)
+        existing_dossier = change.get("triage_dossier")
+        if isinstance(existing_dossier, dict) and existing_dossier:
+            enriched["triage_dossier"] = dict(existing_dossier)
+            annotated.append(enriched)
+            continue
+        related_indexes: list[int] = []
+        group = group_by_index.get(index)
+        if group is not None:
+            _group_id, member_indexes = group
+            related_indexes.extend(
+                member_index
+                for member_index in member_indexes
+                if member_index != index
+            )
+
+        subsection = str(change.get("subsection_heading") or "").strip().casefold()
+        if subsection:
+            related_indexes.extend(
+                candidate_index
+                for candidate_index, candidate in enumerate(changes)
+                if candidate_index != index
+                and str(candidate.get("subsection_heading") or "").strip().casefold()
+                == subsection
+            )
+
+        unique_related = list(dict.fromkeys(related_indexes))[
+            :_RELATED_CHANGE_CONTEXT_LIMIT
+        ]
+        dossier: dict[str, Any] = {
+            "related_changes": [
+                _change_context_for_dossier(changes[related_index])
+                for related_index in unique_related
+            ],
+            "classification_scope": (
+                "Évaluer ce changement individuellement en tenant compte de "
+                "l'effet cumulatif des changements reliés."
+            ),
+        }
+        if group is not None:
+            group_id, member_indexes = group
+            dossier.update(
+                {
+                    "group_id": group_id,
+                    "member_change_ids": [
+                        str(changes[member_index].get("change_id") or "")
+                        for member_index in member_indexes
+                    ],
+                    "verdict_propagation": False,
+                }
+            )
+        enriched["triage_dossier"] = dossier
+        annotated.append(enriched)
+    return annotated
+
+
+def _attach_consolidated_dossier_outcomes(
+    changes: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """Expose le niveau consolidé tout en conservant chaque décision individuelle."""
+    grouped: dict[str, list[dict[str, Any]]] = {}
+    for change in changes:
+        dossier = change.get("triage_dossier") or {}
+        group_id = str(dossier.get("group_id") or "")
+        if group_id:
+            grouped.setdefault(group_id, []).append(change)
+
+    for group_id, members in grouped.items():
+        levels = [
+            str((member.get("genai_triage") or {}).get("impact_level") or "MINEUR").upper()
+            for member in members
+        ]
+        consolidated_level = max(
+            levels,
+            key=lambda level: _MATERIALITY_RANK.get(level, -1),
+        )
+        relevant = any(
+            bool((member.get("genai_triage") or {}).get("is_relevant"))
+            for member in members
+        )
+        member_ids = [str(member.get("change_id") or "") for member in members]
+        for member in members:
+            triage = dict(member.get("genai_triage") or {})
+            triage.update(
+                {
+                    "triage_group_id": group_id,
+                    "triage_group_member_ids": member_ids,
+                    "triage_group_verdict_propagated": False,
+                    "consolidated_materiality_level": consolidated_level,
+                    "consolidated_relevant": relevant,
+                }
+            )
+            member["genai_triage"] = triage
+            member["triage_dedup"] = {
+                "group_id": group_id,
+                "member_change_ids": member_ids,
+                "propagated": False,
+                "classification_mode": "all_members_with_shared_context",
+            }
+    return changes
+
+
+def _evaluate_consolidated_dossier_materiality(
+    *,
+    client: Any,
+    model: str,
+    bank_code: str,
+    section_key: str,
+    changes: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """Évalue séparément l'effet cumulé des dossiers reliés.
+
+    Les verdicts individuels restent intacts. Le jugement de dossier peut
+    toutefois produire un niveau consolidé supérieur lorsque plusieurs
+    modifications cohérentes démontrent ensemble un changement de portée.
+    """
+    enriched = [
+        {
+            **change,
+            "genai_triage": dict(change.get("genai_triage") or {}),
+        }
+        for change in changes
+    ]
+    _attach_consolidated_dossier_outcomes(enriched)
+    grouped: dict[str, list[dict[str, Any]]] = {}
+    for change in enriched:
+        dossier = change.get("triage_dossier") or {}
+        group_id = str(dossier.get("group_id") or "")
+        if group_id:
+            grouped.setdefault(group_id, []).append(change)
+    if not grouped:
+        return enriched
+
+    bank_subject = analyst_bank_subject(bank_code)
+    for group_id, members in grouped.items():
+        if len(members) <= 1:
+            continue
+        individual_levels = [
+            str(
+                (member.get("genai_triage") or {}).get("impact_level")
+                or "MINEUR"
+            ).upper()
+            for member in members
+        ]
+        individual_max = max(
+            individual_levels,
+            key=lambda value: _MATERIALITY_RANK.get(value, -1),
+        )
+        dossier_input = {
+            "group_id": group_id,
+            "classification_scope": (
+                "Évaluer uniquement l'effet cumulé démontré par les changements "
+                "reliés, sans recopier leurs verdicts individuels."
+            ),
+            "members": [
+                {
+                    **_change_context_for_dossier(member),
+                    "changement_constate": str(
+                        (member.get("genai_triage") or {}).get(
+                            "changement_constate"
+                        )
+                        or ""
+                    ),
+                    "themes_amf": list(
+                        (member.get("genai_triage") or {}).get(
+                            "themes_amf"
+                        )
+                        or []
+                    ),
+                }
+                for member in members
+            ],
+        }
+        try:
+            assessment = _call_structured_completion_with_correction(
+                client,
+                model=model,
+                messages=[
+                    {
+                        "role": "system",
+                        "content": (
+                            "Tu es l'évaluateur indépendant de matérialité "
+                            "cumulative pour une vigie prudentielle. Les éléments "
+                            "d'un dossier ont déjà été classés individuellement, "
+                            "mais leurs niveaux ne te sont pas montrés. Détermine "
+                            "si leur combinaison cohérente modifie une définition, "
+                            "un périmètre, une responsabilité, une finalité, une "
+                            "méthode, un contrôle, une obligation, le capital ou "
+                            "un risque. Un simple nombre de changements ne suffit "
+                            "jamais à élever le niveau. MAJEUR exige un effet "
+                            "cumulatif substantiel démontré; MODERE couvre un effet "
+                            "plausible ou une preuve partielle; MINEUR exige une "
+                            "équivalence cumulative confirmée."
+                        ),
+                    },
+                    {
+                        "role": "user",
+                        "content": (
+                            "Renseigne tous les champs du schéma de matérialité "
+                            "ainsi que materiality_rationale. Cite les faits "
+                            "cumulatifs dans supporting_evidence, examine une "
+                            "interprétation plus faible dans counterarguments et "
+                            "exige une revue si la preuve n'est pas suffisante. "
+                            f"Banque : {bank_subject}. Section : {section_key}.\n"
+                            f"Dossier :\n{_json_dumps(dossier_input)}"
+                        ),
+                    },
+                ],
+                response_format=_ConsolidatedDossierAssessment,
+                max_tokens=1400,
+                max_retries=2,
+                validation_retry_message=(
+                    "Renvoie uniquement le schéma complet. Une décision "
+                    "CONFIRME exige une preuve SUFFISANTE et une confiance "
+                    "ELEVEE ou MOYENNE. MINEUR sans équivalence CONFIRMEE "
+                    "exige review_required=true."
+                ),
+            )
+        except Exception as exc:  # noqa: BLE001
+            logger.warning(
+                "consolidated dossier assessment unavailable group=%s: %s",
+                group_id,
+                exc,
+            )
+            for member in members:
+                triage = member["genai_triage"]
+                triage.update(
+                    {
+                        "consolidated_materiality_level": individual_max,
+                        "consolidated_decision_status": "A_CONFIRMER",
+                        "consolidated_review_required": True,
+                        "consolidated_assessment_source": (
+                            "individual_max_fallback"
+                        ),
+                        "consolidated_assessment_error": (
+                            f"{type(exc).__name__}: {exc}"
+                        ),
+                    }
+                )
+            continue
+
+        assessed_level = str(assessment.materiality_level).upper()
+        assessment_lower = (
+            _MATERIALITY_RANK.get(assessed_level, -1)
+            < _MATERIALITY_RANK.get(individual_max, -1)
+        )
+        consolidated_level = max(
+            (individual_max, assessed_level),
+            key=lambda value: _MATERIALITY_RANK.get(value, -1),
+        )
+        consolidated_review = (
+            assessment.review_required or assessment_lower
+        )
+        consolidated_status = (
+            "A_CONFIRMER"
+            if consolidated_review
+            else assessment.decision_status
+        )
+        assessment_audit = assessment.model_dump()
+        assessment_audit["individual_max_materiality_level"] = (
+            individual_max
+        )
+        assessment_audit["assessment_lower_than_individual_max"] = (
+            assessment_lower
+        )
+        for member in members:
+            triage = member["genai_triage"]
+            triage.update(
+                {
+                    "consolidated_materiality_level": consolidated_level,
+                    "consolidated_relevant": (
+                        any(
+                            bool(
+                                (candidate.get("genai_triage") or {}).get(
+                                    "is_relevant"
+                                )
+                            )
+                            for candidate in members
+                        )
+                        or consolidated_level in {"MODERE", "MAJEUR"}
+                    ),
+                    "consolidated_decision_status": consolidated_status,
+                    "consolidated_review_required": consolidated_review,
+                    "consolidated_assessment_source": (
+                        "independent_dossier_assessment"
+                    ),
+                    "consolidated_materiality_assessment": (
+                        assessment_audit
+                    ),
+                }
+            )
+    return enriched
+
+
 def _propagate_triage_to_group(
     *,
     representative: dict[str, Any],
@@ -1429,9 +1972,9 @@ Exemple 2 — variation propre à la banque non pertinente
 Input : {"bank_subject": "BMO", "change_index": 1, "diff_type": "modified", "change_summary": "Le portefeuille hypothécaire passe de 287 G$ à 294 G$."}
 Output : {"change_index": 1, "is_relevant": false, "themes_amf": [], "nouvelle_idee": false, "changement_constate": "BMO fait passer son portefeuille hypothécaire de 287 G$ à 294 G$, sans modifier la méthode de calcul ni le périmètre présenté.", "signification_metier": "", "comparaison_interbanques": "", "limite_interpretation": "", "motif_non_pertinence": "Cette variation reflète l’évolution normale des activités et n’apporte aucun nouvel élément sur les pratiques de gestion des risques à comparer entre les banques."}
 
-Exemple 3 — calendrier d’application non pertinent
-Input : {"bank_subject": "RBC", "change_index": 1, "diff_type": "modified", "change_summary": "Le BSIF reporte l’augmentation du coefficient de plancher jusqu’à nouvel ordre plutôt que jusqu’en 2027."}
-Output : {"change_index": 1, "is_relevant": false, "themes_amf": [], "nouvelle_idee": false, "changement_constate": "RBC actualise uniquement le calendrier d’application du coefficient de plancher annoncé par le BSIF, sans changer la nature de l’exigence.", "signification_metier": "", "comparaison_interbanques": "", "limite_interpretation": "", "motif_non_pertinence": "Cette mise à jour d’échéances n’apporte aucun élément nouveau pour comparer les pratiques de gestion des fonds propres entre les banques."}
+Exemple 3 — calendrier administratif non pertinent
+Input : {"bank_subject": "RBC", "change_index": 1, "diff_type": "modified", "change_summary": "La date prévue de publication du rapport passe du 30 juin au 2 juillet, sans modification de l’information publiée."}
+Output : {"change_index": 1, "is_relevant": false, "themes_amf": [], "nouvelle_idee": false, "changement_constate": "RBC déplace du 30 juin au 2 juillet la date administrative de publication du rapport sans modifier l’information publiée.", "signification_metier": "", "comparaison_interbanques": "", "limite_interpretation": "", "motif_non_pertinence": "Ce déplacement administratif ne modifie ni une exigence prudentielle ni le contenu métier comparable entre les banques."}
 
 Exemple 4 — acquisition interne non pertinente
 Input : {"bank_subject": "BNC", "change_index": 1, "diff_type": "added", "change_summary": "Inclusion de CWB dans le calcul du risque opérationnel à la suite de l’acquisition."}
@@ -1457,6 +2000,236 @@ Exemple 9 — modification réelle de processus pertinente et substantielle
 Input : {"bank_subject": "BNS", "change_index": 1, "diff_type": "modified", "change_summary": "Les alertes de conformité sont désormais validées par une deuxième équipe avant leur clôture."}
 Output : {"change_index": 1, "is_relevant": true, "themes_amf": ["CONTROLE_CONFORMITE"], "nouvelle_idee": true, "changement_constate": "BNS ajoute une seconde validation au processus de clôture des alertes de conformité.", "signification_metier": "Cette étape supplémentaire formalise un contrôle indépendant avant la clôture des alertes.", "comparaison_interbanques": "Elle permet de comparer le nombre de validations, la séparation des responsabilités et le niveau de supervision entre les banques.", "limite_interpretation": "La divulgation ne précise toutefois ni l’identité de la deuxième équipe ni les critères utilisés pour valider la clôture.", "motif_non_pertinence": ""}
 """
+
+
+_FEW_SHOT_MATERIALITY_AMF = """\
+Exemple de matérialité A — terminologie prudentielle non démontrée équivalente
+Input : {"bank_subject": "BMO", "change_index": 1, "diff_type": "modified", "change_summary_factuel_non_arbitre": "BMO remplace « suffisance du capital » par « adéquation des fonds propres »."}
+Décision attendue : {"materiality_level": "MODERE", "change_nature": ["MODIFICATION_TERMINOLOGIE"], "business_equivalence": "NON_DEMONTREE", "materiality_confidence": "MOYENNE", "evidence_sufficiency": "PARTIELLE", "decision_status": "A_CONFIRMER", "review_required": true, "supporting_evidence": ["Le terme prudentiel central est remplacé et la preuve fournie ne démontre pas une stricte équivalence de référent ou de périmètre."], "counterarguments": ["Le remplacement pourrait refléter une harmonisation terminologique sans changement du cadre de capital."]}
+
+Exemple de matérialité B — évolution consolidée de l'allocation du capital
+Input : {"bank_subject": "BMO", "change_index": 1, "diff_type": "modified", "change_summary_factuel_non_arbitre": "BMO remplace les groupes d'exploitation par des unités d'exploitation et ajoute que le processus guide la répartition des ressources et optimise les rendements.", "related_change_dossier": {"related_changes": [{"change_summary": "BMO ajoute la surveillance et l'optimisation des rendements."}]}}
+Décision attendue : {"materiality_level": "MAJEUR", "change_nature": ["MODIFICATION_PERIMETRE", "MODIFICATION_RESPONSABILITES"], "business_equivalence": "REFUTEE", "materiality_confidence": "ELEVEE", "evidence_sufficiency": "SUFFISANTE", "decision_status": "CONFIRME", "review_required": false, "supporting_evidence": ["Les changements reliés ajoutent explicitement des finalités de répartition des ressources et d'optimisation des rendements au processus de capital."], "counterarguments": ["Le remplacement de groupes par unités, pris isolément, pourrait être terminologique."]}
+
+Exemple de matérialité C — renommage démontré équivalent
+Input : {"bank_subject": "CIBC", "change_index": 1, "diff_type": "modified", "change_summary_factuel_non_arbitre": "CIBC modifie seulement l'acronyme d'un comité et maintient explicitement son mandat, son autorité et ses responsabilités."}
+Décision attendue : {"materiality_level": "MINEUR", "change_nature": ["REFORMULATION_EQUIVALENTE"], "business_equivalence": "CONFIRMEE", "materiality_confidence": "ELEVEE", "evidence_sufficiency": "SUFFISANTE", "decision_status": "CONFIRME", "review_required": false, "supporting_evidence": ["Le texte confirme expressément que le mandat, l'autorité et les responsabilités demeurent inchangés."], "counterarguments": []}
+
+Exemple de matérialité D — statut réglementaire devenu indéterminé
+Input : {"bank_subject": "RBC", "change_index": 1, "diff_type": "modified", "change_summary_factuel_non_arbitre": "RBC remplace une date déterminée d'augmentation du plancher par un report jusqu'à nouvel ordre."}
+Décision attendue : {"materiality_level": "MODERE", "change_nature": ["MODIFICATION_EXIGENCE_REGLEMENTAIRE", "MODIFICATION_STATUT_MISE_EN_OEUVRE"], "business_equivalence": "REFUTEE", "materiality_confidence": "ELEVEE", "evidence_sufficiency": "SUFFISANTE", "decision_status": "CONFIRME", "review_required": false, "supporting_evidence": ["L'horizon d'application passe d'une échéance déterminée à une durée indéterminée, ce qui modifie le statut de mise en œuvre déclaré."], "counterarguments": ["La nature technique du coefficient de plancher demeure inchangée."]}
+"""
+
+
+def _compact_materiality_snapshot(
+    triage: TriageAMFCompactLLMResultWithIndex,
+) -> dict[str, Any]:
+    """Retourne uniquement les éléments nécessaires à l'audit du désaccord."""
+    return {
+        "is_relevant": triage.is_relevant,
+        "themes_amf": list(triage.themes_amf),
+        "nouvelle_idee": triage.nouvelle_idee,
+        "materiality_level": triage.materiality_level,
+        "change_nature": list(triage.change_nature),
+        "business_equivalence": triage.business_equivalence,
+        "materiality_confidence": triage.materiality_confidence,
+        "evidence_sufficiency": triage.evidence_sufficiency,
+        "decision_status": triage.decision_status,
+        "review_required": triage.review_required,
+        "supporting_evidence": list(triage.supporting_evidence),
+        "counterarguments": list(triage.counterarguments),
+    }
+
+
+def _triage_input_has_sensitive_materiality_signal(
+    triage_input: dict[str, Any],
+) -> bool:
+    """Détecte un domaine sensible même si le premier juge omet son thème."""
+    dossier = triage_input.get("related_change_dossier") or {}
+    candidate_codes = {
+        str(
+            candidate.get("code")
+            if isinstance(candidate, dict)
+            else candidate
+        ).strip().upper()
+        for candidate in (triage_input.get("candidate_themes") or [])
+    }
+    if candidate_codes & _SENSITIVE_MATERIALITY_THEMES:
+        return True
+    corpus = " ".join(
+        (
+            str(triage_input.get("source_snippet_t1") or ""),
+            str(triage_input.get("source_snippet_t2") or ""),
+            str(
+                triage_input.get("change_summary_factuel_non_arbitre")
+                or ""
+            ),
+            _json_dumps(dossier) if dossier else "",
+            _json_dumps(
+                triage_input.get("full_evidence_exact_packet") or {}
+            ),
+            _json_dumps(
+                triage_input.get("full_evidence_observations") or []
+            ),
+        )
+    )
+    return bool(_SENSITIVE_MATERIALITY_TEXT_RE.search(corpus))
+
+
+def _requires_blind_materiality_challenge(
+    triage: TriageAMFCompactLLMResultWithIndex,
+    *,
+    triage_input: dict[str, Any] | None = None,
+) -> bool:
+    """Cible les MINEUR sensibles et toutes les décisions directes incertaines."""
+    if triage.materiality_level is None:
+        # Ancien payload/test sans décision directe : conserver la compatibilité.
+        return False
+    if (
+        triage.review_required
+        or triage.decision_status != "CONFIRME"
+        or triage.materiality_confidence in {"FAIBLE", "INDETERMINE"}
+        or triage.evidence_sufficiency in {"INSUFFISANTE", "INDETERMINE"}
+    ):
+        return True
+    sensitive_minor = (
+        triage.materiality_level == "MINEUR"
+        and bool(set(triage.themes_amf) & _SENSITIVE_MATERIALITY_THEMES)
+    )
+    missed_sensitive_relevance = (
+        not triage.is_relevant
+        and triage_input is not None
+        and _triage_input_has_sensitive_materiality_signal(triage_input)
+    )
+    return sensitive_minor or missed_sensitive_relevance
+
+
+def _blind_materiality_challenge(
+    *,
+    client: Any,
+    model: str,
+    bank_subject: str,
+    section_key: str,
+    triage_input: dict[str, Any],
+) -> TriageAMFCompactLLMResultWithIndex:
+    """Produit une seconde lecture sans exposer la décision primaire."""
+    challenge_input = {
+        key: value
+        for key, value in triage_input.items()
+        if key
+        in {
+            "bank_subject",
+            "change_index",
+            "diff_type",
+            "source_snippet_t1",
+            "source_snippet_t2",
+            "exact_change_segments",
+            "change_summary_factuel_non_arbitre",
+            "full_evidence_observations",
+            "full_evidence_exact_packet",
+            "advisory_signals",
+            "related_change_dossier",
+            "validated_analyst_precedents",
+            "candidate_themes",
+        }
+    }
+    challenge_input["change_index"] = 1
+    batch = _call_structured_completion_with_correction(
+        client,
+        model=model,
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    "Tu es le contradicteur indépendant d'un triage prudentiel. "
+                    "Tu ne vois pas la décision primaire. Évalue les preuves avant/après "
+                    "et cherche activement une modification de définition, périmètre, "
+                    "autorité, responsabilité, méthode, contrôle, obligation, statut "
+                    "réglementaire, capital, risque ou transparence qui pourrait être "
+                    "sous-classée. Conteste aussi un surclassement lorsque l'équivalence "
+                    "est démontrée. Réponds uniquement avec le schéma compact complet, "
+                    f"en français, et commence changement_constate par {bank_subject}. "
+                    "MINEUR exige une équivalence métier positivement démontrée; sinon "
+                    "choisis MODERE ou MAJEUR selon la preuve et exige une revue si "
+                    "l'incertitude persiste."
+                ),
+            },
+            {
+                "role": "user",
+                "content": (
+                    "Rends exactement une entrée avec change_index=1. Évalue directement "
+                    "materiality_level indépendamment de nouvelle_idee. Renseigne tous "
+                    "les champs de pertinence, les cinq champs analystes, change_nature, "
+                    "business_equivalence, materiality_confidence, evidence_sufficiency, "
+                    "decision_status, review_required, supporting_evidence et "
+                    "counterarguments. Les précédents sont comparatifs et ne remplacent "
+                    "jamais les preuves courantes.\n\n"
+                    f"{_FEW_SHOT_MATERIALITY_AMF}\n\n"
+                    f"Banque analysée : {bank_subject}\n"
+                    f"Section : {section_key}\n"
+                    f"Dossier aveugle :\n{_json_dumps(challenge_input)}"
+                ),
+            },
+        ],
+        response_format=TriageAMFMaterialityLLMBatch,
+        max_tokens=1600,
+        max_retries=2,
+        validation_retry_message=(
+            "Renvoie exactement une entrée complète avec change_index=1. "
+            "MINEUR sans équivalence CONFIRMEE exige review_required=true; "
+            "une décision CONFIRME exige une preuve SUFFISANTE."
+        ),
+    )
+    if len(batch.triages) != 1 or batch.triages[0].change_index != 1:
+        raise ValueError(
+            "Le contradicteur doit retourner exactement change_index=1."
+        )
+    challenge = batch.triages[0]
+    challenge.themes_amf = _normalize_themes_amf(list(challenge.themes_amf))
+    return challenge
+
+
+def _resolve_materiality_challenge(
+    *,
+    primary: TriageAMFCompactLLMResultWithIndex,
+    challenger: TriageAMFCompactLLMResultWithIndex,
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Réconcilie deux lectures sans masquer leur désaccord."""
+    primary_level = str(primary.materiality_level or "MINEUR")
+    challenger_level = str(challenger.materiality_level or "MINEUR")
+    primary_rank = _MATERIALITY_RANK.get(primary_level, -1)
+    challenger_rank = _MATERIALITY_RANK.get(challenger_level, -1)
+
+    select_challenger = (
+        challenger_rank > primary_rank
+        or (challenger.is_relevant and not primary.is_relevant)
+    )
+    selected = challenger if select_challenger else primary
+    resolved = selected.model_dump(exclude={"change_index"})
+    disagreement = (
+        primary.is_relevant != challenger.is_relevant
+        or primary_level != challenger_level
+        or set(primary.themes_amf) != set(challenger.themes_amf)
+        or primary.business_equivalence != challenger.business_equivalence
+    )
+    if disagreement:
+        resolved["decision_status"] = "A_CONFIRMER"
+        resolved["review_required"] = True
+
+    audit = {
+        "blind": True,
+        "primary": _compact_materiality_snapshot(primary),
+        "challenger": _compact_materiality_snapshot(challenger),
+        "disagreement": disagreement,
+        "resolution": (
+            "challenger_higher_materiality"
+            if select_challenger
+            else "primary_retained"
+        ),
+        "resolved_materiality_level": resolved.get("materiality_level"),
+        "review_required": bool(resolved.get("review_required")),
+    }
+    return resolved, audit
 
 
 def _derive_legacy_fields(triage_amf: dict[str, Any]) -> dict[str, Any]:
@@ -1550,6 +2323,31 @@ _COMPACT_HIGH_PRIORITY_THEMES = frozenset(
 )
 
 
+def _legacy_impact_decision(
+    *,
+    is_relevant: bool,
+    nouvelle_idee: bool,
+    themes: list[str],
+    change_corpus: str,
+) -> tuple[str, str]:
+    """Reproduit l'ancienne grille pour audit et comparaison en mode parallèle."""
+    substantive_process_change = (
+        nouvelle_idee
+        and "CONTROLE_CONFORMITE" in themes
+        and bool(_PROCESS_SIGNAL_RE.search(change_corpus))
+    )
+    high_priority = bool(set(themes) & _COMPACT_HIGH_PRIORITY_THEMES) or (
+        substantive_process_change
+    )
+    if not is_relevant:
+        return "MINEUR", "aucune"
+    if nouvelle_idee and high_priority:
+        return "MAJEUR", "revue_prioritaire"
+    if nouvelle_idee:
+        return "MODERE", "investigation"
+    return "MINEUR", "information"
+
+
 def _persisted_triage_from_compact(
     compact: dict[str, Any],
     *,
@@ -1576,36 +2374,23 @@ def _persisted_triage_from_compact(
     )
     relevance_reason = analyst_copy["relevance_reason"]
 
-    # Recalculate exclusion on change + GPT reason (catches CWB framed as methodology).
-    bank_exclusion = _deterministic_bank_specific_exclusion(change) or (
-        _deterministic_bank_specific_exclusion(
-            {**change, "change_summary": relevance_reason}
-        )
-        if relevance_reason
-        else None
+    # Broad deterministic matches are evidence for the semantic judge, never a
+    # post-LLM veto. This prevents one acquisition/date token from erasing a
+    # simultaneous change to risk, control, methodology or regulatory status.
+    advisory_signals = _triage_advisory_signals(change)
+    bank_exclusion = next(
+        (
+            signal
+            for signal in advisory_signals
+            if signal
+            in {
+                "operation_interne_banque",
+                "variation_numerique_propre_banque",
+                "mise_a_jour_calendrier",
+            }
+        ),
+        None,
     )
-
-    # Post-LLM guardrail: never promote bank-specific noise to Majeur/Modéré.
-    if bank_exclusion and is_relevant:
-        logger.debug(
-            "post_llm_guardrail override change_id=%s exclusion=%s",
-            change.get("change_id"),
-            bank_exclusion,
-        )
-        is_relevant = False
-        nouvelle_idee = False
-        themes = []
-        factual, comparative, _subject = _analyst_exclusion_copy(
-            change,
-            bank_exclusion,
-            bank_code=bank_code,
-        )
-        analyst_copy = _semantic_reason_payload(
-            is_relevant=False,
-            changement_constate=factual,
-            motif_non_pertinence=comparative,
-        )
-        relevance_reason = analyst_copy["relevance_reason"]
 
     change_corpus = " ".join(
         str(change.get(field) or "")
@@ -1617,30 +2402,41 @@ def _persisted_triage_from_compact(
             "change_summary",
         )
     )
-    substantive_process_change = (
-        nouvelle_idee
-        and "CONTROLE_CONFORMITE" in themes
-        and bool(_PROCESS_SIGNAL_RE.search(change_corpus))
-    )
-    high_priority = bool(set(themes) & _COMPACT_HIGH_PRIORITY_THEMES) or (
-        substantive_process_change
+    legacy_impact_level, legacy_action_requise = _legacy_impact_decision(
+        is_relevant=is_relevant,
+        nouvelle_idee=nouvelle_idee,
+        themes=themes,
+        change_corpus=change_corpus,
     )
 
     if not is_relevant:
         impact_level = "MINEUR"
         action_requise = "aucune"
-    elif nouvelle_idee and high_priority:
-        impact_level = "MAJEUR"
-        action_requise = "revue_prioritaire"
-    elif nouvelle_idee:
-        impact_level = "MODERE"
-        action_requise = "investigation"
     else:
-        impact_level = "MINEUR"
-        action_requise = "information"
+        proposed_materiality = str(
+            compact.get("materiality_level") or ""
+        ).strip().upper()
+        if proposed_materiality in _MATERIALITY_RANK:
+            impact_level = proposed_materiality
+            action_requise = {
+                "MAJEUR": "revue_prioritaire",
+                "MODERE": "investigation",
+                "MINEUR": "information",
+            }[impact_level]
+        else:
+            # Backward-compatible path for cached responses and legacy tests.
+            impact_level = legacy_impact_level
+            action_requise = legacy_action_requise
+
+    direct_materiality = str(compact.get("materiality_level") or "").strip().upper()
+    decision_basis = (
+        "direct_materiality"
+        if direct_materiality in _MATERIALITY_RANK
+        else "legacy_fallback"
+    )
 
     triage: dict[str, Any] = {
-        "compact_schema_version": "analyst_compact_v2",
+        "compact_schema_version": "analyst_materiality_v3",
         "bank_code": str(bank_code or "").strip().lower(),
         "bank_subject": bank_subject,
         "is_relevant": is_relevant,
@@ -1661,9 +2457,32 @@ def _persisted_triage_from_compact(
         "statut_mise_en_oeuvre": "INDETERMINE",
         "confiance_posture": "INDETERMINE",
         "explanation": relevance_reason if is_relevant else "",
+        "materiality_level": (
+            impact_level if decision_basis == "direct_materiality" else None
+        ),
+        "change_nature": list(compact.get("change_nature") or []),
+        "business_equivalence": str(
+            compact.get("business_equivalence") or "INDETERMINE"
+        ),
+        "materiality_confidence": str(
+            compact.get("materiality_confidence") or "INDETERMINE"
+        ),
+        "evidence_sufficiency": str(
+            compact.get("evidence_sufficiency") or "INDETERMINE"
+        ),
+        "decision_status": str(
+            compact.get("decision_status") or "PROVISOIRE"
+        ),
+        "review_required": bool(compact.get("review_required", False)),
+        "supporting_evidence": list(compact.get("supporting_evidence") or []),
+        "counterarguments": list(compact.get("counterarguments") or []),
+        "advisory_signals": advisory_signals,
+        "legacy_impact_level": legacy_impact_level,
+        "legacy_action_requise": legacy_action_requise,
+        "materiality_decision_basis": decision_basis,
     }
-    if bank_exclusion and not is_relevant and compact.get("is_relevant"):
-        triage["source_guardrail"] = "post_llm_guardrail"
+    if not is_relevant and bank_exclusion:
+        triage["exclusion_reason"] = bank_exclusion
     triage["nouvelle_idee_justification"] = build_compact_triage_justification(
         change,
         triage,
@@ -1679,6 +2498,7 @@ def _triage_section_changes(
     section_key: str,
     changes: list[dict[str, Any]],
     bank_code: str = "",
+    precedent_memory: PrecedentMemory | None = None,
 ) -> list[dict[str, Any]]:
     """Qualifie metier les changements detectes et fusionne le triage.
 
@@ -1727,18 +2547,18 @@ def _triage_section_changes(
                         section_key=section_key,
                         changes=[change],
                         bank_code=effective_bank_code,
+                        precedent_memory=precedent_memory,
                     )
                 )
         return enriched
 
-    # Deterministic cosmetic + bank-noise pre-filter before any AMF GPT call.
+    # Hard pre-filter only for mechanically demonstrated noise. Calendar,
+    # acquisition, high-similarity and other broad signals still reach the
+    # materiality judge and are supplied as advisory evidence.
     pending: list[dict[str, Any]] = []
     prefiltered: list[dict[str, Any]] = []
     for change in changes:
-        exclusion = (
-            _deterministic_cosmetic_exclusion(change)
-            or _deterministic_bank_specific_exclusion(change)
-        )
+        exclusion = _hard_prefilter_exclusion(change)
         if exclusion:
             prefiltered.append(
                 _prefilter_triage_result(
@@ -1752,43 +2572,15 @@ def _triage_section_changes(
     if not pending:
         return prefiltered
 
-    # Semantic near-duplicate grouping: one representative is triaged, then
-    # the verdict is propagated with an auditable regrouping trace.
+    # Semantic near-duplicate grouping now builds a shared evidence dossier.
+    # Every member remains independently classified; no representative verdict
+    # is copied to the other changes.
     groups = _group_semantic_triage_duplicates(pending, client=client)
-    if any(len(group) > 1 for group in groups):
-        grouped_results: list[dict[str, Any]] = []
-        for group_index, member_indexes in enumerate(groups, start=1):
-            members = [pending[index] for index in member_indexes]
-            if len(members) == 1:
-                grouped_results.extend(
-                    _triage_section_changes(
-                        client=client,
-                        model=model,
-                        section_key=section_key,
-                        changes=members,
-                        bank_code=effective_bank_code,
-                    )
-                )
-                continue
-            representative_results = _triage_section_changes(
-                client=client,
-                model=model,
-                section_key=section_key,
-                changes=[members[0]],
-                bank_code=effective_bank_code,
-            )
-            if not representative_results:
-                continue
-            group_id = f"{section_key}_triage_group_{group_index:03d}"
-            grouped_results.extend(
-                _propagate_triage_to_group(
-                    representative=representative_results[0],
-                    members=members,
-                    group_id=group_id,
-                    bank_code=effective_bank_code,
-                )
-            )
-        return [*prefiltered, *grouped_results]
+    pending = _annotate_triage_dossiers(
+        pending,
+        section_key=section_key,
+        groups=groups,
+    )
 
     if len(pending) > _TRIAGE_BATCH_SIZE and not _is_single_semantic_alignment_group(pending):
         chunks = [
@@ -1806,6 +2598,7 @@ def _triage_section_changes(
                     section_key=section_key,
                     changes=chunk,
                     bank_code=effective_bank_code,
+                    precedent_memory=precedent_memory,
                 ): index
                 for index, chunk in enumerate(chunks)
             }
@@ -1821,7 +2614,10 @@ def _triage_section_changes(
         enriched_batches: list[dict[str, Any]] = []
         for index in range(len(chunks)):
             enriched_batches.extend(results_by_index.get(index, []))
-        return [*prefiltered, *enriched_batches]
+        return [
+            *prefiltered,
+            *_attach_consolidated_dossier_outcomes(enriched_batches),
+        ]
 
     changes = pending
     triage_inputs = []
@@ -1831,6 +2627,7 @@ def _triage_section_changes(
     direct_full_evidence_by_index: dict[int, dict[str, str]] = {}
     full_evidence_mode_by_index: dict[int, str] = {}
     full_evidence_failures_by_index: dict[int, str] = {}
+    precedent_packets_by_index: dict[int, dict[str, Any]] = {}
     for idx, change in enumerate(changes, start=1):
         exact_segments = build_change_segments(change)
         exact_segments_by_index[idx] = exact_segments
@@ -1883,6 +2680,35 @@ def _triage_section_changes(
             }
             for segment in exact_segments
         ]
+        candidate_themes = _candidate_themes_for_change(
+            change,
+            section_key=section_key,
+        )
+        precedent_packet: dict[str, Any] = {}
+        if precedent_memory is not None and precedent_memory.precedents:
+            query = PrecedentQuery(
+                text_before=str(
+                    change.get("source_text_t1")
+                    or change.get("semantic_text_t1")
+                    or ""
+                ),
+                text_after=str(
+                    change.get("source_text_t2")
+                    or change.get("semantic_text_t2")
+                    or ""
+                ),
+                bank_code=effective_bank_code,
+                section_key=section_key,
+                change_nature=str(change.get("diff_type") or "").upper(),
+                themes_amf=tuple(
+                    str(candidate.get("code") or "")
+                    for candidate in candidate_themes
+                    if str(candidate.get("code") or "")
+                ),
+            )
+            precedent_packet = precedent_memory.build_packet(query).to_dict()
+            precedent_packets_by_index[idx] = precedent_packet
+
         triage_input = {
             "bank_subject": bank_subject,
             "change_index": idx,
@@ -1902,16 +2728,12 @@ def _triage_section_changes(
             "exact_change_segments": exact_segments_for_prompt,
             "alignment_decision": str(change.get("alignment_decision") or ""),
             "alignment_confidence": str(change.get("alignment_confidence") or ""),
-            "alignment_rationale": _truncate_prompt_text(
-                str(change.get("alignment_rationale") or ""),
-                _TRIAGE_SOURCE_SNIPPET_LIMIT,
-            ),
-            "change_summary": change.get("change_summary", ""),
+            "change_summary_factuel_non_arbitre": change.get("change_summary", ""),
             "full_evidence_observations": full_evidence,
-            "candidate_themes": _candidate_themes_for_change(
-                change,
-                section_key=section_key,
-            ),
+            "advisory_signals": _triage_advisory_signals(change),
+            "related_change_dossier": change.get("triage_dossier") or {},
+            "validated_analyst_precedents": precedent_packet,
+            "candidate_themes": candidate_themes,
         }
         direct_full_evidence = direct_full_evidence_by_index.get(idx)
         if direct_full_evidence is not None:
@@ -1926,15 +2748,18 @@ def _triage_section_changes(
         "suivi d’un verbe d’action direct, par exemple ajoute, retire, modifie, "
         "précise, transfère ou renomme. N’utilise jamais « le rapport courant », "
         "« le rapport précédent », « le passage », T1 ou T2 comme sujet du texte "
-        "analyste. Sois factuel, sans analyse IT, posture, niveau d’impact, action "
-        "recommandée ni répétition des textes sources. Rédige séparément, en "
+        "analyste. Établis directement la matérialité métier, mais sans analyse IT, "
+        "posture, action recommandée ni répétition des textes sources. Rédige "
+        "séparément, en "
         "français, des phrases complètes, professionnelles et faciles à comprendre "
         "dans `changement_constate`, `signification_metier`, "
         "`comparaison_interbanques`, `limite_interpretation` et "
         "`motif_non_pertinence`. Ne produis pas `relevance_reason`; il sera "
         "assemblé localement. La longueur du changement ne détermine jamais sa "
-        "pertinence : une modification très courte peut être substantielle si "
-        "elle touche la gouvernance."
+        "pertinence ou sa matérialité : une modification très courte peut être "
+        "substantielle si elle change une définition, un périmètre, une autorité, "
+        "une responsabilité, une méthode, un contrôle, une obligation, un statut "
+        "réglementaire, le capital ou la transparence."
     )
 
 
@@ -1950,13 +2775,13 @@ def _triage_section_changes(
         "utilise `SUJET_EMERGENT_HORS_GRILLE`.\n"
         f"   Taxonomie AMF autorisée : {', '.join(THEMES_AMF_PIPELINE_2)}.\n"
         "2. `is_relevant=false` exige `themes_amf=[]` et `nouvelle_idee=false`. "
-        "Une variation chiffrée propre à la banque, une opération interne "
-        "(acquisition, rachat, émission, dividende), une mise à jour de calendrier "
-        "d’application, un déplacement identique, du formatage ou une reformulation "
-        "sans nouveau fond sont non pertinents. Exception : le changement explicite "
-        "du nom d’un comité ou d’une instance de gouvernance reste pertinent même "
-        "si son mandat demeure identique; utilise alors `GOUVERNANCE_RISQUES` et "
-        "`nouvelle_idee=false`.\n"
+        "Les `advisory_signals` sont uniquement des indices mécaniques : ils ne "
+        "constituent jamais un verdict. Une acquisition, une date, un chiffre ou "
+        "une forte similarité ne rend pas tout le changement non pertinent si le "
+        "même dossier modifie aussi un risque, un périmètre, une méthode, un "
+        "contrôle, une obligation ou un statut de mise en œuvre. Un déplacement "
+        "ou une reformulation n’est non pertinent que si l’équivalence complète "
+        "est positivement démontrée.\n"
         f"3. `nouvelle_idee=true` seulement si {bank_subject} ajoute, retire "
         "ou modifie substantiellement une information qui n’était pas divulguée "
         "auparavant sous cette forme. Pour la gouvernance, considère comme substantiel "
@@ -1970,7 +2795,10 @@ def _triage_section_changes(
         "la méthode ou l’approche, et `CONTROLE_CONFORMITE` pour un processus de "
         "contrôle ou de conformité, avec `nouvelle_idee=true`. Une reformulation "
         "qui ne change ni le fonctionnement, ni les étapes, ni les acteurs, ni les "
-        "contrôles demeure non substantielle.\n"
+        "contrôles demeure non substantielle. `nouvelle_idee` est un attribut "
+        "descriptif indépendant : sa valeur ne commande jamais le niveau de "
+        "matérialité. Un changement peut donc être MAJEUR avec "
+        "`nouvelle_idee=false`.\n"
         "4. Chaque champ renseigné doit être non vide, lexical et terminé par "
         "« . », « ! » ou « ? ». Si `is_relevant=true`, renseigne "
         "`changement_constate`, `signification_metier`, "
@@ -1988,17 +2816,45 @@ def _triage_section_changes(
         "analyse ». "
         "Aucun titre, aucune liste, aucune rubrique et aucune consigne adressée "
         "à l’analyste. Interdit : fragment, chunk, T1, T2, termes anglais.\n"
-        "5. Ne produis aucun champ d’impact, d’action, de posture, d’impact IT, "
-        "d’explication générale, de justification multi-rubriques ou "
-        "`relevance_reason`.\n"
+        "5. Évalue directement `materiality_level`, indépendamment du thème et de "
+        "`nouvelle_idee`. MINEUR exige une équivalence métier, un bruit ou un "
+        "déplacement complet positivement démontré. MODERE s’applique lorsqu’un "
+        "effet métier est plausible, lorsque l’équivalence n’est pas démontrée "
+        "dans un domaine sensible ou lorsque la preuve reste partielle. MAJEUR "
+        "exige une modification substantielle démontrée de définition, périmètre, "
+        "gouvernance, responsabilité, méthode, contrôle, obligation réglementaire, "
+        "capital, liquidité, risque ou transparence. Renseigne une à trois valeurs "
+        "dans `change_nature`, puis `business_equivalence`, "
+        "`materiality_confidence`, `evidence_sufficiency`, `decision_status`, "
+        "`review_required`, `supporting_evidence` et `counterarguments`. Un MINEUR "
+        "sans équivalence CONFIRMEE, une preuve insuffisante ou une confiance "
+        "FAIBLE exige `decision_status=A_CONFIRMER` et `review_required=true`. "
+        "Ne produis aucun champ d’action, de posture, d’impact IT, d’explication "
+        "générale, de justification multi-rubriques ou `relevance_reason`.\n"
         "6. Si `full_evidence_exact_packet` est présent, il contient les textes "
         "T1/T2 complets et non tronqués pour ce changement. Fonde la qualification "
         "sur cette preuve exacte plutôt que sur les `source_snippet_*`. "
         "`full_evidence_observations` reste réservé aux preuves réellement "
-        "découpées en plusieurs paquets.\n\n"
+        "découpées en plusieurs paquets.\n"
+        "7. `related_change_dossier` fournit les changements reliés au même "
+        "concept ou à la même sous-section. Classe chaque entrée individuellement, "
+        "mais tiens compte de leur effet cumulatif. `alignment_decision="
+        "same_disclosure` signifie seulement que les passages traitent du même "
+        "sujet; ce n’est jamais une preuve d’équivalence métier. Le résumé factuel "
+        "initial n’est pas un verdict et ne doit pas t’ancrer.\n"
+        "8. `validated_analyst_precedents`, lorsqu’il est non vide, contient "
+        "uniquement des décisions analystes validées et des cas contrastifs. "
+        "Compare les ressemblances et les différences décisives, sans copier "
+        "automatiquement leur niveau. Les preuves exactes du cas courant restent "
+        "toujours prioritaires.\n\n"
         f"Adapte les exemples à la banque analysée : remplace toujours leur sujet "
         f"par {bank_subject} dans la réponse réelle.\n\n"
+        "Les exemples numérotés 1 à 9 illustrent les champs de pertinence et de "
+        "rédaction analyste; ils précèdent le schéma de matérialité directe. Dans "
+        "la réponse réelle, ajoute toujours tous les champs de matérialité montrés "
+        "dans les exemples A à D.\n\n"
         f"{_FEW_SHOT_TRIAGE_AMF}\n\n"
+        f"{_FEW_SHOT_MATERIALITY_AMF}\n\n"
         f"Banque analysée : {bank_subject}\n"
         f"Section : {section_key}\n"
         f"Changements :\n{_json_dumps(triage_inputs)}"
@@ -2017,7 +2873,7 @@ def _triage_section_changes(
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt},
             ],
-            response_format=TriageAMFCompactLLMBatch,
+            response_format=TriageAMFMaterialityLLMBatch,
             max_tokens=compact_max_tokens,
             max_retries=2,
             validation_retry_message=(
@@ -2033,8 +2889,13 @@ def _triage_section_changes(
                 "is_relevant=false exige changement_constate et "
                 "motif_non_pertinence non vides, avec les trois autres champs "
                 f"vides. Chaque changement_constate commence par {bank_subject} "
-                "et chaque champ renseigné est lexical et ponctué. Ne produis "
-                "pas relevance_reason."
+                "et chaque champ renseigné est lexical et ponctué. Renseigne aussi "
+                "la décision directe materiality_level, une à trois valeurs "
+                "change_nature, business_equivalence, materiality_confidence, "
+                "evidence_sufficiency, decision_status, review_required, au moins "
+                "une supporting_evidence lorsque la preuve n'est pas insuffisante, "
+                "et counterarguments. Un MINEUR sans équivalence confirmée exige "
+                "review_required=true. Ne produis pas relevance_reason."
             ),
             length_retry_message=(
                 "Renvoie immédiatement le même batch compact complet, sans aucun "
@@ -2043,7 +2904,8 @@ def _triage_section_changes(
                 "comparaison_interbanques, limite_interpretation et "
                 "motif_non_pertinence sans les fusionner. Respecte les champs "
                 f"vides applicables et commence changement_constate par "
-                f"{bank_subject}. Ne produis pas relevance_reason."
+                f"{bank_subject}. Conserve tous les champs de matérialité directe "
+                "et leurs preuves. Ne produis pas relevance_reason."
             ),
         )
     except ValidationError as exc:
@@ -2102,20 +2964,67 @@ def _triage_section_changes(
     for triage_obj in batch.triages:
         change = changes[triage_obj.change_index - 1]
         compact_dict = triage_obj.model_dump(exclude={"change_index"})
+        challenge_audit: dict[str, Any] | None = None
+        current_triage_input = triage_inputs[triage_obj.change_index - 1]
+        if _requires_blind_materiality_challenge(
+            triage_obj,
+            triage_input=current_triage_input,
+        ):
+            try:
+                challenger = _blind_materiality_challenge(
+                    client=client,
+                    model=model,
+                    bank_subject=bank_subject,
+                    section_key=section_key,
+                    triage_input=current_triage_input,
+                )
+            except Exception as exc:  # noqa: BLE001
+                compact_dict["decision_status"] = "A_CONFIRMER"
+                compact_dict["review_required"] = True
+                challenge_audit = {
+                    "blind": True,
+                    "primary": _compact_materiality_snapshot(triage_obj),
+                    "challenger_error": f"{type(exc).__name__}: {exc}",
+                    "disagreement": None,
+                    "resolution": "analyst_review_required",
+                    "resolved_materiality_level": compact_dict.get(
+                        "materiality_level"
+                    ),
+                    "review_required": True,
+                }
+                logger.warning(
+                    "blind materiality challenge unavailable section=%s "
+                    "change_index=%d error=%s",
+                    section_key,
+                    triage_obj.change_index,
+                    exc,
+                )
+            else:
+                compact_dict, challenge_audit = _resolve_materiality_challenge(
+                    primary=triage_obj,
+                    challenger=challenger,
+                )
         triage = _persisted_triage_from_compact(
             compact_dict,
             change=change,
             bank_code=effective_bank_code,
         )
+        if challenge_audit is not None:
+            triage["materiality_challenge"] = challenge_audit
+        precedent_packet = precedent_packets_by_index.get(
+            triage_obj.change_index
+        )
+        if precedent_packet:
+            triage["analyst_precedent_packet"] = precedent_packet
         triage["change_segments"] = (
             exact_segments_by_index.get(triage_obj.change_index, [])
-            if triage_obj.is_relevant
+            if triage.get("is_relevant")
             else []
         )
         triage_map[triage_obj.change_index] = triage
-        if triage_obj.is_relevant:
+        if triage.get("is_relevant"):
             relevant_count += 1
-        if triage_obj.nouvelle_idee:
+        if triage.get("nouvelle_idee"):
             nouvelle_idee_count += 1
         logger.info(
             "compact triage validated section=%s change_index=%d is_relevant=%s themes=%s nouvelle_idee=%s semantic_fields=%s",
@@ -2177,4 +3086,7 @@ def _triage_section_changes(
         enriched_change = dict(change)
         enriched_change["genai_triage"] = triage
         enriched.append(enriched_change)
-    return [*prefiltered, *enriched]
+    return [
+        *prefiltered,
+        *_attach_consolidated_dossier_outcomes(enriched),
+    ]

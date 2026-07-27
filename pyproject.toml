@@ -30,6 +30,7 @@ vigie-run-tables = "vigilance.cli.run_tables:main"
 vigie-run-extract-report = "vigilance.cli.run_extract_report:main"
 vigie-run-compare-gpt4o = "vigilance.cli.run_compare_gpt4o:main"
 vigie-run-changements-communs = "vigilance.cli.run_changements_communs:main"
+vigie-triage-shadow = "vigilance.cli.run_triage_shadow_evaluation:main"
 vigie-run = "run_full_pipeline:main"
 vigie-validateur = "vigie.validateur:main"
 

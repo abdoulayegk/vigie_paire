@@ -434,6 +434,289 @@ def _valid_matches(response: _ReconciliationResponse, nodes_by_id: dict[str, _No
     return valid
 
 
+def _normalized_equivalence_text(value: str) -> str:
+    """Normalise la présentation sans effacer la structure des nombres."""
+    scripted_digits = {
+        "⁰": "superscript0",
+        "¹": "superscript1",
+        "²": "superscript2",
+        "³": "superscript3",
+        "⁴": "superscript4",
+        "⁵": "superscript5",
+        "⁶": "superscript6",
+        "⁷": "superscript7",
+        "⁸": "superscript8",
+        "⁹": "superscript9",
+        "₀": "subscript0",
+        "₁": "subscript1",
+        "₂": "subscript2",
+        "₃": "subscript3",
+        "₄": "subscript4",
+        "₅": "subscript5",
+        "₆": "subscript6",
+        "₇": "subscript7",
+        "₈": "subscript8",
+        "₉": "subscript9",
+    }
+    raw = "".join(
+        scripted_digits.get(character, character)
+        for character in str(value or "")
+    )
+    decomposed = unicodedata.normalize("NFKD", raw)
+    without_accents = "".join(
+        character
+        for character in decomposed
+        if not unicodedata.combining(character)
+    )
+    without_accents = re.sub(
+        r"\b([A-Z]{1,5})([+\-−])(?=(?:\s|[.,;:!?)]|$))",
+        lambda match: (
+            match.group(1)
+            + (
+                "ratingpositive"
+                if match.group(2) == "+"
+                else "ratingnegative"
+            )
+        ),
+        without_accents,
+    ).casefold()
+    separator_markers = {
+        ",": "decimalseparator",
+        ".": "decimalseparator",
+        "/": "ratioseparator",
+        ":": "colonseparator",
+        "-": "rangeseparator",
+        "–": "rangeseparator",
+        "—": "rangeseparator",
+    }
+    protected = re.sub(
+        r"(?<=\d)\s*([,./:\-–—])\s*(?=\d)",
+        lambda match: separator_markers[match.group(1)],
+        without_accents,
+    )
+    protected = re.sub(
+        r"(?<=\d)\s*([^a-z0-9\s]+)\s*(?=\d)",
+        lambda match: (
+            "numericoperator"
+            + "".join(
+                f"{ord(character):x}"
+                for character in match.group(1)
+            )
+        ),
+        protected,
+    )
+    protected = re.sub(
+        r"(?<![a-z0-9])\s*([+\-−])\s*(?=\d)",
+        lambda match: (
+            "positiveoperator"
+            if match.group(1) == "+"
+            else "negativeoperator"
+        ),
+        protected,
+    )
+    protected = re.sub(
+        r"(?<=e)([+\-−])(?=\d)",
+        lambda match: (
+            "exponentpositive"
+            if match.group(1) == "+"
+            else "exponentnegative"
+        ),
+        protected,
+    )
+    protected = re.sub(
+        r"\(\s*(?=(?:[$€£]\s*)?\d)",
+        "accountingnegative",
+        protected,
+    )
+    semantic_symbols = {
+        "%": "percentunit",
+        "‰": "permilleunit",
+        "$": "dollarunit",
+        "€": "eurounit",
+        "£": "poundunit",
+        "≤": "lessthanorequal",
+        "≥": "greaterthanorequal",
+        "<": "lessthan",
+        ">": "greaterthan",
+        "=": "equaloperator",
+        "±": "plusminusoperator",
+        "∓": "minusplusoperator",
+        "≈": "approximatelyoperator",
+        "≠": "notequaloperator",
+        "~": "approximatelyoperator",
+        "^": "exponentoperator",
+        "×": "multiplyoperator",
+        "÷": "divideoperator",
+        "*": "multiplyoperator",
+    }
+    for symbol, marker in semantic_symbols.items():
+        protected = protected.replace(symbol, marker)
+    return re.sub(r"[^a-z0-9]+", "", protected)
+
+
+def _matches_are_textually_equivalent(
+    matches: list[_ReconciliationMatch],
+) -> bool:
+    """Exige l'identité textuelle normalisée de chaque portion rapprochée."""
+    return bool(matches) and all(
+        _match_is_textually_equivalent(match)
+        for match in matches
+    )
+
+
+def _component_has_structurally_safe_equivalence(
+    component: list[_Node],
+    matches: list[_ReconciliationMatch],
+) -> bool:
+    """Refuse les réassociations de mots malgré une couverture lexicale totale."""
+    previous_nodes = [
+        node for node in component if node.side == "t1"
+    ]
+    current_nodes = [
+        node for node in component if node.side == "t2"
+    ]
+    if len(previous_nodes) == 1 and len(current_nodes) == 1:
+        return (
+            _normalized_equivalence_text(previous_nodes[0].text)
+            == _normalized_equivalence_text(current_nodes[0].text)
+        )
+    if len(previous_nodes) == 1 and len(current_nodes) > 1:
+        split_nodes = current_nodes
+        split_side = "t2"
+    elif len(current_nodes) == 1 and len(previous_nodes) > 1:
+        split_nodes = previous_nodes
+        split_side = "t1"
+    else:
+        return False
+
+    for node in split_nodes:
+        whole_node_match = any(
+            (
+                match.t2_node_id == node.node_id
+                and _normalized_equivalence_text(match.text_t2)
+                == _normalized_equivalence_text(node.text)
+            )
+            if split_side == "t2"
+            else (
+                match.t1_node_id == node.node_id
+                and _normalized_equivalence_text(match.text_t1)
+                == _normalized_equivalence_text(node.text)
+            )
+            for match in matches
+            if _match_is_textually_equivalent(match)
+        )
+        if not whole_node_match:
+            return False
+    return True
+
+
+def _match_is_textually_equivalent(
+    match: _ReconciliationMatch,
+) -> bool:
+    """Vérifie l'équivalence mécanique d'une seule correspondance."""
+    return (
+        _normalized_equivalence_text(match.text_t1)
+        == _normalized_equivalence_text(match.text_t2)
+    )
+
+
+def _equivalent_matches_preserve_relative_order(
+    component: list[_Node],
+    matches: list[_ReconciliationMatch],
+) -> bool:
+    """Refuse de soustraire des mots réassociés à d'autres acteurs ou rôles."""
+    if not matches:
+        return True
+
+    nodes_by_id = {node.node_id: node for node in component}
+    side_ranks = {
+        side: {
+            node.node_id: rank
+            for rank, node in enumerate(
+                item for item in component if item.side == side
+            )
+        }
+        for side in ("t1", "t2")
+    }
+    occupied: dict[str, list[tuple[int, int]]] = {
+        node.node_id: [] for node in component
+    }
+    positioned_matches: list[
+        tuple[tuple[int, int], tuple[int, int]]
+    ] = []
+
+    for match in matches:
+        previous = nodes_by_id.get(match.t1_node_id)
+        current = nodes_by_id.get(match.t2_node_id)
+        if previous is None or current is None:
+            return False
+
+        spans: list[tuple[_Node, str, tuple[int, int]]] = []
+        for node, fragment in (
+            (previous, match.text_t1),
+            (current, match.text_t2),
+        ):
+            start = node.text.find(fragment)
+            if start < 0 or node.text.find(fragment, start + 1) >= 0:
+                return False
+            span = (start, start + len(fragment))
+            if any(
+                span[0] < existing_end
+                and existing_start < span[1]
+                for existing_start, existing_end in occupied[node.node_id]
+            ):
+                return False
+            spans.append((node, fragment, span))
+
+        previous_span = spans[0][2]
+        current_span = spans[1][2]
+        occupied[previous.node_id].append(previous_span)
+        occupied[current.node_id].append(current_span)
+        positioned_matches.append(
+            (
+                (
+                    side_ranks["t1"][previous.node_id],
+                    previous_span[0],
+                ),
+                (
+                    side_ranks["t2"][current.node_id],
+                    current_span[0],
+                ),
+            )
+        )
+
+    positioned_matches.sort(key=lambda item: item[0])
+    current_positions = [item[1] for item in positioned_matches]
+    return current_positions == sorted(current_positions)
+
+
+def _preserve_component_with_alignment(
+    component: list[_Node],
+    *,
+    response: _ReconciliationResponse,
+    alignment_decision: str,
+    rationale: str,
+) -> dict[str, dict[str, Any] | None]:
+    """Conserve chaque fragment et transmet l'incertitude au triage aval."""
+    group_id = "global_guard_" + "_".join(
+        node.node_id for node in component
+    )
+    replacements: dict[str, dict[str, Any] | None] = {}
+    for node in component:
+        updated = dict(node.change)
+        updated.update(
+            {
+                "alignment_type": "global_reconciliation_guarded",
+                "alignment_decision": alignment_decision,
+                "alignment_confidence": response.confidence,
+                "alignment_rationale": rationale,
+                "semantic_alignment_group_id": group_id,
+            }
+        )
+        replacements[node.node_id] = updated
+    return replacements
+
+
 def _residual_text(text: str, fragments: list[str]) -> str:
     intervals: list[tuple[int, int]] = []
     for fragment in fragments:
@@ -501,14 +784,52 @@ def _reconcile_component(
         node.node_id: _residual_text(node.text, matched_by_node.get(node.node_id, []))
         for node in component
     }
+    equivalent_matches = [
+        match for match in matches if _match_is_textually_equivalent(match)
+    ]
+    equivalent_matched_by_node: dict[str, list[str]] = {
+        node.node_id: [] for node in component
+    }
+    for match in equivalent_matches:
+        equivalent_matched_by_node[match.t1_node_id].append(match.text_t1)
+        equivalent_matched_by_node[match.t2_node_id].append(match.text_t2)
+    modified_residuals = {
+        node.node_id: _residual_text(
+            node.text,
+            equivalent_matched_by_node.get(node.node_id, []),
+        )
+        for node in component
+    }
     fully_covered = bool(matches) and all(not residuals[node.node_id] for node in component)
+    textually_equivalent = _matches_are_textually_equivalent(matches)
+    structurally_safe_equivalence = (
+        textually_equivalent
+        and _component_has_structurally_safe_equivalence(
+            component,
+            matches,
+        )
+    )
+    equivalent_matches_preserve_order = (
+        _equivalent_matches_preserve_relative_order(
+            component,
+            equivalent_matches,
+        )
+    )
     audit = {
         "component_change_ids": [str(node.change.get("change_id") or "") for node in component],
         "decision": response.decision,
         "confidence": response.confidence,
         "rationale": _sanitize_explanation(response.rationale),
         "valid_match_count": len(matches),
+        "equivalent_match_count": len(equivalent_matches),
         "fully_covered": fully_covered,
+        "matches_textually_equivalent": textually_equivalent,
+        "structurally_safe_equivalence": (
+            structurally_safe_equivalence
+        ),
+        "equivalent_matches_preserve_order": (
+            equivalent_matches_preserve_order
+        ),
         "applied": False,
     }
 
@@ -516,16 +837,166 @@ def _reconcile_component(
         if not fully_covered:
             audit["decision"] = "uncertain"
             audit["rationale"] = "Réconciliation incomplète : les extraits validés ne couvrent pas tous les fragments."
-            return {node.node_id: dict(node.change) for node in component}, audit
+            return (
+                _preserve_component_with_alignment(
+                    component,
+                    response=response,
+                    alignment_decision="uncertain",
+                    rationale=audit["rationale"],
+                ),
+                audit,
+            )
+        if not textually_equivalent:
+            audit["decision"] = "same_disclosure_modified"
+            audit["rationale"] = (
+                "Les extraits couvrent les fragments, mais leurs textes ne "
+                "sont pas équivalents après normalisation; le changement est "
+                "conservé pour le jugement de matérialité."
+            )
+            return (
+                _preserve_component_with_alignment(
+                    component,
+                    response=response,
+                    alignment_decision=(
+                        "same_disclosure"
+                        if response.confidence == "high"
+                        else "uncertain"
+                    ),
+                    rationale=audit["rationale"],
+                ),
+                audit,
+            )
+        if not structurally_safe_equivalence:
+            audit["decision"] = "uncertain"
+            audit["rationale"] = (
+                "Les portions rapprochées sont textuellement identiques, mais "
+                "leur association structurelle n'est pas démontrée; les "
+                "fragments restent visibles pour revue."
+            )
+            return (
+                _preserve_component_with_alignment(
+                    component,
+                    response=response,
+                    alignment_decision="uncertain",
+                    rationale=audit["rationale"],
+                ),
+                audit,
+            )
+        if response.confidence != "high":
+            audit["decision"] = "uncertain"
+            audit["rationale"] = (
+                "Le déplacement paraît textuellement équivalent, mais sa "
+                "confiance n'est pas élevée; les fragments restent visibles "
+                "pour revue."
+            )
+            return (
+                _preserve_component_with_alignment(
+                    component,
+                    response=response,
+                    alignment_decision="moved_text",
+                    rationale=audit["rationale"],
+                ),
+                audit,
+            )
         audit["applied"] = True
         return {node.node_id: None for node in component}, audit
 
     if response.decision == "same_disclosure_modified":
+        previous_nodes = [
+            node for node in component if node.side == "t1"
+        ]
+        current_nodes = [
+            node for node in component if node.side == "t2"
+        ]
+        if fully_covered:
+            if len(previous_nodes) == 1 and len(current_nodes) == 1:
+                previous = previous_nodes[0]
+                current = current_nodes[0]
+                replacement = dict(previous.change)
+                replacement.update(
+                    {
+                        "diff_type": "modified",
+                        "alignment_id": (
+                            f"global_{previous.node_id}_{current.node_id}"
+                        ),
+                        "alignment_type": "global_reconciled_modified",
+                        "alignment_decision": "same_disclosure",
+                        "alignment_confidence": response.confidence,
+                        "alignment_rationale": _sanitize_explanation(
+                            response.rationale
+                        ),
+                        "source_text_t1": previous.text,
+                        "source_text_t2": current.text,
+                        "semantic_text_t1": _sanitize_semantic_text(
+                            previous.text
+                        ),
+                        "semantic_text_t2": _sanitize_semantic_text(
+                            current.text
+                        ),
+                        "pages_t1": (
+                            previous.change.get("pages_t1") or []
+                        ),
+                        "pages_t2": (
+                            current.change.get("pages_t2") or []
+                        ),
+                        "evidence_t1": {
+                            "pages": (
+                                previous.change.get("pages_t1") or []
+                            ),
+                            "snippet": previous.text[:400],
+                        },
+                        "evidence_t2": {
+                            "pages": (
+                                current.change.get("pages_t2") or []
+                            ),
+                            "snippet": current.text[:400],
+                        },
+                        "change_summary": _sanitize_explanation(
+                            response.rationale
+                        ),
+                    }
+                )
+                replacements = {
+                    node.node_id: None for node in component
+                }
+                replacements[previous.node_id] = replacement
+                audit["applied"] = True
+                return replacements, audit
+            audit["rationale"] = (
+                "La modification couvre plusieurs fragments; ils sont "
+                "conservés individuellement afin que le triage juge chaque "
+                "différence de contenu."
+            )
+            return (
+                _preserve_component_with_alignment(
+                    component,
+                    response=response,
+                    alignment_decision="same_disclosure",
+                    rationale=audit["rationale"],
+                ),
+                audit,
+            )
+
+        if equivalent_matches and not equivalent_matches_preserve_order:
+            modified_residuals = {
+                node.node_id: node.text for node in component
+            }
+            audit["rationale"] = (
+                "Les portions inchangées sont réordonnées ou ambiguës; leur "
+                "soustraction pourrait masquer une réattribution d'acteur, "
+                "de rôle ou de responsabilité. Les textes complets sont "
+                "conservés pour le jugement de matérialité."
+            )
+
         previous_with_residual = [
-            node for node in component if node.side == "t1" and residuals[node.node_id]
+            node
+            for node in component
+            if node.side == "t1" and modified_residuals[node.node_id]
         ]
         current_with_residual = [
-            node for node in component if node.side == "t2" and residuals[node.node_id]
+            node
+            for node in component
+            if node.side == "t2" and modified_residuals[node.node_id]
         ]
         if len(previous_with_residual) == 1 and len(current_with_residual) == 1:
             previous = previous_with_residual[0]
@@ -539,17 +1010,29 @@ def _reconcile_component(
                     "alignment_decision": "same_disclosure",
                     "alignment_confidence": response.confidence,
                     "alignment_rationale": _sanitize_explanation(response.rationale),
-                    "source_text_t1": residuals[previous.node_id],
-                    "source_text_t2": residuals[current.node_id],
-                    "semantic_text_t1": _sanitize_semantic_text(residuals[previous.node_id]),
-                    "semantic_text_t2": _sanitize_semantic_text(residuals[current.node_id]),
+                    "source_text_t1": modified_residuals[
+                        previous.node_id
+                    ],
+                    "source_text_t2": modified_residuals[
+                        current.node_id
+                    ],
+                    "semantic_text_t1": _sanitize_semantic_text(
+                        modified_residuals[previous.node_id]
+                    ),
+                    "semantic_text_t2": _sanitize_semantic_text(
+                        modified_residuals[current.node_id]
+                    ),
                     "evidence_t1": {
                         "pages": previous.change.get("pages_t1") or [],
-                        "snippet": residuals[previous.node_id][:400],
+                        "snippet": modified_residuals[
+                            previous.node_id
+                        ][:400],
                     },
                     "evidence_t2": {
                         "pages": current.change.get("pages_t2") or [],
-                        "snippet": residuals[current.node_id][:400],
+                        "snippet": modified_residuals[
+                            current.node_id
+                        ][:400],
                     },
                     "change_summary": _sanitize_explanation(response.rationale),
                 }
@@ -559,7 +1042,11 @@ def _reconcile_component(
             audit["applied"] = bool(matches)
             return replacements, audit
         replacements = {
-            node.node_id: _update_one_sided_residual(node.change, node.side, residuals[node.node_id])
+            node.node_id: _update_one_sided_residual(
+                node.change,
+                node.side,
+                modified_residuals[node.node_id],
+            )
             for node in component
         }
         audit["applied"] = bool(matches)

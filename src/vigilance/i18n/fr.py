@@ -208,6 +208,7 @@ _IMPACT_LABEL_FR: dict[str, str] = {
     "MAJEUR": "Majeur",
     "MODERE": "Modéré",
     "MINEUR": "Mineur",
+    "A_CONFIRMER": "Niveau à confirmer",
 }
 
 _ANALYST_ENGLISH_REPLACEMENTS: tuple[tuple[re.Pattern[str], str], ...] = (

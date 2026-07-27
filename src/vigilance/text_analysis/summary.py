@@ -21,6 +21,24 @@ _STRONG_AMF_THEMES_FOR_MODERE_RETENTION: frozenset[str] = frozenset(
 )
 
 
+def _effective_materiality_level(triage: dict[str, Any]) -> str:
+    """Retourne un niveau direct ou un statut explicite non arbitré."""
+    direct = str(triage.get("materiality_level") or "").strip().upper()
+    decision_status = str(
+        triage.get("decision_status") or ""
+    ).strip().upper()
+    if (
+        triage.get("review_required")
+        and decision_status in {"A_CONFIRMER", "PROVISOIRE"}
+        and triage.get("materiality_decision_basis") != "legacy_fallback"
+        and direct in {"", "MINEUR"}
+    ):
+        return "A_CONFIRMER"
+    if direct in {"MAJEUR", "MODERE", "MINEUR"}:
+        return direct
+    return str(triage.get("impact_level") or "MINEUR").strip().upper()
+
+
 def _is_new_major_or_allowed_moderate(triage: dict[str, Any]) -> bool:
     """Retourne True si le triage indique un changement majeur ou un changement modéré significatif.
 
@@ -30,7 +48,9 @@ def _is_new_major_or_allowed_moderate(triage: dict[str, Any]) -> bool:
     """
     if not triage.get("is_relevant", False):
         return False
-    impact = str(triage.get("impact_level") or "MINEUR").upper()
+    impact = _effective_materiality_level(triage)
+    if triage.get("materiality_level") in {"MAJEUR", "MODERE", "MINEUR"}:
+        return impact in {"MAJEUR", "MODERE"}
     if impact == "MAJEUR":
         return True
     if impact != "MODERE":
@@ -46,16 +66,16 @@ def _is_non_cosmetic_change(triage: dict[str, Any]) -> bool:
     return bool(triage.get("is_relevant")) and bool(triage.get("themes_amf"))
 
 
-def _retained_change_sort_key(change: dict[str, Any]) -> tuple[int, int, int, str, str, str]:
+def _retained_change_sort_key(
+    change: dict[str, Any],
+) -> tuple[int, int, int, int, str, str, str]:
     """Clé de tri pour ordonner les changements retenus dans le rapport final.
 
-    Ordre de priorité : nouvelles idées en premier, puis impact décroissant
-    (MAJEUR → MODERE → MINEUR), puis nombre de thèmes AMF décroissant (un
-    changement multi-label étant a priori plus structurant), puis section,
-    puis page, puis type de diff.
+    Ordre de priorité : matérialité décroissante (MAJEUR → MODERE → MINEUR),
+    revue requise, nouvelles idées, nombre de thèmes AMF, section, page et type.
     """
     triage = change.get("genai_triage") or {}
-    impact = str(triage.get("impact_level") or "MINEUR").upper()
+    impact = _effective_materiality_level(triage)
     diff_type = str(change.get("diff_type") or "").lower()
     pages = change.get("pages_t2") or change.get("pages_t1") or []
     first_page = ""
@@ -64,11 +84,17 @@ def _retained_change_sort_key(change: dict[str, Any]) -> tuple[int, int, int, st
             first_page = f"{int(pages[0]):06d}"
         except (TypeError, ValueError):
             first_page = str(pages[0])
-    impact_order = {"MAJEUR": 0, "MODERE": 1, "MINEUR": 2}.get(impact, 99)
+    impact_order = {
+        "MAJEUR": 0,
+        "A_CONFIRMER": 1,
+        "MODERE": 2,
+        "MINEUR": 3,
+    }.get(impact, 99)
     themes_count = len(triage.get("themes_amf") or [])
     return (
-        0 if triage.get("nouvelle_idee", False) else 1,
         impact_order,
+        0 if triage.get("review_required", False) else 1,
+        0 if triage.get("nouvelle_idee", False) else 1,
         -themes_count,
         str(change.get("section_key") or ""),
         first_page,
@@ -96,13 +122,46 @@ def _build_global_summary(
     highlights: list[str] = []
     relevant_count = 0
     relevant_major_count = 0
+    review_required_count = 0
+    decision_status_counts: dict[str, int] = {}
+    legacy_vs_direct_changes = 0
+    consolidated_by_impact: dict[str, int] = {}
+    consolidated_review_required_count = 0
+    seen_consolidated_groups: set[str] = set()
 
     for change in all_changes:
         triage = change.get("genai_triage") or {}
         is_relevant = bool(triage.get("is_relevant", False))
-        impact = str(triage.get("impact_level") or "MINEUR").upper()
+        impact = _effective_materiality_level(triage)
         category = str(triage.get("category") or "INCONNU").upper()
         action = str(triage.get("action_requise") or "aucune").lower()
+        decision_status = str(
+            triage.get("decision_status") or "PROVISOIRE"
+        ).upper()
+        decision_status_counts[decision_status] = (
+            decision_status_counts.get(decision_status, 0) + 1
+        )
+        if triage.get("review_required"):
+            review_required_count += 1
+        legacy_impact = str(triage.get("legacy_impact_level") or "").upper()
+        if legacy_impact and legacy_impact != impact:
+            legacy_vs_direct_changes += 1
+        consolidated_group_id = str(
+            triage.get("triage_group_id") or ""
+        )
+        if (
+            consolidated_group_id
+            and consolidated_group_id not in seen_consolidated_groups
+        ):
+            seen_consolidated_groups.add(consolidated_group_id)
+            consolidated_level = str(
+                triage.get("consolidated_materiality_level") or impact
+            ).upper()
+            consolidated_by_impact[consolidated_level] = (
+                consolidated_by_impact.get(consolidated_level, 0) + 1
+            )
+            if triage.get("consolidated_review_required"):
+                consolidated_review_required_count += 1
         if is_relevant:
             relevant_count += 1
             if impact == "MAJEUR":
@@ -151,6 +210,14 @@ def _build_global_summary(
             "by_impact": by_impact,
             "by_category": by_category,
             "by_action": by_action,
+            "by_decision_status": decision_status_counts,
+            "review_required": review_required_count,
+            "legacy_vs_direct_level_changes": legacy_vs_direct_changes,
+            "consolidated_dossiers": len(seen_consolidated_groups),
+            "consolidated_by_impact": consolidated_by_impact,
+            "consolidated_review_required": (
+                consolidated_review_required_count
+            ),
         },
     }
 
@@ -173,6 +240,14 @@ def _build_semantic_quality_metrics(
     triage_prefiltered_count = 0
     triage_dedup_groups = 0
     triage_dedup_members = 0
+    triage_propagated_verdicts = 0
+    direct_materiality_count = 0
+    legacy_materiality_fallback_count = 0
+    challenged_materiality_count = 0
+    challenged_disagreement_count = 0
+    consolidated_assessment_groups: set[str] = set()
+    consolidated_promoted_groups: set[str] = set()
+    consolidated_review_groups: set[str] = set()
     seen_dedup_groups: set[str] = set()
 
     for change in all_changes:
@@ -181,9 +256,21 @@ def _build_semantic_quality_metrics(
         if alignment_type == "ambiguous" or str(change.get("alignment_decision") or "") == "uncertain":
             ambiguous_count += 1
         triage = change.get("genai_triage") or {}
-        if triage.get("alignment_review_required"):
+        if (
+            triage.get("alignment_review_required")
+            or triage.get("review_required")
+        ):
             human_review_count += 1
         source = str(triage.get("source") or "")
+        if triage.get("materiality_decision_basis") == "direct_materiality":
+            direct_materiality_count += 1
+        elif triage.get("materiality_decision_basis") == "legacy_fallback":
+            legacy_materiality_fallback_count += 1
+        challenge = triage.get("materiality_challenge") or {}
+        if challenge:
+            challenged_materiality_count += 1
+            if challenge.get("disagreement") is True:
+                challenged_disagreement_count += 1
         if source == "deterministic_prefilter":
             triage_prefiltered_count += 1
         elif source and source not in {
@@ -198,6 +285,28 @@ def _build_semantic_quality_metrics(
                 seen_dedup_groups.add(group_id)
                 triage_dedup_groups += 1
             triage_dedup_members += 1
+            if triage.get("consolidated_assessment_source"):
+                consolidated_assessment_groups.add(group_id)
+            consolidated_level = str(
+                triage.get("consolidated_materiality_level") or ""
+            ).upper()
+            individual_level = str(
+                triage.get("impact_level") or "MINEUR"
+            ).upper()
+            materiality_rank = {
+                "MINEUR": 0,
+                "MODERE": 1,
+                "MAJEUR": 2,
+            }
+            if materiality_rank.get(
+                consolidated_level,
+                -1,
+            ) > materiality_rank.get(individual_level, -1):
+                consolidated_promoted_groups.add(group_id)
+            if triage.get("consolidated_review_required"):
+                consolidated_review_groups.add(group_id)
+        if dedup.get("propagated") is True:
+            triage_propagated_verdicts += 1
 
     audit_rows = list(reconciliation_audit or [])
     applied_reconciliations = sum(1 for row in audit_rows if row.get("applied"))
@@ -218,6 +327,27 @@ def _build_semantic_quality_metrics(
         "triage_sent_count": triage_sent_count,
         "triage_dedup_group_count": triage_dedup_groups,
         "triage_dedup_member_count": triage_dedup_members,
+        "triage_propagated_verdict_count": triage_propagated_verdicts,
+        "direct_materiality_count": direct_materiality_count,
+        "direct_materiality_rate": (
+            round(direct_materiality_count / total_changes, 4)
+            if total_changes
+            else 0.0
+        ),
+        "legacy_materiality_fallback_count": (
+            legacy_materiality_fallback_count
+        ),
+        "materiality_challenge_count": challenged_materiality_count,
+        "materiality_challenge_disagreement_count": challenged_disagreement_count,
+        "consolidated_assessment_count": len(
+            consolidated_assessment_groups
+        ),
+        "consolidated_promotion_count": len(
+            consolidated_promoted_groups
+        ),
+        "consolidated_review_required_count": len(
+            consolidated_review_groups
+        ),
         "triage_duplicate_rate": (
             round(
                 max(0, triage_dedup_members - triage_dedup_groups) / total_changes,

@@ -23,11 +23,18 @@ from vigilance.text_analysis.markdown import (
     _section_page_range_from_index,
 )
 from vigilance.text_analysis.models import TextAnalysisQualityError
-from vigilance.text_analysis.openai_client import _build_openai_client
+from vigilance.text_analysis.openai_client import (
+    _build_openai_client,
+    _embed_texts,
+)
+from vigilance.text_analysis.precedent_memory import PrecedentMemory
 from vigilance.text_analysis.sections import _allowed_target_sections, _resolve_sections
 from vigilance.text_analysis.summary import _build_global_summary, _is_non_cosmetic_change, _retained_change_sort_key
 from vigilance.text_analysis.summary import _build_semantic_quality_metrics
-from vigilance.text_analysis.triage import _triage_section_changes
+from vigilance.text_analysis.triage import (
+    _evaluate_consolidated_dossier_materiality,
+    _triage_section_changes,
+)
 from vigilance.text_comparison.text_comparison_writer import get_text_comparison_path, write_text_comparison
 from vigilance.text_extraction.text_extraction_markdown_writer import (
     get_canonical_text_extraction_md_path,
@@ -456,6 +463,19 @@ def run_text_analysis_pipeline(
 
     # Second GPT pass: AMF triage only after global reconciliation has removed
     # false added/removed records created by a split or a move.
+    precedent_memory = PrecedentMemory.from_paths(
+        out_root,
+        embedding_engine=lambda texts: _embed_texts(
+            client,
+            list(texts),
+            model="text-embedding-3-small",
+        ),
+    )
+    logger.info(
+        "Mémoire de précédents analystes: %d cas validés, %d fichier(s) lus",
+        len(precedent_memory.precedents),
+        precedent_memory.load_report.files_seen,
+    )
     section_comparisons: list[dict[str, Any]] = []
     for section_key in section_keys:
         changes = reconciled_by_section.get(section_key, [])
@@ -466,6 +486,14 @@ def run_text_analysis_pipeline(
             bank_code=bank_code,
             section_key=section_key,
             changes=non_unchanged,
+            precedent_memory=precedent_memory,
+        )
+        enriched = _evaluate_consolidated_dossier_materiality(
+            client=client,
+            model=model,
+            bank_code=bank_code,
+            section_key=section_key,
+            changes=enriched,
         )
         all_changes = [dict(change) for change in enriched]
         all_changes.sort(key=_retained_change_sort_key)
@@ -506,6 +534,16 @@ def run_text_analysis_pipeline(
             section_comparisons=section_comparisons,
             reconciliation_audit=reconciliation_audit,
         ),
+        "precedent_memory": {
+            "schema_version": "analyst_precedent_v1",
+            "precedent_count": len(precedent_memory.precedents),
+            "files_seen": precedent_memory.load_report.files_seen,
+            "records_seen": precedent_memory.load_report.records_seen,
+            "accepted_records": precedent_memory.load_report.accepted_records,
+            "rejected_records": precedent_memory.load_report.rejected_records,
+            "duplicate_records": precedent_memory.load_report.duplicate_records,
+            "errors": list(precedent_memory.load_report.errors),
+        },
     }
     payload["global_summary"] = _build_global_summary(
         section_comparisons,

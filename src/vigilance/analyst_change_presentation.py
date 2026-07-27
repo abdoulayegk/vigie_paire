@@ -286,6 +286,12 @@ def change_scope(change: dict[str, Any]) -> str:
 
     exclusion_reason = str(triage.get("exclusion_reason") or "").strip().lower()
     alignment_decision = str(change.get("alignment_decision") or "").strip().lower()
+    if (
+        triage.get("review_required")
+        or str(triage.get("decision_status") or "").strip().upper()
+        == "A_CONFIRMER"
+    ):
+        return "qualitative"
     if exclusion_reason in _SECONDARY_EXCLUSION_REASONS or alignment_decision == "moved_text":
         return "secondary"
 

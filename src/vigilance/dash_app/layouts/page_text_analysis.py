@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import re
 from difflib import SequenceMatcher
-from typing import Any
+from typing import Any, get_args
 
 import dash_bootstrap_components as dbc
 from dash import dcc, html
@@ -20,8 +20,11 @@ from vigilance.analyst_change_presentation import (
     change_scope,
 )
 from vigilance.amf_taxonomy import (
+    ChangeNature,
     IMPACT_IT_DETAIL_LABELS,
     POSTURE_DETAIL_LABELS,
+    THEMES_AMF_ANALYST_SUBJECTS,
+    THEMES_AMF_PIPELINE_2,
     _compact_complete_sentence_parts,
     extract_labeled_analysis,
 )
@@ -31,8 +34,10 @@ from vigilance.dash_app.components.text_change_presentation import (
     build_atomic_change_group,
     build_source_evidence_details,
 )
+from vigilance.dash_app.services.text_review import is_final_direct_triage
 from vigilance.i18n.fr import sanitize_analyst_french
 from vigilance.quarter_utils import quarter_label_from_payload
+from vigilance.text_analysis.summary import _effective_materiality_level
 from vigilance.text_comparison.justification import build_text_triage_justification
 
 # ---------------------------------------------------------------------------
@@ -45,12 +50,23 @@ _SECTION_LABELS: dict[str, str] = {
     "gestion_reglementation": "Faits nouveaux en matière de réglementation",
 }
 
-_IMPACT_ORDER: dict[str, int] = {"MAJEUR": 0, "MODERE": 1, "MINEUR": 2}
+_IMPACT_ORDER: dict[str, int] = {
+    "MAJEUR": 0,
+    "A_CONFIRMER": 1,
+    "MODERE": 2,
+    "MINEUR": 3,
+}
+_MATERIALITY_RANK: dict[str, int] = {
+    "MINEUR": 0,
+    "MODERE": 1,
+    "MAJEUR": 2,
+}
 
 _IMPACT_BADGE: dict[str, tuple[str, str]] = {
     "MAJEUR": ("Majeur", "danger"),
     "MODERE": ("Modéré", "warning"),
     "MINEUR": ("Mineur", "secondary"),
+    "A_CONFIRMER": ("Niveau à confirmer", "warning"),
 }
 
 _POSTURE_BADGE: dict[str, tuple[str, str]] = {
@@ -167,9 +183,67 @@ _ACTION_BADGE: dict[str, tuple[str, str]] = {
 
 _TEXT_REVIEW_STATUS_BADGES: dict[str, tuple[str, str]] = {
     "approved": ("Validé", "success"),
+    "corrected": ("Corrigé", "warning"),
     "rejected": ("Rejeté", "danger"),
     "skipped": ("Passé", "secondary"),
 }
+
+_CHANGE_NATURE_LABELS: dict[str, str] = {
+    "FORMATAGE": "Formatage",
+    "REFORMULATION_EQUIVALENTE": "Reformulation équivalente",
+    "DEPLACEMENT": "Déplacement",
+    "AJOUT_INFORMATION": "Ajout d’information",
+    "RETRAIT_INFORMATION": "Retrait d’information",
+    "MODIFICATION_TERMINOLOGIE": "Modification de terminologie",
+    "MODIFICATION_DEFINITION": "Modification de définition",
+    "MODIFICATION_PERIMETRE": "Modification de périmètre",
+    "MODIFICATION_GOUVERNANCE": "Modification de gouvernance",
+    "MODIFICATION_RESPONSABILITES": "Modification des responsabilités",
+    "MODIFICATION_METHODOLOGIE": "Modification de méthodologie",
+    "MODIFICATION_CONTROLE": "Modification de contrôle",
+    "MODIFICATION_EXIGENCE_REGLEMENTAIRE": "Modification réglementaire",
+    "MODIFICATION_STATUT_MISE_EN_OEUVRE": "Modification de mise en œuvre",
+    "VARIATION_CHIFFREE": "Variation chiffrée",
+    "AUTRE": "Autre",
+}
+
+_CHANGE_NATURE_OPTIONS = [
+    {
+        "label": _CHANGE_NATURE_LABELS.get(value, value),
+        "value": value,
+    }
+    for value in get_args(ChangeNature)
+]
+
+_BUSINESS_EQUIVALENCE_OPTIONS = [
+    {"label": "Équivalence confirmée", "value": "CONFIRMEE"},
+    {"label": "Équivalence probable", "value": "PROBABLE"},
+    {"label": "Équivalence non démontrée", "value": "NON_DEMONTREE"},
+    {"label": "Équivalence réfutée", "value": "REFUTEE"},
+    {"label": "Indéterminée", "value": "INDETERMINE"},
+]
+
+_THEME_CORRECTION_OPTIONS = [
+    {
+        "label": THEMES_AMF_ANALYST_SUBJECTS.get(code, code),
+        "value": code,
+    }
+    for code in THEMES_AMF_PIPELINE_2
+]
+
+_MATERIALITY_CONFIDENCE_OPTIONS = [
+    {"label": "Élevée", "value": "ELEVEE"},
+    {"label": "Moyenne", "value": "MOYENNE"},
+    {"label": "Faible", "value": "FAIBLE"},
+    {"label": "Indéterminée", "value": "INDETERMINE"},
+]
+
+_EVIDENCE_SUFFICIENCY_OPTIONS = [
+    {"label": "Suffisante", "value": "SUFFISANTE"},
+    {"label": "Partielle", "value": "PARTIELLE"},
+    {"label": "Insuffisante", "value": "INSUFFISANTE"},
+    {"label": "Indéterminée", "value": "INDETERMINE"},
+]
 
 _UNSET = object()
 
@@ -791,7 +865,18 @@ def _build_change_card(
         candidate_summary=analyst_narrative.changement_constate,
     )
     is_relevant = bool(triage.get("is_relevant", False))
-    impact_level = (triage.get("impact_level") or "MINEUR").upper()
+    impact_level = _effective_materiality_level(triage)
+    decision_status = str(
+        triage.get("decision_status") or "PROVISOIRE"
+    ).strip().upper()
+    review_required = bool(triage.get("review_required", False))
+    materiality_challenge = triage.get("materiality_challenge") or {}
+    consolidated_level = str(
+        triage.get("consolidated_materiality_level") or ""
+    ).strip().upper()
+    consolidated_review_required = bool(
+        triage.get("consolidated_review_required", False)
+    )
     impact_it_justification = str(
         triage.get("impact_it_justification") or ""
     ).strip()
@@ -848,7 +933,11 @@ def _build_change_card(
     change_segments = list(triage.get("change_segments") or [])
 
     # Couleur border-left dérivée du niveau d'impact
-    border_color = {"MAJEUR": "danger", "MODERE": "warning"}.get(impact_level, "secondary")
+    border_color = {
+        "MAJEUR": "danger",
+        "MODERE": "warning",
+        "A_CONFIRMER": "warning",
+    }.get(impact_level, "secondary")
 
     # Ligne 1 — badges (nouvelle idée + impact + action)
     impact_lbl, impact_color = _IMPACT_BADGE.get(impact_level, (impact_level, "secondary"))
@@ -877,6 +966,51 @@ def _build_change_card(
             )
         )
     badge_children.append(_badge(impact_lbl, impact_color))
+    if (
+        consolidated_level in _MATERIALITY_RANK
+        and _MATERIALITY_RANK[consolidated_level]
+        > _MATERIALITY_RANK.get(impact_level, -1)
+    ):
+        consolidated_label = _IMPACT_BADGE[consolidated_level][0]
+        badge_children.append(
+            _badge(
+                f"Dossier consolidé : {consolidated_label}",
+                _IMPACT_BADGE[consolidated_level][1],
+                title=(
+                    "Le niveau du dossier tient compte de l'effet cumulatif "
+                    "des changements reliés; le niveau individuel reste affiché."
+                ),
+            )
+        )
+    if consolidated_review_required:
+        badge_children.append(
+            _badge(
+                "Dossier consolidé à confirmer",
+                "warning",
+            )
+        )
+    if (
+        impact_level != "A_CONFIRMER"
+        and (review_required or decision_status != "CONFIRME")
+    ):
+        badge_children.append(
+            _badge(
+                "Matérialité à confirmer",
+                "warning",
+                title="Cette décision doit être confirmée par un analyste.",
+            )
+        )
+    if materiality_challenge.get("disagreement"):
+        badge_children.append(
+            _badge(
+                "Désaccord des évaluateurs",
+                "warning",
+                title=(
+                    "L’évaluation principale et l’évaluation indépendante "
+                    "ne concordent pas."
+                ),
+            )
+        )
     posture_badge = _POSTURE_BADGE.get(changement_posture)
     if posture_badge:
         badge_children.append(_badge(*posture_badge))
@@ -956,9 +1090,80 @@ def _build_change_card(
     review = change.get("_analyst_review") or {}
     review_status = str(review.get("status") or "").strip().lower()
     review_comment = str(review.get("comment") or "").strip()
+    review_correction = review.get("structured_correction") or {}
+    review_materiality_value = str(
+        review_correction.get("materiality_level")
+        or triage.get("materiality_level")
+        or ""
+    ).strip().upper()
+    review_materiality = (
+        review_materiality_value
+        if review_materiality_value in {"MAJEUR", "MODERE", "MINEUR"}
+        else None
+    )
+    review_natures = list(
+        review_correction.get("change_nature")
+        or triage.get("change_nature")
+        or []
+    )
+    review_equivalence = str(
+        review_correction.get("business_equivalence")
+        or triage.get("business_equivalence")
+        or "INDETERMINE"
+    ).strip().upper()
+    review_themes = list(
+        review_correction.get("themes_amf")
+        or triage.get("themes_amf")
+        or []
+    )
+    review_relevance = bool(
+        review_correction.get(
+            "is_relevant",
+            triage.get("is_relevant", False),
+        )
+    )
+    review_new_idea = bool(
+        review_correction.get(
+            "nouvelle_idee",
+            triage.get("nouvelle_idee", False),
+        )
+    )
+    review_confidence = str(
+        review_correction.get("materiality_confidence")
+        or triage.get("materiality_confidence")
+        or "INDETERMINE"
+    ).strip().upper()
+    review_evidence = str(
+        review_correction.get("evidence_sufficiency")
+        or triage.get("evidence_sufficiency")
+        or "INDETERMINE"
+    ).strip().upper()
+    review_supporting_evidence = "\n".join(
+        str(value)
+        for value in (
+            review_correction.get("supporting_evidence") or []
+        )
+        if str(value or "").strip()
+    )
+    review_counterarguments = "\n".join(
+        str(value)
+        for value in (
+            review_correction.get("counterarguments") or []
+        )
+        if str(value or "").strip()
+    )
+    approval_requires_correction = (
+        review_status == "corrected"
+        or not is_final_direct_triage(triage)
+    )
     review_badge = None
     if review_status in _TEXT_REVIEW_STATUS_BADGES:
         review_label, review_color = _TEXT_REVIEW_STATUS_BADGES[review_status]
+        if (
+            review_status == "corrected"
+            and _review_workflow_status(review) == "pending"
+        ):
+            review_label = "Correction enregistrée — à confirmer"
         review_badge = _badge(f"Décision : {review_label}", review_color)
 
     review_controls = html.Div(
@@ -973,9 +1178,262 @@ def _build_change_card(
             dcc.Textarea(
                 id={"type": "text-review-comment", "change_id": change_id},
                 value=review_comment,
-                placeholder="Commentaire analyste (optionnel)...",
+                placeholder=(
+                    "Justification de la correction (requise pour créer un "
+                    "précédent analyste)..."
+                ),
                 className="form-control form-control-sm mb-2",
                 style={"minHeight": "64px", "resize": "vertical"},
+            ),
+            dbc.Row(
+                [
+                    dbc.Col(
+                        [
+                            html.Label(
+                                "Niveau corrigé",
+                                className="small text-muted mb-1",
+                            ),
+                            dcc.Dropdown(
+                                id={
+                                    "type": "text-review-materiality",
+                                    "change_id": change_id,
+                                },
+                                options=[
+                                    {"label": "Majeur", "value": "MAJEUR"},
+                                    {"label": "Modéré", "value": "MODERE"},
+                                    {"label": "Mineur", "value": "MINEUR"},
+                                ],
+                                value=review_materiality,
+                                clearable=False,
+                            ),
+                        ],
+                        md=3,
+                        className="mb-2",
+                    ),
+                    dbc.Col(
+                        [
+                            html.Label(
+                                "Nature du changement",
+                                className="small text-muted mb-1",
+                            ),
+                            dcc.Dropdown(
+                                id={
+                                    "type": "text-review-nature",
+                                    "change_id": change_id,
+                                },
+                                options=_CHANGE_NATURE_OPTIONS,
+                                value=review_natures,
+                                multi=True,
+                                placeholder="Choisir une nature",
+                            ),
+                        ],
+                        md=5,
+                        className="mb-2",
+                    ),
+                    dbc.Col(
+                        [
+                            html.Label(
+                                "Équivalence métier",
+                                className="small text-muted mb-1",
+                            ),
+                            dcc.Dropdown(
+                                id={
+                                    "type": "text-review-equivalence",
+                                    "change_id": change_id,
+                                },
+                                options=_BUSINESS_EQUIVALENCE_OPTIONS,
+                                value=review_equivalence,
+                                clearable=False,
+                            ),
+                        ],
+                        md=4,
+                        className="mb-2",
+                    ),
+                ],
+                className="g-2",
+            ),
+            dbc.Row(
+                [
+                    dbc.Col(
+                        [
+                            html.Label(
+                                "Pertinent pour la vigie",
+                                className="small text-muted mb-1",
+                            ),
+                            dcc.Dropdown(
+                                id={
+                                    "type": "text-review-relevance",
+                                    "change_id": change_id,
+                                },
+                                options=[
+                                    {"label": "Oui", "value": True},
+                                    {"label": "Non", "value": False},
+                                ],
+                                value=review_relevance,
+                                clearable=False,
+                            ),
+                        ],
+                        md=3,
+                        className="mb-2",
+                    ),
+                    dbc.Col(
+                        [
+                            html.Label(
+                                "Nouvelle idée",
+                                className="small text-muted mb-1",
+                            ),
+                            dcc.Dropdown(
+                                id={
+                                    "type": "text-review-new-idea",
+                                    "change_id": change_id,
+                                },
+                                options=[
+                                    {"label": "Oui", "value": True},
+                                    {"label": "Non", "value": False},
+                                ],
+                                value=review_new_idea,
+                                clearable=False,
+                            ),
+                        ],
+                        md=3,
+                        className="mb-2",
+                    ),
+                ],
+                className="g-2",
+            ),
+            dbc.Row(
+                [
+                    dbc.Col(
+                        [
+                            html.Label(
+                                "Thèmes AMF corrigés",
+                                className="small text-muted mb-1",
+                            ),
+                            dcc.Dropdown(
+                                id={
+                                    "type": "text-review-themes",
+                                    "change_id": change_id,
+                                },
+                                options=_THEME_CORRECTION_OPTIONS,
+                                value=review_themes,
+                                multi=True,
+                                placeholder=(
+                                    "Choisir au moins un thème pour un "
+                                    "changement pertinent"
+                                ),
+                            ),
+                        ],
+                        md=6,
+                        className="mb-2",
+                    ),
+                    dbc.Col(
+                        [
+                            html.Label(
+                                "Confiance",
+                                className="small text-muted mb-1",
+                            ),
+                            dcc.Dropdown(
+                                id={
+                                    "type": "text-review-confidence",
+                                    "change_id": change_id,
+                                },
+                                options=_MATERIALITY_CONFIDENCE_OPTIONS,
+                                value=review_confidence,
+                                clearable=False,
+                            ),
+                        ],
+                        md=3,
+                        className="mb-2",
+                    ),
+                    dbc.Col(
+                        [
+                            html.Label(
+                                "Suffisance de preuve",
+                                className="small text-muted mb-1",
+                            ),
+                            dcc.Dropdown(
+                                id={
+                                    "type": "text-review-evidence",
+                                    "change_id": change_id,
+                                },
+                                options=_EVIDENCE_SUFFICIENCY_OPTIONS,
+                                value=review_evidence,
+                                clearable=False,
+                            ),
+                        ],
+                        md=3,
+                        className="mb-2",
+                    ),
+                ],
+                className="g-2",
+            ),
+            dbc.Row(
+                [
+                    dbc.Col(
+                        [
+                            html.Label(
+                                "Preuve analyste soutenant le niveau",
+                                className="small text-muted mb-1",
+                            ),
+                            dcc.Textarea(
+                                id={
+                                    "type": (
+                                        "text-review-supporting-evidence"
+                                    ),
+                                    "change_id": change_id,
+                                },
+                                value=review_supporting_evidence,
+                                placeholder=(
+                                    "Indiquer le fait précis observé dans les "
+                                    "textes avant/après..."
+                                ),
+                                className="form-control form-control-sm",
+                                style={
+                                    "minHeight": "58px",
+                                    "resize": "vertical",
+                                },
+                            ),
+                        ],
+                        md=6,
+                        className="mb-2",
+                    ),
+                    dbc.Col(
+                        [
+                            html.Label(
+                                "Contre-argument ou limite (facultatif)",
+                                className="small text-muted mb-1",
+                            ),
+                            dcc.Textarea(
+                                id={
+                                    "type": "text-review-counterarguments",
+                                    "change_id": change_id,
+                                },
+                                value=review_counterarguments,
+                                placeholder=(
+                                    "Indiquer ce qui pourrait soutenir un "
+                                    "niveau différent..."
+                                ),
+                                className="form-control form-control-sm",
+                                style={
+                                    "minHeight": "58px",
+                                    "resize": "vertical",
+                                },
+                            ),
+                        ],
+                        md=6,
+                        className="mb-2",
+                    ),
+                ],
+                className="g-2",
+            ),
+            html.Small(
+                (
+                    "Pour corriger le classement et créer un précédent validé, "
+                    "renseignez le niveau, la nature, la pertinence, la nouvelle "
+                    "idée, les thèmes, la confiance, la preuve et la justification, "
+                    "puis cliquez sur « Corriger »."
+                ),
+                className="text-muted d-block mb-2",
             ),
             html.Div(
                 [
@@ -986,14 +1444,22 @@ def _build_change_card(
                         size="sm",
                         outline=review_status != "approved",
                         className="me-2",
-                        disabled=not change_id,
+                        disabled=(
+                            not change_id or approval_requires_correction
+                        ),
+                        title=(
+                            "Une décision à confirmer doit être corrigée avec "
+                            "une preuve analyste avant validation."
+                            if approval_requires_correction
+                            else "Valider la décision directe confirmée."
+                        ),
                     ),
                     dbc.Button(
-                        "Rejeter",
-                        id={"type": "text-review-action", "change_id": change_id, "action": "rejected"},
-                        color="danger",
+                        "Corriger",
+                        id={"type": "text-review-action", "change_id": change_id, "action": "corrected"},
+                        color="warning",
                         size="sm",
-                        outline=review_status != "rejected",
+                        outline=review_status != "corrected",
                         className="me-2",
                         disabled=not change_id,
                     ),
@@ -1104,19 +1570,51 @@ def _count_auditable_text_changes(section_comparisons: list[dict[str, Any]]) -> 
     return total
 
 
+def _review_workflow_status(review: dict[str, Any]) -> str:
+    """Distingue une correction enregistrée d'une décision réellement finale."""
+    explicit = str(review.get("workflow_status") or "").strip().lower()
+    if explicit in {"pending", "completed", "deferred"}:
+        return explicit
+    correction = review.get("structured_correction") or {}
+    if isinstance(correction, dict) and correction.get("review_required"):
+        return "pending"
+    status = str(review.get("status") or "").strip().lower()
+    if status == "skipped":
+        return "deferred"
+    if status in {"approved", "corrected", "rejected"}:
+        return "completed"
+    return "pending"
+
+
 def _text_review_progress(section_comparisons: list[dict[str, Any]]) -> dict[str, int]:
     """Calcule les décisions de revue sur le périmètre textuel auditable."""
-    counts = {"approved": 0, "rejected": 0, "skipped": 0, "pending": 0}
+    counts = {
+        "approved": 0,
+        "corrected": 0,
+        "rejected": 0,
+        "skipped": 0,
+        "pending": 0,
+    }
     for section in section_comparisons:
         for change in section.get("all_block_comparisons") or []:
             if change.get("diff_type") == "unchanged":
                 continue
             review = change.get("_analyst_review") or {}
             status = str(review.get("status") or "pending").strip().lower()
-            counts[status if status in counts else "pending"] += 1
+            workflow_status = _review_workflow_status(review)
+            if workflow_status == "pending":
+                counts["pending"] += 1
+            elif workflow_status == "deferred":
+                counts["skipped"] += 1
+            else:
+                counts[status if status in counts else "pending"] += 1
 
     total = sum(counts.values())
-    decided = counts["approved"] + counts["rejected"]
+    decided = (
+        counts["approved"]
+        + counts["corrected"]
+        + counts["rejected"]
+    )
     remaining = counts["pending"] + counts["skipped"]
     percent = round(decided / total * 100) if total else 0
     return {
@@ -1145,6 +1643,11 @@ def _build_text_review_progress(section_comparisons: list[dict[str, Any]]) -> ht
         dbc.Badge(
             _plural_count(progress["approved"], "validé", "validés"),
             color="success",
+            className="me-1",
+        ),
+        dbc.Badge(
+            _plural_count(progress["corrected"], "corrigé", "corrigés"),
+            color="warning",
             className="me-1",
         ),
         dbc.Badge(
@@ -1264,12 +1767,20 @@ def build_filtered_text_cards(
 
             review = change.get("_analyst_review") or {}
             review_status = str(review.get("status") or "pending").strip().lower()
-            if filter_status == "remaining" and review_status not in {"pending", "skipped"}:
+            workflow_status = _review_workflow_status(review)
+            if (
+                filter_status == "remaining"
+                and workflow_status not in {"pending", "deferred"}
+            ):
                 continue
-            if filter_status in {"approved", "rejected", "skipped"} and review_status != filter_status:
+            if (
+                filter_status
+                in {"approved", "corrected", "rejected", "skipped"}
+                and review_status != filter_status
+            ):
                 continue
 
-            impact = (triage.get("impact_level") or "MINEUR").upper()
+            impact = _effective_materiality_level(triage)
             action = (triage.get("action_requise") or "aucune").lower()
             nouvelle_idee = bool(triage.get("nouvelle_idee", False))
             pages = change.get("pages_t2") or change.get("pages_t1") or []
@@ -1412,6 +1923,10 @@ def _build_filter_bar(
                         id="text-filter-impact",
                         options=[
                             {"label": "Majeur", "value": "MAJEUR"},
+                            {
+                                "label": "Niveau à confirmer",
+                                "value": "A_CONFIRMER",
+                            },
                             {"label": "Modéré", "value": "MODERE"},
                             {"label": "Mineur", "value": "MINEUR"},
                         ],
@@ -1443,6 +1958,7 @@ def _build_filter_bar(
                         options=[
                             {"label": "À traiter", "value": "remaining"},
                             {"label": "Validés", "value": "approved"},
+                            {"label": "Corrigés", "value": "corrected"},
                             {"label": "Rejetés", "value": "rejected"},
                             {"label": "Passés", "value": "skipped"},
                             {"label": "Toutes les décisions", "value": "all"},
@@ -1539,7 +2055,15 @@ def build_text_analysis_tab(
         selected_section = default_section
     selected_status = (
         filter_status
-        if filter_status in {"remaining", "approved", "rejected", "skipped", "all"}
+        if filter_status
+        in {
+            "remaining",
+            "approved",
+            "corrected",
+            "rejected",
+            "skipped",
+            "all",
+        }
         else "remaining"
     )
     selected_scope = (

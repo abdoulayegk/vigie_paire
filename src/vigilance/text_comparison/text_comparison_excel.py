@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any
 
 from vigilance.i18n.fr import impact_label_fr, sanitize_analyst_french
+from vigilance.text_analysis.summary import _effective_materiality_level
 from vigilance.vigie_columns import build_text_vigie_display_row
 
 logger = logging.getLogger(__name__)
@@ -19,7 +20,12 @@ _SECTION_DISPLAY: dict[str, str] = {
     "gestion_reglementation": "Faits nouveaux en matière de réglementation",
 }
 
-_IMPACT_SORT_ORDER: dict[str, int] = {"MAJEUR": 0, "MODERE": 1, "MINEUR": 2}
+_IMPACT_SORT_ORDER: dict[str, int] = {
+    "MAJEUR": 0,
+    "A_CONFIRMER": 1,
+    "MODERE": 2,
+    "MINEUR": 3,
+}
 
 _CATEGORY_SORT_ORDER: dict[str, int] = {
     "REGLEMENTAIRE": 0,
@@ -52,6 +58,7 @@ EXCEL_COLUMNS = [
 
 _VALIDATION_STATUS_FR: dict[str, str] = {
     "approved": "Validé",
+    "corrected": "Corrigé",
     "rejected": "Rejeté",
     "skipped": "Ignoré",
     "pending": "En attente",
@@ -92,7 +99,7 @@ def _excel_safe(value: Any) -> Any:
 def _is_pure_date_update(change: dict[str, Any]) -> bool:
     """Vrai uniquement pour les mises à jour de dates sans autre contenu."""
     triage = change.get("genai_triage") or {}
-    if str(triage.get("impact_level") or "").upper() != "MINEUR":
+    if _effective_materiality_level(triage) != "MINEUR":
         return False
     if str(triage.get("category") or "").upper() != "NON_PERTINENT":
         return False
@@ -103,7 +110,7 @@ def _is_pure_date_update(change: dict[str, Any]) -> bool:
 def _is_pure_reformulation(change: dict[str, Any]) -> bool:
     """Vrai uniquement pour les reformulations strictement identiques."""
     triage = change.get("genai_triage") or {}
-    if str(triage.get("impact_level") or "").upper() != "MINEUR":
+    if _effective_materiality_level(triage) != "MINEUR":
         return False
     if str(triage.get("category") or "").upper() != "NON_PERTINENT":
         return False
@@ -185,7 +192,12 @@ def _published_change_types(change: dict[str, Any]) -> tuple[str, ...]:
     remplacement auditable, sans introduire ``Modification`` comme quatrième
     type métier. Un déplacement confirmé n'est pas une vigie publiable.
     """
-    if str(change.get("alignment_decision") or "").lower() == "moved_text":
+    triage = change.get("genai_triage") or {}
+    if (
+        str(change.get("alignment_decision") or "").lower() == "moved_text"
+        and str(change.get("alignment_confidence") or "").lower() == "high"
+        and not triage.get("review_required")
+    ):
         return ()
 
     diff_type = str(change.get("diff_type") or "").lower()
@@ -249,8 +261,20 @@ def _collect_rows(text_comparison: dict[str, Any]) -> list[dict[str, Any]]:
             if analyst_status == "rejected":
                 nouvelle_idee = "Non"
                 analyst_comment = str(analyst_review.get("comment") or "").strip()
-            elif analyst_status == "approved":
+            elif analyst_status in {"approved", "corrected"}:
                 analyst_comment = str(analyst_review.get("comment") or "").strip()
+            analyst_status_label = _VALIDATION_STATUS_FR.get(
+                analyst_status,
+                analyst_status,
+            )
+            if (
+                analyst_status == "corrected"
+                and str(
+                    analyst_review.get("workflow_status") or ""
+                ).lower()
+                == "pending"
+            ):
+                analyst_status_label = "Correction à confirmer"
 
             base_row = {
                 "change_id": block_comp.get("change_id", ""),
@@ -263,7 +287,7 @@ def _collect_rows(text_comparison: dict[str, Any]) -> list[dict[str, Any]]:
                 # sans résumé ni reformulation générée.
                 "source_text_t1": str(block_comp.get("source_text_t1") or ""),
                 "source_text_t2": str(block_comp.get("source_text_t2") or ""),
-                "impact_level": str(triage.get("impact_level") or "MINEUR").upper(),
+                "impact_level": _effective_materiality_level(triage),
                 "category": sanitize_analyst_french(str(display["category"] or "")),
                 "secondary_labels": sanitize_analyst_french(
                     str(display["secondary_labels"] or "")
@@ -272,9 +296,14 @@ def _collect_rows(text_comparison: dict[str, Any]) -> list[dict[str, Any]]:
                 "nouvelle_idee_bool": nouvelle_idee == "Oui",
                 "nouvelle_idee": nouvelle_idee,
                 "justification": sanitize_analyst_french(justification),
-                "analyst_status": _VALIDATION_STATUS_FR.get(analyst_status, analyst_status),
+                "analyst_status": analyst_status_label,
                 "commentaire_analyste": analyst_comment,
-                "validated_at": str(analyst_review.get("at") or ""),
+                "validated_at": str(
+                    analyst_review.get("reviewed_at")
+                    or analyst_review.get("validated_at")
+                    or analyst_review.get("at")
+                    or ""
+                ),
             }
             for published_type in published_types:
                 rows.append(

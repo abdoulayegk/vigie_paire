@@ -12,6 +12,7 @@ from vigilance.text_analysis.chunking import _chunk_subsection_text
 from vigilance.text_analysis.global_reconciliation import (
     _ReconciliationResponse,
     _components,
+    _normalized_equivalence_text,
     _one_sided_nodes,
     _pair_retrieval_scores,
     reconcile_global_change_fragments,
@@ -63,6 +64,45 @@ def _unit(index: int, dim: int = 4) -> list[float]:
     vector = [0.0] * dim
     vector[index % dim] = 1.0
     return vector
+
+
+def test_equivalence_normalization_preserves_numeric_meaning() -> None:
+    assert _normalized_equivalence_text(
+        "Le ratio est de 1,0 %."
+    ) == _normalized_equivalence_text("Le ratio est de 1.0 %")
+    assert _normalized_equivalence_text(
+        "Le ratio est de 1,0 %."
+    ) != _normalized_equivalence_text("Le ratio est de 10 %.")
+    assert _normalized_equivalence_text(
+        "Le seuil est de 10 %."
+    ) != _normalized_equivalence_text("Le seuil est de 10.")
+    assert _normalized_equivalence_text(
+        "La plage est de 1-10."
+    ) != _normalized_equivalence_text("La valeur est de 110.")
+    assert _normalized_equivalence_text(
+        "Le résultat est de (10)."
+    ) != _normalized_equivalence_text("Le résultat est de 10.")
+    assert _normalized_equivalence_text(
+        "Le résultat est de -10."
+    ) != _normalized_equivalence_text("Le résultat est de 10.")
+    assert _normalized_equivalence_text(
+        "La sensibilité est de 10 ± 2 %."
+    ) != _normalized_equivalence_text("La sensibilité est de 102 %.")
+    assert _normalized_equivalence_text(
+        "La projection est de 10^2."
+    ) != _normalized_equivalence_text("La projection est de 102.")
+    assert _normalized_equivalence_text(
+        "La projection est de 10²."
+    ) != _normalized_equivalence_text("La projection est de 102.")
+    assert _normalized_equivalence_text(
+        "La tolérance est de 1e-3."
+    ) != _normalized_equivalence_text("La tolérance est de 1e3.")
+    assert _normalized_equivalence_text(
+        "La notation de crédit est A+."
+    ) != _normalized_equivalence_text("La notation de crédit est A.")
+    assert _normalized_equivalence_text(
+        "La notation de crédit est BBB-."
+    ) != _normalized_equivalence_text("La notation de crédit est BBB.")
 
 
 def test_hybrid_alignment_skips_non_reciprocal_pairs(monkeypatch) -> None:
@@ -261,11 +301,485 @@ def test_global_reconciliation_uses_embedding_scores_in_audit(monkeypatch) -> No
         model="gpt-4o",
         changes=changes,
     )
-    assert reconciled == []
-    assert audit[0]["applied"] is True
+    assert len(reconciled) == 2
+    assert {
+        item["alignment_decision"] for item in reconciled
+    } == {"same_disclosure"}
+    assert audit[0]["applied"] is False
+    assert audit[0]["decision"] == "same_disclosure_modified"
+    assert audit[0]["matches_textually_equivalent"] is False
     assert audit[0]["candidate_scores"]
     assert "embedding_score" in audit[0]["candidate_scores"][0]
     assert "token_overlap" in audit[0]["candidate_scores"][0]
+
+
+def test_fully_matched_modified_disclosure_remains_visible_for_triage(
+    monkeypatch,
+) -> None:
+    before = (
+        "Le comité conseille la direction sur les limites de risque et rend "
+        "compte chaque trimestre au conseil d'administration."
+    )
+    after = (
+        "Le comité approuve les limites de risque et rend compte chaque "
+        "trimestre au conseil d'administration."
+    )
+    changes = [
+        {
+            "change_id": "removed-advisory-role",
+            "section_key": "gestion_risques",
+            "subsection_heading": "Gouvernance",
+            "diff_type": "removed",
+            "source_text_t1": before,
+            "source_text_t2": "",
+            "pages_t1": [10],
+        },
+        {
+            "change_id": "added-approval-role",
+            "section_key": "gestion_risques",
+            "subsection_heading": "Surveillance",
+            "diff_type": "added",
+            "source_text_t1": "",
+            "source_text_t2": after,
+            "pages_t2": [12],
+        },
+    ]
+    monkeypatch.setattr(
+        "vigilance.text_analysis.global_reconciliation._embed_texts",
+        lambda client, texts, model="text-embedding-3-small": [
+            [1.0, 0.0],
+            [0.99, 0.01],
+        ],
+    )
+    monkeypatch.setattr(
+        "vigilance.text_analysis.global_reconciliation._candidate_edges",
+        lambda nodes, embeddings_by_id: [
+            {
+                "t1_node_id": "n0000",
+                "t2_node_id": "n0001",
+                "t1_change_id": "removed-advisory-role",
+                "t2_change_id": "added-approval-role",
+                "section_key": "gestion_risques",
+                "token_overlap": 0.8,
+                "embedding_score": 0.99,
+                "hybrid_score": 0.99,
+            }
+        ],
+    )
+    response = _ReconciliationResponse(
+        decision="same_disclosure_modified",
+        confidence="high",
+        rationale=(
+            "Le rôle du comité passe du conseil à l'approbation des limites."
+        ),
+        matches=[
+            {
+                "t1_node_id": "n0000",
+                "t2_node_id": "n0001",
+                "text_t1": before,
+                "text_t2": after,
+            }
+        ],
+    )
+    monkeypatch.setattr(
+        "vigilance.text_analysis.global_reconciliation._call_structured_completion_with_correction",
+        lambda *args, **kwargs: response,
+    )
+
+    reconciled, audit = reconcile_global_change_fragments(
+        client=object(),
+        model="gpt-4o",
+        changes=changes,
+    )
+
+    assert len(reconciled) == 1
+    assert reconciled[0]["diff_type"] == "modified"
+    assert reconciled[0]["source_text_t1"] == before
+    assert reconciled[0]["source_text_t2"] == after
+    assert reconciled[0]["alignment_decision"] == "same_disclosure"
+    assert reconciled[0]["pages_t1"] == [10]
+    assert reconciled[0]["pages_t2"] == [12]
+    assert audit[0]["fully_covered"] is True
+    assert audit[0]["matches_textually_equivalent"] is False
+    assert audit[0]["applied"] is True
+
+
+def test_partial_modified_match_subtracts_only_equivalent_portions(
+    monkeypatch,
+) -> None:
+    common_prefix = "Le cadre de gouvernance demeure en vigueur."
+    before_change = "Le comité conseille la direction sur les limites."
+    after_change = "Le comité approuve désormais les limites de risque."
+    common_suffix = "Un rapport trimestriel est transmis au conseil."
+    before = f"{common_prefix} {before_change} {common_suffix}"
+    after = f"{common_prefix} {after_change} {common_suffix}"
+    changes = [
+        {
+            "change_id": "removed-partial-role",
+            "section_key": "gestion_risques",
+            "subsection_heading": "Gouvernance",
+            "diff_type": "removed",
+            "source_text_t1": before,
+            "source_text_t2": "",
+        },
+        {
+            "change_id": "added-partial-role",
+            "section_key": "gestion_risques",
+            "subsection_heading": "Surveillance",
+            "diff_type": "added",
+            "source_text_t1": "",
+            "source_text_t2": after,
+        },
+    ]
+    monkeypatch.setattr(
+        "vigilance.text_analysis.global_reconciliation._embed_texts",
+        lambda client, texts, model="text-embedding-3-small": [
+            [1.0, 0.0],
+            [0.99, 0.01],
+        ],
+    )
+    monkeypatch.setattr(
+        "vigilance.text_analysis.global_reconciliation._candidate_edges",
+        lambda nodes, embeddings_by_id: [
+            {
+                "t1_node_id": "n0000",
+                "t2_node_id": "n0001",
+                "t1_change_id": "removed-partial-role",
+                "t2_change_id": "added-partial-role",
+                "section_key": "gestion_risques",
+                "token_overlap": 0.75,
+                "embedding_score": 0.99,
+                "hybrid_score": 0.99,
+            }
+        ],
+    )
+    response = _ReconciliationResponse(
+        decision="same_disclosure_modified",
+        confidence="high",
+        rationale=(
+            "Le rôle du comité change, tandis que le cadre général demeure."
+        ),
+        matches=[
+            {
+                "t1_node_id": "n0000",
+                "t2_node_id": "n0001",
+                "text_t1": common_prefix,
+                "text_t2": common_prefix,
+            },
+            {
+                "t1_node_id": "n0000",
+                "t2_node_id": "n0001",
+                "text_t1": before_change,
+                "text_t2": after_change,
+            },
+        ],
+    )
+    monkeypatch.setattr(
+        "vigilance.text_analysis.global_reconciliation._call_structured_completion_with_correction",
+        lambda *args, **kwargs: response,
+    )
+
+    reconciled, audit = reconcile_global_change_fragments(
+        client=object(),
+        model="gpt-4o",
+        changes=changes,
+    )
+
+    assert len(reconciled) == 1
+    assert before_change in reconciled[0]["source_text_t1"]
+    assert after_change in reconciled[0]["source_text_t2"]
+    assert common_prefix not in reconciled[0]["source_text_t1"]
+    assert common_prefix not in reconciled[0]["source_text_t2"]
+    assert common_suffix in reconciled[0]["source_text_t1"]
+    assert common_suffix in reconciled[0]["source_text_t2"]
+    assert audit[0]["valid_match_count"] == 2
+    assert audit[0]["equivalent_match_count"] == 1
+    assert audit[0]["fully_covered"] is False
+
+
+def test_global_reconciliation_keeps_exact_move_when_confidence_is_not_high(
+    monkeypatch,
+) -> None:
+    disclosure = (
+        "Le comité approuve les limites de risque et rend compte chaque "
+        "trimestre au conseil d'administration."
+    )
+    changes = [
+        {
+            "change_id": "removed_governance",
+            "section_key": "gestion_risques",
+            "subsection_heading": "Gouvernance",
+            "diff_type": "removed",
+            "source_text_t1": disclosure,
+            "source_text_t2": "",
+        },
+        {
+            "change_id": "added_oversight",
+            "section_key": "gestion_risques",
+            "subsection_heading": "Surveillance",
+            "diff_type": "added",
+            "source_text_t1": "",
+            "source_text_t2": disclosure,
+        },
+    ]
+    monkeypatch.setattr(
+        "vigilance.text_analysis.global_reconciliation._embed_texts",
+        lambda client, texts, model="text-embedding-3-small": [
+            [1.0, 0.0],
+            [1.0, 0.0],
+        ],
+    )
+    monkeypatch.setattr(
+        "vigilance.text_analysis.global_reconciliation._candidate_edges",
+        lambda nodes, embeddings_by_id: [
+            {
+                "t1_node_id": "n0000",
+                "t2_node_id": "n0001",
+                "t1_change_id": "removed_governance",
+                "t2_change_id": "added_oversight",
+                "section_key": "gestion_risques",
+                "token_overlap": 1.0,
+                "embedding_score": 1.0,
+                "hybrid_score": 1.0,
+            }
+        ],
+    )
+    response = _ReconciliationResponse(
+        decision="moved_unchanged",
+        confidence="medium",
+        rationale="Le contenu paraît déplacé, mais la localisation reste ambiguë.",
+        matches=[
+            {
+                "t1_node_id": "n0000",
+                "t2_node_id": "n0001",
+                "text_t1": disclosure,
+                "text_t2": disclosure,
+            }
+        ],
+    )
+    monkeypatch.setattr(
+        "vigilance.text_analysis.global_reconciliation._call_structured_completion_with_correction",
+        lambda *args, **kwargs: response,
+    )
+
+    reconciled, audit = reconcile_global_change_fragments(
+        client=object(),
+        model="gpt-4o",
+        changes=changes,
+    )
+
+    assert len(reconciled) == 2
+    assert {
+        item["alignment_decision"] for item in reconciled
+    } == {"moved_text"}
+    assert {
+        item["alignment_confidence"] for item in reconciled
+    } == {"medium"}
+    assert audit[0]["fully_covered"] is True
+    assert audit[0]["matches_textually_equivalent"] is True
+    assert audit[0]["applied"] is False
+
+
+def test_global_reconciliation_rejects_cross_reassociated_responsibilities(
+    monkeypatch,
+) -> None:
+    before = (
+        "Le conseil approuve les limites. "
+        "La direction surveille les risques. "
+        "Le cadre de gouvernance demeure inchangé."
+    )
+    after = (
+        "La direction approuve les limites. "
+        "Le conseil surveille les risques. "
+        "Le cadre de gouvernance demeure inchangé."
+    )
+    changes = [
+        {
+            "change_id": "removed-responsibilities",
+            "section_key": "gestion_risques",
+            "diff_type": "removed",
+            "source_text_t1": before,
+            "source_text_t2": "",
+        },
+        {
+            "change_id": "added-responsibilities",
+            "section_key": "gestion_risques",
+            "diff_type": "added",
+            "source_text_t1": "",
+            "source_text_t2": after,
+        },
+    ]
+    monkeypatch.setattr(
+        "vigilance.text_analysis.global_reconciliation._embed_texts",
+        lambda client, texts, model="text-embedding-3-small": [
+            [1.0, 0.0],
+            [1.0, 0.0],
+        ],
+    )
+    monkeypatch.setattr(
+        "vigilance.text_analysis.global_reconciliation._candidate_edges",
+        lambda nodes, embeddings_by_id: [
+            {
+                "t1_node_id": "n0000",
+                "t2_node_id": "n0001",
+                "t1_change_id": "removed-responsibilities",
+                "t2_change_id": "added-responsibilities",
+                "section_key": "gestion_risques",
+                "token_overlap": 1.0,
+                "embedding_score": 1.0,
+                "hybrid_score": 1.0,
+            }
+        ],
+    )
+    response = _ReconciliationResponse(
+        decision="moved_unchanged",
+        confidence="high",
+        rationale="Les mêmes acteurs et responsabilités sont présents.",
+        matches=[
+            {
+                "t1_node_id": "n0000",
+                "t2_node_id": "n0001",
+                "text_t1": "Le conseil",
+                "text_t2": "Le conseil",
+            },
+            {
+                "t1_node_id": "n0000",
+                "t2_node_id": "n0001",
+                "text_t1": "La direction",
+                "text_t2": "La direction",
+            },
+            {
+                "t1_node_id": "n0000",
+                "t2_node_id": "n0001",
+                "text_t1": "approuve les limites.",
+                "text_t2": "approuve les limites.",
+            },
+            {
+                "t1_node_id": "n0000",
+                "t2_node_id": "n0001",
+                "text_t1": "surveille les risques.",
+                "text_t2": "surveille les risques.",
+            },
+            {
+                "t1_node_id": "n0000",
+                "t2_node_id": "n0001",
+                "text_t1": "Le cadre de gouvernance demeure inchangé.",
+                "text_t2": "Le cadre de gouvernance demeure inchangé.",
+            },
+        ],
+    )
+    monkeypatch.setattr(
+        "vigilance.text_analysis.global_reconciliation._call_structured_completion_with_correction",
+        lambda *args, **kwargs: response,
+    )
+
+    reconciled, audit = reconcile_global_change_fragments(
+        client=object(),
+        model="gpt-4o",
+        changes=changes,
+    )
+
+    assert len(reconciled) == 2
+    assert {
+        item["alignment_decision"] for item in reconciled
+    } == {"uncertain"}
+    assert audit[0]["fully_covered"] is True
+    assert audit[0]["matches_textually_equivalent"] is True
+    assert audit[0]["structurally_safe_equivalence"] is False
+    assert audit[0]["applied"] is False
+
+
+def test_modified_reconciliation_keeps_full_reassociated_responsibilities(
+    monkeypatch,
+) -> None:
+    before = (
+        "Le conseil approuve les limites. "
+        "La direction surveille les risques. "
+        "Le cadre de gouvernance demeure inchangé."
+    )
+    after = (
+        "La direction approuve les limites. "
+        "Le conseil surveille les risques. "
+        "Le cadre de gouvernance demeure inchangé."
+    )
+    changes = [
+        {
+            "change_id": "removed-responsibilities",
+            "section_key": "gestion_risques",
+            "diff_type": "removed",
+            "source_text_t1": before,
+            "source_text_t2": "",
+        },
+        {
+            "change_id": "added-responsibilities",
+            "section_key": "gestion_risques",
+            "diff_type": "added",
+            "source_text_t1": "",
+            "source_text_t2": after,
+        },
+    ]
+    monkeypatch.setattr(
+        "vigilance.text_analysis.global_reconciliation._embed_texts",
+        lambda client, texts, model="text-embedding-3-small": [
+            [1.0, 0.0],
+            [1.0, 0.0],
+        ],
+    )
+    monkeypatch.setattr(
+        "vigilance.text_analysis.global_reconciliation._candidate_edges",
+        lambda nodes, embeddings_by_id: [
+            {
+                "t1_node_id": "n0000",
+                "t2_node_id": "n0001",
+                "t1_change_id": "removed-responsibilities",
+                "t2_change_id": "added-responsibilities",
+                "section_key": "gestion_risques",
+                "token_overlap": 1.0,
+                "embedding_score": 1.0,
+                "hybrid_score": 1.0,
+            }
+        ],
+    )
+    response = _ReconciliationResponse(
+        decision="same_disclosure_modified",
+        confidence="high",
+        rationale="Les mêmes mots décrivent des responsabilités réattribuées.",
+        matches=[
+            {
+                "t1_node_id": "n0000",
+                "t2_node_id": "n0001",
+                "text_t1": fragment,
+                "text_t2": fragment,
+            }
+            for fragment in (
+                "Le conseil",
+                "approuve",
+                "les limites",
+                "La direction",
+                "surveille",
+                "les risques",
+                "Le cadre de gouvernance demeure inchangé",
+            )
+        ],
+    )
+    monkeypatch.setattr(
+        "vigilance.text_analysis.global_reconciliation._call_structured_completion_with_correction",
+        lambda *args, **kwargs: response,
+    )
+
+    reconciled, audit = reconcile_global_change_fragments(
+        client=object(),
+        model="gpt-4o",
+        changes=changes,
+    )
+
+    assert len(reconciled) == 1
+    assert reconciled[0]["diff_type"] == "modified"
+    assert reconciled[0]["source_text_t1"] == before
+    assert reconciled[0]["source_text_t2"] == after
+    assert audit[0]["fully_covered"] is False
+    assert audit[0]["equivalent_matches_preserve_order"] is False
+    assert "textes complets" in audit[0]["rationale"]
 
 
 def test_global_components_reject_weak_transitive_bridge(monkeypatch) -> None:

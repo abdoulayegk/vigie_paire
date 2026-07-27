@@ -303,8 +303,8 @@ def test_default_triage_includes_amf_v2_and_legacy_fields() -> None:
     """Le triage par défaut produit le schéma AMF v2 + champs hérités pour rétro-compatibilité."""
     triage = _default_triage("bmo")
 
-    assert triage["source"] == "gpt4o_triage_amf_compact_v2"
-    assert triage["compact_schema_version"] == "analyst_compact_v2"
+    assert triage["source"] == "gpt4o_triage_amf_materiality_v3"
+    assert triage["compact_schema_version"] == "analyst_materiality_v3"
     assert triage["themes_amf"] == []
     assert triage["exclusion_reason"] == "non_pertinent_autre"
     assert triage["is_relevant"] is False
@@ -5517,6 +5517,7 @@ from pydantic import ValidationError as _PydValidationError
 from vigilance.amf_taxonomy import (
     TriageAMFCompactLLMBatch,
     TriageAMFCompactLLMResultWithIndex,
+    TriageAMFMaterialityLLMBatch,
     TriageAMFBatch,
     TriageAMFLLMBatch,
     TriageAMFLLMResultWithIndex,
@@ -6492,7 +6493,7 @@ def test_triage_section_changes_processes_changes_one_by_one() -> None:
     assert all('"change_index": 1' in prompt for prompt in user_prompts)
     assert all('"change_index": 2' not in prompt for prompt in user_prompts)
     assert all(
-        call["max_completion_tokens"] == 670
+        call["max_completion_tokens"] == 1200
         for call in client._completions.calls
     )
 
@@ -6623,7 +6624,7 @@ def test_triage_section_changes_sends_single_full_evidence_packet_directly_to_tr
     triage_call = client._completions.calls[0]
     triage_prompt = triage_call["messages"][1]["content"]
     assert client.call_count == 2
-    assert triage_call["response_format"] is TriageAMFCompactLLMBatch
+    assert triage_call["response_format"] is TriageAMFMaterialityLLMBatch
     assert '"full_evidence_exact_packet"' in triage_prompt
     assert long_source in triage_prompt
     assert client._completions.calls[-1]["response_format"] is _EvidencePacketCoherenceCheck
@@ -6692,7 +6693,7 @@ def test_triage_section_changes_keeps_observation_workflow_for_multi_packet_evid
     assert response_formats == [
         _EvidencePacketObservation,
         _EvidencePacketObservation,
-        TriageAMFCompactLLMBatch,
+        TriageAMFMaterialityLLMBatch,
         _EvidencePacketCoherenceCheck,
         _EvidencePacketCoherenceCheck,
     ]
@@ -6957,7 +6958,10 @@ def test_triage_section_changes_attaches_deterministic_change_segments() -> None
     assert ", au CRG" in prompt
     assert "impact_it_justification" not in prompt
     assert "justification_posture" not in prompt
-    assert client._completions.calls[0]["response_format"] is TriageAMFCompactLLMBatch
+    assert (
+        client._completions.calls[0]["response_format"]
+        is TriageAMFMaterialityLLMBatch
+    )
 
 
 def test_governance_new_idea_receives_major_priority() -> None:
@@ -7242,7 +7246,7 @@ def test_triage_section_changes_does_not_request_posture_or_it_impact() -> None:
     assert "motif_non_pertinence" in prompt
     assert "Banque analysée : BMO" in prompt
     assert "100 à 120 mots" not in prompt
-    assert result[0]["genai_triage"]["compact_schema_version"] == "analyst_compact_v2"
+    assert result[0]["genai_triage"]["compact_schema_version"] == "analyst_materiality_v3"
     assert result[0]["genai_triage"]["changement_constate"].startswith("BMO ")
     assert result[0]["genai_triage"]["impact_it"] == "INDETERMINE"
     assert result[0]["genai_triage"]["changement_posture"] == "INDETERMINE"

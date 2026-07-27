@@ -84,6 +84,24 @@ def _find_component_by_type_and_text(
     raise LookupError(f"{type_name}: {expected_text}")
 
 
+def _find_component_by_pattern_id(node: object, id_type: str) -> Component:
+    """Retourne le premier composant dont l'identifiant structuré a ce type."""
+    if isinstance(node, Component):
+        component_id = getattr(node, "id", None)
+        if isinstance(component_id, dict) and component_id.get("type") == id_type:
+            return node
+        children = getattr(node, "children", None)
+        if isinstance(children, list):
+            for child in children:
+                try:
+                    return _find_component_by_pattern_id(child, id_type)
+                except LookupError:
+                    pass
+        elif children is not None:
+            return _find_component_by_pattern_id(children, id_type)
+    raise LookupError(id_type)
+
+
 def _styled_texts(node: object) -> list[tuple[str, dict]]:
     """Retourne les textes portés par des composants stylés."""
     results: list[tuple[str, dict]] = []
@@ -494,6 +512,144 @@ def test_text_analysis_change_card_keeps_non_pertinent() -> None:
     text = _flatten_text(card)
     assert "Non pertinent" in text
     assert "Variation chiffrée" in text
+
+
+def test_text_analysis_card_exposes_direct_materiality_and_correction_fields() -> None:
+    change = {
+        "change_id": "chg-adaptive",
+        "diff_type": "modified",
+        "source_text_t1": "Groupes d'exploitation et suffisance du capital.",
+        "source_text_t2": "Unités d'exploitation et adéquation des fonds propres.",
+        "genai_triage": {
+            "is_relevant": True,
+            "themes_amf": ["FONDS_PROPRES_REGLEMENTAIRES"],
+            "impact_level": "MINEUR",
+            "materiality_level": "MODERE",
+            "change_nature": ["MODIFICATION_TERMINOLOGIE"],
+            "business_equivalence": "NON_DEMONTREE",
+            "materiality_confidence": "MOYENNE",
+            "evidence_sufficiency": "PARTIELLE",
+            "decision_status": "A_CONFIRMER",
+            "review_required": True,
+            "materiality_challenge": {"disagreement": True},
+            "consolidated_materiality_level": "MAJEUR",
+            "consolidated_review_required": False,
+            "nouvelle_idee": False,
+        },
+    }
+
+    card = _build_change_card(change, "Gestion du capital", bank_code="BMO")
+    text = _flatten_text(card)
+
+    assert "Modéré" in text
+    assert "Matérialité à confirmer" in text
+    assert "Désaccord des évaluateurs" in text
+    assert "Dossier consolidé : Majeur" in text
+    assert "Niveau corrigé" in text
+    assert "Nature du changement" in text
+    assert "Équivalence métier" in text
+    assert "Corriger" in text
+
+    level = _find_component_by_pattern_id(card, "text-review-materiality")
+    nature = _find_component_by_pattern_id(card, "text-review-nature")
+    equivalence = _find_component_by_pattern_id(
+        card,
+        "text-review-equivalence",
+    )
+    themes = _find_component_by_pattern_id(card, "text-review-themes")
+    confidence = _find_component_by_pattern_id(
+        card,
+        "text-review-confidence",
+    )
+    evidence = _find_component_by_pattern_id(
+        card,
+        "text-review-evidence",
+    )
+    relevance = _find_component_by_pattern_id(
+        card,
+        "text-review-relevance",
+    )
+    new_idea = _find_component_by_pattern_id(
+        card,
+        "text-review-new-idea",
+    )
+    supporting_evidence = _find_component_by_pattern_id(
+        card,
+        "text-review-supporting-evidence",
+    )
+    approval = _find_component_by_pattern_id(
+        card,
+        "text-review-action",
+    )
+    assert getattr(level, "value") == "MODERE"
+    assert getattr(nature, "value") == ["MODIFICATION_TERMINOLOGIE"]
+    assert getattr(equivalence, "value") == "NON_DEMONTREE"
+    assert getattr(themes, "value") == ["FONDS_PROPRES_REGLEMENTAIRES"]
+    assert getattr(confidence, "value") == "MOYENNE"
+    assert getattr(evidence, "value") == "PARTIELLE"
+    assert getattr(relevance, "value") is True
+    assert getattr(new_idea, "value") is False
+    assert getattr(supporting_evidence, "value") == ""
+    assert getattr(approval, "id")["action"] == "approved"
+    assert getattr(approval, "disabled") is True
+
+
+def test_unresolved_materiality_is_not_displayed_as_minor() -> None:
+    change = {
+        "change_id": "chg-unresolved",
+        "diff_type": "modified",
+        "source_text_t1": "Le comité conseille la direction.",
+        "source_text_t2": "Le comité pourrait approuver les limites.",
+        "genai_triage": {
+            "is_relevant": False,
+            "themes_amf": [],
+            "impact_level": "MINEUR",
+            "materiality_level": None,
+            "decision_status": "A_CONFIRMER",
+            "review_required": True,
+            "nouvelle_idee": False,
+        },
+    }
+
+    card = _build_change_card(change, "Gestion des risques", bank_code="BMO")
+    text = _flatten_text(card)
+    level = _find_component_by_pattern_id(card, "text-review-materiality")
+
+    assert "Niveau à confirmer" in text
+    assert "Impact gestion des risques — Mineur" not in text
+    assert getattr(level, "value") is None
+
+
+def test_unresolved_direct_minor_is_displayed_as_level_to_confirm() -> None:
+    change = {
+        "change_id": "chg-unresolved-direct-minor",
+        "diff_type": "modified",
+        "source_text_t1": "Le groupe calcule la suffisance du capital.",
+        "source_text_t2": "L'unité évalue l'adéquation des fonds propres.",
+        "genai_triage": {
+            "is_relevant": True,
+            "themes_amf": ["FONDS_PROPRES_REGLEMENTAIRES"],
+            "impact_level": "MINEUR",
+            "materiality_level": "MINEUR",
+            "change_nature": ["MODIFICATION_TERMINOLOGIE"],
+            "business_equivalence": "PROBABLE",
+            "materiality_confidence": "MOYENNE",
+            "evidence_sufficiency": "PARTIELLE",
+            "decision_status": "A_CONFIRMER",
+            "review_required": True,
+            "nouvelle_idee": False,
+        },
+    }
+
+    card = _build_change_card(
+        change,
+        "Gestion du capital",
+        bank_code="BMO",
+    )
+    text = _flatten_text(card)
+
+    assert "Niveau à confirmer" in text
+    assert "Impact fonds propres réglementaires — Mineur" not in text
 
 
 def test_text_analysis_hides_structured_non_relevance_reason_from_main_card() -> None:

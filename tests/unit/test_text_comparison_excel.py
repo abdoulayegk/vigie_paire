@@ -358,7 +358,7 @@ def test_generate_text_comparison_excel_applies_analyst_review_without_new_colum
     assert values["B"] == ("Oui", None, "Ignoré")
 
 
-def test_generate_text_comparison_excel_excludes_confirmed_moves() -> None:
+def test_generate_text_comparison_excel_exports_effective_correction_and_date() -> None:
     payload = {
         "section_comparisons": [
             {
@@ -366,11 +366,33 @@ def test_generate_text_comparison_excel_excludes_confirmed_moves() -> None:
                 "section_title": "Gestion des risques",
                 "all_block_comparisons": [
                     {
-                        "diff_type": "modified",
-                        "alignment_decision": "moved_text",
-                        "source_text_t1": "Texte déplacé avant.",
-                        "source_text_t2": "Texte déplacé après.",
-                        "genai_triage": {"nouvelle_idee": False},
+                        "change_id": "chg-corrected",
+                        "diff_type": "added",
+                        "source_text_t1": "",
+                        "source_text_t2": (
+                            "Le comité approuve désormais les limites de risque."
+                        ),
+                        "evidence_t2": {"pages": [8]},
+                        "genai_triage": {
+                            "is_relevant": True,
+                            "themes_amf": ["GOUVERNANCE_RISQUES"],
+                            "impact_level": "MAJEUR",
+                            "materiality_level": "MAJEUR",
+                            "nouvelle_idee": True,
+                            "changement_constate": (
+                                "La banque attribue au comité une autorité "
+                                "d'approbation."
+                            ),
+                            "signification_metier": (
+                                "L'autorité décisionnelle du comité augmente."
+                            ),
+                        },
+                        "_analyst_review": {
+                            "status": "corrected",
+                            "workflow_status": "completed",
+                            "comment": "Le changement d'autorité est explicite.",
+                            "reviewed_at": "2026-07-26T14:30:00+00:00",
+                        },
                     }
                 ],
             }
@@ -381,7 +403,125 @@ def test_generate_text_comparison_excel_excludes_confirmed_moves() -> None:
     workbook = load_workbook(io.BytesIO(raw))
     ws = workbook["Analyse complète"]
 
+    assert ws.cell(
+        row=2,
+        column=_column(ws, "Nouvelle idée à surveiller ?"),
+    ).value == "Oui"
+    assert ws.cell(
+        row=2,
+        column=_column(ws, "Statut analyste"),
+    ).value == "Corrigé"
+    assert ws.cell(
+        row=2,
+        column=_column(ws, "Validé le"),
+    ).value == "2026-07-26T14:30:00+00:00"
+
+
+def test_generate_text_comparison_excel_excludes_confirmed_moves() -> None:
+    payload = {
+        "section_comparisons": [
+            {
+                "section_key": "gestion_risques",
+                "section_title": "Gestion des risques",
+                "all_block_comparisons": [
+                        {
+                            "diff_type": "modified",
+                            "alignment_decision": "moved_text",
+                            "alignment_confidence": "high",
+                            "source_text_t1": "Texte déplacé avant.",
+                            "source_text_t2": "Texte déplacé après.",
+                            "genai_triage": {
+                                "nouvelle_idee": False,
+                                "materiality_level": "MINEUR",
+                                "decision_status": "CONFIRME",
+                                "review_required": False,
+                            },
+                        }
+                ],
+            }
+        ]
+    }
+
+    raw = generate_text_comparison_excel(payload, output_path=None)
+    workbook = load_workbook(io.BytesIO(raw))
+    ws = workbook["Analyse complète"]
+
     assert ws.max_row == 1
+
+
+def test_generate_text_comparison_excel_keeps_unconfirmed_moves() -> None:
+    payload = {
+        "section_comparisons": [
+            {
+                "section_key": "gestion_risques",
+                "section_title": "Gestion des risques",
+                "all_block_comparisons": [
+                    {
+                        "diff_type": "modified",
+                        "alignment_decision": "moved_text",
+                        "alignment_confidence": "low",
+                        "source_text_t1": "Texte potentiellement déplacé avant.",
+                        "source_text_t2": "Texte potentiellement déplacé après.",
+                        "genai_triage": {
+                            "is_relevant": False,
+                            "impact_level": "MINEUR",
+                            "materiality_level": None,
+                            "decision_status": "A_CONFIRMER",
+                            "review_required": True,
+                        },
+                    }
+                ],
+            }
+        ]
+    }
+
+    raw = generate_text_comparison_excel(payload, output_path=None)
+    workbook = load_workbook(io.BytesIO(raw))
+    ws = workbook["Analyse complète"]
+    impact_column = _column(ws, "Priorité / impact")
+
+    assert ws.max_row == 3
+    assert {
+        ws.cell(row=row, column=impact_column).value
+        for row in range(2, ws.max_row + 1)
+    } == {"Niveau à confirmer"}
+
+
+def test_generate_text_comparison_excel_does_not_label_unresolved_direct_minor() -> None:
+    payload = {
+        "section_comparisons": [
+            {
+                "section_key": "gestion_capital",
+                "section_title": "Gestion du capital",
+                "all_block_comparisons": [
+                    {
+                        "diff_type": "modified",
+                        "source_text_t1": "Suffisance du capital.",
+                        "source_text_t2": "Adéquation des fonds propres.",
+                        "genai_triage": {
+                            "is_relevant": True,
+                            "themes_amf": [
+                                "FONDS_PROPRES_REGLEMENTAIRES"
+                            ],
+                            "impact_level": "MINEUR",
+                            "materiality_level": "MINEUR",
+                            "decision_status": "A_CONFIRMER",
+                            "review_required": True,
+                        },
+                    }
+                ],
+            }
+        ]
+    }
+
+    raw = generate_text_comparison_excel(payload, output_path=None)
+    workbook = load_workbook(io.BytesIO(raw))
+    ws = workbook["Analyse complète"]
+    impact_column = _column(ws, "Priorité / impact")
+
+    assert ws.cell(row=2, column=impact_column).value == (
+        "Niveau à confirmer"
+    )
 
 
 def test_text_justification_falls_back_for_legacy_b15_triage() -> None:
