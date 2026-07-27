@@ -22,8 +22,6 @@ def _compact_relevant_payload() -> dict:
         "nouvelle_idee": False,
         "changement_constate": ("BMO remplace une unité de gouvernance et modifie son périmètre."),
         "signification_metier": ("Le changement peut modifier la responsabilité de surveillance."),
-        "comparaison_interbanques": ("Les banques peuvent être comparées selon le niveau décisionnel responsable."),
-        "limite_interpretation": ("Le passage ne précise pas la composition complète de la nouvelle unité."),
         "motif_non_pertinence": "",
     }
 
@@ -161,8 +159,6 @@ def test_non_relevant_cannot_carry_major_materiality() -> None:
         "themes_amf": [],
         "nouvelle_idee": False,
         "signification_metier": "",
-        "comparaison_interbanques": "",
-        "limite_interpretation": "",
         "motif_non_pertinence": "La preuve démontre une équivalence complète.",
         "materiality_level": "MAJEUR",
         "change_nature": ["REFORMULATION_EQUIVALENTE"],
@@ -305,5 +301,20 @@ def test_strict_compact_schema_exposes_all_adaptive_fields() -> None:
         "counterarguments",
     }
     assert expected_fields <= set(item_schema["properties"])
+    assert "comparaison_interbanques" not in item_schema["properties"]
+    assert "limite_interpretation" not in item_schema["properties"]
     assert set(item_schema["required"]) == set(item_schema["properties"])
     assert item_schema["properties"]["materiality_level"]["type"] == "string"
+
+
+def test_legacy_comparison_and_limit_fields_are_ignored() -> None:
+    payload = {
+        **_compact_relevant_payload(),
+        "comparaison_interbanques": "Ancienne dimension de comparaison.",
+        "limite_interpretation": "Ancienne limite d’interprétation.",
+    }
+
+    triage = TriageAMFCompactLLMResultWithIndex(**payload)
+
+    assert "comparaison_interbanques" not in triage.model_dump()
+    assert "limite_interpretation" not in triage.model_dump()

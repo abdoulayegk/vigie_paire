@@ -873,9 +873,7 @@ def test_excel_prefers_structured_units_and_does_not_duplicate_bmo_fact() -> Non
 
     fact = "BMO remplace BMO Harris Bank N.A. par BMO Bank N.A."
     expected_relevance = (
-        "Cette mise à jour clarifie la dénomination juridique utilisée. "
-        "Elle permet de comparer les entités juridiques visées par les banques. "
-        "La divulgation ne démontre aucun changement de pratique."
+        "Cette mise à jour clarifie la dénomination juridique utilisée."
     )
     assert what_values == {fact}
     assert relevance_values == {expected_relevance}
@@ -907,8 +905,6 @@ def test_excel_exports_structured_non_relevance_reason_without_factual_copy() ->
                                 "dans sa divulgation."
                             ),
                             "signification_metier": "",
-                            "comparaison_interbanques": "",
-                            "limite_interpretation": "",
                             "motif_non_pertinence": (
                                 "Cette actualisation rédactionnelle ne révèle aucune "
                                 "nouvelle pratique de gestion des fonds propres."

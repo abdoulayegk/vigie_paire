@@ -376,9 +376,6 @@ def build_text_triage_justification(change: dict[str, Any]) -> str:
         for field in (
             "changement_constate",
             "signification_metier",
-            "comparaison_interbanques",
-            "comparaison_interbancaire",
-            "limite_interpretation",
             "motif_non_pertinence",
         )
     ):

@@ -84,25 +84,19 @@ Une carte est organisée dans l'ordre suivant :
 Ce séquencement permet de comprendre le changement avant d'examiner les
 preuves et l'interprétation.
 
-Le premier paragraphe décrit uniquement le fait observé. Le second contient
-jusqu'à trois phrases complémentaires :
+Le premier paragraphe décrit uniquement le fait observé. Le second explique
+uniquement la signification métier du changement pour la banque analysée.
 
-1. la signification métier du changement;
-2. les dimensions concrètes qu'il permet de comparer entre les banques;
-3. la limite d'interprétation, c'est-à-dire ce que le passage ne permet pas
-   encore de conclure.
-
-Pour les nouveaux rapports, le triage produit des unités distinctes : constat
-factuel, signification métier, dimensions de comparaison et limite
-d'interprétation. Pour un changement secondaire, il produit le constat et le
-motif de non-pertinence. La présentation assemble ensuite uniquement les unités
-utiles dans les deux paragraphes visibles. Elle ne recompte plus les phrases
-d'un paragraphe fusionné; une abréviation terminale comme « N.A. » ne peut donc
-plus invalider une analyse correcte.
+Pour les nouveaux rapports, le triage produit donc un constat factuel et une
+signification métier. Pour un changement secondaire, il produit le constat et
+le motif de non-pertinence. La présentation assemble uniquement ces unités dans
+les deux paragraphes visibles. La comparaison entre banques demeure la
+responsabilité du pipeline interbancaire séparé.
 
 Les anciens artefacts restent compatibles : leur justification historique est
 projetée vers les mêmes deux paragraphes et le nom de la banque est rétabli au
-moment de la lecture, sans inventer une limite absente de leur analyse.
+moment de la lecture. Les anciens champs de comparaison et de limite sont
+tolérés à la lecture, mais ne sont plus affichés.
 
 Les introductions génériques sont retirées de l'affichage, notamment « Pour
 la vigie », « Cette information est importante », « Il convient de noter que »

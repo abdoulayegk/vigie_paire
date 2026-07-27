@@ -64,19 +64,11 @@ def _semantic_fields(*, relevant: bool = True) -> dict[str, str]:
             "signification_metier": (
                 "Cette évolution change la compréhension du dispositif déclaré."
             ),
-            "comparaison_interbanques": (
-                "Elle permet de comparer le périmètre et les responsabilités."
-            ),
-            "limite_interpretation": (
-                "La divulgation ne quantifie pas les effets de cette évolution."
-            ),
             "motif_non_pertinence": "",
         }
     return {
         "changement_constate": "BMO modifie uniquement une présentation équivalente.",
         "signification_metier": "",
-        "comparaison_interbanques": "",
-        "limite_interpretation": "",
         "motif_non_pertinence": (
             "L'équivalence métier est démontrée par les textes fournis."
         ),
@@ -157,6 +149,8 @@ def test_direct_materiality_is_independent_from_nouvelle_idee() -> None:
     assert triage["materiality_level"] == "MAJEUR"
     assert triage["legacy_impact_level"] == "MINEUR"
     assert triage["materiality_decision_basis"] == "direct_materiality"
+    assert "comparaison_interbanques" not in triage
+    assert "limite_interpretation" not in triage
 
 
 def test_acquisition_signal_does_not_veto_new_data_risk() -> None:

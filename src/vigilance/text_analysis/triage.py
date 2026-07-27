@@ -67,8 +67,6 @@ _FULL_EVIDENCE_VERIFICATION_MAX_TOKENS = 500
 _SEMANTIC_REASON_FIELDS = (
     "changement_constate",
     "signification_metier",
-    "comparaison_interbanques",
-    "limite_interpretation",
     "motif_non_pertinence",
 )
 _ANALYST_FIELD_END_RE = re.compile(r"[.!?]+[\u00bb\u201d\"')\]]*$")
@@ -300,24 +298,18 @@ def _semantic_reason_payload(
     is_relevant: bool,
     changement_constate: str,
     signification_metier: str = "",
-    comparaison_interbanques: str = "",
-    limite_interpretation: str = "",
     motif_non_pertinence: str = "",
 ) -> dict[str, str]:
     """Construit les champs analystes et leur assemblage historique."""
     raw_fields = {
         "changement_constate": changement_constate,
         "signification_metier": signification_metier,
-        "comparaison_interbanques": comparaison_interbanques,
-        "limite_interpretation": limite_interpretation,
         "motif_non_pertinence": motif_non_pertinence,
     }
     applicable = (
         {
             "changement_constate",
             "signification_metier",
-            "comparaison_interbanques",
-            "limite_interpretation",
         }
         if is_relevant
         else {"changement_constate", "motif_non_pertinence"}
@@ -335,8 +327,6 @@ def _semantic_reason_payload(
         (
             "changement_constate",
             "signification_metier",
-            "comparaison_interbanques",
-            "limite_interpretation",
         )
         if is_relevant
         else ("changement_constate", "motif_non_pertinence")
@@ -558,7 +548,7 @@ def _default_triage(bank_code: str = "") -> dict[str, Any]:
     triage["source"] = TRIAGE_SOURCE_VERSION
     triage.update(
         {
-            "compact_schema_version": "analyst_materiality_v3",
+            "compact_schema_version": "analyst_materiality_v4",
             "category": "NON_PERTINENT",
             "risk_type": "autre",
             "relevance_score": "FAIBLE",
@@ -692,8 +682,8 @@ def _semantic_move_result(
             "rattachement métier."
         ),
         motif_non_pertinence=(
-            "Ce déplacement ne crée aucun nouvel élément à comparer entre les "
-            "banques."
+            "Ce déplacement ne modifie ni le contenu métier ni la pratique "
+            "divulguée."
         ),
     )
     triage = _default_triage(bank_code)
@@ -1158,7 +1148,7 @@ def _is_pure_new_regulatory_disclosure(change: dict[str, Any]) -> bool:
 
 
 def _deterministic_bank_specific_exclusion(change: dict[str, Any]) -> str | None:
-    """Exclut dates/montants/opérations internes sans fond réglementaire inter-pairs."""
+    """Repère dates, montants ou opérations sans modification prudentielle."""
     text_t1 = str(change.get("source_text_t1") or change.get("semantic_text_t1") or "")
     text_t2 = str(change.get("source_text_t2") or change.get("semantic_text_t2") or "")
     combined = _combined_change_text(change)
@@ -1359,9 +1349,9 @@ def _analyst_exclusion_copy(
     diff_type = str(change.get("diff_type") or "").strip().lower()
     source_t2 = str(change.get("source_text_t2") or change.get("semantic_text_t2") or "")
     excerpt_t2 = _excerpt_for_analyst(source_t2)
-    comparative = (
-        "Ce changement n'apporte pas d'élément nouveau à comparer entre les "
-        "banques pour la vigie prudentielle."
+    non_relevance_reason = (
+        "Ce changement ne modifie aucune pratique prudentielle, méthode, "
+        "responsabilité ou exigence divulguée."
     )
 
     if exclusion_reason == "operation_interne_banque":
@@ -1382,7 +1372,7 @@ def _analyst_exclusion_copy(
                 f"{bank_subject} modifie sa divulgation pour mentionner une "
                 "opération propre à la banque (acquisition, rachat ou émission)."
             )
-        return factual, comparative, subject
+        return factual, non_relevance_reason, subject
 
     if exclusion_reason == "variation_numerique_propre_banque":
         subject = "Variation chiffrée propre à la banque"
@@ -1396,7 +1386,7 @@ def _analyst_exclusion_copy(
                 f"{bank_subject} met uniquement à jour des chiffres, montants "
                 "ou pourcentages propres à ses activités."
             )
-        return factual, comparative, subject
+        return factual, non_relevance_reason, subject
 
     if exclusion_reason == "mise_a_jour_calendrier":
         subject = "Mise à jour de calendrier"
@@ -1404,7 +1394,7 @@ def _analyst_exclusion_copy(
             f"{bank_subject} met uniquement à jour les dates ou échéances "
             "d’application, sans ajouter de nouvelle exigence."
         )
-        return factual, comparative, subject
+        return factual, non_relevance_reason, subject
 
     # Cosmetic / generic exclusions
     subject = "Changement cosmétique"
@@ -1426,7 +1416,7 @@ def _analyst_exclusion_copy(
         )
     else:
         factual = f"{bank_subject} reformule le passage sans changement de fond."
-    return factual, comparative, subject
+    return factual, non_relevance_reason, subject
 
 
 def _prefilter_triage_result(
@@ -1436,7 +1426,7 @@ def _prefilter_triage_result(
     bank_code: str = "",
 ) -> dict[str, Any]:
     triage = _default_triage(bank_code)
-    factual, comparative, subject = _analyst_exclusion_copy(
+    factual, non_relevance_reason, subject = _analyst_exclusion_copy(
         change,
         exclusion_reason,
         bank_code=bank_code,
@@ -1444,7 +1434,7 @@ def _prefilter_triage_result(
     analyst_copy = _semantic_reason_payload(
         is_relevant=False,
         changement_constate=factual,
-        motif_non_pertinence=comparative,
+        motif_non_pertinence=non_relevance_reason,
     )
     triage.update(
         {
@@ -1473,7 +1463,7 @@ def _prefilter_triage_result(
                 "NON — Nouvel élément à surveiller : Non.\n\n"
                 f"Sujet détecté : {subject}.\n\n"
                 f"Ce qui change : {factual}\n\n"
-                f"Pertinence métier : {comparative}\n\n"
+                f"Pertinence métier : {non_relevance_reason}\n\n"
                 "Point de surveillance : Aucun suivi prioritaire n'est requis."
             ),
             "change_segments": build_change_segments(change),
@@ -1966,39 +1956,39 @@ def _propagate_triage_to_group(
 _FEW_SHOT_TRIAGE_AMF = """\
 Exemple 1 — ajout cyber pertinent
 Input : {"bank_subject": "CIBC", "change_index": 1, "diff_type": "added", "change_summary": "Ajout d’exercices annuels de simulation de cyberattaque."}
-Output : {"change_index": 1, "is_relevant": true, "themes_amf": ["RISQUE_EMERGENT", "CONTROLE_CONFORMITE"], "nouvelle_idee": true, "changement_constate": "CIBC ajoute des simulations annuelles de cyberattaque avec ses unités d’affaires.", "signification_metier": "Cette évolution rend explicite un mécanisme récurrent de préparation aux incidents cybernétiques.", "comparaison_interbanques": "Elle permet de comparer la fréquence, le périmètre et la participation des unités d’affaires aux exercices déclarés par les banques.", "limite_interpretation": "La divulgation ne précise toutefois ni les scénarios testés ni les résultats obtenus.", "motif_non_pertinence": ""}
+Output : {"change_index": 1, "is_relevant": true, "themes_amf": ["RISQUE_EMERGENT", "CONTROLE_CONFORMITE"], "nouvelle_idee": true, "changement_constate": "CIBC ajoute des simulations annuelles de cyberattaque avec ses unités d’affaires.", "signification_metier": "Cette évolution rend explicite un mécanisme récurrent de préparation aux incidents cybernétiques.", "motif_non_pertinence": ""}
 
 Exemple 2 — variation propre à la banque non pertinente
 Input : {"bank_subject": "BMO", "change_index": 1, "diff_type": "modified", "change_summary": "Le portefeuille hypothécaire passe de 287 G$ à 294 G$."}
-Output : {"change_index": 1, "is_relevant": false, "themes_amf": [], "nouvelle_idee": false, "changement_constate": "BMO fait passer son portefeuille hypothécaire de 287 G$ à 294 G$, sans modifier la méthode de calcul ni le périmètre présenté.", "signification_metier": "", "comparaison_interbanques": "", "limite_interpretation": "", "motif_non_pertinence": "Cette variation reflète l’évolution normale des activités et n’apporte aucun nouvel élément sur les pratiques de gestion des risques à comparer entre les banques."}
+Output : {"change_index": 1, "is_relevant": false, "themes_amf": [], "nouvelle_idee": false, "changement_constate": "BMO fait passer son portefeuille hypothécaire de 287 G$ à 294 G$, sans modifier la méthode de calcul ni le périmètre présenté.", "signification_metier": "", "motif_non_pertinence": "Cette variation reflète l’évolution normale des activités et ne modifie aucune pratique de gestion des risques."}
 
 Exemple 3 — calendrier administratif non pertinent
 Input : {"bank_subject": "RBC", "change_index": 1, "diff_type": "modified", "change_summary": "La date prévue de publication du rapport passe du 30 juin au 2 juillet, sans modification de l’information publiée."}
-Output : {"change_index": 1, "is_relevant": false, "themes_amf": [], "nouvelle_idee": false, "changement_constate": "RBC déplace du 30 juin au 2 juillet la date administrative de publication du rapport sans modifier l’information publiée.", "signification_metier": "", "comparaison_interbanques": "", "limite_interpretation": "", "motif_non_pertinence": "Ce déplacement administratif ne modifie ni une exigence prudentielle ni le contenu métier comparable entre les banques."}
+Output : {"change_index": 1, "is_relevant": false, "themes_amf": [], "nouvelle_idee": false, "changement_constate": "RBC déplace du 30 juin au 2 juillet la date administrative de publication du rapport sans modifier l’information publiée.", "signification_metier": "", "motif_non_pertinence": "Ce déplacement administratif ne modifie ni une exigence prudentielle ni le contenu métier divulgué."}
 
 Exemple 4 — acquisition interne non pertinente
 Input : {"bank_subject": "BNC", "change_index": 1, "diff_type": "added", "change_summary": "Inclusion de CWB dans le calcul du risque opérationnel à la suite de l’acquisition."}
-Output : {"change_index": 1, "is_relevant": false, "themes_amf": [], "nouvelle_idee": false, "changement_constate": "BNC inclut CWB dans le calcul du risque opérationnel à la suite de son acquisition, sans décrire une nouvelle méthode de calcul.", "signification_metier": "", "comparaison_interbanques": "", "limite_interpretation": "", "motif_non_pertinence": "Cette opération propre à la banque n’offre aucune base comparable sur les pratiques de gestion des risques entre institutions."}
+Output : {"change_index": 1, "is_relevant": false, "themes_amf": [], "nouvelle_idee": false, "changement_constate": "BNC inclut CWB dans le calcul du risque opérationnel à la suite de son acquisition, sans décrire une nouvelle méthode de calcul.", "signification_metier": "", "motif_non_pertinence": "Cette opération propre à la banque ne modifie ni la méthode ni la pratique de gestion du risque opérationnel."}
 
 Exemple 5 — rachat d’actions non pertinent
 Input : {"bank_subject": "TD", "change_index": 1, "diff_type": "modified", "change_summary": "Mise à jour des montants de rachat d’actions ordinaires au semestre."}
-Output : {"change_index": 1, "is_relevant": false, "themes_amf": [], "nouvelle_idee": false, "changement_constate": "TD met à jour les montants de rachat d’actions ordinaires déjà présentés, sans modifier le cadre réglementaire associé.", "signification_metier": "", "comparaison_interbanques": "", "limite_interpretation": "", "motif_non_pertinence": "Cette transaction propre à la banque n’éclaire pas la comparabilité des pratiques prudentielles entre pairs."}
+Output : {"change_index": 1, "is_relevant": false, "themes_amf": [], "nouvelle_idee": false, "changement_constate": "TD met à jour les montants de rachat d’actions ordinaires déjà présentés, sans modifier le cadre réglementaire associé.", "signification_metier": "", "motif_non_pertinence": "Cette transaction propre à la banque ne modifie pas le cadre prudentiel divulgué."}
 
 Exemple 6 — transfert de responsabilité de gouvernance pertinent et substantiel
 Input : {"bank_subject": "RBC", "change_index": 1, "diff_type": "modified", "change_summary": "L’approbation de l’appétit pour le risque passe du comité de direction au conseil d’administration."}
-Output : {"change_index": 1, "is_relevant": true, "themes_amf": ["GOUVERNANCE_RISQUES"], "nouvelle_idee": true, "changement_constate": "RBC transfère au conseil d’administration l’approbation de l’appétit pour le risque auparavant confiée au comité de direction.", "signification_metier": "Ce transfert élève la décision au niveau de gouvernance ultime de la banque.", "comparaison_interbanques": "Il permet de comparer l’autorité d’approbation, la répartition des responsabilités et le rôle du conseil entre les banques.", "limite_interpretation": "La divulgation ne précise toutefois pas si les mécanismes de suivi ou de reddition de comptes ont également changé.", "motif_non_pertinence": ""}
+Output : {"change_index": 1, "is_relevant": true, "themes_amf": ["GOUVERNANCE_RISQUES"], "nouvelle_idee": true, "changement_constate": "RBC transfère au conseil d’administration l’approbation de l’appétit pour le risque auparavant confiée au comité de direction.", "signification_metier": "Ce transfert élève la décision au niveau de gouvernance ultime de la banque.", "motif_non_pertinence": ""}
 
 Exemple 7 — comité renommé pertinent sans nouvelle idée substantielle
 Input : {"bank_subject": "CIBC", "change_index": 1, "diff_type": "modified", "change_summary": "Le Comité de gestion des risques est renommé Comité des risques et de la conformité, sans modification de son mandat."}
-Output : {"change_index": 1, "is_relevant": true, "themes_amf": ["GOUVERNANCE_RISQUES"], "nouvelle_idee": false, "changement_constate": "CIBC renomme le Comité de gestion des risques en Comité des risques et de la conformité tout en maintenant son mandat.", "signification_metier": "Cette désignation rend la conformité plus visible dans la structure déclarée de gouvernance.", "comparaison_interbanques": "Elle permet de comparer le nom, le positionnement et le périmètre affiché des comités entre les banques.", "limite_interpretation": "La divulgation ne démontre toutefois aucun changement de responsabilité, de mandat ou d’autorité.", "motif_non_pertinence": ""}
+Output : {"change_index": 1, "is_relevant": true, "themes_amf": ["GOUVERNANCE_RISQUES"], "nouvelle_idee": false, "changement_constate": "CIBC renomme le Comité de gestion des risques en Comité des risques et de la conformité tout en maintenant son mandat.", "signification_metier": "Cette désignation rend la conformité plus visible dans la structure déclarée de gouvernance.", "motif_non_pertinence": ""}
 
 Exemple 8 — changement réel de méthodologie pertinent et substantiel
 Input : {"bank_subject": "BMO", "change_index": 1, "diff_type": "modified", "change_summary": "La méthode standard de mesure du risque de crédit est remplacée par un modèle interne avancé."}
-Output : {"change_index": 1, "is_relevant": true, "themes_amf": ["MODIFICATION_METHODOLOGIE"], "nouvelle_idee": true, "changement_constate": "BMO remplace la méthode standard de mesure du risque de crédit par un modèle interne avancé.", "signification_metier": "Cette nouvelle base méthodologique peut modifier la mesure et la sensibilité du risque déclaré.", "comparaison_interbanques": "Elle permet de comparer les approches de modélisation, les hypothèses et le recours aux modèles internes entre les banques.", "limite_interpretation": "La divulgation ne fournit toutefois pas les paramètres ni les effets quantifiés nécessaires pour mesurer l’incidence du remplacement.", "motif_non_pertinence": ""}
+Output : {"change_index": 1, "is_relevant": true, "themes_amf": ["MODIFICATION_METHODOLOGIE"], "nouvelle_idee": true, "changement_constate": "BMO remplace la méthode standard de mesure du risque de crédit par un modèle interne avancé.", "signification_metier": "Cette nouvelle base méthodologique peut modifier la mesure et la sensibilité du risque déclaré.", "motif_non_pertinence": ""}
 
 Exemple 9 — modification réelle de processus pertinente et substantielle
 Input : {"bank_subject": "BNS", "change_index": 1, "diff_type": "modified", "change_summary": "Les alertes de conformité sont désormais validées par une deuxième équipe avant leur clôture."}
-Output : {"change_index": 1, "is_relevant": true, "themes_amf": ["CONTROLE_CONFORMITE"], "nouvelle_idee": true, "changement_constate": "BNS ajoute une seconde validation au processus de clôture des alertes de conformité.", "signification_metier": "Cette étape supplémentaire formalise un contrôle indépendant avant la clôture des alertes.", "comparaison_interbanques": "Elle permet de comparer le nombre de validations, la séparation des responsabilités et le niveau de supervision entre les banques.", "limite_interpretation": "La divulgation ne précise toutefois ni l’identité de la deuxième équipe ni les critères utilisés pour valider la clôture.", "motif_non_pertinence": ""}
+Output : {"change_index": 1, "is_relevant": true, "themes_amf": ["CONTROLE_CONFORMITE"], "nouvelle_idee": true, "changement_constate": "BNS ajoute une seconde validation au processus de clôture des alertes de conformité.", "signification_metier": "Cette étape supplémentaire formalise un contrôle indépendant avant la clôture des alertes.", "motif_non_pertinence": ""}
 """
 
 
@@ -2159,7 +2149,7 @@ def _blind_materiality_challenge(
                 "content": (
                     "Rends exactement une entrée avec change_index=1. Évalue directement "
                     "materiality_level indépendamment de nouvelle_idee. Renseigne tous "
-                    "les champs de pertinence, les cinq champs analystes, change_nature, "
+                    "les champs de pertinence, les trois champs analystes, change_nature, "
                     "business_equivalence, materiality_confidence, evidence_sufficiency, "
                     "decision_status, review_required, supporting_evidence et "
                     "counterarguments. Les précédents sont comparatifs et ne remplacent "
@@ -2366,10 +2356,6 @@ def _persisted_triage_from_compact(
             bank_subject,
         ),
         signification_metier=str(compact.get("signification_metier") or ""),
-        comparaison_interbanques=str(
-            compact.get("comparaison_interbanques") or ""
-        ),
-        limite_interpretation=str(compact.get("limite_interpretation") or ""),
         motif_non_pertinence=str(compact.get("motif_non_pertinence") or ""),
     )
     relevance_reason = analyst_copy["relevance_reason"]
@@ -2436,7 +2422,7 @@ def _persisted_triage_from_compact(
     )
 
     triage: dict[str, Any] = {
-        "compact_schema_version": "analyst_materiality_v3",
+        "compact_schema_version": "analyst_materiality_v4",
         "bank_code": str(bank_code or "").strip().lower(),
         "bank_subject": bank_subject,
         "is_relevant": is_relevant,
@@ -2752,8 +2738,7 @@ def _triage_section_changes(
         "posture, action recommandée ni répétition des textes sources. Rédige "
         "séparément, en "
         "français, des phrases complètes, professionnelles et faciles à comprendre "
-        "dans `changement_constate`, `signification_metier`, "
-        "`comparaison_interbanques`, `limite_interpretation` et "
+        "dans `changement_constate`, `signification_metier` et "
         "`motif_non_pertinence`. Ne produis pas `relevance_reason`; il sera "
         "assemblé localement. La longueur du changement ne détermine jamais sa "
         "pertinence ou sa matérialité : une modification très courte peut être "
@@ -2801,15 +2786,12 @@ def _triage_section_changes(
         "`nouvelle_idee=false`.\n"
         "4. Chaque champ renseigné doit être non vide, lexical et terminé par "
         "« . », « ! » ou « ? ». Si `is_relevant=true`, renseigne "
-        "`changement_constate`, `signification_metier`, "
-        "`comparaison_interbanques` et `limite_interpretation`, puis laisse "
+        "`changement_constate` et `signification_metier`, puis laisse "
         "`motif_non_pertinence` vide. `changement_constate` décrit factuellement "
         f"l’action de {bank_subject}; `signification_metier` explique sa "
-        "signification concrète; `comparaison_interbanques` précise les dimensions "
-        "à comparer entre banques; `limite_interpretation` indique uniquement ce "
-        "que la preuve ne démontre ou ne précise pas. Si `is_relevant=false`, "
+        "signification concrète. Si `is_relevant=false`, "
         "renseigne seulement `changement_constate` et `motif_non_pertinence`, puis "
-        "laisse les trois champs analytiques vides. N’écris pas "
+        "laisse `signification_metier` vide. N’écris pas "
         "« Ce changement est pertinent pour la vigie AMF », « Ce changement "
         "n’est pas pertinent », « Pour la vigie », « Cette information est "
         "importante », « Il convient de noter que » ni « Dans le cadre de cette "
@@ -2882,13 +2864,12 @@ def _triage_section_changes(
                 "thèmes AMF (préfère candidate_themes, sinon tout code de la "
                 "taxonomie AMF, sinon SUJET_EMERGENT_HORS_GRILLE); "
                 "is_relevant=false exige themes_amf=[] et "
-                "nouvelle_idee=false. Corrige uniquement les cinq champs "
+                "nouvelle_idee=false. Corrige uniquement les trois champs "
                 "sémantiques : is_relevant=true exige changement_constate, "
-                "signification_metier, comparaison_interbanques et "
-                "limite_interpretation non vides, avec motif_non_pertinence vide; "
+                "signification_metier non vides, avec motif_non_pertinence vide; "
                 "is_relevant=false exige changement_constate et "
-                "motif_non_pertinence non vides, avec les trois autres champs "
-                f"vides. Chaque changement_constate commence par {bank_subject} "
+                "motif_non_pertinence non vides, avec signification_metier vide. "
+                f"Chaque changement_constate commence par {bank_subject} "
                 "et chaque champ renseigné est lexical et ponctué. Renseigne aussi "
                 "la décision directe materiality_level, une à trois valeurs "
                 "change_nature, business_equivalence, materiality_confidence, "
@@ -2900,8 +2881,7 @@ def _triage_section_changes(
             length_retry_message=(
                 "Renvoie immédiatement le même batch compact complet, sans aucun "
                 "commentaire hors schéma. Raccourcis séparément les champs "
-                "changement_constate, signification_metier, "
-                "comparaison_interbanques, limite_interpretation et "
+                "changement_constate, signification_metier et "
                 "motif_non_pertinence sans les fusionner. Respecte les champs "
                 f"vides applicables et commence changement_constate par "
                 f"{bank_subject}. Conserve tous les champs de matérialité directe "

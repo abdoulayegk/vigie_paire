@@ -209,8 +209,8 @@ indépendantes.
 
 ### 7.1 Pertinence
 
-Le changement apporte-t-il une information utile à la vigie prudentielle, à la
-gestion des risques ou à la comparaison avec les pairs?
+Le changement apporte-t-il une information utile à la vigie prudentielle ou à
+la gestion des risques de la banque analysée?
 
 ### 7.2 Nature du changement
 

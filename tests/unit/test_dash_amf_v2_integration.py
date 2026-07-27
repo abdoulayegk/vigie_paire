@@ -667,8 +667,6 @@ def test_text_analysis_hides_structured_non_relevance_reason_from_main_card() ->
                 "BMO remplace BMO Harris Bank N.A. par BMO Bank N.A."
             ),
             "signification_metier": "",
-            "comparaison_interbanques": "",
-            "limite_interpretation": "",
             "motif_non_pertinence": (
                 "Cette reformulation ne révèle aucune nouvelle pratique comparable."
             ),

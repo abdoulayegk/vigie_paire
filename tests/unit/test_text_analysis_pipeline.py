@@ -303,8 +303,8 @@ def test_default_triage_includes_amf_v2_and_legacy_fields() -> None:
     """Le triage par défaut produit le schéma AMF v2 + champs hérités pour rétro-compatibilité."""
     triage = _default_triage("bmo")
 
-    assert triage["source"] == "gpt4o_triage_amf_materiality_v3"
-    assert triage["compact_schema_version"] == "analyst_materiality_v3"
+    assert triage["source"] == "gpt4o_triage_amf_materiality_v4"
+    assert triage["compact_schema_version"] == "analyst_materiality_v4"
     assert triage["themes_amf"] == []
     assert triage["exclusion_reason"] == "non_pertinent_autre"
     assert triage["is_relevant"] is False
@@ -318,8 +318,8 @@ def test_default_triage_includes_amf_v2_and_legacy_fields() -> None:
     assert triage["signals"]["methodology_change"] is False
     assert triage["changement_constate"].startswith("BMO ")
     assert triage["signification_metier"] == ""
-    assert triage["comparaison_interbanques"] == ""
-    assert triage["limite_interpretation"] == ""
+    assert "comparaison_interbanques" not in triage
+    assert "limite_interpretation" not in triage
     assert triage["motif_non_pertinence"]
     assert triage["relevance_reason"] == (
         f"{triage['changement_constate']} {triage['motif_non_pertinence']}"
@@ -352,13 +352,9 @@ def test_triage_few_shots_request_structured_analyst_fields() -> None:
         }
         if validated.is_relevant:
             assert validated.signification_metier
-            assert validated.comparaison_interbanques
-            assert validated.limite_interpretation
             assert validated.motif_non_pertinence == ""
         else:
             assert validated.signification_metier == ""
-            assert validated.comparaison_interbanques == ""
-            assert validated.limite_interpretation == ""
             assert validated.motif_non_pertinence
         assert (
             "Ce changement est pertinent pour la vigie AMF"
@@ -5583,16 +5579,14 @@ def _compact_reason() -> str:
     return (
         "Le rapport courant ajoute un exercice annuel de simulation de cyberattaque "
         "qui n’était pas décrit dans le rapport précédent. Cette évolution rend "
-        "explicite un mécanisme de préparation aux incidents. Elle permet de "
-        "comparer la fréquence et le périmètre des exercices entre les banques. "
-        "Le passage ne précise toutefois ni les scénarios ni les résultats obtenus."
+        "explicite un mécanisme de préparation aux incidents."
     )
 
 
 def _compact_secondary_reason() -> str:
     return (
         "Le rapport courant met à jour une valeur propre à la banque. "
-        "Cette variation n’apporte aucun nouveau point de comparaison prudentielle."
+        "Cette variation ne modifie aucune pratique prudentielle."
     )
 
 
@@ -5604,14 +5598,6 @@ def _compact_relevant_fields() -> dict[str, str]:
         "signification_metier": (
             "Cette évolution rend explicite un mécanisme de préparation aux incidents."
         ),
-        "comparaison_interbanques": (
-            "Elle permet de comparer la fréquence et le périmètre des exercices "
-            "entre les banques."
-        ),
-        "limite_interpretation": (
-            "La divulgation ne précise toutefois ni les scénarios ni les "
-            "résultats obtenus."
-        ),
         "motif_non_pertinence": "",
     }
 
@@ -5622,10 +5608,8 @@ def _compact_secondary_fields() -> dict[str, str]:
             "BMO met à jour une valeur propre à ses activités."
         ),
         "signification_metier": "",
-        "comparaison_interbanques": "",
-        "limite_interpretation": "",
         "motif_non_pertinence": (
-            "Cette variation n’apporte aucun nouveau point de comparaison prudentielle."
+            "Cette variation ne modifie aucune pratique prudentielle."
         ),
     }
 
@@ -5653,8 +5637,6 @@ def test_compact_triage_accepts_separate_relevant_analyst_fields() -> None:
         (
             result.changement_constate,
             result.signification_metier,
-            result.comparaison_interbanques,
-            result.limite_interpretation,
         )
     )
 
@@ -5726,8 +5708,8 @@ def test_compact_triage_accepts_field_ending_with_uppercase_label() -> None:
     fields["changement_constate"] = (
         "BMO retient désormais l’approche A."
     )
-    fields["limite_interpretation"] = (
-        "La divulgation ne précise toutefois pas les paramètres de l’approche A."
+    fields["signification_metier"] = (
+        "Cette décision formalise l’utilisation de l’approche A."
     )
     result = TriageAMFCompactLLMResultWithIndex(
         change_index=1,
@@ -5736,7 +5718,7 @@ def test_compact_triage_accepts_field_ending_with_uppercase_label() -> None:
         nouvelle_idee=True,
         **fields,
     )
-    assert result.limite_interpretation.endswith("l’approche A.")
+    assert result.signification_metier.endswith("l’approche A.")
 
 
 def test_compact_triage_accepts_abbreviations_and_decimals_in_semantic_field() -> None:
@@ -6368,9 +6350,10 @@ def test_triage_section_changes_converts_validation_error_to_triage_validation_e
     # déterministe et redondante n'est pas envoyée.
     assert client.call_count == 2
     retry_message = client._completions.calls[1]["messages"][-1]["content"]
-    assert "cinq champs sémantiques" in retry_message
+    assert "trois champs sémantiques" in retry_message
     assert "signification_metier" in retry_message
-    assert "limite_interpretation" in retry_message
+    assert "comparaison_interbanques" not in retry_message
+    assert "limite_interpretation" not in retry_message
 
 
 def test_triage_section_changes_length_retry_repeats_structured_contract() -> None:
@@ -6414,8 +6397,8 @@ def test_triage_section_changes_length_retry_repeats_structured_contract() -> No
     retry_message = client._completions.calls[1]["messages"][-1]["content"]
     assert "changement_constate" in retry_message
     assert "signification_metier" in retry_message
-    assert "comparaison_interbanques" in retry_message
-    assert "limite_interpretation" in retry_message
+    assert "comparaison_interbanques" not in retry_message
+    assert "limite_interpretation" not in retry_message
     assert "motif_non_pertinence" in retry_message
     assert "sans les fusionner" in retry_message
 
@@ -7241,12 +7224,12 @@ def test_triage_section_changes_does_not_request_posture_or_it_impact() -> None:
     assert "Ne produis pas `relevance_reason`" in prompt
     assert "changement_constate" in prompt
     assert "signification_metier" in prompt
-    assert "comparaison_interbanques" in prompt
-    assert "limite_interpretation" in prompt
+    assert "comparaison_interbanques" not in prompt
+    assert "limite_interpretation" not in prompt
     assert "motif_non_pertinence" in prompt
     assert "Banque analysée : BMO" in prompt
     assert "100 à 120 mots" not in prompt
-    assert result[0]["genai_triage"]["compact_schema_version"] == "analyst_materiality_v3"
+    assert result[0]["genai_triage"]["compact_schema_version"] == "analyst_materiality_v4"
     assert result[0]["genai_triage"]["changement_constate"].startswith("BMO ")
     assert result[0]["genai_triage"]["impact_it"] == "INDETERMINE"
     assert result[0]["genai_triage"]["changement_posture"] == "INDETERMINE"

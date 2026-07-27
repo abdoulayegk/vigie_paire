@@ -463,9 +463,6 @@ _STRUCTURED_TRIAGE_FIELDS = frozenset(
     {
         "changement_constate",
         "signification_metier",
-        "comparaison_interbanques",
-        "comparaison_interbancaire",
-        "limite_interpretation",
         "motif_non_pertinence",
     }
 )
@@ -618,12 +615,7 @@ def build_analyst_narrative(
     if has_structured_fields:
         if bool(triage.get("is_relevant", False)):
             pertinence_metier = _structured_business_paragraph(
-                (
-                    triage.get("signification_metier"),
-                    triage.get("comparaison_interbanques")
-                    or triage.get("comparaison_interbancaire"),
-                    triage.get("limite_interpretation"),
-                ),
+                (triage.get("signification_metier"),),
                 summary=changement_constate,
                 bank_code=bank_code,
                 limit=relevance_limit,

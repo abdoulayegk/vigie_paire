@@ -293,7 +293,7 @@ ActionRequise = Literal[
     "aucune",
 ]
 
-TRIAGE_SOURCE_VERSION = "gpt4o_triage_amf_materiality_v3"
+TRIAGE_SOURCE_VERSION = "gpt4o_triage_amf_materiality_v4"
 
 
 ChangeSegmentKind = Literal["added", "removed", "modified"]
@@ -978,18 +978,6 @@ class TriageAMFCompactLLMResultWithIndex(MaterialityAssessment):
             "is_relevant=false."
         )
     )
-    comparaison_interbanques: str = Field(
-        description=(
-            "Dimensions concrètes que le changement permet de comparer entre "
-            "banques; chaîne vide lorsque is_relevant=false."
-        )
-    )
-    limite_interpretation: str = Field(
-        description=(
-            "Limite d'interprétation étayée par les éléments non démontrés ou "
-            "non précisés; chaîne vide lorsque is_relevant=false."
-        )
-    )
     motif_non_pertinence: str = Field(
         description=(
             "Motif métier expliquant la non-pertinence; chaîne vide lorsque "
@@ -1008,15 +996,13 @@ class TriageAMFCompactLLMResultWithIndex(MaterialityAssessment):
         """Accepte encore un ancien payload monolithique à la construction.
 
         Cette voie sert uniquement à la lecture d'artefacts ou aux appelants
-        historiques. Le schéma exposé au LLM exige les cinq champs structurés.
+        historiques. Le schéma exposé au LLM exige les trois champs structurés.
         """
         if not isinstance(data, dict):
             return data
         semantic_fields = (
             "changement_constate",
             "signification_metier",
-            "comparaison_interbanques",
-            "limite_interpretation",
             "motif_non_pertinence",
         )
         if any(field in data for field in semantic_fields):
@@ -1035,10 +1021,6 @@ class TriageAMFCompactLLMResultWithIndex(MaterialityAssessment):
                 {
                     "changement_constate": parts[0] if len(parts) >= 1 else "",
                     "signification_metier": parts[1] if len(parts) >= 2 else "",
-                    "comparaison_interbanques": parts[2] if len(parts) >= 3 else "",
-                    "limite_interpretation": (
-                        " ".join(parts[3:]) if len(parts) >= 4 else ""
-                    ),
                     "motif_non_pertinence": "",
                 }
             )
@@ -1047,8 +1029,6 @@ class TriageAMFCompactLLMResultWithIndex(MaterialityAssessment):
                 {
                     "changement_constate": parts[0] if parts else "",
                     "signification_metier": "",
-                    "comparaison_interbanques": "",
-                    "limite_interpretation": "",
                     "motif_non_pertinence": (
                         " ".join(parts[1:]) if len(parts) >= 2 else ""
                     ),
@@ -1059,8 +1039,6 @@ class TriageAMFCompactLLMResultWithIndex(MaterialityAssessment):
     @field_validator(
         "changement_constate",
         "signification_metier",
-        "comparaison_interbanques",
-        "limite_interpretation",
         "motif_non_pertinence",
         mode="before",
     )
@@ -1087,8 +1065,6 @@ class TriageAMFCompactLLMResultWithIndex(MaterialityAssessment):
                 )
             required_fields = {
                 "signification_metier": self.signification_metier,
-                "comparaison_interbanques": self.comparaison_interbanques,
-                "limite_interpretation": self.limite_interpretation,
             }
             missing_fields = [
                 field for field, value in required_fields.items() if not value
@@ -1113,8 +1089,6 @@ class TriageAMFCompactLLMResultWithIndex(MaterialityAssessment):
                 )
             forbidden_fields = {
                 "signification_metier": self.signification_metier,
-                "comparaison_interbanques": self.comparaison_interbanques,
-                "limite_interpretation": self.limite_interpretation,
             }
             populated_fields = [
                 field for field, value in forbidden_fields.items() if value
@@ -1137,8 +1111,6 @@ class TriageAMFCompactLLMResultWithIndex(MaterialityAssessment):
             parts = (
                 self.changement_constate,
                 self.signification_metier,
-                self.comparaison_interbanques,
-                self.limite_interpretation,
             )
         else:
             parts = (self.changement_constate, self.motif_non_pertinence)

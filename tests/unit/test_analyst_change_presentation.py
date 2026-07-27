@@ -177,7 +177,7 @@ def test_canonicalize_narrative_preserves_structured_sections() -> None:
     assert "T2" not in result
 
 
-def test_structured_narrative_has_priority_and_preserves_bmo_na() -> None:
+def test_structured_narrative_ignores_removed_legacy_fields() -> None:
     change = {
         "diff_type": "modified",
         "change_summary": "Résumé historique qui ne doit pas être publié.",
@@ -210,13 +210,13 @@ def test_structured_narrative_has_priority_and_preserves_bmo_na() -> None:
         "BMO remplace BMO Harris Bank N.A. par BMO Bank N.A."
     )
     assert narrative.pertinence_metier == (
-        "Cette mise à jour clarifie la dénomination juridique utilisée. "
-        "Elle permet de comparer les entités juridiques visées par les banques. "
-        "La divulgation ne démontre aucun changement de pratique."
+        "Cette mise à jour clarifie la dénomination juridique utilisée."
     )
     assert narrative.business_relevance == narrative.pertinence_metier
     assert narrative.motif_non_pertinence == ""
     assert "LEGACY" not in narrative.business_relevance
+    assert "comparer les entités" not in narrative.business_relevance
+    assert "aucun changement de pratique" not in narrative.business_relevance
 
 
 def test_structured_secondary_narrative_uses_only_non_relevance_reason() -> None:
@@ -228,8 +228,6 @@ def test_structured_secondary_narrative_uses_only_non_relevance_reason() -> None
                 "BMO reformule la dénomination BMO Bank N.A. sans changer le fond."
             ),
             "signification_metier": "",
-            "comparaison_interbanques": "",
-            "limite_interpretation": "",
             "motif_non_pertinence": (
                 "Cette reformulation ne crée aucune nouvelle pratique comparable."
             ),
