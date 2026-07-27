@@ -62,8 +62,12 @@ def _is_new_major_or_allowed_moderate(triage: dict[str, Any]) -> bool:
 
 
 def _is_non_cosmetic_change(triage: dict[str, Any]) -> bool:
-    """Retourne True si le triage retient le changement (pertinent et thématisé AMF)."""
-    return bool(triage.get("is_relevant")) and bool(triage.get("themes_amf"))
+    """Retourne True si le triage retient le changement pertinent.
+
+    La taxonomie AMF est un enrichissement facultatif et ne participe donc
+    jamais au filtre de rétention.
+    """
+    return bool(triage.get("is_relevant"))
 
 
 def _retained_change_sort_key(

@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
 import logging
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 from vigilance.cli.quarter_logic import normalize_quarter, resolve_previous_quarter
+from vigilance.comparison_io import _atomic_write_json
 from vigilance.config import get_text_extraction_config
 from vigilance.text_analysis.comparison import _compare_section_texts
 from vigilance.text_analysis.constants import UNIFIED_TEXT_SCHEMA_VERSION, _SECTION_LABELS, _T4_TEXT_TARGET_SECTIONS
@@ -52,6 +55,102 @@ from vigilance.text_extraction.text_extraction_audit_writer import (
 from vigilance.text_analysis.vision_boundary_validator import build_text_boundary_validator
 
 logger = logging.getLogger(__name__)
+
+_TEXT_ANALYSIS_CHECKPOINT_SCHEMA = "text_analysis_checkpoint_v1"
+_TEXT_COMPARISON_LOGIC_VERSION = "canonical_comparison_reconciliation_v1"
+
+
+def _emit_pipeline_progress(
+    progress_callback: Callable[[str], None] | None,
+    message: str,
+) -> None:
+    if progress_callback is None:
+        return
+    try:
+        progress_callback(message)
+    except Exception as exc:  # noqa: BLE001
+        logger.debug("text pipeline progress callback ignored error=%s", exc)
+
+
+def _text_analysis_checkpoint_key(
+    *,
+    bank_code: str,
+    model: str,
+    year_previous: int,
+    quarter_previous: str,
+    year_current: int,
+    quarter_current: str,
+    section_keys: list[str],
+    markdown_previous: str,
+    markdown_current: str,
+) -> str:
+    payload = {
+        "checkpoint_schema": _TEXT_ANALYSIS_CHECKPOINT_SCHEMA,
+        "comparison_logic_version": _TEXT_COMPARISON_LOGIC_VERSION,
+        "bank_code": bank_code,
+        "model": model,
+        "year_previous": year_previous,
+        "quarter_previous": quarter_previous,
+        "year_current": year_current,
+        "quarter_current": quarter_current,
+        "section_keys": section_keys,
+        "markdown_previous": markdown_previous,
+        "markdown_current": markdown_current,
+    }
+    serialized = json.dumps(
+        payload,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+    return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
+
+
+def _load_text_analysis_checkpoint(
+    path: Path,
+    *,
+    checkpoint_key: str,
+) -> dict[str, Any]:
+    if not path.is_file():
+        return {}
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError, TypeError) as exc:
+        logger.warning(
+            "text analysis checkpoint ignored path=%s error=%s",
+            path,
+            exc,
+        )
+        return {}
+    if (
+        not isinstance(payload, dict)
+        or payload.get("checkpoint_schema")
+        != _TEXT_ANALYSIS_CHECKPOINT_SCHEMA
+        or payload.get("checkpoint_key") != checkpoint_key
+    ):
+        return {}
+    return payload
+
+
+def _store_text_analysis_checkpoint(
+    path: Path,
+    *,
+    checkpoint_key: str,
+    provisional_by_section: dict[str, list[dict[str, Any]]],
+    reconciled_changes: list[dict[str, Any]] | None = None,
+    reconciliation_audit: list[dict[str, Any]] | None = None,
+) -> None:
+    _atomic_write_json(
+        path,
+        {
+            "checkpoint_schema": _TEXT_ANALYSIS_CHECKPOINT_SCHEMA,
+            "checkpoint_key": checkpoint_key,
+            "comparison_logic_version": _TEXT_COMPARISON_LOGIC_VERSION,
+            "provisional_by_section": provisional_by_section,
+            "reconciled_changes": reconciled_changes,
+            "reconciliation_audit": reconciliation_audit,
+        },
+    )
 
 
 def _prepare_period_extraction(
@@ -339,6 +438,7 @@ def run_text_analysis_pipeline(
     allowed_section_keys: set[str] | None = None,
     project_root: Path | None = None,
     force_extraction: bool = False,
+    progress_callback: Callable[[str], None] | None = None,
 ) -> tuple[dict[str, Any], Path]:
     """Exécute le pipeline texte complet avec le markdown comme source de vérité.
 
@@ -361,6 +461,16 @@ def run_text_analysis_pipeline(
 
     if project_root is None:
         project_root = _resolve_text_project_root(out_root)
+
+    out_path = get_text_comparison_path(
+        out_root=out_root,
+        bank_code=bank_code,
+        year_t2=year_current,
+        quarter_t2=quarter_current,
+        year_t1=year_previous,
+        quarter_t1=quarter_previous,
+    )
+    triage_cache_dir = out_path.parent / ".text_triage_cache"
 
     effective_allowed = _effective_text_allowed_sections(
         bank_code,
@@ -404,8 +514,57 @@ def run_text_analysis_pipeline(
     # a later global pass can reconcile content that was moved or resegmented
     # between different subsections (or even target sections).
     client = _build_openai_client()
-    provisional_by_section: dict[str, list[dict[str, Any]]] = {}
-    for section_key in section_keys:
+    checkpoint_path = out_path.parent / ".text_analysis_checkpoint.json"
+    checkpoint_key = _text_analysis_checkpoint_key(
+        bank_code=bank_code,
+        model=model,
+        year_previous=year_previous,
+        quarter_previous=quarter_previous,
+        year_current=year_current,
+        quarter_current=quarter_current,
+        section_keys=section_keys,
+        markdown_previous=md_previous,
+        markdown_current=md_current,
+    )
+    checkpoint = _load_text_analysis_checkpoint(
+        checkpoint_path,
+        checkpoint_key=checkpoint_key,
+    )
+    raw_provisional = checkpoint.get("provisional_by_section")
+    provisional_by_section: dict[str, list[dict[str, Any]]] = (
+        {
+            str(section_key): [
+                dict(change)
+                for change in changes
+                if isinstance(change, dict)
+            ]
+            for section_key, changes in raw_provisional.items()
+            if (
+                str(section_key) in section_keys
+                and isinstance(changes, list)
+            )
+        }
+        if isinstance(raw_provisional, dict)
+        else {}
+    )
+    for section_index, section_key in enumerate(section_keys, start=1):
+        if section_key in provisional_by_section:
+            _emit_pipeline_progress(
+                progress_callback,
+                (
+                    f"Comparaison {section_index}/{len(section_keys)} : "
+                    f"{_SECTION_LABELS.get(section_key, section_key)} "
+                    "reprise du cache."
+                ),
+            )
+            continue
+        _emit_pipeline_progress(
+            progress_callback,
+            (
+                f"Comparaison {section_index}/{len(section_keys)} : "
+                f"{_SECTION_LABELS.get(section_key, section_key)}."
+            ),
+        )
         text_t1 = _extract_section_text_from_markdown(md_previous, section_key)
         text_t2 = _extract_section_text_from_markdown(md_current, section_key)
         changes = _compare_section_texts(
@@ -444,17 +603,52 @@ def run_text_analysis_pipeline(
                 _ch["evidence_t2"]["pages"] = _p_t2
 
         provisional_by_section[section_key] = changes
+        _store_text_analysis_checkpoint(
+            checkpoint_path,
+            checkpoint_key=checkpoint_key,
+            provisional_by_section=provisional_by_section,
+        )
 
-    provisional_changes = [
-        change
-        for section_key in section_keys
-        for change in provisional_by_section.get(section_key, [])
-    ]
-    reconciled_changes, reconciliation_audit = reconcile_global_change_fragments(
-        client=client,
-        model=model,
-        changes=provisional_changes,
-    )
+    raw_reconciled = checkpoint.get("reconciled_changes")
+    raw_reconciliation_audit = checkpoint.get("reconciliation_audit")
+    if isinstance(raw_reconciled, list) and isinstance(
+        raw_reconciliation_audit,
+        list,
+    ):
+        reconciled_changes = [
+            dict(change)
+            for change in raw_reconciled
+            if isinstance(change, dict)
+        ]
+        reconciliation_audit = [
+            dict(row)
+            for row in raw_reconciliation_audit
+            if isinstance(row, dict)
+        ]
+        _emit_pipeline_progress(
+            progress_callback,
+            "Réconciliation globale reprise du cache.",
+        )
+    else:
+        provisional_changes = [
+            change
+            for section_key in section_keys
+            for change in provisional_by_section.get(section_key, [])
+        ]
+        reconciled_changes, reconciliation_audit = (
+            reconcile_global_change_fragments(
+                client=client,
+                model=model,
+                changes=provisional_changes,
+            )
+        )
+        _store_text_analysis_checkpoint(
+            checkpoint_path,
+            checkpoint_key=checkpoint_key,
+            provisional_by_section=provisional_by_section,
+            reconciled_changes=reconciled_changes,
+            reconciliation_audit=reconciliation_audit,
+        )
     reconciled_by_section: dict[str, list[dict[str, Any]]] = {section_key: [] for section_key in section_keys}
     for change in reconciled_changes:
         section_key = str(change.get("section_key") or "")
@@ -477,9 +671,17 @@ def run_text_analysis_pipeline(
         precedent_memory.load_report.files_seen,
     )
     section_comparisons: list[dict[str, Any]] = []
-    for section_key in section_keys:
+    for section_index, section_key in enumerate(section_keys, start=1):
         changes = reconciled_by_section.get(section_key, [])
         non_unchanged = [change for change in changes if change.get("diff_type") != "unchanged"]
+        _emit_pipeline_progress(
+            progress_callback,
+            (
+                f"Triage {section_index}/{len(section_keys)} : "
+                f"{_SECTION_LABELS.get(section_key, section_key)}, "
+                f"{len(non_unchanged)} changements candidats."
+            ),
+        )
         enriched = _triage_section_changes(
             client=client,
             model=model,
@@ -487,6 +689,8 @@ def run_text_analysis_pipeline(
             section_key=section_key,
             changes=non_unchanged,
             precedent_memory=precedent_memory,
+            cache_dir=triage_cache_dir,
+            progress_callback=progress_callback,
         )
         enriched = _evaluate_consolidated_dossier_materiality(
             client=client,
@@ -560,14 +764,6 @@ def run_text_analysis_pipeline(
         bank_code=bank_code,
     )
 
-    out_path = get_text_comparison_path(
-        out_root=out_root,
-        bank_code=bank_code,
-        year_t2=year_current,
-        quarter_t2=quarter_current,
-        year_t1=year_previous,
-        quarter_t1=quarter_previous,
-    )
     out_dir = out_path.parent
     write_text_extraction_markdown(
         md_previous,

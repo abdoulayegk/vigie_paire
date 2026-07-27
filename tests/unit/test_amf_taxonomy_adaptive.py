@@ -64,6 +64,30 @@ def test_legacy_compact_payload_keeps_neutral_adaptive_defaults() -> None:
     assert triage.counterarguments == []
 
 
+def test_relevant_change_accepts_empty_optional_themes() -> None:
+    payload = {
+        **_compact_relevant_payload(),
+        "themes_amf": [],
+        "materiality_level": "MODERE",
+        "change_nature": ["MODIFICATION_TERMINOLOGIE"],
+        "business_equivalence": "NON_DEMONTREE",
+        "materiality_confidence": "MOYENNE",
+        "evidence_sufficiency": "PARTIELLE",
+        "decision_status": "A_CONFIRMER",
+        "review_required": True,
+        "supporting_evidence": [
+            "La terminologie change sans thème taxonomique suffisamment précis."
+        ],
+        "counterarguments": [],
+    }
+
+    triage = TriageAMFCompactLLMResultWithIndex(**payload)
+
+    assert triage.is_relevant is True
+    assert triage.themes_amf == []
+    assert triage.materiality_level == "MODERE"
+
+
 def test_compact_direct_major_is_independent_from_nouvelle_idee() -> None:
     payload = {
         **_compact_relevant_payload(),
@@ -207,7 +231,7 @@ def test_confirmed_decision_requires_sufficient_evidence() -> None:
 
 
 @pytest.mark.parametrize("level", ["MODERE", "MAJEUR"])
-def test_non_minor_level_rejects_confirmed_business_equivalence(
+def test_confirmed_equivalence_coerces_non_minor_level_to_mineur(
     level: str,
 ) -> None:
     payload = {
@@ -225,11 +249,10 @@ def test_non_minor_level_rejects_confirmed_business_equivalence(
         "counterarguments": [],
     }
 
-    with pytest.raises(
-        ValidationError,
-        match="incompatible avec une équivalence métier CONFIRMEE",
-    ):
-        TriageAMFCompactLLMResultWithIndex(**payload)
+    triage = TriageAMFCompactLLMResultWithIndex(**payload)
+
+    assert triage.materiality_level == "MINEUR"
+    assert triage.business_equivalence == "CONFIRMEE"
 
 
 def test_persisted_result_copies_direct_level_to_legacy_impact() -> None:

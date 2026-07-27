@@ -4,10 +4,13 @@ from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from difflib import SequenceMatcher
+import hashlib
+import json
 import logging
+from pathlib import Path
 import re
 import unicodedata
-from typing import Any, Literal
+from typing import Any, Callable, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
@@ -27,7 +30,9 @@ from vigilance.amf_taxonomy import (
 from vigilance.text_analysis.constants import (
     _NUMERIC_TOKEN_RE,
     _REGULATORY_REF_RE,
+    _TRIAGE_BATCH_CHAR_BUDGET,
     _TRIAGE_BATCH_SIZE,
+    _TRIAGE_REQUEST_TIMEOUT_SECONDS,
     _TRIAGE_SOURCE_SNIPPET_LIMIT,
 )
 from vigilance.text_analysis.normalization import _json_dumps
@@ -42,10 +47,12 @@ from vigilance.text_analysis.precedent_memory import (
 )
 from vigilance.text_comparison.change_segments import build_change_segments
 from vigilance.text_comparison.justification import build_compact_triage_justification
+from vigilance.comparison_io import _atomic_write_json
 
 logger = logging.getLogger(__name__)
 
-_MAX_TRIAGE_LLM_WORKERS = 6
+_MAX_TRIAGE_LLM_WORKERS = 4
+_TRIAGE_BATCH_CACHE_SCHEMA = "text_triage_batch_v1"
 _SEMANTIC_ALIGNMENT_DECISIONS = frozenset(
     {"same_disclosure", "distinct_disclosures", "moved_text", "uncertain"}
 )
@@ -58,7 +65,7 @@ _RELATED_CHANGE_CONTEXT_LIMIT = 6
 _COMPACT_THEME_CANDIDATE_LIMIT = 6
 _COMPACT_COMPLETION_BASE_TOKENS = 500
 _COMPACT_COMPLETION_TOKENS_PER_CHANGE = 700
-_COMPACT_COMPLETION_MAX_TOKENS = 2400
+_COMPACT_COMPLETION_MAX_TOKENS = 4800
 _FULL_EVIDENCE_PACKET_LIMIT = 2400
 # Must stay above the token equivalent of max_length=700 on factual_change /
 # reason so structured completions never hit finish_reason=length.
@@ -113,6 +120,24 @@ _SENSITIVE_MATERIALITY_TEXT_RE = re.compile(
     r"sanction|donn[ée]e|tiers|nuage|climat|esg|risque"
     r")\b",
     flags=re.IGNORECASE,
+)
+_NON_IMPACT_SEMANTIC_RE = re.compile(
+    r"\b(?:"
+    r"sans\s+(?:aucun[e]?\s+)?(?:impact|incidence|effet|changement\s+de\s+fond)|"
+    r"sans\s+modifi(?:er|cation)\s+(?:le\s+)?(?:contenu|sens|p[ée]rim[èe]tre|r[oô]le|responsabilit[ée])|"
+    r"n['’]?(?:affecte|alt[èe]re|modifie)\s+pas|"
+    r"purement\s+terminologique|"
+    r"reformulation\s+(?:mineure|[ée]quivalente)"
+    r")\b",
+    flags=re.IGNORECASE,
+)
+_EQUIVALENT_CHANGE_NATURES = frozenset(
+    {
+        "FORMATAGE",
+        "REFORMULATION_EQUIVALENTE",
+        "DEPLACEMENT",
+        "MODIFICATION_TERMINOLOGIE",
+    }
 )
 _ISOLATED_DATE_RE = re.compile(
     r"\b(?:\d{1,2}\s+(?:janvier|février|fevrier|mars|avril|mai|juin|juillet|août|aout|"
@@ -478,6 +503,7 @@ def _collect_full_evidence_observations(
                 response_format=_EvidencePacketObservation,
                 max_tokens=_FULL_EVIDENCE_FACT_MAX_TOKENS,
                 max_retries=1,
+                request_timeout=_TRIAGE_REQUEST_TIMEOUT_SECONDS,
                 validation_retry_message=(
                     "Renvoie exactement un objet contenant uniquement factual_change, "
                     "sans liste, sans packet_index, sans qualification métier ni texte "
@@ -548,7 +574,7 @@ def _default_triage(bank_code: str = "") -> dict[str, Any]:
     triage["source"] = TRIAGE_SOURCE_VERSION
     triage.update(
         {
-            "compact_schema_version": "analyst_materiality_v4",
+            "compact_schema_version": "analyst_materiality_v5",
             "category": "NON_PERTINENT",
             "risk_type": "autre",
             "relevance_score": "FAIBLE",
@@ -618,6 +644,184 @@ def _is_single_semantic_alignment_group(changes: list[dict[str, Any]]) -> bool:
         for change in changes
     }
     return len(changes) >= 2 and len(group_ids) == 1 and bool(next(iter(group_ids), ""))
+
+
+def _triage_change_prompt_weight(change: dict[str, Any]) -> int:
+    """Estime la place utile d'un changement dans un prompt de triage."""
+    text_fields = (
+        "change_summary",
+        "source_text_t1",
+        "source_text_t2",
+        "semantic_text_t1",
+        "semantic_text_t2",
+        "subsection_heading",
+    )
+    text_weight = sum(
+        min(len(str(change.get(field_name) or "")), 2_800)
+        for field_name in text_fields
+    )
+    dossier = change.get("triage_dossier") or {}
+    dossier_weight = min(
+        len(json.dumps(dossier, ensure_ascii=False, default=str)),
+        3_000,
+    )
+    return 800 + text_weight + dossier_weight
+
+
+def _build_adaptive_triage_batches(
+    changes: list[dict[str, Any]],
+    *,
+    max_size: int = _TRIAGE_BATCH_SIZE,
+    char_budget: int = _TRIAGE_BATCH_CHAR_BUDGET,
+) -> list[list[dict[str, Any]]]:
+    """Regroupe de petits changements sans séparer une décision sémantique.
+
+    Le nombre maximal borne la sortie structurée, tandis que le budget de
+    caractères évite qu'un dossier contenant de longues preuves alourdisse un
+    lot entier. Les deux côtés added/removed d'un même alignement restent dans
+    le même appel, même si cette unité dépasse exceptionnellement la limite.
+    """
+    if not changes:
+        return []
+
+    grouped: dict[str, list[dict[str, Any]]] = {}
+    for change in changes:
+        group_id = str(
+            change.get("semantic_alignment_group_id") or ""
+        ).strip()
+        if group_id:
+            grouped.setdefault(group_id, []).append(change)
+
+    units: list[list[dict[str, Any]]] = []
+    seen_groups: set[str] = set()
+    for change in changes:
+        group_id = str(
+            change.get("semantic_alignment_group_id") or ""
+        ).strip()
+        group = grouped.get(group_id, []) if group_id else []
+        if group_id and len(group) >= 2:
+            if group_id in seen_groups:
+                continue
+            seen_groups.add(group_id)
+            units.append(group)
+        else:
+            units.append([change])
+
+    batches: list[list[dict[str, Any]]] = []
+    current: list[dict[str, Any]] = []
+    current_weight = 0
+    for unit in units:
+        unit_weight = sum(_triage_change_prompt_weight(item) for item in unit)
+        exceeds_size = current and len(current) + len(unit) > max_size
+        exceeds_budget = current and current_weight + unit_weight > char_budget
+        if exceeds_size or exceeds_budget:
+            batches.append(current)
+            current = []
+            current_weight = 0
+        current.extend(unit)
+        current_weight += unit_weight
+    if current:
+        batches.append(current)
+    return batches
+
+
+def _triage_precedent_cache_signature(
+    precedent_memory: PrecedentMemory | None,
+) -> list[dict[str, Any]]:
+    if precedent_memory is None:
+        return []
+    return [
+        precedent.to_audit_dict()
+        for precedent in precedent_memory.precedents
+    ]
+
+
+def _triage_batch_cache_key(
+    *,
+    model: str,
+    bank_code: str,
+    section_key: str,
+    changes: list[dict[str, Any]],
+    precedent_memory: PrecedentMemory | None,
+) -> str:
+    payload = {
+        "cache_schema": _TRIAGE_BATCH_CACHE_SCHEMA,
+        "triage_source_version": TRIAGE_SOURCE_VERSION,
+        "model": model,
+        "bank_code": bank_code,
+        "section_key": section_key,
+        "changes": changes,
+        "analyst_precedents": _triage_precedent_cache_signature(
+            precedent_memory
+        ),
+    }
+    serialized = json.dumps(
+        payload,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+        default=str,
+    )
+    return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
+
+
+def _load_triage_batch_cache(
+    cache_dir: Path | None,
+    cache_key: str,
+) -> list[dict[str, Any]] | None:
+    if cache_dir is None:
+        return None
+    path = cache_dir / f"{cache_key}.json"
+    if not path.is_file():
+        return None
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError, TypeError) as exc:
+        logger.warning("triage cache ignored path=%s error=%s", path, exc)
+        return None
+    if (
+        not isinstance(payload, dict)
+        or payload.get("cache_schema") != _TRIAGE_BATCH_CACHE_SCHEMA
+        or payload.get("cache_key") != cache_key
+        or not isinstance(payload.get("results"), list)
+    ):
+        logger.warning("triage cache ignored invalid payload path=%s", path)
+        return None
+    results = payload["results"]
+    if not all(isinstance(result, dict) for result in results):
+        logger.warning("triage cache ignored invalid results path=%s", path)
+        return None
+    return results
+
+
+def _store_triage_batch_cache(
+    cache_dir: Path | None,
+    cache_key: str,
+    results: list[dict[str, Any]],
+) -> None:
+    if cache_dir is None:
+        return
+    _atomic_write_json(
+        cache_dir / f"{cache_key}.json",
+        {
+            "cache_schema": _TRIAGE_BATCH_CACHE_SCHEMA,
+            "cache_key": cache_key,
+            "triage_source_version": TRIAGE_SOURCE_VERSION,
+            "results": results,
+        },
+    )
+
+
+def _emit_triage_progress(
+    progress_callback: Callable[[str], None] | None,
+    message: str,
+) -> None:
+    if progress_callback is None:
+        return
+    try:
+        progress_callback(message)
+    except Exception as exc:  # noqa: BLE001
+        logger.debug("triage progress callback ignored error=%s", exc)
 
 
 def _alignment_review_result(
@@ -826,9 +1030,11 @@ def _verify_triage_coherence(
                     "content": (
                         "Tu vérifies une décision de vigie bancaire de façon indépendante. "
                         "Compare la décision proposée au paquet de texte exact fourni. "
-                        "Vérifie autant la pertinence et les thèmes que le niveau "
-                        "de matérialité, la nature du changement et l'équivalence "
-                        "métier proposées. "
+                        "Vérifie la pertinence, le niveau de matérialité, la nature "
+                        "du changement et l'équivalence métier proposées. Les "
+                        "thèmes AMF sont facultatifs et leur présence, leur absence "
+                        "ou leur différence ne constitue jamais à elle seule une "
+                        "contradiction. "
                         "Tu traites un seul paquet : retourne un seul contrôle et ne "
                         "retourne ni liste ni packet_index. "
                         "Réponds supports si le paquet l'appuie, contradicts s'il la "
@@ -844,7 +1050,6 @@ def _verify_triage_coherence(
                             "packet": packet,
                             "proposed_triage": {
                                 "is_relevant": triage.get("is_relevant"),
-                                "themes_amf": triage.get("themes_amf"),
                                 "nouvelle_idee": triage.get("nouvelle_idee"),
                                 "materiality_level": triage.get(
                                     "materiality_level"
@@ -886,6 +1091,7 @@ def _verify_triage_coherence(
             response_format=_EvidencePacketCoherenceCheck,
             max_tokens=_FULL_EVIDENCE_VERIFICATION_MAX_TOKENS,
             max_retries=1,
+            request_timeout=_TRIAGE_REQUEST_TIMEOUT_SECONDS,
             validation_retry_message=(
                 "Réponds avec un seul objet contenant verdict (supports, contradicts "
                 "ou insufficient) et reason. Ne retourne ni liste ni packet_index, "
@@ -998,8 +1204,6 @@ def _candidate_themes_for_change(
             if len(selected) >= max(limit - 1, 1):
                 break
 
-    if "SUJET_EMERGENT_HORS_GRILLE" not in selected:
-        selected.append("SUJET_EMERGENT_HORS_GRILLE")
     selected = selected[:limit]
     return [
         {
@@ -1012,7 +1216,11 @@ def _candidate_themes_for_change(
 
 
 def _normalize_themes_amf(themes: list[str]) -> list[str]:
-    """Accepte tout code de la taxonomie AMF ; remap les inconnus vers hors grille."""
+    """Conserve les codes connus et ignore les enrichissements inconnus.
+
+    La taxonomie est facultative : un code inconnu ne doit ni bloquer le
+    triage ni créer artificiellement un sujet émergent hors grille.
+    """
     allowed = set(THEMES_AMF_DESCRIPTIONS)
     normalized: list[str] = []
     for theme in themes:
@@ -1022,12 +1230,8 @@ def _normalize_themes_amf(themes: list[str]) -> list[str]:
         if code in allowed:
             if code not in normalized:
                 normalized.append(code)
-        elif "SUJET_EMERGENT_HORS_GRILLE" not in normalized:
-            normalized.append("SUJET_EMERGENT_HORS_GRILLE")
-            logger.debug(
-                "theme_clamped unknown=%s -> SUJET_EMERGENT_HORS_GRILLE",
-                code,
-            )
+        else:
+            logger.debug("theme_ignored unknown=%s", code)
     return normalized
 
 
@@ -1836,6 +2040,7 @@ def _evaluate_consolidated_dossier_materiality(
                 response_format=_ConsolidatedDossierAssessment,
                 max_tokens=1400,
                 max_retries=2,
+                request_timeout=_TRIAGE_REQUEST_TIMEOUT_SECONDS,
                 validation_retry_message=(
                     "Renvoie uniquement le schéma complet. Une décision "
                     "CONFIRME exige une preuve SUFFISANTE et une confiance "
@@ -2008,6 +2213,10 @@ Décision attendue : {"materiality_level": "MINEUR", "change_nature": ["REFORMUL
 Exemple de matérialité D — statut réglementaire devenu indéterminé
 Input : {"bank_subject": "RBC", "change_index": 1, "diff_type": "modified", "change_summary_factuel_non_arbitre": "RBC remplace une date déterminée d'augmentation du plancher par un report jusqu'à nouvel ordre."}
 Décision attendue : {"materiality_level": "MODERE", "change_nature": ["MODIFICATION_EXIGENCE_REGLEMENTAIRE", "MODIFICATION_STATUT_MISE_EN_OEUVRE"], "business_equivalence": "REFUTEE", "materiality_confidence": "ELEVEE", "evidence_sufficiency": "SUFFISANTE", "decision_status": "CONFIRME", "review_required": false, "supporting_evidence": ["L'horizon d'application passe d'une échéance déterminée à une durée indéterminée, ce qui modifie le statut de mise en œuvre déclaré."], "counterarguments": ["La nature technique du coefficient de plancher demeure inchangée."]}
+
+Exemple de matérialité E — variation chiffrée et exercice de référence
+Input : {"bank_subject": "BMO", "change_index": 1, "diff_type": "modified", "change_summary_factuel_non_arbitre": "BMO actualise uniquement les montants de risque et l'exercice de référence, sans changer la méthode ni le périmètre."}
+Décision attendue : {"materiality_level": "MINEUR", "change_nature": ["VARIATION_CHIFFREE"], "business_equivalence": "CONFIRMEE", "materiality_confidence": "ELEVEE", "evidence_sufficiency": "SUFFISANTE", "decision_status": "CONFIRME", "review_required": false, "supporting_evidence": ["Seuls les montants et l'exercice de référence changent; la méthode et le périmètre de gestion des risques demeurent identiques."], "counterarguments": []}
 """
 
 
@@ -2091,7 +2300,38 @@ def _requires_blind_materiality_challenge(
         and triage_input is not None
         and _triage_input_has_sensitive_materiality_signal(triage_input)
     )
-    return sensitive_minor or missed_sensitive_relevance
+    return (
+        sensitive_minor
+        or missed_sensitive_relevance
+        or _has_internal_relevance_contradiction(triage)
+    )
+
+
+def _has_internal_relevance_contradiction(
+    triage: TriageAMFCompactLLMResultWithIndex,
+) -> bool:
+    """Repère un verdict pertinent qui démontre lui-même l'équivalence.
+
+    Ce signal ne réécrit jamais directement la décision. Il route uniquement
+    le cas vers le contradicteur indépendant, ce qui garde l'arbitrage adaptatif
+    et évite une règle lexicale de classification finale.
+    """
+    if (
+        not triage.is_relevant
+        or triage.materiality_level != "MINEUR"
+        or triage.business_equivalence != "CONFIRMEE"
+    ):
+        return False
+    natures = set(triage.change_nature)
+    if not natures or not natures <= _EQUIVALENT_CHANGE_NATURES:
+        return False
+    corpus = " ".join(
+        [
+            triage.signification_metier,
+            *triage.supporting_evidence,
+        ]
+    )
+    return bool(_NON_IMPACT_SEMANTIC_RE.search(corpus))
 
 
 def _blind_materiality_challenge(
@@ -2141,7 +2381,10 @@ def _blind_materiality_challenge(
                     f"en français, et commence changement_constate par {bank_subject}. "
                     "MINEUR exige une équivalence métier positivement démontrée; sinon "
                     "choisis MODERE ou MAJEUR selon la preuve et exige une revue si "
-                    "l'incertitude persiste."
+                    "l'incertitude persiste. business_equivalence=CONFIRMEE n'est "
+                    "compatible qu'avec materiality_level=MINEUR; MODERE et MAJEUR "
+                    "interdisent CONFIRMEE. themes_amf est facultatif et peut être "
+                    "vide même pour un changement pertinent."
                 ),
             },
             {
@@ -2164,10 +2407,14 @@ def _blind_materiality_challenge(
         response_format=TriageAMFMaterialityLLMBatch,
         max_tokens=1600,
         max_retries=2,
+        request_timeout=_TRIAGE_REQUEST_TIMEOUT_SECONDS,
         validation_retry_message=(
             "Renvoie exactement une entrée complète avec change_index=1. "
             "MINEUR sans équivalence CONFIRMEE exige review_required=true; "
-            "une décision CONFIRME exige une preuve SUFFISANTE."
+            "une décision CONFIRME exige une preuve SUFFISANTE. "
+            "business_equivalence=CONFIRMEE n'est compatible qu'avec "
+            "materiality_level=MINEUR; corrige toute combinaison MODERE ou "
+            "MAJEUR avec CONFIRMEE."
         ),
     )
     if len(batch.triages) != 1 or batch.triages[0].change_index != 1:
@@ -2193,13 +2440,17 @@ def _resolve_materiality_challenge(
     select_challenger = (
         challenger_rank > primary_rank
         or (challenger.is_relevant and not primary.is_relevant)
+        or (
+            _has_internal_relevance_contradiction(primary)
+            and not challenger.is_relevant
+            and challenger.business_equivalence == "CONFIRMEE"
+        )
     )
     selected = challenger if select_challenger else primary
     resolved = selected.model_dump(exclude={"change_index"})
     disagreement = (
         primary.is_relevant != challenger.is_relevant
         or primary_level != challenger_level
-        or set(primary.themes_amf) != set(challenger.themes_amf)
         or primary.business_equivalence != challenger.business_equivalence
     )
     if disagreement:
@@ -2212,9 +2463,17 @@ def _resolve_materiality_challenge(
         "challenger": _compact_materiality_snapshot(challenger),
         "disagreement": disagreement,
         "resolution": (
-            "challenger_higher_materiality"
-            if select_challenger
-            else "primary_retained"
+            "challenger_resolves_relevance_contradiction"
+            if (
+                select_challenger
+                and _has_internal_relevance_contradiction(primary)
+                and not challenger.is_relevant
+            )
+            else (
+                "challenger_higher_materiality"
+                if select_challenger
+                else "primary_retained"
+            )
         ),
         "resolved_materiality_level": resolved.get("materiality_level"),
         "review_required": bool(resolved.get("review_required")),
@@ -2250,7 +2509,7 @@ def _derive_legacy_fields(triage_amf: dict[str, Any]) -> dict[str, Any]:
     themes = set(triage_amf.get("themes_amf") or [])
     impact = str(triage_amf.get("impact_level") or "MINEUR").upper()
 
-    if "SUJET_EMERGENT_HORS_GRILLE" in themes:
+    if not themes or "SUJET_EMERGENT_HORS_GRILLE" in themes:
         category = "INCONNU"
         risk_type = "autre"
     elif themes & {"CAPITAL_REGLEMENTAIRE", "FONDS_PROPRES_REGLEMENTAIRES", "RATIOS_REGLEMENTAIRES"}:
@@ -2422,7 +2681,7 @@ def _persisted_triage_from_compact(
     )
 
     triage: dict[str, Any] = {
-        "compact_schema_version": "analyst_materiality_v4",
+        "compact_schema_version": "analyst_materiality_v5",
         "bank_code": str(bank_code or "").strip().lower(),
         "bank_subject": bank_subject,
         "is_relevant": is_relevant,
@@ -2485,6 +2744,8 @@ def _triage_section_changes(
     changes: list[dict[str, Any]],
     bank_code: str = "",
     precedent_memory: PrecedentMemory | None = None,
+    cache_dir: Path | None = None,
+    progress_callback: Callable[[str], None] | None = None,
 ) -> list[dict[str, Any]]:
     """Qualifie metier les changements detectes et fusionne le triage.
 
@@ -2534,8 +2795,14 @@ def _triage_section_changes(
                         changes=[change],
                         bank_code=effective_bank_code,
                         precedent_memory=precedent_memory,
+                        cache_dir=None,
+                        progress_callback=None,
                     )
                 )
+        _emit_triage_progress(
+            progress_callback,
+            f"Triage {section_key} : {len(changes)}/{len(changes)} changements traités.",
+        )
         return enriched
 
     # Hard pre-filter only for mechanically demonstrated noise. Calendar,
@@ -2556,6 +2823,10 @@ def _triage_section_changes(
         else:
             pending.append(change)
     if not pending:
+        _emit_triage_progress(
+            progress_callback,
+            f"Triage {section_key} : {len(changes)}/{len(changes)} changements traités.",
+        )
         return prefiltered
 
     # Semantic near-duplicate grouping now builds a shared evidence dossier.
@@ -2568,34 +2839,86 @@ def _triage_section_changes(
         groups=groups,
     )
 
-    if len(pending) > _TRIAGE_BATCH_SIZE and not _is_single_semantic_alignment_group(pending):
-        chunks = [
-            pending[start : start + _TRIAGE_BATCH_SIZE]
-            for start in range(0, len(pending), _TRIAGE_BATCH_SIZE)
-        ]
-        max_workers = min(_MAX_TRIAGE_LLM_WORKERS, len(chunks))
+    chunks = _build_adaptive_triage_batches(pending)
+    if len(chunks) > 1:
         results_by_index: dict[int, list[dict[str, Any]]] = {}
-        with ThreadPoolExecutor(max_workers=max_workers) as executor:
-            future_to_index = {
-                executor.submit(
-                    _triage_section_changes,
-                    client=client,
-                    model=model,
-                    section_key=section_key,
-                    changes=chunk,
-                    bank_code=effective_bank_code,
-                    precedent_memory=precedent_memory,
-                ): index
-                for index, chunk in enumerate(chunks)
-            }
-            for future in as_completed(future_to_index):
-                index = future_to_index[future]
-                try:
-                    results_by_index[index] = future.result()
-                except Exception as exc:
-                    raise RuntimeError(
-                        f"Section triage failed for {section_key}/batch t{index:02d}: {exc}"
-                    ) from exc
+        cache_keys: dict[int, str] = {}
+        pending_indexes: list[int] = []
+        completed_changes = 0
+        for index, chunk in enumerate(chunks):
+            cache_key = _triage_batch_cache_key(
+                model=model,
+                bank_code=effective_bank_code,
+                section_key=section_key,
+                changes=chunk,
+                precedent_memory=precedent_memory,
+            )
+            cache_keys[index] = cache_key
+            cached = _load_triage_batch_cache(cache_dir, cache_key)
+            if cached is None:
+                pending_indexes.append(index)
+                continue
+            results_by_index[index] = cached
+            completed_changes += len(chunk)
+
+        _emit_triage_progress(
+            progress_callback,
+            (
+                f"Triage {section_key} : {completed_changes}/{len(pending)} "
+                f"changements traités, {len(chunks)} lots adaptatifs"
+                + (
+                    f", {len(results_by_index)} repris du cache."
+                    if results_by_index
+                    else "."
+                )
+            ),
+        )
+
+        max_workers = min(_MAX_TRIAGE_LLM_WORKERS, len(pending_indexes))
+        if pending_indexes:
+            executor_context = ThreadPoolExecutor(max_workers=max_workers)
+        else:
+            executor_context = None
+
+        if executor_context is not None:
+            with executor_context as executor:
+                future_to_index = {
+                    executor.submit(
+                        _triage_section_changes,
+                        client=client,
+                        model=model,
+                        section_key=section_key,
+                        changes=chunks[index],
+                        bank_code=effective_bank_code,
+                        precedent_memory=precedent_memory,
+                        cache_dir=None,
+                        progress_callback=None,
+                    ): index
+                    for index in pending_indexes
+                }
+                for future in as_completed(future_to_index):
+                    index = future_to_index[future]
+                    try:
+                        batch_results = future.result()
+                    except Exception as exc:
+                        raise RuntimeError(
+                            f"Section triage failed for {section_key}/batch t{index:02d}: {exc}"
+                        ) from exc
+                    results_by_index[index] = batch_results
+                    _store_triage_batch_cache(
+                        cache_dir,
+                        cache_keys[index],
+                        batch_results,
+                    )
+                    completed_changes += len(chunks[index])
+                    _emit_triage_progress(
+                        progress_callback,
+                        (
+                            f"Triage {section_key} : "
+                            f"{completed_changes}/{len(pending)} "
+                            "changements traités."
+                        ),
+                    )
 
         enriched_batches: list[dict[str, Any]] = []
         for index in range(len(chunks)):
@@ -2754,10 +3077,13 @@ def _triage_section_changes(
         "supplémentaire.\n\n"
         "Règles strictes :\n"
         "1. `is_relevant=true` seulement pour un changement substantiel utile "
-        "à la vigie AMF; dans ce cas, choisis un ou deux codes. Préfère les "
-        "`candidate_themes` de l’entrée ; tu peux aussi utiliser tout code de "
-        "la taxonomie AMF complète listée ci-dessous ; si aucun ne convient, "
-        "utilise `SUJET_EMERGENT_HORS_GRILLE`.\n"
+        "à la vigie AMF. `themes_amf` est un enrichissement facultatif : choisis "
+        "zéro, un ou deux codes. Préfère les `candidate_themes` de l’entrée ; "
+        "tu peux aussi utiliser tout code de la taxonomie AMF complète listée "
+        "ci-dessous. Si aucun code ne convient précisément, laisse "
+        "`themes_amf=[]`. N’utilise `SUJET_EMERGENT_HORS_GRILLE` que pour un "
+        "véritable sujet émergent hors taxonomie, jamais comme valeur de secours. "
+        "L’absence de thème ne change ni la pertinence ni la matérialité.\n"
         f"   Taxonomie AMF autorisée : {', '.join(THEMES_AMF_PIPELINE_2)}.\n"
         "2. `is_relevant=false` exige `themes_amf=[]` et `nouvelle_idee=false`. "
         "Les `advisory_signals` sont uniquement des indices mécaniques : ils ne "
@@ -2805,7 +3131,13 @@ def _triage_section_changes(
         "dans un domaine sensible ou lorsque la preuve reste partielle. MAJEUR "
         "exige une modification substantielle démontrée de définition, périmètre, "
         "gouvernance, responsabilité, méthode, contrôle, obligation réglementaire, "
-        "capital, liquidité, risque ou transparence. Renseigne une à trois valeurs "
+        "capital, liquidité, risque ou transparence. Invariant obligatoire : "
+        "`business_equivalence=CONFIRMEE` n’est compatible qu’avec "
+        "`materiality_level=MINEUR` ; `MODERE` et `MAJEUR` exigent "
+        "`NON_DEMONTREE`, `REFUTEE`, `PROBABLE` ou `INDETERMINE`, jamais "
+        "`CONFIRMEE`. Une simple `VARIATION_CHIFFREE` ou actualisation "
+        "d’exercice sans changement de méthode, de périmètre ou de mandat "
+        "doit être `MINEUR` avec `CONFIRMEE`. Renseigne une à trois valeurs "
         "dans `change_nature`, puis `business_equivalence`, "
         "`materiality_confidence`, `evidence_sufficiency`, `decision_status`, "
         "`review_required`, `supporting_evidence` et `counterarguments`. Un MINEUR "
@@ -2834,7 +3166,7 @@ def _triage_section_changes(
         "Les exemples numérotés 1 à 9 illustrent les champs de pertinence et de "
         "rédaction analyste; ils précèdent le schéma de matérialité directe. Dans "
         "la réponse réelle, ajoute toujours tous les champs de matérialité montrés "
-        "dans les exemples A à D.\n\n"
+        "dans les exemples A à E.\n\n"
         f"{_FEW_SHOT_TRIAGE_AMF}\n\n"
         f"{_FEW_SHOT_MATERIALITY_AMF}\n\n"
         f"Banque analysée : {bank_subject}\n"
@@ -2858,11 +3190,14 @@ def _triage_section_changes(
             response_format=TriageAMFMaterialityLLMBatch,
             max_tokens=compact_max_tokens,
             max_retries=2,
+            request_timeout=_TRIAGE_REQUEST_TIMEOUT_SECONDS,
             validation_retry_message=(
                 "Renvoie le batch compact complet. Chaque change_index doit être "
-                "présent exactement une fois. is_relevant=true exige un ou deux "
-                "thèmes AMF (préfère candidate_themes, sinon tout code de la "
-                "taxonomie AMF, sinon SUJET_EMERGENT_HORS_GRILLE); "
+                "présent exactement une fois. themes_amf est facultatif et peut "
+                "rester vide même lorsque is_relevant=true; n’ajoute jamais un "
+                "thème uniquement pour satisfaire le schéma et utilise "
+                "SUJET_EMERGENT_HORS_GRILLE seulement pour un véritable sujet "
+                "émergent hors taxonomie; "
                 "is_relevant=false exige themes_amf=[] et "
                 "nouvelle_idee=false. Corrige uniquement les trois champs "
                 "sémantiques : is_relevant=true exige changement_constate, "
@@ -2876,7 +3211,10 @@ def _triage_section_changes(
                 "evidence_sufficiency, decision_status, review_required, au moins "
                 "une supporting_evidence lorsque la preuve n'est pas insuffisante, "
                 "et counterarguments. Un MINEUR sans équivalence confirmée exige "
-                "review_required=true. Ne produis pas relevance_reason."
+                "review_required=true. business_equivalence=CONFIRMEE n'est "
+                "compatible qu'avec materiality_level=MINEUR; corrige toute "
+                "combinaison MODERE ou MAJEUR avec CONFIRMEE. Ne produis pas "
+                "relevance_reason."
             ),
             length_retry_message=(
                 "Renvoie immédiatement le même batch compact complet, sans aucun "
@@ -3066,7 +3404,12 @@ def _triage_section_changes(
         enriched_change = dict(change)
         enriched_change["genai_triage"] = triage
         enriched.append(enriched_change)
-    return [
+    result = [
         *prefiltered,
         *_attach_consolidated_dossier_outcomes(enriched),
     ]
+    _emit_triage_progress(
+        progress_callback,
+        f"Triage {section_key} : {len(changes)}/{len(changes)} changements traités.",
+    )
+    return result

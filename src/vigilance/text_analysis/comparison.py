@@ -35,11 +35,11 @@ _MAX_COMPARISON_LLM_WORKERS = 6
 _EXACT_DIFF_STRONG_SEQUENCE_THRESHOLD = 0.98
 _COMPARISON_BATCH_SIZES = {
     "matched_strong": 5,
-    "matched_grouped": 1,
+    "matched_grouped": 2,
     "matched_weak": 3,
-    "ambiguous": 1,
-    "possible_added": 1,
-    "possible_removed": 1,
+    "ambiguous": 2,
+    "possible_added": 3,
+    "possible_removed": 3,
 }
 _CHUNK_COMPARISON_VALIDATION_RETRY_MESSAGE = (
     "Corrige la réponse et renvoie le batch COMPLET en respectant strictement le schéma. "

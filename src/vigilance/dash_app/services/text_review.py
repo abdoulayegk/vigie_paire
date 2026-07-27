@@ -156,13 +156,6 @@ def _normalize_structured_text_correction(
         )
     if (
         normalized.get("is_relevant") is False
-        and normalized.get("themes_amf")
-    ):
-        raise ValueError(
-            "Une correction non pertinente exige themes_amf=[]."
-        )
-    if (
-        normalized.get("is_relevant") is False
         and normalized.get("nouvelle_idee") is True
     ):
         raise ValueError(
@@ -190,16 +183,13 @@ def _normalize_structured_text_correction(
             if str(theme or "").strip()
         )
     )[:2]
-    invalid_themes = set(normalized["themes_amf"]) - _THEME_VALUES
-    if invalid_themes:
-        raise ValueError(
-            "Thème(s) AMF non supporté(s): "
-            + ", ".join(sorted(invalid_themes))
-        )
-    if normalized.get("is_relevant") is True and not normalized["themes_amf"]:
-        raise ValueError(
-            "Une correction pertinente exige au moins un thème AMF."
-        )
+    normalized["themes_amf"] = [
+        theme
+        for theme in normalized["themes_amf"]
+        if theme in _THEME_VALUES
+    ]
+    if normalized.get("is_relevant") is False:
+        normalized["themes_amf"] = []
     if (
         materiality in {"MAJEUR", "MODERE"}
         and normalized["business_equivalence"] == "CONFIRMEE"

@@ -278,6 +278,7 @@ def _call_structured_completion(
     messages: list[dict[str, Any]],
     response_format: type[_T_StructuredModel],
     max_tokens: int | None = None,
+    request_timeout: float | None = None,
 ) -> _T_StructuredModel:
     """Appel OpenAI à sortie structurée garantie par schéma Pydantic.
 
@@ -300,6 +301,8 @@ def _call_structured_completion(
     }
     if max_tokens is not None:
         request_kwargs["max_completion_tokens"] = int(max_tokens)
+    if request_timeout is not None:
+        request_kwargs["timeout"] = float(request_timeout)
 
     response = client.beta.chat.completions.parse(**request_kwargs)
     choice = response.choices[0]
@@ -336,6 +339,7 @@ def _call_structured_completion_with_correction(
     max_length_retries: int = _TRIAGE_LENGTH_RETRIES,
     validation_retry_message: str | None = None,
     length_retry_message: str | None = None,
+    request_timeout: float | None = None,
 ) -> _T_StructuredModel:
     """Appel structuré avec retry correctif borné sur ``ValidationError``.
 
@@ -361,12 +365,21 @@ def _call_structured_completion_with_correction(
     previous_validation_payload_fingerprint: str | None = None
     while validation_attempt <= max_retries:
         try:
+            if request_timeout is None:
+                return _call_structured_completion(
+                    client,
+                    model=model,
+                    messages=current_messages,
+                    response_format=response_format,
+                    max_tokens=max_tokens,
+                )
             return _call_structured_completion(
                 client,
                 model=model,
                 messages=current_messages,
                 response_format=response_format,
                 max_tokens=max_tokens,
+                request_timeout=request_timeout,
             )
         except RuntimeError as exc:
             err_kind = _classify_openai_transport_error(exc)
@@ -450,8 +463,8 @@ def _call_structured_completion_with_correction(
                 "Ce qui change :, Pertinence métier :, "
                 "Point de surveillance :, "
                 "commençant par 'OUI' ou 'NON' selon nouvelle_idee ; "
-                "is_relevant=true exige themes_amf non vide + explanation "
-                "≥ 50 caractères ; is_relevant=false exige themes_amf=[] + "
+                "themes_amf est facultatif lorsque is_relevant=true ; "
+                "is_relevant=false exige themes_amf=[] + "
                 "exclusion_reason renseigné + nouvelle_idee=false + "
                 "impact_level=MINEUR + action_requise='aucune' + "
                 "explanation vide (mais justification OBLIGATOIRE expliquant "

@@ -303,8 +303,8 @@ def test_default_triage_includes_amf_v2_and_legacy_fields() -> None:
     """Le triage par défaut produit le schéma AMF v2 + champs hérités pour rétro-compatibilité."""
     triage = _default_triage("bmo")
 
-    assert triage["source"] == "gpt4o_triage_amf_materiality_v4"
-    assert triage["compact_schema_version"] == "analyst_materiality_v4"
+    assert triage["source"] == "gpt4o_triage_amf_materiality_v5"
+    assert triage["compact_schema_version"] == "analyst_materiality_v5"
     assert triage["themes_amf"] == []
     assert triage["exclusion_reason"] == "non_pertinent_autre"
     assert triage["is_relevant"] is False
@@ -418,15 +418,21 @@ def test_derive_legacy_fields_maps_montant_reglementaire_to_quantitative_signal(
 
 
 def test_is_non_cosmetic_change_rejects_irrelevant_triage() -> None:
-    """Un triage non pertinent (themes_amf vide) est rejeté de la rétention."""
+    """Un triage non pertinent est rejeté de la rétention."""
     triage = {"is_relevant": False, "themes_amf": []}
 
     assert _is_non_cosmetic_change(triage) is False
 
 
-def test_is_non_cosmetic_change_keeps_relevant_with_themes() -> None:
-    """Un triage pertinent avec au moins un thème AMF est retenu."""
-    triage = {"is_relevant": True, "themes_amf": ["DIVULGATION_AJOUT"]}
+@pytest.mark.parametrize(
+    "themes",
+    ([], ["DIVULGATION_AJOUT"]),
+)
+def test_is_non_cosmetic_change_keeps_relevant_with_optional_themes(
+    themes: list[str],
+) -> None:
+    """Un triage pertinent est retenu avec ou sans thème AMF."""
+    triage = {"is_relevant": True, "themes_amf": themes}
 
     assert _is_non_cosmetic_change(triage) is True
 
@@ -3282,6 +3288,33 @@ def test_run_text_analysis_pipeline_writes_md_as_source_of_truth(monkeypatch, tm
     assert "Texte exact T2" in compare_texts_kwargs.get("text_t2", "")
     assert payload["pipeline"] == "gpt4o_markdown_source_of_truth"
 
+    progress_messages: list[str] = []
+    monkeypatch.setattr(
+        "vigilance.text_analysis_pipeline._compare_section_texts",
+        lambda **_kwargs: (_ for _ in ()).throw(
+            AssertionError("La comparaison devait être reprise du cache.")
+        ),
+    )
+
+    cached_payload, cached_out_path = run_text_analysis_pipeline(
+        bank_code="td",
+        year_current=2025,
+        quarter_current="t2",
+        pdf_previous=pdf_previous,
+        pdf_current=pdf_current,
+        out_root=tmp_path / "outputs",
+        model="gpt-4o",
+        progress_callback=progress_messages.append,
+    )
+
+    assert cached_out_path == out_path
+    assert cached_payload["pipeline"] == "gpt4o_markdown_source_of_truth"
+    assert any(
+        "Comparaison 1/1" in message and "reprise du cache" in message
+        for message in progress_messages
+    )
+    assert "Réconciliation globale reprise du cache." in progress_messages
+
 
 # ---------------------------------------------------------------------------
 # Phase 1: subsection splitting and pairing
@@ -3834,11 +3867,56 @@ def test_build_comparison_batches_uses_type_specific_sizes() -> None:
         for index in range(4)
     )
     alignments.extend(
-        [
-            ChunkAlignment("x00", "ambiguous", base_chunk, base_chunk, 0.40, [], [], "test"),
-            ChunkAlignment("x01", "possible_added", None, base_chunk, 0.0, [], [], "test"),
-            ChunkAlignment("x02", "possible_removed", base_chunk, None, 0.0, [], [], "test"),
-        ]
+        ChunkAlignment(
+            f"g{index:02d}",
+            "matched_grouped",
+            base_chunk,
+            base_chunk,
+            0.70,
+            [],
+            [],
+            "test",
+        )
+        for index in range(3)
+    )
+    alignments.extend(
+        ChunkAlignment(
+            f"x{index:02d}",
+            "ambiguous",
+            base_chunk,
+            base_chunk,
+            0.40,
+            [],
+            [],
+            "test",
+        )
+        for index in range(3)
+    )
+    alignments.extend(
+        ChunkAlignment(
+            f"p{index:02d}",
+            "possible_added",
+            None,
+            base_chunk,
+            0.0,
+            [],
+            [],
+            "test",
+        )
+        for index in range(5)
+    )
+    alignments.extend(
+        ChunkAlignment(
+            f"r{index:02d}",
+            "possible_removed",
+            base_chunk,
+            None,
+            0.0,
+            [],
+            [],
+            "test",
+        )
+        for index in range(4)
     )
 
     batches = _build_comparison_batches(
@@ -3852,11 +3930,29 @@ def test_build_comparison_batches_uses_type_specific_sizes() -> None:
         ("matched_strong", 1),
         ("matched_weak", 3),
         ("matched_weak", 1),
+        ("matched_grouped", 2),
+        ("matched_grouped", 1),
+        ("ambiguous", 2),
         ("ambiguous", 1),
-        ("possible_added", 1),
+        ("possible_added", 3),
+        ("possible_added", 2),
+        ("possible_removed", 3),
         ("possible_removed", 1),
     ]
-    assert [batch.batch_id for batch in batches] == ["b00", "b01", "b02", "b03", "b04", "b05", "b06"]
+    assert [batch.batch_id for batch in batches] == [
+        "b00",
+        "b01",
+        "b02",
+        "b03",
+        "b04",
+        "b05",
+        "b06",
+        "b07",
+        "b08",
+        "b09",
+        "b10",
+        "b11",
+    ]
 
 
 def test_normalize_heading_strips_table_prefix_and_lowercases() -> None:
@@ -5773,15 +5869,17 @@ def test_compact_triage_accepts_sans_objet_abbreviation(
     assert abbreviation in result.changement_constate
 
 
-def test_invariant_relevant_without_themes_raises() -> None:
-    with pytest.raises(_PydValidationError, match="themes_amf"):
-        TriageAMFResult(
-            is_relevant=True,
-            themes_amf=[],
-            nouvelle_idee=True,
-            explanation=_valid_explanation(),
-            nouvelle_idee_justification=_valid_justification_oui(),
-        )
+def test_invariant_relevant_without_themes_is_valid() -> None:
+    triage = TriageAMFResult(
+        is_relevant=True,
+        themes_amf=[],
+        nouvelle_idee=True,
+        explanation=_valid_explanation(),
+        nouvelle_idee_justification=_valid_justification_oui(),
+    )
+
+    assert triage.is_relevant is True
+    assert triage.themes_amf == []
 
 
 def test_invariant_relevant_with_short_explanation_raises() -> None:
@@ -6093,6 +6191,7 @@ def _make_validation_error() -> _PydValidationError:
             is_relevant=True,
             themes_amf=[],
             explanation=_valid_explanation(),
+            exclusion_reason="non_pertinent_autre",
         )
     except _PydValidationError as exc:
         return exc
@@ -6430,18 +6529,21 @@ def test_triage_section_changes_propagates_runtime_error_unwrapped() -> None:
     assert client.call_count == 1
 
 
-def test_triage_section_changes_processes_changes_one_by_one() -> None:
-    def valid_response(**_kwargs):
+def test_triage_section_changes_batches_small_changes_adaptively() -> None:
+    def valid_response(**kwargs):
+        prompt = kwargs["messages"][1]["content"]
+        payload = json.loads(prompt.rsplit("Changements :\n", 1)[1])
         return _make_parsed_response(
             TriageAMFCompactLLMBatch(
                 triages=[
                     TriageAMFCompactLLMResultWithIndex(
-                        change_index=1,
+                        change_index=index,
                         is_relevant=False,
                         themes_amf=[],
                         nouvelle_idee=False,
                         relevance_reason=_compact_secondary_reason(),
                     )
+                    for index, _item in enumerate(payload, start=1)
                 ]
             )
         )
@@ -6469,16 +6571,73 @@ def test_triage_section_changes_processes_changes_one_by_one() -> None:
     )
 
     assert len(enriched) == 2
-    assert client.call_count == 2
-    user_prompts = [
-        call["messages"][1]["content"] for call in client._completions.calls
+    assert client.call_count == 1
+    prompt = client._completions.calls[0]["messages"][1]["content"]
+    assert '"change_index": 1' in prompt
+    assert '"change_index": 2' in prompt
+    assert client._completions.calls[0]["max_completion_tokens"] == 1900
+    assert client._completions.calls[0]["timeout"] == 120.0
+
+
+def test_triage_adaptive_batches_resume_from_cache(
+    tmp_path: Path,
+) -> None:
+    def valid_response(**kwargs):
+        prompt = kwargs["messages"][1]["content"]
+        payload = json.loads(prompt.rsplit("Changements :\n", 1)[1])
+        return _make_parsed_response(
+            TriageAMFCompactLLMBatch(
+                triages=[
+                    TriageAMFCompactLLMResultWithIndex(
+                        change_index=index,
+                        is_relevant=False,
+                        themes_amf=[],
+                        nouvelle_idee=False,
+                        relevance_reason=_compact_secondary_reason(),
+                    )
+                    for index, _item in enumerate(payload, start=1)
+                ]
+            )
+        )
+
+    changes = [
+        {
+            "diff_type": "added",
+            "source_text_t1": "",
+            "source_text_t2": (
+                f"Nouvelle information opérationnelle propre au dossier {index}."
+            ),
+        }
+        for index in range(5)
     ]
-    assert all('"change_index": 1' in prompt for prompt in user_prompts)
-    assert all('"change_index": 2' not in prompt for prompt in user_prompts)
-    assert all(
-        call["max_completion_tokens"] == 1200
-        for call in client._completions.calls
+    cache_dir = tmp_path / "triage-cache"
+
+    first_client = _FakeStructuredClient(valid_response)
+    first_result = _triage_section_changes(
+        client=first_client,
+        model="gpt-4o",
+        section_key="gestion_risques",
+        changes=changes,
+        cache_dir=cache_dir,
     )
+
+    progress_messages: list[str] = []
+    cached_client = _FakeStructuredClient(
+        RuntimeError("Le cache devait éviter tout nouvel appel.")
+    )
+    cached_result = _triage_section_changes(
+        client=cached_client,
+        model="gpt-4o",
+        section_key="gestion_risques",
+        changes=changes,
+        cache_dir=cache_dir,
+        progress_callback=progress_messages.append,
+    )
+
+    assert first_client.call_count == 2
+    assert cached_client.call_count == 0
+    assert cached_result == first_result
+    assert any("repris du cache" in message for message in progress_messages)
 
 
 def test_triage_section_changes_requires_exactly_one_result_per_change() -> None:
@@ -7229,7 +7388,7 @@ def test_triage_section_changes_does_not_request_posture_or_it_impact() -> None:
     assert "motif_non_pertinence" in prompt
     assert "Banque analysée : BMO" in prompt
     assert "100 à 120 mots" not in prompt
-    assert result[0]["genai_triage"]["compact_schema_version"] == "analyst_materiality_v4"
+    assert result[0]["genai_triage"]["compact_schema_version"] == "analyst_materiality_v5"
     assert result[0]["genai_triage"]["changement_constate"].startswith("BMO ")
     assert result[0]["genai_triage"]["impact_it"] == "INDETERMINE"
     assert result[0]["genai_triage"]["changement_posture"] == "INDETERMINE"
@@ -7237,18 +7396,16 @@ def test_triage_section_changes_does_not_request_posture_or_it_impact() -> None:
     assert result[0]["genai_triage"]["confiance_posture"] == "INDETERMINE"
 
 
-def test_normalize_themes_amf_clamps_unknown_to_emergent() -> None:
+def test_normalize_themes_amf_ignores_unknown_optional_enrichment() -> None:
     from vigilance.text_analysis.triage import _normalize_themes_amf
 
     assert _normalize_themes_amf(["EXIGENCES_REGLEMENTAIRES"]) == [
         "EXIGENCES_REGLEMENTAIRES"
     ]
-    assert _normalize_themes_amf(["THEME_INEXISTANT_XYZ"]) == [
-        "SUJET_EMERGENT_HORS_GRILLE"
-    ]
+    assert _normalize_themes_amf(["THEME_INEXISTANT_XYZ"]) == []
     assert _normalize_themes_amf(
         ["RISQUE_EMERGENT", "THEME_INEXISTANT_XYZ", "RISQUE_EMERGENT"]
-    ) == ["RISQUE_EMERGENT", "SUJET_EMERGENT_HORS_GRILLE"]
+    ) == ["RISQUE_EMERGENT"]
     assert _normalize_themes_amf([]) == []
 
 

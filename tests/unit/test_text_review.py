@@ -7,6 +7,7 @@ import pytest
 from vigilance.dash_app.callbacks.text_flow import _structured_text_correction
 from vigilance.dash_app.layouts.page_text_analysis import _text_review_progress
 from vigilance.dash_app.services.text_review import (
+    _normalize_structured_text_correction,
     apply_text_review_decision,
     is_final_direct_triage,
     write_text_review_to_disk,
@@ -228,6 +229,41 @@ def test_structured_correction_requires_level_nature_and_rationale() -> None:
             status="rejected",
             structured_correction={"change_nature": ["AUTRE"]},
         )
+
+
+def test_structured_correction_accepts_no_theme_and_ignores_unknown_theme() -> None:
+    payload = {
+        "section_comparisons": [
+            {
+                "all_block_comparisons": [
+                    {
+                        "change_id": "chg-theme-optional",
+                        "genai_triage": {
+                            "is_relevant": False,
+                            "themes_amf": [],
+                        },
+                    }
+                ]
+            }
+        ]
+    }
+    correction = _analyst_correction(level="MAJEUR")
+    correction["themes_amf"] = ["THEME_INCONNU"]
+
+    updated, found = apply_text_review_decision(
+        payload,
+        change_id="chg-theme-optional",
+        status="corrected",
+        structured_correction=correction,
+    )
+
+    effective = updated["section_comparisons"][0][
+        "all_block_comparisons"
+    ][0]["genai_triage"]
+    assert found is True
+    assert effective["is_relevant"] is True
+    assert effective["themes_amf"] == []
+    assert effective["materiality_level"] == "MAJEUR"
 
 
 def test_ui_correction_promotes_non_relevant_change_when_level_is_major() -> None:
@@ -552,3 +588,14 @@ def test_second_correction_preserves_initial_triage_and_decision_history() -> No
             change_id="twice-corrected",
             status="approved",
         )
+
+
+def test_analyst_correction_rejects_modere_with_confirmed_equivalence() -> None:
+    correction = _analyst_correction(level="MODERE")
+    correction["business_equivalence"] = "CONFIRMEE"
+
+    with pytest.raises(
+        ValueError,
+        match="incompatible avec une équivalence métier confirmée",
+    ):
+        _normalize_structured_text_correction(correction)

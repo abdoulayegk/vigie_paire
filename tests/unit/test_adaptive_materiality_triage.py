@@ -13,6 +13,7 @@ from vigilance.text_analysis.precedent_memory import (
 )
 from vigilance.text_analysis.triage import (
     _ConsolidatedDossierAssessment,
+    _FEW_SHOT_MATERIALITY_AMF,
     _annotate_triage_dossiers,
     _attach_consolidated_dossier_outcomes,
     _evaluate_consolidated_dossier_materiality,
@@ -235,6 +236,35 @@ def test_calendar_status_reaches_materiality_judge() -> None:
     assert result[0].get("triage_prefilter") is None
 
 
+def test_empty_optional_theme_never_retries_or_blocks_relevant_change() -> None:
+    parsed = TriageAMFCompactLLMBatch(
+        triages=[
+            _direct_triage(
+                level="MAJEUR",
+                themes=[],
+                nature=["MODIFICATION_DEFINITION"],
+                equivalence="REFUTEE",
+            )
+        ]
+    )
+    client = _FakeClient(_parsed_response(parsed))
+
+    result = _triage_section_changes(
+        client=client,
+        model="gpt-4o",
+        section_key="gestion_risques",
+        bank_code="bmo",
+        changes=[_change()],
+    )
+
+    triage = result[0]["genai_triage"]
+    assert client.call_count == 1
+    assert triage["is_relevant"] is True
+    assert triage["themes_amf"] == []
+    assert triage["impact_level"] == "MAJEUR"
+    assert triage["category"] == "INCONNU"
+
+
 def test_low_confidence_text_move_requires_review_instead_of_minor() -> None:
     client = _FakeClient(RuntimeError("aucun appel attendu"))
     change = _change()
@@ -300,15 +330,19 @@ def test_related_changes_are_all_classified_without_verdict_propagation(
     def response_for_prompt(**kwargs):
         prompt = kwargs["messages"][1]["content"]
         payload = json.loads(prompt.rsplit("Changements :\n", 1)[1])
-        level = (
-            "MAJEUR"
-            if "répartition des ressources"
-            in payload[0]["source_snippet_t2"]
-            else "MODERE"
-        )
         return _parsed_response(
             TriageAMFCompactLLMBatch(
-                triages=[_direct_triage(level=level)]
+                triages=[
+                    _direct_triage(
+                        level=(
+                            "MAJEUR"
+                            if "répartition des ressources"
+                            in item["source_snippet_t2"]
+                            else "MODERE"
+                        )
+                    ).model_copy(update={"change_index": index})
+                    for index, item in enumerate(payload, start=1)
+                ]
             )
         )
 
@@ -334,7 +368,7 @@ def test_related_changes_are_all_classified_without_verdict_propagation(
         changes=changes,
     )
 
-    assert client.call_count == 2
+    assert client.call_count == 1
     assert [item["genai_triage"]["impact_level"] for item in result] == [
         "MAJEUR",
         "MODERE",
@@ -555,6 +589,56 @@ def test_blind_challenger_reviews_missed_sensitive_non_relevance() -> None:
     )
 
 
+def test_blind_challenger_resolves_internal_relevance_contradiction() -> None:
+    primary = _direct_triage(
+        level="MINEUR",
+        themes=[],
+        nature=["REFORMULATION_EQUIVALENTE"],
+        equivalence="CONFIRMEE",
+    ).model_copy(
+        update={
+            "signification_metier": (
+                "La reformulation est mineure et n’affecte pas le cadre de gestion."
+            ),
+            "supporting_evidence": [
+                "Le changement est sans impact sur le rôle et les responsabilités."
+            ],
+        }
+    )
+    challenger = _direct_triage(
+        level="MINEUR",
+        relevant=False,
+        themes=[],
+        nature=["REFORMULATION_EQUIVALENTE"],
+        equivalence="CONFIRMEE",
+    )
+    responses = iter(
+        (
+            _parsed_response(TriageAMFCompactLLMBatch(triages=[primary])),
+            _parsed_response(TriageAMFCompactLLMBatch(triages=[challenger])),
+        )
+    )
+    client = _FakeClient(lambda **_kwargs: next(responses))
+
+    result = _triage_section_changes(
+        client=client,
+        model="gpt-4o",
+        section_key="gestion_risques",
+        bank_code="bmo",
+        changes=[_change()],
+    )
+
+    triage = result[0]["genai_triage"]
+    assert client.call_count == 2
+    assert triage["is_relevant"] is False
+    assert triage["themes_amf"] == []
+    assert triage["decision_status"] == "A_CONFIRMER"
+    assert triage["review_required"] is True
+    assert triage["materiality_challenge"]["resolution"] == (
+        "challenger_resolves_relevance_contradiction"
+    )
+
+
 def test_prompt_uses_validated_precedents_without_alignment_rationale() -> None:
     precedent = AnalystPrecedent(
         precedent_id="validated-governance-major",
@@ -590,3 +674,62 @@ def test_prompt_uses_validated_precedents_without_alignment_rationale() -> None:
     assert "ANCRAGE_INTERDIT_SANS_CHANGEMENT_DE_FOND" not in prompt
     assert "change_summary_factuel_non_arbitre" in prompt
     assert "materiality_level" in prompt
+
+
+def test_materiality_prompt_and_retry_forbid_confirmed_non_minor(
+    monkeypatch,
+) -> None:
+    captured: dict[str, Any] = {}
+
+    def fake_structured_completion(
+        client,
+        *,
+        model,
+        messages,
+        response_format,
+        max_tokens=None,
+        max_retries=1,
+        validation_retry_message=None,
+        length_retry_message=None,
+        request_timeout=None,
+    ):
+        content = "\n".join(
+            str(message.get("content") or "") for message in messages
+        )
+        if "Changements :" in content:
+            captured["messages"] = messages
+            captured["validation_retry_message"] = validation_retry_message
+        return TriageAMFCompactLLMBatch(
+            triages=[_direct_triage(level="MINEUR", equivalence="CONFIRMEE")]
+        )
+
+    monkeypatch.setattr(
+        "vigilance.text_analysis.triage._call_structured_completion_with_correction",
+        fake_structured_completion,
+    )
+
+    _triage_section_changes(
+        client=object(),
+        model="gpt-4o",
+        section_key="gestion_risques",
+        bank_code="bmo",
+        changes=[_change()],
+    )
+
+    prompt = "\n".join(
+        str(message.get("content") or "") for message in captured["messages"]
+    )
+    assert "business_equivalence=CONFIRMEE" in prompt
+    assert "compatible qu’avec" in prompt or "compatible qu'avec" in prompt
+    assert "MODERE" in prompt and "MAJEUR" in prompt
+    assert "VARIATION_CHIFFREE" in _FEW_SHOT_MATERIALITY_AMF
+    assert (
+        '"materiality_level": "MINEUR"' in _FEW_SHOT_MATERIALITY_AMF
+        and "VARIATION_CHIFFREE" in _FEW_SHOT_MATERIALITY_AMF
+    )
+    assert "Exemple de matérialité E" in _FEW_SHOT_MATERIALITY_AMF
+
+    retry_message = captured["validation_retry_message"] or ""
+    assert "CONFIRMEE" in retry_message
+    assert "MINEUR" in retry_message
+    assert "MODERE" in retry_message and "MAJEUR" in retry_message

@@ -122,6 +122,10 @@ def _step_compare_text(
         out_root=out_root,
         model=model,
         force_extraction=force_extraction,
+        progress_callback=lambda message: print(
+            f"  {message}",
+            flush=True,
+        ),
     )
     generate_text_comparison_excel(payload, out_path.with_suffix(".xlsx"))
     if not out_path.exists():

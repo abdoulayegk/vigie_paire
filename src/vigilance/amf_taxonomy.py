@@ -18,10 +18,13 @@ Conventions de nommage :
 
 from __future__ import annotations
 
+import logging
 import re
 from typing import Literal
 
 from pydantic import BaseModel, Field, field_validator, model_validator
+
+logger = logging.getLogger(__name__)
 
 THEMES_AMF_DESCRIPTIONS: dict[str, str] = {
     "DIVULGATION_AJOUT": ("Ajout d'une nouvelle divulgation absente du rapport précédent."),
@@ -293,7 +296,7 @@ ActionRequise = Literal[
     "aucune",
 ]
 
-TRIAGE_SOURCE_VERSION = "gpt4o_triage_amf_materiality_v4"
+TRIAGE_SOURCE_VERSION = "gpt4o_triage_amf_materiality_v5"
 
 
 ChangeSegmentKind = Literal["added", "removed", "modified"]
@@ -444,6 +447,28 @@ class MaterialityAssessment(BaseModel):
         normalized = [" ".join(item.split()) for item in value if item.strip()]
         return list(dict.fromkeys(normalized))
 
+    @model_validator(mode="before")
+    @classmethod
+    def _coerce_confirmed_equivalence_to_minor(cls, data: object) -> object:
+        """Une équivalence CONFIRMEE force le niveau à MINEUR.
+
+        Les sorties LLM peuvent encore produire MODERE/MAJEUR avec CONFIRMEE;
+        la taxonomie traite cette combinaison comme un cas mineur.
+        """
+        if not isinstance(data, dict):
+            return data
+        level = str(data.get("materiality_level") or "").strip().upper()
+        equivalence = str(data.get("business_equivalence") or "").strip().upper()
+        if level in {"MODERE", "MAJEUR"} and equivalence == "CONFIRMEE":
+            logger.warning(
+                "materiality_coerced_confirmed_equivalence level=%s -> MINEUR",
+                level,
+            )
+            migrated = dict(data)
+            migrated["materiality_level"] = "MINEUR"
+            return migrated
+        return data
+
     @model_validator(mode="after")
     def _check_materiality_assessment(self) -> "MaterialityAssessment":
         """Garantit qu'une décision directe reste explicable et prudente."""
@@ -564,7 +589,11 @@ class _TriageAMFResultBase(MaterialityAssessment):
 
     **Cohérence pertinent / non pertinent**
 
-    * ``is_relevant=True`` implique ``themes_amf`` non vide, ``exclusion_reason=None``, ``explanation`` ≥ 50 caractères (3 phrases attendues), ``nouvelle_idee_justification`` ≥ 3 phrases complètes commençant par ``OUI`` ou ``NON`` selon ``nouvelle_idee``.
+    * ``is_relevant=True`` accepte zéro, un ou plusieurs ``themes_amf`` : la
+      taxonomie est un enrichissement facultatif et ne commande jamais la
+      pertinence. ``exclusion_reason=None``, ``explanation`` ≥ 50 caractères
+      (3 phrases attendues) et ``nouvelle_idee_justification`` ≥ 3 phrases
+      complètes commençant par ``OUI`` ou ``NON`` selon ``nouvelle_idee``.
     * ``is_relevant=False`` implique ``themes_amf=[]``, ``exclusion_reason`` renseigné, ``nouvelle_idee=False``, ``impact_level="MINEUR"``, ``impact_it="INDETERMINE"``, ``changement_posture="AUCUN"``, ``action_requise="aucune"``, ``explanation=""``, ``nouvelle_idee_justification`` détaillée.
 
     **Cohérence sémantique**
@@ -700,8 +729,6 @@ class _TriageAMFResultBase(MaterialityAssessment):
 
         # ---------- Cohérence pertinent / non pertinent ----------
         if self.is_relevant:
-            if not self.themes_amf:
-                raise ValueError("is_relevant=True exige au moins un thème AMF dans themes_amf")
             if self.exclusion_reason is not None:
                 raise ValueError("is_relevant=True interdit exclusion_reason renseigné")
             if len(self.explanation.strip()) < _EXPLANATION_MIN_LENGTH:
@@ -963,7 +990,14 @@ class TriageAMFCompactLLMResultWithIndex(MaterialityAssessment):
 
     change_index: int = Field(..., ge=1)
     is_relevant: bool
-    themes_amf: list[ThemeAMF] = Field(default_factory=list, max_length=2)
+    themes_amf: list[ThemeAMF] = Field(
+        default_factory=list,
+        max_length=2,
+        description=(
+            "Enrichissement taxonomique facultatif. Une liste vide est valide "
+            "même lorsque le changement est pertinent."
+        ),
+    )
     nouvelle_idee: bool = False
     changement_constate: str = Field(
         description=(
@@ -1059,10 +1093,6 @@ class TriageAMFCompactLLMResultWithIndex(MaterialityAssessment):
             raise ValueError("changement_constate est obligatoire")
 
         if self.is_relevant:
-            if not self.themes_amf:
-                raise ValueError(
-                    "is_relevant=True exige au moins un thème AMF dans themes_amf"
-                )
             required_fields = {
                 "signification_metier": self.signification_metier,
             }
