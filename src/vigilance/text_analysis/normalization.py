@@ -187,8 +187,14 @@ def _is_chart_axis_label_row(text: str) -> bool:
 
 
 def _sanitize_explanation(text: str) -> str:
-    """Nettoie et tronque une explication GPT à 1 200 caractères maximum."""
-    value = _sanitize_semantic_text(text)
+    """Nettoie et tronque une explication GPT à 1 200 caractères maximum.
+
+    Ne réutilise pas ``_sanitize_semantic_text`` : cette dernière retire
+    volontairement chiffres et sigles réglementaires (BSIF, IFRS, Bâle...)
+    pour l'appariement sémantique interne, ce qui casse la grammaire et
+    prive l'analyste d'informations utiles dans un texte qui lui est destiné.
+    """
+    value = " ".join(str(text or "").split())
     return value[:1200]
 
 
