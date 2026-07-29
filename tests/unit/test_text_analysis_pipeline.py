@@ -86,6 +86,7 @@ from vigilance.text_analysis.extraction import (
 from vigilance.text_analysis.normalization import (
     _infer_table_footnote_bboxes,
     _is_running_report_chrome,
+    _sanitize_explanation,
 )
 from vigilance.text_analysis.markdown import _is_out_of_scope_accounting_heading
 
@@ -156,6 +157,26 @@ def test_sanitize_semantic_text_expands_residual_acronyms() -> None:
     assert "VaR" not in cleaned
     assert "banques d'importance systémique" in cleaned
     assert "mesure de risque de marché" in cleaned
+
+
+def test_sanitize_explanation_keeps_regulatory_refs_and_numbers() -> None:
+    raw = "Le BSIF reporte le relèvement du plancher de fonds propres à 72,5 % en vertu de Bâle III."
+
+    cleaned = _sanitize_explanation(raw)
+
+    assert "BSIF" in cleaned
+    assert "72,5" in cleaned
+    assert "Bâle III" in cleaned
+    assert cleaned == raw
+
+
+def test_sanitize_explanation_collapses_whitespace_and_truncates() -> None:
+    raw = "  Le  BSIF   annonce  \n\n une révision.  " + ("x" * 1300)
+
+    cleaned = _sanitize_explanation(raw)
+
+    assert cleaned.startswith("Le BSIF annonce une révision.")
+    assert len(cleaned) == 1200
 
 
 def test_keep_change_for_major_relevant() -> None:
