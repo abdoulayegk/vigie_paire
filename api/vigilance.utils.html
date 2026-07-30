@@ -1180,6 +1180,28 @@ Si absent, utilise la meme couleur que <code class="docutils literal notranslate
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="vigilance.utils.pdf_crop.crop_page_region_bytes">
+<span class="sig-name descname"><span class="pre">crop_page_region_bytes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pdf_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_number</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bbox_norm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dpi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">200</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.pdf_crop.crop_page_region_bytes" title="Lien vers cette définition"></a></dt>
+<dd><p>Rend la zone spécifiée (ou toute la page) d’un PDF sous forme de bytes PNG.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pdf_path</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Chemin du fichier PDF.</p></li>
+<li><p><strong>page_number</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – Numéro de page (base 1).</p></li>
+<li><p><strong>bbox_norm</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>] | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Bounding box normalisée [l, t, r, b] ou None pour la page entière.</p></li>
+<li><p><strong>dpi</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – Résolution de rendu.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code></span></p>
+</dd>
+<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Bytes PNG de l’image.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="vigilance.utils.pdf_crop.crop_table_image">
 <span class="sig-name descname"><span class="pre">crop_table_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pdf_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_number</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bbox_norm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dpi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">300</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bottom_extension</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.utils.pdf_crop.crop_table_image" title="Lien vers cette définition"></a></dt>
 <dd><p>Recadre une region de tableau d’une page PDF et sauvegarde en PNG.</p>
