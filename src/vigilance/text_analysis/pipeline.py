@@ -28,7 +28,11 @@ from vigilance.text_analysis.sections import _allowed_target_sections, _resolve_
 from vigilance.text_analysis.summary import _build_global_summary, _is_non_cosmetic_change, _retained_change_sort_key
 from vigilance.text_analysis.summary import _build_semantic_quality_metrics
 from vigilance.text_analysis.triage import _triage_section_changes
-from vigilance.text_comparison.text_comparison_writer import get_text_comparison_path, write_text_comparison
+from vigilance.text_comparison.text_comparison_writer import (
+    deduplicate_and_group_section_changes,
+    get_text_comparison_path,
+    write_text_comparison,
+)
 from vigilance.text_extraction.text_extraction_markdown_writer import (
     get_canonical_text_extraction_md_path,
     get_raw_docling_markdown_path,
@@ -471,17 +475,21 @@ def run_text_analysis_pipeline(
         all_changes.sort(key=_retained_change_sort_key)
         retained = [change for change in enriched if _is_non_cosmetic_change(change["genai_triage"])]
         retained.sort(key=_retained_change_sort_key)
+
+        retained_dedup = deduplicate_and_group_section_changes(retained)
+        all_changes_dedup = deduplicate_and_group_section_changes(all_changes)
+
         _prev_start, _prev_end = range_prev.get(section_key, (None, None))
         _curr_start, _curr_end = range_curr.get(section_key, (None, None))
         section_comparisons.append(
             {
                 "section_key": section_key,
                 "section_title": _SECTION_LABELS.get(section_key, section_key),
-                "block_comparisons": retained,
-                "all_block_comparisons": all_changes,
+                "block_comparisons": retained_dedup,
+                "all_block_comparisons": all_changes_dedup,
                 "summary": {
-                    "retained_changes": len(retained),
-                    "all_changes": len(all_changes),
+                    "retained_changes": len(retained_dedup),
+                    "all_changes": len(all_changes_dedup),
                     "pages_previous": [p for p in (_prev_start, _prev_end) if p is not None],
                     "pages_current": [p for p in (_curr_start, _curr_end) if p is not None],
                 },

@@ -65,7 +65,15 @@
               "tone_changed": false,
               "forward_looking": false,
               "quantitative_changed": true
-            }
+            },
+            "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : capital, information ajoutée.\n\nCe qui change : Le rapport courant ajoute l'information suivante, absente du rapport précédent : Le ratio des fonds propres de catégorie 1 sous forme d'actions ordinaires de BMO s'établissait à 13,5 % au 30 avril 2025, en baisse par rapport à 13,6 % à la clôture du premier trimestre de 2025, la génération interne de fonds propres ayant été plus que neutralisée par l'incidence du rachat d'actions ordinaires aux fins d'annulation dans le cadre de l'offre publique de rachat dans le cours normal des activités de BMO et par la hausse des actifs pondérés en fonction des risques et exprimés en monnaie d'origine. Les fonds propres de catégorie 1 sous forme d'actions ordinaires se situaient à 57,4 milliards de dollars au 30 avril 2025, en baisse par rapport à 59,2 milliards au 31 janvier 2025, en raison du fait que la génération interne de fonds propres a été plus que neutralisée par l'incidence des rachats d'actions et celle des fluctuations des cours de change. Les actifs pondérés en fonction des risques se sont établis à 425,1 milliards de dollars au 30 avril 2025, en baisse par rapport à 433,9 milliards au 31 janvier 2025, ce qui est principalement attribuable à l'incidence des fluctuations des cours de change ainsi qu'au risque opérationnel moins important, ce qui a été contrebalancé en partie par un niveau de risque de crédit plus élevé, reflétant les changements apportés à la qualité et à la taille des actifs et l'accroissement du risque de marché. Dans le cadre du calcul des ratios pour les fonds propres réglementaires, il est nécessaire d'augmenter le total des actifs pondérés en fonction des risques lorsque le montant au titre du plancher de fonds propres calculé selon l'approche standard, multiplié par un facteur d'ajustement du plancher de fonds propres, est supérieur au résultat que l'on obtiendrait en effectuant le calcul selon l'approche de mesure interne plus sensible aux risques, s'il y a lieu. Le plancher de fonds propres ne s'est pas appliqué au 30 avril 2025, tout comme au 31 janvier 2025. Le ratio des fonds propres de catégorie 1 et le ratio du total des fonds propres se situaient respectivement à 15,3 % et à 17,9 % au 30 avril 2025, comparativement à 15,4 % et à 17,6 %, respectivement, au 31 janvier 2025. La baisse du ratio des fonds propres de catégorie 1 est imputable aux mêmes facteurs énoncés pour le ratio des fonds propres de catégorie 1 sous forme d'actions ordinaires. Le ratio du total des fonds propres a augmenté du fait que les facteurs influant sur le ratio des fonds propres de catégorie 1 ont été contrebalancés dans une large mesure par l'émission des billets subordonnés pour un montant de 1 250 millions de dollars. Les investissements de BMO dans ses établissements à l'étranger sont essentiellement libellés en dollars américains et l'incidence de la conversion des actifs pondérés en fonction des risques et des déductions des fonds propres libellés en dollars américains peut faire varier les ratios des fonds propres de la Banque. Nous gérons l'incidence des fluctuations des cours de change sur les actifs pondérés en fonction des risques et les déductions au titre des fonds propres dans nos ratios des fonds propres, et pour le trimestre à l'étude, cette incidence a été essentiellement neutralisée. Notre ratio de levier, établi à 4,4 % au 30 avril 2025, est demeuré stable par rapport au premier trimestre de 2025, étant donné que la diminution des fonds propres de catégorie 1 a été contrebalancée par la diminution de l'exposition aux fins du ratio de levier. Le ratio de la capacité totale d'absorption des pertes (TLAC) fondé sur les risques et le ratio de levier TLAC de la Banque se sont établis respectivement à 29,9 % et à 8,5 % au 30 avril 2025, contre respectivement 29,8 % et 8,5 % au 31 janvier 2025.\n\nPertinence métier : Une nouvelle section a été ajoutée concernant l'analyse des fonds propres réglementaires du deuxième trimestre de. Ce changement est substantiel car il fournit des informations cruciales sur la situation des fonds propres de la banque, ce qui est essentiel pour évaluer sa stabilité financière. Cela nécessite une attention particulière pour s'assurer que les informations sont complètes et précises.\n\nPoint de surveillance : capital — L'ajout de cette section permet une meilleure compréhension de la gestion des fonds propres et des risques associés.",
+            "change_segments": [
+              {
+                "kind": "added",
+                "text_t1": "",
+                "text_t2": "Le ratio des fonds propres de catégorie 1 sous forme d'actions ordinaires de BMO s'établissait à 13,5 % au 30 avril 2025, en baisse par rapport à 13,6 % à la clôture du premier trimestre de 2025, la génération interne de fonds propres ayant été plus que neutralisée par l'incidence du rachat d'actions ordinaires aux fins d'annulation dans le cadre de l'offre publique de rachat dans le cours normal des activités de BMO et par la hausse des actifs pondérés en fonction des risques et exprimés en monnaie d'origine.\n\nLes fonds propres de catégorie 1 sous forme d'actions ordinaires se situaient à 57,4 milliards de dollars au 30 avril 2025, en baisse par rapport à 59,2 milliards au 31 janvier 2025, en raison du fait que la génération interne de fonds propres a été plus que neutralisée par l'incidence des rachats d'actions et celle des fluctuations des cours de change.\n\nLes actifs pondérés en fonction des risques se sont établis à 425,1 milliards de dollars au 30 avril 2025, en baisse par rapport à 433,9 milliards au 31 janvier 2025, ce qui est principalement attribuable à l'incidence des fluctuations des cours de change ainsi qu'au risque opérationnel moins important, ce qui a été contrebalancé en partie par un niveau de risque de crédit plus élevé, reflétant les changements apportés à la qualité et à la taille des actifs et l'accroissement du risque de marché.\n\nDans le cadre du calcul des ratios pour les fonds propres réglementaires, il est nécessaire d'augmenter le total des actifs pondérés en fonction des risques lorsque le montant au titre du plancher de fonds propres calculé selon l'approche standard, multiplié par un facteur d'ajustement du plancher de fonds propres, est supérieur au résultat que l'on obtiendrait en effectuant le calcul selon l'approche de mesure interne plus sensible aux risques, s'il y a lieu. Le plancher de fonds propres ne s'est pas appliqué au 30 avril 2025, tout comme au 31 janvier 2025.\n\nLe ratio des fonds propres de catégorie 1 et le ratio du total des fonds propres se situaient respectivement à 15,3 % et à 17,9 % au 30 avril 2025, comparativement à 15,4 % et à 17,6 %, respectivement, au 31 janvier 2025. La baisse du ratio des fonds propres de catégorie 1 est imputable aux mêmes facteurs énoncés pour le ratio des fonds propres de catégorie 1 sous forme d'actions ordinaires. Le ratio du total des fonds propres a augmenté du fait que les facteurs influant sur le ratio des fonds propres de catégorie 1 ont été contrebalancés dans une large mesure par l'émission des billets subordonnés pour un montant de 1 250 millions de dollars.\n\nLes investissements de BMO dans ses établissements à l'étranger sont essentiellement libellés en dollars américains et l'incidence de la conversion des actifs pondérés en fonction des risques et des déductions des fonds propres libellés en dollars américains peut faire varier les ratios des fonds propres de la Banque. Nous gérons l'incidence des fluctuations des cours de change sur les actifs pondérés en fonction des risques et les déductions au titre des fonds propres dans nos ratios des fonds propres, et pour le trimestre à l'étude, cette incidence a été essentiellement neutralisée.\n\nNotre ratio de levier, établi à 4,4 % au 30 avril 2025, est demeuré stable par rapport au premier trimestre de 2025, étant donné que la diminution des fonds propres de catégorie 1 a été contrebalancée par la diminution de l'exposition aux fins du ratio de levier.\n\nLe ratio de la capacité totale d'absorption des pertes (TLAC) fondé sur les risques et le ratio de levier TLAC de la Banque se sont établis respectivement à 29,9 % et à 8,5 % au 30 avril 2025, contre respectivement 29,8 % et 8,5 % au 31 janvier 2025."
+              }
+            ]
           }
         },
         {
@@ -118,60 +126,15 @@
               "tone_changed": false,
               "forward_looking": true,
               "quantitative_changed": true
-            }
-          }
-        },
-        {
-          "change_id": "gestion_capital_autres_faits_nouveaux_touchant_le_capita_change_016",
-          "section_key": "gestion_capital",
-          "subsection_heading": "Autres faits nouveaux touchant le capital",
-          "diff_type": "added",
-          "semantic_text_t1": "",
-          "semantic_text_t2": "Le mars, nous avons émis des billets à moyen terme de série N, première tranche, à (FPUNV) pour un montant de millions de dollars dans le cadre de notre programme de billets à moyen terme canadiens",
-          "source_text_t1": "",
-          "source_text_t2": "Le 5 mars 2025, nous avons émis des billets à moyen terme de série N, première tranche, à 4,077 % (FPUNV) pour un montant de 1 250 millions de dollars dans le cadre de notre programme de billets à moyen terme canadiens.",
-          "source_block_ids_t1": [],
-          "source_block_ids_t2": [],
-          "source_refs_t1": [],
-          "source_refs_t2": [],
-          "pages_t1": [],
-          "pages_t2": [
-            25
-          ],
-          "source_resolution_t1": "markdown",
-          "source_resolution_t2": "markdown",
-          "evidence_t1": {
-            "pages": [],
-            "snippet": ""
-          },
-          "evidence_t2": {
-            "pages": [
-              25
-            ],
-            "snippet": "Le 5 mars 2025, nous avons émis des billets à moyen terme de série N, première tranche, à 4,077 % (FPUNV) pour un montant de 1 250 millions de dollars dans le cadre de notre programme de billets à moyen terme canadiens."
-          },
-          "change_summary": "Ajout d'une émission de billets à moyen terme de série N",
-          "genai_triage": {
-            "is_relevant": true,
-            "category": "CAPITAL",
-            "impact_level": "MODERE",
-            "risk_type": "capital",
-            "relevance_score": "FAIBLE",
-            "risk_level": "FAIBLE",
-            "explanation": "Une nouvelle émission de billets à moyen terme a été réalisée. Ce changement est substantiel car il augmente la dette de la banque et peut influencer sa capacité à lever des fonds à l'avenir. Il est crucial de confirmer cette émission pour comprendre son impact sur la structure de capital",
-            "impact_description": "L'émission de nouveaux billets à moyen terme peut affecter le coût de financement et la flexibilité financière de la banque",
-            "action_requise": "confirmation",
-            "reference_reglementaire": "",
-            "nouvelle_idee": true,
-            "confidence": 0.0,
-            "source": "gpt4o_triage",
-            "signals": {
-              "regulatory_reference_added": false,
-              "methodology_change": false,
-              "tone_changed": false,
-              "forward_looking": true,
-              "quantitative_changed": true
-            }
+            },
+            "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : liquidite, information ajoutée.\n\nCe qui change : Le rapport courant ajoute l'information suivante, absente du rapport précédent : Le 6 mai 2025, nous avons fait part de notre intention de racheter la totalité de nos billets à moyen terme de série J, deuxième tranche, à 2,077 % (FPUNV) d'une valeur de 1 250 millions de dollars, à un prix de rachat correspondant à 100 % du capital majoré des intérêts courus et impayés jusqu'à la date de rachat, exclusion faite de celle-ci, le 17 juin 2025.\n\nPertinence métier : Une nouvelle intention de rachat de billets à moyen terme a été annoncée. Ce changement est substantiel car il affecte la structure de la dette de la banque et peut influencer sa liquidité et son profil de risque. Il est important de confirmer cette action pour évaluer son impact sur la gestion du capital.\n\nPoint de surveillance : liquidite — Le rachat de billets à moyen terme peut réduire la dette à court terme mais nécessite une évaluation de l'impact sur la liquidité.",
+            "change_segments": [
+              {
+                "kind": "added",
+                "text_t1": "",
+                "text_t2": "Le 6 mai 2025, nous avons fait part de notre intention de racheter la totalité de nos billets à moyen terme de série J, deuxième tranche, à 2,077 % (FPUNV) d'une valeur de 1 250 millions de dollars, à un prix de rachat correspondant à 100 % du capital majoré des intérêts courus et impayés jusqu'à la date de rachat, exclusion faite de celle-ci, le 17 juin 2025."
+              }
+            ]
           }
         },
         {
@@ -224,7 +187,15 @@
               "tone_changed": false,
               "forward_looking": false,
               "quantitative_changed": true
-            }
+            },
+            "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : capital, information retirée.\n\nCe qui change : Le rapport courant retire l'information suivante, présente au rapport précédent : Le ratio des fonds propres de catégorie 1 sous forme d'actions ordinaires de BMO s'établissait à 13,6 % au 31 janvier 2025, alors qu'il est demeuré stable comparativement au quatrième trimestre de 2024, la génération interne de fonds propres ayant été neutralisée en grande partie par la hausse des actifs pondérés en fonction des risques et exprimés en monnaie d'origine et par l'incidence du rachat d'actions ordinaires aux fins d'annulation dans le cadre de l'offre publique de rachat dans le cours normal des activités de BMO. Les fonds propres de catégorie 1 sous forme d'actions ordinaires se situaient à 59,2 milliards de dollars au 31 janvier 2025, en hausse par rapport à 57,1 milliards au 31 octobre 2024, en raison de l'incidence des fluctuations des cours de change et de la génération interne de fonds propres, ce qui a été contré en partie par l'incidence des rachats d'actions. Les actifs pondérés en fonction des risques se sont établis à 433,9 milliards de dollars au 31 janvier 2025, en hausse par rapport à 420,8 milliards au 31 octobre 2024, ce qui est principalement attribuable à l'incidence des fluctuations des cours de change, aux changements apportés à la qualité des actifs, à l'augmentation de la taille des actifs et à l'accroissement du risque de marché. Dans le cadre du calcul des ratios pour les fonds propres réglementaires, il est nécessaire d'augmenter le total des actifs pondérés en fonction des risques lorsque le montant au titre du plancher de fonds propres calculé selon l'approche standard, multiplié par un facteur d'ajustement du plancher de fonds propres, est supérieur au résultat que l'on obtiendrait en effectuant le calcul selon l'approche de mesure interne plus sensible aux risques, s'il y a lieu. Le plancher de fonds propres ne s'est pas appliqué au 31 janvier 2025, tout comme au 31 octobre 2024. Le ratio des fonds propres de catégorie 1 et le ratio du total des fonds propres se situaient respectivement à 15,4 % et à 17,6 % au 31 janvier 2025 , ce qui est inchangé depuis le 31 octobre 2024 en raison des mêmes facteurs influant sur le ratio des fonds propres de catégorie 1 sous forme d'actions ordinaires. L'incidence des fluctuations de change sur les ratios de fonds propres a été essentiellement contrebalancée. Les investissements de BMO dans ses établissements à l'étranger sont essentiellement libellés en dollars américains et l'incidence de la conversion des actifs pondérés en fonction des risques et des déductions des fonds propres libellés en dollars américains peut faire varier les ratios des fonds propres de la Banque. Nous gérons l'incidence des fluctuations des cours de change sur les actifs pondérés en fonction des risques et les déductions au titre des fonds propres dans nos ratios des fonds propres. Notre ratio de levier, établi à 4,4 % au 31 janvier 2025, est demeuré relativement stable par rapport au quatrième trimestre de 2024, étant donné que l'augmentation des fonds propres de catégorie 1 a été contrebalancée par l'augmentation de l'exposition aux fins du ratio de levier. Le ratio de la capacité totale d'absorption des pertes (TLAC) fondé sur les risques et le ratio de levier TLAC de la Banque se sont établis respectivement à 29,8 % et à 8,5 % au 31 janvier 2025, contre respectivement 29,3 % et à 8,3 % au 31 octobre 2024.\n\nPertinence métier : La section entière concernant l'analyse des fonds propres réglementaires du premier trimestre de a été supprimée. Ce changement est substantiel car il retire des informations cruciales sur la situation des fonds propres de la banque, ce qui pourrait masquer des évolutions importantes. Cela implique une vigilance accrue pour s'assurer que les informations sur les fonds propres sont complètes et transparentes.\n\nPoint de surveillance : capital — La suppression de cette section pourrait indiquer un manque de transparence ou un changement significatif dans la gestion des fonds propres qui n'est pas communiqué.",
+            "change_segments": [
+              {
+                "kind": "removed",
+                "text_t1": "Le ratio des fonds propres de catégorie 1 sous forme d'actions ordinaires de BMO s'établissait à 13,6 % au 31 janvier 2025, alors qu'il est demeuré stable comparativement au quatrième trimestre de 2024, la génération interne de fonds propres ayant été neutralisée en grande partie par la hausse des actifs pondérés en fonction des risques et exprimés en monnaie d'origine et par l'incidence du rachat d'actions ordinaires aux fins d'annulation dans le cadre de l'offre publique de rachat dans le cours normal des activités de BMO.\n\nLes fonds propres de catégorie 1 sous forme d'actions ordinaires se situaient à 59,2 milliards de dollars au 31 janvier 2025, en hausse par rapport à 57,1 milliards au 31 octobre 2024, en raison de l'incidence des fluctuations des cours de change et de la génération interne de fonds propres, ce qui a été contré en partie par l'incidence des rachats d'actions.\n\nLes actifs pondérés en fonction des risques se sont établis à 433,9 milliards de dollars au 31 janvier 2025, en hausse par rapport à 420,8 milliards au 31 octobre 2024, ce qui est principalement attribuable à l'incidence des fluctuations des cours de change, aux changements apportés à la qualité des actifs, à l'augmentation de la taille des actifs et à l'accroissement du risque de marché.\n\nDans le cadre du calcul des ratios pour les fonds propres réglementaires, il est nécessaire d'augmenter le total des actifs pondérés en fonction des risques lorsque le montant au titre du plancher de fonds propres calculé selon l'approche standard, multiplié par un facteur d'ajustement du plancher de fonds propres, est supérieur au résultat que l'on obtiendrait en effectuant le calcul selon l'approche de mesure interne plus sensible aux risques, s'il y a lieu. Le plancher de fonds propres ne s'est pas appliqué au 31 janvier 2025, tout comme au 31 octobre 2024.\n\nLe ratio des fonds propres de catégorie 1 et le ratio du total des fonds propres se situaient respectivement à 15,4 % et à 17,6 % au 31 janvier 2025 , ce qui est inchangé depuis le 31 octobre 2024 en raison des mêmes facteurs influant sur le ratio des fonds propres de catégorie 1 sous forme d'actions ordinaires.\n\nL'incidence des fluctuations de change sur les ratios de fonds propres a été essentiellement contrebalancée. Les investissements de BMO dans ses établissements à l'étranger sont essentiellement libellés en dollars américains et l'incidence de la conversion des actifs pondérés en fonction des risques et des déductions des fonds propres libellés en dollars américains peut faire varier les ratios des fonds propres de la Banque. Nous gérons l'incidence des fluctuations des cours de change sur les actifs pondérés en fonction des risques et les déductions au titre des fonds propres dans nos ratios des fonds propres.\n\nNotre ratio de levier, établi à 4,4 % au 31 janvier 2025, est demeuré relativement stable par rapport au quatrième trimestre de 2024, étant donné que l'augmentation des fonds propres de catégorie 1 a été contrebalancée par l'augmentation de l'exposition aux fins du ratio de levier.\n\nLe ratio de la capacité totale d'absorption des pertes (TLAC) fondé sur les risques et le ratio de levier TLAC de la Banque se sont établis respectivement à 29,8 % et à 8,5 % au 31 janvier 2025, contre respectivement 29,3 % et à 8,3 % au 31 octobre 2024.",
+                "text_t2": ""
+              }
+            ]
           }
         },
         {
@@ -281,7 +252,15 @@
               "tone_changed": false,
               "forward_looking": false,
               "quantitative_changed": true
-            }
+            },
+            "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : capital, texte modifié.\n\nCe qui change : Le passage est modifié entre les deux versions. Le rapport précédent indiquait : Advenant le cas où se produirait un événement déclencheur de fonds propres d'urgence en cas de non-viabilité (FPUNV), nos instruments compris dans les FPUNV seraient convertis en actions ordinaires de BMO selon une formule de conversion automatique à un prix de conversion correspondant au plus élevé des montants suivants : i) un prix plancher de 5,00 $ et ii) le cours du marché de nos actions ordinaires à la date de l'événement déclencheur (calculé selon un prix moyen pondéré sur 10 jours). Selon un prix plancher de 5,00 $, ces instruments de capital compris dans les FPUNV seraient convertis en environ 4,3 milliards d'actions ordinaires de BMO, dans l'hypothèse où il n'y aurait ni intérêts courus ni dividendes déclarés et impayés. Le rapport courant indique : Advenant le cas où se produirait un événement déclencheur de fonds propres d'urgence en cas de non-viabilité (FPUNV), nos instruments compris dans les FPUNV seraient convertis en actions ordinaires de BMO selon une formule de conversion automatique à un prix de conversion correspondant au plus élevé des montants suivants : i) un prix plancher de 5,00 $ et ii) le cours du marché de nos actions ordinaires à la date de l'événement déclencheur (calculé selon un prix moyen pondéré sur 10 jours). Selon un prix plancher de 5,00 $, ces instruments de capital compris dans les FPUNV seraient convertis en environ 4,6 milliards d'actions ordinaires de BMO, dans l'hypothèse où il n'y aurait ni intérêts courus ni dividendes déclarés et impayés.\n\nPertinence métier : Le nombre d'actions ordinaires de BMO converties en cas de déclenchement de fonds propres d'urgence a changé. Ce changement est substantiel car il affecte directement la capacité de la banque à absorber les pertes en cas de crise. Cela nécessite une vérification pour comprendre l'impact potentiel sur la structure de capital de la banque.\n\nPoint de surveillance : capital — La modification du nombre d'actions converties pourrait affecter la dilution des actions existantes et la perception des investisseurs.",
+            "change_segments": [
+              {
+                "kind": "modified",
+                "text_t1": "3",
+                "text_t2": "6"
+              }
+            ]
           }
         },
         {
@@ -338,7 +317,70 @@
               "tone_changed": false,
               "forward_looking": false,
               "quantitative_changed": true
-            }
+            },
+            "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : capital, texte modifié.\n\nCe qui change : Le passage est modifié entre les deux versions. Le rapport précédent indiquait : Le 17 janvier 2025, nous avons annoncé une offre publique de rachat dans le cours normal des activités d'un maximum de 20 millions d'actions ordinaires aux fins d'annulation commençant le 22 janvier 2025 et prenant fin au plus tard le 21 janvier 2026. Les dates et les montants des achats effectués en vertu de cette offre sont déterminés par la direction en fonction de facteurs comme les conditions du marché et le niveau des fonds propres. Nous avons également mis en place un régime d'achat automatique de titres lié à l'offre publique de rachat dans le cours normal des activités en vertu duquel notre courtier peut, à certains moments, racheter nos actions ordinaires aux termes de cette offre si une série de critères prédéfinis est respectée. Au cours du trimestre, nous avons racheté 1,2 million d'actions ordinaires aux fins d'annulation aux termes de l'offre publique de rachat dans le cours normal des activités, au prix moyen de 144,43 $ par action pour un montant totalisant 176 millions de dollars, impôt compris. Nous avons également procédé au rachat de 2 millions d'actions ordinaires en février 2025 au prix moyen de 141,39 $ par action. Le rapport courant indique : Le 17 janvier 2025, nous avons annoncé une offre publique de rachat dans le cours normal des activités d'un maximum de 20 millions d'actions ordinaires aux fins d'annulation commençant le 22 janvier 2025 et prenant fin au plus tard le 21 janvier 2026. Les dates et les montants des achats effectués en vertu de cette offre sont déterminés par la direction en fonction de facteurs comme les conditions du marché et le niveau des fonds propres. Nous avons également mis en place un régime d'achat automatique de titres lié à l'offre publique de rachat dans le cours normal des activités en vertu duquel notre courtier peut racheter nos actions ordinaires aux termes de cette offre si une série de critères prédéfinis est respectée. Au cours du trimestre clos le 30 avril 2025, nous avons racheté 7 millions d'actions ordinaires aux fins d'annulation aux termes de l'offre publique de rachat dans le cours normal des activités, au prix moyen de 137,52 $ par action pour un montant totalisant 981 millions de dollars, impôt compris. Pour ce qui est du semestre clos le 30 avril 2025, nous avons racheté 8,2 millions d'actions ordinaires aux fins d'annulation aux termes de l'offre publique de rachat dans le cours normal des activités, au prix moyen de 138,53 $ par action pour un montant totalisant 1 157 millions, impôt compris. Nous avons également procédé au rachat de 2 millions d'actions ordinaires en mai 2025 au prix moyen de 136,15 $ par action.\n\nPertinence métier : Les chiffres de rachat d'actions ordinaires ont été mis à jour et des détails supplémentaires ont été ajoutés pour le semestre. Ce changement est substantiel car il affecte la structure de capital et peut influencer la perception des investisseurs. Une investigation est nécessaire pour comprendre l'impact de ces rachats sur la capitalisation de la banque.\n\nPoint de surveillance : capital — Les rachats d'actions peuvent réduire le nombre d'actions en circulation, affectant ainsi le bénéfice par action et la valorisation de la banque.",
+            "change_segments": [
+              {
+                "kind": "removed",
+                "text_t1": ", à certains moments,",
+                "text_t2": ""
+              },
+              {
+                "kind": "added",
+                "text_t1": "",
+                "text_t2": "clos le 30 avril 2025"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "1,2",
+                "text_t2": "7"
+              },
+              {
+                "kind": "added",
+                "text_t1": "",
+                "text_t2": "s"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "44,4",
+                "text_t2": "37,52 $ par action pour un montant totalisant 981 millions de dollars, impôt compris. Pour ce qui est du semestre clos le 30 avril 2025, nous avons racheté 8,2 millions d'actions ordinaires aux fins d'annulation aux termes de l'offre publique de rachat dans le cours normal des activités, au prix moyen de 138,5"
+              },
+              {
+                "kind": "added",
+                "text_t1": "",
+                "text_t2": "15"
+              },
+              {
+                "kind": "removed",
+                "text_t1": "6",
+                "text_t2": ""
+              },
+              {
+                "kind": "removed",
+                "text_t1": "s de dollar",
+                "text_t2": ""
+              },
+              {
+                "kind": "modified",
+                "text_t1": "févr",
+                "text_t2": "ma"
+              },
+              {
+                "kind": "removed",
+                "text_t1": "er",
+                "text_t2": ""
+              },
+              {
+                "kind": "modified",
+                "text_t1": "4",
+                "text_t2": "36,"
+              },
+              {
+                "kind": "modified",
+                "text_t1": ",39",
+                "text_t2": "5"
+              }
+            ]
           }
         },
         {
@@ -395,7 +437,65 @@
               "tone_changed": false,
               "forward_looking": false,
               "quantitative_changed": true
-            }
+            },
+            "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : capital, texte modifié.\n\nCe qui change : Le passage est modifié entre les deux versions. Le rapport précédent indiquait : Le 25 février 2025, BMO a annoncé que le Conseil d'administration avait déclaré un dividende trimestriel sur les actions ordinaires de 1,59 $ par action, montant inchangé par rapport au trimestre précédent. Le dividende doit être versé le 27 mai 2025 aux actionnaires inscrits le 29 avril 2025. Les détenteurs d'actions ordinaires pourront choisir de réinvestir leurs dividendes en trésorerie dans des actions ordinaires de BMO, conformément au Régime de réinvestissement de dividendes et d'achat d'actions destiné aux actionnaires. Le rapport courant indique : Le 28 mai 2025, BMO a annoncé que le Conseil d'administration avait déclaré un dividende trimestriel sur les actions ordinaires de 1,63 $ par action, en hausse de 0,04 $ par rapport au trimestre précédent et de 0,08 $ par rapport à l'exercice précédent. Le dividende doit être versé le 26 août 2025 aux actionnaires inscrits le 30 juillet 2025. Les détenteurs d'actions ordinaires pourront choisir de réinvestir leurs dividendes en trésorerie dans des actions ordinaires de BMO, conformément au Régime de réinvestissement de dividendes et d'achat d'actions destiné aux actionnaires.\n\nPertinence métier : Le montant du dividende trimestriel a été augmenté et les dates de versement et d'inscription ont été modifiées. Ce changement est substantiel car il reflète la politique de distribution de la banque et peut influencer la perception des investisseurs. Il est important de communiquer ces informations aux parties prenantes pour maintenir la transparence.\n\nPoint de surveillance : capital — L'augmentation du dividende peut signaler une confiance accrue dans la performance financière future de la banque.",
+            "change_segments": [
+              {
+                "kind": "modified",
+                "text_t1": "5 févr",
+                "text_t2": "8 ma"
+              },
+              {
+                "kind": "removed",
+                "text_t1": "er",
+                "text_t2": ""
+              },
+              {
+                "kind": "modified",
+                "text_t1": "59",
+                "text_t2": "63"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "mo",
+                "text_t2": "e"
+              },
+              {
+                "kind": "removed",
+                "text_t1": "tant inc",
+                "text_t2": ""
+              },
+              {
+                "kind": "modified",
+                "text_t1": "ngé",
+                "text_t2": "usse de 0,04 $"
+              },
+              {
+                "kind": "added",
+                "text_t1": "",
+                "text_t2": "e précédent et de 0,08 $ par rapport à l'exercic"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "7 m",
+                "text_t2": "6"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "i",
+                "text_t2": "oût"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "29 avr",
+                "text_t2": "30 ju"
+              },
+              {
+                "kind": "added",
+                "text_t1": "",
+                "text_t2": "let"
+              }
+            ]
           }
         }
       ],
@@ -450,7 +550,15 @@
               "tone_changed": false,
               "forward_looking": false,
               "quantitative_changed": true
-            }
+            },
+            "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : capital, information ajoutée.\n\nCe qui change : Le rapport courant ajoute l'information suivante, absente du rapport précédent : Le ratio des fonds propres de catégorie 1 sous forme d'actions ordinaires de BMO s'établissait à 13,5 % au 30 avril 2025, en baisse par rapport à 13,6 % à la clôture du premier trimestre de 2025, la génération interne de fonds propres ayant été plus que neutralisée par l'incidence du rachat d'actions ordinaires aux fins d'annulation dans le cadre de l'offre publique de rachat dans le cours normal des activités de BMO et par la hausse des actifs pondérés en fonction des risques et exprimés en monnaie d'origine. Les fonds propres de catégorie 1 sous forme d'actions ordinaires se situaient à 57,4 milliards de dollars au 30 avril 2025, en baisse par rapport à 59,2 milliards au 31 janvier 2025, en raison du fait que la génération interne de fonds propres a été plus que neutralisée par l'incidence des rachats d'actions et celle des fluctuations des cours de change. Les actifs pondérés en fonction des risques se sont établis à 425,1 milliards de dollars au 30 avril 2025, en baisse par rapport à 433,9 milliards au 31 janvier 2025, ce qui est principalement attribuable à l'incidence des fluctuations des cours de change ainsi qu'au risque opérationnel moins important, ce qui a été contrebalancé en partie par un niveau de risque de crédit plus élevé, reflétant les changements apportés à la qualité et à la taille des actifs et l'accroissement du risque de marché. Dans le cadre du calcul des ratios pour les fonds propres réglementaires, il est nécessaire d'augmenter le total des actifs pondérés en fonction des risques lorsque le montant au titre du plancher de fonds propres calculé selon l'approche standard, multiplié par un facteur d'ajustement du plancher de fonds propres, est supérieur au résultat que l'on obtiendrait en effectuant le calcul selon l'approche de mesure interne plus sensible aux risques, s'il y a lieu. Le plancher de fonds propres ne s'est pas appliqué au 30 avril 2025, tout comme au 31 janvier 2025. Le ratio des fonds propres de catégorie 1 et le ratio du total des fonds propres se situaient respectivement à 15,3 % et à 17,9 % au 30 avril 2025, comparativement à 15,4 % et à 17,6 %, respectivement, au 31 janvier 2025. La baisse du ratio des fonds propres de catégorie 1 est imputable aux mêmes facteurs énoncés pour le ratio des fonds propres de catégorie 1 sous forme d'actions ordinaires. Le ratio du total des fonds propres a augmenté du fait que les facteurs influant sur le ratio des fonds propres de catégorie 1 ont été contrebalancés dans une large mesure par l'émission des billets subordonnés pour un montant de 1 250 millions de dollars. Les investissements de BMO dans ses établissements à l'étranger sont essentiellement libellés en dollars américains et l'incidence de la conversion des actifs pondérés en fonction des risques et des déductions des fonds propres libellés en dollars américains peut faire varier les ratios des fonds propres de la Banque. Nous gérons l'incidence des fluctuations des cours de change sur les actifs pondérés en fonction des risques et les déductions au titre des fonds propres dans nos ratios des fonds propres, et pour le trimestre à l'étude, cette incidence a été essentiellement neutralisée. Notre ratio de levier, établi à 4,4 % au 30 avril 2025, est demeuré stable par rapport au premier trimestre de 2025, étant donné que la diminution des fonds propres de catégorie 1 a été contrebalancée par la diminution de l'exposition aux fins du ratio de levier. Le ratio de la capacité totale d'absorption des pertes (TLAC) fondé sur les risques et le ratio de levier TLAC de la Banque se sont établis respectivement à 29,9 % et à 8,5 % au 30 avril 2025, contre respectivement 29,8 % et 8,5 % au 31 janvier 2025.\n\nPertinence métier : Une nouvelle section a été ajoutée concernant l'analyse des fonds propres réglementaires du deuxième trimestre de. Ce changement est substantiel car il fournit des informations cruciales sur la situation des fonds propres de la banque, ce qui est essentiel pour évaluer sa stabilité financière. Cela nécessite une attention particulière pour s'assurer que les informations sont complètes et précises.\n\nPoint de surveillance : capital — L'ajout de cette section permet une meilleure compréhension de la gestion des fonds propres et des risques associés.",
+            "change_segments": [
+              {
+                "kind": "added",
+                "text_t1": "",
+                "text_t2": "Le ratio des fonds propres de catégorie 1 sous forme d'actions ordinaires de BMO s'établissait à 13,5 % au 30 avril 2025, en baisse par rapport à 13,6 % à la clôture du premier trimestre de 2025, la génération interne de fonds propres ayant été plus que neutralisée par l'incidence du rachat d'actions ordinaires aux fins d'annulation dans le cadre de l'offre publique de rachat dans le cours normal des activités de BMO et par la hausse des actifs pondérés en fonction des risques et exprimés en monnaie d'origine.\n\nLes fonds propres de catégorie 1 sous forme d'actions ordinaires se situaient à 57,4 milliards de dollars au 30 avril 2025, en baisse par rapport à 59,2 milliards au 31 janvier 2025, en raison du fait que la génération interne de fonds propres a été plus que neutralisée par l'incidence des rachats d'actions et celle des fluctuations des cours de change.\n\nLes actifs pondérés en fonction des risques se sont établis à 425,1 milliards de dollars au 30 avril 2025, en baisse par rapport à 433,9 milliards au 31 janvier 2025, ce qui est principalement attribuable à l'incidence des fluctuations des cours de change ainsi qu'au risque opérationnel moins important, ce qui a été contrebalancé en partie par un niveau de risque de crédit plus élevé, reflétant les changements apportés à la qualité et à la taille des actifs et l'accroissement du risque de marché.\n\nDans le cadre du calcul des ratios pour les fonds propres réglementaires, il est nécessaire d'augmenter le total des actifs pondérés en fonction des risques lorsque le montant au titre du plancher de fonds propres calculé selon l'approche standard, multiplié par un facteur d'ajustement du plancher de fonds propres, est supérieur au résultat que l'on obtiendrait en effectuant le calcul selon l'approche de mesure interne plus sensible aux risques, s'il y a lieu. Le plancher de fonds propres ne s'est pas appliqué au 30 avril 2025, tout comme au 31 janvier 2025.\n\nLe ratio des fonds propres de catégorie 1 et le ratio du total des fonds propres se situaient respectivement à 15,3 % et à 17,9 % au 30 avril 2025, comparativement à 15,4 % et à 17,6 %, respectivement, au 31 janvier 2025. La baisse du ratio des fonds propres de catégorie 1 est imputable aux mêmes facteurs énoncés pour le ratio des fonds propres de catégorie 1 sous forme d'actions ordinaires. Le ratio du total des fonds propres a augmenté du fait que les facteurs influant sur le ratio des fonds propres de catégorie 1 ont été contrebalancés dans une large mesure par l'émission des billets subordonnés pour un montant de 1 250 millions de dollars.\n\nLes investissements de BMO dans ses établissements à l'étranger sont essentiellement libellés en dollars américains et l'incidence de la conversion des actifs pondérés en fonction des risques et des déductions des fonds propres libellés en dollars américains peut faire varier les ratios des fonds propres de la Banque. Nous gérons l'incidence des fluctuations des cours de change sur les actifs pondérés en fonction des risques et les déductions au titre des fonds propres dans nos ratios des fonds propres, et pour le trimestre à l'étude, cette incidence a été essentiellement neutralisée.\n\nNotre ratio de levier, établi à 4,4 % au 30 avril 2025, est demeuré stable par rapport au premier trimestre de 2025, étant donné que la diminution des fonds propres de catégorie 1 a été contrebalancée par la diminution de l'exposition aux fins du ratio de levier.\n\nLe ratio de la capacité totale d'absorption des pertes (TLAC) fondé sur les risques et le ratio de levier TLAC de la Banque se sont établis respectivement à 29,9 % et à 8,5 % au 30 avril 2025, contre respectivement 29,8 % et 8,5 % au 31 janvier 2025."
+              }
+            ]
           }
         },
         {
@@ -503,60 +611,15 @@
               "tone_changed": false,
               "forward_looking": true,
               "quantitative_changed": true
-            }
-          }
-        },
-        {
-          "change_id": "gestion_capital_autres_faits_nouveaux_touchant_le_capita_change_016",
-          "section_key": "gestion_capital",
-          "subsection_heading": "Autres faits nouveaux touchant le capital",
-          "diff_type": "added",
-          "semantic_text_t1": "",
-          "semantic_text_t2": "Le mars, nous avons émis des billets à moyen terme de série N, première tranche, à (FPUNV) pour un montant de millions de dollars dans le cadre de notre programme de billets à moyen terme canadiens",
-          "source_text_t1": "",
-          "source_text_t2": "Le 5 mars 2025, nous avons émis des billets à moyen terme de série N, première tranche, à 4,077 % (FPUNV) pour un montant de 1 250 millions de dollars dans le cadre de notre programme de billets à moyen terme canadiens.",
-          "source_block_ids_t1": [],
-          "source_block_ids_t2": [],
-          "source_refs_t1": [],
-          "source_refs_t2": [],
-          "pages_t1": [],
-          "pages_t2": [
-            25
-          ],
-          "source_resolution_t1": "markdown",
-          "source_resolution_t2": "markdown",
-          "evidence_t1": {
-            "pages": [],
-            "snippet": ""
-          },
-          "evidence_t2": {
-            "pages": [
-              25
-            ],
-            "snippet": "Le 5 mars 2025, nous avons émis des billets à moyen terme de série N, première tranche, à 4,077 % (FPUNV) pour un montant de 1 250 millions de dollars dans le cadre de notre programme de billets à moyen terme canadiens."
-          },
-          "change_summary": "Ajout d'une émission de billets à moyen terme de série N",
-          "genai_triage": {
-            "is_relevant": true,
-            "category": "CAPITAL",
-            "impact_level": "MODERE",
-            "risk_type": "capital",
-            "relevance_score": "FAIBLE",
-            "risk_level": "FAIBLE",
-            "explanation": "Une nouvelle émission de billets à moyen terme a été réalisée. Ce changement est substantiel car il augmente la dette de la banque et peut influencer sa capacité à lever des fonds à l'avenir. Il est crucial de confirmer cette émission pour comprendre son impact sur la structure de capital",
-            "impact_description": "L'émission de nouveaux billets à moyen terme peut affecter le coût de financement et la flexibilité financière de la banque",
-            "action_requise": "confirmation",
-            "reference_reglementaire": "",
-            "nouvelle_idee": true,
-            "confidence": 0.0,
-            "source": "gpt4o_triage",
-            "signals": {
-              "regulatory_reference_added": false,
-              "methodology_change": false,
-              "tone_changed": false,
-              "forward_looking": true,
-              "quantitative_changed": true
-            }
+            },
+            "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : liquidite, information ajoutée.\n\nCe qui change : Le rapport courant ajoute l'information suivante, absente du rapport précédent : Le 6 mai 2025, nous avons fait part de notre intention de racheter la totalité de nos billets à moyen terme de série J, deuxième tranche, à 2,077 % (FPUNV) d'une valeur de 1 250 millions de dollars, à un prix de rachat correspondant à 100 % du capital majoré des intérêts courus et impayés jusqu'à la date de rachat, exclusion faite de celle-ci, le 17 juin 2025.\n\nPertinence métier : Une nouvelle intention de rachat de billets à moyen terme a été annoncée. Ce changement est substantiel car il affecte la structure de la dette de la banque et peut influencer sa liquidité et son profil de risque. Il est important de confirmer cette action pour évaluer son impact sur la gestion du capital.\n\nPoint de surveillance : liquidite — Le rachat de billets à moyen terme peut réduire la dette à court terme mais nécessite une évaluation de l'impact sur la liquidité.",
+            "change_segments": [
+              {
+                "kind": "added",
+                "text_t1": "",
+                "text_t2": "Le 6 mai 2025, nous avons fait part de notre intention de racheter la totalité de nos billets à moyen terme de série J, deuxième tranche, à 2,077 % (FPUNV) d'une valeur de 1 250 millions de dollars, à un prix de rachat correspondant à 100 % du capital majoré des intérêts courus et impayés jusqu'à la date de rachat, exclusion faite de celle-ci, le 17 juin 2025."
+              }
+            ]
           }
         },
         {
@@ -609,7 +672,15 @@
               "tone_changed": false,
               "forward_looking": false,
               "quantitative_changed": true
-            }
+            },
+            "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : capital, information retirée.\n\nCe qui change : Le rapport courant retire l'information suivante, présente au rapport précédent : Le ratio des fonds propres de catégorie 1 sous forme d'actions ordinaires de BMO s'établissait à 13,6 % au 31 janvier 2025, alors qu'il est demeuré stable comparativement au quatrième trimestre de 2024, la génération interne de fonds propres ayant été neutralisée en grande partie par la hausse des actifs pondérés en fonction des risques et exprimés en monnaie d'origine et par l'incidence du rachat d'actions ordinaires aux fins d'annulation dans le cadre de l'offre publique de rachat dans le cours normal des activités de BMO. Les fonds propres de catégorie 1 sous forme d'actions ordinaires se situaient à 59,2 milliards de dollars au 31 janvier 2025, en hausse par rapport à 57,1 milliards au 31 octobre 2024, en raison de l'incidence des fluctuations des cours de change et de la génération interne de fonds propres, ce qui a été contré en partie par l'incidence des rachats d'actions. Les actifs pondérés en fonction des risques se sont établis à 433,9 milliards de dollars au 31 janvier 2025, en hausse par rapport à 420,8 milliards au 31 octobre 2024, ce qui est principalement attribuable à l'incidence des fluctuations des cours de change, aux changements apportés à la qualité des actifs, à l'augmentation de la taille des actifs et à l'accroissement du risque de marché. Dans le cadre du calcul des ratios pour les fonds propres réglementaires, il est nécessaire d'augmenter le total des actifs pondérés en fonction des risques lorsque le montant au titre du plancher de fonds propres calculé selon l'approche standard, multiplié par un facteur d'ajustement du plancher de fonds propres, est supérieur au résultat que l'on obtiendrait en effectuant le calcul selon l'approche de mesure interne plus sensible aux risques, s'il y a lieu. Le plancher de fonds propres ne s'est pas appliqué au 31 janvier 2025, tout comme au 31 octobre 2024. Le ratio des fonds propres de catégorie 1 et le ratio du total des fonds propres se situaient respectivement à 15,4 % et à 17,6 % au 31 janvier 2025 , ce qui est inchangé depuis le 31 octobre 2024 en raison des mêmes facteurs influant sur le ratio des fonds propres de catégorie 1 sous forme d'actions ordinaires. L'incidence des fluctuations de change sur les ratios de fonds propres a été essentiellement contrebalancée. Les investissements de BMO dans ses établissements à l'étranger sont essentiellement libellés en dollars américains et l'incidence de la conversion des actifs pondérés en fonction des risques et des déductions des fonds propres libellés en dollars américains peut faire varier les ratios des fonds propres de la Banque. Nous gérons l'incidence des fluctuations des cours de change sur les actifs pondérés en fonction des risques et les déductions au titre des fonds propres dans nos ratios des fonds propres. Notre ratio de levier, établi à 4,4 % au 31 janvier 2025, est demeuré relativement stable par rapport au quatrième trimestre de 2024, étant donné que l'augmentation des fonds propres de catégorie 1 a été contrebalancée par l'augmentation de l'exposition aux fins du ratio de levier. Le ratio de la capacité totale d'absorption des pertes (TLAC) fondé sur les risques et le ratio de levier TLAC de la Banque se sont établis respectivement à 29,8 % et à 8,5 % au 31 janvier 2025, contre respectivement 29,3 % et à 8,3 % au 31 octobre 2024.\n\nPertinence métier : La section entière concernant l'analyse des fonds propres réglementaires du premier trimestre de a été supprimée. Ce changement est substantiel car il retire des informations cruciales sur la situation des fonds propres de la banque, ce qui pourrait masquer des évolutions importantes. Cela implique une vigilance accrue pour s'assurer que les informations sur les fonds propres sont complètes et transparentes.\n\nPoint de surveillance : capital — La suppression de cette section pourrait indiquer un manque de transparence ou un changement significatif dans la gestion des fonds propres qui n'est pas communiqué.",
+            "change_segments": [
+              {
+                "kind": "removed",
+                "text_t1": "Le ratio des fonds propres de catégorie 1 sous forme d'actions ordinaires de BMO s'établissait à 13,6 % au 31 janvier 2025, alors qu'il est demeuré stable comparativement au quatrième trimestre de 2024, la génération interne de fonds propres ayant été neutralisée en grande partie par la hausse des actifs pondérés en fonction des risques et exprimés en monnaie d'origine et par l'incidence du rachat d'actions ordinaires aux fins d'annulation dans le cadre de l'offre publique de rachat dans le cours normal des activités de BMO.\n\nLes fonds propres de catégorie 1 sous forme d'actions ordinaires se situaient à 59,2 milliards de dollars au 31 janvier 2025, en hausse par rapport à 57,1 milliards au 31 octobre 2024, en raison de l'incidence des fluctuations des cours de change et de la génération interne de fonds propres, ce qui a été contré en partie par l'incidence des rachats d'actions.\n\nLes actifs pondérés en fonction des risques se sont établis à 433,9 milliards de dollars au 31 janvier 2025, en hausse par rapport à 420,8 milliards au 31 octobre 2024, ce qui est principalement attribuable à l'incidence des fluctuations des cours de change, aux changements apportés à la qualité des actifs, à l'augmentation de la taille des actifs et à l'accroissement du risque de marché.\n\nDans le cadre du calcul des ratios pour les fonds propres réglementaires, il est nécessaire d'augmenter le total des actifs pondérés en fonction des risques lorsque le montant au titre du plancher de fonds propres calculé selon l'approche standard, multiplié par un facteur d'ajustement du plancher de fonds propres, est supérieur au résultat que l'on obtiendrait en effectuant le calcul selon l'approche de mesure interne plus sensible aux risques, s'il y a lieu. Le plancher de fonds propres ne s'est pas appliqué au 31 janvier 2025, tout comme au 31 octobre 2024.\n\nLe ratio des fonds propres de catégorie 1 et le ratio du total des fonds propres se situaient respectivement à 15,4 % et à 17,6 % au 31 janvier 2025 , ce qui est inchangé depuis le 31 octobre 2024 en raison des mêmes facteurs influant sur le ratio des fonds propres de catégorie 1 sous forme d'actions ordinaires.\n\nL'incidence des fluctuations de change sur les ratios de fonds propres a été essentiellement contrebalancée. Les investissements de BMO dans ses établissements à l'étranger sont essentiellement libellés en dollars américains et l'incidence de la conversion des actifs pondérés en fonction des risques et des déductions des fonds propres libellés en dollars américains peut faire varier les ratios des fonds propres de la Banque. Nous gérons l'incidence des fluctuations des cours de change sur les actifs pondérés en fonction des risques et les déductions au titre des fonds propres dans nos ratios des fonds propres.\n\nNotre ratio de levier, établi à 4,4 % au 31 janvier 2025, est demeuré relativement stable par rapport au quatrième trimestre de 2024, étant donné que l'augmentation des fonds propres de catégorie 1 a été contrebalancée par l'augmentation de l'exposition aux fins du ratio de levier.\n\nLe ratio de la capacité totale d'absorption des pertes (TLAC) fondé sur les risques et le ratio de levier TLAC de la Banque se sont établis respectivement à 29,8 % et à 8,5 % au 31 janvier 2025, contre respectivement 29,3 % et à 8,3 % au 31 octobre 2024.",
+                "text_t2": ""
+              }
+            ]
           }
         },
         {
@@ -666,7 +737,15 @@
               "tone_changed": false,
               "forward_looking": false,
               "quantitative_changed": true
-            }
+            },
+            "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : capital, texte modifié.\n\nCe qui change : Le passage est modifié entre les deux versions. Le rapport précédent indiquait : Advenant le cas où se produirait un événement déclencheur de fonds propres d'urgence en cas de non-viabilité (FPUNV), nos instruments compris dans les FPUNV seraient convertis en actions ordinaires de BMO selon une formule de conversion automatique à un prix de conversion correspondant au plus élevé des montants suivants : i) un prix plancher de 5,00 $ et ii) le cours du marché de nos actions ordinaires à la date de l'événement déclencheur (calculé selon un prix moyen pondéré sur 10 jours). Selon un prix plancher de 5,00 $, ces instruments de capital compris dans les FPUNV seraient convertis en environ 4,3 milliards d'actions ordinaires de BMO, dans l'hypothèse où il n'y aurait ni intérêts courus ni dividendes déclarés et impayés. Le rapport courant indique : Advenant le cas où se produirait un événement déclencheur de fonds propres d'urgence en cas de non-viabilité (FPUNV), nos instruments compris dans les FPUNV seraient convertis en actions ordinaires de BMO selon une formule de conversion automatique à un prix de conversion correspondant au plus élevé des montants suivants : i) un prix plancher de 5,00 $ et ii) le cours du marché de nos actions ordinaires à la date de l'événement déclencheur (calculé selon un prix moyen pondéré sur 10 jours). Selon un prix plancher de 5,00 $, ces instruments de capital compris dans les FPUNV seraient convertis en environ 4,6 milliards d'actions ordinaires de BMO, dans l'hypothèse où il n'y aurait ni intérêts courus ni dividendes déclarés et impayés.\n\nPertinence métier : Le nombre d'actions ordinaires de BMO converties en cas de déclenchement de fonds propres d'urgence a changé. Ce changement est substantiel car il affecte directement la capacité de la banque à absorber les pertes en cas de crise. Cela nécessite une vérification pour comprendre l'impact potentiel sur la structure de capital de la banque.\n\nPoint de surveillance : capital — La modification du nombre d'actions converties pourrait affecter la dilution des actions existantes et la perception des investisseurs.",
+            "change_segments": [
+              {
+                "kind": "modified",
+                "text_t1": "3",
+                "text_t2": "6"
+              }
+            ]
           }
         },
         {
@@ -723,7 +802,70 @@
               "tone_changed": false,
               "forward_looking": false,
               "quantitative_changed": true
-            }
+            },
+            "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : capital, texte modifié.\n\nCe qui change : Le passage est modifié entre les deux versions. Le rapport précédent indiquait : Le 17 janvier 2025, nous avons annoncé une offre publique de rachat dans le cours normal des activités d'un maximum de 20 millions d'actions ordinaires aux fins d'annulation commençant le 22 janvier 2025 et prenant fin au plus tard le 21 janvier 2026. Les dates et les montants des achats effectués en vertu de cette offre sont déterminés par la direction en fonction de facteurs comme les conditions du marché et le niveau des fonds propres. Nous avons également mis en place un régime d'achat automatique de titres lié à l'offre publique de rachat dans le cours normal des activités en vertu duquel notre courtier peut, à certains moments, racheter nos actions ordinaires aux termes de cette offre si une série de critères prédéfinis est respectée. Au cours du trimestre, nous avons racheté 1,2 million d'actions ordinaires aux fins d'annulation aux termes de l'offre publique de rachat dans le cours normal des activités, au prix moyen de 144,43 $ par action pour un montant totalisant 176 millions de dollars, impôt compris. Nous avons également procédé au rachat de 2 millions d'actions ordinaires en février 2025 au prix moyen de 141,39 $ par action. Le rapport courant indique : Le 17 janvier 2025, nous avons annoncé une offre publique de rachat dans le cours normal des activités d'un maximum de 20 millions d'actions ordinaires aux fins d'annulation commençant le 22 janvier 2025 et prenant fin au plus tard le 21 janvier 2026. Les dates et les montants des achats effectués en vertu de cette offre sont déterminés par la direction en fonction de facteurs comme les conditions du marché et le niveau des fonds propres. Nous avons également mis en place un régime d'achat automatique de titres lié à l'offre publique de rachat dans le cours normal des activités en vertu duquel notre courtier peut racheter nos actions ordinaires aux termes de cette offre si une série de critères prédéfinis est respectée. Au cours du trimestre clos le 30 avril 2025, nous avons racheté 7 millions d'actions ordinaires aux fins d'annulation aux termes de l'offre publique de rachat dans le cours normal des activités, au prix moyen de 137,52 $ par action pour un montant totalisant 981 millions de dollars, impôt compris. Pour ce qui est du semestre clos le 30 avril 2025, nous avons racheté 8,2 millions d'actions ordinaires aux fins d'annulation aux termes de l'offre publique de rachat dans le cours normal des activités, au prix moyen de 138,53 $ par action pour un montant totalisant 1 157 millions, impôt compris. Nous avons également procédé au rachat de 2 millions d'actions ordinaires en mai 2025 au prix moyen de 136,15 $ par action.\n\nPertinence métier : Les chiffres de rachat d'actions ordinaires ont été mis à jour et des détails supplémentaires ont été ajoutés pour le semestre. Ce changement est substantiel car il affecte la structure de capital et peut influencer la perception des investisseurs. Une investigation est nécessaire pour comprendre l'impact de ces rachats sur la capitalisation de la banque.\n\nPoint de surveillance : capital — Les rachats d'actions peuvent réduire le nombre d'actions en circulation, affectant ainsi le bénéfice par action et la valorisation de la banque.",
+            "change_segments": [
+              {
+                "kind": "removed",
+                "text_t1": ", à certains moments,",
+                "text_t2": ""
+              },
+              {
+                "kind": "added",
+                "text_t1": "",
+                "text_t2": "clos le 30 avril 2025"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "1,2",
+                "text_t2": "7"
+              },
+              {
+                "kind": "added",
+                "text_t1": "",
+                "text_t2": "s"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "44,4",
+                "text_t2": "37,52 $ par action pour un montant totalisant 981 millions de dollars, impôt compris. Pour ce qui est du semestre clos le 30 avril 2025, nous avons racheté 8,2 millions d'actions ordinaires aux fins d'annulation aux termes de l'offre publique de rachat dans le cours normal des activités, au prix moyen de 138,5"
+              },
+              {
+                "kind": "added",
+                "text_t1": "",
+                "text_t2": "15"
+              },
+              {
+                "kind": "removed",
+                "text_t1": "6",
+                "text_t2": ""
+              },
+              {
+                "kind": "removed",
+                "text_t1": "s de dollar",
+                "text_t2": ""
+              },
+              {
+                "kind": "modified",
+                "text_t1": "févr",
+                "text_t2": "ma"
+              },
+              {
+                "kind": "removed",
+                "text_t1": "er",
+                "text_t2": ""
+              },
+              {
+                "kind": "modified",
+                "text_t1": "4",
+                "text_t2": "36,"
+              },
+              {
+                "kind": "modified",
+                "text_t1": ",39",
+                "text_t2": "5"
+              }
+            ]
           }
         },
         {
@@ -780,7 +922,65 @@
               "tone_changed": false,
               "forward_looking": false,
               "quantitative_changed": true
-            }
+            },
+            "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : capital, texte modifié.\n\nCe qui change : Le passage est modifié entre les deux versions. Le rapport précédent indiquait : Le 25 février 2025, BMO a annoncé que le Conseil d'administration avait déclaré un dividende trimestriel sur les actions ordinaires de 1,59 $ par action, montant inchangé par rapport au trimestre précédent. Le dividende doit être versé le 27 mai 2025 aux actionnaires inscrits le 29 avril 2025. Les détenteurs d'actions ordinaires pourront choisir de réinvestir leurs dividendes en trésorerie dans des actions ordinaires de BMO, conformément au Régime de réinvestissement de dividendes et d'achat d'actions destiné aux actionnaires. Le rapport courant indique : Le 28 mai 2025, BMO a annoncé que le Conseil d'administration avait déclaré un dividende trimestriel sur les actions ordinaires de 1,63 $ par action, en hausse de 0,04 $ par rapport au trimestre précédent et de 0,08 $ par rapport à l'exercice précédent. Le dividende doit être versé le 26 août 2025 aux actionnaires inscrits le 30 juillet 2025. Les détenteurs d'actions ordinaires pourront choisir de réinvestir leurs dividendes en trésorerie dans des actions ordinaires de BMO, conformément au Régime de réinvestissement de dividendes et d'achat d'actions destiné aux actionnaires.\n\nPertinence métier : Le montant du dividende trimestriel a été augmenté et les dates de versement et d'inscription ont été modifiées. Ce changement est substantiel car il reflète la politique de distribution de la banque et peut influencer la perception des investisseurs. Il est important de communiquer ces informations aux parties prenantes pour maintenir la transparence.\n\nPoint de surveillance : capital — L'augmentation du dividende peut signaler une confiance accrue dans la performance financière future de la banque.",
+            "change_segments": [
+              {
+                "kind": "modified",
+                "text_t1": "5 févr",
+                "text_t2": "8 ma"
+              },
+              {
+                "kind": "removed",
+                "text_t1": "er",
+                "text_t2": ""
+              },
+              {
+                "kind": "modified",
+                "text_t1": "59",
+                "text_t2": "63"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "mo",
+                "text_t2": "e"
+              },
+              {
+                "kind": "removed",
+                "text_t1": "tant inc",
+                "text_t2": ""
+              },
+              {
+                "kind": "modified",
+                "text_t1": "ngé",
+                "text_t2": "usse de 0,04 $"
+              },
+              {
+                "kind": "added",
+                "text_t1": "",
+                "text_t2": "e précédent et de 0,08 $ par rapport à l'exercic"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "7 m",
+                "text_t2": "6"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "i",
+                "text_t2": "oût"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "29 avr",
+                "text_t2": "30 ju"
+              },
+              {
+                "kind": "added",
+                "text_t1": "",
+                "text_t2": "let"
+              }
+            ]
           }
         },
         {
@@ -837,7 +1037,8 @@
               "tone_changed": false,
               "forward_looking": false,
               "quantitative_changed": false
-            }
+            },
+            "change_segments": []
           }
         }
       ],
@@ -908,7 +1109,15 @@
               "tone_changed": false,
               "forward_looking": true,
               "quantitative_changed": false
-            }
+            },
+            "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Risque climatique, ESG, nouvelle mention réglementaire, conformité, information ajoutée.\n\nCe qui change : Le rapport courant ajoute l'information suivante, absente du rapport précédent : En mars 2025, le BSIF a publié une mise à jour de la ligne directrice B-15 afin de l'harmoniser avec les exigences des normes du Conseil canadien des normes d'information sur la durabilité. Les principales modifications comprennent le report de la date de mise en œuvre pour la communication d'informations sur les émissions de GES du champ d'application 3 et les mesures sectorielles de trois ans, jusqu'à l'exercice 2028. Nous avons tenu compte de ces modifications dans nos plans de mise en œuvre.\n\nPertinence métier : Ce changement met l'accent sur l'évolution du cadre réglementaire applicable aux divulgations climatiques des institutions financières. La mise à jour de la ligne directrice B-15 par le BSIF, notamment le report des exigences liées aux émissions de GES de portée 3, peut influencer la manière dont les banques planifient leur conformité, structurent leurs contrôles ESG et communiquent leurs risques climatiques. Ce point est important à suivre, car il permet d'évaluer l'évolution des attentes prudentielles, la comparabilité des pratiques de divulgation entre pairs et le niveau de préparation des banques face aux exigences climatiques.\n\nPoint de surveillance : Risque climatique / ESG — Le changement indique que la banque tient compte de la mise à jour de la ligne directrice B-15 du BSIF et du report des exigences liées aux émissions de GES de portée 3. Ce point permet de suivre l'adaptation des banques aux attentes prudentielles climatiques, leur niveau de préparation ESG et la comparabilité de leurs pratiques de divulgation entre pairs.",
+            "change_segments": [
+              {
+                "kind": "added",
+                "text_t1": "",
+                "text_t2": "En mars 2025, le BSIF a publié une mise à jour de la ligne directrice B-15 afin de l'harmoniser avec les exigences des normes du Conseil canadien des normes d'information sur la durabilité. Les principales modifications comprennent le report de la date de mise en œuvre pour la communication d'informations sur les émissions de GES du champ d'application 3 et les mesures sectorielles de trois ans, jusqu'à l'exercice 2028. Nous avons tenu compte de ces modifications dans nos plans de mise en œuvre."
+              }
+            ]
           }
         },
         {
@@ -961,7 +1170,15 @@
               "tone_changed": false,
               "forward_looking": false,
               "quantitative_changed": false
-            }
+            },
+            "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : nouvelle mention réglementaire, conformité, information retirée.\n\nCe qui change : Le rapport courant retire l'information suivante, présente au rapport précédent : Le 20 juin 2024, le gouvernement du Canada a adopté des lois portant sur un certain nombre de mesures, notamment la Loi de l'impôt minimum mondial, qui instaure un impôt minimum mondial de 15 % sur le revenu gagné par les grands groupes de multinationales. Les règles relatives à l'impôt minimum mondial sont entrées en vigueur pour notre exercice ouvert le 1 er novembre 2024 et, par conséquent, notre taux d'impôt effectif a augmenté d'environ 65 points de base pour le trimestre clos le 31 janvier 2025.\n\nPertinence métier : La section concernant l'impôt minimum mondial a été supprimée entre le premier et le deuxième trimestre. Ce changement est substantiel car il concerne une modification réglementaire qui affecte directement le taux d'imposition effectif de la banque. Cela implique que la banque doit clarifier l'impact de cette suppression sur ses obligations fiscales et ses rapports réglementaires.\n\nPoint de surveillance : nouvelle mention réglementaire — La suppression de cette section pourrait indiquer un changement dans la manière dont la banque gère ou rapporte ses obligations fiscales, ce qui nécessite une vérification pour s'assurer de la conformité continue.",
+            "change_segments": [
+              {
+                "kind": "removed",
+                "text_t1": "Le 20 juin 2024, le gouvernement du Canada a adopté des lois portant sur un certain nombre de mesures, notamment la Loi de l'impôt minimum mondial, qui instaure un impôt minimum mondial de 15 % sur le revenu gagné par les grands groupes de multinationales. Les règles relatives à l'impôt minimum mondial sont entrées en vigueur pour notre exercice ouvert le 1 er novembre 2024 et, par conséquent, notre taux d'impôt effectif a augmenté d'environ 65 points de base pour le trimestre clos le 31 janvier 2025.",
+                "text_t2": ""
+              }
+            ]
           }
         }
       ],
@@ -1016,7 +1233,15 @@
               "tone_changed": false,
               "forward_looking": true,
               "quantitative_changed": false
-            }
+            },
+            "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Risque climatique, ESG, nouvelle mention réglementaire, conformité, information ajoutée.\n\nCe qui change : Le rapport courant ajoute l'information suivante, absente du rapport précédent : En mars 2025, le BSIF a publié une mise à jour de la ligne directrice B-15 afin de l'harmoniser avec les exigences des normes du Conseil canadien des normes d'information sur la durabilité. Les principales modifications comprennent le report de la date de mise en œuvre pour la communication d'informations sur les émissions de GES du champ d'application 3 et les mesures sectorielles de trois ans, jusqu'à l'exercice 2028. Nous avons tenu compte de ces modifications dans nos plans de mise en œuvre.\n\nPertinence métier : Ce changement met l'accent sur l'évolution du cadre réglementaire applicable aux divulgations climatiques des institutions financières. La mise à jour de la ligne directrice B-15 par le BSIF, notamment le report des exigences liées aux émissions de GES de portée 3, peut influencer la manière dont les banques planifient leur conformité, structurent leurs contrôles ESG et communiquent leurs risques climatiques. Ce point est important à suivre, car il permet d'évaluer l'évolution des attentes prudentielles, la comparabilité des pratiques de divulgation entre pairs et le niveau de préparation des banques face aux exigences climatiques.\n\nPoint de surveillance : Risque climatique / ESG — Le changement indique que la banque tient compte de la mise à jour de la ligne directrice B-15 du BSIF et du report des exigences liées aux émissions de GES de portée 3. Ce point permet de suivre l'adaptation des banques aux attentes prudentielles climatiques, leur niveau de préparation ESG et la comparabilité de leurs pratiques de divulgation entre pairs.",
+            "change_segments": [
+              {
+                "kind": "added",
+                "text_t1": "",
+                "text_t2": "En mars 2025, le BSIF a publié une mise à jour de la ligne directrice B-15 afin de l'harmoniser avec les exigences des normes du Conseil canadien des normes d'information sur la durabilité. Les principales modifications comprennent le report de la date de mise en œuvre pour la communication d'informations sur les émissions de GES du champ d'application 3 et les mesures sectorielles de trois ans, jusqu'à l'exercice 2028. Nous avons tenu compte de ces modifications dans nos plans de mise en œuvre."
+              }
+            ]
           }
         },
         {
@@ -1069,7 +1294,15 @@
               "tone_changed": false,
               "forward_looking": false,
               "quantitative_changed": false
-            }
+            },
+            "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : nouvelle mention réglementaire, conformité, information retirée.\n\nCe qui change : Le rapport courant retire l'information suivante, présente au rapport précédent : Le 20 juin 2024, le gouvernement du Canada a adopté des lois portant sur un certain nombre de mesures, notamment la Loi de l'impôt minimum mondial, qui instaure un impôt minimum mondial de 15 % sur le revenu gagné par les grands groupes de multinationales. Les règles relatives à l'impôt minimum mondial sont entrées en vigueur pour notre exercice ouvert le 1 er novembre 2024 et, par conséquent, notre taux d'impôt effectif a augmenté d'environ 65 points de base pour le trimestre clos le 31 janvier 2025.\n\nPertinence métier : La section concernant l'impôt minimum mondial a été supprimée entre le premier et le deuxième trimestre. Ce changement est substantiel car il concerne une modification réglementaire qui affecte directement le taux d'imposition effectif de la banque. Cela implique que la banque doit clarifier l'impact de cette suppression sur ses obligations fiscales et ses rapports réglementaires.\n\nPoint de surveillance : nouvelle mention réglementaire — La suppression de cette section pourrait indiquer un changement dans la manière dont la banque gère ou rapporte ses obligations fiscales, ce qui nécessite une vérification pour s'assurer de la conformité continue.",
+            "change_segments": [
+              {
+                "kind": "removed",
+                "text_t1": "Le 20 juin 2024, le gouvernement du Canada a adopté des lois portant sur un certain nombre de mesures, notamment la Loi de l'impôt minimum mondial, qui instaure un impôt minimum mondial de 15 % sur le revenu gagné par les grands groupes de multinationales. Les règles relatives à l'impôt minimum mondial sont entrées en vigueur pour notre exercice ouvert le 1 er novembre 2024 et, par conséquent, notre taux d'impôt effectif a augmenté d'environ 65 points de base pour le trimestre clos le 31 janvier 2025.",
+                "text_t2": ""
+              }
+            ]
           }
         }
       ],
@@ -1140,7 +1373,15 @@
               "tone_changed": true,
               "forward_looking": true,
               "quantitative_changed": false
-            }
+            },
+            "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : conformité, information ajoutée.\n\nCe qui change : Le rapport courant ajoute l'information suivante, absente du rapport précédent : Ces risques peuvent influer de façon importante sur les résultats financiers, l'efficacité opérationnelle, l'orientation stratégique ou la réputation de BMO. Nous continuons de surveiller le contexte dans lequel la Banque exerce ses activités afin de repérer et de pallier une détérioration des conditions, par exemple l'évolution de la situation économique générale et des différends commerciaux ainsi que d'éventuelles modifications des lois fiscales aux États-Unis, et de prendre les mesures nécessaires pour en atténuer l'incidence sur nos résultats. Il y a lieu de se reporter à la section Évolution de la situation économique et perspectives pour les faits nouveaux concernant la situation économique générale et les différends commerciaux.\n\nPertinence métier : Une nouvelle section a été ajoutée pour expliquer l'impact potentiel des risques sur les résultats financiers et la stratégie de la banque. Ce changement est substantiel car il introduit des éléments de surveillance proactive face à des conditions économiques et légales changeantes. Cela implique que la banque doit renforcer ses mécanismes de suivi pour anticiper et atténuer les risques émergents.\n\nPoint de surveillance : conformité — La banque pourrait être exposée à des fluctuations économiques et légales qui affecteraient ses performances financières et sa réputation.",
+            "change_segments": [
+              {
+                "kind": "added",
+                "text_t1": "",
+                "text_t2": "Ces risques peuvent influer de façon importante sur les résultats financiers, l'efficacité opérationnelle, l'orientation stratégique ou la réputation de BMO. Nous continuons de surveiller le contexte dans lequel la Banque exerce ses activités afin de repérer et de pallier une détérioration des conditions, par exemple l'évolution de la situation économique générale et des différends commerciaux ainsi que d'éventuelles modifications des lois fiscales aux États-Unis, et de prendre les mesures nécessaires pour en atténuer l'incidence sur nos résultats. Il y a lieu de se reporter à la section Évolution de la situation économique et perspectives pour les faits nouveaux concernant la situation économique générale et les différends commerciaux."
+              }
+            ]
           }
         },
         {
@@ -1197,7 +1438,50 @@
               "tone_changed": false,
               "forward_looking": true,
               "quantitative_changed": true
-            }
+            },
+            "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : marche, texte modifié.\n\nCe qui change : Le passage est modifié entre les deux versions. Le rapport précédent indiquait : La moyenne du total de la valeur à risque (VaR) liée aux activités de négociation a augmenté d'un trimestre à l'autre en raison surtout de l'exposition plus importante aux titres de capitaux propres, contrée en partie par une exposition moindre aux taux d'intérêt. Le rapport courant indique : La moyenne du total de la valeur à risque (VaR) liée aux activités de négociation a diminué d'un trimestre à l'autre en raison surtout de l'exposition moins importante aux titres de capitaux propres, contrée en partie par une plus grande volatilité des marchés et par les variations de l'exposition aux produits de base.\n\nPertinence métier : La valeur à risque liée aux activités de négociation a diminué, indiquant une réduction de l'exposition aux titres de capitaux propres. Ce changement est significatif car il reflète une modification de la stratégie de gestion des risques face à une volatilité accrue des marchés. Cela nécessite une réévaluation des stratégies de couverture pour s'assurer que la banque reste protégée contre les fluctuations du marché.\n\nPoint de surveillance : marche — Une diminution de la valeur à risque pourrait indiquer une exposition réduite aux pertes potentielles, mais nécessite une surveillance accrue des nouvelles sources de volatilité.",
+            "change_segments": [
+              {
+                "kind": "modified",
+                "text_t1": "a",
+                "text_t2": "dimin"
+              },
+              {
+                "kind": "removed",
+                "text_t1": "gment",
+                "text_t2": ""
+              },
+              {
+                "kind": "modified",
+                "text_t1": "plu",
+                "text_t2": "moin"
+              },
+              {
+                "kind": "added",
+                "text_t1": "",
+                "text_t2": "plus grande volatilité des marchés et par les variations de l'"
+              },
+              {
+                "kind": "removed",
+                "text_t1": "moindre",
+                "text_t2": ""
+              },
+              {
+                "kind": "added",
+                "text_t1": "",
+                "text_t2": "produi"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "aux",
+                "text_t2": "s"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "'intérêt",
+                "text_t2": "e base"
+              }
+            ]
           }
         },
         {
@@ -1254,7 +1538,105 @@
               "tone_changed": false,
               "forward_looking": false,
               "quantitative_changed": true
-            }
+            },
+            "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : nouvelle mention réglementaire, liquidite, texte modifié.\n\nCe qui change : Le passage est modifié entre les deux versions. Le rapport précédent indiquait : Le RLCT moyen quotidien pour le trimestre clos le 31 janvier 2025 a été de 128 %, ce qui correspond à un excédent de 56,3 milliards de dollars par rapport au seuil réglementaire minimal. Le RLCT a diminué de 4 % par rapport à 132 % au trimestre précédent, la hausse des actifs liquides de haute qualité ayant été plus que neutralisée par l'accroissement des sorties nettes de trésorerie. Le rapport courant indique : Le RLCT moyen quotidien pour le trimestre clos le 30 avril 2025 a été de 134 %, ce qui correspond à un excédent de 65,2 milliards de dollars par rapport au seuil réglementaire minimal. Le RLCT a augmenté de 6 % par rapport à 128 % au trimestre précédent, du fait d'une diminution des sorties nettes de trésorerie.\n\nPertinence métier : Le ratio de liquidité à court terme (RLCT) a augmenté, indiquant une amélioration de la position de liquidité de la banque. Ce changement est crucial car il montre une gestion efficace des sorties nettes de trésorerie, renforçant la conformité réglementaire. Cela implique que la banque doit continuer à optimiser ses actifs liquides pour maintenir cet excédent.\n\nPoint de surveillance : nouvelle mention réglementaire — Une augmentation du RLCT améliore la résilience de la banque face aux tensions de liquidité, renforçant sa conformité réglementaire.",
+            "change_segments": [
+              {
+                "kind": "modified",
+                "text_t1": "1 j",
+                "text_t2": "0"
+              },
+              {
+                "kind": "removed",
+                "text_t1": "n",
+                "text_t2": ""
+              },
+              {
+                "kind": "added",
+                "text_t1": "",
+                "text_t2": "r"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "er",
+                "text_t2": "l"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "28",
+                "text_t2": "34"
+              },
+              {
+                "kind": "added",
+                "text_t1": "",
+                "text_t2": "6"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "6,3",
+                "text_t2": ",2"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "di",
+                "text_t2": "aug"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "i",
+                "text_t2": "e"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "u",
+                "text_t2": "t"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "4",
+                "text_t2": "6"
+              },
+              {
+                "kind": "removed",
+                "text_t1": "3",
+                "text_t2": ""
+              },
+              {
+                "kind": "added",
+                "text_t1": "",
+                "text_t2": "8"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "l",
+                "text_t2": "du f"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "ha",
+                "text_t2": "it d'"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "ss",
+                "text_t2": "n"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "es ac",
+                "text_t2": "iminu"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "fs liquides de haute qualité aya",
+                "text_t2": "o"
+              },
+              {
+                "kind": "removed",
+                "text_t1": "t été plus que neutralisée par l'accroissement",
+                "text_t2": ""
+              }
+            ]
           }
         },
         {
@@ -1311,7 +1693,75 @@
               "tone_changed": false,
               "forward_looking": false,
               "quantitative_changed": true
-            }
+            },
+            "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : liquidite, texte modifié.\n\nCe qui change : Le passage est modifié entre les deux versions. Le rapport précédent indiquait : BMO a continué à maintenir une solide position de liquidité au premier trimestre de 2025, les prêts et les dépôts des clients et le financement de gros ayant affiché une augmentation principalement attribuable au raffermissement du dollar américain. Les paramètres de liquidité de BMO, y compris le ratio de liquidité à court terme (RLCT) et le ratio structurel de liquidité à long terme (RSLLT), sont demeurés largement supérieurs aux cibles internes et aux exigences réglementaires. Le rapport courant indique : BMO a continué à maintenir une solide position de liquidité au deuxième trimestre de 2025. Les prêts et les dépôts des clients et le financement de gros ont enregistré une baisse principalement attribuable à l'affaiblissement du dollar américain. Les paramètres de liquidité de BMO, y compris le ratio de liquidité à court terme (RLCT) et le ratio structurel de liquidité à long terme (RSLLT), sont demeurés largement supérieurs aux cibles internes et aux exigences réglementaires.\n\nPertinence métier : Les prêts et dépôts ont enregistré une baisse attribuée à l'affaiblissement du dollar américain. Ce changement est important car il inverse la tendance précédente d'augmentation, ce qui pourrait affecter la liquidité de la banque. La banque doit évaluer l'impact de cette tendance sur sa capacité à maintenir une position de liquidité solide.\n\nPoint de surveillance : liquidite — Une baisse des prêts et dépôts pourrait réduire la liquidité disponible, nécessitant une gestion prudente des ressources.",
+            "change_segments": [
+              {
+                "kind": "modified",
+                "text_t1": "pr",
+                "text_t2": "d"
+              },
+              {
+                "kind": "added",
+                "text_t1": "",
+                "text_t2": "uxiè"
+              },
+              {
+                "kind": "removed",
+                "text_t1": "i",
+                "text_t2": ""
+              },
+              {
+                "kind": "removed",
+                "text_t1": "r",
+                "text_t2": ""
+              },
+              {
+                "kind": "modified",
+                "text_t1": ", l",
+                "text_t2": ". L"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "aya",
+                "text_t2": "o"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "aff",
+                "text_t2": "enreg"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "ch",
+                "text_t2": "str"
+              },
+              {
+                "kind": "added",
+                "text_t1": "",
+                "text_t2": "b"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "ugm",
+                "text_t2": "iss"
+              },
+              {
+                "kind": "removed",
+                "text_t1": "ntation",
+                "text_t2": ""
+              },
+              {
+                "kind": "modified",
+                "text_t1": "au r",
+                "text_t2": "à l'"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "erm",
+                "text_t2": "aibl"
+              }
+            ]
           }
         }
       ],
@@ -1366,7 +1816,15 @@
               "tone_changed": true,
               "forward_looking": true,
               "quantitative_changed": false
-            }
+            },
+            "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : conformité, information ajoutée.\n\nCe qui change : Le rapport courant ajoute l'information suivante, absente du rapport précédent : Ces risques peuvent influer de façon importante sur les résultats financiers, l'efficacité opérationnelle, l'orientation stratégique ou la réputation de BMO. Nous continuons de surveiller le contexte dans lequel la Banque exerce ses activités afin de repérer et de pallier une détérioration des conditions, par exemple l'évolution de la situation économique générale et des différends commerciaux ainsi que d'éventuelles modifications des lois fiscales aux États-Unis, et de prendre les mesures nécessaires pour en atténuer l'incidence sur nos résultats. Il y a lieu de se reporter à la section Évolution de la situation économique et perspectives pour les faits nouveaux concernant la situation économique générale et les différends commerciaux.\n\nPertinence métier : Une nouvelle section a été ajoutée pour expliquer l'impact potentiel des risques sur les résultats financiers et la stratégie de la banque. Ce changement est substantiel car il introduit des éléments de surveillance proactive face à des conditions économiques et légales changeantes. Cela implique que la banque doit renforcer ses mécanismes de suivi pour anticiper et atténuer les risques émergents.\n\nPoint de surveillance : conformité — La banque pourrait être exposée à des fluctuations économiques et légales qui affecteraient ses performances financières et sa réputation.",
+            "change_segments": [
+              {
+                "kind": "added",
+                "text_t1": "",
+                "text_t2": "Ces risques peuvent influer de façon importante sur les résultats financiers, l'efficacité opérationnelle, l'orientation stratégique ou la réputation de BMO. Nous continuons de surveiller le contexte dans lequel la Banque exerce ses activités afin de repérer et de pallier une détérioration des conditions, par exemple l'évolution de la situation économique générale et des différends commerciaux ainsi que d'éventuelles modifications des lois fiscales aux États-Unis, et de prendre les mesures nécessaires pour en atténuer l'incidence sur nos résultats. Il y a lieu de se reporter à la section Évolution de la situation économique et perspectives pour les faits nouveaux concernant la situation économique générale et les différends commerciaux."
+              }
+            ]
           }
         },
         {
@@ -1423,7 +1881,50 @@
               "tone_changed": false,
               "forward_looking": true,
               "quantitative_changed": true
-            }
+            },
+            "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : marche, texte modifié.\n\nCe qui change : Le passage est modifié entre les deux versions. Le rapport précédent indiquait : La moyenne du total de la valeur à risque (VaR) liée aux activités de négociation a augmenté d'un trimestre à l'autre en raison surtout de l'exposition plus importante aux titres de capitaux propres, contrée en partie par une exposition moindre aux taux d'intérêt. Le rapport courant indique : La moyenne du total de la valeur à risque (VaR) liée aux activités de négociation a diminué d'un trimestre à l'autre en raison surtout de l'exposition moins importante aux titres de capitaux propres, contrée en partie par une plus grande volatilité des marchés et par les variations de l'exposition aux produits de base.\n\nPertinence métier : La valeur à risque liée aux activités de négociation a diminué, indiquant une réduction de l'exposition aux titres de capitaux propres. Ce changement est significatif car il reflète une modification de la stratégie de gestion des risques face à une volatilité accrue des marchés. Cela nécessite une réévaluation des stratégies de couverture pour s'assurer que la banque reste protégée contre les fluctuations du marché.\n\nPoint de surveillance : marche — Une diminution de la valeur à risque pourrait indiquer une exposition réduite aux pertes potentielles, mais nécessite une surveillance accrue des nouvelles sources de volatilité.",
+            "change_segments": [
+              {
+                "kind": "modified",
+                "text_t1": "a",
+                "text_t2": "dimin"
+              },
+              {
+                "kind": "removed",
+                "text_t1": "gment",
+                "text_t2": ""
+              },
+              {
+                "kind": "modified",
+                "text_t1": "plu",
+                "text_t2": "moin"
+              },
+              {
+                "kind": "added",
+                "text_t1": "",
+                "text_t2": "plus grande volatilité des marchés et par les variations de l'"
+              },
+              {
+                "kind": "removed",
+                "text_t1": "moindre",
+                "text_t2": ""
+              },
+              {
+                "kind": "added",
+                "text_t1": "",
+                "text_t2": "produi"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "aux",
+                "text_t2": "s"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "'intérêt",
+                "text_t2": "e base"
+              }
+            ]
           }
         },
         {
@@ -1480,7 +1981,105 @@
               "tone_changed": false,
               "forward_looking": false,
               "quantitative_changed": true
-            }
+            },
+            "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : nouvelle mention réglementaire, liquidite, texte modifié.\n\nCe qui change : Le passage est modifié entre les deux versions. Le rapport précédent indiquait : Le RLCT moyen quotidien pour le trimestre clos le 31 janvier 2025 a été de 128 %, ce qui correspond à un excédent de 56,3 milliards de dollars par rapport au seuil réglementaire minimal. Le RLCT a diminué de 4 % par rapport à 132 % au trimestre précédent, la hausse des actifs liquides de haute qualité ayant été plus que neutralisée par l'accroissement des sorties nettes de trésorerie. Le rapport courant indique : Le RLCT moyen quotidien pour le trimestre clos le 30 avril 2025 a été de 134 %, ce qui correspond à un excédent de 65,2 milliards de dollars par rapport au seuil réglementaire minimal. Le RLCT a augmenté de 6 % par rapport à 128 % au trimestre précédent, du fait d'une diminution des sorties nettes de trésorerie.\n\nPertinence métier : Le ratio de liquidité à court terme (RLCT) a augmenté, indiquant une amélioration de la position de liquidité de la banque. Ce changement est crucial car il montre une gestion efficace des sorties nettes de trésorerie, renforçant la conformité réglementaire. Cela implique que la banque doit continuer à optimiser ses actifs liquides pour maintenir cet excédent.\n\nPoint de surveillance : nouvelle mention réglementaire — Une augmentation du RLCT améliore la résilience de la banque face aux tensions de liquidité, renforçant sa conformité réglementaire.",
+            "change_segments": [
+              {
+                "kind": "modified",
+                "text_t1": "1 j",
+                "text_t2": "0"
+              },
+              {
+                "kind": "removed",
+                "text_t1": "n",
+                "text_t2": ""
+              },
+              {
+                "kind": "added",
+                "text_t1": "",
+                "text_t2": "r"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "er",
+                "text_t2": "l"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "28",
+                "text_t2": "34"
+              },
+              {
+                "kind": "added",
+                "text_t1": "",
+                "text_t2": "6"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "6,3",
+                "text_t2": ",2"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "di",
+                "text_t2": "aug"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "i",
+                "text_t2": "e"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "u",
+                "text_t2": "t"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "4",
+                "text_t2": "6"
+              },
+              {
+                "kind": "removed",
+                "text_t1": "3",
+                "text_t2": ""
+              },
+              {
+                "kind": "added",
+                "text_t1": "",
+                "text_t2": "8"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "l",
+                "text_t2": "du f"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "ha",
+                "text_t2": "it d'"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "ss",
+                "text_t2": "n"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "es ac",
+                "text_t2": "iminu"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "fs liquides de haute qualité aya",
+                "text_t2": "o"
+              },
+              {
+                "kind": "removed",
+                "text_t1": "t été plus que neutralisée par l'accroissement",
+                "text_t2": ""
+              }
+            ]
           }
         },
         {
@@ -1537,7 +2136,75 @@
               "tone_changed": false,
               "forward_looking": false,
               "quantitative_changed": true
-            }
+            },
+            "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : liquidite, texte modifié.\n\nCe qui change : Le passage est modifié entre les deux versions. Le rapport précédent indiquait : BMO a continué à maintenir une solide position de liquidité au premier trimestre de 2025, les prêts et les dépôts des clients et le financement de gros ayant affiché une augmentation principalement attribuable au raffermissement du dollar américain. Les paramètres de liquidité de BMO, y compris le ratio de liquidité à court terme (RLCT) et le ratio structurel de liquidité à long terme (RSLLT), sont demeurés largement supérieurs aux cibles internes et aux exigences réglementaires. Le rapport courant indique : BMO a continué à maintenir une solide position de liquidité au deuxième trimestre de 2025. Les prêts et les dépôts des clients et le financement de gros ont enregistré une baisse principalement attribuable à l'affaiblissement du dollar américain. Les paramètres de liquidité de BMO, y compris le ratio de liquidité à court terme (RLCT) et le ratio structurel de liquidité à long terme (RSLLT), sont demeurés largement supérieurs aux cibles internes et aux exigences réglementaires.\n\nPertinence métier : Les prêts et dépôts ont enregistré une baisse attribuée à l'affaiblissement du dollar américain. Ce changement est important car il inverse la tendance précédente d'augmentation, ce qui pourrait affecter la liquidité de la banque. La banque doit évaluer l'impact de cette tendance sur sa capacité à maintenir une position de liquidité solide.\n\nPoint de surveillance : liquidite — Une baisse des prêts et dépôts pourrait réduire la liquidité disponible, nécessitant une gestion prudente des ressources.",
+            "change_segments": [
+              {
+                "kind": "modified",
+                "text_t1": "pr",
+                "text_t2": "d"
+              },
+              {
+                "kind": "added",
+                "text_t1": "",
+                "text_t2": "uxiè"
+              },
+              {
+                "kind": "removed",
+                "text_t1": "i",
+                "text_t2": ""
+              },
+              {
+                "kind": "removed",
+                "text_t1": "r",
+                "text_t2": ""
+              },
+              {
+                "kind": "modified",
+                "text_t1": ", l",
+                "text_t2": ". L"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "aya",
+                "text_t2": "o"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "aff",
+                "text_t2": "enreg"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "ch",
+                "text_t2": "str"
+              },
+              {
+                "kind": "added",
+                "text_t1": "",
+                "text_t2": "b"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "ugm",
+                "text_t2": "iss"
+              },
+              {
+                "kind": "removed",
+                "text_t1": "ntation",
+                "text_t2": ""
+              },
+              {
+                "kind": "modified",
+                "text_t1": "au r",
+                "text_t2": "à l'"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "erm",
+                "text_t2": "aibl"
+              }
+            ]
           }
         },
         {
@@ -1590,7 +2257,8 @@
               "tone_changed": false,
               "forward_looking": false,
               "quantitative_changed": false
-            }
+            },
+            "change_segments": []
           }
         },
         {
@@ -1643,7 +2311,8 @@
               "tone_changed": false,
               "forward_looking": false,
               "quantitative_changed": false
-            }
+            },
+            "change_segments": []
           }
         },
         {
@@ -1696,7 +2365,8 @@
               "tone_changed": false,
               "forward_looking": false,
               "quantitative_changed": false
-            }
+            },
+            "change_segments": []
           }
         },
         {
@@ -1749,7 +2419,8 @@
               "tone_changed": false,
               "forward_looking": false,
               "quantitative_changed": false
-            }
+            },
+            "change_segments": []
           }
         },
         {
@@ -1806,7 +2477,8 @@
               "tone_changed": false,
               "forward_looking": false,
               "quantitative_changed": false
-            }
+            },
+            "change_segments": []
           }
         },
         {
@@ -1859,7 +2531,8 @@
               "tone_changed": false,
               "forward_looking": false,
               "quantitative_changed": false
-            }
+            },
+            "change_segments": []
           }
         },
         {
@@ -1916,7 +2589,8 @@
               "tone_changed": false,
               "forward_looking": false,
               "quantitative_changed": false
-            }
+            },
+            "change_segments": []
           }
         },
         {
@@ -1973,7 +2647,8 @@
               "tone_changed": false,
               "forward_looking": false,
               "quantitative_changed": false
-            }
+            },
+            "change_segments": []
           }
         },
         {
@@ -2030,7 +2705,8 @@
               "tone_changed": false,
               "forward_looking": false,
               "quantitative_changed": false
-            }
+            },
+            "change_segments": []
           }
         },
         {
@@ -2087,7 +2763,8 @@
               "tone_changed": false,
               "forward_looking": false,
               "quantitative_changed": false
-            }
+            },
+            "change_segments": []
           }
         },
         {
@@ -2144,7 +2821,8 @@
               "tone_changed": false,
               "forward_looking": false,
               "quantitative_changed": false
-            }
+            },
+            "change_segments": []
           }
         },
         {
@@ -2201,7 +2879,8 @@
               "tone_changed": false,
               "forward_looking": false,
               "quantitative_changed": false
-            }
+            },
+            "change_segments": []
           }
         },
         {
@@ -2258,7 +2937,8 @@
               "tone_changed": false,
               "forward_looking": false,
               "quantitative_changed": false
-            }
+            },
+            "change_segments": []
           }
         },
         {
@@ -2315,7 +2995,8 @@
               "tone_changed": false,
               "forward_looking": false,
               "quantitative_changed": false
-            }
+            },
+            "change_segments": []
           }
         },
         {
@@ -2372,7 +3053,8 @@
               "tone_changed": false,
               "forward_looking": false,
               "quantitative_changed": false
-            }
+            },
+            "change_segments": []
           }
         },
         {
@@ -2429,7 +3111,8 @@
               "tone_changed": false,
               "forward_looking": false,
               "quantitative_changed": false
-            }
+            },
+            "change_segments": []
           }
         },
         {
@@ -2482,7 +3165,8 @@
               "tone_changed": false,
               "forward_looking": false,
               "quantitative_changed": false
-            }
+            },
+            "change_segments": []
           }
         },
         {
@@ -2535,7 +3219,8 @@
               "tone_changed": false,
               "forward_looking": false,
               "quantitative_changed": false
-            }
+            },
+            "change_segments": []
           }
         }
       ],

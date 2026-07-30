@@ -1,0 +1,17 @@
+{
+  "bank": "BNC",
+  "current": {
+    "year": 2024,
+    "quarter": "T4",
+    "extraction_path": "/private/tmp/vigie-vision-section-boundaries/outputs/extractions/bnc/2024/t4",
+    "pdf_path": "/private/tmp/vigie-vision-section-boundaries/Inputs/BNC/2024/BNC_2024_T4.pdf"
+  },
+  "previous": {
+    "year": 2023,
+    "quarter": "T4",
+    "extraction_path": "/private/tmp/vigie-vision-section-boundaries/outputs/extractions/bnc/2023/t4",
+    "pdf_path": "/private/tmp/vigie-vision-section-boundaries/Inputs/BNC/2023/BNC_2023_T4.pdf"
+  },
+  "status": "completed",
+  "generated_at": "2026-07-24T20:54:26.381530+00:00"
+}

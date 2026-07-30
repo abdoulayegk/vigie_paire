@@ -974,79 +974,6 @@
           }
         },
         {
-          "change_id": "gestion_capital_activités_de_gestion_change_048",
-          "section_key": "gestion_capital",
-          "subsection_heading": "Activités de gestion",
-          "diff_type": "added",
-          "semantic_text_t1": "",
-          "semantic_text_t2": "Le novembre, après la date de clôture de l'exercice, la Banque a terminé le rachat de la totalité des BCRL Série, émis et en circulation. Tel que prévu dans les conditions relatives aux BCRL Série, le prix de rachat était de $ chacun, plus les intérêts courus et impayés. La banque a racheté BCRL Série pour un prix total de M$. Dans le cadre du rachat des BCRL Série, la Banque a terminé le rachat de la totalité des actions privilégiées de premier rang à dividende non cumulatif à taux rajusté tous les cinq ans, série, émises par la Banque, parallèlement aux BCRL Série et qui étaient détenues par un fiduciaire indépendant dans une fiducie à recours limité consolidée. Ces instruments ont été exclus du calcul des ratios de fonds propres au octobre",
-          "source_text_t1": "",
-          "source_text_t2": "Le 17 novembre 2025, après la date de clôture de l'exercice, la Banque a terminé le rachat de la totalité des BCRL - Série 1, émis et en circulation. Tel que prévu dans les conditions relatives aux BCRL - Série 1, le prix de rachat était de 1 000 $ chacun, plus les intérêts courus et impayés. La Banque a racheté 500 000 BCRL - Série 1 pour un prix total de 500 M$. Dans le cadre du rachat des BCRL - Série 1, la Banque a terminé le rachat de la totalité des actions privilégiées de premier rang à dividende non cumulatif à taux rajusté tous les cinq ans, série 44, émises par la Banque, parallèlement aux BCRL - Série 1 et qui étaient détenues par un fiduciaire indépendant dans une fiducie à recours limité consolidée. Ces instruments ont été exclus du calcul des ratios de fonds propres au 31 octobre 2025.",
-          "source_block_ids_t1": [],
-          "source_block_ids_t2": [],
-          "source_refs_t1": [],
-          "source_refs_t2": [],
-          "pages_t1": [],
-          "pages_t2": [
-            66
-          ],
-          "source_resolution_t1": "markdown",
-          "source_resolution_t2": "markdown",
-          "evidence_t1": {
-            "pages": [],
-            "snippet": ""
-          },
-          "evidence_t2": {
-            "pages": [
-              66
-            ],
-            "snippet": "Le 17 novembre 2025, après la date de clôture de l'exercice, la Banque a terminé le rachat de la totalité des BCRL - Série 1, émis et en circulation. Tel que prévu dans les conditions relatives aux BCRL - Série 1, le prix de rachat était de 1 000 $ chacun, plus les intérêts courus et impayés. La Banque a racheté 500 000 BCRL - Série 1 pour un prix total de 500 M$. Dans le cadre du rachat des BCRL "
-          },
-          "change_summary": "Rachat des BCRL Série et des actions privilégiées série ajouté",
-          "genai_triage": {
-            "is_relevant": true,
-            "themes_amf": [
-              "CAPITAL_REGLEMENTAIRE",
-              "FONDS_PROPRES_REGLEMENTAIRES",
-              "DIVULGATION_AJOUT"
-            ],
-            "impact_level": "MODERE",
-            "impact_it": "INDETERMINE",
-            "impact_it_justification": "",
-            "changement_posture": "AUCUN",
-            "justification_posture": "",
-            "statut_mise_en_oeuvre": "MIS_EN_OEUVRE",
-            "confiance_posture": "MOYENNE",
-            "nouvelle_idee": true,
-            "explanation": "Au, la banque a ajouté une divulgation concernant le rachat complet des BCRL Série et des actions privilégiées de premier rang. Ces instruments ont été exclus du calcul des ratios de fonds propres. Ce changement relève des thèmes de capital réglementaire et de fonds propres réglementaires, car il modifie la composition des fonds propres de la banque",
-            "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Capital réglementaire, fonds propres réglementaires, information ajoutée.\n\nCe qui change : Le T2 ajoute une divulgation sur le rachat complet des BCRL Série et des actions privilégiées de premier rang, qui ont été exclus du calcul des ratios de fonds propres.\n\nPertinence métier : Ce changement met l'accent sur la gestion du capital réglementaire et des fonds propres de la banque. Le rachat de ces instruments modifie la composition des fonds propres et peut influencer la lecture des ratios réglementaires et la comparabilité entre pairs.\n\nPoint de surveillance : Capital réglementaire — Le changement indique que la banque a ajusté ses fonds propres par le rachat d'instruments. Ce point permet de suivre l'impact sur les ratios de fonds propres et la stratégie de gestion du capital.",
-            "action_requise": "investigation",
-            "exclusion_reason": null,
-            "change_segments": [
-              {
-                "kind": "added",
-                "text_t1": "",
-                "text_t2": "Le 17 novembre 2025, après la date de clôture de l'exercice, la Banque a terminé le rachat de la totalité des BCRL - Série 1, émis et en circulation. Tel que prévu dans les conditions relatives aux BCRL - Série 1, le prix de rachat était de 1 000 $ chacun, plus les intérêts courus et impayés. La Banque a racheté 500 000 BCRL - Série 1 pour un prix total de 500 M$. Dans le cadre du rachat des BCRL - Série 1, la Banque a terminé le rachat de la totalité des actions privilégiées de premier rang à dividende non cumulatif à taux rajusté tous les cinq ans, série 44, émises par la Banque, parallèlement aux BCRL - Série 1 et qui étaient détenues par un fiduciaire indépendant dans une fiducie à recours limité consolidée. Ces instruments ont été exclus du calcul des ratios de fonds propres au 31 octobre 2025."
-              }
-            ],
-            "category": "CAPITAL",
-            "risk_type": "capital",
-            "relevance_score": "MOYENNE",
-            "risk_level": "MOYENNE",
-            "impact_description": "",
-            "reference_reglementaire": "",
-            "confidence": 0.85,
-            "signals": {
-              "regulatory_reference_added": false,
-              "methodology_change": false,
-              "tone_changed": false,
-              "forward_looking": false,
-              "quantitative_changed": false
-            },
-            "source": "gpt4o_triage_amf_v3"
-          }
-        },
-        {
           "change_id": "gestion_capital_cadre_de_gestion_du_capital_change_009",
           "section_key": "gestion_capital",
           "subsection_heading": "Cadre de gestion du capital",
@@ -1199,222 +1126,6 @@
                 "kind": "modified",
                 "text_t1": ",",
                 "text_t2": "et à surveiller sa mise en œuvre"
-              }
-            ],
-            "category": "CAPITAL",
-            "risk_type": "capital",
-            "relevance_score": "MOYENNE",
-            "risk_level": "MOYENNE",
-            "impact_description": "",
-            "reference_reglementaire": "",
-            "confidence": 0.85,
-            "signals": {
-              "regulatory_reference_added": false,
-              "methodology_change": false,
-              "tone_changed": false,
-              "forward_looking": false,
-              "quantitative_changed": false
-            },
-            "source": "gpt4o_triage_amf_v3"
-          }
-        },
-        {
-          "change_id": "gestion_capital_activités_de_gestion_change_043",
-          "section_key": "gestion_capital",
-          "subsection_heading": "Activités de gestion",
-          "diff_type": "added",
-          "semantic_text_t1": "",
-          "semantic_text_t2": "Le février, dans le cadre de l'acquisition de CWB, la Banque a acquis les obligations liées aux dettes subordonnées de CWB pour un montant total de M$, qui incluait des débentures subordonnées de M$ portant intérêt à et échéant le juin (rachetées par la Banque le juin ), des débentures subordonnées de M$ portant intérêt à et échéant le décembre et des débentures subordonnées de M$ portant intérêt à et échéant le janvier. Comme les débentures respectent les exigences relatives aux FPUNV, elles sont admissibles aux fins du calcul des fonds propres réglementaires selon les règles de",
-          "source_text_t1": "",
-          "source_text_t2": "Le 3 février 2025, dans le cadre de l'acquisition de CWB, la Banque a acquis les obligations liées aux dettes subordonnées de CWB pour un montant total de 525 M$, qui incluait des débentures subordonnées de 125 M$ portant intérêt à 4,840 % et échéant le 29 juin 2030 (rachetées par la Banque le 29 juin 2025), des débentures subordonnées de 150 M$ portant intérêt à 5,937 % et échéant le 22 décembre 2032 et des débentures subordonnées de 250 M$ portant intérêt à 5,949 % et échéant le 29 janvier 2034. Comme les débentures respectent les exigences relatives aux FPUNV, elles sont admissibles aux fins du calcul des fonds propres réglementaires selon les règles de Bâle III.",
-          "source_block_ids_t1": [],
-          "source_block_ids_t2": [],
-          "source_refs_t1": [],
-          "source_refs_t2": [],
-          "pages_t1": [],
-          "pages_t2": [
-            66
-          ],
-          "source_resolution_t1": "markdown",
-          "source_resolution_t2": "markdown",
-          "evidence_t1": {
-            "pages": [],
-            "snippet": ""
-          },
-          "evidence_t2": {
-            "pages": [
-              66
-            ],
-            "snippet": "Le 3 février 2025, dans le cadre de l'acquisition de CWB, la Banque a acquis les obligations liées aux dettes subordonnées de CWB pour un montant total de 525 M$, qui incluait des débentures subordonnées de 125 M$ portant intérêt à 4,840 % et échéant le 29 juin 2030 (rachetées par la Banque le 29 juin 2025), des débentures subordonnées de 150 M$ portant intérêt à 5,937 % et échéant le 22 décembre "
-          },
-          "change_summary": "Acquisition de dettes subordonnées de CWB ajoutée",
-          "genai_triage": {
-            "is_relevant": true,
-            "themes_amf": [
-              "FONDS_PROPRES_REGLEMENTAIRES",
-              "DIVULGATION_AJOUT"
-            ],
-            "impact_level": "MODERE",
-            "impact_it": "INDETERMINE",
-            "impact_it_justification": "",
-            "changement_posture": "NOUVEAU_DISPOSITIF",
-            "justification_posture": "Preuve : La banque a acquis des obligations liées aux dettes subordonnées de CWB, qui sont admissibles aux fins du calcul des fonds propres réglementaires.\n\nEffet sur la gestion du risque : Cette acquisition modifie la composition des fonds propres réglementaires de la banque, ce qui peut influencer sa stratégie de gestion du capital.\n\nJustification du statut : Le changement est déjà mis en œuvre, car les débentures sont intégrées dans le calcul des fonds propres.\n\nJustification de la confiance : La confiance est MOYENNE, car l'impact sur la gestion du capital dépend de l'intégration effective des débentures dans les fonds propres.",
-            "statut_mise_en_oeuvre": "MIS_EN_OEUVRE",
-            "confiance_posture": "MOYENNE",
-            "nouvelle_idee": true,
-            "explanation": "Au, la banque a ajouté une divulgation concernant l'acquisition de dettes subordonnées de CWB, admissibles aux fonds propres réglementaires selon. Ce changement relève des fonds propres réglementaires et constitue une nouvelle information ajoutée. Il modifie la composition des fonds propres de la banque, influençant potentiellement sa stratégie de gestion du capital",
-            "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Fonds propres réglementaires, information ajoutée.\n\nCe qui change : Le T2 ajoute une divulgation sur l'acquisition de dettes subordonnées de CWB, admissibles aux fonds propres réglementaires selon Bâle III. Cette information était absente du T1.\n\nPertinence métier : Ce changement met l'accent sur l'évolution de la composition des fonds propres réglementaires de la banque. L'ajout de ces débentures modifie la structure du capital réglementaire, ce qui peut influencer la stratégie de gestion du capital et la comparabilité entre pairs.\n\nPoint de surveillance : Fonds propres réglementaires — Le changement indique que la banque intègre de nouvelles débentures dans ses fonds propres. Ce point permet de suivre l'évolution de la composition du capital réglementaire et son impact sur la stratégie de gestion du capital.",
-            "action_requise": "investigation",
-            "exclusion_reason": null,
-            "change_segments": [
-              {
-                "kind": "added",
-                "text_t1": "",
-                "text_t2": "Le 3 février 2025, dans le cadre de l'acquisition de CWB, la Banque a acquis les obligations liées aux dettes subordonnées de CWB pour un montant total de 525 M$, qui incluait des débentures subordonnées de 125 M$ portant intérêt à 4,840 % et échéant le 29 juin 2030 (rachetées par la Banque le 29 juin 2025), des débentures subordonnées de 150 M$ portant intérêt à 5,937 % et échéant le 22 décembre 2032 et des débentures subordonnées de 250 M$ portant intérêt à 5,949 % et échéant le 29 janvier 2034. Comme les débentures respectent les exigences relatives aux FPUNV, elles sont admissibles aux fins du calcul des fonds propres réglementaires selon les règles de Bâle III."
-              }
-            ],
-            "category": "CAPITAL",
-            "risk_type": "capital",
-            "relevance_score": "MOYENNE",
-            "risk_level": "MOYENNE",
-            "impact_description": "",
-            "reference_reglementaire": "",
-            "confidence": 0.85,
-            "signals": {
-              "regulatory_reference_added": false,
-              "methodology_change": false,
-              "tone_changed": false,
-              "forward_looking": false,
-              "quantitative_changed": false
-            },
-            "source": "gpt4o_triage_amf_v3"
-          }
-        },
-        {
-          "change_id": "gestion_capital_activités_de_gestion_change_046",
-          "section_key": "gestion_capital",
-          "subsection_heading": "Activités de gestion",
-          "diff_type": "added",
-          "semantic_text_t1": "",
-          "semantic_text_t2": "Le juin, la Banque a émis des billets à moyen terme pour un montant de M$ portant intérêt à et échéant le août. Comme les billets à moyen terme respectent les exigences relatives aux FPUNV, ils sont admissibles aux fins du calcul des fonds propres réglementaires selon les règles de",
-          "source_text_t1": "",
-          "source_text_t2": "Le 26 juin 2025, la Banque a émis des billets à moyen terme pour un montant de 750 M$ portant intérêt à 4,333 % et échéant le 15 août 2035. Comme les billets à moyen terme respectent les exigences relatives aux FPUNV, ils sont admissibles aux fins du calcul des fonds propres réglementaires selon les règles de Bâle III.",
-          "source_block_ids_t1": [],
-          "source_block_ids_t2": [],
-          "source_refs_t1": [],
-          "source_refs_t2": [],
-          "pages_t1": [],
-          "pages_t2": [
-            66
-          ],
-          "source_resolution_t1": "markdown",
-          "source_resolution_t2": "markdown",
-          "evidence_t1": {
-            "pages": [],
-            "snippet": ""
-          },
-          "evidence_t2": {
-            "pages": [
-              66
-            ],
-            "snippet": "Le 26 juin 2025, la Banque a émis des billets à moyen terme pour un montant de 750 M$ portant intérêt à 4,333 % et échéant le 15 août 2035. Comme les billets à moyen terme respectent les exigences relatives aux FPUNV, ils sont admissibles aux fins du calcul des fonds propres réglementaires selon les règles de Bâle III."
-          },
-          "change_summary": "Nouvelle émission de billets à moyen terme ajoutée",
-          "genai_triage": {
-            "is_relevant": true,
-            "themes_amf": [
-              "FONDS_PROPRES_REGLEMENTAIRES",
-              "DIVULGATION_AJOUT"
-            ],
-            "impact_level": "MODERE",
-            "impact_it": "INDETERMINE",
-            "impact_it_justification": "",
-            "changement_posture": "AUCUN",
-            "justification_posture": "",
-            "statut_mise_en_oeuvre": "MIS_EN_OEUVRE",
-            "confiance_posture": "ELEVEE",
-            "nouvelle_idee": true,
-            "explanation": "Au, la banque a émis des billets à moyen terme pour un montant de M$, admissibles aux fonds propres réglementaires selon. Ce changement relève des fonds propres réglementaires et constitue une nouvelle divulgation. Il ajoute une information sur la structure de capital de la banque",
-            "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Fonds propres réglementaires, information ajoutée.\n\nCe qui change : Le T2 ajoute l'émission de billets à moyen terme pour 750 M$, admissibles aux fonds propres réglementaires selon Bâle III. Cette information était absente du T1.\n\nPertinence métier : Ce changement met l'accent sur l'évolution de la structure de capital de la banque et sa conformité aux règles de Bâle III. L'ajout de cette information améliore la transparence sur les fonds propres réglementaires et la comparabilité entre pairs.\n\nPoint de surveillance : Fonds propres réglementaires — Le changement indique que la banque a émis des billets à moyen terme admissibles aux fonds propres réglementaires. Ce point permet de suivre l'évolution de la structure de capital et la conformité aux exigences de Bâle III.",
-            "action_requise": "investigation",
-            "exclusion_reason": null,
-            "change_segments": [
-              {
-                "kind": "added",
-                "text_t1": "",
-                "text_t2": "Le 26 juin 2025, la Banque a émis des billets à moyen terme pour un montant de 750 M$ portant intérêt à 4,333 % et échéant le 15 août 2035. Comme les billets à moyen terme respectent les exigences relatives aux FPUNV, ils sont admissibles aux fins du calcul des fonds propres réglementaires selon les règles de Bâle III."
-              }
-            ],
-            "category": "CAPITAL",
-            "risk_type": "capital",
-            "relevance_score": "MOYENNE",
-            "risk_level": "MOYENNE",
-            "impact_description": "",
-            "reference_reglementaire": "",
-            "confidence": 0.85,
-            "signals": {
-              "regulatory_reference_added": false,
-              "methodology_change": false,
-              "tone_changed": false,
-              "forward_looking": false,
-              "quantitative_changed": false
-            },
-            "source": "gpt4o_triage_amf_v3"
-          }
-        },
-        {
-          "change_id": "gestion_capital_activités_de_gestion_change_047",
-          "section_key": "gestion_capital",
-          "subsection_heading": "Activités de gestion",
-          "diff_type": "added",
-          "semantic_text_t1": "",
-          "semantic_text_t2": "Le septembre, la Banque a débuté un programme d'offre publique de rachat à des fins d'annulation dans le cours normal de ses activités, visant jusqu'à concurrence de d'actions ordinaires (représentant environ des actions ordinaires alors en circulation) au cours de la période de mois se terminant au plus tard le septembre. Au cours de l'exercice terminé le octobre, la Banque a complété le rachat de actions ordinaires",
-          "source_text_t1": "",
-          "source_text_t2": "Le 25 septembre 2025, la Banque a débuté un programme d'offre publique de rachat à des fins d'annulation dans le cours normal de ses activités, visant jusqu'à concurrence de 8 000 000 d'actions ordinaires (représentant environ 2,04 % des actions ordinaires alors en circulation) au cours de la période de 12 mois se terminant au plus tard le 24 septembre 2026. Au cours de l'exercice terminé le 31 octobre 2025, la Banque a complété le rachat de 1 385 400 actions ordinaires.",
-          "source_block_ids_t1": [],
-          "source_block_ids_t2": [],
-          "source_refs_t1": [],
-          "source_refs_t2": [],
-          "pages_t1": [],
-          "pages_t2": [
-            66
-          ],
-          "source_resolution_t1": "markdown",
-          "source_resolution_t2": "markdown",
-          "evidence_t1": {
-            "pages": [],
-            "snippet": ""
-          },
-          "evidence_t2": {
-            "pages": [
-              66
-            ],
-            "snippet": "Le 25 septembre 2025, la Banque a débuté un programme d'offre publique de rachat à des fins d'annulation dans le cours normal de ses activités, visant jusqu'à concurrence de 8 000 000 d'actions ordinaires (représentant environ 2,04 % des actions ordinaires alors en circulation) au cours de la période de 12 mois se terminant au plus tard le 24 septembre 2026. Au cours de l'exercice terminé le 31 oc"
-          },
-          "change_summary": "Nouveau programme de rachat d'actions ordinaires ajouté",
-          "genai_triage": {
-            "is_relevant": true,
-            "themes_amf": [
-              "CAPITAL_REGLEMENTAIRE",
-              "DIVULGATION_AJOUT"
-            ],
-            "impact_level": "MODERE",
-            "impact_it": "INDETERMINE",
-            "impact_it_justification": "",
-            "changement_posture": "NOUVEAU_DISPOSITIF",
-            "justification_posture": "Preuve : La banque a initié un programme de rachat d'actions ordinaires.\n\nEffet sur la gestion du risque : Ce programme peut influencer la structure du capital et la gestion des fonds propres.\n\nJustification du statut : Le programme est déjà en cours, comme indiqué dans le rapport.\n\nJustification de la confiance : La divulgation est explicite et détaillée, ce qui renforce la confiance dans l'information fournie.",
-            "statut_mise_en_oeuvre": "EN_COURS",
-            "confiance_posture": "ELEVEE",
-            "nouvelle_idee": true,
-            "explanation": "Au, la banque a introduit un nouveau programme de rachat d'actions ordinaires, absent au. Ce changement relève du capital réglementaire et constitue une nouvelle divulgation. Il modifie la structure du capital et la gestion des fonds propres de la banque",
-            "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Capital réglementaire, information ajoutée.\n\nCe qui change : Le T2 introduit un programme de rachat d'actions ordinaires, visant jusqu'à 8 000 000 d'actions, ce qui représente environ 2,04 % des actions en circulation.\n\nPertinence métier : Ce changement met l'accent sur la gestion proactive du capital par la banque, influençant potentiellement sa structure de capital et ses fonds propres. La mise en œuvre d'un tel programme peut affecter la comparabilité des ratios de capital entre pairs et la perception du marché.\n\nPoint de surveillance : Capital réglementaire — Le changement indique que la banque ajuste sa structure de capital par le biais d'un rachat d'actions. Ce point permet de suivre l'impact de cette stratégie sur les fonds propres et la comparabilité des pratiques de gestion du capital entre institutions.",
-            "action_requise": "investigation",
-            "exclusion_reason": null,
-            "change_segments": [
-              {
-                "kind": "added",
-                "text_t1": "",
-                "text_t2": "Le 25 septembre 2025, la Banque a débuté un programme d'offre publique de rachat à des fins d'annulation dans le cours normal de ses activités, visant jusqu'à concurrence de 8 000 000 d'actions ordinaires (représentant environ 2,04 % des actions ordinaires alors en circulation) au cours de la période de 12 mois se terminant au plus tard le 24 septembre 2026. Au cours de l'exercice terminé le 31 octobre 2025, la Banque a complété le rachat de 1 385 400 actions ordinaires."
               }
             ],
             "category": "CAPITAL",
@@ -2741,79 +2452,6 @@
           }
         },
         {
-          "change_id": "gestion_capital_activités_de_gestion_change_048",
-          "section_key": "gestion_capital",
-          "subsection_heading": "Activités de gestion",
-          "diff_type": "added",
-          "semantic_text_t1": "",
-          "semantic_text_t2": "Le novembre, après la date de clôture de l'exercice, la Banque a terminé le rachat de la totalité des BCRL Série, émis et en circulation. Tel que prévu dans les conditions relatives aux BCRL Série, le prix de rachat était de $ chacun, plus les intérêts courus et impayés. La banque a racheté BCRL Série pour un prix total de M$. Dans le cadre du rachat des BCRL Série, la Banque a terminé le rachat de la totalité des actions privilégiées de premier rang à dividende non cumulatif à taux rajusté tous les cinq ans, série, émises par la Banque, parallèlement aux BCRL Série et qui étaient détenues par un fiduciaire indépendant dans une fiducie à recours limité consolidée. Ces instruments ont été exclus du calcul des ratios de fonds propres au octobre",
-          "source_text_t1": "",
-          "source_text_t2": "Le 17 novembre 2025, après la date de clôture de l'exercice, la Banque a terminé le rachat de la totalité des BCRL - Série 1, émis et en circulation. Tel que prévu dans les conditions relatives aux BCRL - Série 1, le prix de rachat était de 1 000 $ chacun, plus les intérêts courus et impayés. La Banque a racheté 500 000 BCRL - Série 1 pour un prix total de 500 M$. Dans le cadre du rachat des BCRL - Série 1, la Banque a terminé le rachat de la totalité des actions privilégiées de premier rang à dividende non cumulatif à taux rajusté tous les cinq ans, série 44, émises par la Banque, parallèlement aux BCRL - Série 1 et qui étaient détenues par un fiduciaire indépendant dans une fiducie à recours limité consolidée. Ces instruments ont été exclus du calcul des ratios de fonds propres au 31 octobre 2025.",
-          "source_block_ids_t1": [],
-          "source_block_ids_t2": [],
-          "source_refs_t1": [],
-          "source_refs_t2": [],
-          "pages_t1": [],
-          "pages_t2": [
-            66
-          ],
-          "source_resolution_t1": "markdown",
-          "source_resolution_t2": "markdown",
-          "evidence_t1": {
-            "pages": [],
-            "snippet": ""
-          },
-          "evidence_t2": {
-            "pages": [
-              66
-            ],
-            "snippet": "Le 17 novembre 2025, après la date de clôture de l'exercice, la Banque a terminé le rachat de la totalité des BCRL - Série 1, émis et en circulation. Tel que prévu dans les conditions relatives aux BCRL - Série 1, le prix de rachat était de 1 000 $ chacun, plus les intérêts courus et impayés. La Banque a racheté 500 000 BCRL - Série 1 pour un prix total de 500 M$. Dans le cadre du rachat des BCRL "
-          },
-          "change_summary": "Rachat des BCRL Série et des actions privilégiées série ajouté",
-          "genai_triage": {
-            "is_relevant": true,
-            "themes_amf": [
-              "CAPITAL_REGLEMENTAIRE",
-              "FONDS_PROPRES_REGLEMENTAIRES",
-              "DIVULGATION_AJOUT"
-            ],
-            "impact_level": "MODERE",
-            "impact_it": "INDETERMINE",
-            "impact_it_justification": "",
-            "changement_posture": "AUCUN",
-            "justification_posture": "",
-            "statut_mise_en_oeuvre": "MIS_EN_OEUVRE",
-            "confiance_posture": "MOYENNE",
-            "nouvelle_idee": true,
-            "explanation": "Au, la banque a ajouté une divulgation concernant le rachat complet des BCRL Série et des actions privilégiées de premier rang. Ces instruments ont été exclus du calcul des ratios de fonds propres. Ce changement relève des thèmes de capital réglementaire et de fonds propres réglementaires, car il modifie la composition des fonds propres de la banque",
-            "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Capital réglementaire, fonds propres réglementaires, information ajoutée.\n\nCe qui change : Le T2 ajoute une divulgation sur le rachat complet des BCRL Série et des actions privilégiées de premier rang, qui ont été exclus du calcul des ratios de fonds propres.\n\nPertinence métier : Ce changement met l'accent sur la gestion du capital réglementaire et des fonds propres de la banque. Le rachat de ces instruments modifie la composition des fonds propres et peut influencer la lecture des ratios réglementaires et la comparabilité entre pairs.\n\nPoint de surveillance : Capital réglementaire — Le changement indique que la banque a ajusté ses fonds propres par le rachat d'instruments. Ce point permet de suivre l'impact sur les ratios de fonds propres et la stratégie de gestion du capital.",
-            "action_requise": "investigation",
-            "exclusion_reason": null,
-            "change_segments": [
-              {
-                "kind": "added",
-                "text_t1": "",
-                "text_t2": "Le 17 novembre 2025, après la date de clôture de l'exercice, la Banque a terminé le rachat de la totalité des BCRL - Série 1, émis et en circulation. Tel que prévu dans les conditions relatives aux BCRL - Série 1, le prix de rachat était de 1 000 $ chacun, plus les intérêts courus et impayés. La Banque a racheté 500 000 BCRL - Série 1 pour un prix total de 500 M$. Dans le cadre du rachat des BCRL - Série 1, la Banque a terminé le rachat de la totalité des actions privilégiées de premier rang à dividende non cumulatif à taux rajusté tous les cinq ans, série 44, émises par la Banque, parallèlement aux BCRL - Série 1 et qui étaient détenues par un fiduciaire indépendant dans une fiducie à recours limité consolidée. Ces instruments ont été exclus du calcul des ratios de fonds propres au 31 octobre 2025."
-              }
-            ],
-            "category": "CAPITAL",
-            "risk_type": "capital",
-            "relevance_score": "MOYENNE",
-            "risk_level": "MOYENNE",
-            "impact_description": "",
-            "reference_reglementaire": "",
-            "confidence": 0.85,
-            "signals": {
-              "regulatory_reference_added": false,
-              "methodology_change": false,
-              "tone_changed": false,
-              "forward_looking": false,
-              "quantitative_changed": false
-            },
-            "source": "gpt4o_triage_amf_v3"
-          }
-        },
-        {
           "change_id": "gestion_capital_cadre_de_gestion_du_capital_change_009",
           "section_key": "gestion_capital",
           "subsection_heading": "Cadre de gestion du capital",
@@ -2966,222 +2604,6 @@
                 "kind": "modified",
                 "text_t1": ",",
                 "text_t2": "et à surveiller sa mise en œuvre"
-              }
-            ],
-            "category": "CAPITAL",
-            "risk_type": "capital",
-            "relevance_score": "MOYENNE",
-            "risk_level": "MOYENNE",
-            "impact_description": "",
-            "reference_reglementaire": "",
-            "confidence": 0.85,
-            "signals": {
-              "regulatory_reference_added": false,
-              "methodology_change": false,
-              "tone_changed": false,
-              "forward_looking": false,
-              "quantitative_changed": false
-            },
-            "source": "gpt4o_triage_amf_v3"
-          }
-        },
-        {
-          "change_id": "gestion_capital_activités_de_gestion_change_043",
-          "section_key": "gestion_capital",
-          "subsection_heading": "Activités de gestion",
-          "diff_type": "added",
-          "semantic_text_t1": "",
-          "semantic_text_t2": "Le février, dans le cadre de l'acquisition de CWB, la Banque a acquis les obligations liées aux dettes subordonnées de CWB pour un montant total de M$, qui incluait des débentures subordonnées de M$ portant intérêt à et échéant le juin (rachetées par la Banque le juin ), des débentures subordonnées de M$ portant intérêt à et échéant le décembre et des débentures subordonnées de M$ portant intérêt à et échéant le janvier. Comme les débentures respectent les exigences relatives aux FPUNV, elles sont admissibles aux fins du calcul des fonds propres réglementaires selon les règles de",
-          "source_text_t1": "",
-          "source_text_t2": "Le 3 février 2025, dans le cadre de l'acquisition de CWB, la Banque a acquis les obligations liées aux dettes subordonnées de CWB pour un montant total de 525 M$, qui incluait des débentures subordonnées de 125 M$ portant intérêt à 4,840 % et échéant le 29 juin 2030 (rachetées par la Banque le 29 juin 2025), des débentures subordonnées de 150 M$ portant intérêt à 5,937 % et échéant le 22 décembre 2032 et des débentures subordonnées de 250 M$ portant intérêt à 5,949 % et échéant le 29 janvier 2034. Comme les débentures respectent les exigences relatives aux FPUNV, elles sont admissibles aux fins du calcul des fonds propres réglementaires selon les règles de Bâle III.",
-          "source_block_ids_t1": [],
-          "source_block_ids_t2": [],
-          "source_refs_t1": [],
-          "source_refs_t2": [],
-          "pages_t1": [],
-          "pages_t2": [
-            66
-          ],
-          "source_resolution_t1": "markdown",
-          "source_resolution_t2": "markdown",
-          "evidence_t1": {
-            "pages": [],
-            "snippet": ""
-          },
-          "evidence_t2": {
-            "pages": [
-              66
-            ],
-            "snippet": "Le 3 février 2025, dans le cadre de l'acquisition de CWB, la Banque a acquis les obligations liées aux dettes subordonnées de CWB pour un montant total de 525 M$, qui incluait des débentures subordonnées de 125 M$ portant intérêt à 4,840 % et échéant le 29 juin 2030 (rachetées par la Banque le 29 juin 2025), des débentures subordonnées de 150 M$ portant intérêt à 5,937 % et échéant le 22 décembre "
-          },
-          "change_summary": "Acquisition de dettes subordonnées de CWB ajoutée",
-          "genai_triage": {
-            "is_relevant": true,
-            "themes_amf": [
-              "FONDS_PROPRES_REGLEMENTAIRES",
-              "DIVULGATION_AJOUT"
-            ],
-            "impact_level": "MODERE",
-            "impact_it": "INDETERMINE",
-            "impact_it_justification": "",
-            "changement_posture": "NOUVEAU_DISPOSITIF",
-            "justification_posture": "Preuve : La banque a acquis des obligations liées aux dettes subordonnées de CWB, qui sont admissibles aux fins du calcul des fonds propres réglementaires.\n\nEffet sur la gestion du risque : Cette acquisition modifie la composition des fonds propres réglementaires de la banque, ce qui peut influencer sa stratégie de gestion du capital.\n\nJustification du statut : Le changement est déjà mis en œuvre, car les débentures sont intégrées dans le calcul des fonds propres.\n\nJustification de la confiance : La confiance est MOYENNE, car l'impact sur la gestion du capital dépend de l'intégration effective des débentures dans les fonds propres.",
-            "statut_mise_en_oeuvre": "MIS_EN_OEUVRE",
-            "confiance_posture": "MOYENNE",
-            "nouvelle_idee": true,
-            "explanation": "Au, la banque a ajouté une divulgation concernant l'acquisition de dettes subordonnées de CWB, admissibles aux fonds propres réglementaires selon. Ce changement relève des fonds propres réglementaires et constitue une nouvelle information ajoutée. Il modifie la composition des fonds propres de la banque, influençant potentiellement sa stratégie de gestion du capital",
-            "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Fonds propres réglementaires, information ajoutée.\n\nCe qui change : Le T2 ajoute une divulgation sur l'acquisition de dettes subordonnées de CWB, admissibles aux fonds propres réglementaires selon Bâle III. Cette information était absente du T1.\n\nPertinence métier : Ce changement met l'accent sur l'évolution de la composition des fonds propres réglementaires de la banque. L'ajout de ces débentures modifie la structure du capital réglementaire, ce qui peut influencer la stratégie de gestion du capital et la comparabilité entre pairs.\n\nPoint de surveillance : Fonds propres réglementaires — Le changement indique que la banque intègre de nouvelles débentures dans ses fonds propres. Ce point permet de suivre l'évolution de la composition du capital réglementaire et son impact sur la stratégie de gestion du capital.",
-            "action_requise": "investigation",
-            "exclusion_reason": null,
-            "change_segments": [
-              {
-                "kind": "added",
-                "text_t1": "",
-                "text_t2": "Le 3 février 2025, dans le cadre de l'acquisition de CWB, la Banque a acquis les obligations liées aux dettes subordonnées de CWB pour un montant total de 525 M$, qui incluait des débentures subordonnées de 125 M$ portant intérêt à 4,840 % et échéant le 29 juin 2030 (rachetées par la Banque le 29 juin 2025), des débentures subordonnées de 150 M$ portant intérêt à 5,937 % et échéant le 22 décembre 2032 et des débentures subordonnées de 250 M$ portant intérêt à 5,949 % et échéant le 29 janvier 2034. Comme les débentures respectent les exigences relatives aux FPUNV, elles sont admissibles aux fins du calcul des fonds propres réglementaires selon les règles de Bâle III."
-              }
-            ],
-            "category": "CAPITAL",
-            "risk_type": "capital",
-            "relevance_score": "MOYENNE",
-            "risk_level": "MOYENNE",
-            "impact_description": "",
-            "reference_reglementaire": "",
-            "confidence": 0.85,
-            "signals": {
-              "regulatory_reference_added": false,
-              "methodology_change": false,
-              "tone_changed": false,
-              "forward_looking": false,
-              "quantitative_changed": false
-            },
-            "source": "gpt4o_triage_amf_v3"
-          }
-        },
-        {
-          "change_id": "gestion_capital_activités_de_gestion_change_046",
-          "section_key": "gestion_capital",
-          "subsection_heading": "Activités de gestion",
-          "diff_type": "added",
-          "semantic_text_t1": "",
-          "semantic_text_t2": "Le juin, la Banque a émis des billets à moyen terme pour un montant de M$ portant intérêt à et échéant le août. Comme les billets à moyen terme respectent les exigences relatives aux FPUNV, ils sont admissibles aux fins du calcul des fonds propres réglementaires selon les règles de",
-          "source_text_t1": "",
-          "source_text_t2": "Le 26 juin 2025, la Banque a émis des billets à moyen terme pour un montant de 750 M$ portant intérêt à 4,333 % et échéant le 15 août 2035. Comme les billets à moyen terme respectent les exigences relatives aux FPUNV, ils sont admissibles aux fins du calcul des fonds propres réglementaires selon les règles de Bâle III.",
-          "source_block_ids_t1": [],
-          "source_block_ids_t2": [],
-          "source_refs_t1": [],
-          "source_refs_t2": [],
-          "pages_t1": [],
-          "pages_t2": [
-            66
-          ],
-          "source_resolution_t1": "markdown",
-          "source_resolution_t2": "markdown",
-          "evidence_t1": {
-            "pages": [],
-            "snippet": ""
-          },
-          "evidence_t2": {
-            "pages": [
-              66
-            ],
-            "snippet": "Le 26 juin 2025, la Banque a émis des billets à moyen terme pour un montant de 750 M$ portant intérêt à 4,333 % et échéant le 15 août 2035. Comme les billets à moyen terme respectent les exigences relatives aux FPUNV, ils sont admissibles aux fins du calcul des fonds propres réglementaires selon les règles de Bâle III."
-          },
-          "change_summary": "Nouvelle émission de billets à moyen terme ajoutée",
-          "genai_triage": {
-            "is_relevant": true,
-            "themes_amf": [
-              "FONDS_PROPRES_REGLEMENTAIRES",
-              "DIVULGATION_AJOUT"
-            ],
-            "impact_level": "MODERE",
-            "impact_it": "INDETERMINE",
-            "impact_it_justification": "",
-            "changement_posture": "AUCUN",
-            "justification_posture": "",
-            "statut_mise_en_oeuvre": "MIS_EN_OEUVRE",
-            "confiance_posture": "ELEVEE",
-            "nouvelle_idee": true,
-            "explanation": "Au, la banque a émis des billets à moyen terme pour un montant de M$, admissibles aux fonds propres réglementaires selon. Ce changement relève des fonds propres réglementaires et constitue une nouvelle divulgation. Il ajoute une information sur la structure de capital de la banque",
-            "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Fonds propres réglementaires, information ajoutée.\n\nCe qui change : Le T2 ajoute l'émission de billets à moyen terme pour 750 M$, admissibles aux fonds propres réglementaires selon Bâle III. Cette information était absente du T1.\n\nPertinence métier : Ce changement met l'accent sur l'évolution de la structure de capital de la banque et sa conformité aux règles de Bâle III. L'ajout de cette information améliore la transparence sur les fonds propres réglementaires et la comparabilité entre pairs.\n\nPoint de surveillance : Fonds propres réglementaires — Le changement indique que la banque a émis des billets à moyen terme admissibles aux fonds propres réglementaires. Ce point permet de suivre l'évolution de la structure de capital et la conformité aux exigences de Bâle III.",
-            "action_requise": "investigation",
-            "exclusion_reason": null,
-            "change_segments": [
-              {
-                "kind": "added",
-                "text_t1": "",
-                "text_t2": "Le 26 juin 2025, la Banque a émis des billets à moyen terme pour un montant de 750 M$ portant intérêt à 4,333 % et échéant le 15 août 2035. Comme les billets à moyen terme respectent les exigences relatives aux FPUNV, ils sont admissibles aux fins du calcul des fonds propres réglementaires selon les règles de Bâle III."
-              }
-            ],
-            "category": "CAPITAL",
-            "risk_type": "capital",
-            "relevance_score": "MOYENNE",
-            "risk_level": "MOYENNE",
-            "impact_description": "",
-            "reference_reglementaire": "",
-            "confidence": 0.85,
-            "signals": {
-              "regulatory_reference_added": false,
-              "methodology_change": false,
-              "tone_changed": false,
-              "forward_looking": false,
-              "quantitative_changed": false
-            },
-            "source": "gpt4o_triage_amf_v3"
-          }
-        },
-        {
-          "change_id": "gestion_capital_activités_de_gestion_change_047",
-          "section_key": "gestion_capital",
-          "subsection_heading": "Activités de gestion",
-          "diff_type": "added",
-          "semantic_text_t1": "",
-          "semantic_text_t2": "Le septembre, la Banque a débuté un programme d'offre publique de rachat à des fins d'annulation dans le cours normal de ses activités, visant jusqu'à concurrence de d'actions ordinaires (représentant environ des actions ordinaires alors en circulation) au cours de la période de mois se terminant au plus tard le septembre. Au cours de l'exercice terminé le octobre, la Banque a complété le rachat de actions ordinaires",
-          "source_text_t1": "",
-          "source_text_t2": "Le 25 septembre 2025, la Banque a débuté un programme d'offre publique de rachat à des fins d'annulation dans le cours normal de ses activités, visant jusqu'à concurrence de 8 000 000 d'actions ordinaires (représentant environ 2,04 % des actions ordinaires alors en circulation) au cours de la période de 12 mois se terminant au plus tard le 24 septembre 2026. Au cours de l'exercice terminé le 31 octobre 2025, la Banque a complété le rachat de 1 385 400 actions ordinaires.",
-          "source_block_ids_t1": [],
-          "source_block_ids_t2": [],
-          "source_refs_t1": [],
-          "source_refs_t2": [],
-          "pages_t1": [],
-          "pages_t2": [
-            66
-          ],
-          "source_resolution_t1": "markdown",
-          "source_resolution_t2": "markdown",
-          "evidence_t1": {
-            "pages": [],
-            "snippet": ""
-          },
-          "evidence_t2": {
-            "pages": [
-              66
-            ],
-            "snippet": "Le 25 septembre 2025, la Banque a débuté un programme d'offre publique de rachat à des fins d'annulation dans le cours normal de ses activités, visant jusqu'à concurrence de 8 000 000 d'actions ordinaires (représentant environ 2,04 % des actions ordinaires alors en circulation) au cours de la période de 12 mois se terminant au plus tard le 24 septembre 2026. Au cours de l'exercice terminé le 31 oc"
-          },
-          "change_summary": "Nouveau programme de rachat d'actions ordinaires ajouté",
-          "genai_triage": {
-            "is_relevant": true,
-            "themes_amf": [
-              "CAPITAL_REGLEMENTAIRE",
-              "DIVULGATION_AJOUT"
-            ],
-            "impact_level": "MODERE",
-            "impact_it": "INDETERMINE",
-            "impact_it_justification": "",
-            "changement_posture": "NOUVEAU_DISPOSITIF",
-            "justification_posture": "Preuve : La banque a initié un programme de rachat d'actions ordinaires.\n\nEffet sur la gestion du risque : Ce programme peut influencer la structure du capital et la gestion des fonds propres.\n\nJustification du statut : Le programme est déjà en cours, comme indiqué dans le rapport.\n\nJustification de la confiance : La divulgation est explicite et détaillée, ce qui renforce la confiance dans l'information fournie.",
-            "statut_mise_en_oeuvre": "EN_COURS",
-            "confiance_posture": "ELEVEE",
-            "nouvelle_idee": true,
-            "explanation": "Au, la banque a introduit un nouveau programme de rachat d'actions ordinaires, absent au. Ce changement relève du capital réglementaire et constitue une nouvelle divulgation. Il modifie la structure du capital et la gestion des fonds propres de la banque",
-            "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Capital réglementaire, information ajoutée.\n\nCe qui change : Le T2 introduit un programme de rachat d'actions ordinaires, visant jusqu'à 8 000 000 d'actions, ce qui représente environ 2,04 % des actions en circulation.\n\nPertinence métier : Ce changement met l'accent sur la gestion proactive du capital par la banque, influençant potentiellement sa structure de capital et ses fonds propres. La mise en œuvre d'un tel programme peut affecter la comparabilité des ratios de capital entre pairs et la perception du marché.\n\nPoint de surveillance : Capital réglementaire — Le changement indique que la banque ajuste sa structure de capital par le biais d'un rachat d'actions. Ce point permet de suivre l'impact de cette stratégie sur les fonds propres et la comparabilité des pratiques de gestion du capital entre institutions.",
-            "action_requise": "investigation",
-            "exclusion_reason": null,
-            "change_segments": [
-              {
-                "kind": "added",
-                "text_t1": "",
-                "text_t2": "Le 25 septembre 2025, la Banque a débuté un programme d'offre publique de rachat à des fins d'annulation dans le cours normal de ses activités, visant jusqu'à concurrence de 8 000 000 d'actions ordinaires (représentant environ 2,04 % des actions ordinaires alors en circulation) au cours de la période de 12 mois se terminant au plus tard le 24 septembre 2026. Au cours de l'exercice terminé le 31 octobre 2025, la Banque a complété le rachat de 1 385 400 actions ordinaires."
               }
             ],
             "category": "CAPITAL",
@@ -3812,132 +3234,6 @@
           }
         },
         {
-          "change_id": "gestion_capital_activités_de_gestion_change_042",
-          "section_key": "gestion_capital",
-          "subsection_heading": "Activités de gestion",
-          "diff_type": "added",
-          "semantic_text_t1": "",
-          "semantic_text_t2": "Le février, lors de la clôture de l'acquisition de CWB, la Banque a émis un total de actions ordinaires, pour un produit brut de G$",
-          "source_text_t1": "",
-          "source_text_t2": "Le 3 février 2025, lors de la clôture de l'acquisition de CWB, la Banque a émis un total de 50 272 878 actions ordinaires, pour un produit brut de 6,3 G$.",
-          "source_block_ids_t1": [],
-          "source_block_ids_t2": [],
-          "source_refs_t1": [],
-          "source_refs_t2": [],
-          "pages_t1": [],
-          "pages_t2": [
-            66
-          ],
-          "source_resolution_t1": "markdown",
-          "source_resolution_t2": "markdown",
-          "evidence_t1": {
-            "pages": [],
-            "snippet": ""
-          },
-          "evidence_t2": {
-            "pages": [
-              66
-            ],
-            "snippet": "Le 3 février 2025, lors de la clôture de l'acquisition de CWB, la Banque a émis un total de 50 272 878 actions ordinaires, pour un produit brut de 6,3 G$."
-          },
-          "change_summary": "Nouvelle émission d'actions ordinaires liée à l'acquisition de CWB",
-          "genai_triage": {
-            "is_relevant": false,
-            "themes_amf": [],
-            "impact_level": "MINEUR",
-            "impact_it": "INDETERMINE",
-            "impact_it_justification": "",
-            "changement_posture": "AUCUN",
-            "justification_posture": "",
-            "statut_mise_en_oeuvre": "INDETERMINE",
-            "confiance_posture": "INDETERMINE",
-            "nouvelle_idee": false,
-            "explanation": "",
-            "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : Émission d'actions ordinaires.\n\nCe qui change : Le T2 mentionne l'émission de 50 272 878 actions ordinaires pour un produit brut de 6,3 G$ lors de l'acquisition de CWB. Cette information n'était pas présente au T1.\n\nPertinence métier : Cette émission d'actions est une opération financière propre à la banque et ne constitue pas une nouvelle idée à surveiller dans le cadre de la vigie AMF. Elle ne modifie pas les exigences réglementaires, les seuils prudentiels ou la posture de risque de la banque.\n\nPoint de surveillance : Émission d'actions — La substance de la divulgation demeure stable. Ce point peut être écarté du suivi prioritaire, sauf si une autre information indique un changement de seuil prudentiel, de méthode, de conformité ou de posture de risque.",
-            "action_requise": "aucune",
-            "exclusion_reason": "variation_numerique_propre_banque",
-            "change_segments": [],
-            "category": "NON_PERTINENT",
-            "risk_type": "autre",
-            "relevance_score": "FAIBLE",
-            "risk_level": "FAIBLE",
-            "impact_description": "",
-            "reference_reglementaire": "",
-            "confidence": 0.0,
-            "signals": {
-              "regulatory_reference_added": false,
-              "methodology_change": false,
-              "tone_changed": false,
-              "forward_looking": false,
-              "quantitative_changed": false
-            },
-            "source": "gpt4o_triage_amf_v3"
-          }
-        },
-        {
-          "change_id": "gestion_capital_activités_de_gestion_change_044",
-          "section_key": "gestion_capital",
-          "subsection_heading": "Activités de gestion",
-          "diff_type": "added",
-          "semantic_text_t1": "",
-          "semantic_text_t2": "Le février, soit le premier jour ouvrable suivant la date de rachat du février, la Banque a terminé le rachat de la totalité des actions privilégiées de premier rang à dividende non cumulatif à taux rajusté tous les cinq ans, série, émises et en circulation. Tel que prévu dans les conditions relatives aux actions, le prix de rachat était de $ l'action, plus les dividendes périodiques déclarés et impayés. La banque a racheté d'actions privilégiées série pour un prix total de M$",
-          "source_text_t1": "",
-          "source_text_t2": "Le 17 février 2025, soit le premier jour ouvrable suivant la date de rachat du 15 février 2025, la Banque a terminé le rachat de la totalité des actions privilégiées de premier rang à dividende non cumulatif à taux rajusté tous les cinq ans, série 32, émises et en circulation. Tel que prévu dans les conditions relatives aux actions, le prix de rachat était de 25,00 $ l'action, plus les dividendes périodiques déclarés et impayés. La Banque a racheté 12 000 000 d'actions privilégiées série 32 pour un prix total de 300 M$.",
-          "source_block_ids_t1": [],
-          "source_block_ids_t2": [],
-          "source_refs_t1": [],
-          "source_refs_t2": [],
-          "pages_t1": [],
-          "pages_t2": [
-            66
-          ],
-          "source_resolution_t1": "markdown",
-          "source_resolution_t2": "markdown",
-          "evidence_t1": {
-            "pages": [],
-            "snippet": ""
-          },
-          "evidence_t2": {
-            "pages": [
-              66
-            ],
-            "snippet": "Le 17 février 2025, soit le premier jour ouvrable suivant la date de rachat du 15 février 2025, la Banque a terminé le rachat de la totalité des actions privilégiées de premier rang à dividende non cumulatif à taux rajusté tous les cinq ans, série 32, émises et en circulation. Tel que prévu dans les conditions relatives aux actions, le prix de rachat était de 25,00 $ l'action, plus les dividendes "
-          },
-          "change_summary": "Rachat des actions privilégiées série ajouté",
-          "genai_triage": {
-            "is_relevant": false,
-            "themes_amf": [],
-            "impact_level": "MINEUR",
-            "impact_it": "INDETERMINE",
-            "impact_it_justification": "",
-            "changement_posture": "AUCUN",
-            "justification_posture": "",
-            "statut_mise_en_oeuvre": "INDETERMINE",
-            "confiance_posture": "INDETERMINE",
-            "nouvelle_idee": false,
-            "explanation": "",
-            "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : Rachat d'actions privilégiées.\n\nCe qui change : Le T2 mentionne le rachat de la totalité des actions privilégiées de premier rang série 32, ce qui n'était pas présent au T1.\n\nPertinence métier : Ce changement ne constitue pas une nouvelle idée à surveiller, car il s'agit d'une opération financière propre à la banque sans implication réglementaire directe. Il ne modifie pas les exigences prudentielles, les méthodes de calcul ou la posture de risque réglementaire.\n\nPoint de surveillance : Rachat d'actions — La substance de la divulgation demeure stable. Ce point peut être écarté du suivi prioritaire, sauf si une autre information indique un changement de seuil prudentiel, de méthode, de conformité ou de posture de risque.",
-            "action_requise": "aucune",
-            "exclusion_reason": "non_pertinent_autre",
-            "change_segments": [],
-            "category": "NON_PERTINENT",
-            "risk_type": "autre",
-            "relevance_score": "FAIBLE",
-            "risk_level": "FAIBLE",
-            "impact_description": "",
-            "reference_reglementaire": "",
-            "confidence": 0.0,
-            "signals": {
-              "regulatory_reference_added": false,
-              "methodology_change": false,
-              "tone_changed": false,
-              "forward_looking": false,
-              "quantitative_changed": false
-            },
-            "source": "gpt4o_triage_amf_v3"
-          }
-        },
-        {
           "change_id": "gestion_capital_activités_de_gestion_change_041",
           "section_key": "gestion_capital",
           "subsection_heading": "Activités de gestion",
@@ -4183,69 +3479,6 @@
             "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : Référence à une section de rapport.\n\nCe qui change : Le T2 retire une référence à la section \"Mode de présentation de l'information\" pour des renseignements sur les mesures de gestion du capital.\n\nPertinence métier : Ce changement ne constitue pas une nouvelle idée à surveiller, car il s'agit simplement d'une référence à une section de rapport qui a été retirée. Cela n'affecte pas la substance des divulgations sur la gestion du capital, ni les exigences réglementaires ou la posture de risque.\n\nPoint de surveillance : Référence de rapport — La suppression de cette référence n'impacte pas la substance des informations sur la gestion du capital. Ce point peut être écarté du suivi prioritaire, sauf si une autre information indique un changement de méthode, de conformité ou de posture de risque.",
             "action_requise": "aucune",
             "exclusion_reason": "deplacement_texte",
-            "change_segments": [],
-            "category": "NON_PERTINENT",
-            "risk_type": "autre",
-            "relevance_score": "FAIBLE",
-            "risk_level": "FAIBLE",
-            "impact_description": "",
-            "reference_reglementaire": "",
-            "confidence": 0.0,
-            "signals": {
-              "regulatory_reference_added": false,
-              "methodology_change": false,
-              "tone_changed": false,
-              "forward_looking": false,
-              "quantitative_changed": false
-            },
-            "source": "gpt4o_triage_amf_v3"
-          }
-        },
-        {
-          "change_id": "gestion_capital_actions_autres_instruments_de_capitaux_p_change_053",
-          "section_key": "gestion_capital",
-          "subsection_heading": "Actions, autres instruments de capitaux propres et options d'achat d'actions",
-          "diff_type": "added",
-          "semantic_text_t1": "",
-          "semantic_text_t2": "Le nombre d'actions ordinaires et le nombre d'options en circulation reflètent la clôture de la transaction avec CWB",
-          "source_text_t1": "",
-          "source_text_t2": "Le nombre d'actions ordinaires et le nombre d'options en circulation reflètent la clôture de la transaction avec CWB.",
-          "source_block_ids_t1": [],
-          "source_block_ids_t2": [],
-          "source_refs_t1": [],
-          "source_refs_t2": [],
-          "pages_t1": [],
-          "pages_t2": [
-            67
-          ],
-          "source_resolution_t1": "markdown",
-          "source_resolution_t2": "markdown",
-          "evidence_t1": {
-            "pages": [],
-            "snippet": ""
-          },
-          "evidence_t2": {
-            "pages": [
-              67
-            ],
-            "snippet": "Le nombre d'actions ordinaires et le nombre d'options en circulation reflètent la clôture de la transaction avec CWB."
-          },
-          "change_summary": "Ajout d'une explication sur la variation du nombre d'actions et d'options en circulation",
-          "genai_triage": {
-            "is_relevant": false,
-            "themes_amf": [],
-            "impact_level": "MINEUR",
-            "impact_it": "INDETERMINE",
-            "impact_it_justification": "",
-            "changement_posture": "AUCUN",
-            "justification_posture": "",
-            "statut_mise_en_oeuvre": "INDETERMINE",
-            "confiance_posture": "INDETERMINE",
-            "nouvelle_idee": false,
-            "explanation": "",
-            "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : Mise à jour quantitative propre à la banque.\n\nCe qui change : Le T2 ajoute une explication sur la variation du nombre d'actions et d'options en circulation, reflétant la clôture de la transaction avec CWB. Cette information n'était pas présente au T1.\n\nPertinence métier : Cette variation ne constitue pas une nouvelle idée à surveiller, car elle reflète une mise à jour quantitative propre à la banque sans impact sur les exigences réglementaires ou la posture de risque. Elle ne modifie aucun seuil prudentiel, aucune règle BSIF ou AMF, et n'affecte pas la comparabilité entre pairs.\n\nPoint de surveillance : Mise à jour quantitative — La substance de la divulgation demeure stable. Ce point peut être écarté du suivi prioritaire, sauf si une autre information indique un changement de seuil prudentiel, de méthode, de conformité ou de posture de risque.",
-            "action_requise": "aucune",
-            "exclusion_reason": "variation_numerique_propre_banque",
             "change_segments": [],
             "category": "NON_PERTINENT",
             "risk_type": "autre",
@@ -10190,78 +9423,6 @@
           }
         },
         {
-          "change_id": "gestion_risques_cycle_de_règlement_d_un_jour_change_322",
-          "section_key": "gestion_risques",
-          "subsection_heading": "Cycle de règlement d'un jour",
-          "diff_type": "removed",
-          "semantic_text_t1": "Les ACVM ont adopté des modifications au Règlement sur l'appariement et le règlement des opérations institutionnelles et à l'instruction générale connexe (les modifications) qui sont entrées en vigueur le mai. Ces modifications visaient à: (i) traiter du passage à et (ii) supprimer définitivement l'exception visant l'obligation de déclaration des anomalies énoncées dans la partie du Règlement. Les ACVM ont également proposé des modifications au Règlement sur les fonds d'investissement visant à faciliter la décision d'un organisme de placement collectif d'abréger volontairement le cycle de règlement des opérations de souscription et de rachat de ses valeurs mobilières à. L'Organisme canadien de réglementation des investissements (OCRI) a publié des modifications des Règles universelles d'intégrité du marché et des Règles visant les courtiers en placement et règles partiellement consolidées afin de faciliter le passage du secteur des valeurs mobilières au cycle de règlement",
-          "semantic_text_t2": "",
-          "source_text_t1": "Les ACVM ont adopté des modifications au Règlement 24-101 sur l'appariement et le règlement des opérations institutionnelles et à l'instruction générale connexe (les modifications) qui sont entrées en vigueur le 27 mai 2024. Ces modifications visaient à : (i) traiter du passage à T+1 et (ii) supprimer définitivement l'exception visant l'obligation de déclaration des anomalies énoncées dans la partie 4 du Règlement. Les ACVM ont également proposé des modifications au Règlement 81-102 sur les fonds d'investissement visant à faciliter la décision d'un organisme de placement collectif d'abréger volontairement le cycle de règlement des opérations de souscription et de rachat de ses valeurs mobilières à T+1. L'Organisme canadien de réglementation des investissements (OCRI) a publié des modifications des Règles universelles d'intégrité du marché et des Règles visant les courtiers en placement et règles partiellement consolidées afin de faciliter le passage du secteur des valeurs mobilières au cycle de règlement T+1.",
-          "source_text_t2": "",
-          "source_block_ids_t1": [],
-          "source_block_ids_t2": [],
-          "source_refs_t1": [],
-          "source_refs_t2": [],
-          "pages_t1": [
-            110
-          ],
-          "pages_t2": [],
-          "source_resolution_t1": "markdown",
-          "source_resolution_t2": "markdown",
-          "evidence_t1": {
-            "pages": [
-              110
-            ],
-            "snippet": "Les ACVM ont adopté des modifications au Règlement 24-101 sur l'appariement et le règlement des opérations institutionnelles et à l'instruction générale connexe (les modifications) qui sont entrées en vigueur le 27 mai 2024. Ces modifications visaient à : (i) traiter du passage à T+1 et (ii) supprimer définitivement l'exception visant l'obligation de déclaration des anomalies énoncées dans la part"
-          },
-          "evidence_t2": {
-            "pages": [],
-            "snippet": ""
-          },
-          "change_summary": "Détails sur les modifications réglementaires au Canada pour le passage à supprimés",
-          "genai_triage": {
-            "is_relevant": true,
-            "themes_amf": [
-              "EXIGENCES_REGLEMENTAIRES",
-              "DIVULGATION_RETRAIT"
-            ],
-            "impact_level": "MAJEUR",
-            "impact_it": "INDETERMINE",
-            "impact_it_justification": "",
-            "changement_posture": "ALLEGEMENT",
-            "justification_posture": "Preuve : Le retrait des détails sur les modifications réglementaires au Canada pour le passage à T+1.\n\nEffet sur la gestion du risque : La suppression de cette information peut indiquer un allègement de la communication sur les exigences réglementaires.\n\nJustification du statut : Le retrait est effectif et modifie la transparence de la banque sur les exigences réglementaires.\n\nJustification de la confiance : Moyenne, car le retrait est explicite mais l'impact sur la gestion du risque reste à confirmer.",
-            "statut_mise_en_oeuvre": "MIS_EN_OEUVRE",
-            "confiance_posture": "MOYENNE",
-            "nouvelle_idee": true,
-            "explanation": "Au, la banque détaillait les modifications réglementaires au Canada pour le passage à, mais cette information est retirée au. Ce retrait concerne les des exigences prudentielles et modifie la transparence de la banque sur ces changements. Il est crucial pour la surveillance car il peut signaler un changement de posture réglementaire",
-            "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Exigences réglementaires, information retirée.\n\nCe qui change : Le T2 retire les détails sur les modifications réglementaires au Canada pour le passage à T+1, qui étaient présents au T1.\n\nPertinence métier : Ce changement met l'accent sur la réduction de la transparence concernant les exigences réglementaires. Le retrait de cette information peut modifier la perception de la conformité de la banque aux nouvelles règles, ce qui est crucial pour la comparabilité entre pairs.\n\nPoint de surveillance : Exigences réglementaires — Le changement indique que la banque a retiré des informations sur les modifications réglementaires. Ce point permet de suivre l'évolution de la transparence de la banque sur les exigences réglementaires et leur impact potentiel sur la gestion des risques.",
-            "action_requise": "revue_prioritaire",
-            "exclusion_reason": null,
-            "change_segments": [
-              {
-                "kind": "removed",
-                "text_t1": "Les ACVM ont adopté des modifications au Règlement 24-101 sur l'appariement et le règlement des opérations institutionnelles et à l'instruction générale connexe (les modifications) qui sont entrées en vigueur le 27 mai 2024. Ces modifications visaient à : (i) traiter du passage à T+1 et (ii) supprimer définitivement l'exception visant l'obligation de déclaration des anomalies énoncées dans la partie 4 du Règlement. Les ACVM ont également proposé des modifications au Règlement 81-102 sur les fonds d'investissement visant à faciliter la décision d'un organisme de placement collectif d'abréger volontairement le cycle de règlement des opérations de souscription et de rachat de ses valeurs mobilières à T+1. L'Organisme canadien de réglementation des investissements (OCRI) a publié des modifications des Règles universelles d'intégrité du marché et des Règles visant les courtiers en placement et règles partiellement consolidées afin de faciliter le passage du secteur des valeurs mobilières au cycle de règlement T+1.",
-                "text_t2": ""
-              }
-            ],
-            "category": "REGLEMENTAIRE",
-            "risk_type": "conformite",
-            "relevance_score": "ELEVEE",
-            "risk_level": "ELEVEE",
-            "impact_description": "",
-            "reference_reglementaire": "",
-            "confidence": 0.85,
-            "signals": {
-              "regulatory_reference_added": false,
-              "methodology_change": false,
-              "tone_changed": false,
-              "forward_looking": false,
-              "quantitative_changed": false
-            },
-            "source": "gpt4o_triage_amf_v3"
-          }
-        },
-        {
           "change_id": "gestion_risques_loi_n_o_1_d_exécution_du_budget_de_2023_change_305",
           "section_key": "gestion_risques",
           "subsection_heading": "Loi n o 1 d'exécution du budget de 2023 et Règlement sur le taux d'intérêt criminel",
@@ -10334,78 +9495,6 @@
             "confidence": 0.85,
             "signals": {
               "regulatory_reference_added": true,
-              "methodology_change": false,
-              "tone_changed": false,
-              "forward_looking": false,
-              "quantitative_changed": false
-            },
-            "source": "gpt4o_triage_amf_v3"
-          }
-        },
-        {
-          "change_id": "gestion_risques_gestion_du_risque_change_348",
-          "section_key": "gestion_risques",
-          "subsection_heading": "Gestion du risque",
-          "diff_type": "removed",
-          "semantic_text_t1": "En tant qu'acteur clé de l'industrie financière, la Banque démontre son engagement auprès de groupes et d'associations en matière environnementale et sociale, tels que les Principes bancaires responsables des Nations Unies, le PCAF et le NZBA. Les cadres élaborés par ces groupes, de même que la méthodologie, peuvent évoluer et cela pourrait amener la Banque à réévaluer son adhésion à ceux ci. De plus, leurs efforts à développer de tels cadres et objectifs pourraient soulever des préoccupations liées à la concurrence",
-          "semantic_text_t2": "",
-          "source_text_t1": "En tant qu'acteur clé de l'industrie financière, la Banque démontre son engagement auprès de groupes et d'associations en matière environnementale et sociale, tels que les Principes bancaires responsables des Nations Unies, le PCAF et le NZBA. Les cadres élaborés par ces groupes, de même que la méthodologie, peuvent évoluer et cela pourrait amener la Banque à réévaluer son adhésion à ceux-ci. De plus, leurs efforts à développer de tels cadres et objectifs pourraient soulever des préoccupations liées à la concurrence.",
-          "source_text_t2": "",
-          "source_block_ids_t1": [],
-          "source_block_ids_t2": [],
-          "source_refs_t1": [],
-          "source_refs_t2": [],
-          "pages_t1": [
-            113
-          ],
-          "pages_t2": [],
-          "source_resolution_t1": "markdown",
-          "source_resolution_t2": "markdown",
-          "evidence_t1": {
-            "pages": [
-              113
-            ],
-            "snippet": "En tant qu'acteur clé de l'industrie financière, la Banque démontre son engagement auprès de groupes et d'associations en matière environnementale et sociale, tels que les Principes bancaires responsables des Nations Unies, le PCAF et le NZBA. Les cadres élaborés par ces groupes, de même que la méthodologie, peuvent évoluer et cela pourrait amener la Banque à réévaluer son adhésion à ceux-ci. De p"
-          },
-          "evidence_t2": {
-            "pages": [],
-            "snippet": ""
-          },
-          "change_summary": "Paragraphe sur l'engagement de la Banque auprès de groupes et associations environnementales et sociales supprimé",
-          "genai_triage": {
-            "is_relevant": true,
-            "themes_amf": [
-              "ESG_CLIMATIQUE",
-              "DIVULGATION_RETRAIT"
-            ],
-            "impact_level": "MAJEUR",
-            "impact_it": "INDETERMINE",
-            "impact_it_justification": "",
-            "changement_posture": "ALLEGEMENT",
-            "justification_posture": "Preuve : Le retrait du paragraphe sur l'engagement de la Banque auprès de groupes et associations environnementales et sociales.\n\nEffet sur la gestion du risque : Ce retrait pourrait indiquer une diminution de l'engagement de la Banque envers les initiatives ESG, ce qui pourrait affecter sa posture de risque en matière de durabilité.\n\nJustification du statut : Le retrait est effectif et modifie la perception de l'engagement ESG de la Banque.\n\nJustification de la confiance : Moyenne, car le retrait est explicite mais les raisons sous-jacentes ne sont pas détaillées.",
-            "statut_mise_en_oeuvre": "MIS_EN_OEUVRE",
-            "confiance_posture": "MOYENNE",
-            "nouvelle_idee": true,
-            "explanation": "Au, la Banque affichait son engagement envers des groupes et associations environnementales et sociales, mais cette mention disparaît au. Ce retrait concerne les divulgations ESG et modifie la perception de l'engagement de la Banque envers ces initiatives. Il a un impact majeur sur la transparence et la posture ESG de la Banque",
-            "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Risque climatique / ESG, information retirée.\n\nCe qui change : Le T2 retire la mention de l'engagement de la Banque envers des groupes et associations environnementales et sociales, tels que les Principes bancaires responsables des Nations Unies, le PCAF et le NZBA.\n\nPertinence métier : Ce changement met l'accent sur une réduction de la transparence de la Banque concernant son engagement ESG. Le retrait de cette divulgation peut affecter la perception de la Banque en matière de durabilité et de responsabilité sociale, ce qui est crucial pour les investisseurs et les régulateurs.\n\nPoint de surveillance : Risque climatique / ESG — Le changement indique une potentielle réévaluation de l'engagement de la Banque envers les initiatives ESG. Ce point permet de suivre l'évolution de la transparence et de l'engagement de la Banque dans ce domaine.",
-            "action_requise": "revue_prioritaire",
-            "exclusion_reason": null,
-            "change_segments": [
-              {
-                "kind": "removed",
-                "text_t1": "En tant qu'acteur clé de l'industrie financière, la Banque démontre son engagement auprès de groupes et d'associations en matière environnementale et sociale, tels que les Principes bancaires responsables des Nations Unies, le PCAF et le NZBA. Les cadres élaborés par ces groupes, de même que la méthodologie, peuvent évoluer et cela pourrait amener la Banque à réévaluer son adhésion à ceux-ci. De plus, leurs efforts à développer de tels cadres et objectifs pourraient soulever des préoccupations liées à la concurrence.",
-                "text_t2": ""
-              }
-            ],
-            "category": "RISQUE",
-            "risk_type": "autre",
-            "relevance_score": "ELEVEE",
-            "risk_level": "ELEVEE",
-            "impact_description": "",
-            "reference_reglementaire": "",
-            "confidence": 0.85,
-            "signals": {
-              "regulatory_reference_added": false,
               "methodology_change": false,
               "tone_changed": false,
               "forward_looking": false,
@@ -12491,7 +11580,8 @@
           "source_refs_t2": [],
           "pages_t1": [],
           "pages_t2": [
-            116
+            116,
+            117
           ],
           "source_resolution_t1": "markdown",
           "source_resolution_t2": "markdown",
@@ -12501,7 +11591,8 @@
           },
           "evidence_t2": {
             "pages": [
-              116
+              116,
+              117
             ],
             "snippet": "La Banque considère la gouvernance comme un exercice collaboratif, fondé sur un dialogue ouvert, transparent et continu avec ses parties prenantes. Dans un contexte où les enjeux de durabilité évoluent rapidement, ces échanges permettent de mieux comprendre les attentes de ces dernières et d'y répondre de manière durable. La croissance de la Banque repose sur ces relations, qui sont au cœur de sa "
           },
@@ -14266,78 +13357,6 @@
           }
         },
         {
-          "change_id": "gestion_risques_souscription_des_prêts_hypothécaires_change_113",
-          "section_key": "gestion_risques",
-          "subsection_heading": "Souscription des prêts hypothécaires",
-          "diff_type": "added",
-          "semantic_text_t1": "",
-          "semantic_text_t2": "Depuis le janvier, le refinancement hypothécaire assuré est possible pour la construction d'unités secondaires, avec un RPV maximal de, et une valeur de la propriété résidentielle inférieure à M$",
-          "source_text_t1": "",
-          "source_text_t2": "Depuis le 15 janvier 2025, le refinancement hypothécaire assuré est possible pour la construction d'unités secondaires, avec un RPV maximal de 90 %, et une valeur de la propriété résidentielle inférieure à 2 M$.",
-          "source_block_ids_t1": [],
-          "source_block_ids_t2": [],
-          "source_refs_t1": [],
-          "source_refs_t2": [],
-          "pages_t1": [],
-          "pages_t2": [
-            87
-          ],
-          "source_resolution_t1": "markdown",
-          "source_resolution_t2": "markdown",
-          "evidence_t1": {
-            "pages": [],
-            "snippet": ""
-          },
-          "evidence_t2": {
-            "pages": [
-              87
-            ],
-            "snippet": "Depuis le 15 janvier 2025, le refinancement hypothécaire assuré est possible pour la construction d'unités secondaires, avec un RPV maximal de 90 %, et une valeur de la propriété résidentielle inférieure à 2 M$."
-          },
-          "change_summary": "Ajout d'une nouvelle mesure permettant le refinancement hypothécaire assuré pour la construction d'unités secondaires",
-          "genai_triage": {
-            "is_relevant": true,
-            "themes_amf": [
-              "EXIGENCES_REGLEMENTAIRES",
-              "DIVULGATION_AJOUT"
-            ],
-            "impact_level": "MODERE",
-            "impact_it": "INDETERMINE",
-            "impact_it_justification": "",
-            "changement_posture": "NOUVEAU_DISPOSITIF",
-            "justification_posture": "Preuve : Le T2 introduit une nouvelle mesure de refinancement hypothécaire assuré pour la construction d'unités secondaires.\n\nEffet sur la gestion du risque : Cette mesure modifie la gestion des risques liés au refinancement hypothécaire en introduisant de nouvelles conditions et limites.\n\nJustification du statut : Le changement est annoncé comme effectif depuis le 15 janvier 2025.\n\nJustification de la confiance : La confiance est MOYENNE car le texte précise les conditions et la date d'entrée en vigueur.",
-            "statut_mise_en_oeuvre": "MIS_EN_OEUVRE",
-            "confiance_posture": "MOYENNE",
-            "nouvelle_idee": true,
-            "explanation": "Au, une nouvelle mesure permet le refinancement hypothécaire assuré pour la construction d'unités secondaires, avec des conditions spécifiques. Ce changement relève des des exigences prudentielles et constitue une divulgation ajoutée. Il introduit un nouveau dispositif de gestion des risques hypothécaires",
-            "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Exigences réglementaires, information ajoutée.\n\nCe qui change : Le T2 introduit une nouvelle mesure permettant le refinancement hypothécaire assuré pour la construction d'unités secondaires, avec un RPV maximal de 90 % et une valeur de propriété inférieure à 2 M$.\n\nPertinence métier : Ce changement met l'accent sur l'évolution des exigences réglementaires en matière de refinancement hypothécaire. Il modifie la gestion des risques associés à ces prêts en introduisant de nouvelles conditions et limites, ce qui est pertinent pour la surveillance des pratiques de refinancement.\n\nPoint de surveillance : Exigences réglementaires — Le changement indique que la banque a mis en place une nouvelle mesure de refinancement hypothécaire. Ce point permet de suivre l'évolution des pratiques de refinancement et leur alignement avec les exigences réglementaires.",
-            "action_requise": "investigation",
-            "exclusion_reason": null,
-            "change_segments": [
-              {
-                "kind": "added",
-                "text_t1": "",
-                "text_t2": "Depuis le 15 janvier 2025, le refinancement hypothécaire assuré est possible pour la construction d'unités secondaires, avec un RPV maximal de 90 %, et une valeur de la propriété résidentielle inférieure à 2 M$."
-              }
-            ],
-            "category": "REGLEMENTAIRE",
-            "risk_type": "conformite",
-            "relevance_score": "MOYENNE",
-            "risk_level": "MOYENNE",
-            "impact_description": "",
-            "reference_reglementaire": "",
-            "confidence": 0.85,
-            "signals": {
-              "regulatory_reference_added": false,
-              "methodology_change": false,
-              "tone_changed": false,
-              "forward_looking": false,
-              "quantitative_changed": false
-            },
-            "source": "gpt4o_triage_amf_v3"
-          }
-        },
-        {
           "change_id": "gestion_risques_risque_de_marché_change_161",
           "section_key": "gestion_risques",
           "subsection_heading": "Risque de marché",
@@ -15822,78 +14841,6 @@
             ],
             "category": "REGLEMENTAIRE",
             "risk_type": "liquidite",
-            "relevance_score": "FAIBLE",
-            "risk_level": "FAIBLE",
-            "impact_description": "",
-            "reference_reglementaire": "",
-            "confidence": 0.85,
-            "signals": {
-              "regulatory_reference_added": false,
-              "methodology_change": false,
-              "tone_changed": false,
-              "forward_looking": false,
-              "quantitative_changed": false
-            },
-            "source": "gpt4o_triage_amf_v3"
-          }
-        },
-        {
-          "change_id": "gestion_risques_risque_environnemental_et_social_change_346",
-          "section_key": "gestion_risques",
-          "subsection_heading": "Risque environnemental et social",
-          "diff_type": "added",
-          "semantic_text_t1": "",
-          "semantic_text_t2": "Pour de plus amples renseignements sur notre gouvernance et les politiques et règles qui encadrent nos activités, veuillez consulter la section « Codes et engagements » disponible sur le site Internet de la Banque à l'adresse bnc.ca",
-          "source_text_t1": "",
-          "source_text_t2": "Pour de plus amples renseignements sur notre gouvernance et les politiques et règles qui encadrent nos activités, veuillez consulter la section « Codes et engagements » disponible sur le site Internet de la Banque à l'adresse bnc.ca.",
-          "source_block_ids_t1": [],
-          "source_block_ids_t2": [],
-          "source_refs_t1": [],
-          "source_refs_t2": [],
-          "pages_t1": [],
-          "pages_t2": [
-            117
-          ],
-          "source_resolution_t1": "markdown",
-          "source_resolution_t2": "markdown",
-          "evidence_t1": {
-            "pages": [],
-            "snippet": ""
-          },
-          "evidence_t2": {
-            "pages": [
-              117
-            ],
-            "snippet": "Pour de plus amples renseignements sur notre gouvernance et les politiques et règles qui encadrent nos activités, veuillez consulter la section « Codes et engagements » disponible sur le site Internet de la Banque à l'adresse bnc.ca."
-          },
-          "change_summary": "Ajout d'une référence à la section « Codes et engagements » sur le site Internet de la Banque",
-          "genai_triage": {
-            "is_relevant": true,
-            "themes_amf": [
-              "DIVULGATION_AJOUT",
-              "GOUVERNANCE_RISQUES"
-            ],
-            "impact_level": "MINEUR",
-            "impact_it": "INDETERMINE",
-            "impact_it_justification": "",
-            "changement_posture": "AUCUN",
-            "justification_posture": "",
-            "statut_mise_en_oeuvre": "INDETERMINE",
-            "confiance_posture": "INDETERMINE",
-            "nouvelle_idee": true,
-            "explanation": "Au, la banque ajoute une référence à la section « Codes et engagements » sur son site Internet, absente au. Ce changement relève de la gouvernance des risques et constitue une divulgation ajoutée. Il améliore l'accès à l'information sur les politiques et règles de la banque",
-            "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Information ajoutée, gouvernance des risques.\n\nCe qui change : Le T2 ajoute une référence à la section « Codes et engagements » sur le site Internet de la Banque, fournissant des informations supplémentaires sur la gouvernance et les politiques.\n\nPertinence métier : Ce changement met l'accent sur l'amélioration de la transparence et de l'accès à l'information concernant la gouvernance des risques. La mention d'une ressource en ligne dédiée aux codes et engagements renforce la visibilité des politiques de la banque et peut influencer la perception de sa conformité et de sa gouvernance.\n\nPoint de surveillance : Gouvernance des risques — Le changement indique que la banque améliore l'accès à ses politiques et règles via une section dédiée en ligne. Ce point permet de suivre l'évolution de la transparence et de la communication des pratiques de gouvernance.",
-            "action_requise": "information",
-            "exclusion_reason": null,
-            "change_segments": [
-              {
-                "kind": "added",
-                "text_t1": "",
-                "text_t2": "Pour de plus amples renseignements sur notre gouvernance et les politiques et règles qui encadrent nos activités, veuillez consulter la section « Codes et engagements » disponible sur le site Internet de la Banque à l'adresse bnc.ca."
-              }
-            ],
-            "category": "STRUCTURE",
-            "risk_type": "conformite",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
             "impact_description": "",
@@ -21659,78 +20606,6 @@
           }
         },
         {
-          "change_id": "gestion_risques_cycle_de_règlement_d_un_jour_change_322",
-          "section_key": "gestion_risques",
-          "subsection_heading": "Cycle de règlement d'un jour",
-          "diff_type": "removed",
-          "semantic_text_t1": "Les ACVM ont adopté des modifications au Règlement sur l'appariement et le règlement des opérations institutionnelles et à l'instruction générale connexe (les modifications) qui sont entrées en vigueur le mai. Ces modifications visaient à: (i) traiter du passage à et (ii) supprimer définitivement l'exception visant l'obligation de déclaration des anomalies énoncées dans la partie du Règlement. Les ACVM ont également proposé des modifications au Règlement sur les fonds d'investissement visant à faciliter la décision d'un organisme de placement collectif d'abréger volontairement le cycle de règlement des opérations de souscription et de rachat de ses valeurs mobilières à. L'Organisme canadien de réglementation des investissements (OCRI) a publié des modifications des Règles universelles d'intégrité du marché et des Règles visant les courtiers en placement et règles partiellement consolidées afin de faciliter le passage du secteur des valeurs mobilières au cycle de règlement",
-          "semantic_text_t2": "",
-          "source_text_t1": "Les ACVM ont adopté des modifications au Règlement 24-101 sur l'appariement et le règlement des opérations institutionnelles et à l'instruction générale connexe (les modifications) qui sont entrées en vigueur le 27 mai 2024. Ces modifications visaient à : (i) traiter du passage à T+1 et (ii) supprimer définitivement l'exception visant l'obligation de déclaration des anomalies énoncées dans la partie 4 du Règlement. Les ACVM ont également proposé des modifications au Règlement 81-102 sur les fonds d'investissement visant à faciliter la décision d'un organisme de placement collectif d'abréger volontairement le cycle de règlement des opérations de souscription et de rachat de ses valeurs mobilières à T+1. L'Organisme canadien de réglementation des investissements (OCRI) a publié des modifications des Règles universelles d'intégrité du marché et des Règles visant les courtiers en placement et règles partiellement consolidées afin de faciliter le passage du secteur des valeurs mobilières au cycle de règlement T+1.",
-          "source_text_t2": "",
-          "source_block_ids_t1": [],
-          "source_block_ids_t2": [],
-          "source_refs_t1": [],
-          "source_refs_t2": [],
-          "pages_t1": [
-            110
-          ],
-          "pages_t2": [],
-          "source_resolution_t1": "markdown",
-          "source_resolution_t2": "markdown",
-          "evidence_t1": {
-            "pages": [
-              110
-            ],
-            "snippet": "Les ACVM ont adopté des modifications au Règlement 24-101 sur l'appariement et le règlement des opérations institutionnelles et à l'instruction générale connexe (les modifications) qui sont entrées en vigueur le 27 mai 2024. Ces modifications visaient à : (i) traiter du passage à T+1 et (ii) supprimer définitivement l'exception visant l'obligation de déclaration des anomalies énoncées dans la part"
-          },
-          "evidence_t2": {
-            "pages": [],
-            "snippet": ""
-          },
-          "change_summary": "Détails sur les modifications réglementaires au Canada pour le passage à supprimés",
-          "genai_triage": {
-            "is_relevant": true,
-            "themes_amf": [
-              "EXIGENCES_REGLEMENTAIRES",
-              "DIVULGATION_RETRAIT"
-            ],
-            "impact_level": "MAJEUR",
-            "impact_it": "INDETERMINE",
-            "impact_it_justification": "",
-            "changement_posture": "ALLEGEMENT",
-            "justification_posture": "Preuve : Le retrait des détails sur les modifications réglementaires au Canada pour le passage à T+1.\n\nEffet sur la gestion du risque : La suppression de cette information peut indiquer un allègement de la communication sur les exigences réglementaires.\n\nJustification du statut : Le retrait est effectif et modifie la transparence de la banque sur les exigences réglementaires.\n\nJustification de la confiance : Moyenne, car le retrait est explicite mais l'impact sur la gestion du risque reste à confirmer.",
-            "statut_mise_en_oeuvre": "MIS_EN_OEUVRE",
-            "confiance_posture": "MOYENNE",
-            "nouvelle_idee": true,
-            "explanation": "Au, la banque détaillait les modifications réglementaires au Canada pour le passage à, mais cette information est retirée au. Ce retrait concerne les des exigences prudentielles et modifie la transparence de la banque sur ces changements. Il est crucial pour la surveillance car il peut signaler un changement de posture réglementaire",
-            "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Exigences réglementaires, information retirée.\n\nCe qui change : Le T2 retire les détails sur les modifications réglementaires au Canada pour le passage à T+1, qui étaient présents au T1.\n\nPertinence métier : Ce changement met l'accent sur la réduction de la transparence concernant les exigences réglementaires. Le retrait de cette information peut modifier la perception de la conformité de la banque aux nouvelles règles, ce qui est crucial pour la comparabilité entre pairs.\n\nPoint de surveillance : Exigences réglementaires — Le changement indique que la banque a retiré des informations sur les modifications réglementaires. Ce point permet de suivre l'évolution de la transparence de la banque sur les exigences réglementaires et leur impact potentiel sur la gestion des risques.",
-            "action_requise": "revue_prioritaire",
-            "exclusion_reason": null,
-            "change_segments": [
-              {
-                "kind": "removed",
-                "text_t1": "Les ACVM ont adopté des modifications au Règlement 24-101 sur l'appariement et le règlement des opérations institutionnelles et à l'instruction générale connexe (les modifications) qui sont entrées en vigueur le 27 mai 2024. Ces modifications visaient à : (i) traiter du passage à T+1 et (ii) supprimer définitivement l'exception visant l'obligation de déclaration des anomalies énoncées dans la partie 4 du Règlement. Les ACVM ont également proposé des modifications au Règlement 81-102 sur les fonds d'investissement visant à faciliter la décision d'un organisme de placement collectif d'abréger volontairement le cycle de règlement des opérations de souscription et de rachat de ses valeurs mobilières à T+1. L'Organisme canadien de réglementation des investissements (OCRI) a publié des modifications des Règles universelles d'intégrité du marché et des Règles visant les courtiers en placement et règles partiellement consolidées afin de faciliter le passage du secteur des valeurs mobilières au cycle de règlement T+1.",
-                "text_t2": ""
-              }
-            ],
-            "category": "REGLEMENTAIRE",
-            "risk_type": "conformite",
-            "relevance_score": "ELEVEE",
-            "risk_level": "ELEVEE",
-            "impact_description": "",
-            "reference_reglementaire": "",
-            "confidence": 0.85,
-            "signals": {
-              "regulatory_reference_added": false,
-              "methodology_change": false,
-              "tone_changed": false,
-              "forward_looking": false,
-              "quantitative_changed": false
-            },
-            "source": "gpt4o_triage_amf_v3"
-          }
-        },
-        {
           "change_id": "gestion_risques_loi_n_o_1_d_exécution_du_budget_de_2023_change_305",
           "section_key": "gestion_risques",
           "subsection_heading": "Loi n o 1 d'exécution du budget de 2023 et Règlement sur le taux d'intérêt criminel",
@@ -21803,78 +20678,6 @@
             "confidence": 0.85,
             "signals": {
               "regulatory_reference_added": true,
-              "methodology_change": false,
-              "tone_changed": false,
-              "forward_looking": false,
-              "quantitative_changed": false
-            },
-            "source": "gpt4o_triage_amf_v3"
-          }
-        },
-        {
-          "change_id": "gestion_risques_gestion_du_risque_change_348",
-          "section_key": "gestion_risques",
-          "subsection_heading": "Gestion du risque",
-          "diff_type": "removed",
-          "semantic_text_t1": "En tant qu'acteur clé de l'industrie financière, la Banque démontre son engagement auprès de groupes et d'associations en matière environnementale et sociale, tels que les Principes bancaires responsables des Nations Unies, le PCAF et le NZBA. Les cadres élaborés par ces groupes, de même que la méthodologie, peuvent évoluer et cela pourrait amener la Banque à réévaluer son adhésion à ceux ci. De plus, leurs efforts à développer de tels cadres et objectifs pourraient soulever des préoccupations liées à la concurrence",
-          "semantic_text_t2": "",
-          "source_text_t1": "En tant qu'acteur clé de l'industrie financière, la Banque démontre son engagement auprès de groupes et d'associations en matière environnementale et sociale, tels que les Principes bancaires responsables des Nations Unies, le PCAF et le NZBA. Les cadres élaborés par ces groupes, de même que la méthodologie, peuvent évoluer et cela pourrait amener la Banque à réévaluer son adhésion à ceux-ci. De plus, leurs efforts à développer de tels cadres et objectifs pourraient soulever des préoccupations liées à la concurrence.",
-          "source_text_t2": "",
-          "source_block_ids_t1": [],
-          "source_block_ids_t2": [],
-          "source_refs_t1": [],
-          "source_refs_t2": [],
-          "pages_t1": [
-            113
-          ],
-          "pages_t2": [],
-          "source_resolution_t1": "markdown",
-          "source_resolution_t2": "markdown",
-          "evidence_t1": {
-            "pages": [
-              113
-            ],
-            "snippet": "En tant qu'acteur clé de l'industrie financière, la Banque démontre son engagement auprès de groupes et d'associations en matière environnementale et sociale, tels que les Principes bancaires responsables des Nations Unies, le PCAF et le NZBA. Les cadres élaborés par ces groupes, de même que la méthodologie, peuvent évoluer et cela pourrait amener la Banque à réévaluer son adhésion à ceux-ci. De p"
-          },
-          "evidence_t2": {
-            "pages": [],
-            "snippet": ""
-          },
-          "change_summary": "Paragraphe sur l'engagement de la Banque auprès de groupes et associations environnementales et sociales supprimé",
-          "genai_triage": {
-            "is_relevant": true,
-            "themes_amf": [
-              "ESG_CLIMATIQUE",
-              "DIVULGATION_RETRAIT"
-            ],
-            "impact_level": "MAJEUR",
-            "impact_it": "INDETERMINE",
-            "impact_it_justification": "",
-            "changement_posture": "ALLEGEMENT",
-            "justification_posture": "Preuve : Le retrait du paragraphe sur l'engagement de la Banque auprès de groupes et associations environnementales et sociales.\n\nEffet sur la gestion du risque : Ce retrait pourrait indiquer une diminution de l'engagement de la Banque envers les initiatives ESG, ce qui pourrait affecter sa posture de risque en matière de durabilité.\n\nJustification du statut : Le retrait est effectif et modifie la perception de l'engagement ESG de la Banque.\n\nJustification de la confiance : Moyenne, car le retrait est explicite mais les raisons sous-jacentes ne sont pas détaillées.",
-            "statut_mise_en_oeuvre": "MIS_EN_OEUVRE",
-            "confiance_posture": "MOYENNE",
-            "nouvelle_idee": true,
-            "explanation": "Au, la Banque affichait son engagement envers des groupes et associations environnementales et sociales, mais cette mention disparaît au. Ce retrait concerne les divulgations ESG et modifie la perception de l'engagement de la Banque envers ces initiatives. Il a un impact majeur sur la transparence et la posture ESG de la Banque",
-            "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Risque climatique / ESG, information retirée.\n\nCe qui change : Le T2 retire la mention de l'engagement de la Banque envers des groupes et associations environnementales et sociales, tels que les Principes bancaires responsables des Nations Unies, le PCAF et le NZBA.\n\nPertinence métier : Ce changement met l'accent sur une réduction de la transparence de la Banque concernant son engagement ESG. Le retrait de cette divulgation peut affecter la perception de la Banque en matière de durabilité et de responsabilité sociale, ce qui est crucial pour les investisseurs et les régulateurs.\n\nPoint de surveillance : Risque climatique / ESG — Le changement indique une potentielle réévaluation de l'engagement de la Banque envers les initiatives ESG. Ce point permet de suivre l'évolution de la transparence et de l'engagement de la Banque dans ce domaine.",
-            "action_requise": "revue_prioritaire",
-            "exclusion_reason": null,
-            "change_segments": [
-              {
-                "kind": "removed",
-                "text_t1": "En tant qu'acteur clé de l'industrie financière, la Banque démontre son engagement auprès de groupes et d'associations en matière environnementale et sociale, tels que les Principes bancaires responsables des Nations Unies, le PCAF et le NZBA. Les cadres élaborés par ces groupes, de même que la méthodologie, peuvent évoluer et cela pourrait amener la Banque à réévaluer son adhésion à ceux-ci. De plus, leurs efforts à développer de tels cadres et objectifs pourraient soulever des préoccupations liées à la concurrence.",
-                "text_t2": ""
-              }
-            ],
-            "category": "RISQUE",
-            "risk_type": "autre",
-            "relevance_score": "ELEVEE",
-            "risk_level": "ELEVEE",
-            "impact_description": "",
-            "reference_reglementaire": "",
-            "confidence": 0.85,
-            "signals": {
-              "regulatory_reference_added": false,
               "methodology_change": false,
               "tone_changed": false,
               "forward_looking": false,
@@ -23960,7 +22763,8 @@
           "source_refs_t2": [],
           "pages_t1": [],
           "pages_t2": [
-            116
+            116,
+            117
           ],
           "source_resolution_t1": "markdown",
           "source_resolution_t2": "markdown",
@@ -23970,7 +22774,8 @@
           },
           "evidence_t2": {
             "pages": [
-              116
+              116,
+              117
             ],
             "snippet": "La Banque considère la gouvernance comme un exercice collaboratif, fondé sur un dialogue ouvert, transparent et continu avec ses parties prenantes. Dans un contexte où les enjeux de durabilité évoluent rapidement, ces échanges permettent de mieux comprendre les attentes de ces dernières et d'y répondre de manière durable. La croissance de la Banque repose sur ces relations, qui sont au cœur de sa "
           },
@@ -25735,78 +24540,6 @@
           }
         },
         {
-          "change_id": "gestion_risques_souscription_des_prêts_hypothécaires_change_113",
-          "section_key": "gestion_risques",
-          "subsection_heading": "Souscription des prêts hypothécaires",
-          "diff_type": "added",
-          "semantic_text_t1": "",
-          "semantic_text_t2": "Depuis le janvier, le refinancement hypothécaire assuré est possible pour la construction d'unités secondaires, avec un RPV maximal de, et une valeur de la propriété résidentielle inférieure à M$",
-          "source_text_t1": "",
-          "source_text_t2": "Depuis le 15 janvier 2025, le refinancement hypothécaire assuré est possible pour la construction d'unités secondaires, avec un RPV maximal de 90 %, et une valeur de la propriété résidentielle inférieure à 2 M$.",
-          "source_block_ids_t1": [],
-          "source_block_ids_t2": [],
-          "source_refs_t1": [],
-          "source_refs_t2": [],
-          "pages_t1": [],
-          "pages_t2": [
-            87
-          ],
-          "source_resolution_t1": "markdown",
-          "source_resolution_t2": "markdown",
-          "evidence_t1": {
-            "pages": [],
-            "snippet": ""
-          },
-          "evidence_t2": {
-            "pages": [
-              87
-            ],
-            "snippet": "Depuis le 15 janvier 2025, le refinancement hypothécaire assuré est possible pour la construction d'unités secondaires, avec un RPV maximal de 90 %, et une valeur de la propriété résidentielle inférieure à 2 M$."
-          },
-          "change_summary": "Ajout d'une nouvelle mesure permettant le refinancement hypothécaire assuré pour la construction d'unités secondaires",
-          "genai_triage": {
-            "is_relevant": true,
-            "themes_amf": [
-              "EXIGENCES_REGLEMENTAIRES",
-              "DIVULGATION_AJOUT"
-            ],
-            "impact_level": "MODERE",
-            "impact_it": "INDETERMINE",
-            "impact_it_justification": "",
-            "changement_posture": "NOUVEAU_DISPOSITIF",
-            "justification_posture": "Preuve : Le T2 introduit une nouvelle mesure de refinancement hypothécaire assuré pour la construction d'unités secondaires.\n\nEffet sur la gestion du risque : Cette mesure modifie la gestion des risques liés au refinancement hypothécaire en introduisant de nouvelles conditions et limites.\n\nJustification du statut : Le changement est annoncé comme effectif depuis le 15 janvier 2025.\n\nJustification de la confiance : La confiance est MOYENNE car le texte précise les conditions et la date d'entrée en vigueur.",
-            "statut_mise_en_oeuvre": "MIS_EN_OEUVRE",
-            "confiance_posture": "MOYENNE",
-            "nouvelle_idee": true,
-            "explanation": "Au, une nouvelle mesure permet le refinancement hypothécaire assuré pour la construction d'unités secondaires, avec des conditions spécifiques. Ce changement relève des des exigences prudentielles et constitue une divulgation ajoutée. Il introduit un nouveau dispositif de gestion des risques hypothécaires",
-            "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Exigences réglementaires, information ajoutée.\n\nCe qui change : Le T2 introduit une nouvelle mesure permettant le refinancement hypothécaire assuré pour la construction d'unités secondaires, avec un RPV maximal de 90 % et une valeur de propriété inférieure à 2 M$.\n\nPertinence métier : Ce changement met l'accent sur l'évolution des exigences réglementaires en matière de refinancement hypothécaire. Il modifie la gestion des risques associés à ces prêts en introduisant de nouvelles conditions et limites, ce qui est pertinent pour la surveillance des pratiques de refinancement.\n\nPoint de surveillance : Exigences réglementaires — Le changement indique que la banque a mis en place une nouvelle mesure de refinancement hypothécaire. Ce point permet de suivre l'évolution des pratiques de refinancement et leur alignement avec les exigences réglementaires.",
-            "action_requise": "investigation",
-            "exclusion_reason": null,
-            "change_segments": [
-              {
-                "kind": "added",
-                "text_t1": "",
-                "text_t2": "Depuis le 15 janvier 2025, le refinancement hypothécaire assuré est possible pour la construction d'unités secondaires, avec un RPV maximal de 90 %, et une valeur de la propriété résidentielle inférieure à 2 M$."
-              }
-            ],
-            "category": "REGLEMENTAIRE",
-            "risk_type": "conformite",
-            "relevance_score": "MOYENNE",
-            "risk_level": "MOYENNE",
-            "impact_description": "",
-            "reference_reglementaire": "",
-            "confidence": 0.85,
-            "signals": {
-              "regulatory_reference_added": false,
-              "methodology_change": false,
-              "tone_changed": false,
-              "forward_looking": false,
-              "quantitative_changed": false
-            },
-            "source": "gpt4o_triage_amf_v3"
-          }
-        },
-        {
           "change_id": "gestion_risques_risque_de_marché_change_161",
           "section_key": "gestion_risques",
           "subsection_heading": "Risque de marché",
@@ -27291,78 +26024,6 @@
             ],
             "category": "REGLEMENTAIRE",
             "risk_type": "liquidite",
-            "relevance_score": "FAIBLE",
-            "risk_level": "FAIBLE",
-            "impact_description": "",
-            "reference_reglementaire": "",
-            "confidence": 0.85,
-            "signals": {
-              "regulatory_reference_added": false,
-              "methodology_change": false,
-              "tone_changed": false,
-              "forward_looking": false,
-              "quantitative_changed": false
-            },
-            "source": "gpt4o_triage_amf_v3"
-          }
-        },
-        {
-          "change_id": "gestion_risques_risque_environnemental_et_social_change_346",
-          "section_key": "gestion_risques",
-          "subsection_heading": "Risque environnemental et social",
-          "diff_type": "added",
-          "semantic_text_t1": "",
-          "semantic_text_t2": "Pour de plus amples renseignements sur notre gouvernance et les politiques et règles qui encadrent nos activités, veuillez consulter la section « Codes et engagements » disponible sur le site Internet de la Banque à l'adresse bnc.ca",
-          "source_text_t1": "",
-          "source_text_t2": "Pour de plus amples renseignements sur notre gouvernance et les politiques et règles qui encadrent nos activités, veuillez consulter la section « Codes et engagements » disponible sur le site Internet de la Banque à l'adresse bnc.ca.",
-          "source_block_ids_t1": [],
-          "source_block_ids_t2": [],
-          "source_refs_t1": [],
-          "source_refs_t2": [],
-          "pages_t1": [],
-          "pages_t2": [
-            117
-          ],
-          "source_resolution_t1": "markdown",
-          "source_resolution_t2": "markdown",
-          "evidence_t1": {
-            "pages": [],
-            "snippet": ""
-          },
-          "evidence_t2": {
-            "pages": [
-              117
-            ],
-            "snippet": "Pour de plus amples renseignements sur notre gouvernance et les politiques et règles qui encadrent nos activités, veuillez consulter la section « Codes et engagements » disponible sur le site Internet de la Banque à l'adresse bnc.ca."
-          },
-          "change_summary": "Ajout d'une référence à la section « Codes et engagements » sur le site Internet de la Banque",
-          "genai_triage": {
-            "is_relevant": true,
-            "themes_amf": [
-              "DIVULGATION_AJOUT",
-              "GOUVERNANCE_RISQUES"
-            ],
-            "impact_level": "MINEUR",
-            "impact_it": "INDETERMINE",
-            "impact_it_justification": "",
-            "changement_posture": "AUCUN",
-            "justification_posture": "",
-            "statut_mise_en_oeuvre": "INDETERMINE",
-            "confiance_posture": "INDETERMINE",
-            "nouvelle_idee": true,
-            "explanation": "Au, la banque ajoute une référence à la section « Codes et engagements » sur son site Internet, absente au. Ce changement relève de la gouvernance des risques et constitue une divulgation ajoutée. Il améliore l'accès à l'information sur les politiques et règles de la banque",
-            "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Information ajoutée, gouvernance des risques.\n\nCe qui change : Le T2 ajoute une référence à la section « Codes et engagements » sur le site Internet de la Banque, fournissant des informations supplémentaires sur la gouvernance et les politiques.\n\nPertinence métier : Ce changement met l'accent sur l'amélioration de la transparence et de l'accès à l'information concernant la gouvernance des risques. La mention d'une ressource en ligne dédiée aux codes et engagements renforce la visibilité des politiques de la banque et peut influencer la perception de sa conformité et de sa gouvernance.\n\nPoint de surveillance : Gouvernance des risques — Le changement indique que la banque améliore l'accès à ses politiques et règles via une section dédiée en ligne. Ce point permet de suivre l'évolution de la transparence et de la communication des pratiques de gouvernance.",
-            "action_requise": "information",
-            "exclusion_reason": null,
-            "change_segments": [
-              {
-                "kind": "added",
-                "text_t1": "",
-                "text_t2": "Pour de plus amples renseignements sur notre gouvernance et les politiques et règles qui encadrent nos activités, veuillez consulter la section « Codes et engagements » disponible sur le site Internet de la Banque à l'adresse bnc.ca."
-              }
-            ],
-            "category": "STRUCTURE",
-            "risk_type": "conformite",
             "relevance_score": "FAIBLE",
             "risk_level": "FAIBLE",
             "impact_description": "",
@@ -29845,22 +28506,26 @@
           "source_refs_t1": [],
           "source_refs_t2": [],
           "pages_t1": [
-            90
+            90,
+            104
           ],
           "pages_t2": [
-            94
+            94,
+            108
           ],
           "source_resolution_t1": "markdown",
           "source_resolution_t2": "markdown",
           "evidence_t1": {
             "pages": [
-              90
+              90,
+              104
             ],
             "snippet": "La VaR liée à un portefeuille de négociation est mesurée en supposant une période de détention d'un jour pour la gestion continue du risque de marché. La VaR est calculée quotidiennement à la fois pour les grandes catégories d'instruments financiers, y compris les instruments financiers dérivés, et pour l'ensemble des portefeuilles de négociation du secteur des Marchés financiers et du groupe de F"
           },
           "evidence_t2": {
             "pages": [
-              94
+              94,
+              108
             ],
             "snippet": "La VaR liée à un portefeuille de négociation est mesurée en supposant une période de détention d'un jour pour la gestion continue du risque de marché. La VaR est calculée quotidiennement à la fois pour les grandes catégories d'instruments financiers, y compris les instruments financiers dérivés, et pour l'ensemble des portefeuilles de négociation du secteur des Marchés des capitaux et du groupe de"
           },
@@ -30569,73 +29234,6 @@
           }
         },
         {
-          "change_id": "gestion_risques_exigences_de_déclaration_relatives_au_ra_change_245",
-          "section_key": "gestion_risques",
-          "subsection_heading": "Exigences de déclaration relatives au ratio de liquidité à court terme (1) (2) *",
-          "diff_type": "modified",
-          "semantic_text_t1": "La variation entre le trimestre terminé le octobre et le trimestre précédent découle du cours normal des activités",
-          "semantic_text_t2": "La variation entre le trimestre terminé le octobre et le trimestre précédent découle du cours normal des activités",
-          "source_text_t1": "La variation entre le trimestre terminé le 31 octobre 2024 et le trimestre précédent découle du cours normal des activités.",
-          "source_text_t2": "La variation entre le trimestre terminé le 31 octobre 2025 et le trimestre précédent découle du cours normal des activités.",
-          "source_block_ids_t1": [],
-          "source_block_ids_t2": [],
-          "source_refs_t1": [],
-          "source_refs_t2": [],
-          "pages_t1": [
-            102
-          ],
-          "pages_t2": [
-            106
-          ],
-          "source_resolution_t1": "markdown",
-          "source_resolution_t2": "markdown",
-          "evidence_t1": {
-            "pages": [
-              102
-            ],
-            "snippet": "La variation entre le trimestre terminé le 31 octobre 2024 et le trimestre précédent découle du cours normal des activités."
-          },
-          "evidence_t2": {
-            "pages": [
-              106
-            ],
-            "snippet": "La variation entre le trimestre terminé le 31 octobre 2025 et le trimestre précédent découle du cours normal des activités."
-          },
-          "change_summary": "Mise à jour de la date de à",
-          "genai_triage": {
-            "is_relevant": false,
-            "themes_amf": [],
-            "impact_level": "MINEUR",
-            "impact_it": "INDETERMINE",
-            "impact_it_justification": "",
-            "changement_posture": "AUCUN",
-            "justification_posture": "",
-            "statut_mise_en_oeuvre": "INDETERMINE",
-            "confiance_posture": "INDETERMINE",
-            "nouvelle_idee": false,
-            "explanation": "",
-            "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : Mise à jour de date.\n\nCe qui change : Le T2 met à jour la date de fin du trimestre, passant du 31 octobre 2024 au 31 octobre 2025. Cette modification ne concerne que la date et n'introduit aucun nouvel élément substantiel.\n\nPertinence métier : Cette mise à jour de date ne constitue pas une nouvelle idée à surveiller, car elle ne modifie pas la substance de la divulgation, les exigences réglementaires, ni la posture de risque. Elle ne change pas la lecture réglementaire ou la comparabilité métier.\n\nPoint de surveillance : Mise à jour de date — La substance de la divulgation demeure stable. Ce point peut être écarté du suivi prioritaire, sauf si une autre information indique un changement de seuil prudentiel, de méthode, de conformité ou de posture de risque.",
-            "action_requise": "aucune",
-            "exclusion_reason": "reformulation_mineure",
-            "change_segments": [],
-            "category": "NON_PERTINENT",
-            "risk_type": "autre",
-            "relevance_score": "FAIBLE",
-            "risk_level": "FAIBLE",
-            "impact_description": "",
-            "reference_reglementaire": "",
-            "confidence": 0.0,
-            "signals": {
-              "regulatory_reference_added": false,
-              "methodology_change": false,
-              "tone_changed": false,
-              "forward_looking": false,
-              "quantitative_changed": false
-            },
-            "source": "gpt4o_triage_amf_v3"
-          }
-        },
-        {
           "change_id": "gestion_risques_risque_de_financement_change_253",
           "section_key": "gestion_risques",
           "subsection_heading": "Risque de financement",
@@ -30684,73 +29282,6 @@
             "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : Mise à jour de référence documentaire.\n\nCe qui change : Le T2 met à jour la référence de la note des états financiers, passant de la note 31 à la note 29. Le contenu de la divulgation reste inchangé.\n\nPertinence métier : Cette mise à jour ne constitue pas une nouvelle idée à surveiller, car elle ne modifie pas le contenu ou la substance de la divulgation. Elle ne touche pas aux thèmes AMF, aux exigences réglementaires ou à la posture de risque de la banque.\n\nPoint de surveillance : Mise à jour de référence documentaire — La substance de la divulgation demeure stable. Ce point peut être écarté du suivi prioritaire, sauf si une autre information indique un changement de contenu, de méthode ou de posture de risque.",
             "action_requise": "aucune",
             "exclusion_reason": "deplacement_texte",
-            "change_segments": [],
-            "category": "NON_PERTINENT",
-            "risk_type": "autre",
-            "relevance_score": "FAIBLE",
-            "risk_level": "FAIBLE",
-            "impact_description": "",
-            "reference_reglementaire": "",
-            "confidence": 0.0,
-            "signals": {
-              "regulatory_reference_added": false,
-              "methodology_change": false,
-              "tone_changed": false,
-              "forward_looking": false,
-              "quantitative_changed": false
-            },
-            "source": "gpt4o_triage_amf_v3"
-          }
-        },
-        {
-          "change_id": "gestion_risques_notations_de_crédit_change_254",
-          "section_key": "gestion_risques",
-          "subsection_heading": "Notations de crédit",
-          "diff_type": "modified",
-          "semantic_text_t1": "Les notations de crédit attribuées par les agences de notation représentent leur évaluation de la qualité du crédit de la Banque à partir de l'information qualitative et quantitative qui leur est fournie. Les notations de crédit peuvent être révisées en tout temps en fonction de divers facteurs, dont le contexte macroéconomique, les méthodologies utilisées par les agences de notation ou la situation financière actuelle et anticipée de la Banque. Les notations de crédit sont un des principaux facteurs qui influencent la capacité de la Banque à accéder aux marchés financiers à un coût raisonnable. Une révision à la baisse des notations de crédit de la Banque pourrait avoir une incidence défavorable sur le coût, la taille et l'échéance du financement futur et pourrait également entraîner une obligation accrue de nantissement de garanties ou une diminution de la capacité d'exercer certaines activités commerciales garanties à un coût raisonnable, y compris des opérations de couverture et des instruments financiers dérivés",
-          "semantic_text_t2": "Les notations de crédit attribuées par les agences de notation représentent leur évaluation de la qualité du crédit de la Banque à partir de l'information qualitative et quantitative qui leur est fournie. Les notations de crédit peuvent être révisées en tout temps en fonction de divers facteurs, dont le contexte macroéconomique, les méthodologies utilisées par les agences de notation ou la situation financière actuelle et anticipée de la Banque. Les notations de crédit sont un des principaux facteurs qui influencent la capacité de la Banque à accéder aux marchés des capitaux à un coût raisonnable. Une révision à la baisse des notations de crédit de la Banque pourrait avoir une incidence défavorable sur le coût, la taille et l'échéance du financement futur et pourrait également entraîner une obligation accrue de nantissement de garanties ou une diminution de la capacité d'exercer certaines activités commerciales garanties à un coût raisonnable, y compris des opérations de couverture et des instruments financiers dérivés",
-          "source_text_t1": "Les notations de crédit attribuées par les agences de notation représentent leur évaluation de la qualité du crédit de la Banque à partir de l'information qualitative et quantitative qui leur est fournie. Les notations de crédit peuvent être révisées en tout temps en fonction de divers facteurs, dont le contexte macroéconomique, les méthodologies utilisées par les agences de notation ou la situation financière actuelle et anticipée de la Banque. Les notations de crédit sont un des principaux facteurs qui influencent la capacité de la Banque à accéder aux marchés financiers à un coût raisonnable. Une révision à la baisse des notations de crédit de la Banque pourrait avoir une incidence défavorable sur le coût, la taille et l'échéance du financement futur et pourrait également entraîner une obligation accrue de nantissement de garanties ou une diminution de la capacité d'exercer certaines activités commerciales garanties à un coût raisonnable, y compris des opérations de couverture et des instruments financiers dérivés.",
-          "source_text_t2": "Les notations de crédit attribuées par les agences de notation représentent leur évaluation de la qualité du crédit de la Banque à partir de l'information qualitative et quantitative qui leur est fournie. Les notations de crédit peuvent être révisées en tout temps en fonction de divers facteurs, dont le contexte macroéconomique, les méthodologies utilisées par les agences de notation ou la situation financière actuelle et anticipée de la Banque. Les notations de crédit sont un des principaux facteurs qui influencent la capacité de la Banque à accéder aux marchés des capitaux à un coût raisonnable. Une révision à la baisse des notations de crédit de la Banque pourrait avoir une incidence défavorable sur le coût, la taille et l'échéance du financement futur et pourrait également entraîner une obligation accrue de nantissement de garanties ou une diminution de la capacité d'exercer certaines activités commerciales garanties à un coût raisonnable, y compris des opérations de couverture et des instruments financiers dérivés.",
-          "source_block_ids_t1": [],
-          "source_block_ids_t2": [],
-          "source_refs_t1": [],
-          "source_refs_t2": [],
-          "pages_t1": [
-            104
-          ],
-          "pages_t2": [
-            108
-          ],
-          "source_resolution_t1": "markdown",
-          "source_resolution_t2": "markdown",
-          "evidence_t1": {
-            "pages": [
-              104
-            ],
-            "snippet": "Les notations de crédit attribuées par les agences de notation représentent leur évaluation de la qualité du crédit de la Banque à partir de l'information qualitative et quantitative qui leur est fournie. Les notations de crédit peuvent être révisées en tout temps en fonction de divers facteurs, dont le contexte macroéconomique, les méthodologies utilisées par les agences de notation ou la situati"
-          },
-          "evidence_t2": {
-            "pages": [
-              108
-            ],
-            "snippet": "Les notations de crédit attribuées par les agences de notation représentent leur évaluation de la qualité du crédit de la Banque à partir de l'information qualitative et quantitative qui leur est fournie. Les notations de crédit peuvent être révisées en tout temps en fonction de divers facteurs, dont le contexte macroéconomique, les méthodologies utilisées par les agences de notation ou la situati"
-          },
-          "change_summary": "Le terme 'marchés financiers' a été modifié en 'marchés des capitaux'",
-          "genai_triage": {
-            "is_relevant": false,
-            "themes_amf": [],
-            "impact_level": "MINEUR",
-            "impact_it": "INDETERMINE",
-            "impact_it_justification": "",
-            "changement_posture": "AUCUN",
-            "justification_posture": "",
-            "statut_mise_en_oeuvre": "INDETERMINE",
-            "confiance_posture": "INDETERMINE",
-            "nouvelle_idee": false,
-            "explanation": "",
-            "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : Reformulation mineure.\n\nCe qui change : Le terme 'marchés financiers' a été modifié en 'marchés des capitaux'. Cette modification n'introduit pas de nouvelle information ni de changement substantiel dans la divulgation.\n\nPertinence métier : Cette reformulation n'affecte pas la substance de la divulgation sur les notations de crédit. Elle ne modifie pas la compréhension du risque, la posture de la banque ou la conformité réglementaire.\n\nPoint de surveillance : Reformulation mineure — Ce changement peut être écarté du suivi prioritaire, car il ne modifie pas la substance de la divulgation ni la comparabilité entre pairs.",
-            "action_requise": "aucune",
-            "exclusion_reason": "reformulation_mineure",
             "change_segments": [],
             "category": "NON_PERTINENT",
             "risk_type": "autre",

@@ -59,15 +59,123 @@ def _normalize_text_change(change: dict[str, Any]) -> None:
         triage["change_segments"] = []
 
 
+def extract_term_replacement_pattern(summary: str) -> str:
+    """Extrait un motif de remplacement de termes ou de sous-section."""
+    m = re.search(
+        r"\"([^\"]+)\"\s*(?:par|en|à|remplacé par|modifié en)\s*\"([^\"]+)\"",
+        summary,
+        re.IGNORECASE,
+    )
+    if m:
+        return f"term_replace:{m.group(1).strip().lower()}->{m.group(2).strip().lower()}"
+
+    m_del = re.search(
+        r"(?:passage(?: de sous-section)? supprimé|suppression(?: de sous-section)?)\s*:\s*([^\n\.]+)",
+        summary,
+        re.IGNORECASE,
+    )
+    if m_del:
+        return f"section_del:{m_del.group(1).strip().lower()}"
+
+    m_add = re.search(
+        r"(?:passage(?: de sous-section)? ajouté|ajout(?: de sous-section)?)\s*:\s*([^\n\.]+)",
+        summary,
+        re.IGNORECASE,
+    )
+    if m_add:
+        return f"section_add:{m_add.group(1).strip().lower()}"
+
+    return ""
+
+
+def deduplicate_and_group_section_changes(
+    changes: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """Dédoublonne et regroupe les changements d'une section par liste de pages.
+
+    Conserve 1 seule entrée par changement distinct et agrège les numéros de page
+    (ex. pages_t1: [98, 99, 101, 110]).
+    """
+    grouped: list[dict[str, Any]] = []
+    seen: dict[tuple[str, str], int] = {}
+
+    for change in changes:
+        if not isinstance(change, dict):
+            continue
+        dt = str(change.get("diff_type") or "").strip().lower()
+        summary = str(change.get("change_summary") or "").strip()
+        term_pattern = extract_term_replacement_pattern(summary)
+        t1 = str(
+            change.get("source_text_t1") or change.get("semantic_text_t1") or ""
+        ).strip()
+        t2 = str(
+            change.get("source_text_t2") or change.get("semantic_text_t2") or ""
+        ).strip()
+        sub = str(change.get("subsection_heading") or "").strip().lower()
+
+        if term_pattern:
+            key = (dt, f"term:{term_pattern}")
+        elif dt in ("added", "removed") and sub and sub != "__intro__":
+            key = (dt, f"sub:{sub}")
+        elif summary:
+            key = (dt, f"sum:{summary.lower()}")
+        elif t1 and t2:
+            key = (dt, f"t1_t2:{t1[:120].lower()}||{t2[:120].lower()}")
+        elif t1:
+            key = (dt, f"t1:{t1[:120].lower()}")
+        elif t2:
+            key = (dt, f"t2:{t2[:120].lower()}")
+        else:
+            key = (dt, f"raw:{len(grouped)}")
+
+        if key in seen:
+            idx = seen[key]
+            existing = grouped[idx]
+
+            p1 = list(existing.get("pages_t1") or [])
+            for p in change.get("pages_t1") or []:
+                if p and p not in p1:
+                    p1.append(p)
+            existing["pages_t1"] = sorted(p1)
+
+            p2 = list(existing.get("pages_t2") or [])
+            for p in change.get("pages_t2") or []:
+                if p and p not in p2:
+                    p2.append(p)
+            existing["pages_t2"] = sorted(p2)
+
+            if "evidence_t1" in existing and isinstance(existing["evidence_t1"], dict):
+                existing["evidence_t1"]["pages"] = existing["pages_t1"]
+            if "evidence_t2" in existing and isinstance(existing["evidence_t2"], dict):
+                existing["evidence_t2"]["pages"] = existing["pages_t2"]
+        else:
+            c_copy = dict(change)
+            c_copy["pages_t1"] = list(change.get("pages_t1") or [])
+            c_copy["pages_t2"] = list(change.get("pages_t2") or [])
+            if "evidence_t1" in c_copy and isinstance(c_copy["evidence_t1"], dict):
+                c_copy["evidence_t1"]["pages"] = list(c_copy["pages_t1"])
+            if "evidence_t2" in c_copy and isinstance(c_copy["evidence_t2"], dict):
+                c_copy["evidence_t2"]["pages"] = list(c_copy["pages_t2"])
+            seen[key] = len(grouped)
+            grouped.append(c_copy)
+
+    return grouped
+
+
 def _normalize_text_comparison_payload(payload: dict[str, Any]) -> None:
     """Normalise tous les changements avant écriture du JSON final."""
     for section in payload.get("section_comparisons") or []:
         if not isinstance(section, dict):
             continue
         for bucket in ("block_comparisons", "all_block_comparisons"):
+            raw_changes = section.get(bucket) or []
+            if raw_changes:
+                deduped = deduplicate_and_group_section_changes(raw_changes)
+                section[bucket] = deduped
             for change in section.get(bucket) or []:
                 if isinstance(change, dict):
                     _normalize_text_change(change)
+
 
 
 def get_text_comparison_path(
