@@ -654,7 +654,7 @@
           "EXIGENCES_REGLEMENTAIRES"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Nouvelle mention réglementaire, Exigences réglementaires ou conformité\n\nCe qui change : BMO précise que la réserve pour stabilité intérieure a été confirmée à 3,5 % par le BSIF en juin, ajoutant ainsi une référence explicite à l'autorité réglementaire.\n\nPertinence métier : Ce changement met l'accent sur l'importance de la conformité aux exigences du BSIF, en précisant l'autorité qui a confirmé la réserve pour stabilité intérieure. Cela renforce la transparence et la comparabilité entre pairs en matière de capital réglementaire.\n\nPoint de surveillance : Surveiller les futures confirmations et ajustements des réserves par le BSIF, car cela pourrait influencer les exigences de capital de BMO.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Nouvelle mention réglementaire, Exigences réglementaires ou conformité\n\nCe qui change : BMO précise que la réserve pour stabilité intérieure a été confirmée à 3,5 % par le BSIF en juin, ajoutant ainsi une référence explicite à l'autorité réglementaire.\n\nPertinence métier : Ce changement met l'accent sur l'importance de la conformité aux exigences du BSIF, en précisant l'autorité qui a confirmé la réserve pour stabilité intérieure. Cela renforce la transparence et la comparabilité entre pairs en matière de capital réglementaire. Surveiller les futures confirmations et ajustements des réserves par le BSIF, car cela pourrait influencer les exigences de capital de BMO. La modification de la note dans le tableau 28 de la section capital_management de BMO indique que la réserve pour stabilité intérieure a été confirmée à 3,5 % par le BSIF.\n\nPoint de surveillance : Surveiller les futures confirmations et ajustements des réserves par le BSIF, car cela pourrait influencer les exigences de capital de BMO.",
         "impact_level": "MAJEUR",
         "impact_it": "FAIBLE",
         "impact_it_justification": "Éléments observés : Mention explicite du BSIF dans la confirmation de la réserve.\n\nConséquence probable : Nécessité de mettre à jour les systèmes de reporting pour inclure cette information réglementaire.\n\nLimite de l'analyse: Impact IT limité à la mise à jour des rapports, sans transformation technologique majeure.",
@@ -672,7 +672,8 @@
         "action_requise": "information",
         "reference_reglementaire": "Bâle III — CET1",
         "impact_description": "La mention explicite du BSIF dans la confirmation de la réserve pour stabilité intérieure renforce la conformité réglementaire.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "BMO"
       },
       "genai_analysis": {
         "resume_metier": "La modification de la note dans le tableau 28 de la section capital_management de BMO indique que la réserve pour stabilité intérieure a été confirmée à 3,5 % par le BSIF. Cette précision ajoute une dimension réglementaire importante, soulignant l'autorité du BSIF dans la confirmation des réserves de capital.\n\nCe changement est pertinent car il renforce la transparence et la conformité de BMO aux exigences réglementaires, ce qui est crucial pour la gestion du capital et la comparabilité entre pairs. La mention explicite du BSIF dans la note modifiée indique un alignement plus strict avec les attentes réglementaires.\n\nIl est important de surveiller les futures confirmations et ajustements des réserves par le BSIF, car cela pourrait influencer les exigences de capital de BMO. La mise à jour des systèmes de reporting pour inclure cette information réglementaire est nécessaire, bien que l'impact IT soit limité."
@@ -855,7 +856,7 @@
           "NOUVELLE_MENTION_REGLEMENTAIRE"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Nouvelle mention réglementaire\n\nCe qui change : BMO modifie la note du TABLEAU 29 pour indiquer que les calculs sont désormais conformes à la ligne directrice FI du B, remplaçant une mention antérieure plus générale.\n\nPertinence métier : Ce changement met en évidence une mise à jour réglementaire spécifique qui pourrait affecter la manière dont BMO calcule certains éléments de capital. Cela reflète une adaptation aux nouvelles exigences ou interprétations réglementaires, ce qui est crucial pour maintenir la conformité et la comparabilité avec les pairs.\n\nPoint de surveillance : Surveiller l'impact de cette nouvelle ligne directrice FI du B sur les calculs de capital et les implications potentielles pour la gestion du capital de BMO.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Nouvelle mention réglementaire\n\nCe qui change : BMO modifie la note du TABLEAU 29 pour indiquer que les calculs sont désormais conformes à la ligne directrice FI du B, remplaçant une mention antérieure plus générale.\n\nPertinence métier : Ce changement met en évidence une mise à jour réglementaire spécifique qui pourrait affecter la manière dont BMO calcule certains éléments de capital. Cela reflète une adaptation aux nouvelles exigences ou interprétations réglementaires, ce qui est crucial pour maintenir la conformité et la comparabilité avec les pairs. Surveiller l'impact de cette nouvelle ligne directrice FI du B sur les calculs de capital et les implications potentielles pour la gestion du capital de BMO. La modification de la note de bas de tableau dans le TABLEAU 29 indique que BMO se conforme désormais à une nouvelle ligne directrice FI du B.\n\nPoint de surveillance : Surveiller l'impact de cette nouvelle ligne directrice FI du B sur les calculs de capital et les implications potentielles pour la gestion du capital de BMO.",
         "impact_level": "MODERE",
         "impact_it": "MOYEN",
         "impact_it_justification": "Éléments observés : Modification de la note de bas de tableau pour inclure une nouvelle ligne directrice réglementaire.\n\nConséquence probable : Adaptation des systèmes de calcul et de reporting pour se conformer à la nouvelle ligne directrice FI du B.\n\nLimite de l'analyse : L'impact exact sur les systèmes IT dépend de la nature précise des exigences de la ligne directrice FI du B.",
@@ -873,7 +874,8 @@
         "action_requise": "revue_prioritaire",
         "reference_reglementaire": "FI du B",
         "impact_description": "La mise à jour réglementaire pourrait affecter les calculs de capital de BMO.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "BMO"
       },
       "genai_analysis": {
         "resume_metier": "La modification de la note de bas de tableau dans le TABLEAU 29 indique que BMO se conforme désormais à une nouvelle ligne directrice FI du B. Cela reflète une mise à jour réglementaire qui pourrait avoir des implications sur la manière dont la banque calcule certains éléments de capital. Cette adaptation est cruciale pour maintenir la conformité réglementaire et la comparabilité avec les pairs.\n\nL'impact IT est modéré, car il pourrait nécessiter des ajustements dans les systèmes de calcul et de reporting pour intégrer les nouvelles exigences de la ligne directrice FI du B. Cela souligne l'importance de surveiller les implications de cette mise à jour sur la gestion du capital de BMO.\n\nLe changement de posture est un renforcement, car l'inclusion d'une nouvelle ligne directrice réglementaire indique un renforcement des contrôles et de la conformité. La confiance dans cette évaluation est élevée, car la mention explicite de la ligne directrice FI du B dans le tableau est une preuve claire de ce renforcement."
@@ -1072,7 +1074,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "BMO"
       }
     },
     {
@@ -1284,7 +1287,7 @@
           "CAPITAL_REGLEMENTAIRE"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Capital réglementaire\n\nCe qui change : BMO modifie le TABLEAU 31 en ajoutant des indicateurs tels que l'Achat d’actions ordinaires aux fins d’annulation et le Rachat d’actions privilégiées de catégorie B, série 31, tout en supprimant d'autres comme l'Émission de billets avec remboursement de capital à recours limité, série 4.\n\nPertinence métier : Ce changement met l'accent sur la gestion active du capital par BMO, reflétant des ajustements dans la structure de capital et les instruments financiers utilisés. Cela peut indiquer une stratégie de capitalisation différente, potentiellement influencée par des conditions de marché ou des exigences réglementaires.\n\nPoint de surveillance : Surveiller l'impact de ces changements sur la structure du capital de BMO et leur conformité aux exigences réglementaires en matière de capital.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Capital réglementaire\n\nCe qui change : BMO modifie le TABLEAU 31 en ajoutant des indicateurs tels que l'Achat d’actions ordinaires aux fins d’annulation et le Rachat d’actions privilégiées de catégorie B, série 31, tout en supprimant d'autres comme l'Émission de billets avec remboursement de capital à recours limité, série 4.\n\nPertinence métier : Ce changement met l'accent sur la gestion active du capital par BMO, reflétant des ajustements dans la structure de capital et les instruments financiers utilisés. Cela peut indiquer une stratégie de capitalisation différente, potentiellement influencée par des conditions de marché ou des exigences réglementaires. Surveiller l'impact de ces changements sur la structure du capital de BMO et leur conformité aux exigences réglementaires en matière de capital. BMO a modifié le TABLEAU 31 en ajoutant et supprimant divers instruments de capital, ce qui reflète une gestion active du capital.\n\nPoint de surveillance : Surveiller l'impact de ces changements sur la structure du capital de BMO et leur conformité aux exigences réglementaires en matière de capital.",
         "impact_level": "MODERE",
         "impact_it": "FAIBLE",
         "impact_it_justification": "Éléments observés : Modifications dans les instruments de capital listés.\n\nConséquence probable : Ajustements mineurs dans les systèmes de reporting pour refléter les nouveaux instruments de capital.\n\nLimite de l'analyse: Pas de transformation technologique majeure identifiée.",
@@ -1302,7 +1305,8 @@
         "action_requise": "revue_prioritaire",
         "reference_reglementaire": "Bâle III — CET1",
         "impact_description": "Modification des instruments de capital affectant la structure de capitalisation de BMO.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "BMO"
       },
       "genai_analysis": {
         "resume_metier": "BMO a modifié le TABLEAU 31 en ajoutant et supprimant divers instruments de capital, ce qui reflète une gestion active du capital. Les nouveaux instruments incluent des rachats et émissions spécifiques, tandis que d'autres ont été retirés.\n\nCe changement met en évidence une stratégie de capitalisation potentiellement influencée par des conditions de marché ou des exigences réglementaires. Il est crucial de surveiller comment ces ajustements affectent la structure du capital de BMO.\n\nL'impact IT est faible, nécessitant seulement des ajustements mineurs dans les systèmes de reporting pour refléter les nouveaux instruments de capital."
@@ -1644,7 +1648,7 @@
           "STRUCTURE_RAPPORT"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Capital réglementaire, Structure du rapport\n\nCe qui change : BMO ajoute des indicateurs pour les 'Billets avec remboursement de capital à recours limité, série 6 à 6,875 %⁸, Série N, tranche 1' et supprime plusieurs séries existantes, modifiant ainsi la composition du capital réglementaire divulgué.\n\nPertinence métier : Ce changement met l'accent sur la réorganisation de la structure du capital de BMO, ce qui peut avoir des implications sur la gestion du capital réglementaire et la conformité aux exigences prudentielles. La suppression et l'ajout de séries spécifiques indiquent une stratégie de gestion du capital potentiellement révisée, ce qui est crucial pour la comparabilité entre pairs et la transparence réglementaire.\n\nPoint de surveillance : Surveiller l'impact de ces changements sur les ratios de capital réglementaire de BMO et leur conformité aux exigences de Bâle III.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Capital réglementaire, Structure du rapport\n\nCe qui change : BMO ajoute des indicateurs pour les 'Billets avec remboursement de capital à recours limité, série 6 à 6,875 %⁸, Série N, tranche 1' et supprime plusieurs séries existantes, modifiant ainsi la composition du capital réglementaire divulgué.\n\nPertinence métier : Ce changement met l'accent sur la réorganisation de la structure du capital de BMO, ce qui peut avoir des implications sur la gestion du capital réglementaire et la conformité aux exigences prudentielles. La suppression et l'ajout de séries spécifiques indiquent une stratégie de gestion du capital potentiellement révisée, ce qui est crucial pour la comparabilité entre pairs et la transparence réglementaire. Surveiller l'impact de ces changements sur les ratios de capital réglementaire de BMO et leur conformité aux exigences de Bâle III. Le tableau 32 du rapport de gestion de BMO a été modifié pour inclure de nouveaux indicateurs de capital réglementaire, tout en supprimant plusieurs séries existantes.\n\nPoint de surveillance : Surveiller l'impact de ces changements sur les ratios de capital réglementaire de BMO et leur conformité aux exigences de Bâle III.",
         "impact_level": "MODERE",
         "impact_it": "FAIBLE",
         "impact_it_justification": "Éléments observés : Modification des indicateurs de capital réglementaire dans le tableau.\n\nConséquence probable : Ajustements mineurs dans les systèmes de reporting pour refléter les nouvelles séries et suppressions.\n\nLimite de l'analyse : Pas d'indication de changement majeur dans l'architecture IT ou les processus de gestion des données.",
@@ -1662,7 +1666,8 @@
         "action_requise": "revue_prioritaire",
         "reference_reglementaire": "Bâle III — CET1",
         "impact_description": "Réorganisation de la structure du capital réglementaire de BMO avec ajout et suppression de séries spécifiques.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "BMO"
       },
       "genai_analysis": {
         "resume_metier": "Le tableau 32 du rapport de gestion de BMO a été modifié pour inclure de nouveaux indicateurs de capital réglementaire, tout en supprimant plusieurs séries existantes. Cela reflète une réorganisation de la structure du capital de la banque, potentiellement en réponse à des exigences réglementaires ou à une stratégie de gestion du capital révisée.\n\nCes changements sont significatifs car ils peuvent affecter la manière dont BMO gère son capital réglementaire et sa conformité aux normes de Bâle III. L'ajout de nouvelles séries et la suppression d'anciennes peuvent indiquer une stratégie de capital ajustée, ce qui est crucial pour la transparence et la comparabilité entre pairs.\n\nIl est important de surveiller comment ces modifications influencent les ratios de capital réglementaire de BMO et leur conformité aux exigences prudentielles, car cela pourrait avoir des implications sur la gestion du risque et la stratégie de capital de la banque."
@@ -1793,7 +1798,7 @@
           "CONTROLE_CONFORMITE"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Facteur de risque modifié, Contrôle interne ou conformité\n\nCe qui change : BMO ajoute un indicateur de risque lié à la conformité juridique et réglementaire et retire le risque d'assurance.\n\nPertinence métier : Ce changement met l'accent sur l'importance accrue que BMO accorde à la conformité juridique et réglementaire, reflétant une adaptation aux attentes réglementaires croissantes. Le retrait du risque d'assurance pourrait indiquer une réévaluation de son importance relative ou une intégration dans d'autres catégories de risque.\n\nPoint de surveillance : Surveiller comment BMO adapte ses contrôles et sa gestion des risques pour répondre aux exigences réglementaires croissantes, et si d'autres ajustements de la catégorisation des risques suivent.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Facteur de risque modifié, Contrôle interne ou conformité\n\nCe qui change : BMO ajoute un indicateur de risque lié à la conformité juridique et réglementaire et retire le risque d'assurance.\n\nPertinence métier : Ce changement met l'accent sur l'importance accrue que BMO accorde à la conformité juridique et réglementaire, reflétant une adaptation aux attentes réglementaires croissantes. Le retrait du risque d'assurance pourrait indiquer une réévaluation de son importance relative ou une intégration dans d'autres catégories de risque. Surveiller comment BMO adapte ses contrôles et sa gestion des risques pour répondre aux exigences réglementaires croissantes, et si d'autres ajustements de la catégorisation des risques suivent. BMO a modifié sa gestion des risques en ajoutant un indicateur pour le risque lié à la conformité juridique et réglementaire, tout en retirant le risque d'assurance.\n\nPoint de surveillance : Surveiller comment BMO adapte ses contrôles et sa gestion des risques pour répondre aux exigences réglementaires croissantes, et si d'autres ajustements de la catégorisation des risques suivent.",
         "impact_level": "MODERE",
         "impact_it": "FAIBLE",
         "impact_it_justification": "Éléments observés : Ajout et retrait d'indicateurs de risque.\n\nConséquence probable : Ajustement mineur des systèmes de suivi des risques pour refléter les nouvelles priorités.\n\nLimite de l'analyse: Pas de transformation technologique majeure identifiée.",
@@ -1811,7 +1816,8 @@
         "action_requise": "information",
         "reference_reglementaire": "",
         "impact_description": "Modification des priorités de gestion des risques pour inclure la conformité juridique et réglementaire.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "BMO"
       },
       "genai_analysis": {
         "resume_metier": "BMO a modifié sa gestion des risques en ajoutant un indicateur pour le risque lié à la conformité juridique et réglementaire, tout en retirant le risque d'assurance. Cela reflète une réorientation vers les exigences réglementaires croissantes.\n\nCe changement est pertinent car il montre une adaptation aux attentes réglementaires, ce qui est crucial pour maintenir la conformité et éviter des sanctions potentielles. Le retrait du risque d'assurance pourrait signifier une intégration dans d'autres catégories ou une diminution de sa priorité.\n\nIl est important de surveiller comment BMO ajuste ses contrôles et sa gestion des risques pour répondre aux nouvelles priorités réglementaires, et si d'autres ajustements de la catégorisation des risques suivent."
@@ -2093,7 +2099,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "Aucun impact concret sur la gestion des risques ou la conformité réglementaire.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "BMO"
       },
       "genai_analysis": {
         "resume_metier": "Les modifications apportées aux notes de bas de tableau dans le TABLEAU 33 de la section 'risk_management' de BMO ne changent pas le contenu substantiel. Les phrases restent identiques, ce qui indique une reformulation ou un ajustement mineur.\n\nCe type de changement n'affecte pas la substance des divulgations de risque. Il s'agit d'une reformulation sans impact sur la compréhension ou la gestion des risques par la banque.\n\nAucun point de surveillance requis, car il n'y a pas de modification substantielle à signaler."
@@ -2216,7 +2223,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "BMO"
       }
     },
     {
@@ -2340,7 +2348,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "BMO"
       }
     },
     {
@@ -2473,7 +2482,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "Aucun impact concret sur les exigences réglementaires ou la gestion des risques.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "BMO"
       },
       "genai_analysis": {
         "resume_metier": "La suppression de la note sur les soldes des prêts hypothécaires à l'habitation des périodes antérieures par BMO ne constitue pas une nouvelle idée substantielle. Ce changement n'affecte pas les exigences réglementaires ou la gestion des risques de manière significative.\n\nIl s'agit d'une modification mineure qui n'a pas d'impact sur les attentes prudentielles ou la comparabilité entre pairs. La note supprimée ne modifie pas la substance des divulgations réglementaires.\n\nAucune action n'est requise, car ce changement est considéré comme non pertinent pour la taxonomie AMF unifiée."
@@ -2659,7 +2669,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "BMO"
       }
     },
     {
@@ -2805,7 +2816,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "BMO"
       }
     },
     {
@@ -2987,7 +2999,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "Aucun impact concret sur la gestion des risques ou la conformité.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "BMO"
       },
       "genai_analysis": {
         "resume_metier": "Le changement détecté concerne uniquement le formatage du numéro de la note de bas de page dans un tableau de la section de gestion des risques de BMO. Il n'y a pas de modification substantielle du contenu ou de la méthodologie.\n\nCe type de changement n'affecte pas la gestion des risques, la conformité réglementaire ou les attentes prudentielles. Il s'agit d'une simple reformulation sans impact sur la substance de la divulgation.\n\nAucune action n'est requise, car le changement est non substantif et n'a pas d'implications sur la gestion des risques ou la conformité."
@@ -3120,7 +3133,7 @@
           "MODIFICATION_TEXTE_RISQUE"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Structure du rapport, Texte de risque modifié\n\nCe qui change : BMO a supprimé les indicateurs 'Acquisition de prêts douteux au cours de l’exercice' et 'Recouvrements de prêts et d’avances déjà sortis du bilan' du TABLEAU 40.\n\nPertinence métier : Ce changement met l'accent sur une modification de la structure du rapport de gestion des risques de BMO, ce qui pourrait affecter la transparence et la comparabilité des informations sur la gestion des prêts douteux. La suppression de ces indicateurs peut indiquer un changement dans la manière dont BMO suit et rapporte ces éléments de risque, ce qui est crucial pour les analystes et les régulateurs.\n\nPoint de surveillance : Surveiller comment BMO compense la suppression de ces indicateurs dans ses rapports futurs et si cela reflète un changement dans la gestion ou la stratégie de risque de la banque.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Structure du rapport, Texte de risque modifié\n\nCe qui change : BMO a supprimé les indicateurs 'Acquisition de prêts douteux au cours de l’exercice' et 'Recouvrements de prêts et d’avances déjà sortis du bilan' du TABLEAU 40.\n\nPertinence métier : Ce changement met l'accent sur une modification de la structure du rapport de gestion des risques de BMO, ce qui pourrait affecter la transparence et la comparabilité des informations sur la gestion des prêts douteux. La suppression de ces indicateurs peut indiquer un changement dans la manière dont BMO suit et rapporte ces éléments de risque, ce qui est crucial pour les analystes et les régulateurs. Surveiller comment BMO compense la suppression de ces indicateurs dans ses rapports futurs et si cela reflète un changement dans la gestion ou la stratégie de risque de la banque.\n\nPoint de surveillance : Surveiller comment BMO compense la suppression de ces indicateurs dans ses rapports futurs et si cela reflète un changement dans la gestion ou la stratégie de risque de la banque.",
         "impact_level": "MODERE",
         "impact_it": "FAIBLE",
         "impact_it_justification": "Éléments observés : Suppression d'indicateurs dans le tableau de gestion des risques.\n\nConséquence probable : Impact limité sur les systèmes IT, principalement lié à la mise à jour des rapports et des bases de données internes.\n\nLimite de l'analyse: Pas de changement majeur dans l'architecture ou les processus IT identifiés.",
@@ -3138,7 +3151,8 @@
         "action_requise": "investigation",
         "reference_reglementaire": "",
         "impact_description": "La suppression d'indicateurs clés dans le tableau de gestion des risques pourrait affecter la transparence et la comparabilité des informations sur la gestion des prêts douteux.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "BMO"
       },
       "genai_analysis": {
         "resume_metier": "La suppression des indicateurs 'Acquisition de prêts douteux au cours de l’exercice' et 'Recouvrements de prêts et d’avances déjà sortis du bilan' dans le TABLEAU 40 de BMO indique un changement dans la structure du rapport de gestion des risques. Cela pourrait affecter la transparence et la comparabilité des informations sur la gestion des prêts douteux.\n\nCe changement est pertinent car il modifie la manière dont BMO suit et rapporte ces éléments de risque, ce qui est crucial pour les analystes et les régulateurs. La suppression de ces indicateurs peut refléter un changement dans la gestion ou la stratégie de risque de la banque.\n\nIl est important de surveiller comment BMO compense la suppression de ces indicateurs dans ses rapports futurs et si cela reflète un changement dans la gestion ou la stratégie de risque de la banque."
@@ -3299,7 +3313,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "BMO"
       }
     },
     {
@@ -3500,7 +3515,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "Aucun impact concret sur la divulgation ou la gestion des risques.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "BMO"
       },
       "genai_analysis": {
         "resume_metier": "La modification de la note de bas de tableau dans le TABLEAU 42 de la section 'risk_management' de BMO ne change pas le contenu substantiel. La phrase reste identique, ce qui indique une reformulation sans impact sur le fond.\n\nCe type de changement est considéré comme non pertinent car il ne modifie pas la substance de la divulgation ni les attentes réglementaires. Il s'agit d'une reformulation sans ajout de nouvelle information ou modification de la posture de risque.\n\nAucun point de surveillance n'est requis, car il n'y a pas de changement substantiel à suivre."
@@ -3667,7 +3683,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "Aucun impact concret sur la gestion des risques ou la conformité réglementaire.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "BMO"
       },
       "genai_analysis": {
         "resume_metier": "Le changement détecté dans le TABLEAU 43 de la section risk_management de BMO consiste en l'ajout de la note 'n. s. – non significatif'.\n\nCe type de modification est considéré comme une reformulation ou une clarification sans impact substantiel sur la gestion des risques ou les exigences réglementaires.\n\nPar conséquent, ce changement n'est pas pertinent pour la taxonomie AMF et ne nécessite aucune action de suivi."
@@ -3828,7 +3845,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "BMO"
       }
     },
     {
@@ -3974,7 +3992,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "BMO"
       }
     },
     {
@@ -4148,7 +4167,7 @@
           "MODIFICATION_TEXTE_RISQUE"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Texte de risque modifié\n\nCe qui change : BMO modifie la note de bas de tableau ² dans le TABLEAU 46, passant de 'Comprennent essentiellement des éléments du bilan qui sont comptabilisés au co' à 'Englobent essentiellement des éléments du bilan qui sont assujettis au cadre de'.\n\nPertinence métier : Ce changement met en évidence une modification substantielle dans la description des éléments du bilan, indiquant potentiellement un changement dans la manière dont ces éléments sont gérés ou évalués par rapport à un cadre réglementaire. Cela peut refléter une mise à jour des pratiques de gestion des risques ou une adaptation aux nouvelles exigences réglementaires.\n\nPoint de surveillance : Surveiller l'impact de cette modification sur la gestion des risques et la conformité réglementaire de BMO, notamment en ce qui concerne l'application du cadre mentionné.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Texte de risque modifié\n\nCe qui change : BMO modifie la note de bas de tableau ² dans le TABLEAU 46, passant de 'Comprennent essentiellement des éléments du bilan qui sont comptabilisés au co' à 'Englobent essentiellement des éléments du bilan qui sont assujettis au cadre de'.\n\nPertinence métier : Ce changement met en évidence une modification substantielle dans la description des éléments du bilan, indiquant potentiellement un changement dans la manière dont ces éléments sont gérés ou évalués par rapport à un cadre réglementaire. Cela peut refléter une mise à jour des pratiques de gestion des risques ou une adaptation aux nouvelles exigences réglementaires. Surveiller l'impact de cette modification sur la gestion des risques et la conformité réglementaire de BMO, notamment en ce qui concerne l'application du cadre mentionné.\n\nPoint de surveillance : Surveiller l'impact de cette modification sur la gestion des risques et la conformité réglementaire de BMO, notamment en ce qui concerne l'application du cadre mentionné.",
         "impact_level": "MODERE",
         "impact_it": "FAIBLE",
         "impact_it_justification": "Éléments observés : Modification de la note de bas de tableau concernant les éléments du bilan.\n\nConséquence probable : Ajustement mineur dans les systèmes de gestion des risques pour refléter le nouveau cadre mentionné.\n\nLimite de l'analyse : L'impact IT est limité car il s'agit principalement d'une modification de texte sans indication de changement technologique majeur.",
@@ -4166,7 +4185,8 @@
         "action_requise": "confirmation",
         "reference_reglementaire": "",
         "impact_description": "Modification du texte de risque pour inclure un cadre réglementaire, indiquant un renforcement des contrôles.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "BMO"
       },
       "genai_analysis": {
         "resume_metier": "La modification de la note de bas de tableau dans le TABLEAU 46 de BMO indique un changement dans la manière dont les éléments du bilan sont évalués ou gérés par rapport à un cadre réglementaire. Cela pourrait refléter une mise à jour des pratiques de gestion des risques ou une adaptation aux nouvelles exigences réglementaires.\n\nCe changement est pertinent car il met en évidence une attention accrue à la conformité réglementaire, ce qui est crucial pour maintenir la confiance des parties prenantes et assurer la stabilité financière de la banque.\n\nIl est important de surveiller comment cette modification affecte la gestion des risques et la conformité réglementaire de BMO, notamment en ce qui concerne l'application du cadre mentionné."
@@ -4360,7 +4380,7 @@
           "MODIFICATION_METHODOLOGIE"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Méthode de calcul ou approche modifiée\n\nCe qui change : BMO a modifié sa méthode comptable pour les titres adossés à des créances hypothécaires, en supprimant une note sur la Loi nationale sur l’habitation (LNH) et en ajoutant une note générale sur les IFRS.\n\nPertinence métier : Ce changement met l'accent sur une modification de la méthode comptable de BMO concernant les titres adossés à des créances hypothécaires. Cela pourrait avoir un impact sur la manière dont ces titres sont évalués et présentés dans les états financiers, ce qui est crucial pour la transparence et la comparabilité entre pairs.\n\nPoint de surveillance : Surveiller l'impact de cette modification méthodologique sur les rapports financiers futurs et la conformité aux normes IFRS.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Méthode de calcul ou approche modifiée\n\nCe qui change : BMO a modifié sa méthode comptable pour les titres adossés à des créances hypothécaires, en supprimant une note sur la Loi nationale sur l’habitation (LNH) et en ajoutant une note générale sur les IFRS.\n\nPertinence métier : Ce changement met l'accent sur une modification de la méthode comptable de BMO concernant les titres adossés à des créances hypothécaires. Cela pourrait avoir un impact sur la manière dont ces titres sont évalués et présentés dans les états financiers, ce qui est crucial pour la transparence et la comparabilité entre pairs. Surveiller l'impact de cette modification méthodologique sur les rapports financiers futurs et la conformité aux normes IFRS. BMO de Montréal (BMO) a modifié sa méthode comptable pour les titres adossés à des créances hypothécaires, ce qui est reflété par la suppression d'une note spécifique à la Loi nationale sur l’habitation (LNH) et l'ajout d'une note générale sur les IFRS.\n\nPoint de surveillance : Surveiller l'impact de cette modification méthodologique sur les rapports financiers futurs et la conformité aux normes IFRS.",
         "impact_level": "MODERE",
         "impact_it": "MOYEN",
         "impact_it_justification": "Éléments observés : Modification de la méthode comptable pour les titres adossés à des créances hypothécaires.\n\nConséquence probable : Nécessité d'adapter les systèmes comptables et de reporting pour refléter la nouvelle méthode.\n\nLimite de l'analyse : Détails spécifiques sur l'implémentation technique non fournis.",
@@ -4378,7 +4398,8 @@
         "action_requise": "revue_prioritaire",
         "reference_reglementaire": "IFRS",
         "impact_description": "Modification de la méthode comptable pour les titres hypothécaires, influençant la présentation financière.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "BMO"
       },
       "genai_analysis": {
         "resume_metier": "La Banque de Montréal (BMO) a modifié sa méthode comptable pour les titres adossés à des créances hypothécaires, ce qui est reflété par la suppression d'une note spécifique à la Loi nationale sur l’habitation (LNH) et l'ajout d'une note générale sur les IFRS. Cette modification est significative car elle peut affecter la manière dont ces titres sont évalués et présentés dans les états financiers, influençant ainsi la transparence et la comparabilité avec d'autres institutions financières.\n\nCe changement est pertinent car il touche à la méthodologie comptable, un aspect crucial pour la conformité réglementaire et la gestion des risques financiers. Les ajustements nécessaires dans les systèmes comptables et de reporting pourraient également avoir des implications IT modérées, nécessitant une adaptation pour s'aligner sur la nouvelle méthode.\n\nIl est important de surveiller comment cette modification sera mise en œuvre dans les rapports financiers futurs de BMO et son impact sur la conformité aux normes IFRS, afin de garantir que les pratiques comptables restent alignées avec les attentes réglementaires et les meilleures pratiques du secteur."
@@ -4525,7 +4546,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "BMO"
       }
     },
     {
@@ -4781,7 +4803,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "Les reformulations des notes de bas de tableau n'ont pas d'impact substantiel sur la gestion des risques.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "BMO"
       },
       "genai_analysis": {
         "resume_metier": "Les modifications apportées aux notes de bas de tableau dans la section de gestion des risques de BMO consistent principalement en des reformulations. Ces changements n'introduisent pas de nouvelles informations ou concepts qui affecteraient la gestion des risques ou la conformité réglementaire.\n\nLes reformulations des notes ne modifient pas la substance des divulgations de risque. Elles ne changent pas la compréhension des risques ou des pratiques de gestion des risques de BMO, et ne nécessitent donc pas de surveillance accrue.\n\nAucune action n'est requise car ces modifications ne représentent pas une nouvelle idée ou un changement substantiel dans le contexte des attentes de l'AMF."
@@ -4899,7 +4922,7 @@
           "MODIFICATION_METHODOLOGIE"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Méthode de calcul ou approche modifiée\n\nCe qui change : BMO a modifié sa méthode comptable pour la comptabilisation, avec prise d'effet au premier trimestre de l'exercice 2024.\n\nPertinence métier : Ce changement met l'accent sur une modification de la méthodologie comptable, ce qui peut avoir des implications sur la manière dont les résultats financiers sont présentés et interprétés. Cela peut affecter la comparabilité des résultats avec ceux des périodes précédentes et avec d'autres banques, ce qui est crucial pour les investisseurs et les régulateurs.\n\nPoint de surveillance : Surveiller l'impact de cette modification méthodologique sur les états financiers et la communication aux investisseurs.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Méthode de calcul ou approche modifiée\n\nCe qui change : BMO a modifié sa méthode comptable pour la comptabilisation, avec prise d'effet au premier trimestre de l'exercice 2024.\n\nPertinence métier : Ce changement met l'accent sur une modification de la méthodologie comptable, ce qui peut avoir des implications sur la manière dont les résultats financiers sont présentés et interprétés. Cela peut affecter la comparabilité des résultats avec ceux des périodes précédentes et avec d'autres banques, ce qui est crucial pour les investisseurs et les régulateurs. Surveiller l'impact de cette modification méthodologique sur les états financiers et la communication aux investisseurs. BMO de Montréal (BMO) a annoncé une modification de sa méthode comptable, qui prendra effet au premier trimestre de l'exercice 2024.\n\nPoint de surveillance : Surveiller l'impact de cette modification méthodologique sur les états financiers et la communication aux investisseurs.",
         "impact_level": "MODERE",
         "impact_it": "MOYEN",
         "impact_it_justification": "Éléments observés : Modification de la méthode comptable annoncée.\n\nConséquence probable : Nécessité d'adapter les systèmes comptables et de reporting pour refléter la nouvelle méthode.\n\nLimite de l'analyse: Détails spécifiques de la méthode modifiée non fournis.",
@@ -4917,7 +4940,8 @@
         "action_requise": "investigation",
         "reference_reglementaire": "",
         "impact_description": "Modification de la méthode comptable affectant la présentation des résultats financiers.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "BMO"
       },
       "genai_analysis": {
         "resume_metier": "La Banque de Montréal (BMO) a annoncé une modification de sa méthode comptable, qui prendra effet au premier trimestre de l'exercice 2024. Cette modification est pertinente car elle peut affecter la manière dont les résultats financiers sont présentés et interprétés, influençant ainsi la comparabilité avec les périodes précédentes et avec d'autres institutions financières.\n\nCe changement méthodologique est classé comme un nouveau dispositif, car il introduit une nouvelle approche dans la comptabilisation des éléments financiers. Cela nécessite une attention particulière pour comprendre son impact sur les états financiers et la communication aux investisseurs.\n\nIl est important de surveiller comment cette modification sera mise en œuvre et son effet sur les systèmes comptables et de reporting de BMO, afin de garantir la conformité et la transparence des informations financières fournies."
@@ -5144,7 +5168,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "Les modifications textuelles n'ont pas d'impact substantiel sur la gestion des risques.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "BMO"
       },
       "genai_analysis": {
         "resume_metier": "Les modifications apportées aux notes du TABLEAU 50 par BMO concernent principalement des reformulations et des ajustements mineurs de texte. Ces changements n'affectent pas la substance des divulgations réglementaires ou des pratiques de gestion des risques.\n\nLes ajustements incluent des reformulations telles que l'ajout de détails sur les billets structurés et les titrisations de créances, ainsi que des mises à jour chiffrées. Cependant, ces modifications ne constituent pas une nouvelle idée substantielle selon la taxonomie AMF.\n\nEn conséquence, aucune action particulière n'est requise, car les modifications ne changent pas la substance des divulgations réglementaires ou des pratiques de gestion des risques."
@@ -5303,7 +5328,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "Clarification textuelle sans impact sur la gestion des risques.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "BMO"
       },
       "genai_analysis": {
         "resume_metier": "La note ajoutée par BMO dans le tableau 51 précise que les cotes de crédit ne constituent pas des recommandations d'achat, de conservation ou de vente. Cette clarification est courante dans les rapports financiers et n'affecte pas la gestion des risques.\n\nCe type de changement est généralement considéré comme une reformulation sans impact substantiel sur les pratiques de gestion des risques ou les exigences réglementaires. Il n'y a pas de nouvelle idée ou de changement de posture à surveiller.\n\nL'impact sur les systèmes informatiques ou les processus de gestion des risques est indéterminé, car il s'agit d'une simple clarification textuelle sans implication opérationnelle directe."
@@ -5524,7 +5550,7 @@
           "STRUCTURE_RAPPORT"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Liquidité et structure du rapport\n\nCe qui change : BMO a supprimé les indicateurs relatifs au 'Trimestre clos le 31 octobre 2023' et au 'Total des actifs liquides de haute qualité' dans le TABLEAU 52.\n\nPertinence métier : Ce changement met l'accent sur la gestion de la liquidité de BMO, car la suppression de ces indicateurs peut affecter la transparence et la comparabilité des informations sur les actifs liquides de haute qualité. Cela pourrait également influencer la perception des investisseurs et des régulateurs quant à la capacité de la banque à gérer ses ressources liquides.\n\nPoint de surveillance : Surveiller l'impact de cette suppression sur la divulgation de la liquidité et s'assurer que BMO maintient une communication claire et conforme aux attentes réglementaires.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Liquidité et structure du rapport\n\nCe qui change : BMO a supprimé les indicateurs relatifs au 'Trimestre clos le 31 octobre 2023' et au 'Total des actifs liquides de haute qualité' dans le TABLEAU 52.\n\nPertinence métier : Ce changement met l'accent sur la gestion de la liquidité de BMO, car la suppression de ces indicateurs peut affecter la transparence et la comparabilité des informations sur les actifs liquides de haute qualité. Cela pourrait également influencer la perception des investisseurs et des régulateurs quant à la capacité de la banque à gérer ses ressources liquides. Surveiller l'impact de cette suppression sur la divulgation de la liquidité et s'assurer que BMO maintient une communication claire et conforme aux attentes réglementaires.\n\nPoint de surveillance : Surveiller l'impact de cette suppression sur la divulgation de la liquidité et s'assurer que BMO maintient une communication claire et conforme aux attentes réglementaires.",
         "impact_level": "MODERE",
         "impact_it": "FAIBLE",
         "impact_it_justification": "Éléments observés : Suppression d'indicateurs de liquidité dans le tableau.\n\nConséquence probable : Impact limité sur les systèmes IT, mais nécessite une mise à jour des rapports et des processus de divulgation.\n\nLimite de l'analyse: Pas de changement majeur dans l'architecture IT ou les systèmes de gestion de données.",
@@ -5542,7 +5568,8 @@
         "action_requise": "revue_prioritaire",
         "reference_reglementaire": "",
         "impact_description": "La suppression des indicateurs de liquidité réduit la transparence des actifs liquides de haute qualité.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "BMO"
       },
       "genai_analysis": {
         "resume_metier": "La suppression des indicateurs relatifs au 'Trimestre clos le 31 octobre 2023' et au 'Total des actifs liquides de haute qualité' dans le TABLEAU 52 de BMO est un changement significatif. Cela affecte la transparence des informations sur la liquidité, un aspect crucial pour les régulateurs et les investisseurs.\n\nCe changement pourrait indiquer une révision de la stratégie de divulgation de BMO concernant ses actifs liquides. La banque doit s'assurer que cette modification n'affecte pas la conformité aux attentes réglementaires en matière de liquidité.\n\nIl est essentiel de surveiller comment BMO compense cette suppression dans ses rapports futurs pour maintenir la confiance des parties prenantes et respecter les normes de divulgation."
@@ -5760,7 +5787,7 @@
           "STRUCTURE_RAPPORT"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Structure du rapport\n\nCe qui change : BMO a supprimé une note de bas de tableau dans le TABLEAU 53 concernant les éléments classés dans la colonne « Sans échéance ».\n\nPertinence métier : Ce changement met l'accent sur la manière dont BMO présente ses informations de gestion des risques, en particulier la classification des éléments sans échéance. La suppression de cette note peut affecter la compréhension des échéances des actifs et passifs, ce qui est crucial pour l'analyse de la liquidité et du risque de financement.\n\nPoint de surveillance : Surveiller comment BMO continue de divulguer les informations sur les échéances et si cela affecte la transparence et la comparabilité avec les pairs.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Structure du rapport\n\nCe qui change : BMO a supprimé une note de bas de tableau dans le TABLEAU 53 concernant les éléments classés dans la colonne « Sans échéance ».\n\nPertinence métier : Ce changement met l'accent sur la manière dont BMO présente ses informations de gestion des risques, en particulier la classification des éléments sans échéance. La suppression de cette note peut affecter la compréhension des échéances des actifs et passifs, ce qui est crucial pour l'analyse de la liquidité et du risque de financement. Surveiller comment BMO continue de divulguer les informations sur les échéances et si cela affecte la transparence et la comparabilité avec les pairs. La suppression de la note de bas de tableau dans le TABLEAU 53 par BMO modifie la structure de la divulgation des échéances.\n\nPoint de surveillance : Surveiller comment BMO continue de divulguer les informations sur les échéances et si cela affecte la transparence et la comparabilité avec les pairs.",
         "impact_level": "MODERE",
         "impact_it": "FAIBLE",
         "impact_it_justification": "Éléments observés : Suppression d'une note explicative dans un tableau de gestion des risques.\n\nConséquence probable : Impact limité sur les systèmes IT, principalement lié à la mise à jour des documents et des rapports internes.\n\nLimite de l'analyse: Pas de changement majeur dans les systèmes ou processus IT identifiés.",
@@ -5778,7 +5805,8 @@
         "action_requise": "information",
         "reference_reglementaire": "",
         "impact_description": "La suppression de la note affecte la clarté de la classification des échéances dans le rapport de gestion des risques.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "BMO"
       },
       "genai_analysis": {
         "resume_metier": "La suppression de la note de bas de tableau dans le TABLEAU 53 par BMO modifie la structure de la divulgation des échéances. Cela peut influencer la clarté des informations fournies aux investisseurs et analystes.\n\nBien que ce changement ne semble pas affecter directement les systèmes IT, il est important de surveiller comment BMO continue de présenter ces informations dans ses rapports futurs.\n\nLa suppression de cette note pourrait avoir des implications sur la transparence des informations de risque, nécessitant une attention particulière pour s'assurer que les utilisateurs des rapports comprennent toujours les classifications des échéances."
@@ -5939,7 +5967,7 @@
           "STRUCTURE_RAPPORT"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Structure du rapport\n\nCe qui change : BMO a supprimé l'indicateur 'Instruments financiers inscrits au bilan' du TABLEAU 54 dans la section de gestion des risques.\n\nPertinence métier : Ce changement met l'accent sur la modification de la structure de divulgation des risques financiers de BMO. La suppression de cet indicateur pourrait affecter la transparence et la comparabilité des informations financières fournies aux investisseurs et aux régulateurs. Cela pourrait également indiquer un changement dans la manière dont BMO évalue ou présente ses instruments financiers, ce qui est crucial pour l'analyse des risques et la conformité réglementaire.\n\nPoint de surveillance : Surveiller comment BMO compense cette suppression dans d'autres sections ou tableaux pour maintenir la transparence et la conformité avec les attentes réglementaires.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Structure du rapport\n\nCe qui change : BMO a supprimé l'indicateur 'Instruments financiers inscrits au bilan' du TABLEAU 54 dans la section de gestion des risques.\n\nPertinence métier : Ce changement met l'accent sur la modification de la structure de divulgation des risques financiers de BMO. La suppression de cet indicateur pourrait affecter la transparence et la comparabilité des informations financières fournies aux investisseurs et aux régulateurs. Cela pourrait également indiquer un changement dans la manière dont BMO évalue ou présente ses instruments financiers, ce qui est crucial pour l'analyse des risques et la conformité réglementaire. Surveiller comment BMO compense cette suppression dans d'autres sections ou tableaux pour maintenir la transparence et la conformité avec les attentes réglementaires.\n\nPoint de surveillance : Surveiller comment BMO compense cette suppression dans d'autres sections ou tableaux pour maintenir la transparence et la conformité avec les attentes réglementaires.",
         "impact_level": "MODERE",
         "impact_it": "FAIBLE",
         "impact_it_justification": "Éléments observés : Suppression d'un indicateur dans un tableau de gestion des risques.\n\nConséquence probable : Impact limité sur les systèmes IT, principalement lié à la mise à jour des rapports et des bases de données internes pour refléter cette suppression.\n\nLimite de l'analyse: Pas de changement majeur dans l'architecture ou les processus IT identifiés.",
@@ -5957,7 +5985,8 @@
         "action_requise": "information",
         "reference_reglementaire": "",
         "impact_description": "La suppression de l'indicateur affecte la structure de divulgation des risques financiers.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "BMO"
       },
       "genai_analysis": {
         "resume_metier": "La suppression de l'indicateur 'Instruments financiers inscrits au bilan' dans le TABLEAU 54 de BMO représente un changement dans la structure de divulgation des risques. Cela pourrait affecter la transparence et la comparabilité des informations financières fournies aux investisseurs et aux régulateurs.\n\nCe changement met en évidence une modification potentielle dans la manière dont BMO évalue ou présente ses instruments financiers, ce qui est crucial pour l'analyse des risques et la conformité réglementaire.\n\nIl est important de surveiller comment BMO compense cette suppression dans d'autres sections ou tableaux pour maintenir la transparence et la conformité avec les attentes réglementaires."
@@ -6182,7 +6211,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "Aucune modification substantielle de la divulgation ou des pratiques de gestion des risques.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "BMO"
       },
       "genai_analysis": {
         "resume_metier": "Les modifications apportées aux notes de bas de tableau dans le TABLEAU 55 de la section 'risk_management' de BMO consistent en une reformulation mineure et une mise à jour des chiffres propres à la banque. Le mot 'spécifique' a été ajouté, et les montants et dates des dépôts ont été ajustés.\n\nCes changements n'affectent pas la substance de la divulgation ni les attentes réglementaires. Ils ne modifient pas la compréhension des risques ou des pratiques de gestion de BMO, et ne constituent donc pas une nouvelle idée substantielle selon la taxonomie AMF.\n\nAucun point de surveillance n'est requis, car il s'agit d'une variation chiffrée propre à la banque et d'une reformulation sans impact substantiel."
@@ -6345,7 +6375,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "BMO"
       }
     },
     {
@@ -6516,7 +6547,7 @@
           "STRUCTURE_RAPPORT"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Structure du rapport\n\nCe qui change : BMO a supprimé l'indicateur 'Instruments financiers inscrits au bilan' du TABLEAU 57 dans la section de gestion des risques.\n\nPertinence métier : Ce changement met l'accent sur la modification de la structure de divulgation des risques financiers de BMO. La suppression de cet indicateur pourrait affecter la transparence et la comparabilité des informations financières entre les pairs, ce qui est crucial pour les investisseurs et les régulateurs.\n\nPoint de surveillance : Surveiller l'impact de cette suppression sur la clarté des informations financières et la conformité aux attentes de divulgation réglementaire.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Structure du rapport\n\nCe qui change : BMO a supprimé l'indicateur 'Instruments financiers inscrits au bilan' du TABLEAU 57 dans la section de gestion des risques.\n\nPertinence métier : Ce changement met l'accent sur la modification de la structure de divulgation des risques financiers de BMO. La suppression de cet indicateur pourrait affecter la transparence et la comparabilité des informations financières entre les pairs, ce qui est crucial pour les investisseurs et les régulateurs. Surveiller l'impact de cette suppression sur la clarté des informations financières et la conformité aux attentes de divulgation réglementaire. La suppression de l'indicateur 'Instruments financiers inscrits au bilan' dans le TABLEAU 57 de la section de gestion des risques de BMO représente un changement significatif dans la structure du rapport.\n\nPoint de surveillance : Surveiller l'impact de cette suppression sur la clarté des informations financières et la conformité aux attentes de divulgation réglementaire.",
         "impact_level": "MODERE",
         "impact_it": "FAIBLE",
         "impact_it_justification": "Éléments observés : Suppression d'un indicateur dans le tableau de gestion des risques.\n\nConséquence probable : Impact limité sur les systèmes IT, principalement lié à la mise à jour des rapports et des bases de données internes.\n\nLimite de l'analyse: Pas de changement majeur dans l'architecture ou les processus IT identifiés.",
@@ -6534,7 +6565,8 @@
         "action_requise": "investigation",
         "reference_reglementaire": "",
         "impact_description": "La suppression de l'indicateur pourrait réduire la transparence des informations financières.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "BMO"
       },
       "genai_analysis": {
         "resume_metier": "La suppression de l'indicateur 'Instruments financiers inscrits au bilan' dans le TABLEAU 57 de la section de gestion des risques de BMO représente un changement significatif dans la structure du rapport. Cela pourrait affecter la transparence des informations financières fournies aux investisseurs et aux régulateurs.\n\nCe changement met en évidence une modification de la structure de divulgation des risques financiers de BMO, ce qui est crucial pour la comparabilité entre les pairs et la conformité aux attentes réglementaires.\n\nIl est important de surveiller l'impact de cette suppression sur la clarté des informations financières et la conformité aux attentes de divulgation réglementaire."
@@ -6759,7 +6791,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "Aucun impact concret sur la gestion des risques ou la conformité réglementaire.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "BMO"
       },
       "genai_analysis": {
         "resume_metier": "Les modifications apportées aux notes de bas de tableau dans le TABLEAU 58 de la section risk_management de BMO concernent principalement des reformulations mineures et des mises à jour chiffrées. Ces changements n'affectent pas la substance de la divulgation ni les attentes réglementaires.\n\nLa reformulation des termes pour inclure 'spécifique' et la mise à jour des montants et dates sont des ajustements de forme qui n'introduisent pas de nouvelle idée ou de changement substantiel dans la gestion des risques ou la conformité réglementaire.\n\nAinsi, ces modifications ne nécessitent pas de surveillance particulière, car elles ne représentent pas un changement de posture ou de méthodologie significatif."
@@ -6922,7 +6955,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "BMO"
       }
     }
   ],

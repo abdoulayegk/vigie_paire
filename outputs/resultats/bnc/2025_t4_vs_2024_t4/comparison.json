@@ -754,7 +754,7 @@
           "RATIOS_REGLEMENTAIRES"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Exigences réglementaires ou conformité, Ratio ou seuil prudentiel\n\nCe qui change : La note modifiée indique un changement de date concernant la confirmation par le BSIF de la réserve pour stabilité intérieure, passant du 18 juin 2024 au 26 juin 2025. De plus, une nouvelle note mentionne que les ratios au 31 octobre 2025 tiennent compte du rachat des BCRL - Série 1 effectué le 17 novembre 2025.\n\nPertinence métier : Ce changement met en évidence une mise à jour des exigences réglementaires et des ratios prudentiels, ce qui est crucial pour la conformité et la gestion des fonds propres de la banque. La modification de la date de confirmation par le BSIF peut indiquer un ajustement dans les attentes réglementaires, tandis que la prise en compte du rachat des BCRL dans les ratios souligne l'impact des décisions de financement sur les exigences de capital.\n\nPoint de surveillance : Surveiller l'impact de ces changements sur les ratios de fonds propres et la conformité aux exigences du BSIF, ainsi que l'effet du rachat des BCRL sur la structure de capital.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Exigences réglementaires ou conformité, Ratio ou seuil prudentiel\n\nCe qui change : La note modifiée indique un changement de date concernant la confirmation par le BSIF de la réserve pour stabilité intérieure, passant du 18 juin 2024 au 26 juin 2025. De plus, une nouvelle note mentionne que les ratios au 31 octobre 2025 tiennent compte du rachat des BCRL - Série 1 effectué le 17 novembre 2025.\n\nPertinence métier : Ce changement met en évidence une mise à jour des exigences réglementaires et des ratios prudentiels, ce qui est crucial pour la conformité et la gestion des fonds propres de la banque. La modification de la date de confirmation par le BSIF peut indiquer un ajustement dans les attentes réglementaires, tandis que la prise en compte du rachat des BCRL dans les ratios souligne l'impact des décisions de financement sur les exigences de capital. Surveiller l'impact de ces changements sur les ratios de fonds propres et la conformité aux exigences du BSIF, ainsi que l'effet du rachat des BCRL sur la structure de capital.\n\nPoint de surveillance : Surveiller l'impact de ces changements sur les ratios de fonds propres et la conformité aux exigences du BSIF, ainsi que l'effet du rachat des BCRL sur la structure de capital.",
         "impact_level": "MAJEUR",
         "impact_it": "MOYEN",
         "impact_it_justification": "Éléments observés : Mise à jour des dates et des notes concernant les exigences réglementaires et les ratios de fonds propres.\n\nConséquence probable : Nécessité de mettre à jour les systèmes de reporting pour refléter les nouvelles dates et les impacts du rachat des BCRL sur les ratios.\n\nLimite de l'analyse : L'impact exact sur les systèmes IT dépend de la complexité des ajustements requis pour intégrer ces changements dans les rapports réglementaires.",
@@ -772,7 +772,8 @@
         "action_requise": "revue_prioritaire",
         "reference_reglementaire": "Bâle III — CET1",
         "impact_description": "Mise à jour des exigences réglementaires et des ratios de fonds propres, impactant la conformité et la gestion du capital.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "BNC"
       },
       "genai_analysis": {
         "resume_metier": "Le tableau des exigences réglementaires a été modifié pour inclure une nouvelle note sur les ratios au 31 octobre 2025, tenant compte du rachat des BCRL - Série 1. Cela indique un ajustement dans la gestion des fonds propres de la banque.\n\nLa note modifiée concernant la confirmation par le BSIF de la réserve pour stabilité intérieure, avec une nouvelle date, souligne un changement potentiel dans les attentes réglementaires, nécessitant une attention particulière pour la conformité.\n\nCes changements sont significatifs car ils affectent directement les exigences réglementaires et les ratios de fonds propres, ce qui est crucial pour la gestion du capital et la conformité de la banque."
@@ -911,7 +912,7 @@
           "STRUCTURE_RAPPORT"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Capital réglementaire\n\nCe qui change : Les indicateurs 'Série 47' et 'Série 49' ont été ajoutés, tandis que 'Série 32' a été supprimé dans le tableau des actions et autres instruments de capitaux propres.\n\nPertinence métier : Ce changement met l'accent sur la réorganisation des instruments de capitaux propres de la banque, ce qui peut refléter une stratégie de gestion du capital modifiée. L'ajout et le retrait de séries spécifiques peuvent indiquer des ajustements dans la structure du capital, potentiellement en réponse à des exigences réglementaires ou à des stratégies internes de financement.\n\nPoint de surveillance : Surveiller l'impact de ces changements sur la composition du capital réglementaire et la conformité aux exigences prudentielles.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Capital réglementaire\n\nCe qui change : Les indicateurs 'Série 47' et 'Série 49' ont été ajoutés, tandis que 'Série 32' a été supprimé dans le tableau des actions et autres instruments de capitaux propres.\n\nPertinence métier : Ce changement met l'accent sur la réorganisation des instruments de capitaux propres de la banque, ce qui peut refléter une stratégie de gestion du capital modifiée. L'ajout et le retrait de séries spécifiques peuvent indiquer des ajustements dans la structure du capital, potentiellement en réponse à des exigences réglementaires ou à des stratégies internes de financement. Surveiller l'impact de ces changements sur la composition du capital réglementaire et la conformité aux exigences prudentielles. Le tableau des actions et autres instruments de capitaux propres a été modifié avec l'ajout des indicateurs 'Série 47' et 'Série 49', et la suppression de 'Série 32'.\n\nPoint de surveillance : Surveiller l'impact de ces changements sur la composition du capital réglementaire et la conformité aux exigences prudentielles.",
         "impact_level": "MODERE",
         "impact_it": "MOYEN",
         "impact_it_justification": "Éléments observés : Ajout et retrait d'indicateurs dans le tableau des instruments de capitaux propres.\n\nConséquence probable : Nécessité de mettre à jour les systèmes de reporting pour refléter ces changements dans la structure du capital.\n\nLimite de l'analyse : L'impact exact sur les systèmes IT dépend de la manière dont ces indicateurs sont intégrés dans les processus de gestion du capital.",
@@ -929,7 +930,8 @@
         "action_requise": "revue_prioritaire",
         "reference_reglementaire": "",
         "impact_description": "Réorganisation des instruments de capitaux propres, impactant la structure du capital réglementaire.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "BNC"
       },
       "genai_analysis": {
         "resume_metier": "Le tableau des actions et autres instruments de capitaux propres a été modifié avec l'ajout des indicateurs 'Série 47' et 'Série 49', et la suppression de 'Série 32'. Cela indique une réorganisation potentielle de la structure du capital de la banque.\n\nCes changements peuvent refléter une stratégie de gestion du capital modifiée, potentiellement en réponse à des exigences réglementaires ou à des stratégies internes de financement. Il est important de surveiller comment ces ajustements affectent la composition du capital réglementaire.\n\nL'impact IT est modéré, nécessitant des mises à jour des systèmes de reporting pour intégrer ces nouveaux indicateurs. Cela pourrait avoir des implications sur la gestion du capital et la conformité réglementaire."
@@ -1077,7 +1079,7 @@
           "FONDS_PROPRES_REGLEMENTAIRES"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Capital réglementaire\n\nCe qui change : Une note a été ajoutée indiquant que les données au 31 octobre 2025 tiennent compte du rachat des BCRL - Série 1 effectué le 17 novembre 2025.\n\nPertinence métier : Ce changement met l'accent sur l'impact des opérations de rachat sur le capital réglementaire de la banque. Le rachat des BCRL - Série 1 peut affecter la composition des fonds propres réglementaires, ce qui est crucial pour la conformité aux exigences de capital. Cela souligne l'importance de surveiller les ajustements dans la structure du capital qui peuvent influencer les ratios prudentiels et la capacité de la banque à répondre aux attentes réglementaires.\n\nPoint de surveillance : Surveiller l'impact du rachat des BCRL - Série 1 sur les ratios de capital et la conformité aux exigences réglementaires, en particulier en ce qui concerne le TLAC et le ratio de levier.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Capital réglementaire\n\nCe qui change : Une note a été ajoutée indiquant que les données au 31 octobre 2025 tiennent compte du rachat des BCRL - Série 1 effectué le 17 novembre 2025.\n\nPertinence métier : Ce changement met l'accent sur l'impact des opérations de rachat sur le capital réglementaire de la banque. Le rachat des BCRL - Série 1 peut affecter la composition des fonds propres réglementaires, ce qui est crucial pour la conformité aux exigences de capital. Cela souligne l'importance de surveiller les ajustements dans la structure du capital qui peuvent influencer les ratios prudentiels et la capacité de la banque à répondre aux attentes réglementaires. Surveiller l'impact du rachat des BCRL - Série 1 sur les ratios de capital et la conformité aux exigences réglementaires, en particulier en ce qui concerne le TLAC et le ratio de levier.\n\nPoint de surveillance : Surveiller l'impact du rachat des BCRL - Série 1 sur les ratios de capital et la conformité aux exigences réglementaires, en particulier en ce qui concerne le TLAC et le ratio de levier.",
         "impact_level": "MAJEUR",
         "impact_it": "MOYEN",
         "impact_it_justification": "Éléments observés : Le rachat des BCRL - Série 1 affecte la composition des fonds propres réglementaires.\n\nConséquence probable : Nécessité de mettre à jour les systèmes de reporting pour refléter les changements dans la structure du capital et les ratios réglementaires.\n\nLimite de l'analyse : L'impact exact sur les systèmes IT dépend de la complexité des ajustements requis pour intégrer ces changements dans les rapports financiers.",
@@ -1095,7 +1097,8 @@
         "action_requise": "revue_prioritaire",
         "reference_reglementaire": "Bâle III — CET1",
         "impact_description": "Le rachat des BCRL - Série 1 modifie la composition des fonds propres réglementaires, influençant les ratios de capital.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "BNC"
       },
       "genai_analysis": {
         "resume_metier": "Le tableau de capital réglementaire a été modifié pour inclure une note sur le rachat des BCRL - Série 1. Ce changement est pertinent car il affecte la composition des fonds propres réglementaires, ce qui est crucial pour la conformité aux exigences de capital. Le rachat des BCRL - Série 1 peut influencer les ratios prudentiels et la capacité de la banque à répondre aux attentes réglementaires.\n\nL'ajout de cette note met en évidence l'importance de surveiller les ajustements dans la structure du capital. Cela souligne la nécessité de mettre à jour les systèmes de reporting pour refléter ces changements, ce qui a un impact IT modéré.\n\nCe changement renforce la transparence et la précision des rapports de capital réglementaire, ce qui est essentiel pour la gestion du risque et la conformité réglementaire."
@@ -1314,7 +1317,7 @@
           "STRUCTURE_RAPPORT"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Fonds propres réglementaires, Structure du rapport\n\nCe qui change : Ajout des indicateurs 'Émission d'actions ordinaires relatives à l'acquisition de CWB' et 'Options de remplacement relatives à l'acquisition de CWB' dans le tableau de variation des fonds propres réglementaires. Modification de la note pour inclure le rachat des BCRL - Série 1 au 31 octobre 2025.\n\nPertinence métier : Ce changement met l'accent sur l'impact des acquisitions sur les fonds propres réglementaires de la banque. L'ajout de ces indicateurs reflète une stratégie d'expansion par acquisition, ce qui peut influencer la structure du capital et les exigences réglementaires associées. La modification de la note indique une mise à jour importante concernant le rachat d'instruments de capital, ce qui est crucial pour la gestion des fonds propres.\n\nPoint de surveillance : Surveiller l'impact de l'acquisition de CWB sur les fonds propres réglementaires et la conformité aux exigences de capital, ainsi que les implications du rachat des BCRL - Série 1.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Fonds propres réglementaires, Structure du rapport\n\nCe qui change : Ajout des indicateurs 'Émission d'actions ordinaires relatives à l'acquisition de CWB' et 'Options de remplacement relatives à l'acquisition de CWB' dans le tableau de variation des fonds propres réglementaires. Modification de la note pour inclure le rachat des BCRL - Série 1 au 31 octobre 2025.\n\nPertinence métier : Ce changement met l'accent sur l'impact des acquisitions sur les fonds propres réglementaires de la banque. L'ajout de ces indicateurs reflète une stratégie d'expansion par acquisition, ce qui peut influencer la structure du capital et les exigences réglementaires associées. La modification de la note indique une mise à jour importante concernant le rachat d'instruments de capital, ce qui est crucial pour la gestion des fonds propres. Surveiller l'impact de l'acquisition de CWB sur les fonds propres réglementaires et la conformité aux exigences de capital, ainsi que les implications du rachat des BCRL - Série 1.\n\nPoint de surveillance : Surveiller l'impact de l'acquisition de CWB sur les fonds propres réglementaires et la conformité aux exigences de capital, ainsi que les implications du rachat des BCRL - Série 1.",
         "impact_level": "MODERE",
         "impact_it": "MOYEN",
         "impact_it_justification": "Éléments observés : Ajout d'indicateurs liés à une acquisition et modification de notes sur le rachat d'instruments de capital.\n\nConséquence probable : Nécessité de mettre à jour les systèmes de reporting pour intégrer ces nouveaux éléments et assurer une conformité continue avec les exigences réglementaires.\n\nLimite de l'analyse : L'impact exact sur les systèmes IT dépendra de la complexité des intégrations nécessaires pour ces nouvelles divulgations.",
@@ -1332,7 +1335,8 @@
         "action_requise": "revue_prioritaire",
         "reference_reglementaire": "",
         "impact_description": "Ajout d'indicateurs liés à une acquisition et modification de notes sur le rachat d'instruments de capital, impactant la gestion des fonds propres.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "BNC"
       },
       "genai_analysis": {
         "resume_metier": "Le tableau de variation des fonds propres réglementaires a été modifié pour inclure de nouveaux indicateurs liés à l'acquisition de CWB, ce qui reflète une stratégie d'expansion par acquisition. Cela a des implications directes sur la structure du capital de la banque.\n\nLa modification de la note pour inclure le rachat des BCRL - Série 1 au 31 octobre 2025 est une mise à jour importante qui affecte la gestion des fonds propres réglementaires. Cela souligne l'importance de surveiller les ajustements de capital suite à des événements significatifs.\n\nCes changements nécessitent une attention particulière pour s'assurer que les systèmes de reporting intègrent correctement ces nouveaux éléments et que la banque reste conforme aux exigences réglementaires en matière de capital."
@@ -1498,7 +1502,7 @@
           "CAPITAL_REGLEMENTAIRE"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Méthode de calcul ou approche modifiée\n\nCe qui change : Inclusion de CWB dans le calcul du risque opérationnel au cours du deuxième trimestre de 2025.\n\nPertinence métier : Ce changement met l'accent sur une modification méthodologique dans le calcul du risque opérationnel, ce qui peut avoir un impact sur les exigences de capital réglementaire de la banque. L'inclusion de CWB pourrait modifier la pondération des actifs en fonction des risques, influençant ainsi les ratios de capital réglementaire. Cela est crucial pour la conformité aux attentes prudentielles et pour la comparabilité entre pairs.\n\nPoint de surveillance : Surveiller l'impact de l'inclusion de CWB sur les ratios de capital et s'assurer que la banque reste conforme aux exigences réglementaires.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Méthode de calcul ou approche modifiée\n\nCe qui change : Inclusion de CWB dans le calcul du risque opérationnel au cours du deuxième trimestre de 2025.\n\nPertinence métier : Ce changement met l'accent sur une modification méthodologique dans le calcul du risque opérationnel, ce qui peut avoir un impact sur les exigences de capital réglementaire de la banque. L'inclusion de CWB pourrait modifier la pondération des actifs en fonction des risques, influençant ainsi les ratios de capital réglementaire. Cela est crucial pour la conformité aux attentes prudentielles et pour la comparabilité entre pairs. Surveiller l'impact de l'inclusion de CWB sur les ratios de capital et s'assurer que la banque reste conforme aux exigences réglementaires.\n\nPoint de surveillance : Surveiller l'impact de l'inclusion de CWB sur les ratios de capital et s'assurer que la banque reste conforme aux exigences réglementaires.",
         "impact_level": "MODERE",
         "impact_it": "MOYEN",
         "impact_it_justification": "Éléments observés : Inclusion de CWB dans le calcul du risque opérationnel.\n\nConséquence probable : Nécessité de mettre à jour les systèmes de calcul du risque pour intégrer les données de CWB, ce qui peut entraîner des ajustements dans les processus IT.\n\nLimite de l'analyse : L'ampleur exacte des modifications IT requises n'est pas précisée.",
@@ -1516,7 +1520,8 @@
         "action_requise": "revue_prioritaire",
         "reference_reglementaire": "Bâle III — CET1",
         "impact_description": "Inclusion de CWB dans le calcul du risque opérationnel, modifiant les exigences de capital.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "BNC"
       },
       "genai_analysis": {
         "resume_metier": "La modification du tableau sur la variation de l'actif pondéré en fonction des risques indique un changement méthodologique important. L'inclusion de CWB dans le calcul du risque opérationnel au deuxième trimestre de 2025 est un élément clé à surveiller.\n\nCe changement est pertinent car il affecte directement la manière dont la banque calcule ses exigences de capital réglementaire, ce qui est crucial pour sa conformité et sa compétitivité. L'ajustement méthodologique pourrait influencer les ratios de capital et nécessite une attention particulière.\n\nIl est essentiel de suivre l'impact de cette inclusion sur les systèmes IT et les processus de calcul du risque pour garantir que la banque reste alignée avec les attentes réglementaires et maintient une gestion efficace des risques."
@@ -1634,7 +1639,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "BNC"
       }
     },
     {
@@ -1776,7 +1782,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "Aucun impact concret sur la gestion des risques ou la conformité réglementaire.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "BNC"
       },
       "genai_analysis": {
         "resume_metier": "La modification de la note dans le tableau de gestion des risques est une reformulation sans ajout de contenu substantiel. Elle ne modifie pas la posture de la banque en matière de gestion des risques ni n'introduit de nouvelle information réglementaire.\n\nCe type de changement est considéré comme non pertinent car il n'affecte pas la substance de la divulgation ni ne modifie les attentes réglementaires ou la gestion des risques.\n\nAucune action n'est requise car il s'agit d'une reformulation sans impact sur les attentes réglementaires ou la gestion des risques."
@@ -1915,7 +1922,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "BNC"
       }
     },
     {
@@ -2055,7 +2063,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "BNC"
       }
     },
     {
@@ -2237,7 +2246,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "BNC"
       }
     },
     {
@@ -2449,7 +2459,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "BNC"
       }
     },
     {
@@ -2722,7 +2733,7 @@
           "MODIFICATION_METHODOLOGIE"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Structure du rapport, Méthode de calcul ou approche modifiée\n\nCe qui change : L'indicateur 'Acceptations' a été supprimé et 'Prêts et acceptations, déduction faite des provisions' a été renommé en 'Prêts, déduction faite des provisions'. De plus, des notes ont été ajoutées et supprimées, modifiant la référence aux états financiers consolidés.\n\nPertinence métier : Ce changement met l'accent sur une réorganisation des indicateurs de risque dans la section de gestion des risques, ce qui peut refléter une modification dans la manière dont la banque évalue ou présente ses expositions. La suppression de l'indicateur 'Acceptations' et le renommage des prêts peuvent indiquer un changement dans la méthodologie de calcul ou de présentation des risques, ce qui est crucial pour la comparabilité entre pairs et la conformité aux attentes réglementaires.\n\nPoint de surveillance : Surveiller l'impact de ces changements sur la présentation des risques et la conformité aux normes comptables et réglementaires.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Structure du rapport, Méthode de calcul ou approche modifiée\n\nCe qui change : L'indicateur 'Acceptations' a été supprimé et 'Prêts et acceptations, déduction faite des provisions' a été renommé en 'Prêts, déduction faite des provisions'. De plus, des notes ont été ajoutées et supprimées, modifiant la référence aux états financiers consolidés.\n\nPertinence métier : Ce changement met l'accent sur une réorganisation des indicateurs de risque dans la section de gestion des risques, ce qui peut refléter une modification dans la manière dont la banque évalue ou présente ses expositions. La suppression de l'indicateur 'Acceptations' et le renommage des prêts peuvent indiquer un changement dans la méthodologie de calcul ou de présentation des risques, ce qui est crucial pour la comparabilité entre pairs et la conformité aux attentes réglementaires. Surveiller l'impact de ces changements sur la présentation des risques et la conformité aux normes comptables et réglementaires.\n\nPoint de surveillance : Surveiller l'impact de ces changements sur la présentation des risques et la conformité aux normes comptables et réglementaires.",
         "impact_level": "MODERE",
         "impact_it": "MOYEN",
         "impact_it_justification": "Éléments observés : Modification des indicateurs de risque et des notes associées.\n\nConséquence probable : Nécessité de mettre à jour les systèmes de reporting pour refléter les nouveaux indicateurs et références.\n\nLimite de l'analyse : L'impact exact sur les systèmes IT dépend de la manière dont ces indicateurs sont intégrés dans les processus de gestion des risques.",
@@ -2740,7 +2751,8 @@
         "action_requise": "confirmation",
         "reference_reglementaire": "",
         "impact_description": "Réorganisation des indicateurs de risque et ajustement des références aux états financiers consolidés.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "BNC"
       },
       "genai_analysis": {
         "resume_metier": "Le tableau de gestion des risques a subi plusieurs modifications, notamment la suppression de l'indicateur 'Acceptations' et le renommage de 'Prêts et acceptations, déduction faite des provisions'. Ces changements peuvent indiquer une révision de la méthodologie de calcul ou de présentation des risques.\n\nDes notes ont été ajoutées et supprimées, ce qui modifie les références aux états financiers consolidés. Cela pourrait refléter un ajustement dans la manière dont la banque communique ses risques et ses expositions financières.\n\nCes modifications nécessitent une attention particulière pour comprendre leur impact sur la gestion des risques et la conformité réglementaire, ainsi que sur les systèmes IT qui supportent ces processus."
@@ -2897,7 +2909,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "BNC"
       }
     },
     {
@@ -3028,7 +3041,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "BNC"
       }
     },
     {
@@ -3172,7 +3186,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "BNC"
       }
     },
     {
@@ -3342,7 +3357,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "BNC"
       }
     },
     {
@@ -3466,7 +3482,7 @@
           "STRUCTURE_RAPPORT"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Information retirée\n\nCe qui change : L'indicateur 'Participations dans des entreprises associées et des coentreprises' a été supprimé du tableau 'Sommaire des actifs grevés et non grevés'.\n\nPertinence métier : Ce changement met en évidence une modification dans la structure de la divulgation des actifs grevés et non grevés. La suppression de cet indicateur peut affecter la transparence et la comparabilité des informations sur les actifs de la banque, ce qui est crucial pour les investisseurs et les régulateurs qui surveillent l'exposition et la gestion des actifs.\n\nPoint de surveillance : Surveiller l'impact de cette suppression sur la compréhension des actifs grevés et non grevés, et évaluer si cela affecte la conformité aux attentes de divulgation réglementaire.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Information retirée\n\nCe qui change : L'indicateur 'Participations dans des entreprises associées et des coentreprises' a été supprimé du tableau 'Sommaire des actifs grevés et non grevés'.\n\nPertinence métier : Ce changement met en évidence une modification dans la structure de la divulgation des actifs grevés et non grevés. La suppression de cet indicateur peut affecter la transparence et la comparabilité des informations sur les actifs de la banque, ce qui est crucial pour les investisseurs et les régulateurs qui surveillent l'exposition et la gestion des actifs. Surveiller l'impact de cette suppression sur la compréhension des actifs grevés et non grevés, et évaluer si cela affecte la conformité aux attentes de divulgation réglementaire.\n\nPoint de surveillance : Surveiller l'impact de cette suppression sur la compréhension des actifs grevés et non grevés, et évaluer si cela affecte la conformité aux attentes de divulgation réglementaire.",
         "impact_level": "MODERE",
         "impact_it": "FAIBLE",
         "impact_it_justification": "Éléments observés : Suppression d'un indicateur dans un tableau de divulgation.\n\nConséquence probable : Impact limité sur les systèmes IT, principalement lié à la mise à jour des rapports et des bases de données pour refléter la nouvelle structure du tableau.\n\nLimite de l'analyse : Pas de changement majeur dans l'architecture IT ou les processus sous-jacents.",
@@ -3484,7 +3500,8 @@
         "action_requise": "confirmation",
         "reference_reglementaire": "",
         "impact_description": "La suppression d'un indicateur modifie la structure de la divulgation des actifs grevés et non grevés.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "BNC"
       },
       "genai_analysis": {
         "resume_metier": "La suppression de l'indicateur 'Participations dans des entreprises associées et des coentreprises' du tableau 'Sommaire des actifs grevés et non grevés' modifie la structure de la divulgation des actifs de la banque.\n\nCe retrait peut affecter la transparence et la comparabilité des informations sur les actifs, ce qui est crucial pour les investisseurs et les régulateurs.\n\nIl est important de surveiller l'impact de cette suppression sur la compréhension des actifs grevés et non grevés et d'évaluer si cela affecte la conformité aux attentes de divulgation réglementaire."
@@ -3618,7 +3635,7 @@
             "_analyst_review": {
               "status": "approved",
               "notes": "",
-              "at": "2026-07-30T05:52:10.648561+00:00",
+              "at": "2026-07-30T06:31:21.237102+00:00",
               "by": "analyst"
             }
           }
@@ -3630,6 +3647,12 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "L'indicateur \"Participations dans des entreprises associées et des coentreprises\" a été retiré du tableau des actifs grevés et non grevés au T2 2025, alors qu'il était présent au T1 2025.\n\nCe retrait peut avoir un impact sur la manière dont les actifs sont présentés et évalués, notamment en ce qui concerne la consolidation des participations dans des entités associées. Ces participations peuvent influencer la structure du capital et les ratios de levier, qui sont des éléments critiques dans l'évaluation de la santé financière d'une institution selon les normes de Bâle III.\n\nLe signal de vigie à retenir est que la banque pourrait avoir modifié sa stratégie de présentation ou de gestion de ses participations, ce qui pourrait refléter un changement dans sa structure d'investissement ou sa stratégie de gestion des risques. Il est important de surveiller si ce retrait est compensé par d'autres ajustements ou divulgations ailleurs dans les rapports financiers."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-07-30T06:31:21.935771+00:00",
+              "by": "analyst"
             }
           }
         ],
@@ -3672,7 +3695,7 @@
           "STRUCTURE_RAPPORT"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Liquidité et structure du rapport\n\nCe qui change : Un nouvel indicateur, le Ratio de liquidité à court terme, a été ajouté, tandis que les indicateurs sur les participations dans des entreprises associées et des coentreprises ont été supprimés. De plus, des notes concernant des ajustements liés à l'IFRS 17 ont été retirées.\n\nPertinence métier : Ce changement met l'accent sur l'importance accrue accordée à la liquidité à court terme, un aspect crucial pour la gestion des risques financiers et la conformité réglementaire. L'ajout de cet indicateur reflète une attention particulière aux exigences de liquidité, ce qui est essentiel pour la stabilité financière de la banque. La suppression des notes sur l'IFRS 17 pourrait indiquer une stabilisation des méthodes comptables après leur adoption.\n\nPoint de surveillance : Surveiller l'impact de l'ajout du Ratio de liquidité à court terme sur les pratiques de gestion des risques et la conformité aux exigences réglementaires en matière de liquidité.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Liquidité et structure du rapport\n\nCe qui change : Un nouvel indicateur, le Ratio de liquidité à court terme, a été ajouté, tandis que les indicateurs sur les participations dans des entreprises associées et des coentreprises ont été supprimés. De plus, des notes concernant des ajustements liés à l'IFRS 17 ont été retirées.\n\nPertinence métier : Ce changement met l'accent sur l'importance accrue accordée à la liquidité à court terme, un aspect crucial pour la gestion des risques financiers et la conformité réglementaire. L'ajout de cet indicateur reflète une attention particulière aux exigences de liquidité, ce qui est essentiel pour la stabilité financière de la banque. La suppression des notes sur l'IFRS 17 pourrait indiquer une stabilisation des méthodes comptables après leur adoption. Surveiller l'impact de l'ajout du Ratio de liquidité à court terme sur les pratiques de gestion des risques et la conformité aux exigences réglementaires en matière de liquidité.\n\nPoint de surveillance : Surveiller l'impact de l'ajout du Ratio de liquidité à court terme sur les pratiques de gestion des risques et la conformité aux exigences réglementaires en matière de liquidité.",
         "impact_level": "MAJEUR",
         "impact_it": "MOYEN",
         "impact_it_justification": "Éléments observés : Introduction d'un nouvel indicateur de liquidité et retrait d'indicateurs existants.\n\nConséquence probable : Nécessité de mettre à jour les systèmes de reporting pour intégrer le nouveau ratio et supprimer les anciens indicateurs, ce qui peut impliquer des ajustements dans les bases de données et les processus de calcul.\n\nLimite de l'analyse : L'impact exact sur les systèmes IT dépendra de l'architecture actuelle et des outils utilisés pour le reporting financier.",
@@ -3690,7 +3713,8 @@
         "action_requise": "revue_prioritaire",
         "reference_reglementaire": "Bâle III — LCR",
         "impact_description": "L'ajout du Ratio de liquidité à court terme renforce la surveillance des exigences de liquidité réglementaires.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "BNC"
       },
       "genai_analysis": {
         "resume_metier": "Le rapport de gestion a été modifié pour inclure un nouvel indicateur de liquidité à court terme, ce qui souligne l'importance accrue de la gestion de la liquidité dans le contexte actuel. La suppression des indicateurs relatifs aux participations dans des entreprises associées et des coentreprises pourrait indiquer un recentrage sur des mesures plus directement liées à la liquidité et à la stabilité financière. Les notes sur l'IFRS 17 ont été retirées, ce qui pourrait signifier que les ajustements comptables nécessaires ont été stabilisés.\n\nL'ajout du Ratio de liquidité à court terme est particulièrement pertinent dans le contexte des exigences réglementaires croissantes en matière de liquidité. Cela pourrait également refléter une réponse proactive aux attentes des régulateurs concernant la gestion des risques de liquidité. La suppression des notes sur l'IFRS 17 suggère que les ajustements comptables sont désormais intégrés dans les pratiques standards de la banque.\n\nCe changement nécessite une attention particulière pour s'assurer que les systèmes de reporting sont mis à jour pour refléter ces nouvelles priorités en matière de gestion des risques et de conformité réglementaire."
@@ -3905,7 +3929,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "BNC"
       }
     },
     {
@@ -4144,7 +4169,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "Aucun impact concret sur la gestion des risques ou la conformité.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "BNC"
       },
       "genai_analysis": {
         "resume_metier": "La modification détectée dans la note de bas de tableau ne change pas le contenu ou la substance de la divulgation. Il s'agit d'une reformulation sans impact sur la gestion des risques ou la conformité réglementaire.\n\nAucune nouvelle information ou méthodologie n'est introduite par cette modification, ce qui la rend non pertinente pour une analyse approfondie.\n\nCe type de changement n'affecte pas les attentes prudentielles ou la comparabilité entre pairs, et ne nécessite donc pas d'action particulière."
@@ -4311,7 +4337,7 @@
           "MODIFICATION_TEXTE_RISQUE"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Texte de risque modifié\n\nCe qui change : La note de S&P Global Ratings a été révisée à la hausse pour la dette à long terme de premier rang, tandis que la mention de Moody's concernant la révision à la hausse a été supprimée.\n\nPertinence métier : Ce changement met en évidence une modification dans la perception du risque de crédit de la banque par les agences de notation. Une révision à la hausse par S&P peut indiquer une amélioration de la situation financière ou de la gestion des risques de la banque, ce qui est crucial pour les investisseurs et les régulateurs. La suppression de la mention de Moody's pourrait également signaler un changement dans l'évaluation des risques ou des attentes du marché.\n\nPoint de surveillance : Surveiller l'impact de ces changements de notation sur la perception du risque de crédit de la banque et ses implications pour le coût du financement et la conformité réglementaire.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Texte de risque modifié\n\nCe qui change : La note de S&P Global Ratings a été révisée à la hausse pour la dette à long terme de premier rang, tandis que la mention de Moody's concernant la révision à la hausse a été supprimée.\n\nPertinence métier : Ce changement met en évidence une modification dans la perception du risque de crédit de la banque par les agences de notation. Une révision à la hausse par S&P peut indiquer une amélioration de la situation financière ou de la gestion des risques de la banque, ce qui est crucial pour les investisseurs et les régulateurs. La suppression de la mention de Moody's pourrait également signaler un changement dans l'évaluation des risques ou des attentes du marché. Surveiller l'impact de ces changements de notation sur la perception du risque de crédit de la banque et ses implications pour le coût du financement et la conformité réglementaire.\n\nPoint de surveillance : Surveiller l'impact de ces changements de notation sur la perception du risque de crédit de la banque et ses implications pour le coût du financement et la conformité réglementaire.",
         "impact_level": "MODERE",
         "impact_it": "FAIBLE",
         "impact_it_justification": "Éléments observés : Modification des notations de crédit par les agences.\n\nConséquence probable : Ajustements mineurs dans les systèmes de gestion des risques pour refléter les nouvelles notations.\n\nLimite de l'analyse : Pas de changement majeur dans l'infrastructure IT attendu.",
@@ -4329,7 +4355,8 @@
         "action_requise": "information",
         "reference_reglementaire": "",
         "impact_description": "Modification des notations de crédit influençant la perception du risque de crédit.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "BNC"
       },
       "genai_analysis": {
         "resume_metier": "La banque a récemment vu sa notation de crédit à long terme révisée à la hausse par S&P Global Ratings, ce qui pourrait indiquer une amélioration de sa situation financière ou de sa gestion des risques. Cette révision est significative car elle peut influencer la perception du risque de crédit par les investisseurs et les régulateurs.\n\nLa suppression de la mention de Moody's concernant une révision à la hausse pourrait également signaler un changement dans l'évaluation des risques ou des attentes du marché. Cela pourrait avoir des implications pour le coût du financement de la banque et sa conformité réglementaire.\n\nIl est important de surveiller l'impact de ces changements de notation sur la perception du risque de crédit de la banque, ainsi que sur ses relations avec les investisseurs et les régulateurs."
@@ -4448,7 +4475,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "BNC"
       }
     },
     {
@@ -4667,7 +4695,7 @@
           "MODIFICATION_TEXTE_RISQUE"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Structure du rapport, Texte de risque modifié\n\nCe qui change : L'indicateur 'Titrisation de créances sur cartes de crédit' a été supprimé du tableau des échéances contractuelles résiduelles du financement institutionnel. De plus, plusieurs notes ont été ajoutées, supprimées ou modifiées, notamment l'ajout de la note 'Incluent les billets de dépôt au porteur.' et la modification de la note sur les dettes faisant l'objet de règlements de conversion.\n\nPertinence métier : Ce changement met en évidence une révision de la manière dont la banque présente ses échéances contractuelles, ce qui pourrait affecter la transparence et la comparabilité des informations financières. La suppression de l'indicateur de titrisation et les modifications des notes peuvent indiquer un changement dans la gestion des risques liés au financement institutionnel.\n\nPoint de surveillance : Surveiller l'impact de ces modifications sur la divulgation des risques financiers et la conformité aux attentes réglementaires en matière de transparence et de gestion des risques.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Structure du rapport, Texte de risque modifié\n\nCe qui change : L'indicateur 'Titrisation de créances sur cartes de crédit' a été supprimé du tableau des échéances contractuelles résiduelles du financement institutionnel. De plus, plusieurs notes ont été ajoutées, supprimées ou modifiées, notamment l'ajout de la note 'Incluent les billets de dépôt au porteur.' et la modification de la note sur les dettes faisant l'objet de règlements de conversion.\n\nPertinence métier : Ce changement met en évidence une révision de la manière dont la banque présente ses échéances contractuelles, ce qui pourrait affecter la transparence et la comparabilité des informations financières. La suppression de l'indicateur de titrisation et les modifications des notes peuvent indiquer un changement dans la gestion des risques liés au financement institutionnel. Surveiller l'impact de ces modifications sur la divulgation des risques financiers et la conformité aux attentes réglementaires en matière de transparence et de gestion des risques.\n\nPoint de surveillance : Surveiller l'impact de ces modifications sur la divulgation des risques financiers et la conformité aux attentes réglementaires en matière de transparence et de gestion des risques.",
         "impact_level": "MODERE",
         "impact_it": "MOYEN",
         "impact_it_justification": "Éléments observés : Modifications dans la présentation des échéances contractuelles et des notes associées.\n\nConséquence probable : Nécessité d'adapter les systèmes de reporting pour refléter les nouvelles structures et notes, impactant potentiellement les processus de gestion des données.\n\nLimite de l'analyse : L'impact exact sur les systèmes IT dépendra de la manière dont ces changements sont intégrés dans les processus existants.",
@@ -4685,7 +4713,8 @@
         "action_requise": "investigation",
         "reference_reglementaire": "",
         "impact_description": "Modification de la structure et du contenu des divulgations sur les échéances contractuelles, affectant potentiellement la transparence et la gestion des risques.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "BNC"
       },
       "genai_analysis": {
         "resume_metier": "Le tableau des échéances contractuelles résiduelles du financement institutionnel a subi plusieurs modifications, notamment la suppression de l'indicateur 'Titrisation de créances sur cartes de crédit'. Des notes ont été ajoutées, supprimées ou modifiées, ce qui peut indiquer un changement dans la gestion des risques financiers.\n\nCes modifications peuvent affecter la transparence et la comparabilité des informations financières, ce qui est crucial pour les parties prenantes et les régulateurs. La suppression de l'indicateur de titrisation et les changements dans les notes peuvent refléter une révision des pratiques de gestion des risques.\n\nIl est important de surveiller comment ces changements influencent la divulgation des risques financiers et la conformité aux attentes réglementaires, notamment en matière de transparence et de gestion des risques."
@@ -4805,9 +4834,9 @@
     "total_relevant": 16
   },
   "review_decisions_summary": {
-    "matched": 1,
+    "matched": 2,
     "unmatched": 0,
-    "pending": 36,
-    "updated_at": "2026-07-30T05:52:10+00:00"
+    "pending": 35,
+    "updated_at": "2026-07-30T06:31:22+00:00"
   }
 }

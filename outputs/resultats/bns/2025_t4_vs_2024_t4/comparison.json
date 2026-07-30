@@ -409,7 +409,7 @@
           "MODIFICATION_METHODOLOGIE"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Méthode de calcul ou approche modifiée\n\nCe qui change : La note indiquant l'adoption de l'IFRS 17 le 1er novembre 2023 a été supprimée du tableau T29 État résumé de la situation financière.\n\nPertinence métier : Ce changement met en évidence une modification méthodologique importante, car l'adoption de l'IFRS 17 peut avoir des impacts significatifs sur la présentation des états financiers et la reconnaissance des contrats d'assurance. Cela peut affecter la comparabilité des résultats financiers avec les périodes antérieures et entre les pairs.\n\nPoint de surveillance : Surveiller l'impact de l'adoption de l'IFRS 17 sur les états financiers et s'assurer que les ajustements nécessaires sont bien compris et communiqués aux parties prenantes.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Méthode de calcul ou approche modifiée\n\nCe qui change : La note indiquant l'adoption de l'IFRS 17 le 1er novembre 2023 a été supprimée du tableau T29 État résumé de la situation financière.\n\nPertinence métier : Ce changement met en évidence une modification méthodologique importante, car l'adoption de l'IFRS 17 peut avoir des impacts significatifs sur la présentation des états financiers et la reconnaissance des contrats d'assurance. Cela peut affecter la comparabilité des résultats financiers avec les périodes antérieures et entre les pairs. Surveiller l'impact de l'adoption de l'IFRS 17 sur les états financiers et s'assurer que les ajustements nécessaires sont bien compris et communiqués aux parties prenantes. La suppression de la note sur l'adoption de l'IFRS 17 dans le tableau T29 indique que la banque a intégré cette nouvelle norme comptable dans ses pratiques.\n\nPoint de surveillance : Surveiller l'impact de l'adoption de l'IFRS 17 sur les états financiers et s'assurer que les ajustements nécessaires sont bien compris et communiqués aux parties prenantes.",
         "impact_level": "MODERE",
         "impact_it": "MOYEN",
         "impact_it_justification": "Éléments observés : Adoption de l'IFRS 17, une nouvelle norme comptable.\n\nConséquence probable : Nécessité de mettre à jour les systèmes comptables et financiers pour se conformer à la nouvelle norme, ce qui peut impliquer des ajustements dans les processus de reporting et de gestion des données.\n\nLimite de l'analyse: L'impact exact sur les systèmes IT dépendra de la complexité des ajustements requis pour se conformer à l'IFRS 17.",
@@ -427,7 +427,8 @@
         "action_requise": "revue_prioritaire",
         "reference_reglementaire": "IFRS 17",
         "impact_description": "Adoption de l'IFRS 17 modifiant la présentation des états financiers.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "BNS"
       },
       "genai_analysis": {
         "resume_metier": "La suppression de la note sur l'adoption de l'IFRS 17 dans le tableau T29 indique que la banque a intégré cette nouvelle norme comptable dans ses pratiques. L'IFRS 17 modifie la reconnaissance et la présentation des contrats d'assurance, ce qui peut avoir des impacts significatifs sur les états financiers.\n\nCe changement est pertinent car il affecte la comparabilité des résultats financiers avec les périodes antérieures et entre les pairs. Il est crucial de surveiller l'impact de cette adoption sur les états financiers et de s'assurer que les ajustements nécessaires sont bien compris et communiqués aux parties prenantes.\n\nL'adoption de l'IFRS 17 nécessite probablement des mises à jour des systèmes comptables et financiers, ce qui peut impliquer des ajustements dans les processus de reporting et de gestion des données."
@@ -698,7 +699,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "Aucun impact concret sur la gestion des risques ou la conformité.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "BNS"
       },
       "genai_analysis": {
         "resume_metier": "Les modifications apportées aux notes de bas de tableau dans le tableau des ratios de fonds propres réglementaires sont des reformulations qui n'introduisent pas de nouvelles informations ou de changements substantiels. Les références aux exigences de Bâle et aux instruments de fonds propres non admissibles ont été simplifiées, mais cela n'affecte pas la compréhension ou la conformité réglementaire.\n\nCe type de changement est considéré comme non pertinent car il ne modifie pas la substance des divulgations réglementaires. Il s'agit simplement d'une clarification textuelle sans impact sur la gestion des risques ou la conformité.\n\nAucune action particulière n'est requise de la part de l'analyste, car le changement est purement textuel et n'affecte pas la substance des divulgations réglementaires."
@@ -879,7 +881,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "BNS"
       }
     },
     {
@@ -1009,7 +1012,7 @@
           "CAPITAL_REGLEMENTAIRE"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Capital réglementaire\n\nCe qui change : La note de bas de tableau a été modifiée de 'Aucun rachat à l’exercice 2024.' à 'Représente une diminution des actions ordinaires et des résultats non distribués'.\n\nPertinence métier : Ce changement met en évidence une modification dans la gestion du capital de la banque, en particulier concernant les actions ordinaires et les résultats non distribués. Cela pourrait indiquer une stratégie différente en matière de capitalisation et de distribution des bénéfices, ce qui est crucial pour la conformité aux exigences de capital réglementaire.\n\nPoint de surveillance : Surveiller l'impact de cette modification sur la structure du capital et la conformité aux exigences réglementaires en matière de capital.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Capital réglementaire\n\nCe qui change : La note de bas de tableau a été modifiée de 'Aucun rachat à l’exercice 2024.' à 'Représente une diminution des actions ordinaires et des résultats non distribués'.\n\nPertinence métier : Ce changement met en évidence une modification dans la gestion du capital de la banque, en particulier concernant les actions ordinaires et les résultats non distribués. Cela pourrait indiquer une stratégie différente en matière de capitalisation et de distribution des bénéfices, ce qui est crucial pour la conformité aux exigences de capital réglementaire. Surveiller l'impact de cette modification sur la structure du capital et la conformité aux exigences réglementaires en matière de capital. La modification de la note de bas de tableau dans la section de gestion du capital indique un changement dans la stratégie de capitalisation de la banque.\n\nPoint de surveillance : Surveiller l'impact de cette modification sur la structure du capital et la conformité aux exigences réglementaires en matière de capital.",
         "impact_level": "MODERE",
         "impact_it": "FAIBLE",
         "impact_it_justification": "Éléments observés : Modification de la note de bas de tableau concernant la gestion du capital.\n\nConséquence probable : Ajustement mineur dans les rapports financiers et la surveillance des actions ordinaires et des résultats non distribués.\n\nLimite de l'analyse : Pas de transformation technologique apparente, mais nécessite une surveillance pour tout ajustement futur.",
@@ -1027,7 +1030,8 @@
         "action_requise": "confirmation",
         "reference_reglementaire": "Bâle III — CET1",
         "impact_description": "Modification de la stratégie de capitalisation affectant les actions ordinaires et les résultats non distribués.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "BNS"
       },
       "genai_analysis": {
         "resume_metier": "La modification de la note de bas de tableau dans la section de gestion du capital indique un changement dans la stratégie de capitalisation de la banque. En passant d'une mention de non-rachat à une diminution des actions ordinaires et des résultats non distribués, la banque semble ajuster sa structure de capital pour mieux répondre aux exigences réglementaires.\n\nCe changement est pertinent car il touche directement à la gestion du capital réglementaire, un aspect crucial pour la conformité et la stabilité financière de la banque. La modification pourrait refléter une approche plus prudente ou une réponse à des exigences réglementaires accrues.\n\nIl est important de surveiller comment cette modification affectera la structure du capital de la banque et sa capacité à répondre aux exigences de capital réglementaire à l'avenir."
@@ -1411,7 +1415,7 @@
           "FONDS_PROPRES_REGLEMENTAIRES"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Capital réglementaire, Fonds propres réglementaires\n\nCe qui change : Des indicateurs ont été ajoutés et supprimés dans le tableau T33, notamment les 'Billets avec remboursement de capital à recours limité de série 7' et les 'Débentures subordonnées échéant en juin 2025'. Des notes ont également été ajoutées et supprimées, modifiant la composition des fonds propres réglementaires.\n\nPertinence métier : Ce changement met l'accent sur la gestion du capital réglementaire de la banque, en particulier sur la composition et la structure des fonds propres. L'ajout et la suppression d'instruments financiers tels que les billets et les débentures subordonnées peuvent avoir un impact sur les ratios de capital réglementaire, ce qui est crucial pour la conformité aux exigences prudentielles.\n\nPoint de surveillance : Surveiller l'impact de ces changements sur les ratios de capital réglementaire et la conformité aux exigences de fonds propres, notamment en ce qui concerne les nouvelles émissions et rachats d'instruments financiers.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Capital réglementaire, Fonds propres réglementaires\n\nCe qui change : Des indicateurs ont été ajoutés et supprimés dans le tableau T33, notamment les 'Billets avec remboursement de capital à recours limité de série 7' et les 'Débentures subordonnées échéant en juin 2025'. Des notes ont également été ajoutées et supprimées, modifiant la composition des fonds propres réglementaires.\n\nPertinence métier : Ce changement met l'accent sur la gestion du capital réglementaire de la banque, en particulier sur la composition et la structure des fonds propres. L'ajout et la suppression d'instruments financiers tels que les billets et les débentures subordonnées peuvent avoir un impact sur les ratios de capital réglementaire, ce qui est crucial pour la conformité aux exigences prudentielles. Surveiller l'impact de ces changements sur les ratios de capital réglementaire et la conformité aux exigences de fonds propres, notamment en ce qui concerne les nouvelles émissions et rachats d'instruments financiers.\n\nPoint de surveillance : Surveiller l'impact de ces changements sur les ratios de capital réglementaire et la conformité aux exigences de fonds propres, notamment en ce qui concerne les nouvelles émissions et rachats d'instruments financiers.",
         "impact_level": "MAJEUR",
         "impact_it": "MOYEN",
         "impact_it_justification": "Éléments observés : Modification de la composition des instruments de capital réglementaire.\n\nConséquence probable : Adaptation des systèmes de reporting pour refléter les nouveaux instruments financiers et leurs caractéristiques.\n\nLimite de l'analyse : L'impact exact sur les systèmes IT dépend des spécificités des nouveaux instruments et de leur intégration dans les processus existants.",
@@ -1429,7 +1433,8 @@
         "action_requise": "revue_prioritaire",
         "reference_reglementaire": "Bâle III — CET1",
         "impact_description": "Modification de la composition des fonds propres réglementaires, influençant les ratios de capital.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "BNS"
       },
       "genai_analysis": {
         "resume_metier": "Le tableau T33 sur les actions et autres instruments a été modifié avec l'ajout et la suppression d'indicateurs clés, ce qui affecte la composition des fonds propres réglementaires de la banque. Les nouveaux instruments financiers, tels que les billets avec remboursement de capital à recours limité, sont désormais inclus, tandis que certaines actions privilégiées ont été retirées.\n\nCes changements sont significatifs car ils influencent directement la structure du capital réglementaire de la banque, un aspect crucial pour la conformité aux exigences prudentielles. La banque semble renforcer sa position en ajustant ses instruments de capital pour mieux répondre aux attentes réglementaires.\n\nIl est important de surveiller comment ces modifications affecteront les ratios de capital réglementaire et la capacité de la banque à maintenir sa conformité aux normes prudentielles. Les systèmes de reporting devront également être adaptés pour intégrer ces nouveaux instruments financiers."
@@ -1610,7 +1615,7 @@
           "MONTANT_REGLEMENTAIRE"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Méthode de calcul ou approche modifiée, Montant ou seuil réglementaire\n\nCe qui change : La note de bas de tableau concernant la méthodologie de calcul a été modifiée, et la mention des montants réglementaires conformes aux exigences révisées de Bâle III pour 2024 et 2023 a été supprimée.\n\nPertinence métier : Ce changement met en évidence une modification potentielle de la méthodologie de calcul des actifs pondérés en fonction du risque de crédit, ce qui peut avoir un impact sur la manière dont la banque évalue ses exigences en capital. La suppression de la mention des montants réglementaires conformes aux exigences révisées de Bâle III pourrait indiquer un ajustement dans la présentation ou l'interprétation des exigences réglementaires.\n\nPoint de surveillance : Surveiller l'impact de cette modification méthodologique sur les exigences en capital et la conformité aux normes de Bâle III.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Méthode de calcul ou approche modifiée, Montant ou seuil réglementaire\n\nCe qui change : La note de bas de tableau concernant la méthodologie de calcul a été modifiée, et la mention des montants réglementaires conformes aux exigences révisées de Bâle III pour 2024 et 2023 a été supprimée.\n\nPertinence métier : Ce changement met en évidence une modification potentielle de la méthodologie de calcul des actifs pondérés en fonction du risque de crédit, ce qui peut avoir un impact sur la manière dont la banque évalue ses exigences en capital. La suppression de la mention des montants réglementaires conformes aux exigences révisées de Bâle III pourrait indiquer un ajustement dans la présentation ou l'interprétation des exigences réglementaires. Surveiller l'impact de cette modification méthodologique sur les exigences en capital et la conformité aux normes de Bâle III.\n\nPoint de surveillance : Surveiller l'impact de cette modification méthodologique sur les exigences en capital et la conformité aux normes de Bâle III.",
         "impact_level": "MAJEUR",
         "impact_it": "MOYEN",
         "impact_it_justification": "Éléments observés : Modification de la méthodologie de calcul des actifs pondérés en fonction du risque de crédit.\n\nConséquence probable : Nécessité d'adapter les systèmes de calcul et de reporting pour refléter les nouvelles méthodologies et exigences réglementaires.\n\nLimite de l'analyse : L'ampleur exacte des modifications nécessaires dans les systèmes IT n'est pas détaillée.",
@@ -1628,7 +1633,8 @@
         "action_requise": "revue_prioritaire",
         "reference_reglementaire": "Bâle III — CET1",
         "impact_description": "Modification de la méthodologie de calcul des actifs pondérés en fonction du risque de crédit, impactant la gestion du capital.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "BNS"
       },
       "genai_analysis": {
         "resume_metier": "La modification de la note de bas de tableau dans le tableau T34 indique un changement dans la méthodologie de calcul des actifs pondérés en fonction du risque de crédit. Cela peut avoir des implications importantes pour la gestion du capital de la banque.\n\nLa suppression de la mention des montants réglementaires conformes aux exigences révisées de Bâle III pour 2024 et 2023 pourrait signaler un ajustement dans la manière dont la banque se conforme aux normes de Bâle III.\n\nCes changements nécessitent une attention particulière pour s'assurer que la banque reste conforme aux exigences réglementaires et que ses pratiques de calcul sont alignées avec les meilleures pratiques du secteur."
@@ -1789,7 +1795,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "BNS"
       }
     },
     {
@@ -2010,7 +2017,7 @@
           "EXIGENCES_REGLEMENTAIRES"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Structure du rapport, Exigences réglementaires ou conformité\n\nCe qui change : La note de bas de tableau a été modifiée pour supprimer la mention des prêts hypothécaires à l'habitation assortis de garanties consenties par des administrations publiques, et une nouvelle note indique que les montants réglementaires ne tiennent pas compte de ces prêts.\n\nPertinence métier : Ce changement met en évidence une modification dans la manière dont les prêts hypothécaires à l'habitation sont pris en compte dans les expositions du portefeuille de prêts. Cela pourrait avoir un impact sur la manière dont la banque gère ses exigences réglementaires et présente ses expositions, ce qui est crucial pour la conformité et la transparence envers les régulateurs.\n\nPoint de surveillance : Surveiller comment cette modification affecte la présentation des expositions et les implications potentielles sur la conformité réglementaire de la banque.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Structure du rapport, Exigences réglementaires ou conformité\n\nCe qui change : La note de bas de tableau a été modifiée pour supprimer la mention des prêts hypothécaires à l'habitation assortis de garanties consenties par des administrations publiques, et une nouvelle note indique que les montants réglementaires ne tiennent pas compte de ces prêts.\n\nPertinence métier : Ce changement met en évidence une modification dans la manière dont les prêts hypothécaires à l'habitation sont pris en compte dans les expositions du portefeuille de prêts. Cela pourrait avoir un impact sur la manière dont la banque gère ses exigences réglementaires et présente ses expositions, ce qui est crucial pour la conformité et la transparence envers les régulateurs. Surveiller comment cette modification affecte la présentation des expositions et les implications potentielles sur la conformité réglementaire de la banque. La modification de la note de bas de tableau dans le rapport de gestion indique un changement dans la manière dont les expositions de prêts sont présentées.\n\nPoint de surveillance : Surveiller comment cette modification affecte la présentation des expositions et les implications potentielles sur la conformité réglementaire de la banque.",
         "impact_level": "MODERE",
         "impact_it": "FAIBLE",
         "impact_it_justification": "Éléments observés : Modification de la note de bas de tableau concernant les prêts hypothécaires.\n\nConséquence probable : Ajustement mineur dans les systèmes de reporting pour refléter la nouvelle présentation des expositions.\n\nLimite de l'analyse : Pas d'indication de changement majeur dans les systèmes IT, mais nécessite une vérification de la conformité des données.",
@@ -2028,7 +2035,8 @@
         "action_requise": "confirmation",
         "reference_reglementaire": "",
         "impact_description": "Modification de la présentation des expositions de prêts, potentiellement affectant la conformité réglementaire.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "BNS"
       },
       "genai_analysis": {
         "resume_metier": "La modification de la note de bas de tableau dans le rapport de gestion indique un changement dans la manière dont les expositions de prêts sont présentées. Cela pourrait affecter la conformité réglementaire de la banque.\n\nLa suppression de la mention des prêts hypothécaires à l'habitation assortis de garanties consenties par des administrations publiques pourrait avoir des implications sur la manière dont la banque calcule et présente ses expositions réglementaires.\n\nIl est important de surveiller comment cette modification est intégrée dans les systèmes de reporting de la banque et si elle affecte la conformité avec les exigences réglementaires."
@@ -2167,7 +2175,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "Aucun impact concret sur la divulgation ou la gestion des risques.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "BNS"
       },
       "genai_analysis": {
         "resume_metier": "La modification détectée dans la note de bas de tableau ne constitue pas un changement substantiel. Il s'agit d'une reformulation sans impact sur le contenu ou la méthodologie de la divulgation.\n\nCe type de changement n'affecte pas la comparabilité entre les rapports ni la conformité aux attentes réglementaires, car il ne modifie pas la substance de l'information fournie.\n\nAucune action n'est requise, car le changement n'introduit pas de nouvelle idée ou de modification de la posture de gestion des risques."
@@ -2395,7 +2404,7 @@
           "MONTANT_REGLEMENTAIRE"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Information retirée, Exigences réglementaires ou conformité, Montant ou seuil réglementaire\n\nCe qui change : Les notes concernant la conformité aux exigences révisées de Bâle III et le plancher de PD révisé par le BSIF ont été supprimées du tableau T38.\n\nPertinence métier : Ce changement met en évidence le retrait d'informations cruciales sur la conformité aux exigences réglementaires de Bâle III et les ajustements du plancher de PD par le BSIF. Ces éléments sont essentiels pour évaluer la gestion du capital et la conformité réglementaire de la banque, impactant directement la perception de sa solidité financière et de sa gestion des risques.\n\nPoint de surveillance : Surveiller l'impact de la suppression de ces notes sur la transparence des divulgations réglementaires et la compréhension des ajustements de conformité par les parties prenantes.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Information retirée, Exigences réglementaires ou conformité, Montant ou seuil réglementaire\n\nCe qui change : Les notes concernant la conformité aux exigences révisées de Bâle III et le plancher de PD révisé par le BSIF ont été supprimées du tableau T38.\n\nPertinence métier : Ce changement met en évidence le retrait d'informations cruciales sur la conformité aux exigences réglementaires de Bâle III et les ajustements du plancher de PD par le BSIF. Ces éléments sont essentiels pour évaluer la gestion du capital et la conformité réglementaire de la banque, impactant directement la perception de sa solidité financière et de sa gestion des risques. Surveiller l'impact de la suppression de ces notes sur la transparence des divulgations réglementaires et la compréhension des ajustements de conformité par les parties prenantes. La suppression des notes dans le tableau T38 concernant les montants réglementaires et le plancher de PD révisé par le BSIF est significative.\n\nPoint de surveillance : Surveiller l'impact de la suppression de ces notes sur la transparence des divulgations réglementaires et la compréhension des ajustements de conformité par les parties prenantes.",
         "impact_level": "MAJEUR",
         "impact_it": "INDETERMINE",
         "impact_it_justification": "",
@@ -2413,7 +2422,8 @@
         "action_requise": "revue_prioritaire",
         "reference_reglementaire": "Bâle III — CET1",
         "impact_description": "La suppression des notes réglementaires peut réduire la transparence sur la conformité aux exigences de Bâle III.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "BNS"
       },
       "genai_analysis": {
         "resume_metier": "La suppression des notes dans le tableau T38 concernant les montants réglementaires et le plancher de PD révisé par le BSIF est significative. Ces notes fournissaient des informations essentielles sur la conformité aux exigences de Bâle III et les ajustements réglementaires.\n\nLe retrait de ces informations peut affecter la transparence des divulgations réglementaires de la banque, ce qui est crucial pour les parties prenantes qui évaluent la gestion du capital et la conformité réglementaire.\n\nIl est important de surveiller comment cette suppression affecte la perception de la solidité financière de la banque et sa gestion des risques, notamment en ce qui concerne les prêts aux particuliers."
@@ -2620,7 +2630,7 @@
           "MODIFICATION_METHODOLOGIE"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Méthode de calcul ou approche modifiée\n\nCe qui change : Les notes du tableau T39 ont été modifiées pour indiquer que les valeurs réelles sont désormais calculées selon les mises à jour des modèles appliquées au cours de la période, et que les valeurs estimées se fondent sur les modèles en place au cours des quatre trimestres précédents.\n\nPertinence métier : Ce changement met en évidence une modification dans la méthodologie de calcul des paramètres de perte estimée et réelle. L'utilisation de modèles mis à jour pour les valeurs réelles et l'ajustement de la période de référence pour les estimations peuvent avoir un impact significatif sur la précision et la comparabilité des données de risque de crédit. Cela reflète une adaptation potentielle aux nouvelles conditions de marché ou aux exigences réglementaires.\n\nPoint de surveillance : Surveiller l'impact de ces changements méthodologiques sur les rapports futurs et leur alignement avec les attentes réglementaires.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Méthode de calcul ou approche modifiée\n\nCe qui change : Les notes du tableau T39 ont été modifiées pour indiquer que les valeurs réelles sont désormais calculées selon les mises à jour des modèles appliquées au cours de la période, et que les valeurs estimées se fondent sur les modèles en place au cours des quatre trimestres précédents.\n\nPertinence métier : Ce changement met en évidence une modification dans la méthodologie de calcul des paramètres de perte estimée et réelle. L'utilisation de modèles mis à jour pour les valeurs réelles et l'ajustement de la période de référence pour les estimations peuvent avoir un impact significatif sur la précision et la comparabilité des données de risque de crédit. Cela reflète une adaptation potentielle aux nouvelles conditions de marché ou aux exigences réglementaires. Surveiller l'impact de ces changements méthodologiques sur les rapports futurs et leur alignement avec les attentes réglementaires.\n\nPoint de surveillance : Surveiller l'impact de ces changements méthodologiques sur les rapports futurs et leur alignement avec les attentes réglementaires.",
         "impact_level": "MODERE",
         "impact_it": "MOYEN",
         "impact_it_justification": "Éléments observés : Modification des modèles de calcul pour les pertes estimées et réelles.\n\nConséquence probable : Nécessité de mettre à jour les systèmes informatiques pour intégrer les nouveaux modèles et assurer la cohérence des données.\n\nLimite de l'analyse : L'ampleur exacte des modifications des modèles n'est pas précisée, ce qui limite l'évaluation complète de l'impact IT.",
@@ -2638,7 +2648,8 @@
         "action_requise": "revue_prioritaire",
         "reference_reglementaire": "",
         "impact_description": "Modification méthodologique des calculs de perte estimée et réelle, impactant la gestion du capital.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "BNS"
       },
       "genai_analysis": {
         "resume_metier": "Le tableau T39 sur les paramètres de perte estimée et réelle a subi des modifications importantes dans ses notes. Les valeurs réelles sont désormais calculées selon les mises à jour des modèles appliquées au cours de la période, tandis que les valeurs estimées se basent sur les modèles en place au cours des quatre trimestres précédents.\n\nCe changement indique une révision méthodologique qui pourrait améliorer la précision des estimations de perte, ce qui est crucial pour la gestion du capital et le respect des exigences réglementaires. Cela pourrait également refléter une adaptation aux nouvelles conditions de marché ou aux attentes des régulateurs.\n\nIl est important de surveiller comment ces modifications affecteront les rapports futurs et leur alignement avec les normes réglementaires, car elles pourraient avoir des implications sur la gestion des risques et la stratégie de capital de la banque."
@@ -2817,7 +2828,7 @@
           "FONDS_PROPRES_REGLEMENTAIRES"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Structure du rapport, méthode de calcul ou approche modifiée, fonds propres réglementaires\n\nCe qui change : Les indicateurs 'VàR à l’échelle de la Banque', 'VàR ayant subi une simulation de crise à l’échelle de la Banque', 'Exigence de fonds propres incrémentale', et 'Approche standard' ont été supprimés du tableau T40 Total des fonds propres au titre du risque de marché.\n\nPertinence métier : Ce changement met en évidence une modification substantielle dans la manière dont la banque gère et divulgue ses fonds propres liés au risque de marché. La suppression de ces indicateurs peut indiquer un changement dans la méthodologie de calcul ou une révision des priorités de gestion des risques, ce qui est crucial pour la conformité réglementaire et la transparence envers les investisseurs.\n\nPoint de surveillance : Surveiller l'impact de la suppression de ces indicateurs sur la gestion du risque de marché et la conformité aux exigences réglementaires.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Structure du rapport, méthode de calcul ou approche modifiée, fonds propres réglementaires\n\nCe qui change : Les indicateurs 'VàR à l’échelle de la Banque', 'VàR ayant subi une simulation de crise à l’échelle de la Banque', 'Exigence de fonds propres incrémentale', et 'Approche standard' ont été supprimés du tableau T40 Total des fonds propres au titre du risque de marché.\n\nPertinence métier : Ce changement met en évidence une modification substantielle dans la manière dont la banque gère et divulgue ses fonds propres liés au risque de marché. La suppression de ces indicateurs peut indiquer un changement dans la méthodologie de calcul ou une révision des priorités de gestion des risques, ce qui est crucial pour la conformité réglementaire et la transparence envers les investisseurs. Surveiller l'impact de la suppression de ces indicateurs sur la gestion du risque de marché et la conformité aux exigences réglementaires.\n\nPoint de surveillance : Surveiller l'impact de la suppression de ces indicateurs sur la gestion du risque de marché et la conformité aux exigences réglementaires.",
         "impact_level": "MODERE",
         "impact_it": "MOYEN",
         "impact_it_justification": "Éléments observés : Suppression de plusieurs indicateurs clés dans le tableau des fonds propres au titre du risque de marché.\n\nConséquence probable : Nécessité de mettre à jour les systèmes de reporting et de gestion des risques pour refléter ces changements, potentiellement impliquant des ajustements dans les processus de calcul et de divulgation.\n\nLimite de l'analyse : L'impact exact sur les systèmes IT dépendra de la manière dont ces indicateurs étaient intégrés dans les processus existants.",
@@ -2835,7 +2846,8 @@
         "action_requise": "investigation",
         "reference_reglementaire": "",
         "impact_description": "Suppression d'indicateurs clés dans le tableau des fonds propres au titre du risque de marché, nécessitant une réévaluation des processus de gestion des risques.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "BNS"
       },
       "genai_analysis": {
         "resume_metier": "La suppression de plusieurs indicateurs dans le tableau T40 sur les fonds propres au titre du risque de marché indique un changement significatif dans la structure du rapport et potentiellement dans la méthodologie de calcul des fonds propres réglementaires. Cela pourrait refléter un ajustement dans la gestion des risques de marché de la banque.\n\nCe changement est pertinent car il affecte la manière dont la banque divulgue ses fonds propres réglementaires, ce qui est crucial pour la transparence et la conformité aux exigences prudentielles. La suppression de ces indicateurs pourrait indiquer un changement de méthodologie ou une simplification des rapports.\n\nIl est important de surveiller comment cette modification impacte la gestion du risque de marché et la conformité réglementaire, ainsi que les ajustements nécessaires dans les systèmes de reporting et de gestion des risques."
@@ -2988,7 +3000,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "Aucun impact concret sur la gestion des risques ou du capital.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "BNS"
       },
       "genai_analysis": {
         "resume_metier": "La modification apportée à la note de bas de tableau est une reformulation sans changement substantiel. Elle ne modifie pas la compréhension ou l'application des politiques de gestion des risques ou de capital.\n\nCe type de changement est courant dans les rapports pour améliorer la clarté ou la lisibilité, mais n'affecte pas la substance des informations fournies.\n\nAucune action n'est requise car il n'y a pas de nouvelle idée ou de changement de posture à surveiller."
@@ -3133,7 +3146,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "BNS"
       }
     },
     {
@@ -3279,7 +3293,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "BNS"
       }
     },
     {
@@ -3394,7 +3409,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "BNS"
       }
     },
     {
@@ -3612,7 +3628,7 @@
           "STRUCTURE_RAPPORT"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Structure du rapport\n\nCe qui change : L'indicateur 'Périodes d’amortissement des prêts hypothécaires à l’habitation' a été supprimé du tableau T46.\n\nPertinence métier : Ce changement met en évidence une modification dans la structure de la divulgation des prêts hypothécaires, ce qui pourrait affecter la transparence et la comparabilité des informations fournies aux investisseurs et aux régulateurs. La suppression de cet indicateur peut indiquer un changement dans la manière dont la banque souhaite présenter ses risques liés aux prêts hypothécaires.\n\nPoint de surveillance : Surveiller si cette suppression affecte la capacité des parties prenantes à évaluer les risques associés aux prêts hypothécaires de la banque.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Structure du rapport\n\nCe qui change : L'indicateur 'Périodes d’amortissement des prêts hypothécaires à l’habitation' a été supprimé du tableau T46.\n\nPertinence métier : Ce changement met en évidence une modification dans la structure de la divulgation des prêts hypothécaires, ce qui pourrait affecter la transparence et la comparabilité des informations fournies aux investisseurs et aux régulateurs. La suppression de cet indicateur peut indiquer un changement dans la manière dont la banque souhaite présenter ses risques liés aux prêts hypothécaires. Surveiller si cette suppression affecte la capacité des parties prenantes à évaluer les risques associés aux prêts hypothécaires de la banque. La suppression de l'indicateur 'Périodes d’amortissement des prêts hypothécaires à l’habitation' dans le tableau T46 représente un changement dans la structure du rapport.\n\nPoint de surveillance : Surveiller si cette suppression affecte la capacité des parties prenantes à évaluer les risques associés aux prêts hypothécaires de la banque.",
         "impact_level": "MODERE",
         "impact_it": "FAIBLE",
         "impact_it_justification": "Éléments observés : Suppression d'un indicateur dans le tableau des prêts hypothécaires.\n\nConséquence probable : Impact limité sur les systèmes IT, principalement lié à la mise à jour des rapports et des bases de données pour refléter la nouvelle structure.\n\nLimite de l'analyse: Pas de changement majeur dans les processus IT ou les systèmes de gestion des données.",
@@ -3630,7 +3646,8 @@
         "action_requise": "information",
         "reference_reglementaire": "",
         "impact_description": "Suppression d'un indicateur de prêt hypothécaire affectant la structure de la divulgation.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "BNS"
       },
       "genai_analysis": {
         "resume_metier": "La suppression de l'indicateur 'Périodes d’amortissement des prêts hypothécaires à l’habitation' dans le tableau T46 représente un changement dans la structure du rapport. Cela peut affecter la manière dont les risques liés aux prêts hypothécaires sont présentés et évalués.\n\nBien que ce changement ne semble pas avoir d'impact direct sur les systèmes IT, il nécessite une mise à jour des rapports et des bases de données pour s'assurer que les informations sont correctement reflétées.\n\nIl est important de surveiller comment cette suppression pourrait influencer la perception des risques hypothécaires par les investisseurs et les régulateurs, ainsi que la transparence des informations fournies par la banque."
@@ -3759,7 +3776,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "BNS"
       }
     },
     {
@@ -3907,7 +3925,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "BNS"
       }
     },
     {
@@ -4111,7 +4130,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "Aucun impact concret sur la gestion des risques ou la conformité réglementaire.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "BNS"
       },
       "genai_analysis": {
         "resume_metier": "Les modifications apportées aux notes de bas de tableau concernent principalement une variation chiffrée propre à la banque, sans impact sur les exigences réglementaires ou la gestion des risques. \n\nIl n'y a pas de changement substantiel dans la divulgation qui nécessiterait une attention particulière ou une action de la part de l'analyste. \n\nLa reformulation n'introduit pas de nouvelle idée ou de changement de posture en matière de gestion des risques."
@@ -4220,7 +4240,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "BNS"
       }
     },
     {
@@ -4342,7 +4363,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "BNS"
       }
     },
     {
@@ -4476,7 +4498,7 @@
           "EXIGENCES_REGLEMENTAIRES"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Méthode de calcul ou approche modifiée\n\nCe qui change : La note ajoutée indique que depuis le 1er novembre 2024, la VaR au titre de l’écart de crédit inclut désormais la volatilité de l’écart de crédit.\n\nPertinence métier : Ce changement met en évidence une modification méthodologique dans le calcul de la VaR, ce qui peut avoir un impact sur la gestion du risque de marché de la banque. L'inclusion de la volatilité de l'écart de crédit dans la VaR pourrait affecter les exigences en capital et la manière dont la banque évalue et gère ses risques de marché. Cela reflète une adaptation aux attentes réglementaires et une amélioration de la précision des mesures de risque.\n\nPoint de surveillance : Surveiller l'impact de cette modification sur les exigences en capital et la gestion du risque de marché, ainsi que la conformité aux nouvelles attentes réglementaires.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Méthode de calcul ou approche modifiée\n\nCe qui change : La note ajoutée indique que depuis le 1er novembre 2024, la VaR au titre de l’écart de crédit inclut désormais la volatilité de l’écart de crédit.\n\nPertinence métier : Ce changement met en évidence une modification méthodologique dans le calcul de la VaR, ce qui peut avoir un impact sur la gestion du risque de marché de la banque. L'inclusion de la volatilité de l'écart de crédit dans la VaR pourrait affecter les exigences en capital et la manière dont la banque évalue et gère ses risques de marché. Cela reflète une adaptation aux attentes réglementaires et une amélioration de la précision des mesures de risque. Surveiller l'impact de cette modification sur les exigences en capital et la gestion du risque de marché, ainsi que la conformité aux nouvelles attentes réglementaires.\n\nPoint de surveillance : Surveiller l'impact de cette modification sur les exigences en capital et la gestion du risque de marché, ainsi que la conformité aux nouvelles attentes réglementaires.",
         "impact_level": "MODERE",
         "impact_it": "MOYEN",
         "impact_it_justification": "Éléments observés : Inclusion de la volatilité de l’écart de crédit dans le calcul de la VaR.\n\nConséquence probable : Nécessité d'adapter les systèmes de calcul de la VaR pour intégrer cette nouvelle composante, potentiellement impliquant des ajustements dans les modèles de risque et les systèmes de reporting.\n\nLimite de l'analyse : L'impact exact sur les systèmes IT dépendra de la complexité des ajustements requis et de l'infrastructure technologique existante.",
@@ -4494,7 +4516,8 @@
         "action_requise": "revue_prioritaire",
         "reference_reglementaire": "Bâle III — VaR",
         "impact_description": "Inclusion de la volatilité de l'écart de crédit dans la VaR, renforçant la gestion du risque de marché.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "BNS"
       },
       "genai_analysis": {
         "resume_metier": "La modification de la méthodologie de calcul de la VaR pour inclure la volatilité de l'écart de crédit représente un changement significatif dans la gestion du risque de marché. Cela reflète une adaptation aux exigences réglementaires et une amélioration de la précision des mesures de risque.\n\nCe changement est pertinent car il peut influencer les exigences en capital et la manière dont la banque évalue et gère ses risques de marché. Il est crucial de surveiller l'impact de cette modification sur les exigences en capital et la conformité aux nouvelles attentes réglementaires.\n\nL'impact IT est modéré, nécessitant des ajustements dans les systèmes de calcul de la VaR pour intégrer cette nouvelle composante, ce qui pourrait impliquer des modifications dans les modèles de risque et les systèmes de reporting."
@@ -4650,7 +4673,7 @@
           "STRUCTURE_RAPPORT"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Méthode de calcul ou approche modifiée\n\nCe qui change : La note supprimée indique que la Banque a adopté l'IFRS 17 le 1er novembre 2023, ce qui modifie la manière dont les montants sont présentés dans le tableau T52.\n\nPertinence métier : Ce changement met en évidence l'impact de l'adoption de l'IFRS 17 sur la présentation des états financiers, ce qui peut affecter la comparabilité des données financières historiques et actuelles. L'IFRS 17 est une norme comptable importante qui modifie la reconnaissance, la mesure, la présentation et la divulgation des contrats d'assurance, influençant ainsi la gestion des risques de marché.\n\nPoint de surveillance : Surveiller l'impact de l'IFRS 17 sur les rapports financiers et la gestion des risques de marché, ainsi que l'adaptation des systèmes comptables et de gestion des risques de la Banque.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Méthode de calcul ou approche modifiée\n\nCe qui change : La note supprimée indique que la Banque a adopté l'IFRS 17 le 1er novembre 2023, ce qui modifie la manière dont les montants sont présentés dans le tableau T52.\n\nPertinence métier : Ce changement met en évidence l'impact de l'adoption de l'IFRS 17 sur la présentation des états financiers, ce qui peut affecter la comparabilité des données financières historiques et actuelles. L'IFRS 17 est une norme comptable importante qui modifie la reconnaissance, la mesure, la présentation et la divulgation des contrats d'assurance, influençant ainsi la gestion des risques de marché. Surveiller l'impact de l'IFRS 17 sur les rapports financiers et la gestion des risques de marché, ainsi que l'adaptation des systèmes comptables et de gestion des risques de la Banque.\n\nPoint de surveillance : Surveiller l'impact de l'IFRS 17 sur les rapports financiers et la gestion des risques de marché, ainsi que l'adaptation des systèmes comptables et de gestion des risques de la Banque.",
         "impact_level": "MODERE",
         "impact_it": "MOYEN",
         "impact_it_justification": "Éléments observés : Adoption de l'IFRS 17, modification de la présentation des états financiers.\n\nConséquence probable : Nécessite des ajustements dans les systèmes comptables et de gestion des risques pour se conformer à la nouvelle norme.\n\nLimite de l'analyse: L'impact exact sur les systèmes IT dépend de la complexité des ajustements requis pour l'IFRS 17.",
@@ -4668,7 +4691,8 @@
         "action_requise": "revue_prioritaire",
         "reference_reglementaire": "IFRS 17",
         "impact_description": "Adoption de l'IFRS 17 modifiant la présentation des états financiers et la gestion des risques de marché.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "BNS"
       },
       "genai_analysis": {
         "resume_metier": "La suppression de la note concernant l'adoption de l'IFRS 17 indique un changement méthodologique significatif dans la présentation des états financiers de la Banque. Cette adoption affecte la manière dont les risques de marché sont intégrés dans les états financiers consolidés.\n\nL'IFRS 17 est une norme comptable qui modifie la reconnaissance et la présentation des contrats d'assurance, ce qui peut avoir des implications importantes pour la gestion des risques de marché et la comparabilité des données financières.\n\nIl est crucial de surveiller comment cette adoption influence les systèmes comptables et de gestion des risques de la Banque, ainsi que l'impact potentiel sur les rapports financiers futurs."
@@ -4860,7 +4884,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "Aucun impact concret sur la gestion des risques ou la conformité réglementaire.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "BNS"
       },
       "genai_analysis": {
         "resume_metier": "La suppression de la note sur l'adoption de l'IFRS 17 est une mise à jour comptable standard. Elle ne modifie pas la gestion des risques ou les exigences réglementaires de la banque.\n\nCe type de changement est courant lors de l'adoption de nouvelles normes comptables et n'affecte pas la substance des divulgations de risque.\n\nAucune action particulière n'est requise, car cela n'impacte pas les indicateurs de risque ou la conformité réglementaire."
@@ -4992,7 +5017,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "BNS"
       }
     },
     {
@@ -5130,7 +5156,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "BNS"
       }
     },
     {
@@ -5238,7 +5265,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "BNS"
       }
     },
     {
@@ -5378,7 +5406,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "BNS"
       }
     },
     {
@@ -5564,7 +5593,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "La suppression de la note sur l'IFRS 17 n'a pas d'impact concret sur la gestion des risques.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "BNS"
       },
       "genai_analysis": {
         "resume_metier": "La suppression de la note sur l'adoption de l'IFRS 17 ne constitue pas un changement substantiel dans la gestion des risques ou la conformité réglementaire. \n\nCe type de mise à jour est une conséquence normale de l'évolution des normes comptables et n'affecte pas directement les indicateurs de risque ou de capital réglementaire. \n\nAucune action spécifique n'est requise, car cela ne modifie pas la posture de risque ou de conformité de la banque."
@@ -5788,7 +5818,7 @@
           "NOUVELLE_MENTION_REGLEMENTAIRE"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Liquidité, Nouvelle mention réglementaire\n\nCe qui change : La note de bas de tableau a été modifiée pour préciser que le ratio de liquidité à court terme est calculé conformément à une ligne directrice, et une nouvelle note indique que la présentation de cette information n'est pas exigée.\n\nPertinence métier : Ce changement met en évidence l'importance de la conformité aux lignes directrices réglementaires en matière de liquidité, même lorsque la divulgation n'est pas explicitement requise. Cela souligne l'engagement de la banque à respecter les normes prudentielles et à assurer la transparence dans ses pratiques de gestion de la liquidité.\n\nPoint de surveillance : Surveiller l'alignement continu de la banque avec les lignes directrices réglementaires en matière de liquidité, même pour les divulgations non obligatoires.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Liquidité, Nouvelle mention réglementaire\n\nCe qui change : La note de bas de tableau a été modifiée pour préciser que le ratio de liquidité à court terme est calculé conformément à une ligne directrice, et une nouvelle note indique que la présentation de cette information n'est pas exigée.\n\nPertinence métier : Ce changement met en évidence l'importance de la conformité aux lignes directrices réglementaires en matière de liquidité, même lorsque la divulgation n'est pas explicitement requise. Cela souligne l'engagement de la banque à respecter les normes prudentielles et à assurer la transparence dans ses pratiques de gestion de la liquidité. Surveiller l'alignement continu de la banque avec les lignes directrices réglementaires en matière de liquidité, même pour les divulgations non obligatoires.\n\nPoint de surveillance : Surveiller l'alignement continu de la banque avec les lignes directrices réglementaires en matière de liquidité, même pour les divulgations non obligatoires.",
         "impact_level": "MODERE",
         "impact_it": "FAIBLE",
         "impact_it_justification": "Éléments observés : Modification de la note de bas de tableau concernant le calcul du ratio de liquidité.\n\nConséquence probable : Ajustement mineur dans la documentation et la présentation des rapports de liquidité, sans impact majeur sur les systèmes IT.\n\nLimite de l'analyse : L'impact IT est limité à la mise à jour des notes explicatives, sans changement dans les systèmes de calcul ou de reporting.",
@@ -5806,7 +5836,8 @@
         "action_requise": "information",
         "reference_reglementaire": "Bâle III — LCR",
         "impact_description": "Clarification de la conformité aux lignes directrices réglementaires pour le ratio de liquidité.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "BNS"
       },
       "genai_analysis": {
         "resume_metier": "La modification de la note de bas de tableau dans le tableau T56 sur le ratio de liquidité à court terme indique que la banque calcule ce ratio conformément à une ligne directrice, même si la présentation de cette information n'est pas exigée. Cela montre un engagement envers la conformité réglementaire et la transparence.\n\nCe changement est pertinent car il souligne l'importance de respecter les normes prudentielles en matière de liquidité, même lorsque la divulgation n'est pas obligatoire. Cela renforce la confiance des parties prenantes dans la gestion de la liquidité de la banque.\n\nL'impact IT est faible, car il s'agit principalement d'une mise à jour des notes explicatives sans modification des systèmes de calcul ou de reporting."
@@ -5945,7 +5976,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "BNS"
       }
     },
     {
@@ -6113,7 +6145,7 @@
           "MODIFICATION_METHODOLOGIE"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Liquidité, méthode de calcul\n\nCe qui change : Le texte de la note a été modifié pour préciser que le ratio structurel de liquidité à long terme est calculé conformément à une nouvelle ligne directrice.\n\nPertinence métier : Ce changement met en évidence une modification dans la manière dont la banque calcule et présente son ratio de liquidité à long terme. Cela pourrait indiquer une adaptation aux nouvelles exigences réglementaires ou une mise à jour de la méthodologie de calcul, ce qui est crucial pour la conformité et la gestion des risques de liquidité.\n\nPoint de surveillance : Surveiller l'impact de cette modification sur les ratios de liquidité et s'assurer que la banque reste conforme aux nouvelles exigences réglementaires.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Liquidité, méthode de calcul\n\nCe qui change : Le texte de la note a été modifié pour préciser que le ratio structurel de liquidité à long terme est calculé conformément à une nouvelle ligne directrice.\n\nPertinence métier : Ce changement met en évidence une modification dans la manière dont la banque calcule et présente son ratio de liquidité à long terme. Cela pourrait indiquer une adaptation aux nouvelles exigences réglementaires ou une mise à jour de la méthodologie de calcul, ce qui est crucial pour la conformité et la gestion des risques de liquidité. Surveiller l'impact de cette modification sur les ratios de liquidité et s'assurer que la banque reste conforme aux nouvelles exigences réglementaires. La modification de la note dans le tableau de gestion des risques indique un changement dans la méthodologie de calcul du ratio structurel de liquidité à long terme.\n\nPoint de surveillance : Surveiller l'impact de cette modification sur les ratios de liquidité et s'assurer que la banque reste conforme aux nouvelles exigences réglementaires.",
         "impact_level": "MODERE",
         "impact_it": "MOYEN",
         "impact_it_justification": "Éléments observés : Modification de la note concernant le calcul du ratio de liquidité.\n\nConséquence probable : Adaptation des systèmes de reporting pour refléter la nouvelle méthodologie de calcul du ratio de liquidité.\n\nLimite de l'analyse : L'impact exact sur les systèmes IT dépend de la nature précise des changements méthodologiques appliqués.",
@@ -6131,7 +6163,8 @@
         "action_requise": "confirmation",
         "reference_reglementaire": "Bâle III — LCR",
         "impact_description": "Modification de la méthodologie de calcul du ratio de liquidité à long terme, nécessitant une adaptation des systèmes de reporting.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "BNS"
       },
       "genai_analysis": {
         "resume_metier": "La modification de la note dans le tableau de gestion des risques indique un changement dans la méthodologie de calcul du ratio structurel de liquidité à long terme. Cela reflète une adaptation aux nouvelles exigences réglementaires, ce qui est crucial pour la conformité et la gestion des risques de liquidité.\n\nCe changement est pertinent car il pourrait affecter la manière dont la banque gère ses ressources de liquidité et assure sa stabilité financière à long terme. La mise à jour de la méthodologie de calcul pourrait également avoir des implications sur les systèmes IT de la banque, nécessitant des ajustements pour garantir une conformité continue.\n\nIl est important de surveiller l'impact de cette modification sur les ratios de liquidité et de s'assurer que la banque reste conforme aux nouvelles exigences réglementaires. Cela pourrait également nécessiter une revue des processus internes pour s'assurer que les nouvelles méthodes de calcul sont correctement intégrées."
@@ -6255,7 +6288,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "Mise à jour de date sans impact sur la gestion des risques ou la conformité.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "BNS"
       },
       "genai_analysis": {
         "resume_metier": "Le changement détecté concerne l'ajout d'une date dans un tableau sans titre, ce qui est une mise à jour temporelle standard. Cela n'affecte pas la substance de la divulgation ni n'introduit de nouvelle information réglementaire ou méthodologique.\n\nCe type de changement est courant dans les rapports financiers, où les dates sont mises à jour pour refléter la période de rapport en cours. Il ne modifie pas la gestion des risques ou la conformité réglementaire.\n\nAucune action n'est requise, car ce changement n'a pas d'impact sur les thèmes de surveillance AMF ou sur la posture de gestion des risques de la banque."
@@ -6484,7 +6518,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "BNS"
       }
     },
     {
@@ -6713,7 +6748,7 @@
           "STRUCTURE_RAPPORT"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Risque de tiers, fournisseurs et services infonuagiques\n\nCe qui change : Les notes supprimées mentionnaient des accords d’impartition pour certaines fonctions de soutien ou commerciales, ce qui n'est plus divulgué dans le rapport courant.\n\nPertinence métier : Ce changement met en évidence une réduction de la transparence concernant les accords d'impartition, ce qui peut affecter la compréhension des risques liés aux fournisseurs tiers et à l'infonuagique. La suppression de cette information pourrait indiquer un changement dans la gestion ou la divulgation des risques liés aux tiers, ce qui est crucial pour la conformité et la gestion des risques.\n\nPoint de surveillance : Surveiller les futures divulgations pour évaluer si la banque continue de gérer efficacement les risques liés aux fournisseurs tiers et à l'impartition.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Risque de tiers, fournisseurs et services infonuagiques\n\nCe qui change : Les notes supprimées mentionnaient des accords d’impartition pour certaines fonctions de soutien ou commerciales, ce qui n'est plus divulgué dans le rapport courant.\n\nPertinence métier : Ce changement met en évidence une réduction de la transparence concernant les accords d'impartition, ce qui peut affecter la compréhension des risques liés aux fournisseurs tiers et à l'infonuagique. La suppression de cette information pourrait indiquer un changement dans la gestion ou la divulgation des risques liés aux tiers, ce qui est crucial pour la conformité et la gestion des risques. Surveiller les futures divulgations pour évaluer si la banque continue de gérer efficacement les risques liés aux fournisseurs tiers et à l'impartition. La suppression des notes concernant les accords d'impartition dans le tableau T59 indique un changement dans la divulgation des risques liés aux fournisseurs tiers.\n\nPoint de surveillance : Surveiller les futures divulgations pour évaluer si la banque continue de gérer efficacement les risques liés aux fournisseurs tiers et à l'impartition.",
         "impact_level": "MODERE",
         "impact_it": "MOYEN",
         "impact_it_justification": "Éléments observés : Suppression de la note sur les accords d'impartition.\n\nConséquence probable : Moins de visibilité sur la gestion des risques liés aux fournisseurs tiers, ce qui pourrait nécessiter des ajustements dans les systèmes de suivi et de gestion des fournisseurs.\n\nLimite de l'analyse : L'impact exact sur les systèmes IT dépend de la manière dont la banque gère ces accords en interne.",
@@ -6731,7 +6766,8 @@
         "action_requise": "investigation",
         "reference_reglementaire": "",
         "impact_description": "Réduction de la transparence sur les accords d'impartition, affectant la gestion des risques liés aux tiers.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "BNS"
       },
       "genai_analysis": {
         "resume_metier": "La suppression des notes concernant les accords d'impartition dans le tableau T59 indique un changement dans la divulgation des risques liés aux fournisseurs tiers. Cela peut affecter la transparence et la gestion des risques associés à l'impartition.\n\nCe changement est pertinent car il touche à la gestion des risques liés aux tiers, un domaine crucial pour la conformité réglementaire et la gestion des risques opérationnels. La banque semble avoir modifié sa posture en allégeant la divulgation de ces informations.\n\nIl est important de surveiller comment la banque gère et divulgue ces risques à l'avenir, car cela pourrait avoir des implications sur la gestion des risques et la conformité réglementaire."
@@ -6972,7 +7008,7 @@
           "RISQUE_TIERS_CLOUD"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Risque de tiers, fournisseurs et services infonuagiques\n\nCe qui change : L'indicateur 'Obligations d’impartition' a été supprimé du tableau T59 Échéances contractuelles, ainsi que les notes associées concernant les accords d’impartition et l'adoption de l'IFRS 17.\n\nPertinence métier : Ce changement met en évidence une modification dans la divulgation des engagements liés à l'impartition, ce qui peut affecter la transparence sur les risques associés aux fournisseurs tiers et à l'infonuagique. La suppression de ces informations pourrait indiquer un changement de posture ou une réévaluation de l'importance de ces engagements dans le cadre de la gestion des risques de la banque.\n\nPoint de surveillance : Surveiller l'impact de cette suppression sur la compréhension des risques liés à l'impartition et aux fournisseurs tiers, ainsi que sur la conformité aux attentes réglementaires en matière de divulgation.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Risque de tiers, fournisseurs et services infonuagiques\n\nCe qui change : L'indicateur 'Obligations d’impartition' a été supprimé du tableau T59 Échéances contractuelles, ainsi que les notes associées concernant les accords d’impartition et l'adoption de l'IFRS 17.\n\nPertinence métier : Ce changement met en évidence une modification dans la divulgation des engagements liés à l'impartition, ce qui peut affecter la transparence sur les risques associés aux fournisseurs tiers et à l'infonuagique. La suppression de ces informations pourrait indiquer un changement de posture ou une réévaluation de l'importance de ces engagements dans le cadre de la gestion des risques de la banque. Surveiller l'impact de cette suppression sur la compréhension des risques liés à l'impartition et aux fournisseurs tiers, ainsi que sur la conformité aux attentes réglementaires en matière de divulgation.\n\nPoint de surveillance : Surveiller l'impact de cette suppression sur la compréhension des risques liés à l'impartition et aux fournisseurs tiers, ainsi que sur la conformité aux attentes réglementaires en matière de divulgation.",
         "impact_level": "MODERE",
         "impact_it": "MOYEN",
         "impact_it_justification": "Éléments observés : Suppression de l'indicateur 'Obligations d’impartition' et des notes associées.\n\nConséquence probable : Réduction de la visibilité sur les engagements d'impartition, nécessitant potentiellement des ajustements dans le suivi des fournisseurs et des services infonuagiques.\n\nLimite de l'analyse : L'impact exact sur les systèmes IT dépend de la manière dont ces informations étaient intégrées dans les processus de gestion des risques.",
@@ -6990,7 +7026,8 @@
         "action_requise": "revue_prioritaire",
         "reference_reglementaire": "",
         "impact_description": "Réduction de la visibilité sur les engagements d'impartition, affectant potentiellement la gestion des risques liés aux fournisseurs.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "BNS"
       },
       "genai_analysis": {
         "resume_metier": "La suppression de l'indicateur 'Obligations d’impartition' et des notes associées dans le tableau T59 Échéances contractuelles indique un changement dans la divulgation des engagements liés à l'impartition. Cela peut affecter la transparence sur les risques associés aux fournisseurs tiers et à l'infonuagique.\n\nCe changement met en évidence une réévaluation de l'importance de ces engagements dans le cadre de la gestion des risques de la banque. Il est crucial de surveiller l'impact de cette suppression sur la compréhension des risques liés à l'impartition et aux fournisseurs tiers.\n\nLa suppression de ces informations pourrait indiquer un changement de posture ou une réévaluation de l'importance de ces engagements dans le cadre de la gestion des risques de la banque. Il est important de surveiller l'impact de cette suppression sur la compréhension des risques liés à l'impartition et aux fournisseurs tiers."

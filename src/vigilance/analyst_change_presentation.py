@@ -256,23 +256,36 @@ def business_relevance_paragraph(
     bank_code: str | None,
     limit: int = 720,
 ) -> str:
-    """Retourne jusqu'à trois phrases métier sans répéter le résumé factuel."""
+    """Retourne jusqu'à quatre phrases métier sans répéter le résumé factuel."""
+    relevant_sentences: list[str] = []
+    seen: set[str] = set()
+
     for candidate in candidates:
         narrative = canonicalize_analyst_narrative(
             candidate,
             bank_code=bank_code,
         )
-        relevant_sentences: list[str] = []
         for sentence in _sentence_parts(narrative):
             cleaned_sentence = _clean_business_relevance_sentence(sentence)
-            if not cleaned_sentence or _duplicates_summary(cleaned_sentence, summary):
+            key = _sentence_comparison_key(cleaned_sentence)
+            if (
+                not cleaned_sentence
+                or not key
+                or key in seen
+                or _duplicates_summary(cleaned_sentence, summary)
+            ):
                 continue
+            seen.add(key)
             relevant_sentences.append(cleaned_sentence)
-        if not relevant_sentences:
-            continue
-        paragraph = " ".join(relevant_sentences[:3])
-        return _truncate_at_sentence(paragraph, limit)
-    return ""
+            if len(relevant_sentences) >= 4:
+                break
+        if len(relevant_sentences) >= 4:
+            break
+
+    if not relevant_sentences:
+        return ""
+    paragraph = " ".join(relevant_sentences)
+    return _truncate_at_sentence(paragraph, limit)
 
 
 def change_scope(change: dict[str, Any]) -> str:
@@ -476,6 +489,12 @@ _LEGACY_RELEVANCE_SECTION_RE = re.compile(
     flags=re.IGNORECASE | re.DOTALL,
 )
 
+_LEGACY_SURVEILLANCE_SECTION_RE = re.compile(
+    r"(?:Point de surveillance|Lecture de vigie)\s*:\s*"
+    r"(.*?)(?=\n\s*\n|$)",
+    flags=re.IGNORECASE | re.DOTALL,
+)
+
 
 def _clean_narrative_unit(value: Any, *, bank_code: str | None) -> str:
     """Normalise une unité structurée sans tenter d'en déduire la structure."""
@@ -637,6 +656,10 @@ def build_analyst_narrative(
             _LEGACY_RELEVANCE_SECTION_RE,
             legacy_justification,
         )
+        labeled_surveillance = _legacy_labeled_section(
+            _LEGACY_SURVEILLANCE_SECTION_RE,
+            legacy_justification,
+        )
         unstructured_legacy_justification = ""
         if legacy_justification and not labeled_relevance:
             unstructured_legacy_justification = re.sub(
@@ -647,6 +670,7 @@ def build_analyst_narrative(
             ).strip()
         legacy_relevance = business_relevance_paragraph(
             labeled_relevance,
+            labeled_surveillance,
             str(triage.get("relevance_reason") or ""),
             str(triage.get("explanation") or ""),
             str(triage.get("impact_description") or ""),

@@ -1164,7 +1164,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "RBC"
       }
     },
     {
@@ -1428,7 +1429,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "RBC"
       }
     },
     {
@@ -1657,7 +1659,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "Aucun impact substantiel sur la gestion des risques ou la conformité réglementaire.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "RBC"
       },
       "genai_analysis": {
         "resume_metier": "Les modifications apportées aux notes de bas de tableau concernent principalement des ajustements chiffrés propres à la banque, tels que des montants révisés et des valeurs ajustées. Ces changements n'affectent pas la méthodologie de calcul des risques ou les exigences réglementaires.\n\nLes notes supprimées et modifiées ne signalent pas de nouvelle approche ou de changement substantiel dans la gestion des risques. Elles reflètent simplement des mises à jour chiffrées spécifiques à la banque, sans impact sur les attentes prudentielles ou la comparabilité entre pairs.\n\nEn conséquence, ces modifications ne constituent pas une nouvelle idée selon la taxonomie AMF, car elles ne modifient pas la substance de la divulgation ni n'introduisent de nouveaux concepts ou indicateurs réglementaires."
@@ -1803,7 +1806,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "RBC"
       }
     },
     {
@@ -2000,7 +2004,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "Aucune implication réglementaire ou méthodologique détectée.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "RBC"
       },
       "genai_analysis": {
         "resume_metier": "La modification détectée concerne une mise à jour chiffrée dans les notes de bas de tableau, spécifiquement le total consolidé des prêts hypothécaires résidentiels au Canada. Cette mise à jour ne modifie pas la substance de la divulgation en termes de gestion des risques ou de conformité réglementaire.\n\nLes variations chiffrées propres à la banque, telles que celles-ci, ne sont pas considérées comme des nouvelles idées selon la taxonomie AMF, car elles ne changent pas la méthodologie ou les exigences réglementaires.\n\nPar conséquent, ce changement est classé comme non pertinent pour la vigie des risques réglementaires, et aucune action n'est requise de la part de l'analyste."
@@ -2140,7 +2145,7 @@
           "FACTEUR_RISQUE_CHANGEMENT"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Structure du rapport, Facteur de risque modifié\n\nCe qui change : L'indicateur 'De 30 à 35 ans' a été supprimé du tableau des prêts hypothécaires résidentiels par période d’amortissement.\n\nPertinence métier : Ce changement met en évidence une modification dans la manière dont la banque présente ses risques liés aux prêts hypothécaires. La suppression de cet indicateur pourrait indiquer un changement dans la composition du portefeuille de prêts ou une réévaluation des risques associés aux périodes d'amortissement plus longues. Cela peut affecter la comparabilité avec les pairs et la transparence des risques hypothécaires.\n\nPoint de surveillance : Surveiller si cette suppression reflète un changement stratégique dans la gestion des risques hypothécaires ou une réponse à des attentes réglementaires.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Structure du rapport, Facteur de risque modifié\n\nCe qui change : L'indicateur 'De 30 à 35 ans' a été supprimé du tableau des prêts hypothécaires résidentiels par période d’amortissement.\n\nPertinence métier : Ce changement met en évidence une modification dans la manière dont la banque présente ses risques liés aux prêts hypothécaires. La suppression de cet indicateur pourrait indiquer un changement dans la composition du portefeuille de prêts ou une réévaluation des risques associés aux périodes d'amortissement plus longues. Cela peut affecter la comparabilité avec les pairs et la transparence des risques hypothécaires. Surveiller si cette suppression reflète un changement stratégique dans la gestion des risques hypothécaires ou une réponse à des attentes réglementaires.\n\nPoint de surveillance : Surveiller si cette suppression reflète un changement stratégique dans la gestion des risques hypothécaires ou une réponse à des attentes réglementaires.",
         "impact_level": "MODERE",
         "impact_it": "FAIBLE",
         "impact_it_justification": "Éléments observés : Suppression d'un indicateur dans le tableau des prêts hypothécaires.\n\nConséquence probable : Impact limité sur les systèmes IT, nécessitant potentiellement des ajustements mineurs dans les rapports automatisés.\n\nLimite de l'analyse: Pas de transformation technologique majeure identifiée.",
@@ -2158,7 +2163,8 @@
         "action_requise": "investigation",
         "reference_reglementaire": "",
         "impact_description": "La suppression de l'indicateur modifie la présentation des risques hypothécaires, affectant la transparence et la comparabilité.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "RBC"
       },
       "genai_analysis": {
         "resume_metier": "La suppression de l'indicateur 'De 30 à 35 ans' dans le tableau des prêts hypothécaires résidentiels par période d’amortissement pourrait signaler un changement dans la gestion des risques hypothécaires de la banque. Cela pourrait refléter une réévaluation des risques associés aux périodes d'amortissement plus longues ou une réponse à des attentes réglementaires. Ce changement affecte la structure du rapport et la transparence des risques hypothécaires, ce qui est pertinent pour la comparabilité entre pairs et la conformité réglementaire."
@@ -2357,7 +2363,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "RBC"
       }
     },
     {
@@ -2537,7 +2544,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "Aucun impact concret sur la gestion des risques ou la conformité réglementaire.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "RBC"
       },
       "genai_analysis": {
         "resume_metier": "La modification détectée concerne une reformulation dans les notes de bas de tableau relatives aux variations des montants bruts des prêts douteux. Cette reformulation n'introduit pas de nouvelle information ou de changement substantiel dans la gestion des risques ou la conformité réglementaire.\n\nIl n'y a pas de changement dans la méthodologie ou les indicateurs de risque qui nécessiterait une attention particulière ou une action de la part des analystes de la banque. Le changement est purement textuel et n'affecte pas les exigences réglementaires ou les pratiques de gestion des risques.\n\nEn conséquence, ce changement est classé comme non pertinent pour la vigie des risques et ne nécessite pas de suivi ou d'action spécifique."
@@ -2674,7 +2682,7 @@
           "MODIFICATION_METHODOLOGIE"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Méthode de calcul ou approche modifiée\n\nCe qui change : Les notes indiquent que les montants ont été révisés pour être conformes à une nouvelle base, ce qui suggère un changement de méthodologie.\n\nPertinence métier : Ce changement met en évidence une modification de la méthodologie de calcul des corrections de valeur pour pertes de crédit. Cela peut affecter la comparabilité des données historiques et actuelles, et a des implications sur la manière dont la banque évalue et rapporte ses pertes de crédit. Une telle modification peut également influencer les décisions de gestion des risques et la perception des investisseurs.\n\nPoint de surveillance : Surveiller l'impact de cette nouvelle méthodologie sur les résultats financiers et la gestion des risques de crédit de la banque.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Méthode de calcul ou approche modifiée\n\nCe qui change : Les notes indiquent que les montants ont été révisés pour être conformes à une nouvelle base, ce qui suggère un changement de méthodologie.\n\nPertinence métier : Ce changement met en évidence une modification de la méthodologie de calcul des corrections de valeur pour pertes de crédit. Cela peut affecter la comparabilité des données historiques et actuelles, et a des implications sur la manière dont la banque évalue et rapporte ses pertes de crédit. Une telle modification peut également influencer les décisions de gestion des risques et la perception des investisseurs. Surveiller l'impact de cette nouvelle méthodologie sur les résultats financiers et la gestion des risques de crédit de la banque.\n\nPoint de surveillance : Surveiller l'impact de cette nouvelle méthodologie sur les résultats financiers et la gestion des risques de crédit de la banque.",
         "impact_level": "MODERE",
         "impact_it": "MOYEN",
         "impact_it_justification": "Éléments observés : Changement de méthodologie pour les corrections de valeur.\n\nConséquence probable : Nécessité de mettre à jour les systèmes de reporting et de gestion des risques pour refléter la nouvelle base de calcul.\n\nLimite de l'analyse : Détails spécifiques sur la nouvelle méthodologie non fournis, rendant difficile l'évaluation complète de l'impact IT.",
@@ -2692,7 +2700,8 @@
         "action_requise": "investigation",
         "reference_reglementaire": "",
         "impact_description": "Changement méthodologique dans le calcul des pertes de crédit, nécessitant une mise à jour des systèmes de gestion des risques.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "RBC"
       },
       "genai_analysis": {
         "resume_metier": "La suppression des notes indiquant une révision des montants pour se conformer à une nouvelle base suggère un changement méthodologique important. Cela affecte la manière dont les pertes de crédit sont calculées et rapportées, ce qui est crucial pour la gestion des risques et la transparence financière.\n\nCette modification pourrait nécessiter des ajustements dans les systèmes de gestion des risques et de reporting pour s'assurer que les nouvelles méthodes sont correctement intégrées et appliquées.\n\nIl est essentiel de surveiller comment cette nouvelle méthodologie impacte les résultats financiers et la gestion des risques de crédit, ainsi que la perception des parties prenantes."
@@ -2872,7 +2881,7 @@
           "MODIFICATION_TEXTE_RISQUE"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Structure du rapport, Texte de risque modifié\n\nCe qui change : L'indicateur 'VAR totale par rapport à 2023' a été supprimé du tableau 'Évaluation du risque de marché', et une nouvelle note 'n.s. non significatif' a été ajoutée.\n\nPertinence métier : Ce changement met en évidence une modification dans la manière dont la banque évalue et présente son risque de marché. La suppression de l'indicateur 'VAR totale par rapport à 2023' pourrait indiquer un changement dans la méthodologie ou la pertinence de cet indicateur pour la banque. L'ajout de la note 'n.s. non significatif' suggère une réévaluation de l'importance de certains éléments dans l'analyse du risque de marché.\n\nPoint de surveillance : Surveiller comment cette modification affecte la transparence et la comparabilité des rapports de risque de marché de la banque par rapport à ses pairs.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Structure du rapport, Texte de risque modifié\n\nCe qui change : L'indicateur 'VAR totale par rapport à 2023' a été supprimé du tableau 'Évaluation du risque de marché', et une nouvelle note 'n.s. non significatif' a été ajoutée.\n\nPertinence métier : Ce changement met en évidence une modification dans la manière dont la banque évalue et présente son risque de marché. La suppression de l'indicateur 'VAR totale par rapport à 2023' pourrait indiquer un changement dans la méthodologie ou la pertinence de cet indicateur pour la banque. L'ajout de la note 'n.s. non significatif' suggère une réévaluation de l'importance de certains éléments dans l'analyse du risque de marché. Surveiller comment cette modification affecte la transparence et la comparabilité des rapports de risque de marché de la banque par rapport à ses pairs.\n\nPoint de surveillance : Surveiller comment cette modification affecte la transparence et la comparabilité des rapports de risque de marché de la banque par rapport à ses pairs.",
         "impact_level": "MODERE",
         "impact_it": "FAIBLE",
         "impact_it_justification": "Éléments observés : Suppression d'un indicateur et ajout d'une note dans le tableau de risque de marché.\n\nConséquence probable : Impact limité sur les systèmes IT, principalement lié à la mise à jour des rapports et des bases de données pour refléter ces changements.\n\nLimite de l'analyse : Pas de transformation technologique majeure identifiée, mais nécessite une vérification de la mise à jour des processus de reporting.",
@@ -2890,7 +2899,8 @@
         "action_requise": "information",
         "reference_reglementaire": "",
         "impact_description": "Modification de la structure du tableau de risque de marché, affectant la présentation des indicateurs.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "RBC"
       },
       "genai_analysis": {
         "resume_metier": "La suppression de l'indicateur 'VAR totale par rapport à 2023' du tableau 'Évaluation du risque de marché' et l'ajout de la note 'n.s. non significatif' indiquent un ajustement dans la présentation des risques de marché. Cela pourrait refléter un changement dans la méthodologie ou l'importance accordée à certains indicateurs par la banque.\n\nCe changement est pertinent car il affecte la structure du rapport et la manière dont les risques sont communiqués aux parties prenantes. Il est essentiel de surveiller comment cela impacte la transparence et la comparabilité avec les autres banques.\n\nBien que l'impact IT soit faible, il est important de s'assurer que les systèmes de reporting sont mis à jour pour refléter ces modifications, garantissant ainsi l'exactitude et la cohérence des informations fournies."
@@ -3050,7 +3060,7 @@
           "NOUVELLE_MENTION_REGLEMENTAIRE"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Exigences réglementaires ou conformité\n\nCe qui change : Une nouvelle note a été ajoutée indiquant qu'à partir du troisième trimestre de 2025, les risques liés à la valeur économique des capitaux propres seront pris en compte.\n\nPertinence métier : Ce changement met en évidence une nouvelle exigence réglementaire qui prendra effet en 2025, ce qui pourrait avoir un impact significatif sur la gestion des risques de taux d'intérêt dans le portefeuille bancaire. Cela souligne l'importance pour la banque de se préparer à ces nouvelles exigences pour rester conforme aux attentes réglementaires.\n\nPoint de surveillance : Surveiller la mise en œuvre de cette nouvelle exigence réglementaire et son impact potentiel sur la gestion des risques de taux d'intérêt.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Exigences réglementaires ou conformité\n\nCe qui change : Une nouvelle note a été ajoutée indiquant qu'à partir du troisième trimestre de 2025, les risques liés à la valeur économique des capitaux propres seront pris en compte.\n\nPertinence métier : Ce changement met en évidence une nouvelle exigence réglementaire qui prendra effet en 2025, ce qui pourrait avoir un impact significatif sur la gestion des risques de taux d'intérêt dans le portefeuille bancaire. Cela souligne l'importance pour la banque de se préparer à ces nouvelles exigences pour rester conforme aux attentes réglementaires. Surveiller la mise en œuvre de cette nouvelle exigence réglementaire et son impact potentiel sur la gestion des risques de taux d'intérêt.\n\nPoint de surveillance : Surveiller la mise en œuvre de cette nouvelle exigence réglementaire et son impact potentiel sur la gestion des risques de taux d'intérêt.",
         "impact_level": "MAJEUR",
         "impact_it": "MOYEN",
         "impact_it_justification": "Éléments observés : Introduction d'une nouvelle exigence réglementaire à partir de 2025.\n\nConséquence probable : Nécessité de mettre à jour les systèmes de gestion des risques pour intégrer cette nouvelle exigence.\n\nLimite de l'analyse: Détails spécifiques sur les modifications IT requises non fournis.",
@@ -3068,7 +3078,8 @@
         "action_requise": "revue_prioritaire",
         "reference_reglementaire": "Bâle III — CET1",
         "impact_description": "Introduction d'une nouvelle exigence réglementaire à partir de 2025 pour les risques liés à la valeur économique des capitaux propres.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "RBC"
       },
       "genai_analysis": {
         "resume_metier": "Une nouvelle note a été ajoutée au tableau concernant les évaluations du risque de taux d'intérêt, indiquant qu'à partir du troisième trimestre de 2025, les risques liés à la valeur économique des capitaux propres seront pris en compte. Cela représente une nouvelle exigence réglementaire qui pourrait avoir un impact significatif sur la gestion des risques de taux d'intérêt dans le portefeuille bancaire.\n\nCe changement met en évidence l'importance pour la banque de se préparer à ces nouvelles exigences pour rester conforme aux attentes réglementaires. Il est crucial de surveiller la mise en œuvre de cette nouvelle exigence réglementaire et son impact potentiel sur la gestion des risques de taux d'intérêt.\n\nL'ajout de cette note indique un renforcement des contrôles liés à la gestion des risques de taux d'intérêt, nécessitant potentiellement des mises à jour des systèmes de gestion des risques pour intégrer cette nouvelle exigence."
@@ -3299,7 +3310,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "Aucun impact concret sur la gestion des risques ou la conformité.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "RBC"
       },
       "genai_analysis": {
         "resume_metier": "Les modifications apportées aux notes de bas de tableau dans la section de gestion des risques ne constituent pas un changement substantiel. Les reformulations visent à clarifier le texte sans introduire de nouvelles informations ou méthodologies.\n\nCes ajustements linguistiques n'ont pas d'impact sur la gestion des risques ou la conformité réglementaire. Ils ne modifient pas la compréhension des risques de marché ou des actifs et passifs non exposés.\n\nEn conséquence, aucune action particulière n'est requise, et le changement est classé comme non pertinent pour la vigie des risques bancaires."
@@ -3559,7 +3571,7 @@
           "STRUCTURE_RAPPORT"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Texte de risque modifié, Structure du rapport\n\nCe qui change : Les notes de bas de tableau concernant les actifs et passifs non exposés au risque de marché ont été supprimées ou modifiées, ce qui change la compréhension des éléments non exposés au risque de marché.\n\nPertinence métier : Ce changement met en évidence une révision de la manière dont la banque catégorise et explique les actifs et passifs non exposés au risque de marché. Cela peut affecter la transparence et la compréhension des risques de marché par les parties prenantes, en particulier si les actifs et passifs sont mal classifiés ou mal compris.\n\nPoint de surveillance : Surveiller comment ces modifications affectent la perception des risques de marché et si elles entraînent des ajustements dans la gestion des risques ou la communication aux investisseurs.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Texte de risque modifié, Structure du rapport\n\nCe qui change : Les notes de bas de tableau concernant les actifs et passifs non exposés au risque de marché ont été supprimées ou modifiées, ce qui change la compréhension des éléments non exposés au risque de marché.\n\nPertinence métier : Ce changement met en évidence une révision de la manière dont la banque catégorise et explique les actifs et passifs non exposés au risque de marché. Cela peut affecter la transparence et la compréhension des risques de marché par les parties prenantes, en particulier si les actifs et passifs sont mal classifiés ou mal compris. Surveiller comment ces modifications affectent la perception des risques de marché et si elles entraînent des ajustements dans la gestion des risques ou la communication aux investisseurs.\n\nPoint de surveillance : Surveiller comment ces modifications affectent la perception des risques de marché et si elles entraînent des ajustements dans la gestion des risques ou la communication aux investisseurs.",
         "impact_level": "MODERE",
         "impact_it": "FAIBLE",
         "impact_it_justification": "Éléments observés : Modifications dans la description des actifs et passifs non exposés au risque de marché.\n\nConséquence probable : Impact limité sur les systèmes IT, principalement lié à la mise à jour des descriptions dans les rapports et bases de données internes.\n\nLimite de l'analyse : L'impact IT est faible car il s'agit principalement de modifications textuelles sans changement de processus ou de systèmes.",
@@ -3577,7 +3589,8 @@
         "action_requise": "information",
         "reference_reglementaire": "",
         "impact_description": "Modification de la compréhension des actifs et passifs non exposés au risque de marché.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "RBC"
       },
       "genai_analysis": {
         "resume_metier": "Les modifications apportées aux notes de bas de tableau dans le tableau 50 du rapport de gestion sur le risque de marché indiquent un changement dans la manière dont la banque décrit les actifs et passifs non exposés au risque de marché. Les notes supprimées et modifiées modifient la compréhension des éléments non exposés au risque de marché.\n\nCes changements sont pertinents car ils affectent la transparence et la compréhension des risques de marché par les parties prenantes. La suppression et la modification des notes peuvent entraîner une réévaluation de la manière dont ces éléments sont perçus et gérés.\n\nIl est important de surveiller comment ces modifications affectent la perception des risques de marché et si elles entraînent des ajustements dans la gestion des risques ou la communication aux investisseurs."
@@ -3696,7 +3709,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "RBC"
       }
     },
     {
@@ -3838,7 +3852,7 @@
           "LIQUIDITE"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Structure du rapport, Liquidité\n\nCe qui change : Les notes concernant 'Trésorerie et dépôts auprès de banques', 'Titres émis ou garantis par des organismes souverains, des banques centrales ou des banques multilatérales de développement', et 'Autres actifs liquides' ont été supprimées du tableau de gestion des risques.\n\nPertinence métier : Ce changement met en évidence une modification dans la manière dont la banque présente ses actifs liquides, ce qui peut affecter la transparence et la compréhension des sources de liquidité. La suppression de ces notes pourrait indiquer un changement dans la stratégie de gestion de la liquidité ou une simplification de la présentation des informations.\n\nPoint de surveillance : Surveiller comment cette modification impacte la divulgation des actifs liquides et si cela reflète un changement dans la gestion de la liquidité ou une nouvelle approche de présentation des informations financières.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Structure du rapport, Liquidité\n\nCe qui change : Les notes concernant 'Trésorerie et dépôts auprès de banques', 'Titres émis ou garantis par des organismes souverains, des banques centrales ou des banques multilatérales de développement', et 'Autres actifs liquides' ont été supprimées du tableau de gestion des risques.\n\nPertinence métier : Ce changement met en évidence une modification dans la manière dont la banque présente ses actifs liquides, ce qui peut affecter la transparence et la compréhension des sources de liquidité. La suppression de ces notes pourrait indiquer un changement dans la stratégie de gestion de la liquidité ou une simplification de la présentation des informations. Surveiller comment cette modification impacte la divulgation des actifs liquides et si cela reflète un changement dans la gestion de la liquidité ou une nouvelle approche de présentation des informations financières. La suppression de notes dans le tableau de gestion des risques peut indiquer un changement dans la présentation des actifs liquides.\n\nPoint de surveillance : Surveiller comment cette modification impacte la divulgation des actifs liquides et si cela reflète un changement dans la gestion de la liquidité ou une nouvelle approche de présentation des informations financières.",
         "impact_level": "MODERE",
         "impact_it": "FAIBLE",
         "impact_it_justification": "Éléments observés : Suppression de notes explicatives dans un tableau de gestion des risques.\n\nConséquence probable : Impact limité sur les systèmes IT, principalement lié à la mise à jour des rapports et des bases de données pour refléter la nouvelle structure.\n\nLimite de l'analyse : L'impact IT est faible car il s'agit principalement d'un changement de présentation sans modification des systèmes sous-jacents.",
@@ -3856,7 +3870,8 @@
         "action_requise": "information",
         "reference_reglementaire": "",
         "impact_description": "Modification de la présentation des actifs liquides dans le rapport de gestion des risques.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "RBC"
       },
       "genai_analysis": {
         "resume_metier": "La suppression de notes dans le tableau de gestion des risques peut indiquer un changement dans la présentation des actifs liquides. Cela pourrait affecter la transparence des informations fournies aux investisseurs et aux régulateurs.\n\nLa pertinence de ce changement réside dans son impact potentiel sur la compréhension des sources de liquidité de la banque. Les notes supprimées concernaient des éléments clés de la liquidité, ce qui pourrait signaler une révision de la stratégie de gestion de la liquidité.\n\nIl est important de surveiller si cette modification reflète un changement dans la gestion de la liquidité ou simplement une simplification de la présentation des informations financières."
@@ -3985,7 +4000,7 @@
           "STRUCTURE_RAPPORT"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Structure du rapport\n\nCe qui change : La note de bas de tableau concernant les soldes classés comme détenus en vue de la vente a été supprimée.\n\nPertinence métier : Ce changement met en évidence une modification dans la manière dont la banque présente ses actifs détenus en vue de la vente. La suppression de cette note pourrait affecter la transparence et la compréhension des états financiers par les parties prenantes, en particulier en ce qui concerne la classification des actifs.\n\nPoint de surveillance : Surveiller l'impact de cette suppression sur la clarté des divulgations financières et la comparabilité avec les rapports antérieurs.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Structure du rapport\n\nCe qui change : La note de bas de tableau concernant les soldes classés comme détenus en vue de la vente a été supprimée.\n\nPertinence métier : Ce changement met en évidence une modification dans la manière dont la banque présente ses actifs détenus en vue de la vente. La suppression de cette note pourrait affecter la transparence et la compréhension des états financiers par les parties prenantes, en particulier en ce qui concerne la classification des actifs. Surveiller l'impact de cette suppression sur la clarté des divulgations financières et la comparabilité avec les rapports antérieurs. La suppression d'une note de bas de tableau dans la section de gestion des risques indique un changement dans la présentation des actifs détenus en vue de la vente.\n\nPoint de surveillance : Surveiller l'impact de cette suppression sur la clarté des divulgations financières et la comparabilité avec les rapports antérieurs.",
         "impact_level": "MINEUR",
         "impact_it": "FAIBLE",
         "impact_it_justification": "Éléments observés : Suppression d'une note de bas de tableau concernant la classification des actifs.\n\nConséquence probable : Impact limité sur les systèmes IT, principalement lié à la mise à jour des rapports financiers.\n\nLimite de l'analyse : Pas de changement majeur dans les processus IT ou les systèmes de gestion des données.",
@@ -4003,7 +4018,8 @@
         "action_requise": "information",
         "reference_reglementaire": "",
         "impact_description": "La suppression de la note de bas de tableau modifie la présentation des actifs détenus en vue de la vente.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "RBC"
       },
       "genai_analysis": {
         "resume_metier": "La suppression d'une note de bas de tableau dans la section de gestion des risques indique un changement dans la présentation des actifs détenus en vue de la vente. Cela peut affecter la transparence des états financiers.\n\nCe changement est pertinent car il modifie la structure du rapport, ce qui peut influencer la compréhension des informations financières par les investisseurs et les régulateurs.\n\nIl est important de surveiller comment cette suppression affecte la clarté des divulgations et si elle entraîne des questions de la part des parties prenantes."
@@ -4132,7 +4148,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "RBC"
       }
     },
     {
@@ -4255,7 +4272,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "RBC"
       }
     },
     {
@@ -4393,7 +4411,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "RBC"
       }
     },
     {
@@ -4697,7 +4716,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "Les modifications sont des reformulations sans impact substantiel sur le contenu.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "RBC"
       },
       "genai_analysis": {
         "resume_metier": "Les modifications apportées aux notes de bas de tableau consistent principalement en des reformulations et clarifications. Ces changements n'introduisent pas de nouvelles informations ou méthodologies qui affecteraient la gestion des risques ou la conformité réglementaire.\n\nLes reformulations incluent des changements de termes tels que 'inclut' à 'comprend', mais ne modifient pas la substance des divulgations. Par conséquent, ces modifications ne sont pas considérées comme pertinentes pour la taxonomie AMF.\n\nAucune action particulière n'est requise car les modifications n'ont pas d'impact sur la substance des divulgations de risque ou sur la conformité réglementaire."
@@ -4882,7 +4902,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "Mise à jour de date et de contenu sans impact réglementaire ou méthodologique.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "RBC"
       },
       "genai_analysis": {
         "resume_metier": "La modification concerne une mise à jour de date et de contenu dans une note de bas de tableau relative aux notations de Moody's. Cela ne constitue pas un changement substantiel dans la gestion des risques ou la conformité réglementaire.\n\nLa mise à jour reflète simplement une révision périodique par Moody's, ce qui est une pratique courante et attendue dans le secteur bancaire. Il n'y a pas de nouvelle méthodologie ou de changement de posture associé.\n\nAucune action particulière n'est requise, car cette modification n'affecte pas les indicateurs de risque ou les exigences réglementaires de la banque."
@@ -5007,7 +5028,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "RBC"
       }
     },
     {
@@ -5161,7 +5183,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "RBC"
       }
     },
     {
@@ -5316,7 +5339,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "RBC"
       }
     },
     {
@@ -5539,7 +5563,7 @@
           "MODIFICATION_TEXTE_RISQUE"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Liquidité\n\nCe qui change : Les notes de bas de tableau ont été modifiées pour inclure des termes spécifiques tels que 'Dépôts stables', 'Dépôts opérationnels' et 'Passifs et leurs actifs interdépendants correspondants'.\n\nPertinence métier : Ce changement met en évidence une clarification des catégories de dépôts et de passifs dans le cadre du ratio de liquidité à long terme. Cela pourrait indiquer une mise à jour des définitions ou des critères utilisés pour évaluer la liquidité, ce qui est crucial pour la gestion des risques de liquidité et la conformité réglementaire. La précision des termes utilisés peut affecter la manière dont la banque gère ses ressources et ses obligations à long terme.\n\nPoint de surveillance : Surveiller comment ces nouvelles définitions influencent les calculs de liquidité et si elles alignent mieux la banque avec les attentes réglementaires en matière de gestion de la liquidité.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Liquidité\n\nCe qui change : Les notes de bas de tableau ont été modifiées pour inclure des termes spécifiques tels que 'Dépôts stables', 'Dépôts opérationnels' et 'Passifs et leurs actifs interdépendants correspondants'.\n\nPertinence métier : Ce changement met en évidence une clarification des catégories de dépôts et de passifs dans le cadre du ratio de liquidité à long terme. Cela pourrait indiquer une mise à jour des définitions ou des critères utilisés pour évaluer la liquidité, ce qui est crucial pour la gestion des risques de liquidité et la conformité réglementaire. La précision des termes utilisés peut affecter la manière dont la banque gère ses ressources et ses obligations à long terme. Surveiller comment ces nouvelles définitions influencent les calculs de liquidité et si elles alignent mieux la banque avec les attentes réglementaires en matière de gestion de la liquidité.\n\nPoint de surveillance : Surveiller comment ces nouvelles définitions influencent les calculs de liquidité et si elles alignent mieux la banque avec les attentes réglementaires en matière de gestion de la liquidité.",
         "impact_level": "MODERE",
         "impact_it": "MOYEN",
         "impact_it_justification": "Éléments observés : Les modifications des notes de bas de tableau impliquent des ajustements dans la catégorisation des dépôts et passifs.\n\nConséquence probable : Cela pourrait nécessiter des mises à jour dans les systèmes de gestion de la liquidité pour refléter ces nouvelles définitions et assurer la conformité.\n\nLimite de l'analyse : L'impact exact sur les systèmes IT dépendra de la manière dont ces catégories sont intégrées dans les processus de calcul de la liquidité.",
@@ -5557,7 +5581,8 @@
         "action_requise": "confirmation",
         "reference_reglementaire": "Bâle III — LCR",
         "impact_description": "Clarification des catégories de dépôts et passifs dans le cadre du ratio de liquidité à long terme.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "RBC"
       },
       "genai_analysis": {
         "resume_metier": "Les modifications apportées aux notes de bas de tableau dans le modèle de déclaration du ratio de liquidité à long terme indiquent une clarification des catégories de dépôts et de passifs. Cela pourrait refléter une mise à jour des définitions utilisées pour évaluer la liquidité, ce qui est crucial pour la gestion des risques de liquidité et la conformité réglementaire.\n\nL'utilisation de termes spécifiques tels que 'Dépôts stables', 'Dépôts opérationnels' et 'Passifs et leurs actifs interdépendants correspondants' suggère un renforcement des pratiques de gestion de la liquidité. Cela pourrait nécessiter des ajustements dans les systèmes de gestion de la liquidité pour refléter ces nouvelles définitions.\n\nCe changement met en évidence une amélioration de la précision dans la gestion des risques de liquidité, ce qui est essentiel pour assurer la conformité avec les attentes réglementaires et optimiser la gestion des ressources et obligations à long terme."
@@ -5719,7 +5744,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "Aucune modification substantielle du contenu ou de la méthodologie.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "RBC"
       },
       "genai_analysis": {
         "resume_metier": "La modification de la note de bas de tableau est une reformulation sans impact substantiel sur le contenu du rapport. Elle ne change pas la compréhension ou l'interprétation des risques associés aux actifs et passifs mentionnés.\n\nCe type de changement est courant dans les rapports financiers pour améliorer la clarté ou corriger des erreurs typographiques, mais il n'affecte pas la gestion des risques ou la conformité réglementaire.\n\nAucune action n'est requise car ce changement n'introduit pas de nouvelle information ou de modification méthodologique pertinente pour la surveillance des risques bancaires."
@@ -5927,7 +5953,7 @@
           "STRUCTURE_RAPPORT"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Structure du rapport\n\nCe qui change : L'indicateur 'Engagements de clients en contrepartie d’acceptations' a été supprimé du Tableau 60 concernant les échéances contractuelles des actifs financiers, des passifs financiers et des éléments hors bilan.\n\nPertinence métier : Ce changement met en évidence une modification dans la structure de divulgation des engagements financiers de la banque. La suppression de cet indicateur pourrait affecter la transparence et la comparabilité des informations sur les engagements hors bilan, ce qui est crucial pour évaluer la liquidité et le risque de contrepartie.\n\nPoint de surveillance : Surveiller l'impact de cette suppression sur la compréhension des engagements financiers de la banque et s'assurer que les informations essentielles sont toujours disponibles ailleurs dans le rapport.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Structure du rapport\n\nCe qui change : L'indicateur 'Engagements de clients en contrepartie d’acceptations' a été supprimé du Tableau 60 concernant les échéances contractuelles des actifs financiers, des passifs financiers et des éléments hors bilan.\n\nPertinence métier : Ce changement met en évidence une modification dans la structure de divulgation des engagements financiers de la banque. La suppression de cet indicateur pourrait affecter la transparence et la comparabilité des informations sur les engagements hors bilan, ce qui est crucial pour évaluer la liquidité et le risque de contrepartie. Surveiller l'impact de cette suppression sur la compréhension des engagements financiers de la banque et s'assurer que les informations essentielles sont toujours disponibles ailleurs dans le rapport.\n\nPoint de surveillance : Surveiller l'impact de cette suppression sur la compréhension des engagements financiers de la banque et s'assurer que les informations essentielles sont toujours disponibles ailleurs dans le rapport.",
         "impact_level": "MODERE",
         "impact_it": "FAIBLE",
         "impact_it_justification": "Éléments observés : Suppression d'un indicateur dans un tableau de divulgation.\n\nConséquence probable : Impact limité sur les systèmes IT, principalement lié à la mise à jour des rapports et des bases de données de divulgation.\n\nLimite de l'analyse: Pas de changement majeur dans l'architecture ou les processus IT, mais nécessite une vérification de la cohérence des données restantes.",
@@ -5945,7 +5971,8 @@
         "action_requise": "information",
         "reference_reglementaire": "",
         "impact_description": "La suppression d'un indicateur clé dans le tableau affecte la transparence des engagements financiers.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "RBC"
       },
       "genai_analysis": {
         "resume_metier": "La suppression de l'indicateur 'Engagements de clients en contrepartie d’acceptations' dans le tableau des échéances contractuelles modifie la structure de la divulgation des engagements financiers. Cela peut affecter la transparence et la comparabilité des informations sur les engagements hors bilan, essentiels pour évaluer la liquidité et le risque de contrepartie.\n\nCe retrait pourrait signaler un changement dans la manière dont la banque souhaite présenter ses engagements financiers, ce qui nécessite une surveillance pour s'assurer que les informations essentielles sont toujours disponibles ailleurs dans le rapport.\n\nL'impact IT est faible, principalement lié à la mise à jour des rapports et des bases de données de divulgation, sans changement majeur dans l'architecture ou les processus IT."
@@ -6181,7 +6208,7 @@
           "MODIFICATION_TEXTE_RISQUE"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Texte de risque modifié\n\nCe qui change : L'indicateur 'Engagements afférents à des titres vendus à découvert' a été supprimé du tableau, et une note a été ajoutée indiquant que les montants ont été révisés par rapport à ceux présentés précédemment.\n\nPertinence métier : Ce changement met en évidence une modification dans la présentation des engagements liés aux titres vendus à découvert, ce qui pourrait indiquer un changement dans la manière dont ces engagements sont gérés ou rapportés. Cela peut avoir des implications sur la transparence et la comparabilité des rapports financiers de la banque, notamment en ce qui concerne la gestion des risques associés à ces engagements.\n\nPoint de surveillance : Surveiller comment la révision des montants affecte la compréhension des engagements de la banque et si cela reflète un changement dans la gestion des risques ou la conformité réglementaire.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Texte de risque modifié\n\nCe qui change : L'indicateur 'Engagements afférents à des titres vendus à découvert' a été supprimé du tableau, et une note a été ajoutée indiquant que les montants ont été révisés par rapport à ceux présentés précédemment.\n\nPertinence métier : Ce changement met en évidence une modification dans la présentation des engagements liés aux titres vendus à découvert, ce qui pourrait indiquer un changement dans la manière dont ces engagements sont gérés ou rapportés. Cela peut avoir des implications sur la transparence et la comparabilité des rapports financiers de la banque, notamment en ce qui concerne la gestion des risques associés à ces engagements. Surveiller comment la révision des montants affecte la compréhension des engagements de la banque et si cela reflète un changement dans la gestion des risques ou la conformité réglementaire.\n\nPoint de surveillance : Surveiller comment la révision des montants affecte la compréhension des engagements de la banque et si cela reflète un changement dans la gestion des risques ou la conformité réglementaire.",
         "impact_level": "MODERE",
         "impact_it": "FAIBLE",
         "impact_it_justification": "Éléments observés : Suppression d'un indicateur et ajout d'une note sur la révision des montants.\n\nConséquence probable : Impact limité sur les systèmes IT, principalement lié à la mise à jour des rapports et des bases de données pour refléter les nouvelles informations.\n\nLimite de l'analyse : L'impact IT est faible car il s'agit principalement d'une modification de contenu sans changement majeur dans les systèmes ou processus.",
@@ -6199,7 +6226,8 @@
         "action_requise": "information",
         "reference_reglementaire": "",
         "impact_description": "Modification du contenu du tableau de gestion des risques avec suppression d'un indicateur et révision des montants.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "RBC"
       },
       "genai_analysis": {
         "resume_metier": "Le tableau de gestion des risques a été modifié avec la suppression de l'indicateur 'Engagements afférents à des titres vendus à découvert'. Une nouvelle note indique que les montants ont été révisés par rapport aux présentations précédentes.\n\nCe changement pourrait signaler une révision de la manière dont ces engagements sont gérés ou rapportés, ce qui est pertinent pour la transparence et la comparabilité des rapports financiers.\n\nIl est important de surveiller comment cette révision affecte la compréhension des engagements de la banque et si cela reflète un changement dans la gestion des risques ou la conformité réglementaire."
@@ -6330,7 +6358,7 @@
           "STRUCTURE_RAPPORT"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Structure du rapport\n\nCe qui change : L'indicateur 'Acceptations' a été supprimé du tableau des échéances contractuelles des passifs financiers et des éléments hors bilan.\n\nPertinence métier : Ce changement met en évidence une modification dans la structure de la divulgation des échéances contractuelles, ce qui peut affecter la transparence et la comparabilité des informations financières entre les périodes. La suppression de cet indicateur pourrait indiquer un changement dans la manière dont la banque gère ou présente ses engagements financiers, ce qui est crucial pour les analystes et les régulateurs.\n\nPoint de surveillance : Surveiller l'impact de cette suppression sur la compréhension des engagements financiers de la banque et vérifier si des informations alternatives sont fournies ailleurs dans le rapport.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Structure du rapport\n\nCe qui change : L'indicateur 'Acceptations' a été supprimé du tableau des échéances contractuelles des passifs financiers et des éléments hors bilan.\n\nPertinence métier : Ce changement met en évidence une modification dans la structure de la divulgation des échéances contractuelles, ce qui peut affecter la transparence et la comparabilité des informations financières entre les périodes. La suppression de cet indicateur pourrait indiquer un changement dans la manière dont la banque gère ou présente ses engagements financiers, ce qui est crucial pour les analystes et les régulateurs. Surveiller l'impact de cette suppression sur la compréhension des engagements financiers de la banque et vérifier si des informations alternatives sont fournies ailleurs dans le rapport.\n\nPoint de surveillance : Surveiller l'impact de cette suppression sur la compréhension des engagements financiers de la banque et vérifier si des informations alternatives sont fournies ailleurs dans le rapport.",
         "impact_level": "MODERE",
         "impact_it": "FAIBLE",
         "impact_it_justification": "Éléments observés : Suppression d'un indicateur dans un tableau de divulgation.\n\nConséquence probable : Nécessité de mettre à jour les systèmes de reporting pour refléter la nouvelle structure du tableau.\n\nLimite de l'analyse : Pas d'impact IT majeur attendu, mais une vérification des systèmes de reporting est nécessaire.",
@@ -6348,7 +6376,8 @@
         "action_requise": "information",
         "reference_reglementaire": "",
         "impact_description": "La suppression de l'indicateur 'Acceptations' modifie la structure de la divulgation des engagements financiers.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "RBC"
       },
       "genai_analysis": {
         "resume_metier": "La suppression de l'indicateur 'Acceptations' dans le tableau des échéances contractuelles des passifs financiers et des éléments hors bilan indique un changement dans la structure de la divulgation. Cela peut affecter la transparence des informations financières.\n\nCe changement est pertinent car il modifie la manière dont les engagements financiers sont présentés, ce qui peut avoir des implications pour les analystes et les régulateurs qui surveillent la gestion des risques de la banque.\n\nIl est important de surveiller si cette suppression est compensée par des informations supplémentaires ailleurs dans le rapport pour maintenir la clarté et la comparabilité des données financières."
@@ -6513,7 +6542,7 @@
           "STRUCTURE_RAPPORT"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Structure du rapport\n\nCe qui change : L'indicateur 'Acceptations' a été supprimé du tableau dans la section 'risk_management'.\n\nPertinence métier : Ce changement met en évidence une modification dans la structure de la divulgation des risques de la banque. La suppression de l'indicateur 'Acceptations' pourrait indiquer un changement dans la manière dont la banque évalue ou présente ses engagements conditionnels, ce qui peut affecter la transparence et la comparabilité des rapports de risque entre pairs.\n\nPoint de surveillance : Surveiller si cette suppression reflète un changement dans la gestion des risques ou une révision des priorités de divulgation de la banque.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Structure du rapport\n\nCe qui change : L'indicateur 'Acceptations' a été supprimé du tableau dans la section 'risk_management'.\n\nPertinence métier : Ce changement met en évidence une modification dans la structure de la divulgation des risques de la banque. La suppression de l'indicateur 'Acceptations' pourrait indiquer un changement dans la manière dont la banque évalue ou présente ses engagements conditionnels, ce qui peut affecter la transparence et la comparabilité des rapports de risque entre pairs. Surveiller si cette suppression reflète un changement dans la gestion des risques ou une révision des priorités de divulgation de la banque. La suppression de l'indicateur 'Acceptations' dans la section de gestion des risques pourrait signaler un changement dans la manière dont la banque présente ses engagements conditionnels.\n\nPoint de surveillance : Surveiller si cette suppression reflète un changement dans la gestion des risques ou une révision des priorités de divulgation de la banque.",
         "impact_level": "MODERE",
         "impact_it": "FAIBLE",
         "impact_it_justification": "Éléments observés : Suppression d'un indicateur dans le tableau de gestion des risques.\n\nConséquence probable : Impact limité sur les systèmes IT, principalement lié à la mise à jour des rapports et des bases de données pour refléter la nouvelle structure.\n\nLimite de l'analyse : L'impact IT est faible car il s'agit d'une modification de contenu sans transformation technologique majeure.",
@@ -6531,7 +6560,8 @@
         "action_requise": "information",
         "reference_reglementaire": "",
         "impact_description": "La suppression de l'indicateur 'Acceptations' modifie la structure de la divulgation des risques.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "RBC"
       },
       "genai_analysis": {
         "resume_metier": "La suppression de l'indicateur 'Acceptations' dans la section de gestion des risques pourrait signaler un changement dans la manière dont la banque présente ses engagements conditionnels. Cela peut affecter la transparence et la comparabilité des rapports de risque entre pairs.\n\nCe changement est pertinent car il modifie la structure de la divulgation des risques, ce qui peut avoir des implications sur la manière dont les parties prenantes perçoivent la gestion des risques de la banque.\n\nIl est important de surveiller si cette suppression est le reflet d'un changement plus large dans la gestion des risques ou simplement une révision des priorités de divulgation."
@@ -6714,7 +6744,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "Aucun impact concret sur la gestion des fonds propres ou la conformité réglementaire.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "RBC"
       },
       "genai_analysis": {
         "resume_metier": "La modification détectée dans la note de bas de tableau ne constitue pas un changement substantiel. Il s'agit d'une reformulation sans impact sur la gestion des risques ou la conformité réglementaire.\n\nAucune nouvelle information n'a été ajoutée ou retirée, et la substance de la divulgation reste inchangée. Par conséquent, ce changement n'est pas pertinent pour la taxonomie AMF.\n\nAucune action n'est requise car il n'y a pas de nouvelle idée ou de changement de posture à surveiller."
@@ -6896,7 +6927,7 @@
           "EXIGENCES_REGLEMENTAIRES"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Fonds propres réglementaires et exigences réglementaires\n\nCe qui change : La note supprimée mentionnait que la TLAC disponible et les ratios TLAC étaient calculés selon la ligne directrice sur la capacité totale d'absorption. Les notes modifiées indiquent maintenant que les fonds propres, l'actif pondéré en fonction des risques et les ratios de fond sont concernés.\n\nPertinence métier : Ce changement met en évidence une modification dans la manière dont les fonds propres et les ratios TLAC sont calculés et présentés, ce qui peut avoir un impact sur la compréhension des exigences réglementaires et la comparabilité entre pairs. La suppression de la référence à la ligne directrice sur la capacité totale d'absorption pourrait indiquer un changement dans l'application des normes réglementaires.\n\nPoint de surveillance : Surveiller l'impact de cette modification sur la conformité aux exigences réglementaires et la manière dont la banque gère ses fonds propres réglementaires.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Fonds propres réglementaires et exigences réglementaires\n\nCe qui change : La note supprimée mentionnait que la TLAC disponible et les ratios TLAC étaient calculés selon la ligne directrice sur la capacité totale d'absorption. Les notes modifiées indiquent maintenant que les fonds propres, l'actif pondéré en fonction des risques et les ratios de fond sont concernés.\n\nPertinence métier : Ce changement met en évidence une modification dans la manière dont les fonds propres et les ratios TLAC sont calculés et présentés, ce qui peut avoir un impact sur la compréhension des exigences réglementaires et la comparabilité entre pairs. La suppression de la référence à la ligne directrice sur la capacité totale d'absorption pourrait indiquer un changement dans l'application des normes réglementaires. Surveiller l'impact de cette modification sur la conformité aux exigences réglementaires et la manière dont la banque gère ses fonds propres réglementaires.\n\nPoint de surveillance : Surveiller l'impact de cette modification sur la conformité aux exigences réglementaires et la manière dont la banque gère ses fonds propres réglementaires.",
         "impact_level": "MAJEUR",
         "impact_it": "MOYEN",
         "impact_it_justification": "Éléments observés : Modification des notes concernant le calcul des fonds propres et des ratios TLAC.\n\nConséquence probable : Nécessité de mettre à jour les systèmes de calcul et de reporting pour refléter les nouvelles exigences et méthodes de calcul.\n\nLimite de l'analyse: L'impact exact sur les systèmes IT dépend des détails techniques des changements de calcul non spécifiés dans la note.",
@@ -6914,7 +6945,8 @@
         "action_requise": "revue_prioritaire",
         "reference_reglementaire": "Bâle III — TLAC",
         "impact_description": "Modification des notes sur le calcul des fonds propres et des ratios TLAC, impactant potentiellement la conformité réglementaire.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "RBC"
       },
       "genai_analysis": {
         "resume_metier": "La suppression de la note concernant le calcul de la TLAC disponible selon la ligne directrice sur la capacité totale d'absorption indique un changement potentiel dans l'application des normes réglementaires. Les modifications des notes soulignent une réorientation vers les fonds propres et les ratios de fond, ce qui pourrait affecter la conformité et la comparabilité entre pairs.\n\nCe changement est pertinent car il touche directement aux fonds propres réglementaires et aux exigences de calcul des ratios TLAC, éléments cruciaux pour la gestion du capital d'une banque. La suppression de la référence à une ligne directrice spécifique pourrait signaler un ajustement dans l'approche de conformité.\n\nIl est essentiel de surveiller comment ces modifications affectent la gestion des fonds propres réglementaires et la conformité aux exigences du BSIF, ainsi que l'impact potentiel sur les systèmes IT de calcul et de reporting."
@@ -7075,7 +7107,7 @@
           "MODIFICATION_METHODOLOGIE"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Fonds propres réglementaires, Méthode de calcul ou approche modifiée\n\nCe qui change : L'indicateur 'Fonds propres de deuxième catégorie : instruments, provisions et ajustements réglementaires' a été renommé en 'Fonds propres de deuxième catégorie : instruments, dotations et ajustements réglementaires'. De plus, une note concernant l'impact de l'IFRS 17 a été supprimée.\n\nPertinence métier : Ce changement met l'accent sur une possible modification de la méthodologie ou de l'approche de calcul des fonds propres de deuxième catégorie, ce qui pourrait affecter la comparabilité et la conformité réglementaire. Le retrait de la note sur l'IFRS 17 pourrait indiquer un changement dans la manière dont les normes comptables influencent les fonds propres réglementaires.\n\nPoint de surveillance : Surveiller l'impact de ce changement de terminologie sur le calcul des fonds propres réglementaires et vérifier si cela reflète une modification sous-jacente de la méthodologie ou des exigences réglementaires.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Fonds propres réglementaires, Méthode de calcul ou approche modifiée\n\nCe qui change : L'indicateur 'Fonds propres de deuxième catégorie : instruments, provisions et ajustements réglementaires' a été renommé en 'Fonds propres de deuxième catégorie : instruments, dotations et ajustements réglementaires'. De plus, une note concernant l'impact de l'IFRS 17 a été supprimée.\n\nPertinence métier : Ce changement met l'accent sur une possible modification de la méthodologie ou de l'approche de calcul des fonds propres de deuxième catégorie, ce qui pourrait affecter la comparabilité et la conformité réglementaire. Le retrait de la note sur l'IFRS 17 pourrait indiquer un changement dans la manière dont les normes comptables influencent les fonds propres réglementaires. Surveiller l'impact de ce changement de terminologie sur le calcul des fonds propres réglementaires et vérifier si cela reflète une modification sous-jacente de la méthodologie ou des exigences réglementaires.\n\nPoint de surveillance : Surveiller l'impact de ce changement de terminologie sur le calcul des fonds propres réglementaires et vérifier si cela reflète une modification sous-jacente de la méthodologie ou des exigences réglementaires.",
         "impact_level": "MODERE",
         "impact_it": "MOYEN",
         "impact_it_justification": "Éléments observés : Renommage d'un indicateur clé et suppression d'une note sur IFRS 17.\n\nConséquence probable : Nécessité de mettre à jour les systèmes de reporting pour refléter le changement de terminologie et d'évaluer l'impact de l'absence de retraitement IFRS 17.\n\nLimite de l'analyse : L'impact exact sur les systèmes IT dépend de la profondeur des modifications méthodologiques sous-jacentes.",
@@ -7093,7 +7125,8 @@
         "action_requise": "investigation",
         "reference_reglementaire": "",
         "impact_description": "Renommage d'un indicateur de fonds propres de deuxième catégorie et suppression d'une note sur IFRS 17, indiquant un possible changement méthodologique.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "RBC"
       },
       "genai_analysis": {
         "resume_metier": "Le changement dans le tableau des fonds propres réglementaires indique un ajustement potentiel dans la manière dont les fonds propres de deuxième catégorie sont calculés ou présentés. Le renommage de l'indicateur pourrait signaler une révision de la méthodologie ou des exigences réglementaires associées. La suppression de la note sur l'IFRS 17 pourrait également indiquer un changement dans l'impact des normes comptables sur les fonds propres réglementaires.\n\nCe changement est pertinent car il touche à la manière dont les fonds propres réglementaires sont calculés et présentés, ce qui est crucial pour la conformité et la comparabilité entre les banques. Les ajustements méthodologiques peuvent avoir des implications sur les ratios de capital et la perception du risque par les régulateurs et les investisseurs.\n\nIl est important de surveiller comment ces changements affectent la gestion du capital et si d'autres ajustements méthodologiques ou réglementaires sont à prévoir. L'impact sur les systèmes IT doit également être évalué pour s'assurer que les rapports reflètent correctement les nouvelles exigences."
@@ -7297,7 +7330,7 @@
           "CAPITAL_REGLEMENTAIRE"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Méthode de calcul ou approche modifiée\n\nCe qui change : La note indiquant que les soldes au 31 octobre 2024 reflètent l’adoption du cadre révisé du risque de marché a été supprimée.\n\nPertinence métier : Ce changement met en évidence une modification potentielle dans la méthodologie de calcul du capital réglementaire lié au risque de marché. L'adoption d'un cadre révisé peut avoir des implications significatives sur la manière dont les actifs pondérés en fonction des risques sont calculés, ce qui affecte directement les exigences de capital réglementaire de la banque. Cela est crucial pour la comparabilité entre pairs et la conformité aux attentes prudentielles.\n\nPoint de surveillance : Surveiller l'impact de l'adoption du cadre révisé du risque de marché sur les exigences de capital et la gestion des risques de la banque.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Méthode de calcul ou approche modifiée\n\nCe qui change : La note indiquant que les soldes au 31 octobre 2024 reflètent l’adoption du cadre révisé du risque de marché a été supprimée.\n\nPertinence métier : Ce changement met en évidence une modification potentielle dans la méthodologie de calcul du capital réglementaire lié au risque de marché. L'adoption d'un cadre révisé peut avoir des implications significatives sur la manière dont les actifs pondérés en fonction des risques sont calculés, ce qui affecte directement les exigences de capital réglementaire de la banque. Cela est crucial pour la comparabilité entre pairs et la conformité aux attentes prudentielles. Surveiller l'impact de l'adoption du cadre révisé du risque de marché sur les exigences de capital et la gestion des risques de la banque.\n\nPoint de surveillance : Surveiller l'impact de l'adoption du cadre révisé du risque de marché sur les exigences de capital et la gestion des risques de la banque.",
         "impact_level": "MAJEUR",
         "impact_it": "MOYEN",
         "impact_it_justification": "Éléments observés : Suppression de la note sur l'adoption du cadre révisé du risque de marché.\n\nConséquence probable : Nécessité d'ajuster les systèmes de calcul du capital pour intégrer les nouvelles méthodologies.\n\nLimite de l'analyse : Détails spécifiques sur les changements IT requis non fournis.",
@@ -7315,7 +7348,8 @@
         "action_requise": "revue_prioritaire",
         "reference_reglementaire": "Bâle III — Cadre révisé du risque de marché",
         "impact_description": "Changement méthodologique dans le calcul des actifs pondérés en fonction des risques suite à l'adoption d'un cadre révisé.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "RBC"
       },
       "genai_analysis": {
         "resume_metier": "La suppression de la note concernant l'adoption du cadre révisé du risque de marché indique un changement dans la méthodologie de calcul des actifs pondérés en fonction des risques. Cela peut avoir un impact significatif sur les exigences de capital réglementaire de la banque.\n\nCe changement est pertinent car il reflète une mise à jour des pratiques de gestion du capital, potentiellement en réponse à des exigences réglementaires révisées. Cela pourrait affecter la manière dont la banque gère ses risques de marché et ses exigences de capital.\n\nIl est important de surveiller comment cette adoption du cadre révisé influence les calculs de capital et les rapports réglementaires de la banque, car cela pourrait avoir des implications sur sa conformité et sa compétitivité par rapport à ses pairs."
@@ -7639,7 +7673,7 @@
           "FONDS_PROPRES_REGLEMENTAIRES"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Capital réglementaire et fonds propres réglementaires\n\nCe qui change : Ajout de nouveaux indicateurs liés à l'émission et au rachat de billets LRCN et de débentures subordonnées, ainsi que le rachat d'actions privilégiées, tandis que certains indicateurs précédents ont été supprimés.\n\nPertinence métier : Ce changement met l'accent sur la gestion active des fonds propres de la banque, en particulier à travers l'émission et le rachat de divers instruments financiers. Cela reflète une stratégie potentiellement ajustée pour optimiser la structure du capital et répondre aux exigences réglementaires. Les émissions et rachats de LRCN et de débentures subordonnées peuvent avoir un impact direct sur les ratios de capital réglementaire, ce qui est crucial pour la conformité et la stabilité financière de la banque.\n\nPoint de surveillance : Surveiller l'impact de ces changements sur les ratios de capital réglementaire et la stratégie de gestion des fonds propres de la banque.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Capital réglementaire et fonds propres réglementaires\n\nCe qui change : Ajout de nouveaux indicateurs liés à l'émission et au rachat de billets LRCN et de débentures subordonnées, ainsi que le rachat d'actions privilégiées, tandis que certains indicateurs précédents ont été supprimés.\n\nPertinence métier : Ce changement met l'accent sur la gestion active des fonds propres de la banque, en particulier à travers l'émission et le rachat de divers instruments financiers. Cela reflète une stratégie potentiellement ajustée pour optimiser la structure du capital et répondre aux exigences réglementaires. Les émissions et rachats de LRCN et de débentures subordonnées peuvent avoir un impact direct sur les ratios de capital réglementaire, ce qui est crucial pour la conformité et la stabilité financière de la banque. Surveiller l'impact de ces changements sur les ratios de capital réglementaire et la stratégie de gestion des fonds propres de la banque.\n\nPoint de surveillance : Surveiller l'impact de ces changements sur les ratios de capital réglementaire et la stratégie de gestion des fonds propres de la banque.",
         "impact_level": "MAJEUR",
         "impact_it": "MOYEN",
         "impact_it_justification": "Éléments observés : Modifications dans les instruments financiers émis et rachetés, nécessitant potentiellement des ajustements dans les systèmes de gestion du capital.\n\nConséquence probable : Mise à jour des systèmes de suivi et de reporting pour refléter les nouvelles émissions et rachats, impactant les processus IT liés à la gestion des fonds propres.\n\nLimite de l'analyse: L'impact exact sur les systèmes IT dépendra de la complexité des ajustements requis pour intégrer ces changements dans le",
@@ -7657,7 +7691,8 @@
         "action_requise": "revue_prioritaire",
         "reference_reglementaire": "Bâle III — CET1",
         "impact_description": "Changement dans la structure du capital réglementaire par l'ajout et le retrait d'instruments financiers, influençant les ratios de capital.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "RBC"
       },
       "genai_analysis": {
         "resume_metier": "La banque a modifié sa stratégie de gestion des fonds propres en ajoutant de nouveaux instruments financiers tels que des billets LRCN et des débentures subordonnées, tout en retirant certains instruments précédents. Cela reflète une approche active pour optimiser la structure du capital et répondre aux exigences réglementaires.\n\nCes changements sont pertinents car ils peuvent affecter directement les ratios de capital réglementaire, essentiels pour la conformité et la stabilité financière de la banque. L'ajustement de la structure du capital par l'émission et le rachat d'instruments financiers est une stratégie clé pour maintenir une position de capital solide.\n\nIl est important de surveiller l'impact de ces changements sur les ratios de capital réglementaire et la stratégie globale de gestion des fonds propres de la banque, car cela pourrait influencer sa capacité à répondre aux exigences réglementaires et à gérer efficacement ses risques financiers."
@@ -7998,7 +8033,7 @@
           "STRUCTURE_RAPPORT"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Capital réglementaire, Structure du rapport\n\nCe qui change : Ajout des indicateurs 'Billets LRCN de série 6' et 'Billets LRCN de série 7', suppression de l'indicateur 'À dividende non cumulatif, série AZ'.\n\nPertinence métier : Ce changement met l'accent sur l'évolution de la structure du capital de la banque, avec l'introduction de nouveaux instruments financiers (billets LRCN) et le retrait d'actions privilégiées. Cela reflète une stratégie de gestion du capital qui pourrait avoir des implications sur la composition des fonds propres réglementaires et la conformité aux exigences prudentielles.\n\nPoint de surveillance : Surveiller l'impact de ces changements sur les ratios de capital réglementaire et la stratégie de financement de la banque.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Capital réglementaire, Structure du rapport\n\nCe qui change : Ajout des indicateurs 'Billets LRCN de série 6' et 'Billets LRCN de série 7', suppression de l'indicateur 'À dividende non cumulatif, série AZ'.\n\nPertinence métier : Ce changement met l'accent sur l'évolution de la structure du capital de la banque, avec l'introduction de nouveaux instruments financiers (billets LRCN) et le retrait d'actions privilégiées. Cela reflète une stratégie de gestion du capital qui pourrait avoir des implications sur la composition des fonds propres réglementaires et la conformité aux exigences prudentielles. Surveiller l'impact de ces changements sur les ratios de capital réglementaire et la stratégie de financement de la banque. Le rapport indique un changement significatif dans la gestion du capital de la banque, avec l'ajout de nouveaux billets LRCN et le retrait d'actions privilégiées.\n\nPoint de surveillance : Surveiller l'impact de ces changements sur les ratios de capital réglementaire et la stratégie de financement de la banque.",
         "impact_level": "MAJEUR",
         "impact_it": "MOYEN",
         "impact_it_justification": "Éléments observés : Introduction de nouveaux billets LRCN et retrait d'actions privilégiées.\n\nConséquence probable : Adaptation des systèmes de gestion du capital pour intégrer ces nouveaux instruments et assurer le suivi des exigences réglementaires associées.\n\nLimite de l'analyse : L'impact exact sur les systèmes IT dépendra de la complexité des nouveaux instruments et des ajustements nécessaires dans les processus de reporting.",
@@ -8016,7 +8051,8 @@
         "action_requise": "revue_prioritaire",
         "reference_reglementaire": "Bâle III — CET1",
         "impact_description": "Changement dans la structure du capital avec l'introduction de nouveaux billets LRCN et retrait d'actions privilégiées, impactant potentiellement les ratios de capital réglementaire.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "RBC"
       },
       "genai_analysis": {
         "resume_metier": "Le rapport indique un changement significatif dans la gestion du capital de la banque, avec l'ajout de nouveaux billets LRCN et le retrait d'actions privilégiées. Ces modifications reflètent une stratégie de renforcement du capital réglementaire.\n\nL'ajout des billets LRCN de série 6 et 7 pourrait indiquer une diversification des sources de financement et une optimisation des fonds propres réglementaires. Cela pourrait avoir un impact sur les ratios de capital et la conformité aux exigences prudentielles.\n\nLa suppression des actions privilégiées à dividende non cumulatif série AZ et les modifications des notes associées signalent une réorganisation de la structure du capital, ce qui pourrait influencer la stratégie de financement et la gestion des risques de la banque."

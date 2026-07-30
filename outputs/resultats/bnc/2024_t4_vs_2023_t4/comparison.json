@@ -354,7 +354,7 @@
           "MONTANT_REGLEMENTAIRE"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Exigences réglementaires ou conformité\n\nCe qui change : La note supprimée mentionnait une augmentation de la réserve pour stabilité intérieure de 2,5 % à 3,0 % à partir du 1er décembre 2022. La note modifiée indique que le 18 juin 2024, le BSIF a confirmé la réserve pour stabilité intérieure.\n\nPertinence métier : Ce changement met en évidence une mise à jour des exigences réglementaires concernant la réserve pour stabilité intérieure, qui est un élément clé pour le calcul des ratios de fonds propres et de TLAC. Cela reflète l'évolution des attentes du BSIF et peut avoir un impact sur la gestion du capital des banques.\n\nPoint de surveillance : Surveiller l'impact de cette confirmation sur les stratégies de capital des banques et leur conformité aux nouvelles exigences du BSIF.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Exigences réglementaires ou conformité\n\nCe qui change : La note supprimée mentionnait une augmentation de la réserve pour stabilité intérieure de 2,5 % à 3,0 % à partir du 1er décembre 2022. La note modifiée indique que le 18 juin 2024, le BSIF a confirmé la réserve pour stabilité intérieure.\n\nPertinence métier : Ce changement met en évidence une mise à jour des exigences réglementaires concernant la réserve pour stabilité intérieure, qui est un élément clé pour le calcul des ratios de fonds propres et de TLAC. Cela reflète l'évolution des attentes du BSIF et peut avoir un impact sur la gestion du capital des banques. Surveiller l'impact de cette confirmation sur les stratégies de capital des banques et leur conformité aux nouvelles exigences du BSIF. La suppression de la note précédente et la modification de la nouvelle note indiquent un changement dans les exigences réglementaires concernant la réserve pour stabilité intérieure.\n\nPoint de surveillance : Surveiller l'impact de cette confirmation sur les stratégies de capital des banques et leur conformité aux nouvelles exigences du BSIF.",
         "impact_level": "MAJEUR",
         "impact_it": "INDETERMINE",
         "impact_it_justification": "",
@@ -372,7 +372,8 @@
         "action_requise": "revue_prioritaire",
         "reference_reglementaire": "Bâle III — CET1",
         "impact_description": "Confirmation d'une exigence accrue par le BSIF, impactant la gestion du capital.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "BNC"
       },
       "genai_analysis": {
         "resume_metier": "La suppression de la note précédente et la modification de la nouvelle note indiquent un changement dans les exigences réglementaires concernant la réserve pour stabilité intérieure. Le BSIF a confirmé cette exigence le 18 juin 2024, ce qui renforce les attentes en matière de capital pour les banques.\n\nCe changement est pertinent car il affecte directement les ratios de fonds propres et de TLAC, qui sont des indicateurs clés de la santé financière et de la conformité réglementaire des banques. La mise à jour des exigences par le BSIF nécessite une attention particulière pour s'assurer que les banques respectent ces nouvelles normes.\n\nIl est crucial de surveiller comment les banques ajustent leurs stratégies de capital pour se conformer à ces exigences renforcées, car cela pourrait avoir des implications significatives sur leur gestion du risque et leur stabilité financière."
@@ -507,7 +508,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "BNC"
       }
     },
     {
@@ -674,7 +676,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "Aucun impact concret sur les divulgations réglementaires ou la gestion des risques.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "BNC"
       },
       "genai_analysis": {
         "resume_metier": "La modification de la note de bas de tableau ne change pas le contenu ou la signification des informations fournies. Il s'agit d'une reformulation sans impact sur les indicateurs de capital réglementaire ou de levier.\n\nAucune nouvelle information ou méthodologie n'est introduite par cette modification. La substance des divulgations reste inchangée.\n\nCe type de changement est considéré comme non pertinent pour la vigie des risques et des exigences réglementaires, car il ne modifie pas la posture de la banque ni ses obligations de divulgation."
@@ -899,7 +902,7 @@
           "MODIFICATION_METHODOLOGIE"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Fonds propres réglementaires, Méthode de calcul ou approche modifiée\n\nCe qui change : L'indicateur 'Incidence de l'adoption de l'IFRS 17' a été ajouté, tandis que 'Autres éléments de fonds propres de catégorie 1 – Autres, y compris des ajustements' a été supprimé. De plus, la note a été modifiée pour indiquer que les données de 2023 n'ont pas été ajustées pour les modifications.\n\nPertinence métier : Ce changement met l'accent sur l'impact de l'adoption de l'IFRS 17 sur les fonds propres réglementaires, ce qui est crucial pour comprendre comment les nouvelles normes comptables affectent la structure du capital de la banque. L'ajustement méthodologique reflète une mise à jour importante dans la manière dont les fonds propres sont calculés et présentés, ce qui peut avoir des implications sur la comparabilité entre pairs et la conformité réglementaire.\n\nPoint de surveillance : Surveiller l'impact de l'IFRS 17 sur les fonds propres réglementaires et s'assurer que les ajustements méthodologiques sont correctement intégrés dans les rapports futurs.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Fonds propres réglementaires, Méthode de calcul ou approche modifiée\n\nCe qui change : L'indicateur 'Incidence de l'adoption de l'IFRS 17' a été ajouté, tandis que 'Autres éléments de fonds propres de catégorie 1 – Autres, y compris des ajustements' a été supprimé. De plus, la note a été modifiée pour indiquer que les données de 2023 n'ont pas été ajustées pour les modifications.\n\nPertinence métier : Ce changement met l'accent sur l'impact de l'adoption de l'IFRS 17 sur les fonds propres réglementaires, ce qui est crucial pour comprendre comment les nouvelles normes comptables affectent la structure du capital de la banque. L'ajustement méthodologique reflète une mise à jour importante dans la manière dont les fonds propres sont calculés et présentés, ce qui peut avoir des implications sur la comparabilité entre pairs et la conformité réglementaire. Surveiller l'impact de l'IFRS 17 sur les fonds propres réglementaires et s'assurer que les ajustements méthodologiques sont correctement intégrés dans les rapports futurs.\n\nPoint de surveillance : Surveiller l'impact de l'IFRS 17 sur les fonds propres réglementaires et s'assurer que les ajustements méthodologiques sont correctement intégrés dans les rapports futurs.",
         "impact_level": "MODERE",
         "impact_it": "MOYEN",
         "impact_it_justification": "Éléments observés : Adoption de l'IFRS 17 et modification des indicateurs de fonds propres.\n\nConséquence probable : Nécessité de mettre à jour les systèmes comptables et de reporting pour intégrer les nouvelles normes IFRS 17, ce qui peut impliquer des ajustements dans les processus IT.\n\nLimite de l'analyse : L'impact exact sur les systèmes IT dépendra de la complexité des ajustements requis pour se conformer à l'IFRS 17.",
@@ -917,7 +920,8 @@
         "action_requise": "revue_prioritaire",
         "reference_reglementaire": "IFRS 17",
         "impact_description": "L'adoption de l'IFRS 17 modifie la présentation des fonds propres réglementaires, nécessitant une mise à jour des systèmes de reporting.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "BNC"
       },
       "genai_analysis": {
         "resume_metier": "Le tableau sur la variation des fonds propres réglementaires a été modifié pour inclure l'impact de l'adoption de l'IFRS 17, ce qui est un changement méthodologique important. L'ajout de cet indicateur et la suppression d'autres éléments soulignent l'importance de cette nouvelle norme comptable pour la banque.\n\nCe changement est pertinent car il affecte directement la manière dont les fonds propres réglementaires sont calculés et présentés, ce qui peut avoir des implications sur la conformité et la comparabilité avec d'autres institutions financières.\n\nIl est crucial de surveiller comment l'adoption de l'IFRS 17 est intégrée dans les systèmes de reporting de la banque, car cela pourrait nécessiter des ajustements IT pour s'assurer que les nouvelles normes sont correctement appliquées."
@@ -1092,7 +1096,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "BNC"
       }
     },
     {
@@ -1196,7 +1201,7 @@
           "RISQUE_EMERGENT"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Risque émergent : IA, cybersécurité, fraude, cryptoactifs ou modèles tiers\n\nCe qui change : L'indicateur 'Sécurité de l’information et cybersécurité' a été renommé en 'Sécurité de l’information'.\n\nPertinence métier : Ce changement met en évidence une potentielle réduction de l'accent mis sur la cybersécurité en tant que composante distincte de la sécurité de l'information. Cela pourrait indiquer un changement de posture de la banque vis-à-vis des risques émergents liés à la cybersécurité, qui sont cruciaux dans le contexte actuel de menaces numériques croissantes.\n\nPoint de surveillance : Surveiller si ce changement de libellé s'accompagne d'une modification dans la gestion ou la priorisation des risques liés à la cybersécurité.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Risque émergent : IA, cybersécurité, fraude, cryptoactifs ou modèles tiers\n\nCe qui change : L'indicateur 'Sécurité de l’information et cybersécurité' a été renommé en 'Sécurité de l’information'.\n\nPertinence métier : Ce changement met en évidence une potentielle réduction de l'accent mis sur la cybersécurité en tant que composante distincte de la sécurité de l'information. Cela pourrait indiquer un changement de posture de la banque vis-à-vis des risques émergents liés à la cybersécurité, qui sont cruciaux dans le contexte actuel de menaces numériques croissantes. Surveiller si ce changement de libellé s'accompagne d'une modification dans la gestion ou la priorisation des risques liés à la cybersécurité. Le changement de nom de l'indicateur de 'Sécurité de l’information et cybersécurité' à 'Sécurité de l’information' pourrait signaler une réduction de l'attention portée spécifiquement à la cybersécurité.\n\nPoint de surveillance : Surveiller si ce changement de libellé s'accompagne d'une modification dans la gestion ou la priorisation des risques liés à la cybersécurité.",
         "impact_level": "MODERE",
         "impact_it": "MOYEN",
         "impact_it_justification": "Éléments observés : Renommage de l'indicateur lié à la cybersécurité.\n\nConséquence probable : Cela pourrait affecter la manière dont les risques de cybersécurité sont suivis et gérés, nécessitant potentiellement des ajustements dans les systèmes de surveillance et de reporting IT.\n\nLimite de l'analyse : Le changement de nom ne précise pas si les pratiques sous-jacentes ont été modifiées, ce qui nécessite une investigation plus approfondie.",
@@ -1214,7 +1219,8 @@
         "action_requise": "investigation",
         "reference_reglementaire": "",
         "impact_description": "Renommage de l'indicateur pourrait signaler une réduction de l'attention sur la cybersécurité.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "BNC"
       },
       "genai_analysis": {
         "resume_metier": "Le changement de nom de l'indicateur de 'Sécurité de l’information et cybersécurité' à 'Sécurité de l’information' pourrait signaler une réduction de l'attention portée spécifiquement à la cybersécurité. Cela est pertinent dans le contexte actuel où les cybermenaces sont en augmentation et nécessitent une attention particulière.\n\nCe changement pourrait avoir des implications sur la manière dont la banque gère et priorise les risques liés à la cybersécurité, potentiellement affectant les systèmes de surveillance et de reporting IT.\n\nIl est crucial de surveiller si ce changement de libellé s'accompagne d'une modification dans la gestion ou la priorisation des risques liés à la cybersécurité, afin de s'assurer que la banque maintient une posture de défense adéquate contre les cybermenaces."
@@ -1361,7 +1367,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "Aucune implication directe sur la gestion des risques ou la conformité.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "BNC"
       },
       "genai_analysis": {
         "resume_metier": "La note ajoutée mentionne une révision en cours de validation, mais ne modifie pas la substance des divulgations de risque ou de conformité. Elle n'introduit pas de nouvelle méthodologie ou de changement réglementaire.\n\nCe type de mise à jour est courant dans les rapports de gestion et ne nécessite pas de surveillance accrue, car il ne touche pas aux éléments critiques de la gestion des risques ou de la conformité.\n\nL'impact sur les systèmes IT est indéterminé, car la note ne précise pas de changement technologique ou de processus qui pourrait affecter l'infrastructure IT."
@@ -1506,7 +1513,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "BNC"
       }
     },
     {
@@ -1654,7 +1662,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "BNC"
       }
     },
     {
@@ -1840,7 +1849,7 @@
           "MODIFICATION_METHODOLOGIE"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Méthode de calcul ou approche modifiée\n\nCe qui change : L'indicateur 'Approche NI avancée' a été renommé en 'Approche NI'.\n\nPertinence métier : Ce changement met en évidence une potentielle modification de la méthodologie utilisée pour l'évaluation des risques. Le retrait du terme 'avancée' pourrait indiquer un changement vers une approche plus standardisée ou simplifiée, ce qui pourrait avoir des implications sur la manière dont les risques sont calculés et gérés. Cela est pertinent pour la conformité aux attentes prudentielles et pour la comparabilité entre pairs.\n\nPoint de surveillance : Surveiller si ce changement de nom reflète une modification réelle de la méthodologie ou de l'approche de gestion des risques, et évaluer son impact sur les ratios de risque et la conformité réglementaire.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Méthode de calcul ou approche modifiée\n\nCe qui change : L'indicateur 'Approche NI avancée' a été renommé en 'Approche NI'.\n\nPertinence métier : Ce changement met en évidence une potentielle modification de la méthodologie utilisée pour l'évaluation des risques. Le retrait du terme 'avancée' pourrait indiquer un changement vers une approche plus standardisée ou simplifiée, ce qui pourrait avoir des implications sur la manière dont les risques sont calculés et gérés. Cela est pertinent pour la conformité aux attentes prudentielles et pour la comparabilité entre pairs. Surveiller si ce changement de nom reflète une modification réelle de la méthodologie ou de l'approche de gestion des risques, et évaluer son impact sur les ratios de risque et la conformité réglementaire.\n\nPoint de surveillance : Surveiller si ce changement de nom reflète une modification réelle de la méthodologie ou de l'approche de gestion des risques, et évaluer son impact sur les ratios de risque et la conformité réglementaire.",
         "impact_level": "MODERE",
         "impact_it": "MOYEN",
         "impact_it_justification": "Éléments observés : Renommage de l'indicateur 'Approche NI avancée' en 'Approche NI'.\n\nConséquence probable : Cela pourrait nécessiter des ajustements dans les systèmes de gestion des risques pour refléter la nouvelle approche, potentiellement affectant les processus de calcul et de reporting.\n\nLimite de l'analyse : Sans détails supplémentaires, il est difficile de déterminer l'ampleur exacte des modifications IT requises.",
@@ -1858,7 +1867,8 @@
         "action_requise": "investigation",
         "reference_reglementaire": "",
         "impact_description": "Renommage d'un indicateur de risque, potentiellement signalant un changement méthodologique.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "BNC"
       },
       "genai_analysis": {
         "resume_metier": "Le changement de nom de l'indicateur de 'Approche NI avancée' à 'Approche NI' pourrait signaler une modification de la méthodologie de gestion des risques. Cela pourrait indiquer un passage à une approche plus standardisée, ce qui aurait des implications sur la manière dont les risques sont calculés et gérés.\n\nCe changement est pertinent car il pourrait affecter la conformité aux attentes prudentielles et la comparabilité entre pairs. Il est important de surveiller si ce changement de nom reflète une modification réelle de la méthodologie ou de l'approche de gestion des risques.\n\nL'impact IT est considéré comme moyen, car des ajustements dans les systèmes de gestion des risques pourraient être nécessaires pour refléter la nouvelle approche, affectant potentiellement les processus de calcul et de reporting."
@@ -2136,7 +2146,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "Renommage d'indicateur sans impact substantiel sur la divulgation.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "BNC"
       },
       "genai_analysis": {
         "resume_metier": "Le changement détecté dans le tableau concerne principalement un renommage d'indicateur, ce qui n'affecte pas la substance de la divulgation. Les notes modifiées ne présentent pas de changement substantiel, mais plutôt des reformulations mineures.\n\nAucun ajout ou retrait significatif d'information n'a été observé, et il n'y a pas de modification de la méthodologie ou de l'approche de gestion des risques. Par conséquent, ce changement n'est pas pertinent selon les critères de la taxonomie AMF.\n\nL'impact sur les systèmes d'information est indéterminé car le changement est purement textuel et ne modifie pas les processus ou les exigences réglementaires."
@@ -2456,7 +2467,7 @@
           "STRUCTURE_RAPPORT"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Texte de risque modifié, Structure du rapport\n\nCe qui change : Le tableau des mesures du risque de marché a été modifié avec la suppression de l'indicateur 'Passifs – Autres' et des modifications substantielles dans les notes explicatives, notamment l'ajout de détails sur la VaR totale et des ajustements de méthodes comptables.\n\nPertinence métier : Ce changement met en évidence une révision de la manière dont la banque présente et explique ses mesures de risque de marché, ce qui peut affecter la transparence et la compréhension des risques par les parties prenantes. Les ajustements de méthodes comptables et la suppression d'indicateurs peuvent également signaler une évolution dans la gestion des risques ou la conformité aux normes comptables.\n\nPoint de surveillance : Surveiller l'impact de ces modifications sur la divulgation des risques de marché et la conformité aux attentes réglementaires, notamment en ce qui concerne la transparence et la comparabilité des informations fournies.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Texte de risque modifié, Structure du rapport\n\nCe qui change : Le tableau des mesures du risque de marché a été modifié avec la suppression de l'indicateur 'Passifs – Autres' et des modifications substantielles dans les notes explicatives, notamment l'ajout de détails sur la VaR totale et des ajustements de méthodes comptables.\n\nPertinence métier : Ce changement met en évidence une révision de la manière dont la banque présente et explique ses mesures de risque de marché, ce qui peut affecter la transparence et la compréhension des risques par les parties prenantes. Les ajustements de méthodes comptables et la suppression d'indicateurs peuvent également signaler une évolution dans la gestion des risques ou la conformité aux normes comptables. Surveiller l'impact de ces modifications sur la divulgation des risques de marché et la conformité aux attentes réglementaires, notamment en ce qui concerne la transparence et la comparabilité des informations fournies.\n\nPoint de surveillance : Surveiller l'impact de ces modifications sur la divulgation des risques de marché et la conformité aux attentes réglementaires, notamment en ce qui concerne la transparence et la comparabilité des informations fournies.",
         "impact_level": "MODERE",
         "impact_it": "MOYEN",
         "impact_it_justification": "Éléments observés : Modifications des notes explicatives et ajustements de méthodes comptables.\n\nConséquence probable : Nécessité de mettre à jour les systèmes de reporting pour refléter les nouvelles méthodes comptables et les modifications des indicateurs de risque.\n\nLimite de l'analyse : L'impact exact sur les systèmes IT dépend de l'ampleur des ajustements comptables et de la complexité des systèmes en place.",
@@ -2474,7 +2485,8 @@
         "action_requise": "revue_prioritaire",
         "reference_reglementaire": "",
         "impact_description": "Modification des notes explicatives et ajustements comptables affectant la présentation des risques de marché.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "BNC"
       },
       "genai_analysis": {
         "resume_metier": "Le tableau des mesures du risque de marché a subi des modifications significatives, notamment la suppression de l'indicateur 'Passifs – Autres' et l'ajout de nouvelles notes explicatives. Ces changements reflètent une révision de la présentation des risques de marché par la banque.\n\nLes ajustements de méthodes comptables et les modifications des notes explicatives peuvent indiquer une évolution dans la gestion des risques ou une adaptation aux normes comptables. Cela pourrait avoir un impact sur la transparence et la compréhension des risques par les parties prenantes.\n\nIl est important de surveiller comment ces modifications affectent la divulgation des risques de marché et la conformité aux attentes réglementaires, en particulier en ce qui concerne la transparence et la comparabilité des informations fournies."
@@ -2650,7 +2662,7 @@
           "MODIFICATION_TEXTE_RISQUE"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Structure du rapport, Texte de risque modifié\n\nCe qui change : L'indicateur 'SVaR totale de négociation' a été supprimé du tableau 'VaR des portefeuilles de négociation', et la note associée a été modifiée pour ne plus mentionner la SVaR.\n\nPertinence métier : Ce changement met en évidence une modification de la structure de divulgation des risques de marché, en particulier la suppression de l'indicateur SVaR qui est crucial pour évaluer les risques extrêmes dans les portefeuilles de négociation. Cela peut affecter la transparence et la comparabilité des risques de marché entre les pairs.\n\nPoint de surveillance : Surveiller l'impact de cette suppression sur la compréhension des risques de marché et la conformité aux attentes de divulgation prudentielles.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Structure du rapport, Texte de risque modifié\n\nCe qui change : L'indicateur 'SVaR totale de négociation' a été supprimé du tableau 'VaR des portefeuilles de négociation', et la note associée a été modifiée pour ne plus mentionner la SVaR.\n\nPertinence métier : Ce changement met en évidence une modification de la structure de divulgation des risques de marché, en particulier la suppression de l'indicateur SVaR qui est crucial pour évaluer les risques extrêmes dans les portefeuilles de négociation. Cela peut affecter la transparence et la comparabilité des risques de marché entre les pairs. Surveiller l'impact de cette suppression sur la compréhension des risques de marché et la conformité aux attentes de divulgation prudentielles. La suppression de l'indicateur 'SVaR totale de négociation' du tableau 'VaR des portefeuilles de négociation' et la modification de la note explicative indiquent un changement significatif dans la divulgation des risques de marché.\n\nPoint de surveillance : Surveiller l'impact de cette suppression sur la compréhension des risques de marché et la conformité aux attentes de divulgation prudentielles.",
         "impact_level": "MODERE",
         "impact_it": "FAIBLE",
         "impact_it_justification": "Éléments observés : Suppression de l'indicateur SVaR et modification de la note explicative.\n\nConséquence probable : Impact limité sur les systèmes IT, principalement lié à l'ajustement des rapports de risque et des processus de calcul de la VaR.\n\nLimite de l'analyse : L'impact IT est faible car il s'agit d'une modification de divulgation plutôt que d'un changement de méthodologie ou de système.",
@@ -2668,7 +2680,8 @@
         "action_requise": "revue_prioritaire",
         "reference_reglementaire": "",
         "impact_description": "La suppression de l'indicateur SVaR réduit la visibilité sur les risques extrêmes dans les portefeuilles de négociation.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "BNC"
       },
       "genai_analysis": {
         "resume_metier": "La suppression de l'indicateur 'SVaR totale de négociation' du tableau 'VaR des portefeuilles de négociation' et la modification de la note explicative indiquent un changement significatif dans la divulgation des risques de marché. Cela pourrait affecter la transparence et la comparabilité des risques extrêmes entre les banques.\n\nCe changement est pertinent car il modifie la structure du rapport et le texte de risque associé, ce qui peut avoir des implications sur la manière dont les risques de marché sont perçus et gérés. La suppression de la SVaR pourrait réduire la visibilité sur les risques extrêmes, ce qui est crucial pour les investisseurs et les régulateurs.\n\nIl est important de surveiller comment cette modification affecte la compréhension des risques de marché et si elle est conforme aux attentes réglementaires en matière de divulgation des risques."
@@ -2810,7 +2823,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "BNC"
       }
     },
     {
@@ -2962,7 +2976,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "BNC"
       }
     },
     {
@@ -3140,7 +3155,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "BNC"
       }
     },
     {
@@ -3289,7 +3305,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "Renommage d'indicateur sans impact substantiel sur la divulgation.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "BNC"
       },
       "genai_analysis": {
         "resume_metier": "Le changement détecté concerne le renommage d'un indicateur dans le tableau 'Sommaire des actifs grevés et non grevés'. L'indicateur 'Prêts et acceptations, déduction faite des provisions' a été simplifié en 'Prêts, déduction faite des provisions'.\n\nCe type de modification est considéré comme une reformulation sans impact sur la substance de la divulgation des risques ou sur la méthodologie utilisée par la banque. Il ne s'agit pas d'une nouvelle idée selon les critères de la taxonomie AMF.\n\nAucune action particulière n'est requise, car ce changement n'affecte pas la gestion des risques ou la conformité réglementaire de manière substantielle."
@@ -3467,7 +3484,7 @@
           "MODIFICATION_METHODOLOGIE"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Méthode de calcul ou approche modifiée\n\nCe qui change : Certains montants ont été ajustés à la suite de modifications de méthodes comptables relatives à l’adoption de l’IFRS 17.\n\nPertinence métier : Ce changement met en évidence l'impact de l'adoption de l'IFRS 17 sur les méthodes comptables de la banque, ce qui peut affecter la comparabilité des résultats financiers avec les périodes précédentes et entre pairs. L'IFRS 17 est une norme comptable importante qui modifie la reconnaissance, la mesure, la présentation et la divulgation des contrats d'assurance, ce qui peut avoir des implications significatives sur les états financiers des banques.\n\nPoint de surveillance : Surveiller l'impact de l'adoption de l'IFRS 17 sur les résultats financiers et la comparabilité avec les pairs, ainsi que les ajustements méthodologiques qui en découlent.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Méthode de calcul ou approche modifiée\n\nCe qui change : Certains montants ont été ajustés à la suite de modifications de méthodes comptables relatives à l’adoption de l’IFRS 17.\n\nPertinence métier : Ce changement met en évidence l'impact de l'adoption de l'IFRS 17 sur les méthodes comptables de la banque, ce qui peut affecter la comparabilité des résultats financiers avec les périodes précédentes et entre pairs. L'IFRS 17 est une norme comptable importante qui modifie la reconnaissance, la mesure, la présentation et la divulgation des contrats d'assurance, ce qui peut avoir des implications significatives sur les états financiers des banques. Surveiller l'impact de l'adoption de l'IFRS 17 sur les résultats financiers et la comparabilité avec les pairs, ainsi que les ajustements méthodologiques qui en découlent.\n\nPoint de surveillance : Surveiller l'impact de l'adoption de l'IFRS 17 sur les résultats financiers et la comparabilité avec les pairs, ainsi que les ajustements méthodologiques qui en découlent.",
         "impact_level": "MODERE",
         "impact_it": "MOYEN",
         "impact_it_justification": "Éléments observés : Adoption de l'IFRS 17 et ajustements méthodologiques.\n\nConséquence probable : Nécessité de mettre à jour les systèmes comptables et de reporting pour se conformer à la nouvelle norme.\n\nLimite de l'analyse : L'impact exact sur les systèmes IT dépend des ajustements spécifiques requis par l'IFRS 17.",
@@ -3485,7 +3502,8 @@
         "action_requise": "confirmation",
         "reference_reglementaire": "IFRS 17",
         "impact_description": "Ajustements méthodologiques liés à l'adoption de l'IFRS 17 affectant les méthodes comptables.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "BNC"
       },
       "genai_analysis": {
         "resume_metier": "L'adoption de l'IFRS 17 entraîne des ajustements méthodologiques dans les méthodes comptables de la banque. Cela peut affecter la comparabilité des résultats financiers avec les périodes précédentes et entre pairs. L'IFRS 17 modifie la reconnaissance, la mesure, la présentation et la divulgation des contrats d'assurance, ce qui peut avoir des implications significatives sur les états financiers des banques.\n\nCe changement est pertinent car il met en évidence l'impact de l'adoption de l'IFRS 17 sur les méthodes comptables de la banque. Cela nécessite une mise à jour des systèmes comptables et de reporting pour se conformer à la nouvelle norme.\n\nIl est important de surveiller l'impact de l'adoption de l'IFRS 17 sur les résultats financiers et la comparabilité avec les pairs, ainsi que les ajustements méthodologiques qui en découlent."
@@ -3712,7 +3730,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "BNC"
       }
     },
     {
@@ -3969,7 +3988,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "Aucun impact concret sur la gestion des risques ou la conformité.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "BNC"
       },
       "genai_analysis": {
         "resume_metier": "La modification de la note de bas de tableau ne change pas le contenu ou la méthodologie de calcul du ratio structurel de liquidité à long terme. Il s'agit d'une reformulation sans impact sur la gestion des risques ou la conformité.\n\nAucune nouvelle information n'a été ajoutée ou retirée, et il n'y a pas de changement dans la posture de gestion des risques de la banque.\n\nCe changement est considéré comme non pertinent pour la vigie des risques, car il ne modifie pas la substance de la divulgation réglementaire."
@@ -4137,7 +4157,7 @@
           "FACTEUR_RISQUE_CHANGEMENT"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Texte de risque modifié, Facteur de risque modifié\n\nCe qui change : La note de Moody's est passée d'une modification de perspective à une mise sous révision en vue d'une révision.\n\nPertinence métier : Ce changement met en évidence une évolution potentiellement négative de la perception du risque de crédit de la banque par Moody's. Une mise sous révision indique une incertitude accrue et peut signaler une dégradation potentielle de la notation, ce qui pourrait affecter la capacité de la banque à lever des fonds à des conditions favorables.\n\nPoint de surveillance : Surveiller l'issue de la révision par Moody's et son impact potentiel sur la notation de crédit de la banque, ainsi que les implications pour le coût du capital et la perception du risque par les investisseurs.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Texte de risque modifié, Facteur de risque modifié\n\nCe qui change : La note de Moody's est passée d'une modification de perspective à une mise sous révision en vue d'une révision.\n\nPertinence métier : Ce changement met en évidence une évolution potentiellement négative de la perception du risque de crédit de la banque par Moody's. Une mise sous révision indique une incertitude accrue et peut signaler une dégradation potentielle de la notation, ce qui pourrait affecter la capacité de la banque à lever des fonds à des conditions favorables. Surveiller l'issue de la révision par Moody's et son impact potentiel sur la notation de crédit de la banque, ainsi que les implications pour le coût du capital et la perception du risque par les investisseurs.\n\nPoint de surveillance : Surveiller l'issue de la révision par Moody's et son impact potentiel sur la notation de crédit de la banque, ainsi que les implications pour le coût du capital et la perception du risque par les investisseurs.",
         "impact_level": "MAJEUR",
         "impact_it": "FAIBLE",
         "impact_it_justification": "Éléments observés : Modification de la perspective de notation par Moody's.\n\nConséquence probable : Impact limité sur les systèmes IT, principalement lié à la mise à jour des rapports et des communications internes et externes.\n\nLimite de l'analyse : Pas de changement technologique ou de processus IT majeur identifié.",
@@ -4155,7 +4175,8 @@
         "action_requise": "revue_prioritaire",
         "reference_reglementaire": "",
         "impact_description": "La mise sous révision par Moody's pourrait signaler une dégradation potentielle de la notation de crédit, affectant la perception du risque et le coût du capital.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "BNC"
       },
       "genai_analysis": {
         "resume_metier": "La modification de la note de Moody's de la banque, passant d'une simple modification de perspective à une mise sous révision, est un indicateur important de changement dans la perception du risque de crédit. Cela pourrait avoir des implications significatives pour la banque, notamment en termes de coût du capital et de perception par les investisseurs.\n\nCette évolution nécessite une attention particulière de la part de la banque pour gérer les attentes du marché et potentiellement renforcer ses contrôles de risque de crédit. La mise sous révision est souvent un précurseur à une dégradation de la notation, ce qui pourrait affecter la capacité de la banque à lever des fonds à des conditions favorables.\n\nIl est crucial de surveiller l'issue de cette révision et d'évaluer son impact sur la stratégie de gestion des risques de la banque, ainsi que sur ses relations avec les agences de notation et les investisseurs."
@@ -4281,7 +4302,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "BNC"
       }
     },
     {
@@ -4475,7 +4497,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "BNC"
       }
     }
   ],

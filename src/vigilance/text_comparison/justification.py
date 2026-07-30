@@ -58,9 +58,10 @@ def synthesize_triage_justification_from_payload(triage: dict[str, Any]) -> str:
         pertinence = (
             explanation
             or (
-                "Ce changement met l'accent sur un sujet pertinent pour la vigie, car il peut "
-                "modifier la lecture réglementaire, la comparabilité des divulgations entre pairs "
-                "ou le niveau de détail exposé par la banque sur ce thème."
+                "Ce changement met l'accent sur un sujet pertinent pour la vigie prudentielle. "
+                "Il modifie la lecture de l'exposition de la banque et de la transparence de ses divulgations, "
+                "tout en permettant d'évaluer l'évolution de sa résilience face aux risques externes "
+                "et la comparabilité de sa gestion des risques par rapport à ses pairs."
             )
         )
     else:
