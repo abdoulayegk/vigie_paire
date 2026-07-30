@@ -249,9 +249,14 @@ _TRIAGE_SYSTEM_PROMPT = (
     '  "impact_description": "<1 phrase décrivant l\'impact concret>"\n'
     "}\n\n"
     "GUIDE pour `risk_level` :\n"
-    "- ELEVE : impact direct sur les ratios prudentiels, seuils réglementaires, ou conformité.\n"
-    "- MODERE : changement méthodologique ou structurel à surveiller.\n"
-    "- FAIBLE : changement modeste ou non substantiel.\n\n"
+    "- ELEVE : impact direct sur les ratios prudentiels, réformes BSIF, seuils réglementaires, conformité, climat/ESG, cyber/IA ou réputation.\n"
+    "- MODERE : tout changement touchant la gouvernance, la rémunération incitative, le rôle des comités, la périodicité de reporting, ou la culture du risque (quelle que soit la longueur du texte modifié).\n"
+    "- FAIBLE : uniquement les corrections typographiques, la ponctuation, ou les renommages purement cosmétiques sans aucun impact de gouvernance ni de risque.\n\n"
+    "EXEMPLES FEW-SHOT DE QUALIFICATION D'IMPACT :\n"
+    "1. Exemple Rémunération : 'Ajout de et à encourager les comportements attendus dans la rémunération incitative' -> nouvelle_idee: true, risk_level: 'MODERE' (impact métier sur la culture de risque et gouvernance).\n"
+    "2. Exemple Reporting : 'Précision sur la présentation du rapport sur une base trimestrielle' -> nouvelle_idee: true, risk_level: 'MODERE' (modification de fréquence de suivi prudentiel).\n"
+    "3. Exemple BSIF : 'Ajout de la ligne directrice E-23 BSIF relative à la gestion du risque de modélisation' -> nouvelle_idee: true, risk_level: 'ELEVE'.\n"
+    "4. Exemple Cosmétique : 'Remplacement de la virgule par un point-virgule' -> nouvelle_idee: false, risk_level: 'FAIBLE'.\n\n"
     "GUIDE pour `changement_posture` :\n"
     "- RENFORCEMENT : contrôles, surveillance, diligence ou exigences renforcés.\n"
     "- ALLEGEMENT : encadrement ou niveau de contrôle réduit.\n"
@@ -564,6 +569,12 @@ def _validate_triage_response(data: dict[str, Any] | None) -> dict[str, Any]:
     # cohérence avec Pipeline 2 et l'affichage UI Dash.
     _RISK_TO_IMPACT = {"ELEVE": "MAJEUR", "MODERE": "MODERE", "FAIBLE": "MINEUR"}
     impact_level = _RISK_TO_IMPACT.get(risk_level, "MINEUR")
+
+    # Invariant de plancher : Si le LLM qualifie le changement de nouvelle idée métier
+    # à surveiller (nouvelle_idee = True), l'impact ne peut pas être relégué en MINEUR.
+    if nouvelle_idee and impact_level == "MINEUR":
+        impact_level = "MODERE"
+        risk_level = "MODERE"
 
     impact_it = str(data.get("impact_it") or "INDETERMINE").upper()
     if impact_it not in VALID_IMPACT_IT:
