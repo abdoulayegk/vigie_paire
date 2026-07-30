@@ -19,6 +19,8 @@ import time
 from pathlib import Path
 from typing import Any
 
+from tqdm import tqdm
+
 from vigilance.analyst_change_presentation import bank_subject
 from vigilance.amf_taxonomy import (
     IMPACT_IT_DETAIL_LABELS,
@@ -499,7 +501,18 @@ async def _triage_all_changes(
 
     # -- Gather results ---------------------------------------------------
     if tasks:
-        await asyncio.gather(*(t[3] for t in tasks), return_exceptions=True)
+        pbar = tqdm(
+            total=len(tasks),
+            desc="Triage GenAI Tableaux",
+            unit="tableau",
+        )
+        for fut in asyncio.as_completed([t[3] for t in tasks]):
+            try:
+                await fut
+            except Exception:
+                pass
+            pbar.update(1)
+        pbar.close()
 
     for kind, idx, _, task in tasks:
         try:
