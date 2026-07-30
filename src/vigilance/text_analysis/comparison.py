@@ -658,6 +658,34 @@ def _attach_alignment_metadata(
     return scoped
 
 
+def _format_sub_items_breakdown(text: str, *, prefix: str = "Sous-éléments et clauses spécifiques retirés :") -> str:
+    """Extrait les puces ou sous-phrases clés d'un bloc de texte supprimé pour lister les détails."""
+    raw_text = str(text or "").strip()
+    if not raw_text:
+        return ""
+
+    lines = [line.strip() for line in raw_text.splitlines() if line.strip()]
+    items: list[str] = []
+
+    for line in lines:
+        cleaned = re.sub(r"^(?:[•\-*]|\d+[\.\)])\s*", "", line).strip()
+        if len(cleaned) >= 15 and cleaned not in items:
+            items.append(cleaned)
+            if len(items) >= 5:
+                break
+
+    if len(items) <= 1:
+        sentences = [s.strip() for s in re.split(r"[.!?]+", raw_text) if len(s.strip()) >= 15]
+        if len(sentences) > 1:
+            items = sentences[:4]
+
+    if not items or len(items) <= 1:
+        return ""
+
+    bullet_list = "\n".join(f"  • {item}" for item in items)
+    return f"\n\n{prefix}\n{bullet_list}"
+
+
 def _materialize_semantic_alignment_decisions(changes: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """Turns a GPT-confirmed distinct pairing into separate source changes.
 
@@ -677,6 +705,13 @@ def _materialize_semantic_alignment_decisions(changes: list[dict[str, Any]]) -> 
 
         rationale = str(change.get("alignment_rationale") or "").strip()
         base_summary = str(change.get("change_summary") or "").strip()
+
+        sub_items_rem = _format_sub_items_breakdown(text_t1, prefix="Sous-éléments et clauses spécifiques retirés :")
+        sub_items_add = _format_sub_items_breakdown(text_t2, prefix="Sous-éléments et clauses spécifiques ajoutés :")
+
+        rationale_rem = (rationale + sub_items_rem).strip()
+        rationale_add = (rationale + sub_items_add).strip()
+
         removed = dict(change)
         removed.update(
             {
@@ -687,8 +722,9 @@ def _materialize_semantic_alignment_decisions(changes: list[dict[str, Any]]) -> 
                 "source_text_t2": "",
                 "semantic_text_t2": "",
                 "evidence_t2": {"pages": [], "snippet": ""},
+                "alignment_rationale": rationale_rem,
                 "change_summary": (
-                    f"Divulgation distincte retirée. {rationale or base_summary}".strip()
+                    f"Divulgation distincte retirée. {rationale_rem or base_summary}".strip()
                 ),
             }
         )
@@ -702,8 +738,9 @@ def _materialize_semantic_alignment_decisions(changes: list[dict[str, Any]]) -> 
                 "source_text_t1": "",
                 "semantic_text_t1": "",
                 "evidence_t1": {"pages": [], "snippet": ""},
+                "alignment_rationale": rationale_add,
                 "change_summary": (
-                    f"Divulgation distincte ajoutée. {rationale or base_summary}".strip()
+                    f"Divulgation distincte ajoutée. {rationale_add or base_summary}".strip()
                 ),
             }
         )
