@@ -213,6 +213,30 @@ L’analyste valide chaque ligne via la colonne Statut.</p>
 <span id="text-comparison-text-comparison-writer"></span><h2>text_comparison.text_comparison_writer<a class="headerlink" href="#module-vigilance.text_comparison.text_comparison_writer" title="Lien vers cette rubrique"></a></h2>
 <p>Lecture et écriture du fichier text_comparison.json.</p>
 <dl class="py function">
+<dt class="sig sig-object py" id="vigilance.text_comparison.text_comparison_writer.deduplicate_and_group_section_changes">
+<span class="sig-name descname"><span class="pre">deduplicate_and_group_section_changes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">changes</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.text_comparison.text_comparison_writer.deduplicate_and_group_section_changes" title="Lien vers cette définition"></a></dt>
+<dd><p>Dédoublonne et regroupe les changements d’une section par liste de pages.</p>
+<p>Conserve 1 seule entrée par changement distinct et agrège les numéros de page
+(ex. pages_t1: [98, 99, 101, 110]).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigilance.text_comparison.text_comparison_writer.extract_term_replacement_pattern">
+<span class="sig-name descname"><span class="pre">extract_term_replacement_pattern</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">summary</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.text_comparison.text_comparison_writer.extract_term_replacement_pattern" title="Lien vers cette définition"></a></dt>
+<dd><p>Extrait un motif de remplacement de termes ou de sous-section.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="vigilance.text_comparison.text_comparison_writer.get_text_comparison_path">
 <span class="sig-name descname"><span class="pre">get_text_comparison_path</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">out_root</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bank_code</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">year_t2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quarter_t2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">year_t1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">quarter_t1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.text_comparison.text_comparison_writer.get_text_comparison_path" title="Lien vers cette définition"></a></dt>
 <dd><p>Retourne le chemin canonique du fichier text_comparison.json.</p>
