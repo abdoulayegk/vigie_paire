@@ -491,7 +491,7 @@
           "CAPITAL_REGLEMENTAIRE"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Fonds propres réglementaires, Capital réglementaire\n\nCe qui change : L'indicateur 'Ajustements de valorisation prudentiels' a été ajouté, tandis que 'Ajustements réglementaires appliqués aux fonds propres de catégorie 1 sous forme' a été supprimé dans le tableau 'STRUCTURE DES FONDS PROPRES ET RATIOS – Bâle III'.\n\nPertinence métier : Ce changement met en évidence une révision de la manière dont la banque gère et présente ses ajustements de fonds propres sous Bâle III. L'ajout d'un indicateur sur les ajustements de valorisation prudentiels peut refléter une nouvelle approche ou une mise à jour des exigences réglementaires, ce qui est crucial pour la transparence et la conformité aux normes prudentielles.\n\nPoint de surveillance : Surveiller comment ces ajustements de valorisation prudentiels influencent les ratios de fonds propres et si cela affecte la comparabilité avec les pairs ou les attentes réglementaires.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Fonds propres réglementaires, Capital réglementaire\n\nCe qui change : L'indicateur 'Ajustements de valorisation prudentiels' a été ajouté, tandis que 'Ajustements réglementaires appliqués aux fonds propres de catégorie 1 sous forme' a été supprimé dans le tableau 'STRUCTURE DES FONDS PROPRES ET RATIOS – Bâle III'.\n\nPertinence métier : Ce changement met en évidence une révision de la manière dont la banque gère et présente ses ajustements de fonds propres sous Bâle III. L'ajout d'un indicateur sur les ajustements de valorisation prudentiels peut refléter une nouvelle approche ou une mise à jour des exigences réglementaires, ce qui est crucial pour la transparence et la conformité aux normes prudentielles. Surveiller comment ces ajustements de valorisation prudentiels influencent les ratios de fonds propres et si cela affecte la comparabilité avec les pairs ou les attentes réglementaires.\n\nPoint de surveillance : Surveiller comment ces ajustements de valorisation prudentiels influencent les ratios de fonds propres et si cela affecte la comparabilité avec les pairs ou les attentes réglementaires.",
         "impact_level": "MODERE",
         "impact_it": "MOYEN",
         "impact_it_justification": "Éléments observés : Ajout et suppression d'indicateurs dans le tableau des fonds propres.\n\nConséquence probable : Nécessité de mettre à jour les systèmes de reporting pour intégrer les nouveaux ajustements de valorisation prudentiels.\n\nLimite de l'analyse : L'impact exact sur les systèmes IT dépend de la complexité des ajustements et de l'intégration dans les processus existants.",
@@ -509,7 +509,8 @@
         "action_requise": "revue_prioritaire",
         "reference_reglementaire": "Bâle III — CET1",
         "impact_description": "Modification des indicateurs de fonds propres, influençant potentiellement la transparence et la conformité réglementaire.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "TD"
       },
       "genai_analysis": {
         "resume_metier": "Le tableau 'STRUCTURE DES FONDS PROPRES ET RATIOS – Bâle III' a été modifié avec l'ajout d'un indicateur sur les ajustements de valorisation prudentiels et la suppression d'un autre sur les ajustements réglementaires appliqués aux fonds propres de catégorie 1. \n\nCe changement est pertinent car il reflète une mise à jour potentielle des pratiques de gestion des fonds propres, ce qui est crucial pour la conformité aux normes Bâle III. \n\nL'impact IT est modéré, nécessitant des ajustements dans les systèmes de reporting pour intégrer ces nouvelles exigences."
@@ -682,7 +683,7 @@
           "FONDS_PROPRES_REGLEMENTAIRES"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Structure du rapport, Fonds propres réglementaires\n\nCe qui change : Les indicateurs 'Situation des fonds propres et ratios des fonds propres' et 'Fonds propres de catégories 1 et 2' ont été supprimés du tableau de gestion du capital.\n\nPertinence métier : Ce changement met en évidence une modification significative dans la présentation des informations sur les fonds propres réglementaires. La suppression de ces indicateurs peut affecter la transparence et la comparabilité des informations sur les fonds propres entre les banques, ce qui est crucial pour les investisseurs et les régulateurs.\n\nPoint de surveillance : Surveiller comment la banque communique désormais sur ses fonds propres et s'assurer que les exigences réglementaires en matière de divulgation sont toujours respectées.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Structure du rapport, Fonds propres réglementaires\n\nCe qui change : Les indicateurs 'Situation des fonds propres et ratios des fonds propres' et 'Fonds propres de catégories 1 et 2' ont été supprimés du tableau de gestion du capital.\n\nPertinence métier : Ce changement met en évidence une modification significative dans la présentation des informations sur les fonds propres réglementaires. La suppression de ces indicateurs peut affecter la transparence et la comparabilité des informations sur les fonds propres entre les banques, ce qui est crucial pour les investisseurs et les régulateurs. Surveiller comment la banque communique désormais sur ses fonds propres et s'assurer que les exigences réglementaires en matière de divulgation sont toujours respectées.\n\nPoint de surveillance : Surveiller comment la banque communique désormais sur ses fonds propres et s'assurer que les exigences réglementaires en matière de divulgation sont toujours respectées.",
         "impact_level": "MODERE",
         "impact_it": "FAIBLE",
         "impact_it_justification": "Éléments observés : Suppression d'indicateurs dans le tableau de gestion du capital.\n\nConséquence probable : Impact limité sur les systèmes IT, principalement lié à la mise à jour des rapports et des bases de données pour refléter la nouvelle structure.\n\nLimite de l'analyse : L'impact IT est faible car il s'agit principalement d'une modification de la présentation des données, sans changement de méthodologie ou de calcul.",
@@ -700,7 +701,8 @@
         "action_requise": "investigation",
         "reference_reglementaire": "",
         "impact_description": "Suppression d'indicateurs clés sur les fonds propres, affectant la transparence et la comparabilité des informations réglementaires.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "TD"
       },
       "genai_analysis": {
         "resume_metier": "La suppression des indicateurs 'Situation des fonds propres et ratios des fonds propres' et 'Fonds propres de catégories 1 et 2' dans le tableau de gestion du capital indique un changement significatif dans la structure du rapport. Cela peut affecter la transparence des informations sur les fonds propres réglementaires.\n\nCe changement est pertinent car il touche à la manière dont la banque présente ses fonds propres, un élément clé pour les régulateurs et les investisseurs. La suppression de ces indicateurs pourrait compliquer la comparaison avec d'autres banques.\n\nIl est important de surveiller comment la banque continue de divulguer ses informations sur les fonds propres pour s'assurer qu'elle respecte toujours les exigences réglementaires en matière de transparence et de comparabilité."
@@ -836,7 +838,7 @@
           "MODIFICATION_TEXTE_RISQUE"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Texte de risque modifié\n\nCe qui change : La note expliquant l'augmentation des actifs pondérés en fonction du risque opérationnel a été supprimée. Cette note précisait que l'augmentation était essentiellement attribuable aux charges relatives.\n\nPertinence métier : Ce changement met en évidence une modification dans la divulgation des facteurs influençant les actifs pondérés en fonction des risques. La suppression de cette note peut indiquer un changement dans la manière dont la banque communique sur ses risques opérationnels, ce qui est crucial pour comprendre les variations des actifs pondérés et leur impact sur le capital réglementaire.\n\nPoint de surveillance : Surveiller les futures divulgations pour voir si la banque fournit des explications alternatives ou si elle modifie sa méthodologie de calcul des actifs pondérés en fonction des risques.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Texte de risque modifié\n\nCe qui change : La note expliquant l'augmentation des actifs pondérés en fonction du risque opérationnel a été supprimée. Cette note précisait que l'augmentation était essentiellement attribuable aux charges relatives.\n\nPertinence métier : Ce changement met en évidence une modification dans la divulgation des facteurs influençant les actifs pondérés en fonction des risques. La suppression de cette note peut indiquer un changement dans la manière dont la banque communique sur ses risques opérationnels, ce qui est crucial pour comprendre les variations des actifs pondérés et leur impact sur le capital réglementaire. Surveiller les futures divulgations pour voir si la banque fournit des explications alternatives ou si elle modifie sa méthodologie de calcul des actifs pondérés en fonction des risques.\n\nPoint de surveillance : Surveiller les futures divulgations pour voir si la banque fournit des explications alternatives ou si elle modifie sa méthodologie de calcul des actifs pondérés en fonction des risques.",
         "impact_level": "MODERE",
         "impact_it": "FAIBLE",
         "impact_it_justification": "Éléments observés : Suppression d'une note explicative sur les actifs pondérés en fonction des risques.\n\nConséquence probable : Impact limité sur les systèmes IT, mais nécessite une mise à jour des rapports et des processus de communication interne.\n\nLimite de l'analyse : Pas de changement direct dans les systèmes IT, mais une surveillance est nécessaire pour les futures modifications de méthodologie.",
@@ -854,7 +856,8 @@
         "action_requise": "information",
         "reference_reglementaire": "",
         "impact_description": "La suppression de la note modifie la compréhension des facteurs influençant les actifs pondérés en fonction des risques.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "TD"
       },
       "genai_analysis": {
         "resume_metier": "La suppression d'une note explicative sur l'augmentation des actifs pondérés en fonction des risques opérationnels peut signaler un changement dans la manière dont la banque communique ses risques. Cela pourrait affecter la transparence et la compréhension des facteurs de risque par les parties prenantes.\n\nBien que l'impact IT soit faible, car il s'agit principalement d'une modification de contenu, il est important de surveiller les futures divulgations pour s'assurer que la banque continue de fournir des informations claires et complètes sur ses risques.\n\nCe changement est pertinent car il touche à la communication des risques opérationnels, un élément clé pour l'évaluation du capital réglementaire et la gestion des risques par la banque."
@@ -1123,7 +1126,7 @@
           "STRUCTURE_RAPPORT"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Fonds propres réglementaires, Structure du rapport\n\nCe qui change : Ajout des indicateurs 'Billets avec remboursement de capital à recours limité – série 6' et 'Évolution future des fonds propres réglementaires'. Suppression de la note sur le rachat des actions privilégiées.\n\nPertinence métier : Ce changement met l'accent sur l'évolution de la structure des fonds propres réglementaires de la banque, en introduisant de nouveaux instruments financiers et en supprimant des actions privilégiées. Cela reflète une stratégie potentielle de gestion du capital qui pourrait affecter la composition des fonds propres réglementaires et la capacité de la banque à répondre aux exigences prudentielles.\n\nPoint de surveillance : Surveiller l'impact de ces nouveaux instruments sur les ratios de fonds propres réglementaires et la stratégie de capitalisation de la banque.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Fonds propres réglementaires, Structure du rapport\n\nCe qui change : Ajout des indicateurs 'Billets avec remboursement de capital à recours limité – série 6' et 'Évolution future des fonds propres réglementaires'. Suppression de la note sur le rachat des actions privilégiées.\n\nPertinence métier : Ce changement met l'accent sur l'évolution de la structure des fonds propres réglementaires de la banque, en introduisant de nouveaux instruments financiers et en supprimant des actions privilégiées. Cela reflète une stratégie potentielle de gestion du capital qui pourrait affecter la composition des fonds propres réglementaires et la capacité de la banque à répondre aux exigences prudentielles. Surveiller l'impact de ces nouveaux instruments sur les ratios de fonds propres réglementaires et la stratégie de capitalisation de la banque.\n\nPoint de surveillance : Surveiller l'impact de ces nouveaux instruments sur les ratios de fonds propres réglementaires et la stratégie de capitalisation de la banque.",
         "impact_level": "MODERE",
         "impact_it": "MOYEN",
         "impact_it_justification": "Éléments observés : Introduction de nouveaux instruments financiers et suppression d'actions privilégiées.\n\nConséquence probable : Nécessité de mettre à jour les systèmes de gestion des fonds propres pour intégrer ces nouveaux instruments et ajuster les rapports réglementaires.\n\nLimite de l'analyse : L'impact exact sur les systèmes IT dépendra de la complexité des nouveaux instruments et des exigences de reporting associées.",
@@ -1141,7 +1144,8 @@
         "action_requise": "revue_prioritaire",
         "reference_reglementaire": "",
         "impact_description": "Introduction de nouveaux instruments financiers dans les fonds propres réglementaires, modifiant la stratégie de capitalisation.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "TD"
       },
       "genai_analysis": {
         "resume_metier": "Le tableau 'ACTIONS ET AUTRES TITRES' a été modifié pour inclure de nouveaux indicateurs liés aux fonds propres réglementaires, notamment les 'Billets avec remboursement de capital à recours limité – série 6'. Cela indique une évolution dans la stratégie de gestion du capital de la banque.\n\nL'ajout de ces nouveaux instruments financiers pourrait avoir un impact sur la composition des fonds propres réglementaires, influençant ainsi la capacité de la banque à répondre aux exigences prudentielles. La suppression de la note sur le rachat des actions privilégiées suggère un ajustement dans la structure de capital existante.\n\nIl est crucial de surveiller comment ces changements affecteront les ratios de fonds propres réglementaires et la stratégie globale de capitalisation de la banque, en tenant compte des nouvelles exigences de reporting et de gestion des fonds propres."
@@ -1260,7 +1264,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "TD"
       }
     },
     {
@@ -1372,7 +1377,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "TD"
       }
     },
     {
@@ -1484,7 +1490,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "TD"
       }
     },
     {
@@ -1638,7 +1645,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "Renommage d'indicateur sans impact substantiel.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "TD"
       },
       "genai_analysis": {
         "resume_metier": "Le changement détecté concerne uniquement le renommage d'un indicateur dans un tableau de gestion des risques. Ce type de modification est généralement considéré comme non substantiel, car il n'affecte pas la méthodologie ou les exigences réglementaires.\n\nLa reformulation de 'Total – expositions de détail' en 'Total – risque de crédit de détail' ne modifie pas la nature des données ou des calculs sous-jacents. Il s'agit d'une clarification terminologique sans impact sur la gestion des risques.\n\nAucune action particulière n'est requise, car ce changement n'introduit pas de nouvelle idée ou de modification substantielle dans le cadre de la gestion des risques ou de la conformité réglementaire."
@@ -1829,7 +1837,7 @@
           "MODIFICATION_TEXTE_RISQUE"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Structure du rapport, Texte de risque modifié\n\nCe qui change : L'indicateur 'Engagements de clients au titre d’acceptations' a été supprimé du tableau 'LIENS ENTRE LE RISQUE DE MARCHÉ ET LE BILAN', ainsi que la note associée concernant le retraitement des soldes pour IFRS 17.\n\nPertinence métier : Ce changement met en évidence une modification structurelle du rapport de gestion des risques, ce qui peut affecter la transparence et la comparabilité des informations sur le risque de marché. La suppression de l'indicateur et de la note pourrait indiquer un changement dans la manière dont la banque gère ou divulgue ses engagements liés aux acceptations, potentiellement en lien avec l'adoption d'IFRS 17.\n\nPoint de surveillance : Surveiller l'impact de la suppression de cet indicateur sur la compréhension des risques de marché et la conformité aux normes IFRS 17.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Structure du rapport, Texte de risque modifié\n\nCe qui change : L'indicateur 'Engagements de clients au titre d’acceptations' a été supprimé du tableau 'LIENS ENTRE LE RISQUE DE MARCHÉ ET LE BILAN', ainsi que la note associée concernant le retraitement des soldes pour IFRS 17.\n\nPertinence métier : Ce changement met en évidence une modification structurelle du rapport de gestion des risques, ce qui peut affecter la transparence et la comparabilité des informations sur le risque de marché. La suppression de l'indicateur et de la note pourrait indiquer un changement dans la manière dont la banque gère ou divulgue ses engagements liés aux acceptations, potentiellement en lien avec l'adoption d'IFRS 17. Surveiller l'impact de la suppression de cet indicateur sur la compréhension des risques de marché et la conformité aux normes IFRS 17.\n\nPoint de surveillance : Surveiller l'impact de la suppression de cet indicateur sur la compréhension des risques de marché et la conformité aux normes IFRS 17.",
         "impact_level": "MODERE",
         "impact_it": "MOYEN",
         "impact_it_justification": "Éléments observés : Suppression d'un indicateur et d'une note dans le tableau de gestion des risques.\n\nConséquence probable : Nécessité de mettre à jour les systèmes de reporting pour refléter ces changements, potentiellement affectant les processus de collecte et d'analyse des données.\n\nLimite de l'analyse : L'impact exact sur les systèmes IT dépend de la manière dont ces indicateurs étaient intégrés dans les processus existants.",
@@ -1847,7 +1855,8 @@
         "action_requise": "investigation",
         "reference_reglementaire": "",
         "impact_description": "Suppression d'un indicateur et d'une note, affectant la transparence des risques de marché.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "TD"
       },
       "genai_analysis": {
         "resume_metier": "La suppression de l'indicateur 'Engagements de clients au titre d’acceptations' et de la note sur IFRS 17 dans le tableau 'LIENS ENTRE LE RISQUE DE MARCHÉ ET LE BILAN' indique un changement structurel dans la divulgation des risques de marché.\n\nCe changement pourrait refléter une révision de la manière dont la banque gère ou rapporte ses engagements liés aux acceptations, potentiellement en réponse à l'adoption de nouvelles normes comptables comme IFRS 17.\n\nIl est important de surveiller comment cette modification affecte la transparence et la comparabilité des informations sur le risque de marché, ainsi que l'impact potentiel sur les systèmes IT de reporting."
@@ -1998,7 +2007,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "TD"
       }
     },
     {
@@ -2167,7 +2177,7 @@
           "STRUCTURE_RAPPORT"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Texte de risque modifié, Structure du rapport\n\nCe qui change : Les notes du tableau sur la sensibilité au risque de taux d'intérêt structurel ont été modifiées pour inclure des précisions sur la présentation par devise et l'exclusion des expositions du secteur Services bancaires de gros.\n\nPertinence métier : Ce changement met en évidence une approche plus détaillée et segmentée de la gestion du risque de taux d'intérêt, en alignement avec les attentes de transparence et de précision dans les rapports financiers. La présentation par devise permet une meilleure compréhension des expositions spécifiques, ce qui est crucial pour les investisseurs et les régulateurs.\n\nPoint de surveillance : Surveiller l'impact de cette segmentation sur la gestion des risques et la communication financière, ainsi que l'adaptation des systèmes de reporting pour intégrer ces nouvelles exigences.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Texte de risque modifié, Structure du rapport\n\nCe qui change : Les notes du tableau sur la sensibilité au risque de taux d'intérêt structurel ont été modifiées pour inclure des précisions sur la présentation par devise et l'exclusion des expositions du secteur Services bancaires de gros.\n\nPertinence métier : Ce changement met en évidence une approche plus détaillée et segmentée de la gestion du risque de taux d'intérêt, en alignement avec les attentes de transparence et de précision dans les rapports financiers. La présentation par devise permet une meilleure compréhension des expositions spécifiques, ce qui est crucial pour les investisseurs et les régulateurs. Surveiller l'impact de cette segmentation sur la gestion des risques et la communication financière, ainsi que l'adaptation des systèmes de reporting pour intégrer ces nouvelles exigences.\n\nPoint de surveillance : Surveiller l'impact de cette segmentation sur la gestion des risques et la communication financière, ainsi que l'adaptation des systèmes de reporting pour intégrer ces nouvelles exigences.",
         "impact_level": "MODERE",
         "impact_it": "MOYEN",
         "impact_it_justification": "Éléments observés : Introduction de la présentation par devise et exclusion des expositions du secteur Services bancaires de gros.\n\nConséquence probable : Adaptation des systèmes de reporting pour intégrer la segmentation par devise et ajuster les calculs de sensibilité.\n\nLimite de l'analyse : L'impact exact sur les systèmes IT dépendra de la complexité des ajustements requis pour la segmentation par devise.",
@@ -2185,7 +2195,8 @@
         "action_requise": "revue_prioritaire",
         "reference_reglementaire": "",
         "impact_description": "La segmentation par devise améliore la transparence et la précision de la gestion du risque de taux d'intérêt.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "TD"
       },
       "genai_analysis": {
         "resume_metier": "Le tableau sur la sensibilité au risque de taux d'intérêt structurel a été modifié pour inclure des notes précisant que les mesures de sensibilité seront présentées par devise à partir du 31 juillet 2025. Cela inclut également l'exclusion des expositions du secteur Services bancaires de gros.\n\nCes changements indiquent une approche plus détaillée et segmentée de la gestion du risque de taux d'intérêt, ce qui est crucial pour les investisseurs et les régulateurs. La présentation par devise permet une meilleure compréhension des expositions spécifiques.\n\nL'impact IT est modéré, nécessitant des adaptations des systèmes de reporting pour intégrer cette nouvelle segmentation par devise et ajuster les calculs de sensibilité."
@@ -2421,7 +2432,8 @@
         "action_requise": "revue_prioritaire",
         "reference_reglementaire": "",
         "impact_description": "Réorganisation des catégories d'actifs liquides, impactant la gestion de la liquidité et la transparence des rapports.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "TD"
       },
       "genai_analysis": {
         "resume_metier": "Le tableau 'SOMMAIRE DES ACTIFS LIQUIDES PAR TYPE ET PAR MONNAIE' a été modifié pour inclure de nouvelles catégories d'actifs liquides, ce qui pourrait indiquer un changement dans la stratégie de gestion de la liquidité de la banque. Les catégories spécifiques d'obligations ont été supprimées, ce qui pourrait simplifier la présentation des actifs liquides.\n\nCette modification pourrait avoir un impact sur la manière dont la banque gère sa liquidité et se conforme aux exigences réglementaires. Elle pourrait également affecter la comparabilité des rapports financiers avec ceux des périodes précédentes et avec ceux des autres banques.\n\nIl est important de surveiller comment cette réorganisation des catégories d'actifs liquides affecte la gestion de la liquidité et la transparence des rapports financiers de la banque."
@@ -2534,7 +2546,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "TD"
       }
     },
     {
@@ -2767,7 +2780,8 @@
         "action_requise": "revue_prioritaire",
         "reference_reglementaire": "",
         "impact_description": "Réorganisation des catégories d'actifs liquides, impactant la gestion de la liquidité.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "TD"
       },
       "genai_analysis": {
         "resume_metier": "Le tableau 'SOMMAIRE DES ACTIFS LIQUIDES MOYENS PAR TYPE ET PAR MONNAIE' a été modifié avec l'ajout de nouvelles catégories d'actifs liquides et la suppression de plusieurs catégories d'obligations spécifiques. Cela indique un changement dans la manière dont la banque classe et gère ses actifs liquides.\n\nCe changement est pertinent car il affecte la gestion de la liquidité de la banque, un aspect crucial pour sa stabilité financière et sa conformité réglementaire. La nouvelle classification pourrait refléter une stratégie de gestion des risques de liquidité plus flexible ou adaptée aux nouvelles exigences réglementaires.\n\nIl est important de surveiller comment ces modifications influencent les ratios de liquidité et la conformité réglementaire, ainsi que l'impact potentiel sur la stratégie de gestion des risques de la banque."
@@ -2878,7 +2892,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "TD"
       }
     },
     {
@@ -3070,7 +3085,7 @@
           "STRUCTURE_RAPPORT"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Structure du rapport\n\nCe qui change : Le tableau 'ACTIFS GREVÉS ET ACTIFS NON GREVÉS' a été modifié avec l'ajout de l'indicateur 'Trésorerie et montants à recevoir de banques' et la suppression de 'Trésorerie et montants à recevoir'. De plus, une note a été supprimée et une autre modifiée.\n\nPertinence métier : Ce changement met en évidence une réorganisation des indicateurs financiers dans le tableau, ce qui peut affecter la comparabilité des données entre les périodes et potentiellement influencer l'analyse de la liquidité et de la gestion des actifs de la banque. La suppression de la note sur le retraitement des soldes pourrait également avoir des implications sur la transparence des informations fournies.\n\nPoint de surveillance : Surveiller l'impact de ces modifications sur la compréhension des actifs grevés et non grevés, ainsi que sur la transparence des informations financières fournies par la banque.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Structure du rapport\n\nCe qui change : Le tableau 'ACTIFS GREVÉS ET ACTIFS NON GREVÉS' a été modifié avec l'ajout de l'indicateur 'Trésorerie et montants à recevoir de banques' et la suppression de 'Trésorerie et montants à recevoir'. De plus, une note a été supprimée et une autre modifiée.\n\nPertinence métier : Ce changement met en évidence une réorganisation des indicateurs financiers dans le tableau, ce qui peut affecter la comparabilité des données entre les périodes et potentiellement influencer l'analyse de la liquidité et de la gestion des actifs de la banque. La suppression de la note sur le retraitement des soldes pourrait également avoir des implications sur la transparence des informations fournies. Surveiller l'impact de ces modifications sur la compréhension des actifs grevés et non grevés, ainsi que sur la transparence des informations financières fournies par la banque.\n\nPoint de surveillance : Surveiller l'impact de ces modifications sur la compréhension des actifs grevés et non grevés, ainsi que sur la transparence des informations financières fournies par la banque.",
         "impact_level": "MODERE",
         "impact_it": "FAIBLE",
         "impact_it_justification": "Éléments observés : Modification des indicateurs dans le tableau des actifs grevés et non grevés.\n\nConséquence probable : Ajustement mineur des systèmes de reporting pour refléter les nouveaux indicateurs et la suppression de notes.\n\nLimite de l'analyse: L'impact IT est limité car il s'agit principalement de modifications de contenu sans transformation technologique majeure.",
@@ -3088,7 +3103,8 @@
         "action_requise": "information",
         "reference_reglementaire": "",
         "impact_description": "Modification de la structure du tableau des actifs grevés et non grevés, influençant la présentation et l'analyse des données financières.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "TD"
       },
       "genai_analysis": {
         "resume_metier": "Le tableau 'ACTIFS GREVÉS ET ACTIFS NON GREVÉS' a subi des modifications avec l'ajout et la suppression d'indicateurs, ainsi que des changements dans les notes explicatives. Ces modifications peuvent influencer la manière dont les actifs sont présentés et interprétés.\n\nL'ajout de 'Trésorerie et montants à recevoir de banques' et la suppression de 'Trésorerie et montants à recevoir' indiquent une réorganisation des catégories d'actifs, ce qui peut affecter la comparabilité des données financières.\n\nLa suppression de la note sur le retraitement des soldes pourrait réduire la transparence des informations historiques, ce qui est important pour les analystes et les régulateurs qui examinent la cohérence des rapports financiers."
@@ -3251,7 +3267,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "TD"
       }
     },
     {
@@ -3368,7 +3385,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "TD"
       }
     },
     {
@@ -3535,7 +3553,7 @@
           "HYPOTHESES_EXPLICATIONS_RISQUES"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Liquidité, Hypothèses ou explications de risque\n\nCe qui change : Une note a été ajoutée au tableau 'RATIO DE LIQUIDITÉ À COURT TERME MOYEN' précisant que les attentes de la Banque en matière de niveaux de liquidités reposent sur ses propres hypothèses.\n\nPertinence métier : Ce changement met en évidence l'importance des hypothèses internes de la Banque dans la gestion de sa liquidité à court terme. Cela peut influencer la manière dont la Banque évalue ses besoins en liquidités et sa capacité à répondre aux exigences réglementaires. Les hypothèses sous-jacentes peuvent affecter la comparabilité avec d'autres banques qui pourraient utiliser des hypothèses différentes.\n\nPoint de surveillance : Surveiller comment ces hypothèses influencent les niveaux de liquidité déclarés et si elles sont alignées avec les attentes réglementaires et les meilleures pratiques du secteur.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Liquidité, Hypothèses ou explications de risque\n\nCe qui change : Une note a été ajoutée au tableau 'RATIO DE LIQUIDITÉ À COURT TERME MOYEN' précisant que les attentes de la Banque en matière de niveaux de liquidités reposent sur ses propres hypothèses.\n\nPertinence métier : Ce changement met en évidence l'importance des hypothèses internes de la Banque dans la gestion de sa liquidité à court terme. Cela peut influencer la manière dont la Banque évalue ses besoins en liquidités et sa capacité à répondre aux exigences réglementaires. Les hypothèses sous-jacentes peuvent affecter la comparabilité avec d'autres banques qui pourraient utiliser des hypothèses différentes. Surveiller comment ces hypothèses influencent les niveaux de liquidité déclarés et si elles sont alignées avec les attentes réglementaires et les meilleures pratiques du secteur.\n\nPoint de surveillance : Surveiller comment ces hypothèses influencent les niveaux de liquidité déclarés et si elles sont alignées avec les attentes réglementaires et les meilleures pratiques du secteur.",
         "impact_level": "MODERE",
         "impact_it": "FAIBLE",
         "impact_it_justification": "Éléments observés : Ajout d'une note explicative sur les hypothèses de liquidité.\n\nConséquence probable : Impact limité sur les systèmes IT, principalement lié à la documentation et à la communication des hypothèses.\n\nLimite de l'analyse : Pas de changement technologique ou de processus IT majeur identifié.",
@@ -3553,7 +3571,8 @@
         "action_requise": "information",
         "reference_reglementaire": "",
         "impact_description": "Ajout d'une note sur les hypothèses de liquidité, renforçant la transparence et la gestion des risques.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "TD"
       },
       "genai_analysis": {
         "resume_metier": "Le tableau 'RATIO DE LIQUIDITÉ À COURT TERME MOYEN' a été modifié avec l'ajout d'une note expliquant que les attentes de la Banque en matière de liquidité reposent sur ses propres hypothèses. Cela souligne l'importance des hypothèses internes dans la gestion de la liquidité.\n\nCe changement est pertinent car il affecte la manière dont la Banque évalue ses besoins en liquidités et sa capacité à répondre aux exigences réglementaires. Les hypothèses peuvent influencer la comparabilité avec d'autres banques.\n\nL'ajout de cette note renforce la transparence et la compréhension des niveaux de liquidité, ce qui est crucial pour la gestion des risques et la conformité réglementaire."
@@ -3785,7 +3804,7 @@
           "NOUVELLE_MENTION_REGLEMENTAIRE"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Liquidité, Nouvelle mention réglementaire\n\nCe qui change : Ajout de notes précisant que le NSFR est calculé conformément à la ligne directrice Normes de liquidité du BSIF, avec des détails sur les pondérations et les éléments interdépendants.\n\nPertinence métier : Ce changement met en évidence l'alignement de la banque avec les normes de liquidité du BSIF, ce qui est crucial pour assurer la conformité réglementaire et la gestion efficace des risques de liquidité. La mention explicite des pondérations et des éléments interdépendants souligne l'application rigoureuse des normes, renforçant ainsi la transparence et la comparabilité entre pairs.\n\nPoint de surveillance : Surveiller l'impact de ces précisions sur la gestion de la liquidité et la conformité aux exigences du BSIF.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Liquidité, Nouvelle mention réglementaire\n\nCe qui change : Ajout de notes précisant que le NSFR est calculé conformément à la ligne directrice Normes de liquidité du BSIF, avec des détails sur les pondérations et les éléments interdépendants.\n\nPertinence métier : Ce changement met en évidence l'alignement de la banque avec les normes de liquidité du BSIF, ce qui est crucial pour assurer la conformité réglementaire et la gestion efficace des risques de liquidité. La mention explicite des pondérations et des éléments interdépendants souligne l'application rigoureuse des normes, renforçant ainsi la transparence et la comparabilité entre pairs. Surveiller l'impact de ces précisions sur la gestion de la liquidité et la conformité aux exigences du BSIF. Le tableau sur le ratio de liquidité à long terme a été modifié pour inclure des notes détaillant le calcul du NSFR selon les normes du BSIF.\n\nPoint de surveillance : Surveiller l'impact de ces précisions sur la gestion de la liquidité et la conformité aux exigences du BSIF.",
         "impact_level": "MAJEUR",
         "impact_it": "MOYEN",
         "impact_it_justification": "Éléments observés : Ajout de notes sur le calcul du NSFR selon les normes du BSIF.\n\nConséquence probable : Nécessité de mettre à jour les systèmes de calcul de la liquidité pour intégrer les pondérations et les interdépendances selon les nouvelles directives.\n\nLimite de l'analyse : L'impact exact sur les systèmes IT dépend de la complexité des ajustements requis pour se conformer aux nouvelles normes.",
@@ -3803,7 +3822,8 @@
         "action_requise": "revue_prioritaire",
         "reference_reglementaire": "Bâle III — NSFR",
         "impact_description": "Ajout de notes sur le calcul du NSFR selon les normes du BSIF, renforçant la conformité et la gestion des risques de liquidité.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "TD"
       },
       "genai_analysis": {
         "resume_metier": "Le tableau sur le ratio de liquidité à long terme a été modifié pour inclure des notes détaillant le calcul du NSFR selon les normes du BSIF. Cela inclut des précisions sur les pondérations et les éléments interdépendants, ce qui renforce la transparence et la conformité réglementaire.\n\nCes ajouts soulignent l'importance de l'alignement avec les exigences du BSIF, crucial pour la gestion des risques de liquidité. Ils permettent également une meilleure comparabilité entre les banques, en assurant que les pratiques de calcul sont conformes aux normes établies.\n\nL'impact IT est modéré, nécessitant potentiellement des ajustements dans les systèmes de calcul pour intégrer ces nouvelles exigences. Cela démontre un renforcement des contrôles et de la diligence en matière de gestion de la liquidité."
@@ -3954,7 +3974,7 @@
           "STRUCTURE_RAPPORT"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Méthode de calcul ou approche modifiée, Structure du rapport\n\nCe qui change : Les indicateurs 'Dépôts personnels et commerciaux – au Canada' et 'Dépôts personnels et commerciaux – aux États-Unis' ont été remplacés par 'Dépôts personnels' et 'Dépôts non personnels'. La note associée a été modifiée pour indiquer un changement dans la méthode de calcul.\n\nPertinence métier : Ce changement met en évidence une modification de la méthodologie de calcul des dépôts, ce qui peut affecter la comparabilité des données entre les périodes et potentiellement entre les pairs. La simplification des catégories de dépôts pourrait refléter une nouvelle approche de gestion du financement par la banque, influençant la transparence et la clarté des rapports financiers.\n\nPoint de surveillance : Surveiller l'impact de cette nouvelle méthodologie sur les rapports futurs et la manière dont elle pourrait affecter l'analyse des dépôts par les investisseurs et les régulateurs.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Méthode de calcul ou approche modifiée, Structure du rapport\n\nCe qui change : Les indicateurs 'Dépôts personnels et commerciaux – au Canada' et 'Dépôts personnels et commerciaux – aux États-Unis' ont été remplacés par 'Dépôts personnels' et 'Dépôts non personnels'. La note associée a été modifiée pour indiquer un changement dans la méthode de calcul.\n\nPertinence métier : Ce changement met en évidence une modification de la méthodologie de calcul des dépôts, ce qui peut affecter la comparabilité des données entre les périodes et potentiellement entre les pairs. La simplification des catégories de dépôts pourrait refléter une nouvelle approche de gestion du financement par la banque, influençant la transparence et la clarté des rapports financiers. Surveiller l'impact de cette nouvelle méthodologie sur les rapports futurs et la manière dont elle pourrait affecter l'analyse des dépôts par les investisseurs et les régulateurs.\n\nPoint de surveillance : Surveiller l'impact de cette nouvelle méthodologie sur les rapports futurs et la manière dont elle pourrait affecter l'analyse des dépôts par les investisseurs et les régulateurs.",
         "impact_level": "MODERE",
         "impact_it": "MOYEN",
         "impact_it_justification": "Éléments observés : Modification des indicateurs de dépôts et de la méthode de calcul.\n\nConséquence probable : Nécessité de mettre à jour les systèmes de reporting pour refléter les nouvelles catégories et méthodes de calcul, ce qui pourrait impliquer des ajustements dans les bases de données et les processus de reporting.\n\nLimite de l'analyse : L'impact exact sur les systèmes IT dépend de la complexité des changements requis dans les processus de collecte et de reporting des données.",
@@ -3972,7 +3992,8 @@
         "action_requise": "revue_prioritaire",
         "reference_reglementaire": "",
         "impact_description": "Modification de la méthode de calcul des dépôts, influençant la transparence et la comparabilité des données financières.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "TD"
       },
       "genai_analysis": {
         "resume_metier": "Le tableau 'SOMMAIRE DU FINANCEMENT PROVENANT DES DÉPÔTS' a subi des modifications importantes avec l'ajout de nouveaux indicateurs et la suppression d'anciens. La note associée indique un changement de méthodologie, ce qui est crucial pour la transparence et la comparabilité des données.\n\nCes changements reflètent une potentielle révision de la stratégie de financement de la banque, ce qui pourrait avoir des implications sur la gestion du risque de liquidité et la manière dont les dépôts sont analysés par les parties prenantes.\n\nIl est essentiel de surveiller comment ces modifications affecteront les rapports futurs et l'analyse des dépôts par les investisseurs et les régulateurs, en particulier en ce qui concerne la transparence et la clarté des informations fournies."
@@ -4083,7 +4104,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "TD"
       }
     },
     {
@@ -4224,7 +4246,7 @@
           "STRUCTURE_RAPPORT"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Liquidité\n\nCe qui change : La note de bas de tableau a été modifiée pour inclure une distinction entre les billets garantis et non garantis, ainsi que de premier rang et subordonnés.\n\nPertinence métier : Ce changement met en évidence une clarification importante dans la présentation du financement à long terme, ce qui peut affecter la perception de la liquidité et de la structure de financement de la banque. La distinction entre les types de billets est cruciale pour évaluer le risque de liquidité et la qualité du financement.\n\nPoint de surveillance : Surveiller comment cette nouvelle distinction impacte l'analyse de la liquidité et la stratégie de financement de la banque, ainsi que sa conformité aux attentes réglementaires en matière de divulgation de la liquidité.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Liquidité\n\nCe qui change : La note de bas de tableau a été modifiée pour inclure une distinction entre les billets garantis et non garantis, ainsi que de premier rang et subordonnés.\n\nPertinence métier : Ce changement met en évidence une clarification importante dans la présentation du financement à long terme, ce qui peut affecter la perception de la liquidité et de la structure de financement de la banque. La distinction entre les types de billets est cruciale pour évaluer le risque de liquidité et la qualité du financement. Surveiller comment cette nouvelle distinction impacte l'analyse de la liquidité et la stratégie de financement de la banque, ainsi que sa conformité aux attentes réglementaires en matière de divulgation de la liquidité.\n\nPoint de surveillance : Surveiller comment cette nouvelle distinction impacte l'analyse de la liquidité et la stratégie de financement de la banque, ainsi que sa conformité aux attentes réglementaires en matière de divulgation de la liquidité.",
         "impact_level": "MODERE",
         "impact_it": "FAIBLE",
         "impact_it_justification": "Éléments observés : Modification de la note de bas de tableau pour inclure des distinctions spécifiques sur les types de billets.\n\nConséquence probable : Nécessité de mettre à jour les systèmes de reporting pour refléter ces distinctions dans les rapports de liquidité.\n\nLimite de l'analyse : L'impact IT est limité à des ajustements dans les systèmes de reporting sans transformation technologique majeure.",
@@ -4242,7 +4264,8 @@
         "action_requise": "information",
         "reference_reglementaire": "",
         "impact_description": "Clarification des types de billets dans le financement à long terme, influençant l'analyse de la liquidité.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "TD"
       },
       "genai_analysis": {
         "resume_metier": "La modification de la note de bas de tableau dans la section sur le financement à long terme introduit une distinction entre les billets garantis et non garantis, ainsi que de premier rang et subordonnés. Cette clarification est cruciale pour évaluer la qualité et la structure du financement de la banque, influençant ainsi l'analyse de la liquidité.\n\nEn renforçant la transparence des informations fournies, la banque améliore sa gestion du risque de liquidité et sa conformité aux attentes réglementaires. Cette modification nécessite des ajustements mineurs dans les systèmes de reporting pour refléter ces distinctions.\n\nLa distinction entre les types de billets est un élément clé pour les investisseurs et les régulateurs, car elle affecte la perception de la solidité financière de la banque et sa capacité à honorer ses engagements financiers."
@@ -4489,7 +4512,7 @@
           "STRUCTURE_RAPPORT"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Liquidité et structure du rapport\n\nCe qui change : Le tableau 'FINANCEMENT DE GROS' a été modifié pour inclure des notes sur la dette de premier rang et les dépôts à échéance déterminée d'institutions autres que des banques, avec une mise à jour du montant de 26,9 milliards de dollars.\n\nPertinence métier : Ce changement met en évidence une révision de la présentation des sources de financement de gros, ce qui peut affecter la perception de la liquidité et de la stabilité financière de la banque. L'ajout de détails sur la dette de premier rang et les dépôts non garantis est crucial pour évaluer la résilience en cas de crise, conformément aux attentes réglementaires sur la transparence des sources de financement.\n\nPoint de surveillance : Surveiller l'impact de ces changements sur les ratios de liquidité et la conformité aux exigences réglementaires en matière de financement de gros.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Liquidité et structure du rapport\n\nCe qui change : Le tableau 'FINANCEMENT DE GROS' a été modifié pour inclure des notes sur la dette de premier rang et les dépôts à échéance déterminée d'institutions autres que des banques, avec une mise à jour du montant de 26,9 milliards de dollars.\n\nPertinence métier : Ce changement met en évidence une révision de la présentation des sources de financement de gros, ce qui peut affecter la perception de la liquidité et de la stabilité financière de la banque. L'ajout de détails sur la dette de premier rang et les dépôts non garantis est crucial pour évaluer la résilience en cas de crise, conformément aux attentes réglementaires sur la transparence des sources de financement. Surveiller l'impact de ces changements sur les ratios de liquidité et la conformité aux exigences réglementaires en matière de financement de gros.\n\nPoint de surveillance : Surveiller l'impact de ces changements sur les ratios de liquidité et la conformité aux exigences réglementaires en matière de financement de gros.",
         "impact_level": "MAJEUR",
         "impact_it": "MOYEN",
         "impact_it_justification": "Éléments observés : Modification de la présentation des sources de financement de gros avec des détails supplémentaires sur la dette et les dépôts.\n\nConséquence probable : Nécessité de mettre à jour les systèmes de reporting pour refléter ces changements et assurer la conformité avec les nouvelles exigences de divulgation.\n\nLimite de l'analyse: L'impact exact sur les systèmes IT dépendra de la complexité des modifications requises pour intégrer ces nouvelles données.",
@@ -4507,7 +4530,8 @@
         "action_requise": "revue_prioritaire",
         "reference_reglementaire": "Bâle III — LCR",
         "impact_description": "Modification de la présentation des sources de financement de gros, influençant la transparence et la gestion des risques de liquidité.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "TD"
       },
       "genai_analysis": {
         "resume_metier": "Le tableau 'FINANCEMENT DE GROS' a été modifié pour inclure des informations supplémentaires sur la dette de premier rang et les dépôts à échéance déterminée d'institutions autres que des banques. Cela reflète un changement dans la présentation des sources de financement, ce qui est crucial pour évaluer la liquidité de la banque.\n\nCe changement est pertinent car il améliore la transparence des sources de financement, ce qui est essentiel pour la gestion des risques de liquidité et la conformité réglementaire. Les détails supplémentaires sur la dette de premier rang et les dépôts non garantis permettent une meilleure évaluation de la résilience financière de la banque.\n\nIl est important de surveiller l'impact de ces modifications sur les ratios de liquidité et la conformité aux exigences réglementaires, car cela pourrait influencer la perception de la stabilité financière de la banque."
@@ -4825,7 +4849,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "Ajustements chiffrés internes sans implication réglementaire.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "TD"
       },
       "genai_analysis": {
         "resume_metier": "Les modifications apportées aux montants des obligations sécurisées et des engagements de crédit sont des ajustements chiffrés propres à la banque. Ces changements n'affectent pas les seuils ou exigences réglementaires, et ne modifient pas la substance de la divulgation.\n\nL'indicateur supprimé, 'Engagements de clients au titre d’acceptations', n'est pas lié à un changement de méthodologie ou à une nouvelle exigence réglementaire. Il s'agit d'une réorganisation interne sans impact sur la conformité ou la gestion des risques.\n\nEn conséquence, ces changements ne sont pas pertinents pour la taxonomie AMF et ne nécessitent pas de surveillance particulière."
@@ -5151,7 +5176,7 @@
           "MODIFICATION_TEXTE_RISQUE"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Structure du rapport, Texte de risque modifié\n\nCe qui change : L'indicateur 'Engagements de clients au titre d’acceptations' a été supprimé du tableau 'DURÉE CONTRACTUELLE RESTANTE', et des notes ont été ajoutées et modifiées concernant les obligations sécurisées et les engagements de crédit.\n\nPertinence métier : Ce changement met en évidence une réorganisation des informations présentées dans le tableau, ce qui peut affecter la transparence et la comparabilité des données financières. La suppression de l'indicateur et les modifications des notes peuvent refléter un changement dans la manière dont la banque gère ou présente ses engagements financiers, ce qui est crucial pour les analystes et les régulateurs.\n\nPoint de surveillance : Surveiller l'impact de ces modifications sur la compréhension des engagements financiers de la banque et leur conformité aux normes de divulgation.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Structure du rapport, Texte de risque modifié\n\nCe qui change : L'indicateur 'Engagements de clients au titre d’acceptations' a été supprimé du tableau 'DURÉE CONTRACTUELLE RESTANTE', et des notes ont été ajoutées et modifiées concernant les obligations sécurisées et les engagements de crédit.\n\nPertinence métier : Ce changement met en évidence une réorganisation des informations présentées dans le tableau, ce qui peut affecter la transparence et la comparabilité des données financières. La suppression de l'indicateur et les modifications des notes peuvent refléter un changement dans la manière dont la banque gère ou présente ses engagements financiers, ce qui est crucial pour les analystes et les régulateurs. Surveiller l'impact de ces modifications sur la compréhension des engagements financiers de la banque et leur conformité aux normes de divulgation.\n\nPoint de surveillance : Surveiller l'impact de ces modifications sur la compréhension des engagements financiers de la banque et leur conformité aux normes de divulgation.",
         "impact_level": "MODERE",
         "impact_it": "MOYEN",
         "impact_it_justification": "Éléments observés : Modification des notes et suppression d'un indicateur dans le tableau.\n\nConséquence probable : Nécessité de mettre à jour les systèmes de reporting pour refléter ces changements, ce qui peut impliquer des ajustements dans les bases de données et les processus de génération de rapports.\n\nLimite de l'analyse : L'impact exact sur les systèmes IT dépend de la manière dont ces données sont intégrées et utilisées dans les processus internes de la banque.",
@@ -5169,7 +5194,8 @@
         "action_requise": "investigation",
         "reference_reglementaire": "",
         "impact_description": "Réorganisation des informations financières dans le tableau, affectant la transparence et la comparabilité.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "TD"
       },
       "genai_analysis": {
         "resume_metier": "Le tableau 'DURÉE CONTRACTUELLE RESTANTE' a subi des modifications significatives, notamment la suppression de l'indicateur 'Engagements de clients au titre d’acceptations'. Cela peut indiquer un changement dans la manière dont la banque gère ou présente ses engagements financiers.\n\nLes notes ajoutées et modifiées concernant les obligations sécurisées et les engagements de crédit soulignent une réorganisation des informations, ce qui peut affecter la transparence et la comparabilité des données financières.\n\nCes changements nécessitent une attention particulière pour comprendre leur impact sur la gestion des risques et la conformité aux normes de divulgation, ainsi que sur les systèmes IT de la banque."

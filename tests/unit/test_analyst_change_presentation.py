@@ -313,3 +313,28 @@ def test_change_scope_keeps_relevant_qualitative_change() -> None:
         )
         == "qualitative"
     )
+
+
+def test_build_analyst_narrative_combines_relevance_and_surveillance_details() -> None:
+    change = {
+        "diff_type": "modified",
+        "genai_triage": {
+            "is_relevant": True,
+            "nouvelle_idee": True,
+            "nouvelle_idee_justification": (
+                "OUI — Nouvel élément à surveiller : Oui.\n\n"
+                "Sujet détecté : Risque commercial et géopolitique, Cybersécurité.\n\n"
+                "Ce qui change : BMO ajoute une sous-section sur la surveillance des tensions géopolitiques et des cybermenaces.\n\n"
+                "Pertinence métier : Ce changement met l'accent sur la réduction de la transparence de la banque concernant les cybermenaces, un risque émergent prioritaire. Le retrait de cette divulgation modifie la lecture de l'exposition de la banque aux risques technologiques et à la sécurité de l'information.\n\n"
+                "Point de surveillance : Risque commercial et géopolitique — Le changement indique que BMO renforce sa surveillance des tensions géopolitiques. Ce point permet de suivre l'évolution de la résilience de la banque face aux risques externes et la comparabilité de sa gestion des risques géopolitiques avec les pairs."
+            ),
+        },
+    }
+
+    narrative = build_analyst_narrative(change, bank_code="bmo")
+
+    assert "cybermenaces" in narrative.pertinence_metier
+    assert "résilience" in narrative.pertinence_metier
+    assert "comparabilité" in narrative.pertinence_metier
+    assert "tensions géopolitiques" in narrative.pertinence_metier
+    assert "\n" not in narrative.pertinence_metier.strip()  # Paragraphe continu fluide

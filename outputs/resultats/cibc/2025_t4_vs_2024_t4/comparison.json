@@ -1120,7 +1120,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "CIBC"
       }
     },
     {
@@ -1248,7 +1249,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "CIBC"
       }
     },
     {
@@ -1458,7 +1460,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "CIBC"
       }
     },
     {
@@ -1639,7 +1642,7 @@
           "EXIGENCES_REGLEMENTAIRES"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Fonds propres réglementaires, Exigences réglementaires ou conformité\n\nCe qui change : CIBC supprime une note indiquant que les résultats pour 2023 reflètent l’incidence de la mise en œuvre des réformes de Bâle III qui ont pris effet le 1er février.\n\nPertinence métier : Ce changement met en évidence l'importance des réformes de Bâle III sur les fonds propres réglementaires de la banque. La suppression de cette note pourrait indiquer que l'impact des réformes a été intégré et n'est plus considéré comme un facteur distinct nécessitant une divulgation spécifique. Cela peut affecter la transparence et la comparabilité des informations entre les périodes.\n\nPoint de surveillance : Surveiller comment CIBC continue de divulguer l'impact des réformes de Bâle III sur ses fonds propres réglementaires et s'assurer que les exigences réglementaires sont toujours respectées.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Fonds propres réglementaires, Exigences réglementaires ou conformité\n\nCe qui change : CIBC supprime une note indiquant que les résultats pour 2023 reflètent l’incidence de la mise en œuvre des réformes de Bâle III qui ont pris effet le 1er février.\n\nPertinence métier : Ce changement met en évidence l'importance des réformes de Bâle III sur les fonds propres réglementaires de la banque. La suppression de cette note pourrait indiquer que l'impact des réformes a été intégré et n'est plus considéré comme un facteur distinct nécessitant une divulgation spécifique. Cela peut affecter la transparence et la comparabilité des informations entre les périodes. Surveiller comment CIBC continue de divulguer l'impact des réformes de Bâle III sur ses fonds propres réglementaires et s'assurer que les exigences réglementaires sont toujours respectées.\n\nPoint de surveillance : Surveiller comment CIBC continue de divulguer l'impact des réformes de Bâle III sur ses fonds propres réglementaires et s'assurer que les exigences réglementaires sont toujours respectées.",
         "impact_level": "MAJEUR",
         "impact_it": "INDETERMINE",
         "impact_it_justification": "",
@@ -1657,7 +1660,8 @@
         "action_requise": "revue_prioritaire",
         "reference_reglementaire": "Bâle III — CET1",
         "impact_description": "La suppression de la note sur l'impact des réformes de Bâle III pourrait affecter la transparence des fonds propres réglementaires.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "CIBC"
       },
       "genai_analysis": {
         "resume_metier": "La suppression de la note concernant l'impact des réformes de Bâle III sur les fonds propres réglementaires de CIBC est un changement pertinent. Cela pourrait indiquer que l'impact de ces réformes est désormais intégré dans les résultats de la banque, mais cela soulève des questions sur la transparence et la comparabilité des informations fournies.\n\nLes réformes de Bâle III sont cruciales pour la gestion des fonds propres réglementaires, et leur mise en œuvre peut avoir des implications significatives sur la structure de capital d'une banque. La suppression de cette note pourrait signifier que CIBC considère que l'impact est désormais normalisé, mais cela nécessite une surveillance continue pour s'assurer que les exigences réglementaires sont toujours respectées.\n\nIl est important de surveiller comment CIBC continue de divulguer l'impact des réformes de Bâle III et de s'assurer que les informations fournies restent conformes aux attentes réglementaires et comparables entre les périodes."
@@ -1917,7 +1921,7 @@
           "CAPITAL_REGLEMENTAIRE"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Méthode de calcul ou approche modifiée, Capital réglementaire\n\nCe qui change : CIBC a supprimé des notes indiquant l'application de l'approche NI à la majeure partie des portefeuilles de crédit et des changements liés à la mise en œuvre des règles de l'exam depuis le premier trimestre de 2024.\n\nPertinence métier : Ce changement met l'accent sur une modification substantielle de la méthodologie de calcul des actifs pondérés en fonction du risque, ce qui peut affecter la manière dont CIBC évalue son capital réglementaire. Cela a des implications directes sur la conformité aux exigences prudentielles et sur la comparabilité avec les pairs.\n\nPoint de surveillance : Surveiller l'impact de ces modifications méthodologiques sur les ratios de capital réglementaire de CIBC et leur conformité aux nouvelles règles prudentielles.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Méthode de calcul ou approche modifiée, Capital réglementaire\n\nCe qui change : CIBC a supprimé des notes indiquant l'application de l'approche NI à la majeure partie des portefeuilles de crédit et des changements liés à la mise en œuvre des règles de l'exam depuis le premier trimestre de 2024.\n\nPertinence métier : Ce changement met l'accent sur une modification substantielle de la méthodologie de calcul des actifs pondérés en fonction du risque, ce qui peut affecter la manière dont CIBC évalue son capital réglementaire. Cela a des implications directes sur la conformité aux exigences prudentielles et sur la comparabilité avec les pairs. Surveiller l'impact de ces modifications méthodologiques sur les ratios de capital réglementaire de CIBC et leur conformité aux nouvelles règles prudentielles.\n\nPoint de surveillance : Surveiller l'impact de ces modifications méthodologiques sur les ratios de capital réglementaire de CIBC et leur conformité aux nouvelles règles prudentielles.",
         "impact_level": "MAJEUR",
         "impact_it": "MOYEN",
         "impact_it_justification": "Éléments observés : Suppression de notes sur l'application de l'approche NI et des règles de l'exam.\n\nConséquence probable : Nécessité d'adapter les systèmes de calcul des actifs pondérés en fonction du risque pour refléter les nouvelles méthodologies.\n\nLimite de l'analyse: L'impact exact sur les systèmes IT dépend des détails techniques de l'approche NI et des règles de l'exam.",
@@ -1935,7 +1939,8 @@
         "action_requise": "revue_prioritaire",
         "reference_reglementaire": "Bâle III — CET1",
         "impact_description": "Modification de la méthodologie de calcul des actifs pondérés en fonction du risque, influençant le capital réglementaire.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "CIBC"
       },
       "genai_analysis": {
         "resume_metier": "La suppression des notes concernant l'application de l'approche NI et les changements liés aux règles de l'exam indique une modification substantielle de la méthodologie de calcul des actifs pondérés en fonction du risque chez CIBC.\n\nCe changement est pertinent car il affecte directement la manière dont la banque évalue son capital réglementaire, ce qui est crucial pour sa conformité aux exigences prudentielles et sa comparabilité avec les autres banques.\n\nIl est important de surveiller comment ces modifications méthodologiques influencent les ratios de capital réglementaire de CIBC et leur alignement avec les nouvelles règles prudentielles."
@@ -2067,7 +2072,7 @@
           "GOUVERNANCE_RISQUES"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Facteur de risque modifié, Gouvernance des risques\n\nCe qui change : CIBC ajoute l'indicateur 'Autres risques' et supprime 'Risque stratégique' dans son cadre de gestion du risque.\n\nPertinence métier : Ce changement met l'accent sur une réévaluation des priorités de gestion des risques par CIBC. L'ajout d'un indicateur 'Autres risques' pourrait indiquer une reconnaissance de nouveaux risques émergents ou non catégorisés auparavant, tandis que la suppression du 'Risque stratégique' pourrait signaler un changement dans la perception ou la gestion de ce type de risque. Cela a des implications pour la gouvernance des risques et la manière dont la banque priorise ses ressources et ses efforts de gestion des risques.\n\nPoint de surveillance : Surveiller comment CIBC intègre ces 'Autres risques' dans ses processus de gestion et si cela reflète une adaptation à des risques émergents ou une nouvelle approche stratégique.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Facteur de risque modifié, Gouvernance des risques\n\nCe qui change : CIBC ajoute l'indicateur 'Autres risques' et supprime 'Risque stratégique' dans son cadre de gestion du risque.\n\nPertinence métier : Ce changement met l'accent sur une réévaluation des priorités de gestion des risques par CIBC. L'ajout d'un indicateur 'Autres risques' pourrait indiquer une reconnaissance de nouveaux risques émergents ou non catégorisés auparavant, tandis que la suppression du 'Risque stratégique' pourrait signaler un changement dans la perception ou la gestion de ce type de risque. Cela a des implications pour la gouvernance des risques et la manière dont la banque priorise ses ressources et ses efforts de gestion des risques. Surveiller comment CIBC intègre ces 'Autres risques' dans ses processus de gestion et si cela reflète une adaptation à des risques émergents ou une nouvelle approche stratégique.\n\nPoint de surveillance : Surveiller comment CIBC intègre ces 'Autres risques' dans ses processus de gestion et si cela reflète une adaptation à des risques émergents ou une nouvelle approche stratégique.",
         "impact_level": "MODERE",
         "impact_it": "MOYEN",
         "impact_it_justification": "Éléments observés : Modification des indicateurs de risque dans le cadre de gestion.\n\nConséquence probable : Nécessité d'adapter les systèmes de reporting et de gestion des risques pour intégrer le nouvel indicateur 'Autres risques'.\n\nLimite de l'analyse : L'impact exact sur les systèmes IT dépendra de la nature précise des 'Autres risques' et de leur intégration dans les processus existants.",
@@ -2085,7 +2090,8 @@
         "action_requise": "revue_prioritaire",
         "reference_reglementaire": "",
         "impact_description": "Modification des priorités de gestion des risques avec l'ajout d'un nouvel indicateur et la suppression d'un autre.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "CIBC"
       },
       "genai_analysis": {
         "resume_metier": "CIBC a modifié son cadre de gestion du risque en ajoutant un nouvel indicateur 'Autres risques' et en supprimant 'Risque stratégique'.\n\nCe changement pourrait refléter une réévaluation des priorités de gestion des risques, potentiellement en réponse à des risques émergents ou à une nouvelle approche stratégique.\n\nIl est important de surveiller comment ces 'Autres risques' seront intégrés dans les processus de gestion et si cela reflète une adaptation à des risques émergents."
@@ -2208,7 +2214,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "CIBC"
       }
     },
     {
@@ -2347,7 +2354,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "Renommage des niveaux de risque sans impact sur la gestion des risques.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "CIBC"
       },
       "genai_analysis": {
         "resume_metier": "Le changement détecté concerne uniquement le renommage des indicateurs de risque de 'Bas' à 'Faible' et de 'Haut' à 'Élevé'.\n\nCe type de modification est considéré comme une reformulation sans impact substantiel sur la gestion des risques ou la méthodologie de la banque.\n\nAucune action n'est requise car ce changement n'affecte pas les attentes prudentielles ou la comparabilité entre pairs."
@@ -2588,7 +2596,7 @@
           "STRUCTURE_RAPPORT"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Méthode de calcul ou approche modifiée\n\nCe qui change : CIBC a supprimé la note indiquant que l'approche NI est appliquée à la majeure partie des portefeuilles de crédit depuis le premier trimestre de 2024.\n\nPertinence métier : Ce changement met en évidence une modification potentielle de la méthodologie de gestion du risque de crédit, ce qui pourrait avoir un impact sur la manière dont CIBC évalue et gère ses expositions au risque de crédit. Cela pourrait également affecter la comparabilité des rapports entre pairs si la méthodologie diffère.\n\nPoint de surveillance : Surveiller les implications de la suppression de cette note sur la gestion du risque de crédit et la méthodologie appliquée par CIBC.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Méthode de calcul ou approche modifiée\n\nCe qui change : CIBC a supprimé la note indiquant que l'approche NI est appliquée à la majeure partie des portefeuilles de crédit depuis le premier trimestre de 2024.\n\nPertinence métier : Ce changement met en évidence une modification potentielle de la méthodologie de gestion du risque de crédit, ce qui pourrait avoir un impact sur la manière dont CIBC évalue et gère ses expositions au risque de crédit. Cela pourrait également affecter la comparabilité des rapports entre pairs si la méthodologie diffère. Surveiller les implications de la suppression de cette note sur la gestion du risque de crédit et la méthodologie appliquée par CIBC. La suppression de la note sur l'application de l'approche NI indique un changement potentiel dans la méthodologie de gestion du risque de crédit de CIBC.\n\nPoint de surveillance : Surveiller les implications de la suppression de cette note sur la gestion du risque de crédit et la méthodologie appliquée par CIBC.",
         "impact_level": "MODERE",
         "impact_it": "MOYEN",
         "impact_it_justification": "Éléments observés : Suppression d'une note méthodologique importante.\n\nConséquence probable : Nécessité de mettre à jour les systèmes de gestion du risque pour refléter la nouvelle méthodologie.\n\nLimite de l'analyse: Détails spécifiques sur la nouvelle méthodologie non fournis.",
@@ -2606,7 +2614,8 @@
         "action_requise": "investigation",
         "reference_reglementaire": "",
         "impact_description": "Changement potentiel dans la méthodologie de gestion du risque de crédit de CIBC.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "CIBC"
       },
       "genai_analysis": {
         "resume_metier": "La suppression de la note sur l'application de l'approche NI indique un changement potentiel dans la méthodologie de gestion du risque de crédit de CIBC. Cela pourrait avoir des implications sur la manière dont la banque évalue ses expositions au risque de crédit.\n\nCe changement est pertinent car il touche à la méthodologie de calcul des expositions au risque de crédit, un élément clé de la gestion des risques bancaires. La suppression de cette note pourrait indiquer un changement dans l'approche de CIBC, ce qui nécessite une attention particulière.\n\nIl est important de surveiller comment ce changement affectera la gestion du risque de crédit de CIBC et si cela entraînera des ajustements dans les systèmes de gestion du risque ou dans la divulgation des expositions au risque."
@@ -2751,7 +2760,7 @@
           "STRUCTURE_RAPPORT"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Méthode de calcul ou approche modifiée, Structure du rapport\n\nCe qui change : CIBC modifie le tableau des expositions assujetties à l’approche standard en ajoutant un indicateur 'Total' et en supprimant une note sur l'application de l'approche NI à la majeure partie des portefeuilles de crédit.\n\nPertinence métier : Ce changement met l'accent sur une modification de la méthodologie de calcul des expositions, ce qui peut affecter la manière dont CIBC évalue et gère ses risques de crédit. L'ajout de l'indicateur 'Total' et la suppression de la note indiquent une potentielle révision de l'approche méthodologique, ce qui est crucial pour la comparabilité entre pairs et la conformité aux attentes prudentielles.\n\nPoint de surveillance : Surveiller l'impact de cette modification sur la gestion des risques de crédit et la conformité aux normes réglementaires.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Méthode de calcul ou approche modifiée, Structure du rapport\n\nCe qui change : CIBC modifie le tableau des expositions assujetties à l’approche standard en ajoutant un indicateur 'Total' et en supprimant une note sur l'application de l'approche NI à la majeure partie des portefeuilles de crédit.\n\nPertinence métier : Ce changement met l'accent sur une modification de la méthodologie de calcul des expositions, ce qui peut affecter la manière dont CIBC évalue et gère ses risques de crédit. L'ajout de l'indicateur 'Total' et la suppression de la note indiquent une potentielle révision de l'approche méthodologique, ce qui est crucial pour la comparabilité entre pairs et la conformité aux attentes prudentielles. Surveiller l'impact de cette modification sur la gestion des risques de crédit et la conformité aux normes réglementaires. La CIBC a modifié son tableau des expositions assujetties à l'approche standard en ajoutant un indicateur 'Total' et en supprimant une note sur l'application de l'approche NI.\n\nPoint de surveillance : Surveiller l'impact de cette modification sur la gestion des risques de crédit et la conformité aux normes réglementaires.",
         "impact_level": "MODERE",
         "impact_it": "MOYEN",
         "impact_it_justification": "Éléments observés : Modification du tableau des expositions avec ajout d'un indicateur et suppression d'une note.\n\nConséquence probable : Nécessité de mettre à jour les systèmes de reporting pour refléter ces changements méthodologiques.\n\nLimite de l'analyse: L'impact exact sur les systèmes IT dépend de la manière dont ces changements sont intégrés dans les processus existants.",
@@ -2769,7 +2778,8 @@
         "action_requise": "investigation",
         "reference_reglementaire": "",
         "impact_description": "Modification méthodologique potentielle dans l'évaluation des expositions de crédit.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "CIBC"
       },
       "genai_analysis": {
         "resume_metier": "La CIBC a modifié son tableau des expositions assujetties à l'approche standard en ajoutant un indicateur 'Total' et en supprimant une note sur l'application de l'approche NI. Cela indique un changement méthodologique potentiel dans la gestion des risques de crédit.\n\nCe changement est pertinent car il affecte la manière dont la banque évalue ses expositions et pourrait avoir des implications sur la conformité réglementaire et la comparabilité avec d'autres banques.\n\nIl est important de surveiller comment ces modifications influencent la gestion des risques de crédit et si elles nécessitent des ajustements dans les systèmes de reporting de la banque."
@@ -2964,7 +2974,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "Aucun impact substantiel sur la gestion des risques ou la conformité.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "CIBC"
       },
       "genai_analysis": {
         "resume_metier": "Les changements apportés au tableau de répartition géographique de la CIBC, notamment l'ajout d'indicateurs en millions de dollars et le renommage d'un indicateur, ne constituent pas une nouvelle idée substantielle. Ces modifications sont principalement de nature terminologique et de formatage.\n\nLa suppression de la note concernant l'application de l'approche NI depuis le premier trimestre de 2024 n'affecte pas la substance de la divulgation actuelle, car elle ne modifie pas les méthodes ou les risques décrits.\n\nEn conséquence, ces ajustements n'ont pas d'impact significatif sur la gestion des risques ou la conformité réglementaire de la CIBC, et aucune action particulière n'est requise."
@@ -3147,7 +3158,7 @@
           "MODIFICATION_METHODOLOGIE"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Structure du rapport, Méthode de calcul ou approche modifiée\n\nCe qui change : CIBC a supprimé les indicateurs liés à la qualité du crédit des portefeuilles de détail et la note indiquant l'application de l'approche NI à la majeure partie des portefeuilles de crédit.\n\nPertinence métier : Ce changement met en évidence une modification potentielle de la méthodologie de calcul ou de l'approche de gestion des risques de crédit, ce qui pourrait affecter la comparabilité des données de crédit entre les périodes et avec d'autres banques. La suppression de ces indicateurs et notes pourrait indiquer un changement dans la manière dont CIBC évalue et divulgue la qualité de ses portefeuilles de crédit.\n\nPoint de surveillance : Surveiller l'impact de cette suppression sur la transparence des divulgations de risque de crédit et la conformité aux attentes réglementaires en matière de divulgation.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Structure du rapport, Méthode de calcul ou approche modifiée\n\nCe qui change : CIBC a supprimé les indicateurs liés à la qualité du crédit des portefeuilles de détail et la note indiquant l'application de l'approche NI à la majeure partie des portefeuilles de crédit.\n\nPertinence métier : Ce changement met en évidence une modification potentielle de la méthodologie de calcul ou de l'approche de gestion des risques de crédit, ce qui pourrait affecter la comparabilité des données de crédit entre les périodes et avec d'autres banques. La suppression de ces indicateurs et notes pourrait indiquer un changement dans la manière dont CIBC évalue et divulgue la qualité de ses portefeuilles de crédit. Surveiller l'impact de cette suppression sur la transparence des divulgations de risque de crédit et la conformité aux attentes réglementaires en matière de divulgation.\n\nPoint de surveillance : Surveiller l'impact de cette suppression sur la transparence des divulgations de risque de crédit et la conformité aux attentes réglementaires en matière de divulgation.",
         "impact_level": "MODERE",
         "impact_it": "MOYEN",
         "impact_it_justification": "Éléments observés : Suppression d'indicateurs et de notes méthodologiques.\n\nConséquence probable : Nécessité d'ajuster les systèmes de reporting pour refléter les nouvelles exigences de divulgation et potentiellement adapter les processus de collecte de données.\n\nLimite de l'analyse : L'impact exact sur les systèmes IT dépendra de la manière dont ces indicateurs étaient intégrés dans les processus existants.",
@@ -3165,7 +3176,8 @@
         "action_requise": "revue_prioritaire",
         "reference_reglementaire": "",
         "impact_description": "La suppression d'indicateurs et de notes méthodologiques pourrait affecter la transparence et la comparabilité des divulgations de risque de crédit.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "CIBC"
       },
       "genai_analysis": {
         "resume_metier": "La CIBC a modifié son tableau des expositions liées aux entreprises et aux gouvernements par secteur d’activité en supprimant des indicateurs clés sur la qualité du crédit des portefeuilles de détail. Cette suppression inclut également une note méthodologique importante sur l'application de l'approche NI.\n\nCe changement est pertinent car il affecte la structure du rapport et pourrait signaler une modification de la méthodologie de gestion des risques de crédit. Cela pourrait avoir des implications sur la transparence et la comparabilité des données de crédit de la CIBC.\n\nIl est crucial de surveiller comment cette modification impacte la divulgation des risques de crédit et si elle est conforme aux attentes réglementaires actuelles."
@@ -3326,7 +3338,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "Aucun impact substantiel sur la gestion des risques ou la conformité réglementaire.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "CIBC"
       },
       "genai_analysis": {
         "resume_metier": "Le changement observé dans le tableau de gestion des risques de la CIBC consiste en une modification des indicateurs, où 'Bas' et 'Haut' ont été remplacés par 'Total'.\n\nCe type de modification est considéré comme une variation chiffrée propre à la banque et n'affecte pas la substance de la divulgation réglementaire ou la méthodologie de gestion des risques.\n\nEn conséquence, ce changement n'est pas pertinent pour la taxonomie AMF et ne nécessite pas de surveillance particulière."
@@ -3579,7 +3592,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "Les changements sont des reformulations sans impact substantiel sur la divulgation des risques.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "CIBC"
       },
       "genai_analysis": {
         "resume_metier": "Les modifications apportées aux notes de bas de tableau du rapport de la CIBC concernent principalement des reformulations et des mises à jour de dates. Ces changements n'introduisent pas de nouvelles informations ou méthodologies qui affecteraient la gestion des risques ou la conformité réglementaire.\n\nLes reformulations incluent des mises à jour de dates et des ajustements mineurs dans la description des prêts hypothécaires, mais ne modifient pas la substance des divulgations. Par conséquent, ces changements ne sont pas considérés comme une nouvelle idée selon la taxonomie AMF.\n\nAucune action particulière n'est requise car le changement n'apporte pas de nouvelle information ou de modification substantielle qui nécessiterait une attention particulière."
@@ -3777,7 +3791,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "Aucun impact concret sur la divulgation ou la conformité réglementaire.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "CIBC"
       },
       "genai_analysis": {
         "resume_metier": "Les modifications apportées aux notes du tableau concernant les RPV moyens pour les prêts hypothécaires à l'habitation non assurés ne changent pas le contenu substantiel. Il semble s'agir d'une répétition ou d'une erreur de transcription.\n\nCe type de changement n'affecte pas la substance de la divulgation ni les attentes réglementaires. Il ne constitue pas une nouvelle idée selon les critères AMF.\n\nAucun point de surveillance n'est requis, car il n'y a pas de changement substantiel à analyser."
@@ -3944,7 +3959,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "CIBC"
       }
     },
     {
@@ -4058,7 +4074,7 @@
           "STRUCTURE_RAPPORT"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Structure du rapport\n\nCe qui change : CIBC a ajouté un indicateur 'Total' dans le tableau 'Prêts en souffrance aux termes du contrat, mais non douteux'.\n\nPertinence métier : Ce changement met l'accent sur l'amélioration de la transparence et de la clarté des informations fournies aux parties prenantes. L'ajout d'un indicateur 'Total' permet une meilleure compréhension de l'ampleur des prêts en souffrance, ce qui est crucial pour évaluer la qualité du portefeuille de prêts de la banque. Cela peut également faciliter la comparaison avec d'autres banques et répondre aux attentes de divulgation plus détaillées.\n\nPoint de surveillance : Surveiller l'impact de cet ajout sur l'analyse des risques de crédit et la comparabilité avec les pairs du secteur bancaire.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Structure du rapport\n\nCe qui change : CIBC a ajouté un indicateur 'Total' dans le tableau 'Prêts en souffrance aux termes du contrat, mais non douteux'.\n\nPertinence métier : Ce changement met l'accent sur l'amélioration de la transparence et de la clarté des informations fournies aux parties prenantes. L'ajout d'un indicateur 'Total' permet une meilleure compréhension de l'ampleur des prêts en souffrance, ce qui est crucial pour évaluer la qualité du portefeuille de prêts de la banque. Cela peut également faciliter la comparaison avec d'autres banques et répondre aux attentes de divulgation plus détaillées. Surveiller l'impact de cet ajout sur l'analyse des risques de crédit et la comparabilité avec les pairs du secteur bancaire.\n\nPoint de surveillance : Surveiller l'impact de cet ajout sur l'analyse des risques de crédit et la comparabilité avec les pairs du secteur bancaire.",
         "impact_level": "MODERE",
         "impact_it": "FAIBLE",
         "impact_it_justification": "Éléments observés : Ajout d'un indicateur 'Total' dans un tableau existant.\n\nConséquence probable : Nécessite une mise à jour mineure des systèmes de reporting pour intégrer le nouvel indicateur.\n\nLimite de l'analyse: L'impact IT est limité car il s'agit d'une modification de contenu sans transformation technologique majeure.",
@@ -4076,7 +4092,8 @@
         "action_requise": "information",
         "reference_reglementaire": "",
         "impact_description": "Ajout d'un indicateur 'Total' dans un tableau existant, améliorant la transparence et la compréhension des prêts en souffrance.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "CIBC"
       },
       "genai_analysis": {
         "resume_metier": "CIBC a ajouté un indicateur 'Total' dans le tableau 'Prêts en souffrance aux termes du contrat, mais non douteux'. Ce changement améliore la transparence des informations fournies, facilitant ainsi l'évaluation de la qualité du portefeuille de prêts.\n\nL'ajout de cet indicateur permet une meilleure compréhension de l'ampleur des prêts en souffrance, ce qui est crucial pour les parties prenantes et les régulateurs. Cela répond également aux attentes de divulgation plus détaillées.\n\nSurveiller l'impact de cet ajout sur l'analyse des risques de crédit et la comparabilité avec les pairs du secteur bancaire."
@@ -4321,7 +4338,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "Aucun impact substantiel sur la divulgation réglementaire ou la gestion des risques.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "CIBC"
       },
       "genai_analysis": {
         "resume_metier": "Les modifications apportées aux notes de bas de tableau concernent principalement des mises à jour chiffrées et des reformulations mineures. Ces changements n'introduisent pas de nouvelles informations ou méthodologies significatives.\n\nLa suppression d'indicateurs et de notes ne semble pas affecter la substance de la divulgation, car elle ne modifie pas les attentes prudentielles ou la comparabilité entre pairs.\n\nAucune action particulière n'est requise, car le changement n'affecte pas les thèmes AMF ou les exigences réglementaires."
@@ -4502,7 +4520,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "Mise à jour temporelle sans impact substantiel sur la gestion des risques.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "CIBC"
       },
       "genai_analysis": {
         "resume_metier": "Le changement détecté concerne une mise à jour des années dans le tableau des Actifs liquides de la CIBC, passant de 2023 à 2025.\n\nCe type de modification est courant dans les rapports financiers pour refléter les périodes actuelles et futures, sans impact sur la gestion des risques ou la conformité réglementaire.\n\nAucune action particulière n'est requise, car il s'agit d'une mise à jour temporelle sans implication substantielle sur les pratiques de gestion des risques."
@@ -4627,7 +4646,7 @@
           "STRUCTURE_RAPPORT"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Structure du rapport\n\nCe qui change : CIBC ajoute un indicateur intitulé 'Total' dans la section de gestion des risques, ce qui modifie la structure du tableau existant.\n\nPertinence métier : Ce changement met l'accent sur la manière dont CIBC structure et présente ses informations de gestion des risques. L'ajout d'un indicateur 'Total' peut refléter une nouvelle approche de synthèse ou de consolidation des données de risque, ce qui est crucial pour la transparence et la comparabilité entre pairs.\n\nPoint de surveillance : Surveiller comment cet ajout d'indicateur 'Total' influence la compréhension et l'analyse des risques par les parties prenantes, et s'il s'accompagne d'autres modifications méthodologiques ou de divulgation.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Structure du rapport\n\nCe qui change : CIBC ajoute un indicateur intitulé 'Total' dans la section de gestion des risques, ce qui modifie la structure du tableau existant.\n\nPertinence métier : Ce changement met l'accent sur la manière dont CIBC structure et présente ses informations de gestion des risques. L'ajout d'un indicateur 'Total' peut refléter une nouvelle approche de synthèse ou de consolidation des données de risque, ce qui est crucial pour la transparence et la comparabilité entre pairs. Surveiller comment cet ajout d'indicateur 'Total' influence la compréhension et l'analyse des risques par les parties prenantes, et s'il s'accompagne d'autres modifications méthodologiques ou de divulgation. Cela peut indiquer une nouvelle approche de présentation des données de risque, ce qui est important pour la transparence et la comparabilité.\n\nPoint de surveillance : Surveiller comment cet ajout d'indicateur 'Total' influence la compréhension et l'analyse des risques par les parties prenantes, et s'il s'accompagne d'autres modifications méthodologiques ou de divulgation.",
         "impact_level": "MODERE",
         "impact_it": "FAIBLE",
         "impact_it_justification": "Éléments observés : Ajout d'un indicateur 'Total' dans un tableau de gestion des risques.\n\nConséquence probable : Nécessite une mise à jour mineure des systèmes de reporting pour intégrer cet indicateur supplémentaire.\n\nLimite de l'analyse: L'impact IT est limité car il s'agit d'un ajout d'indicateur sans changement majeur de processus ou de technologie.",
@@ -4645,7 +4664,8 @@
         "action_requise": "information",
         "reference_reglementaire": "",
         "impact_description": "Ajout d'un indicateur 'Total' modifiant la structure du tableau de gestion des risques.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "CIBC"
       },
       "genai_analysis": {
         "resume_metier": "L'ajout d'un indicateur 'Total' dans la section de gestion des risques de CIBC modifie la structure du tableau existant. Cela peut indiquer une nouvelle approche de présentation des données de risque, ce qui est important pour la transparence et la comparabilité.\n\nCe changement est pertinent car il affecte la manière dont les informations de risque sont synthétisées et présentées, ce qui peut avoir des implications pour l'analyse des risques par les parties prenantes.\n\nL'impact IT est faible, car il s'agit d'un ajout d'indicateur sans changement majeur de processus ou de technologie, mais cela nécessite tout de même une mise à jour des systèmes de reporting."
@@ -4852,7 +4872,7 @@
           "STRUCTURE_RAPPORT"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Structure du rapport\n\nCe qui change : CIBC modifie le tableau 'Actifs assortis d’une charge' en ajoutant l'indicateur 'Total' et supprimant l'indicateur '2023'. De plus, plusieurs notes explicatives ont été retirées.\n\nPertinence métier : Ce changement met l'accent sur la manière dont CIBC présente ses actifs assortis d'une charge, ce qui peut affecter la transparence et la comparabilité des informations financières. La suppression des notes explicatives pourrait réduire la clarté des informations fournies aux investisseurs et aux régulateurs.\n\nPoint de surveillance : Surveiller l'impact de ces modifications sur la compréhension des actifs de CIBC et la conformité aux normes de divulgation financière.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Structure du rapport\n\nCe qui change : CIBC modifie le tableau 'Actifs assortis d’une charge' en ajoutant l'indicateur 'Total' et supprimant l'indicateur '2023'. De plus, plusieurs notes explicatives ont été retirées.\n\nPertinence métier : Ce changement met l'accent sur la manière dont CIBC présente ses actifs assortis d'une charge, ce qui peut affecter la transparence et la comparabilité des informations financières. La suppression des notes explicatives pourrait réduire la clarté des informations fournies aux investisseurs et aux régulateurs. Surveiller l'impact de ces modifications sur la compréhension des actifs de CIBC et la conformité aux normes de divulgation financière. La CIBC a modifié la structure de son tableau 'Actifs assortis d’une charge' en ajoutant un nouvel indicateur 'Total' et en supprimant l'indicateur '2023'.\n\nPoint de surveillance : Surveiller l'impact de ces modifications sur la compréhension des actifs de CIBC et la conformité aux normes de divulgation financière.",
         "impact_level": "MODERE",
         "impact_it": "FAIBLE",
         "impact_it_justification": "Éléments observés : Modification de la structure du tableau des actifs assortis d'une charge.\n\nConséquence probable : Ajustements mineurs dans les systèmes de reporting pour refléter la nouvelle structure du tableau.\n\nLimite de l'analyse : L'impact IT est limité car il s'agit principalement d'une modification de présentation sans changement fondamental des systèmes sous-jacents.",
@@ -4870,7 +4890,8 @@
         "action_requise": "information",
         "reference_reglementaire": "",
         "impact_description": "Modification de la structure du tableau des actifs assortis d'une charge, affectant la présentation des données.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "CIBC"
       },
       "genai_analysis": {
         "resume_metier": "La CIBC a modifié la structure de son tableau 'Actifs assortis d’une charge' en ajoutant un nouvel indicateur 'Total' et en supprimant l'indicateur '2023'. De plus, plusieurs notes explicatives ont été retirées, ce qui pourrait affecter la clarté des informations fournies.\n\nCes changements dans la structure du rapport peuvent influencer la transparence et la comparabilité des informations financières de la CIBC, ce qui est crucial pour les investisseurs et les régulateurs.\n\nIl est important de surveiller comment ces modifications affectent la compréhension des actifs de la CIBC et leur conformité aux normes de divulgation financière."
@@ -5079,7 +5100,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "Aucune implication réglementaire ou méthodologique.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "CIBC"
       },
       "genai_analysis": {
         "resume_metier": "La modification concerne une variation chiffrée propre à la banque, sans impact sur les exigences réglementaires ou la méthodologie de gestion des risques. \n\nCe changement n'affecte pas la substance de la divulgation selon les critères AMF, car il s'agit d'une mise à jour chiffrée interne. \n\nAucun point de surveillance requis, car il s'agit d'une mise à jour chiffrée interne sans implication réglementaire."
@@ -5197,7 +5219,7 @@
           "STRUCTURE_RAPPORT"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Structure du rapport\n\nCe qui change : CIBC a ajouté un indicateur 'Total' dans le tableau présentant la diversification du financement de gros par devise.\n\nPertinence métier : Ce changement met l'accent sur la transparence et la clarté des informations fournies aux parties prenantes concernant la diversification du financement de gros. L'ajout d'un indicateur 'Total' permet une meilleure compréhension de la répartition globale par devise, ce qui est crucial pour évaluer les risques de change et de financement.\n\nPoint de surveillance : Surveiller comment cet ajout d'indicateur 'Total' influence la perception des risques de financement et de change par les investisseurs et les régulateurs.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Structure du rapport\n\nCe qui change : CIBC a ajouté un indicateur 'Total' dans le tableau présentant la diversification du financement de gros par devise.\n\nPertinence métier : Ce changement met l'accent sur la transparence et la clarté des informations fournies aux parties prenantes concernant la diversification du financement de gros. L'ajout d'un indicateur 'Total' permet une meilleure compréhension de la répartition globale par devise, ce qui est crucial pour évaluer les risques de change et de financement. Surveiller comment cet ajout d'indicateur 'Total' influence la perception des risques de financement et de change par les investisseurs et les régulateurs. L'ajout d'un indicateur 'Total' dans le tableau de diversification du financement de gros par devise de la CIBC améliore la transparence et la compréhension des risques de financement.\n\nPoint de surveillance : Surveiller comment cet ajout d'indicateur 'Total' influence la perception des risques de financement et de change par les investisseurs et les régulateurs.",
         "impact_level": "MODERE",
         "impact_it": "FAIBLE",
         "impact_it_justification": "Éléments observés : Ajout d'un indicateur 'Total' dans un tableau existant.\n\nConséquence probable : Nécessite une mise à jour mineure des systèmes de reporting pour inclure le calcul et l'affichage de cet indicateur.\n\nLimite de l'analyse: L'impact IT est limité car il s'agit d'une modification mineure dans la structure du tableau sans changement de méthodologie sous-jacente.",
@@ -5215,7 +5237,8 @@
         "action_requise": "information",
         "reference_reglementaire": "",
         "impact_description": "L'ajout de l'indicateur 'Total' améliore la clarté et la transparence des informations sur la diversification du financement.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "CIBC"
       },
       "genai_analysis": {
         "resume_metier": "L'ajout d'un indicateur 'Total' dans le tableau de diversification du financement de gros par devise de la CIBC améliore la transparence et la compréhension des risques de financement. Cela permet aux parties prenantes de mieux évaluer la répartition globale par devise, ce qui est crucial pour la gestion des risques de change et de financement. Cette modification structurelle renforce la capacité de la banque à communiquer efficacement sur ses risques financiers."
@@ -5392,7 +5415,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "CIBC"
       }
     },
     {
@@ -5506,7 +5530,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "CIBC"
       }
     },
     {
@@ -5751,7 +5776,7 @@
           "STRUCTURE_RAPPORT"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Structure du rapport\n\nCe qui change : CIBC modifie le tableau des Obligations contractuelles en ajoutant les indicateurs 'Total de l’actif' et 'Total du passif et des capitaux propres', tout en supprimant 'Engagements de clients en vertu d’acceptations' et 'Acceptations'.\n\nPertinence métier : Ce changement met l'accent sur une réorganisation significative de la présentation des obligations contractuelles, ce qui peut affecter la manière dont les engagements financiers sont perçus et évalués par les parties prenantes. La modification des indicateurs pourrait refléter une nouvelle approche de la gestion des risques ou une adaptation aux exigences de divulgation.\n\nPoint de surveillance : Surveiller l'impact de cette réorganisation sur la transparence et la comparabilité des obligations contractuelles de la CIBC avec celles de ses pairs.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Structure du rapport\n\nCe qui change : CIBC modifie le tableau des Obligations contractuelles en ajoutant les indicateurs 'Total de l’actif' et 'Total du passif et des capitaux propres', tout en supprimant 'Engagements de clients en vertu d’acceptations' et 'Acceptations'.\n\nPertinence métier : Ce changement met l'accent sur une réorganisation significative de la présentation des obligations contractuelles, ce qui peut affecter la manière dont les engagements financiers sont perçus et évalués par les parties prenantes. La modification des indicateurs pourrait refléter une nouvelle approche de la gestion des risques ou une adaptation aux exigences de divulgation. Surveiller l'impact de cette réorganisation sur la transparence et la comparabilité des obligations contractuelles de la CIBC avec celles de ses pairs. La CIBC a modifié son tableau des Obligations contractuelles en ajoutant de nouveaux indicateurs et en supprimant certains existants.\n\nPoint de surveillance : Surveiller l'impact de cette réorganisation sur la transparence et la comparabilité des obligations contractuelles de la CIBC avec celles de ses pairs.",
         "impact_level": "MODERE",
         "impact_it": "FAIBLE",
         "impact_it_justification": "Éléments observés : Modification des indicateurs dans le tableau des Obligations contractuelles.\n\nConséquence probable : Ajustements mineurs dans les systèmes de reporting pour refléter les nouveaux indicateurs.\n\nLimite de l'analyse : Pas de transformation technologique majeure identifiée.",
@@ -5769,7 +5794,8 @@
         "action_requise": "information",
         "reference_reglementaire": "",
         "impact_description": "Réorganisation des indicateurs dans le tableau des Obligations contractuelles, affectant la présentation des engagements financiers.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "CIBC"
       },
       "genai_analysis": {
         "resume_metier": "La CIBC a modifié son tableau des Obligations contractuelles en ajoutant de nouveaux indicateurs et en supprimant certains existants. Cela pourrait indiquer une révision de la manière dont la banque gère et présente ses engagements financiers.\n\nCe changement est pertinent car il affecte la structure du rapport, ce qui peut influencer la perception des risques et des obligations par les investisseurs et les régulateurs.\n\nIl est important de surveiller comment cette réorganisation impacte la transparence et la comparabilité des informations financières de la CIBC par rapport à ses pairs."
@@ -5956,7 +5982,7 @@
           "STRUCTURE_RAPPORT"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Structure du rapport\n\nCe qui change : CIBC modifie le tableau des Engagements au titre du crédit en ajoutant l'indicateur 'Total' et supprimant 'Autres obligations contractuelles hors bilan'.\n\nPertinence métier : Ce changement met l'accent sur la manière dont CIBC structure et présente ses engagements hors bilan, ce qui peut affecter la transparence et la comparabilité des informations financières. L'ajout de l'indicateur 'Total' pourrait simplifier la lecture, tandis que la suppression d'un indicateur spécifique pourrait réduire la granularité des informations disponibles.\n\nPoint de surveillance : Surveiller l'impact de ces modifications sur la compréhension des engagements hors bilan de CIBC et leur alignement avec les pratiques de divulgation des pairs.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Structure du rapport\n\nCe qui change : CIBC modifie le tableau des Engagements au titre du crédit en ajoutant l'indicateur 'Total' et supprimant 'Autres obligations contractuelles hors bilan'.\n\nPertinence métier : Ce changement met l'accent sur la manière dont CIBC structure et présente ses engagements hors bilan, ce qui peut affecter la transparence et la comparabilité des informations financières. L'ajout de l'indicateur 'Total' pourrait simplifier la lecture, tandis que la suppression d'un indicateur spécifique pourrait réduire la granularité des informations disponibles. Surveiller l'impact de ces modifications sur la compréhension des engagements hors bilan de CIBC et leur alignement avec les pratiques de divulgation des pairs.\n\nPoint de surveillance : Surveiller l'impact de ces modifications sur la compréhension des engagements hors bilan de CIBC et leur alignement avec les pratiques de divulgation des pairs.",
         "impact_level": "MODERE",
         "impact_it": "FAIBLE",
         "impact_it_justification": "Éléments observés : Modification de la structure du tableau des engagements au titre du crédit.\n\nConséquence probable : Ajustement mineur dans les systèmes de reporting pour refléter la nouvelle structure.\n\nLimite de l'analyse : Pas d'indication de changement technologique majeur ou de transformation des processus IT.",
@@ -5974,7 +6000,8 @@
         "action_requise": "information",
         "reference_reglementaire": "",
         "impact_description": "Modification de la structure de présentation des engagements au titre du crédit, influençant la transparence et la comparabilité.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "CIBC"
       },
       "genai_analysis": {
         "resume_metier": "La CIBC a modifié la structure de son tableau des engagements au titre du crédit, ce qui inclut l'ajout d'un indicateur 'Total' et la suppression de 'Autres obligations contractuelles hors bilan'. Cette modification peut influencer la manière dont les engagements sont perçus par les parties prenantes.\n\nL'ajout de l'indicateur 'Total' pourrait améliorer la clarté et la lisibilité des engagements globaux, tandis que la suppression d'un indicateur spécifique pourrait réduire la visibilité sur certains aspects des obligations hors bilan.\n\nIl est important de surveiller comment ces changements affectent la transparence et la comparabilité des informations financières de la CIBC par rapport à ses pairs."
@@ -6144,7 +6171,7 @@
           "STRUCTURE_RAPPORT"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Structure du rapport\n\nCe qui change : CIBC modifie le tableau des « Autres obligations contractuelles hors bilan » en ajoutant un indicateur « Total » et en supprimant les indicateurs « Obligations d’achat¹ », « Engagements d’investissement », et « Engagements au titre de contrats de location futurs² ».\n\nPertinence métier : Ce changement met l'accent sur la simplification ou la réorganisation des obligations contractuelles hors bilan de CIBC. La suppression de certains indicateurs spécifiques et l'ajout d'un indicateur global « Total » peuvent affecter la transparence et la granularité des informations fournies aux investisseurs et aux régulateurs. Cela pourrait également influencer la manière dont les engagements hors bilan sont perçus en termes de risque et de gestion financière.\n\nPoint de surveillance : Surveiller comment cette modification structurelle affecte la compréhension des obligations hors bilan de CIBC et si cela a un impact sur la comparabilité avec les pairs.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Structure du rapport\n\nCe qui change : CIBC modifie le tableau des « Autres obligations contractuelles hors bilan » en ajoutant un indicateur « Total » et en supprimant les indicateurs « Obligations d’achat¹ », « Engagements d’investissement », et « Engagements au titre de contrats de location futurs² ».\n\nPertinence métier : Ce changement met l'accent sur la simplification ou la réorganisation des obligations contractuelles hors bilan de CIBC. La suppression de certains indicateurs spécifiques et l'ajout d'un indicateur global « Total » peuvent affecter la transparence et la granularité des informations fournies aux investisseurs et aux régulateurs. Cela pourrait également influencer la manière dont les engagements hors bilan sont perçus en termes de risque et de gestion financière. Surveiller comment cette modification structurelle affecte la compréhension des obligations hors bilan de CIBC et si cela a un impact sur la comparabilité avec les pairs.\n\nPoint de surveillance : Surveiller comment cette modification structurelle affecte la compréhension des obligations hors bilan de CIBC et si cela a un impact sur la comparabilité avec les pairs.",
         "impact_level": "MODERE",
         "impact_it": "FAIBLE",
         "impact_it_justification": "Éléments observés : Modification de la structure du tableau des obligations hors bilan.\n\nConséquence probable : Impact limité sur les systèmes IT, principalement lié à la mise à jour des rapports et des bases de données pour refléter la nouvelle structure.\n\nLimite de l'analyse: Pas de changement majeur dans les processus IT ou les systèmes de gestion des risques identifiés.",
@@ -6162,7 +6189,8 @@
         "action_requise": "information",
         "reference_reglementaire": "",
         "impact_description": "Modification structurelle du tableau des obligations hors bilan, influençant la transparence et la comparabilité des informations.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "CIBC"
       },
       "genai_analysis": {
         "resume_metier": "La modification du tableau des obligations contractuelles hors bilan par CIBC, avec l'ajout d'un indicateur « Total » et la suppression de plusieurs indicateurs spécifiques, représente un changement structurel notable. Cela pourrait influencer la manière dont les engagements hors bilan sont perçus et évalués par les parties prenantes.\n\nCe changement structurel pourrait avoir des implications sur la transparence et la comparabilité des informations fournies par CIBC par rapport à ses pairs. Il est important de surveiller comment cette simplification affecte la perception des risques associés aux obligations hors bilan.\n\nBien que l'impact IT soit jugé faible, la mise à jour des systèmes pour refléter ces changements structurels reste nécessaire. Il est crucial de suivre l'évolution de cette modification pour évaluer son effet sur la gestion des risques et la communication financière de CIBC."
@@ -6376,7 +6404,7 @@
           "DIVULGATION_RETRAIT"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Information retirée\n\nCe qui change : CIBC supprime plusieurs indicateurs liés aux paiements contractuels et réels des clients, ainsi que des portefeuilles géographiques spécifiques, du tableau de gestion des risques.\n\nPertinence métier : Ce changement met l'accent sur une modification significative de la structure de la divulgation des risques, ce qui peut affecter la transparence et la comparabilité des informations fournies aux investisseurs et aux régulateurs. La suppression de ces indicateurs pourrait indiquer un changement dans la manière dont CIBC évalue ou présente ses risques liés aux paiements et aux portefeuilles géographiques.\n\nPoint de surveillance : Surveiller l'impact de cette suppression sur la compréhension des risques de crédit et de liquidité de CIBC, ainsi que sur la conformité aux attentes de divulgation réglementaire.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Information retirée\n\nCe qui change : CIBC supprime plusieurs indicateurs liés aux paiements contractuels et réels des clients, ainsi que des portefeuilles géographiques spécifiques, du tableau de gestion des risques.\n\nPertinence métier : Ce changement met l'accent sur une modification significative de la structure de la divulgation des risques, ce qui peut affecter la transparence et la comparabilité des informations fournies aux investisseurs et aux régulateurs. La suppression de ces indicateurs pourrait indiquer un changement dans la manière dont CIBC évalue ou présente ses risques liés aux paiements et aux portefeuilles géographiques. Surveiller l'impact de cette suppression sur la compréhension des risques de crédit et de liquidité de CIBC, ainsi que sur la conformité aux attentes de divulgation réglementaire. La suppression d'indicateurs clés dans le tableau de gestion des risques de CIBC représente un changement structurel important.\n\nPoint de surveillance : Surveiller l'impact de cette suppression sur la compréhension des risques de crédit et de liquidité de CIBC, ainsi que sur la conformité aux attentes de divulgation réglementaire.",
         "impact_level": "MODERE",
         "impact_it": "MOYEN",
         "impact_it_justification": "Éléments observés : Suppression d'indicateurs et de notes dans le tableau de gestion des risques.\n\nConséquence probable : Nécessité de réviser les systèmes de reporting pour refléter les changements dans la structure des données divulguées.\n\nLimite de l'analyse : L'impact exact sur les systèmes IT dépend de la manière dont ces indicateurs étaient intégrés dans les processus de reporting existants.",
@@ -6394,7 +6422,8 @@
         "action_requise": "revue_prioritaire",
         "reference_reglementaire": "",
         "impact_description": "Suppression d'indicateurs clés affectant la structure de la divulgation des risques.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "CIBC"
       },
       "genai_analysis": {
         "resume_metier": "La suppression d'indicateurs clés dans le tableau de gestion des risques de CIBC représente un changement structurel important. Cela pourrait affecter la transparence et la comparabilité des informations fournies aux parties prenantes.\n\nCe changement pourrait indiquer une réévaluation des priorités de divulgation de la banque, potentiellement en réponse à des changements stratégiques ou réglementaires.\n\nIl est crucial de surveiller comment cette modification impacte la compréhension des risques de crédit et de liquidité de CIBC, ainsi que sa conformité aux attentes réglementaires."
@@ -6632,7 +6661,7 @@
           "MODIFICATION_TEXTE_RISQUE"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Structure du rapport, Texte de risque modifié\n\nCe qui change : CIBC a ajouté les indicateurs 'Total de l’actif' et 'Total du passif' dans le tableau des soldes du bilan consolidé exposés au risque de marché, tout en supprimant les indicateurs 'Engagements de clients en vertu d’acceptations' et 'Acceptations'. De plus, une note a été modifiée pour inclure des engagements spécifiques.\n\nPertinence métier : Ce changement met l'accent sur une réorganisation significative de la présentation des risques de marché dans le bilan consolidé de CIBC. L'ajout des totaux de l'actif et du passif pourrait indiquer une nouvelle approche pour évaluer l'exposition au risque de marché, tandis que la suppression des engagements de clients et des acceptations pourrait refléter un changement dans la manière dont ces éléments sont gérés ou rapportés. La modification de la note pour inclure des montants spécifiques renforce la transparence et la précision des informations fournies.\n\nPoint de surveillance : Surveiller comment ces changements affectent la gestion des risques de marché et la comparabilité des rapports financiers de CIBC avec ceux des pairs.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Structure du rapport, Texte de risque modifié\n\nCe qui change : CIBC a ajouté les indicateurs 'Total de l’actif' et 'Total du passif' dans le tableau des soldes du bilan consolidé exposés au risque de marché, tout en supprimant les indicateurs 'Engagements de clients en vertu d’acceptations' et 'Acceptations'. De plus, une note a été modifiée pour inclure des engagements spécifiques.\n\nPertinence métier : Ce changement met l'accent sur une réorganisation significative de la présentation des risques de marché dans le bilan consolidé de CIBC. L'ajout des totaux de l'actif et du passif pourrait indiquer une nouvelle approche pour évaluer l'exposition au risque de marché, tandis que la suppression des engagements de clients et des acceptations pourrait refléter un changement dans la manière dont ces éléments sont gérés ou rapportés. La modification de la note pour inclure des montants spécifiques renforce la transparence et la précision des informations fournies. Surveiller comment ces changements affectent la gestion des risques de marché et la comparabilité des rapports financiers de CIBC avec ceux des pairs.\n\nPoint de surveillance : Surveiller comment ces changements affectent la gestion des risques de marché et la comparabilité des rapports financiers de CIBC avec ceux des pairs.",
         "impact_level": "MODERE",
         "impact_it": "MOYEN",
         "impact_it_justification": "Éléments observés : Réorganisation des indicateurs dans le tableau des risques de marché.\n\nConséquence probable : Nécessité de mettre à jour les systèmes de reporting pour refléter les nouveaux indicateurs et les modifications des notes.\n\nLimite de l'analyse: L'impact exact sur les systèmes IT dépend de la manière dont ces changements sont intégrés dans les processus existants.",
@@ -6650,7 +6679,8 @@
         "action_requise": "revue_prioritaire",
         "reference_reglementaire": "",
         "impact_description": "Réorganisation des indicateurs de risque de marché dans le bilan consolidé.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "CIBC"
       },
       "genai_analysis": {
         "resume_metier": "Le tableau des soldes du bilan consolidé exposés au risque de marché a été modifié par CIBC. Les indicateurs 'Total de l’actif' et 'Total du passif' ont été ajoutés, tandis que 'Engagements de clients en vertu d’acceptations' et 'Acceptations' ont été supprimés. Une note a également été modifiée pour inclure des montants spécifiques.\n\nCes changements indiquent une réorganisation significative de la présentation des risques de marché, ce qui pourrait refléter une nouvelle approche dans l'évaluation et la communication de ces risques. Cela pourrait également affecter la comparabilité des rapports financiers de CIBC avec ceux des pairs.\n\nIl est important de surveiller comment ces modifications influencent la gestion des risques de marché et la transparence des informations fournies par CIBC."
@@ -6809,7 +6839,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "Aucun impact concret sur la gestion des risques ou la conformité.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "CIBC"
       },
       "genai_analysis": {
         "resume_metier": "Le changement détecté dans la note du tableau ne modifie pas le contenu ou la substance de la divulgation. Il s'agit d'une reformulation sans impact sur la gestion des risques ou la conformité réglementaire.\n\nLa note modifiée ne présente pas de nouvelle information ou de retrait d'information existante, ce qui signifie qu'il n'y a pas de changement substantiel à signaler.\n\nAucune action n'est requise car le changement n'affecte pas les thèmes AMF ou la posture de la banque en matière de gestion des risques."
@@ -6952,7 +6983,8 @@
         "action_requise": "aucune",
         "reference_reglementaire": "",
         "impact_description": "",
-        "source": "skip"
+        "source": "skip",
+        "bank_code": "CIBC"
       }
     },
     {
@@ -7149,7 +7181,7 @@
           "MODIFICATION_METHODOLOGIE"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Liquidité, méthode de calcul\n\nCe qui change : CIBC a supprimé une note indiquant la mise en œuvre de changements concernant le traitement des fonds dans le calcul du LCR.\n\nPertinence métier : Ce changement met en évidence une modification potentielle dans la méthodologie de calcul du ratio de liquidité (LCR) de la CIBC, ce qui pourrait affecter la manière dont la banque gère ses exigences de liquidité réglementaires. La suppression de cette note pourrait indiquer que les changements ont été intégrés de manière permanente ou que la méthodologie a été stabilisée.\n\nPoint de surveillance : Surveiller l'impact de cette modification sur le LCR de la CIBC et s'assurer que la banque continue de respecter les exigences de liquidité du BSIF.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Liquidité, méthode de calcul\n\nCe qui change : CIBC a supprimé une note indiquant la mise en œuvre de changements concernant le traitement des fonds dans le calcul du LCR.\n\nPertinence métier : Ce changement met en évidence une modification potentielle dans la méthodologie de calcul du ratio de liquidité (LCR) de la CIBC, ce qui pourrait affecter la manière dont la banque gère ses exigences de liquidité réglementaires. La suppression de cette note pourrait indiquer que les changements ont été intégrés de manière permanente ou que la méthodologie a été stabilisée. Surveiller l'impact de cette modification sur le LCR de la CIBC et s'assurer que la banque continue de respecter les exigences de liquidité du BSIF. La suppression d'une note concernant le traitement des fonds dans le calcul du LCR indique que CIBC a intégré des changements méthodologiques.\n\nPoint de surveillance : Surveiller l'impact de cette modification sur le LCR de la CIBC et s'assurer que la banque continue de respecter les exigences de liquidité du BSIF.",
         "impact_level": "MODERE",
         "impact_it": "MOYEN",
         "impact_it_justification": "Éléments observés : Suppression d'une note sur le traitement des fonds dans le calcul du LCR.\n\nConséquence probable : Nécessité d'adapter les systèmes de calcul de liquidité pour refléter les changements méthodologiques.\n\nLimite de l'analyse: Détails spécifiques sur les changements méthodologiques non fournis.",
@@ -7167,7 +7199,8 @@
         "action_requise": "revue_prioritaire",
         "reference_reglementaire": "Bâle III — LCR",
         "impact_description": "Modification méthodologique du calcul du LCR affectant la gestion de la liquidité.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "CIBC"
       },
       "genai_analysis": {
         "resume_metier": "La suppression d'une note concernant le traitement des fonds dans le calcul du LCR indique que CIBC a intégré des changements méthodologiques. Cela pourrait affecter la gestion de la liquidité et la conformité réglementaire.\n\nCe changement est pertinent car il touche à la méthodologie de calcul d'un ratio de liquidité crucial, ce qui peut avoir des implications sur la manière dont la banque gère ses ressources financières.\n\nIl est important de surveiller comment ces modifications affectent le LCR de la CIBC et si elles influencent la conformité aux exigences du BSIF."
@@ -7387,7 +7420,7 @@
           "MODIFICATION_METHODOLOGIE"
         ],
         "nouvelle_idee": true,
-        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Méthode de calcul ou approche modifiée\n\nCe qui change : CIBC a supprimé une note indiquant la mise en œuvre de changements dans le traitement des fonds négociés au cours du premier trimestre de 2024.\n\nPertinence métier : Ce changement met en évidence une modification potentielle dans la méthodologie de traitement des fonds négociés, ce qui pourrait affecter la manière dont ces fonds sont comptabilisés ou gérés. Cela peut avoir des implications sur la transparence et la comparabilité des rapports financiers de la banque, en particulier si ces changements influencent les résultats financiers ou les ratios de performance.\n\nPoint de surveillance : Surveiller les impacts de cette modification méthodologique sur les rapports financiers futurs et la conformité aux normes comptables et réglementaires.",
+        "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui\n\nSujet détecté : Méthode de calcul ou approche modifiée\n\nCe qui change : CIBC a supprimé une note indiquant la mise en œuvre de changements dans le traitement des fonds négociés au cours du premier trimestre de 2024.\n\nPertinence métier : Ce changement met en évidence une modification potentielle dans la méthodologie de traitement des fonds négociés, ce qui pourrait affecter la manière dont ces fonds sont comptabilisés ou gérés. Cela peut avoir des implications sur la transparence et la comparabilité des rapports financiers de la banque, en particulier si ces changements influencent les résultats financiers ou les ratios de performance. Surveiller les impacts de cette modification méthodologique sur les rapports financiers futurs et la conformité aux normes comptables et réglementaires. La suppression de la note concernant les changements dans le traitement des fonds négociés indique une modification méthodologique potentielle.\n\nPoint de surveillance : Surveiller les impacts de cette modification méthodologique sur les rapports financiers futurs et la conformité aux normes comptables et réglementaires.",
         "impact_level": "MODERE",
         "impact_it": "MOYEN",
         "impact_it_justification": "Éléments observés : Suppression d'une note sur le traitement des fonds négociés.\n\nConséquence probable : Nécessité d'adapter les systèmes de comptabilité et de gestion des fonds pour refléter les nouvelles méthodes.\n\nLimite de l'analyse: Détails spécifiques sur les changements méthodologiques non fournis.",
@@ -7405,7 +7438,8 @@
         "action_requise": "investigation",
         "reference_reglementaire": "",
         "impact_description": "Modification méthodologique potentielle dans le traitement des fonds négociés, affectant la transparence et la comparabilité des rapports financiers.",
-        "source": "llm"
+        "source": "llm",
+        "bank_code": "CIBC"
       },
       "genai_analysis": {
         "resume_metier": "La suppression de la note concernant les changements dans le traitement des fonds négociés indique une modification méthodologique potentielle. Cela pourrait affecter la manière dont ces fonds sont comptabilisés ou gérés, influençant ainsi la transparence et la comparabilité des rapports financiers de CIBC.\n\nCe changement est pertinent car il met en lumière une révision des pratiques de traitement des fonds, ce qui peut avoir des implications sur les résultats financiers ou les ratios de performance de la banque. Il est crucial de surveiller comment ces modifications affecteront les rapports financiers futurs et la conformité aux normes comptables et réglementaires.\n\nL'impact IT est modéré, car il pourrait nécessiter des ajustements dans les systèmes de comptabilité et de gestion des fonds pour refléter les nouvelles méthodes. La suppression explicite de la note suggère un changement significatif, bien que les détails spécifiques sur les changements méthodologiques ne soient pas fournis."
