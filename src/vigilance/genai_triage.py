@@ -543,7 +543,7 @@ async def _triage_all_changes(
 
     global_summary: dict[str, Any]
     if relevant:
-        summary_prompt = _build_summary_prompt(relevant)
+        summary_prompt = _build_summary_user_prompt(relevant)
         summary_raw = await _call_openai_json_async(
             client,
             system=_SUMMARY_SYSTEM_PROMPT,
