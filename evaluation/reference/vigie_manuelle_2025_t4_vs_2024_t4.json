@@ -1,0 +1,1860 @@
+{
+  "schema_version": 1,
+  "artifact_type": "reference_vigie_manuelle",
+  "pairing": "2025_t4_vs_2024_t4",
+  "source": "Tableaux de vigie produits manuellement par les analystes (colonnes: Banque / Section / Page PDF / Contexte-sous-section PDF / Changement PDF).",
+  "notes": [
+    "Les pages sont des pages PDF (numerotation du fichier), pas les pages imprimees du rapport. Le pipeline indexe en pages imprimees: un decalage par banque existe.",
+    "Les lignes du tableau original qui se poursuivaient sur la ligne suivante (fragment commencant en minuscule ou titre isole suivi de sa description) ont ete fusionnees en un seul item logique.",
+    "Les tableaux CIBC, TD et RBC etaient tronques en fin de liste; les items incomplets sont marques truncated=true et exclus du calcul de rappel.",
+    "Les lignes ou l'analyste declare lui-meme l'absence de changement sont marquees declares_no_change=true et exclues du calcul de rappel: elles n'attendent aucune detection.",
+    "BNC est fournie sous forme de liste numerotee de 40 descriptions, sans section, page ni sous-section. Les items 4 et 40 sont signales par l'analyste comme des descriptions incompletes (source_description_incomplete=true)."
+  ],
+  "banks": {
+    "bmo": {
+      "bank_label": "BMO",
+      "page_kind": "pdf",
+      "items": [
+        {
+          "id": "bmo-001",
+          "section": "GESTION DU CAPITAL",
+          "page_pdf": 151,
+          "subsection": "Cadre",
+          "change": "De maniere general, les ternes \"groupes d'exploitation\" et suffisance du capital\" sont respectivement remplaces par \"unites d'exploitation\" et \"adequation des fonds propres"
+        },
+        {
+          "id": "bmo-002",
+          "section": "GESTION DU CAPITAL",
+          "page_pdf": 151,
+          "subsection": "Cadre",
+          "change": "Suppression d'un texte sur l'objectif de repartition des fonds propres"
+        },
+        {
+          "id": "bmo-003",
+          "section": "GESTION DU CAPITAL",
+          "page_pdf": 151,
+          "subsection": "Exigences en matiere de fonds propres reglementaires",
+          "change": "Ajout d'un texte sur l'entree en vigueur du cadre de capacite totale d'absorption des pertes par etablissement des societes meres de BISN"
+        },
+        {
+          "id": "bmo-004",
+          "section": "GESTION DU CAPITAL",
+          "page_pdf": 151,
+          "subsection": "Exigences en matiere de fonds propres reglementaires",
+          "change": "Modification de libelles dans le tableau des exigences"
+        },
+        {
+          "id": "bmo-005",
+          "section": "GESTION DU CAPITAL",
+          "page_pdf": 152,
+          "subsection": "Ratios de fonds propres reglementaires et de la capacite totale d'absorption des pertes",
+          "change": "Ajout des termes \"moins les deductions reglementaires\". Auparavant etait \"net des deductions\""
+        },
+        {
+          "id": "bmo-006",
+          "section": "GESTION DU CAPITAL",
+          "page_pdf": 152,
+          "subsection": "Evolution des exigences en matiere de fonds propres reglementaires",
+          "change": "Publication le 29 octobre 2025 de la mise a jour (ancienne publication du 20 fevrier 2025) de la ligne directrice Regime au regard des normes de fonds propres et de liquidite visant les expositions sur crypto-actifs (banques), de la LD NFP et du facteur d'ajustement du plancher de fonds propres"
+        },
+        {
+          "id": "bmo-007",
+          "section": "GESTION DU CAPITAL",
+          "page_pdf": 152,
+          "subsection": "Evolution des exigences en matiere de fonds propres reglementaires",
+          "change": "Publication de la version revisee de le ligne directrice NFP le 11 septembre 2025"
+        },
+        {
+          "id": "bmo-008",
+          "section": "GESTION DU CAPITAL",
+          "page_pdf": 153,
+          "subsection": "Evolution des exigences en matiere de fonds propres reglementaires",
+          "change": "Capital economique et actifs ponderes en fonction des risques par unite d'exploitation et type de risque"
+        },
+        {
+          "id": "bmo-009",
+          "section": "GESTION DU CAPITAL",
+          "page_pdf": 153,
+          "subsection": "Evolution des exigences en matiere de fonds propres reglementaires",
+          "change": "Modification de libelles dans le tableau \"Actifs ponderes en fonction des risques\" devient \"Actifs ponderes par type de risque\" et \"Services bancaires particuliers et entreprises aux Etats-Unis\" devient \"Services bancaires aux Etats-Unis\""
+        },
+        {
+          "id": "bmo-010",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 155,
+          "subsection": "Introduction",
+          "change": "Modification du texte sur l'objectif du cadre de gestion des risques. Le \"Cadre de gestion globale des risques\" devient le \"Cadre de gestion des risques\" et le risque d'assurance est integre dans le risque de strategie."
+        },
+        {
+          "id": "bmo-011",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 155,
+          "subsection": "Principaux risques et risques emergents pouvant nuire aux resultats futurs",
+          "change": "Mise a jour de la Situation economique generale avec un focus sur les tarifs douaniers americains et l'inflation"
+        },
+        {
+          "id": "bmo-012",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 156,
+          "subsection": "Principaux risques et risques emergents pouvant nuire aux resultats futurs",
+          "change": "Le theme de la Montee des differends commerciaux et evolution des risques geopolitiques est replace en seconde position des principaux risques. Mise a jour du texte avec un focus sur les tarifs douaniers americains et conflit au Moyen-Orient et Ukraine"
+        },
+        {
+          "id": "bmo-013",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 157,
+          "subsection": "Principaux risques et risques emergents pouvant nuire aux resultats futurs",
+          "change": "Mise a jour du texte sur le Risque lie a la cybersecurite et a la securite de l'information avec l'introduction de l'IA dans les cyberattaques et le role dans la banque de leur Unite Crime financier et leur infrastructure securite pour lutter contre ca",
+          "merged_rows": 2
+        },
+        {
+          "id": "bmo-014",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 158,
+          "subsection": "Principaux risques et risques emergents pouvant nuire aux resultats futurs",
+          "change": "Mise a jour du texte sur le Resilience de la technologie et innovation avec notamment l'introduction de l'IA dans les innovations technologiques"
+        },
+        {
+          "id": "bmo-015",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 159,
+          "subsection": "Principaux risques et risques emergents pouvant nuire aux resultats futurs",
+          "change": "Mise a jour du texte sur le Risque environnemental et social (changement du titre de la sous-section avec suppression des termes \", y compris les changements climatiques\") avec notamment l'introduction de la notion des risques physiques et evocation des phenomenes meteorologiques de plus en plus graves et frequents",
+          "merged_rows": 2
+        },
+        {
+          "id": "bmo-016",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 160,
+          "subsection": "Principaux risques et risques emergents pouvant nuire aux resultats futurs",
+          "change": "Mise a jour du texte sur le Marche canadien de l'habitation et endettement des particuliers avec le risque de pertes sur les prets a la consommation non garantis en raison de l'augmentation du taux de chomage qui est cite plus tot dans le texte qu'en 2024"
+        },
+        {
+          "id": "bmo-017",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 160,
+          "subsection": "Autres facteurs pouvant influer sur les resultats futurs",
+          "change": "Suppression du texte sur la Politiques budgetaires et monetaires et autres conditions economiques dans les pays ou BMO est present"
+        },
+        {
+          "id": "bmo-018",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 160,
+          "subsection": "Autres facteurs pouvant influer sur les resultats futurs",
+          "change": "Mise a jour du texte sur la Legislation fiscale et interpretations connexes avec promulgation de la Loi sur l'impot minimum mondial afin de mettre en oeuvre le plan de reforme de la fiscalite internationale"
+        },
+        {
+          "id": "bmo-019",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 161,
+          "subsection": "Autres facteurs pouvant influer sur les resultats futurs",
+          "change": "Modification du texte sur la Modification du portefeuille d'activites avec le retrait de phrases sur les difficultes que peut rencontrer la banque dans cette activite"
+        },
+        {
+          "id": "bmo-020",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 161,
+          "subsection": "Autres facteurs pouvant influer sur les resultats futurs",
+          "change": "Modification du texte sur les Estimations et jugements comptables critiques et normes comptables avec le retrait de phrases sur les impacts possibles des changements sur les jugements et evaluations"
+        },
+        {
+          "id": "bmo-021",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 161,
+          "subsection": "Cadre de gestion des risques",
+          "change": "Refonte majeure de l'introduction avec davantage de details sur l'objectif et les composantes du cadre de gestion pour la banque et refonte du graphique Cadre de gestion globale des risques"
+        },
+        {
+          "id": "bmo-022",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 163,
+          "subsection": "Cadre de gestion des risques",
+          "change": "Modification du texte Gouvernance des risques avec davantage de details sur les roles et l'arbre decisionnel"
+        },
+        {
+          "id": "bmo-023",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 164,
+          "subsection": "Cadre de gestion des risques",
+          "change": "Modification du texte dans le role des comites avec notamment l'introduction de la notion de changement climatique et controle interne au sein du Comite d'audit et de revision (CAR) du Conseil d'administration, La \"Gestion globale des risques et du portefeuille\" devient La \"Gestion globale des risques et du portefeuille et Affaires juridiques et conformite reglementaire\", et modification du texte sur les Unites d'exploitation et les services d'entreprise."
+        },
+        {
+          "id": "bmo-024",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 166,
+          "subsection": "Cadre de gestion des risques",
+          "change": "Suppression dans Limite des risques du texte sur l'utilite de la delegation de pouvoir faite aux dirigeants responsables des risques sur l'etablissement des degres d'appetit pour le risque, d'approuver les limites et fixer des limites en matiere de prise ferme et de ressources pour les activites de negociation"
+        },
+        {
+          "id": "bmo-025",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 166,
+          "subsection": "Cadre de gestion des risques",
+          "change": "Modification du texte dans Gestion des politiques globales (anciennement : Politique globale de gestion des risques) avec l'introduction des objectifs du programme et la hierarchisation des documents sur les politiques"
+        },
+        {
+          "id": "bmo-026",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 167,
+          "subsection": "(introduction d'un nouveau graphique)",
+          "change": "Refonte majeure du texte dans Cycle de vie de la gestion des risques scinde en trois sous partie Detection et evaluation des risques (qui inclut maintenant la taxonomie des risques), Mesure, gestion et signalement des risques et Maintien"
+        },
+        {
+          "id": "bmo-027",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 168,
+          "subsection": "(introduction d'un nouveau graphique)",
+          "change": "La section Surveillance et signalement des risques devient Evaluation du capital pondere en fonction des risques et simulation de crise, sans modification importante dans les textes"
+        },
+        {
+          "id": "bmo-028",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 168,
+          "subsection": "(introduction d'un nouveau graphique)",
+          "change": "La section Culture de gestion des risques est modifiee avec l'introduction des notions de Prises de decisions et de Formation"
+        },
+        {
+          "id": "bmo-029",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 170,
+          "subsection": "Analyse des portefeuilles",
+          "change": "Suppression des graphiques sur les engagements de credit en cours ventilant Canada et autres pays versus"
+        },
+        {
+          "id": "bmo-030",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 170,
+          "subsection": "Financement a levier financier",
+          "change": "Suppression du texte relatif au Financement a levier financier"
+        },
+        {
+          "id": "bmo-031",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 170,
+          "subsection": "Introduction",
+          "change": "Modification de la definition du risque de marche"
+        },
+        {
+          "id": "bmo-032",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 171,
+          "subsection": "Risque de marche lie a l'assurance",
+          "change": "Suppression de la sous-section risque de marche lie a l'assurance"
+        },
+        {
+          "id": "bmo-033",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 171,
+          "subsection": "Risque de change lie aux activites autres que de negociation",
+          "change": "Suppression d'une phrase traitant l'incidence de la variation des cours de change sur le risque de transaction"
+        },
+        {
+          "id": "bmo-034",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 172,
+          "subsection": "Risque d'assurance",
+          "change": "Le risque d'assurance est deplace dans le risque de strategie et les donnees quantitatives qui etaient publiees en 2024 ne sont plus publiees en 2025 dans la section Gestion des risques"
+        },
+        {
+          "id": "bmo-035",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 173,
+          "subsection": "Faits nouveaux en matiere de reglementation",
+          "change": "Mise a jour du texte avec Consultation BSIF sur LD Normes de liquidite et publication d'un document sur le"
+        },
+        {
+          "id": "bmo-036",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 174,
+          "subsection": "Definition et introduction",
+          "change": "Modification de la definition du risque operationnel (suppression de l'enumeration des risques sous-jacents) et simplification de l'introduction en focalisant sur le cadre de gestion"
+        },
+        {
+          "id": "bmo-037",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 175,
+          "subsection": "Gestion du risque operationnel non financier",
+          "change": "Suppression d'un texte sur la mise en oeuvre des principes directeurs du cadre de gestion du risque operationnel non financier"
+        },
+        {
+          "id": "bmo-038",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 175,
+          "subsection": "Risque lie au blanchiment d'argent, au financement du terrorisme et aux sanctions",
+          "change": "Texte mis a jour pour preciser que le programme de lutte contre le blanchiment d'argent de BMO applique des mesures de diligence et qu'elle surveille l'evolution des exigences reglementaires relatives au regime de LBA-FAT pour s'y conformer",
+          "merged_rows": 2
+        },
+        {
+          "id": "bmo-039",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 176,
+          "subsection": "Risque lie a l'intelligence artificielle",
+          "change": "Mise a jour du texte"
+        },
+        {
+          "id": "bmo-040",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 177,
+          "subsection": "Risque lie aux donnees et a l'analyse",
+          "change": "Mise a jour du texte"
+        },
+        {
+          "id": "bmo-041",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 177,
+          "subsection": "Risque lie a la fraude interne et externe",
+          "change": "Le risque lie a la securite physique n'est plus traite dans ce facteur de risque et est remplace par la fraude externe"
+        },
+        {
+          "id": "bmo-042",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 177,
+          "subsection": "Risque lie a la securite physique et a la propriete",
+          "change": "Nouveau facteur de risque qui reprend le texte du risque lie a la securite physique publie precedemment mais introduit le risque lie a la propriete"
+        },
+        {
+          "id": "bmo-043",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 178,
+          "subsection": "Risque lie a la gestion de projets et de changements",
+          "change": "Suppression de ce facteur de risque"
+        },
+        {
+          "id": "bmo-044",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 178,
+          "subsection": "Risque lie a la culture et au comportement et Risque de paiement",
+          "change": "Ajout de deux facteurs de risque \"Risque lie a la culture et au comportement\" et \"Risque de paiement\" dans un nouveau paragraphe intitule \"Les facteurs de risque operationnel non financier qui suivent peuvent etre une cause sous-jacente ou l'amplificateur d'autres risques qui peuvent avoir une incidence negative sur les activites et les resultats financiers de BMO\".",
+          "merged_rows": 2
+        },
+        {
+          "id": "bmo-045",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 178,
+          "subsection": "Risque de modele",
+          "change": "Mise a jour majeure de la sous-section"
+        },
+        {
+          "id": "bmo-046",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 180,
+          "subsection": "Risque lie a la conformite juridique et reglementaire",
+          "change": "Suppression du texte traitant des Questions relatives a la durabilite et aux changements climatiques"
+        },
+        {
+          "id": "bmo-047",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 181,
+          "subsection": "Protection des consommateurs",
+          "change": "Mise a jour du texte sur la Protection des consommateurs"
+        },
+        {
+          "id": "bmo-048",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 181,
+          "subsection": "Protection de la vie privee",
+          "change": "Mise a jour du texte sur la Protection de la vie privee avec suppression de la mention relative a la Loi C-27 et ajout de la notion d'IA",
+          "merged_rows": 2
+        },
+        {
+          "id": "bmo-049",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 182,
+          "subsection": "Faits nouveaux en matiere de reglementation aux Etats-Unis",
+          "change": "Mise a jour du texte sur la reglementation aux Etats-Unis"
+        },
+        {
+          "id": "bmo-050",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 183,
+          "subsection": "Risque de strategie",
+          "change": "Modification de la definition du risque de strategie et integration du risque d'assurance dans le risque de strategie"
+        },
+        {
+          "id": "bmo-051",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 184,
+          "subsection": "Risque environnemental et social",
+          "change": "Refonte de la section, notamment avec introduction d'une sous-section Risque climatique et des ambitions de la banque en la matiere"
+        },
+        {
+          "id": "bmo-052",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 184,
+          "subsection": "Risque environnemental et social",
+          "change": "Gouvernance, davantage de details sur le role des differents comites/instances"
+        },
+        {
+          "id": "bmo-053",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 185,
+          "subsection": "Risque environnemental et social",
+          "change": "Suppression du texte sur la Strategie"
+        },
+        {
+          "id": "bmo-054",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 185,
+          "subsection": "Risque environnemental et social",
+          "change": "Gestion des risques, Modification du texte. Le texte auparavant intitule \"Gestion du risque environnemental et social dans la chaine d'approvisionnement\" est remplace par \"Droits de la personne et codes de conduite\", le texte Faits nouveaux en matiere de reglementation est mis a jour avec les mentions a ligne B-15, la loi C-59 et le retrait de plusieurs institutions americaines a leur participation aux principes interagences sur la gestion des risques financiers lies au climat pour les grandes institutions financieres.",
+          "merged_rows": 2
+        },
+        {
+          "id": "bmo-055",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 188,
+          "subsection": "Risque environnemental et social",
+          "change": "Retrait du texte Mesure et cibles"
+        },
+        {
+          "id": "bmo-056",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 188,
+          "subsection": "Risque environnemental et social",
+          "change": "Risques climatiques, ajout de cette sous-section scindee en Gestion du risque et L'ambition climatique de BMO"
+        },
+        {
+          "id": "bmo-057",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 189,
+          "subsection": "Risque de reputation",
+          "change": "Ajout du terme Reputation dans la definition, ajout du classement de ce risque dans la taxonomie en tant que risque transversal et suppression de la phrase sur l'inconduite et ses consequences possibles"
+        }
+      ]
+    },
+    "cibc": {
+      "bank_label": "CIBC",
+      "page_kind": "pdf",
+      "items": [
+        {
+          "id": "cibc-001",
+          "section": "GESTION DU CAPITAL",
+          "page_pdf": 125,
+          "subsection": "Actif pondere en fonction du risque",
+          "change": "Retrait de la mention sur l'utilisation de l'approche NI au lieu de l'approche standard dans le tableau des APR - section risque de credit"
+        },
+        {
+          "id": "cibc-002",
+          "section": "GESTION DU CAPITAL",
+          "page_pdf": 125,
+          "subsection": "Actif pondere en fonction du risque",
+          "change": "Retrait de la mention sur la mise en oeuvre des reformes de Bale III relatives au REC dans le tableau des APR - section Risque lie au rajustement de l'evaluation du credit (REC)"
+        },
+        {
+          "id": "cibc-003",
+          "section": "GESTION DU CAPITAL",
+          "page_pdf": 125,
+          "subsection": "Actif pondere en fonction du risque",
+          "change": "Retrait de la mention des reformes de Bale III relatives au risque de marche dans le tableau des APR - section"
+        },
+        {
+          "id": "cibc-004",
+          "section": "GESTION DU CAPITAL",
+          "page_pdf": 126,
+          "subsection": "Risque de marche",
+          "change": "Retrait de la mention de la revision de l'approche standard au deuxieme trimestre de 2023 relative au risque operationnel dans le tableau des APR - section Risque operationnel"
+        },
+        {
+          "id": "cibc-005",
+          "section": "GESTION DU CAPITAL",
+          "page_pdf": 126,
+          "subsection": "Risque de marche",
+          "change": "Ajout d'une note de bas de page sur le calcul de plancher de fonds propres en appliquant un facteur d'ajustement du plancher au total de l'APR Reformes de Bale III et exigences de communication financiere au titre du troisieme pilier revisees"
+        },
+        {
+          "id": "cibc-006",
+          "section": "GESTION DU CAPITAL",
+          "page_pdf": 126,
+          "subsection": "Cadre de capacite totale d'absorption des pertes par etablissement des societes mere",
+          "change": "Retrait des sections sur les Reformes de Bale III et exigences de communication financiere au titre du troisieme pilier revisees et le Cadre de capacite totale d'absorption des pertes par etablissement des societes mere"
+        },
+        {
+          "id": "cibc-007",
+          "section": "GESTION DU CAPITAL",
+          "page_pdf": 126,
+          "subsection": "Ligne directrice Normes de fonds propres du BSIF",
+          "change": "Ajout d'une nouvelle section Ligne directrice Normes de fonds propres du BSIF publie le 11 septembre 2025 par le BSIF Exclusion d'un evenement generateur de pertes operationnelles de l'APR refletant le risque operationnel"
+        },
+        {
+          "id": "cibc-008",
+          "section": "GESTION DU CAPITAL",
+          "page_pdf": 127,
+          "subsection": "Ligne directrice Normes de fonds propres du BSIF",
+          "change": "Ajout d'une nouvelle section Exclusion d'un evenement generateur de pertes operationnelles de l'APR refletant le risque operationnel"
+        },
+        {
+          "id": "cibc-009",
+          "section": "GESTION DU CAPITAL",
+          "page_pdf": 127,
+          "subsection": "Variations du total des fonds propres reglementaires",
+          "change": "Modification d'un libelle, passage de «Solde des fonds propres de premiere categorie sous forme d'actions ordinaires a la fin de l'exercice», « Solde des autres elements de fonds propres de premiere categorie a la fin de l'exercice», «Solde des fonds propres de deuxieme categorie a la fin de l'exercice» a «Solde a la fin de l'exercice» dans le tableau des variations du total des fonds propres reglementaires"
+        },
+        {
+          "id": "cibc-010",
+          "section": "GESTION DU CAPITAL",
+          "page_pdf": 127,
+          "subsection": "Variations du total des fonds propres reglementaires",
+          "change": "Retrait d'une note de bas de tableau sur l'incidence des reformes de Bale III dans le tableau des variations du total des fonds propres reglementaires"
+        },
+        {
+          "id": "cibc-011",
+          "section": "GESTION DU CAPITAL",
+          "page_pdf": 127,
+          "subsection": "Composantes de l'actif pondere en fonction du risque",
+          "change": "Retrait de plusieurs lignes VAR, VAR en situation de crise, Exigences supplementaires liees aux risques,"
+        },
+        {
+          "id": "cibc-012",
+          "section": "GESTION DU CAPITAL",
+          "page_pdf": 128,
+          "subsection": "Titrisation et autres dans les composantes de l'APR - risque de marche",
+          "change": "Retrait de 3 notes de bas de tableau sur l'approche NI appliquee a la majeure partie des portefeuilles de credit et l'examen fondamental du portefeuille de negociation"
+        },
+        {
+          "id": "cibc-013",
+          "section": "GESTION DU CAPITAL",
+          "page_pdf": 128,
+          "subsection": "Regime d'achat d'actions par les employes",
+          "change": "Retrait de la section Regime d'achat d'actions par les employes"
+        },
+        {
+          "id": "cibc-014",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 128,
+          "subsection": "Structure de la gouvernance du risque",
+          "change": "Mise a jour de la structure de la gouvernance du risque: ajout d'un nouveau comite, comite de la technologique. Le comite de direction a ete renomme par le Groupe Equipe de la haute direction CIBC"
+        },
+        {
+          "id": "cibc-015",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 129,
+          "subsection": "Structure de gestion du risque",
+          "change": "Changement de position de la gestion du risque en Europe et Asie-Pacifique qui depend maintenant de la gestion du risque lie aux marches des capitaux"
+        },
+        {
+          "id": "cibc-016",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 130,
+          "subsection": "Structure de gestion du risque",
+          "change": "Mise a jour des definitions des divisions de la structure de gestion des risques"
+        },
+        {
+          "id": "cibc-017",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 131,
+          "subsection": "Enonce sur l'interet a l'egard du risque et cadre sur l'interet a l'egard du risque",
+          "change": "Mise a jour de tous les enonces du cadre de gestion des risques: ajout de nouveaux cadres et limites connexes et surveillance par la direction dans le risque de credit, marche, liquidite, operationnel, reglementation"
+        },
+        {
+          "id": "cibc-018",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 133,
+          "subsection": "Recensement et mesure des risques",
+          "change": "Retrait de la mention du capital economique dans le calcul du risque dans la section Recensement et mesure des risques"
+        },
+        {
+          "id": "cibc-019",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 134,
+          "subsection": "Gestion du risque lie aux modeles",
+          "change": "Ajout de la mention des modeles d'IA dans la gestion du risque lie aux modeles - Recensement et mesure des risques"
+        },
+        {
+          "id": "cibc-020",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 134,
+          "subsection": "Gestion du risque lie aux modeles",
+          "change": "Ajout de la mention d'un examen de la qualite des donnees dans les politiques d'attenuation du risque lie aux modeles - Recensement et mesure des risques"
+        },
+        {
+          "id": "cibc-021",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 134,
+          "subsection": "Principaux risques et nouveaux risques",
+          "change": "Incertitude concernant la politique commerciale: Retrait du risque Inflation, taux d'interet et croissance economique pour le nouveau risque Incertitude concernant la politique commerciale. Nouveaux themes des tarifs douaniers instaures par les americains et leur impact ainsi que l'incertitude macroeconomique"
+        },
+        {
+          "id": "cibc-022",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 134,
+          "subsection": "Principaux risques et nouveaux risques",
+          "change": "Endettement des consommateurs canadiens et marche du logement canadien: Retrait d'un paragraphe sur la revision par le BSIF des lignes directrices Normes de fonds propres et Test de suffisance du capital des societes d'assurance hypothecaires. Retrait de la mention de la limite a l'egard du ratio pret revenu et des consequences"
+        },
+        {
+          "id": "cibc-023",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 135,
+          "subsection": "Principaux risques et nouveaux risques",
+          "change": "Risque geopolitique: Retrait des mentions des relations entre les Etats-Unis et l'Iran, les enjeux commerciaux persistants comme facteurs preoccupants"
+        },
+        {
+          "id": "cibc-024",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 135,
+          "subsection": "Principaux risques et nouveaux risques",
+          "change": "Risque lie aux changements climatiques: Mise a jour de la section en retirant les mentions de Normes canadiennes d'information sur la durabilite (NCID 1 et 2), retrait des mentions de l'IFRS S1 et S2, retrait des mentions sur les releves relatifs aux risques climatiques produits par la Banque. Ajout de mention sur la suspension des travaux pour un reglement sur la communication obligatoire d'information liee au changement climatique par l'ACVM. Mention de nouvelles lois sur la divulgation d'informations climatiques en Californie, les lois Senate Bil SB 253, SB 261",
+          "merged_rows": 2
+        },
+        {
+          "id": "cibc-025",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 136,
+          "subsection": "Principaux risques et nouveaux risques",
+          "change": "Risque lie a la securite de l'information et a la cybersecurite: Retrait du segment de la technologie pour en faire un risque a part entiere. Mise a jour en lien avec l'actualite"
+        },
+        {
+          "id": "cibc-026",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 136,
+          "subsection": "Principaux risques et nouveaux risques",
+          "change": "Risque lie a la technologie: Nouveau risque sur la technologie qui etait avant regroupe avec le risque de securite de l'information et la cybersecurite"
+        },
+        {
+          "id": "cibc-027",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 136,
+          "subsection": "Principaux risques et nouveaux risques",
+          "change": "Risque de desintermediation: Pas de reels changements, mise a jour en lien avec l'actualite.",
+          "declares_no_change": true
+        },
+        {
+          "id": "cibc-028",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 136,
+          "subsection": "Principaux risques et nouveaux risques",
+          "change": "Risque lie aux donnees et a l'intelligence artificielle: Mention que le BSIF a publie sa version definitive de la ligne directrice E-23 sur la gestion du risque de modelisation qui entrera en vigueur le 1er mai 2027"
+        },
+        {
+          "id": "cibc-029",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 137,
+          "subsection": "Principaux risques et nouveaux risques",
+          "change": "Risque lie aux tiers: Pas de changements",
+          "declares_no_change": true
+        },
+        {
+          "id": "cibc-030",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 137,
+          "subsection": "Principaux risques et nouveaux risques",
+          "change": "Sanctions et lutte contre le blanchiment d'argent et le financement des activites terroristes: Allegement de la section en retirant plusieurs mentions sur les engagements des communautes internationales en terme de blanchiment d'argent et d'activite terroristes. Retrait de certaines precisions sur la facon dont la banque s'engage a se conformer aux reglements."
+        },
+        {
+          "id": "cibc-031",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 137,
+          "subsection": "Principaux risques et nouveaux risques",
+          "change": "Reglementation bancaire aux Etats-Unis: Allegement de la section en retirant plusieurs paragraphes apportant des details sur l'exposition de la filiale CIBC Bankorp USA. Retrait du paragraphe sur la limitation de la croissance aux Etats-Unis par la Reserve federale"
+        },
+        {
+          "id": "cibc-032",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 137,
+          "subsection": "Principaux risques et nouveaux risques",
+          "change": "Transition liee a la reforme des taux interbancaires offerts: retrait de la section"
+        },
+        {
+          "id": "cibc-033",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 137,
+          "subsection": "Principaux risques et nouveaux risques",
+          "change": "Reforme fiscale: Mise a jour de la section pour retirer les anciennes lois (projet de loi C-69, regles du Pilier 2) et mention de la regle relative aux profits insuffisamment imposes RPII",
+          "merged_rows": 2
+        },
+        {
+          "id": "cibc-034",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 138,
+          "subsection": "Principaux risques et nouveaux risques",
+          "change": "Transactions d'entreprise: Pas de changements.",
+          "declares_no_change": true
+        },
+        {
+          "id": "cibc-035",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 138,
+          "subsection": "Risques decoulant des activites commerciales",
+          "change": "Mise a jour d'une unite d'exploitation strategique et activites commerciales pour retirer les mentions sur les services financiers directs"
+        },
+        {
+          "id": "cibc-036",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 138,
+          "subsection": "Risques decoulant des activites commerciales",
+          "change": "Mention du risque de culture et de securite dans le profil de risque"
+        },
+        {
+          "id": "cibc-037",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 138,
+          "subsection": "Risque de credit",
+          "change": "Changements sur plusieurs tableaux: Portefeuilles de detail, Qualite du credit des portefeuilles"
+        },
+        {
+          "id": "cibc-038",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 138,
+          "subsection": "Risque de credit",
+          "change": "Modification de libelle dans le tableau des niveaux de risque, passage de la ligne Bas a Faible, passage de Haut a Eleve"
+        },
+        {
+          "id": "cibc-039",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 139,
+          "subsection": "Risque de credit",
+          "change": "Changements sur plusieurs tableaux: Expositions au risque de credit, Expositions assujetties a l'approche standard, Repartition geographique, Expositions liees aux entreprises et aux gouvernements par secteur d'activite"
+        },
+        {
+          "id": "cibc-040",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 139,
+          "subsection": "Risque de credit",
+          "change": "Retrait d'une note de bas de tableau sur l'application de l'approche NI a la majeure partie des portefeuilles de credit de CIBC Bank USA pour lesquelles l'approche standard etait utilise"
+        },
+        {
+          "id": "cibc-041",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 139,
+          "subsection": "Expositions au risque de credit",
+          "change": "Retrait d'une note de bas de tableau sur l'application de l'approche NI a la majeure partie des portefeuilles de credit de CIBC Bank USA pour lesquelles l'approche standard etait utilise dans le tableau Exposition au risque de credit"
+        },
+        {
+          "id": "cibc-042",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 139,
+          "subsection": "Expositions au risque de credit",
+          "change": "Modification de bas de tableau pour retirer la mention de la ponderation des titres detenus a des fins autre que de negociation dans le tableau Exposition au risque de credit"
+        },
+        {
+          "id": "cibc-043",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 139,
+          "subsection": "Expositions liees aux entreprises et aux gouvernements par secteur d'activite",
+          "change": "Changement de l'ordre du libelle, passage de Diffusion, edition et impression a Edition, impression et diffusion dans le tableau Expositions liees aux entreprises et aux gouvernements par secteur d'activite",
+          "merged_rows": 2
+        },
+        {
+          "id": "cibc-044",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 139,
+          "subsection": "Expositions liees aux entreprises et aux gouvernements par secteur d'activite",
+          "change": "Retrait du paragraphe sur la strategie d'attenuation du risque et la protection de credit souscrite dans le tableau"
+        },
+        {
+          "id": "cibc-045",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 140,
+          "subsection": "En fonction des paiements reels des clients",
+          "change": "Retrait d'un paragraphe sur les precisions sur deux type de prets lies aux coproprietes au Canada: les prets hypothecaires et les prets octroyes aux promoteurs dans les Prets personnels garantis par des biens immobiliers"
+        },
+        {
+          "id": "cibc-046",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 140,
+          "subsection": "Exposition au secteur de l'immobilier de bureaux aux Etats-Unis",
+          "change": "Retrait de la section Exposition au secteur de l'immobilier de bureaux aux Etats-Unis"
+        },
+        {
+          "id": "cibc-047",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 140,
+          "subsection": "Activites de titrisation",
+          "change": "Ajout de precisions concernant les activites de titrisation, notamment de la titrisation classique et de la notion de risque transfere a des tiers"
+        },
+        {
+          "id": "cibc-048",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 140,
+          "subsection": "Mesure de risque",
+          "change": "Retrait des lignes Engagements de clients en vertu d'acceptations et Acceptations dans le tableau Mesure de risque"
+        },
+        {
+          "id": "cibc-049",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 141,
+          "subsection": "Mesure de risque",
+          "change": "Retrait de deux notes de bas de tableau pour preciser que les donnees refletent les reformes de Bale III et l'adoption de l'IFRS 17 dans le tableau Mesure de risque"
+        },
+        {
+          "id": "cibc-050",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 141,
+          "subsection": "Risque lie aux actions",
+          "change": "Modification de libelle, passage de Titres de participation evalues a la JVAERG a Titres de participation designes a la JVAERG dans le tableau de risque lie aux actions"
+        },
+        {
+          "id": "cibc-051",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 141,
+          "subsection": "Actifs assortis d'une charge",
+          "change": "Retrait d'une note de bas de tableau sur le retraitement de donnees suite a l'adoption de l'IFRS 17 dans le tableau Actifs assortis d'une charge"
+        },
+        {
+          "id": "cibc-052",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 141,
+          "subsection": "Obligations contractuelles",
+          "change": "Retraits de la ligne Engagements de clients en vertu d'acceptations et Acceptations dans le tableau Obligations contractuelles"
+        },
+        {
+          "id": "cibc-053",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 141,
+          "subsection": "Obligations contractuelles",
+          "change": "Modification d'une note de bas de tableau en retirant la mention sur le retraitement de donnees la suite de l'adoption de l'IFRS 17 dans le tableau Obligations contractuelles"
+        },
+        {
+          "id": "cibc-054",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 142,
+          "subsection": "Risque strategique",
+          "change": "Ajout de mentions sur les effets de la resilience et la croissance interne ou externe. Retrait des exemples ou les strategies pourraient etre appliquees de facon inappropriee"
+        },
+        {
+          "id": "cibc-055",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 142,
+          "subsection": "Risque operationnel",
+          "change": "Ajout de precisions sur la definition et l'objectif du Cadre d'integrite et de securite de la CIBC"
+        },
+        {
+          "id": "cibc-056",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 142,
+          "subsection": "Risque liee aux donnees",
+          "change": "Modification de la definition"
+        },
+        {
+          "id": "cibc-057",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 142,
+          "subsection": "Risque de fraude",
+          "change": "Modification de la definition"
+        },
+        {
+          "id": "cibc-058",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 143,
+          "subsection": "Risque lie a la securite de l'information (y compris le risque lie a la cybersecurite)",
+          "change": "Modification de la definition",
+          "merged_rows": 2
+        },
+        {
+          "id": "cibc-059",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 143,
+          "subsection": "Risque lie a la technologie",
+          "change": "Modification de la definition"
+        },
+        {
+          "id": "cibc-060",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 143,
+          "subsection": "Gouvernance",
+          "change": "Mise a jour de la section: restructuration et ajout de precisions sur la gouvernance et certains roles de supervision"
+        },
+        {
+          "id": "cibc-061",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 144,
+          "subsection": "Gestion du risque",
+          "change": "Ajout d'un paragraphe pour apporter des precisions sur les procedures et controles en place pour evaluer le risque lie aux fournisseurs contractuels."
+        },
+        {
+          "id": "cibc-062",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 145,
+          "subsection": "Changements climatiques",
+          "change": "",
+          "truncated": true
+        }
+      ]
+    },
+    "td": {
+      "bank_label": "TD",
+      "page_kind": "pdf",
+      "items": [
+        {
+          "id": "td-001",
+          "section": "GESTION DU CAPITAL",
+          "page_pdf": 114,
+          "subsection": "Actifs ponderes en fonction des risques par secteur",
+          "change": "Retrait de l'information sur le capital economique du tableau sur les actifs ponderes en fonction des risques par secteur."
+        },
+        {
+          "id": "td-002",
+          "section": "GESTION DU CAPITAL",
+          "page_pdf": 115,
+          "subsection": "Evolution future des fonds propres reglementaires (Cadre reglementaire)",
+          "change": "Ajout d'un texte pour informer de la publication le 20 fevrier 2025 de la ligne directrice du BSIF sur les crypto-actifs et les changements aux lignes directrices sur les normes de fonds propres."
+        },
+        {
+          "id": "td-003",
+          "section": "GESTION DU CAPITAL",
+          "page_pdf": 115,
+          "subsection": "Evolution future des fonds propres reglementaires (Cadre reglementaire)",
+          "change": "Ajout de la publication le 11 septembre 2025 de la LD NFP par le BSIF."
+        },
+        {
+          "id": "td-004",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 115,
+          "subsection": "Facteurs de risque et gestion des risques",
+          "change": "Mise a jour de la section Risques geopolitiques en mettant l'emphase sur les negociations ACEUM, les tarifs douaniers et les tensions Ukraine-Russie et l'instabilite au Moyen-Orient."
+        },
+        {
+          "id": "td-005",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 115,
+          "subsection": "Facteurs de risque et gestion des risques",
+          "change": "Nouveau risque presente: Risque de catastrophe"
+        },
+        {
+          "id": "td-006",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 116,
+          "subsection": "Facteurs de risque et gestion des risques",
+          "change": "Ajout d'un texte dans \"Concurrence, changements de comportements des consommateurs et perturbations liees a la technologie\" pour parler des investissements de la banque en cryptomonnaies."
+        },
+        {
+          "id": "td-007",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 116,
+          "subsection": "Risque environnemental et social (y compris le risque lie au climat)",
+          "change": "Retrait du texte qui parle des pressions externes pour regler les inegalites sociales et financieres"
+        },
+        {
+          "id": "td-008",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 116,
+          "subsection": "Risque environnemental et social (y compris le risque lie au climat)",
+          "change": "Ajout d'information sur les regles et sanctions de l'ecoblanchiment"
+        },
+        {
+          "id": "td-009",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 117,
+          "subsection": "Structure de gouvernance pour la gestion des risques",
+          "change": "Mise a jour du paragraphe du comite de redressement pour preciser le role du conseil d'administration;"
+        },
+        {
+          "id": "td-010",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 117,
+          "subsection": "Structure de gouvernance pour la gestion des risques",
+          "change": "Ajout d'un nouveau comite nomme \"Sous-comite de redressement\"."
+        },
+        {
+          "id": "td-011",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 118,
+          "subsection": "Structure de gouvernance pour la gestion des risques",
+          "change": "Retrait du paragraphe sur la \"Gestion des risques lies a la conduite de l'entreprise\""
+        },
+        {
+          "id": "td-012",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 118,
+          "subsection": "Structure de gouvernance pour la gestion des risques",
+          "change": "Retrait de la section sous la section des trois lignes de defense qui detaille les principes de gestion des risques que la banque applique."
+        },
+        {
+          "id": "td-013",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 118,
+          "subsection": "Risque de credit",
+          "change": "Changement Tableau 42 (Expositions brutes au risque de credit): \"Total - Expositions de detail\" pour \"Total - risque de credit de detail\""
+        },
+        {
+          "id": "td-014",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 118,
+          "subsection": "Risque de marche",
+          "change": "Tableau 44: Mesures du risque de portefeuille. Ajout d'un texte pour expliquer que les categories d'actifs ont ete touchees par la volatilite du aux facteurs geopolitiques et les frais de douanes."
+        },
+        {
+          "id": "td-015",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 119,
+          "subsection": "Risque de marche",
+          "change": "Presentation des donnees dans le tableau Sensibilite au risque de taux d'interet structurel par dollar canadien et dollar americain et ajout d'une note de bas de tableau pour expliquer le changement."
+        },
+        {
+          "id": "td-016",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 119,
+          "subsection": "Risque de marche",
+          "change": "Retrait de la note de bas de page en lien avec l'adoption de l'IFRS 17."
+        },
+        {
+          "id": "td-017",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 119,
+          "subsection": "Risque operationnel",
+          "change": "Changement de la definition d'un tiers"
+        },
+        {
+          "id": "td-018",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 120,
+          "subsection": "Risque operationnel",
+          "change": "Mise a jour du texte sur le \"Risque en matiere de conduite\"."
+        },
+        {
+          "id": "td-019",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 120,
+          "subsection": "Risque operationnel",
+          "change": "Ajout d'un texte sur le \"Risque de conformite a la reglementation\"."
+        },
+        {
+          "id": "td-020",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 120,
+          "subsection": "Risque de modele",
+          "change": "Ajout d'un texte sur le \"Risque lie a l'intelligence artificielle\"."
+        },
+        {
+          "id": "td-021",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 120,
+          "subsection": "Risque de liquidite",
+          "change": "Mise a jour des comites et sous-comites responsables de la gestion du risque de liquidite"
+        },
+        {
+          "id": "td-022",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 121,
+          "subsection": "Risque de liquidite",
+          "change": "Retrait des textes explicatifs du ratio LCR et les ratios reglementaires"
+        },
+        {
+          "id": "td-023",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 121,
+          "subsection": "Risque de liquidite",
+          "change": "Tableau 48 (Sommaire des actifs liquides moyens par type et par monnaie): Fusion des postes \"Obligations du gouvernement du Canada\" et \"Titres adosses a des creances hypothecaires...\" en ajoutant une note de bas de tableau explicative"
+        },
+        {
+          "id": "td-024",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 122,
+          "subsection": "Risque de liquidite",
+          "change": "Tableau Ratio LCR: Ajout d'une note de bas de tableau pour expliquer que la cellule est sans donnee selon le gabarit de divulgation"
+        },
+        {
+          "id": "td-025",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 122,
+          "subsection": "Risque de liquidite",
+          "change": "Ajout d'un texte pour enumerer les consultations lancees en 2025 par le BSIF."
+        },
+        {
+          "id": "td-026",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 123,
+          "subsection": "Risque lie aux crimes financiers",
+          "change": "Le risque lie aux crimes financiers a ete retire de la section \"Mode de gestion du risque juridique et de conformite a la reglementation (y compris le risque de crime financier) de la td\" pour devenir une section separee."
+        },
+        {
+          "id": "td-027",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 123,
+          "subsection": "Code de conduite et droits de la personne",
+          "change": "",
+          "truncated": true
+        }
+      ]
+    },
+    "bns": {
+      "bank_label": "BNS / Scotia",
+      "page_kind": "pdf",
+      "items": [
+        {
+          "id": "bns-001",
+          "section": "GESTION DU CAPITAL",
+          "page_pdf": 99,
+          "subsection": "Reserve pour stabilite interieure",
+          "change": "Mise a jour du texte sur la reserve pour stabilite interieure (RSI) de 3,5% pour mentionner que le taux a ete maintenu en juin 2024."
+        },
+        {
+          "id": "bns-002",
+          "section": "GESTION DU CAPITAL",
+          "page_pdf": 99,
+          "subsection": "Modifications a la reglementation liee aux fonds propres",
+          "change": "Ajout d'un texte portant sur le report d'augmentations du plancher des fonds propres par le BSIF."
+        },
+        {
+          "id": "bns-003",
+          "section": "GESTION DU CAPITAL",
+          "page_pdf": 100,
+          "subsection": "Modifications a la reglementation liee aux fonds propres",
+          "change": "Ajout d'un texte sur la publication en fevrier 2025 de la ligne directrice du BSIF sur le regime au regard des normes de fonds propres et de liquidite visant les expositions sur crypto-actifs"
+        },
+        {
+          "id": "bns-004",
+          "section": "GESTION DU CAPITAL",
+          "page_pdf": 100,
+          "subsection": "Notations de credit",
+          "change": "Retrait du paragraphe sur les notations de credit"
+        },
+        {
+          "id": "bns-005",
+          "section": "GESTION DU CAPITAL",
+          "page_pdf": 100,
+          "subsection": "Tableau Variations des fonds propres reglementaires",
+          "change": "Modification au poste \"Autres modifications, y compris les ajustements reglementaires et le retrait graduel des instruments non admissibles\" pour garder \"Autres modifications, y compris les ajustements reglementaires\"."
+        },
+        {
+          "id": "bns-006",
+          "section": "GESTION DU CAPITAL",
+          "page_pdf": 100,
+          "subsection": "Actifs ponderes en fonction des risques",
+          "change": "Ajout d'une mention par rapport au report de l'augmentation du plancher des APR que le BSIF s'est engage a aviser les banques concernes au moins deux ans avant de relancer le processus d'augmentation du niveau de plancher des fonds propres."
+        },
+        {
+          "id": "bns-007",
+          "section": "GESTION DU CAPITAL",
+          "page_pdf": 100,
+          "subsection": "Risque de marche - actifs ponderes en fonction du risque de marche",
+          "change": "Mention du BSIF qui a mis en place durant le premier trimestre de 2024 le cadre de gestion revise du risque de marche a la suite de la revision complete du portefeuille de negociation"
+        },
+        {
+          "id": "bns-008",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 102,
+          "subsection": "Cadre de gestion du risque",
+          "change": "Refonte de la section et ajout de plusieurs autres sections (voir plus bas)"
+        },
+        {
+          "id": "bns-009",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 102,
+          "subsection": "Cadre de gestion du risque",
+          "change": "Ajout de la section \"Taxonomie du risque d'entreprise\"."
+        },
+        {
+          "id": "bns-010",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 103,
+          "subsection": "Cadre de gestion du risque",
+          "change": "Ajout du cycle de gestion du risque et d'un graphique l'accompagnant."
+        },
+        {
+          "id": "bns-011",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 104,
+          "subsection": "Cadre de gestion du risque",
+          "change": "Retrait des sections Cadres, politiques et limites"
+        },
+        {
+          "id": "bns-012",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 104,
+          "subsection": "Cadre de gestion du risque",
+          "change": "Retrait de la section Surveillance et presentation de l'information"
+        },
+        {
+          "id": "bns-013",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 104,
+          "subsection": "Gouvernance et surveillance du risque",
+          "change": "Section Structure de gouvernance: Ajout du paragraphe sur leur comite responsable des technologies du conseil"
+        },
+        {
+          "id": "bns-014",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 105,
+          "subsection": "Gouvernance et surveillance du risque",
+          "change": "Ajout d'une section sur les exigences en matiere de surveillance du risque"
+        },
+        {
+          "id": "bns-015",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 105,
+          "subsection": "Risques importants et emergents",
+          "change": "Ajout d'un paragraphe sur l'evolution des politiques gouvernementales"
+        },
+        {
+          "id": "bns-016",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 105,
+          "subsection": "Risques importants et emergents",
+          "change": "Ajout d'un paragraphe sur l'adoption de l'IA"
+        },
+        {
+          "id": "bns-017",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 106,
+          "subsection": "Risques importants et emergents",
+          "change": "Ajout d'un paragraphe sur la gestion du changement"
+        },
+        {
+          "id": "bns-018",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 106,
+          "subsection": "Risques importants et emergents",
+          "change": "Ajout d'un paragraphe sur les risques par contagion"
+        },
+        {
+          "id": "bns-019",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 106,
+          "subsection": "Risque de marche",
+          "change": "Dans tableau Sensibilite aux taux d'interet structurels, les donnees auparavant presentees uniquement en dollar canadien sont maintenant aussi presentees en devises etrangeres"
+        },
+        {
+          "id": "bns-020",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 107,
+          "subsection": "Risque de marche",
+          "change": "Ajout que depuis le 1er novembre la VaR comprend la volatilite de l'ecart de credit propre aux emetteurs, qui etait auparavant dans la VaR propre a la dette."
+        },
+        {
+          "id": "bns-021",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 107,
+          "subsection": "Risque de marche",
+          "change": "Ajout du Risque sur actions dans la section du risque de marche"
+        },
+        {
+          "id": "bns-022",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 107,
+          "subsection": "Risque de marche",
+          "change": "Retrait de la mention que la banque utilise l'approche standard pour calculer les fonds propres"
+        },
+        {
+          "id": "bns-023",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 107,
+          "subsection": "Risque de marche",
+          "change": "Retrait de la note de bas de page en lien avec l'adoption de l'IFRS 17."
+        },
+        {
+          "id": "bns-024",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 108,
+          "subsection": "Risque de liquidite",
+          "change": "Ajout d'un paragraphe sur les instruments derives"
+        },
+        {
+          "id": "bns-025",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 108,
+          "subsection": "Risque de liquidite",
+          "change": "Actifs greves: Ajout d'un paragraphe sur les notations de credit"
+        },
+        {
+          "id": "bns-026",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 108,
+          "subsection": "Principaux risques non financiers",
+          "change": "Mention de la ligne directrice E-21 du BSIF dans le risque d'exploitation"
+        },
+        {
+          "id": "bns-027",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 108,
+          "subsection": "Principaux risques non financiers",
+          "change": "Ajout d'un paragraphe sur les risques de pots-de-vin et de corruption dans la section Risque de conformite."
+        },
+        {
+          "id": "bns-028",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 108,
+          "subsection": "Principaux risques non financiers",
+          "change": "Dans la section des risques ESG, retrait de la mention que la banque est membre de l'alliance Net Zero (NZBA)"
+        }
+      ]
+    },
+    "rbc": {
+      "bank_label": "RBC",
+      "page_kind": "pdf",
+      "items": [
+        {
+          "id": "rbc-001",
+          "section": "GESTION DU CAPITAL",
+          "page_pdf": 66,
+          "subsection": "Accord de Bale III",
+          "change": "Retrait du paragraphe sur l'adoption des reformes definitives de Bale III du CBCB du BSIF Fonds propres reglementaires, TLAC disponible, actif pondere en fonction des risques et ratios de fonds propres, de levier et TLAC"
+        },
+        {
+          "id": "rbc-002",
+          "section": "GESTION DU CAPITAL",
+          "page_pdf": 66,
+          "subsection": "Accord de Bale III",
+          "change": "Retrait d'une note de bas de tableau sur le retraitement des chiffres des periodes precedentes et l'adoption de l'IFRS 17"
+        },
+        {
+          "id": "rbc-003",
+          "section": "GESTION DU CAPITAL",
+          "page_pdf": 66,
+          "subsection": "Accord de Bale III",
+          "change": "Modification d'une note de bas de tableau pour retirer la mention de l'impact de l'adoption des lignes directrices revisees sur les normes de fonds propres et le ratio de levier"
+        },
+        {
+          "id": "rbc-004",
+          "section": "GESTION DU CAPITAL",
+          "page_pdf": 67,
+          "subsection": "Fonds propres reglementaires et TLAC disponible",
+          "change": "Modification de libelle: remplacement du terme provisions par dotations"
+        },
+        {
+          "id": "rbc-005",
+          "section": "GESTION DU CAPITAL",
+          "page_pdf": 67,
+          "subsection": "Fonds propres reglementaires et TLAC disponible",
+          "change": "Retrait d'une note de bas de tableau sur le retraitement des chiffres des periodes precedentes et l'adoption de l'IFRS 17"
+        },
+        {
+          "id": "rbc-006",
+          "section": "GESTION DU CAPITAL",
+          "page_pdf": 67,
+          "subsection": "Continuite du ratio CET1 (Bale III)",
+          "change": "Ajout d'une note de bas de tableau pour mentionner l'exclusion de l'indice de change dans l'augmentation de l'APR"
+        },
+        {
+          "id": "rbc-007",
+          "section": "GESTION DU CAPITAL",
+          "page_pdf": 67,
+          "subsection": "Actif pondere en fonction des risques au titre de Bale III",
+          "change": "Ajout d'un paragraphe sur l'annonce du BSIF de reporter de facon indefini les augmentations du plancher de fonds propres exige par sa ligne directrice sur les normes de fonds propres"
+        },
+        {
+          "id": "rbc-008",
+          "section": "GESTION DU CAPITAL",
+          "page_pdf": 68,
+          "subsection": "Total de l'actif pondere en fonction des risques",
+          "change": "Retrait d'une note de bas de tableau sur l'impact du cadre revise du risque de marche dans le cadre des reformes de Bale III"
+        },
+        {
+          "id": "rbc-009",
+          "section": "GESTION DU CAPITAL",
+          "page_pdf": 68,
+          "subsection": "Fonds propres attribues",
+          "change": "Ajout d'une phrase mentionnant la mise a jour de la methode d'attribution des fonds propres afin de refleter plus fidelement les exigences en matiere de fonds propres pour les entites juridiques"
+        },
+        {
+          "id": "rbc-010",
+          "section": "GESTION DU CAPITAL",
+          "page_pdf": 68,
+          "subsection": "Faits nouveaux en matiere de reglementation",
+          "change": "Retrait de l'ancien paragraphe sur l'adoption du Cadre de capacite totale d'absorption des pertes pour un nouveau paragraphe sur les revisions aux lignes directrices sur les normes de fonds propres publies le 11 septembre 2025 par le BSIF",
+          "merged_rows": 2
+        },
+        {
+          "id": "rbc-011",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 69,
+          "subsection": "Vue d'ensemble - Principes de gestion des risques",
+          "change": "Mise a jour de la vue d'ensemble et des principes de gestion des risques: ajout de l'evaluation de l'incidence decoulant du choix et de l'execution d'une strategie, mention du Code de deontologie ainsi que les lois, reglementations et exigences reglementaires.",
+          "merged_rows": 2
+        },
+        {
+          "id": "rbc-012",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 70,
+          "subsection": "Vue d'ensemble - Principes de gestion des risques",
+          "change": "Ajout d'une mention sur le cycle de vie de la gestion des risques, y compris la definition et l'habitation, l'identification et l'evaluation, la gestion et l'attenuation, le regroupement et la communication de l'information, ainsi que la gouvernance des risques importants dans la vue d'ensemble."
+        },
+        {
+          "id": "rbc-013",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 70,
+          "subsection": "Principaux risques",
+          "change": "Retrait du tableau presentant un sommaire des principaux risques comme: les facteurs d'ordre economiques, strategiques, operationnel et transactionnel"
+        },
+        {
+          "id": "rbc-014",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 71,
+          "subsection": "Gouvernance des risques",
+          "change": "Ajout d'une phrase dans la gouvernance des risques pour mentionner l'harmonisation de l'appetit pour le risque, les strategies commerciales et les activites de prises de risques a l'echelle de l'organisation"
+        },
+        {
+          "id": "rbc-015",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 71,
+          "subsection": "Conseil d'administration",
+          "change": "Modification de libelle: passage de «code de conduite» a «Code de deontologie»"
+        },
+        {
+          "id": "rbc-016",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 71,
+          "subsection": "Conseil d'administration",
+          "change": "Comite de gestion de risques: Ajout du role de supervision des groupes de conformites de lutte contre le financement des activites terroristes, de sanctions economiques mondiales et la corruption. Retrait du role de superviser leur budget, mandats, ressources, structure organisationnelle."
+        },
+        {
+          "id": "rbc-017",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 71,
+          "subsection": "Conseil d'administration",
+          "change": "Comite d'audit: Retrait du role sur la surveillance des autres documents d'informations, y compris sur la durabilite"
+        },
+        {
+          "id": "rbc-018",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 71,
+          "subsection": "Conseil d'administration",
+          "change": "Comite de gouvernance: modification de libelles, passage «coordonner les questions ESG» a «coordonner les questions liees a la durabilite»"
+        },
+        {
+          "id": "rbc-019",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 71,
+          "subsection": "Conseil d'administration",
+          "change": "Comite des ressources humaines: retrait des phrases liees a l'engagement des employes, la diversite et l'inclusion, et la sante et le bien-etre"
+        },
+        {
+          "id": "rbc-020",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 73,
+          "subsection": "Surveillance des risques",
+          "change": "Retrait de trois sous sections de la deuxieme ligne de defense - surveillance des risques: gestion des risques, conformite mondiale, et lutte au blanchiment d'argent, autres unites fonctionnelles"
+        },
+        {
+          "id": "rbc-021",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 73,
+          "subsection": "Surveillance des risques",
+          "change": "Changements generaux: Appetit pour le risque, Enonces relatifs a l'appetit pour le risque"
+        },
+        {
+          "id": "rbc-022",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 73,
+          "subsection": "Surveillance des risques",
+          "change": "Modification de libelle: passage de code de conduite a Code de deontologie"
+        },
+        {
+          "id": "rbc-023",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 73,
+          "subsection": "Enonces qualitatifs",
+          "change": "Ajout d'une mention sur l'evaluation des risques decoulant du choix et l'execution d'une strategie"
+        },
+        {
+          "id": "rbc-024",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 73,
+          "subsection": "Simulation de crise",
+          "change": "Retrait des precisions sur le fonctionnement et l'utilisation des resultats de simulation de crise"
+        },
+        {
+          "id": "rbc-025",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 73,
+          "subsection": "Simulation de crise",
+          "change": "Ajout d'une phrase pour specifier que les simulations sont effectuees en continu et de maniere independante"
+        },
+        {
+          "id": "rbc-026",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 74,
+          "subsection": "Gouvernance et validation des modeles",
+          "change": "Retrait de la section Gouvernance et validation des modeles"
+        },
+        {
+          "id": "rbc-027",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 74,
+          "subsection": "Controle des risques",
+          "change": "Retrait de precisions sur le Cadre mettant en oeuvre de processus officiels et independants dans le controle des risques"
+        },
+        {
+          "id": "rbc-028",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 74,
+          "subsection": "Architecture des documents de gestion du risque d'entreprise",
+          "change": "Modifications du titre du graphique, passant de «Architecture de gestion du risque d'entreprise» a «Architecture des documents de gestion du risque d'entreprise»"
+        },
+        {
+          "id": "rbc-029",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 74,
+          "subsection": "Architecture des documents de gestion du risque d'entreprise",
+          "change": "Retrait des exemples de politiques de gestion des risques specifiques a l'echelle de l'entreprise"
+        },
+        {
+          "id": "rbc-030",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 75,
+          "subsection": "Architecture des documents de gestion du risque d'entreprise",
+          "change": "Mise a jour de certains de cadre de gestion des risques: passage de a Cadre de gestion du risque lie a la conduite et a la culture d'entreprise et passage de a Cadre d'appetit pour le risque d'entreprise. Retraits des exemples de politiques de gestion des risques a l'echelle de l'entreprise Appetit pour le risque, pouvoirs d'approbation des risques et limites de risque"
+        },
+        {
+          "id": "rbc-031",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 76,
+          "subsection": "Architecture des documents de gestion du risque d'entreprise",
+          "change": "Retrait du mot delegues dans le titre Appetit pour le risque, pouvoirs d'approbation des risques et limites de risque"
+        },
+        {
+          "id": "rbc-032",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 76,
+          "subsection": "Architecture des documents de gestion du risque d'entreprise",
+          "change": "Mise a jour de la section, retrait de la definition de l'appetit pour le risque, retrait des precisions sur les pouvoirs et limites"
+        },
+        {
+          "id": "rbc-033",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 76,
+          "subsection": "Processus d'analyse et d'approbation des risques",
+          "change": "Retraits des precisions sur les pouvoirs et limites"
+        },
+        {
+          "id": "rbc-034",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 76,
+          "subsection": "Gestion des controles internes de gestion des risques",
+          "change": "Modification du titre, passage de Surveillance de la gestion des risques et gestion des enjeux a Surveillance de la gestion des risques et gestion des enjeux"
+        },
+        {
+          "id": "rbc-035",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 76,
+          "subsection": "Gestion des controles internes de gestion des risques",
+          "change": "Retrait des precisions et des mentions sur les enjeux et mention du modele des trois lignes de defenses"
+        },
+        {
+          "id": "rbc-036",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 77,
+          "subsection": "Communication aux echelons superieurs des risques et des evenements",
+          "change": "Modification du titre, passage de Communication aux echelons superieurs des risques et des enjeux lies aux evenements a Communication aux echelons superieurs des risques et des evenements"
+        },
+        {
+          "id": "rbc-037",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 77,
+          "subsection": "Communication aux echelons superieurs des risques et des evenements",
+          "change": "Retrait de la mention des enjeux"
+        },
+        {
+          "id": "rbc-038",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 77,
+          "subsection": "Risques connus et risques emergents",
+          "change": "Risques lies au contexte commercial et a la conjoncture economique: ajout de notions sur les politiques commerciales protectionnistes, pression budgetaire des gouvernements"
+        },
+        {
+          "id": "rbc-039",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 78,
+          "subsection": "Risques connus et risques emergents",
+          "change": "Risque lie au marche l'immobilier canadien et a l'endettement des menages: Pas de reels changements, mise a jour en lien avec l'actualite",
+          "declares_no_change": true
+        },
+        {
+          "id": "rbc-040",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 78,
+          "subsection": "Risques connus et risques emergents",
+          "change": "Risque lie aux technologies de l'information, cyberrisques et risques lies aux tierces parties: Pas de reels changements, mise a jour en lien avec l'actualite",
+          "merged_rows": 2,
+          "declares_no_change": true
+        },
+        {
+          "id": "rbc-041",
+          "section": "GESTION DES RISQUES",
+          "page_pdf": 78,
+          "subsection": "Risques connus et risques emergents",
+          "change": "Risque",
+          "truncated": true
+        }
+      ]
+    },
+    "bnc": {
+      "bank_label": "BNC",
+      "page_kind": "aucune",
+      "items_format": "Liste numerotee fournie sans colonnes Section / Page PDF / Contexte-sous-section: le rapprochement ne peut s'appuyer que sur la description du changement.",
+      "items": [
+        {
+          "id": "bnc-001",
+          "section": "",
+          "page_pdf": null,
+          "subsection": "",
+          "change": "Dans le texte sur la mesure du rendement du capital, remplacement du terme « périodiquement » par « trimestriellement »."
+        },
+        {
+          "id": "bnc-002",
+          "section": "",
+          "page_pdf": null,
+          "subsection": "",
+          "change": "Précision du rôle du CGIR : supervision trimestrielle de la gestion du capital, délégation de pouvoirs reçue du Comité des risques globaux et surveillance de la mise en œuvre de la stratégie et du plan."
+        },
+        {
+          "id": "bnc-003",
+          "section": "",
+          "page_pdf": null,
+          "subsection": "",
+          "change": "Retrait du texte concernant l’entrée en vigueur, au deuxième trimestre de 2023, de certaines révisions apportées par le BSIF à ses règles sur les fonds propres, la liquidité et la communication."
+        },
+        {
+          "id": "bnc-004",
+          "section": "",
+          "page_pdf": null,
+          "subsection": "",
+          "change": "Modification du texte sur le Cadre de capacité totale d’absorption des pertes applicable aux sociétés mères des banques d’importance systémique intérieure, afin de préciser que la BNC s’y conforme. La description originale est incomplète.",
+          "source_description_incomplete": true
+        },
+        {
+          "id": "bnc-005",
+          "section": "",
+          "page_pdf": null,
+          "subsection": "",
+          "change": "Ajout de la notion de « comportements attendus » relativement aux programmes de rémunération incitative."
+        },
+        {
+          "id": "bnc-006",
+          "section": "",
+          "page_pdf": null,
+          "subsection": "",
+          "change": "Ajout d’une précision sur le soutien apporté par la troisième ligne de défense à la promotion de la solidité financière à long terme de la BNC."
+        },
+        {
+          "id": "bnc-007",
+          "section": "",
+          "page_pdf": null,
+          "subsection": "",
+          "change": "Remplacement de « Comité de risque des marchés financiers » par « Comité de risque des marchés des capitaux »."
+        },
+        {
+          "id": "bnc-008",
+          "section": "",
+          "page_pdf": null,
+          "subsection": "",
+          "change": "Ajout du terme « accessibilité » à la mission du Comité de ressources humaines."
+        },
+        {
+          "id": "bnc-009",
+          "section": "",
+          "page_pdf": null,
+          "subsection": "",
+          "change": "Remplacement de « Expérience employé » par « Expérience et performance humaine »."
+        },
+        {
+          "id": "bnc-010",
+          "section": "",
+          "page_pdf": null,
+          "subsection": "",
+          "change": "Reformulation du texte concernant le Comité ESG."
+        },
+        {
+          "id": "bnc-011",
+          "section": "",
+          "page_pdf": null,
+          "subsection": "",
+          "change": "Le « Bureau de la protection des renseignements personnels » devient « l’Équipe de la protection des renseignements personnels et de l’intelligence artificielle responsable ». Le texte explicatif est également modifié."
+        },
+        {
+          "id": "bnc-012",
+          "section": "",
+          "page_pdf": null,
+          "subsection": "",
+          "change": "Le « Comité du risque de réputation » devient le « Comité des risques de réputation, d’intégrité et de sécurité ». Le texte explicatif est également modifié."
+        },
+        {
+          "id": "bnc-013",
+          "section": "",
+          "page_pdf": null,
+          "subsection": "",
+          "change": "Reformulation du texte sur la gouvernance de la gestion du risque de modèle."
+        },
+        {
+          "id": "bnc-014",
+          "section": "",
+          "page_pdf": null,
+          "subsection": "",
+          "change": "Précision de la fréquence trimestrielle des rencontres de l’Audit interne avec le Comité d’audit et de l’assurance fournie dans le cadre de ses travaux."
+        },
+        {
+          "id": "bnc-015",
+          "section": "",
+          "page_pdf": null,
+          "subsection": "",
+          "change": "Ajout de textes sur le risque de fraude ainsi que sur l’intégrité et la sécurité, et retrait du texte sur les changements climatiques."
+        },
+        {
+          "id": "bnc-016",
+          "section": "",
+          "page_pdf": null,
+          "subsection": "",
+          "change": "Ajout d’un texte sur la ligne directrice E-23 du BSIF relative à la gestion du risque de modélisation, dont la version révisée entrera en vigueur le 1er mai 2027."
+        },
+        {
+          "id": "bnc-017",
+          "section": "",
+          "page_pdf": null,
+          "subsection": "",
+          "change": "Mise à jour des autres thèmes liés aux risques principaux et émergents."
+        },
+        {
+          "id": "bnc-018",
+          "section": "",
+          "page_pdf": null,
+          "subsection": "",
+          "change": "Retrait du texte « Procédures judiciaires et réglementaires »."
+        },
+        {
+          "id": "bnc-019",
+          "section": "",
+          "page_pdf": null,
+          "subsection": "",
+          "change": "Ajout d’une référence aux modifications apportées à la réglementation touchant les activités de la Banque."
+        },
+        {
+          "id": "bnc-020",
+          "section": "",
+          "page_pdf": null,
+          "subsection": "",
+          "change": "Ajout de mentions concernant l’impact des risques émergents sur le risque de crédit et toute autre analyse pertinente."
+        },
+        {
+          "id": "bnc-021",
+          "section": "",
+          "page_pdf": null,
+          "subsection": "",
+          "change": "Mise à jour du texte sur les faits nouveaux en matière de réglementation suivis depuis le 1er novembre 2024."
+        },
+        {
+          "id": "bnc-022",
+          "section": "",
+          "page_pdf": null,
+          "subsection": "",
+          "change": "Introduction d’un exercice visant à évaluer les effets des tarifs douaniers sur la situation financière des titulaires d’emprunts, en remplacement de la mention des hausses de taux d’intérêt et de l’inflation."
+        },
+        {
+          "id": "bnc-023",
+          "section": "",
+          "page_pdf": null,
+          "subsection": "",
+          "change": "Ajout d’une précision sur la périodicité de la présentation des comptes sous surveillance à la direction des groupes de gestion du risque."
+        },
+        {
+          "id": "bnc-024",
+          "section": "",
+          "page_pdf": null,
+          "subsection": "",
+          "change": "Précisions sur l’incidence des normes environnementales sur l’octroi du crédit et sur ce que les analyses effectuées permettent de mesurer."
+        },
+        {
+          "id": "bnc-025",
+          "section": "",
+          "page_pdf": null,
+          "subsection": "",
+          "change": "Remplacement général de « risque de marché financier » par « risque de marché des capitaux », retrait des notes liées à IFRS 17 et retrait du terme « acceptations »."
+        },
+        {
+          "id": "bnc-026",
+          "section": "",
+          "page_pdf": null,
+          "subsection": "",
+          "change": "Modification du texte sur le risque de taux d’intérêt dans le portefeuille bancaire afin de mieux préciser la nature du risque de taux d’intérêt."
+        },
+        {
+          "id": "bnc-027",
+          "section": "",
+          "page_pdf": null,
+          "subsection": "",
+          "change": "Suppression du texte sur la ligne directrice « Normes de liquidité » et ajout d’un texte sur le PIEAL, les flux de liquidités transfrontaliers et l’asymétrie des devises."
+        },
+        {
+          "id": "bnc-028",
+          "section": "",
+          "page_pdf": null,
+          "subsection": "",
+          "change": "Ajout d’une référence à l’Audit interne dans le texte consacré à l’ALCO."
+        },
+        {
+          "id": "bnc-029",
+          "section": "",
+          "page_pdf": null,
+          "subsection": "",
+          "change": "Suppression du mot « structurel » dans le texte sur le ratio de liquidité à long terme, ou NSFR."
+        },
+        {
+          "id": "bnc-030",
+          "section": "",
+          "page_pdf": null,
+          "subsection": "",
+          "change": "Retrait d’une phrase décrivant la mission du CGRO relativement à la mise en place de cadres adéquats et au suivi de leur application."
+        },
+        {
+          "id": "bnc-031",
+          "section": "",
+          "page_pdf": null,
+          "subsection": "",
+          "change": "Retrait d’un paragraphe sur l’analyse et les leçons tirées des événements opérationnels observés dans d’autres grandes entreprises."
+        },
+        {
+          "id": "bnc-032",
+          "section": "",
+          "page_pdf": null,
+          "subsection": "",
+          "change": "Ajout d’un texte précisant les risques et les conséquences associés à la non-conformité."
+        },
+        {
+          "id": "bnc-033",
+          "section": "",
+          "page_pdf": null,
+          "subsection": "",
+          "change": "Ajout d’un texte sur la création d’une vice-présidence consacrée à la lutte contre le blanchiment d’argent."
+        },
+        {
+          "id": "bnc-034",
+          "section": "",
+          "page_pdf": null,
+          "subsection": "",
+          "change": "Suppression des textes portant sur la Charte de la langue française, les prêts hypothécaires dans des circonstances exceptionnelles, les organismes externes de traitement des plaintes et la réforme du taux CDOR."
+        },
+        {
+          "id": "bnc-035",
+          "section": "",
+          "page_pdf": null,
+          "subsection": "",
+          "change": "Ajout de textes portant sur les pratiques commerciales abusives, les comptes à frais modiques ou sans frais, la protection des consommateurs, la compensation des titres du Trésor américain et le modèle d’assurance des compétences."
+        },
+        {
+          "id": "bnc-036",
+          "section": "",
+          "page_pdf": null,
+          "subsection": "",
+          "change": "Mise à jour des textes sur le blanchiment d’argent, la protection des renseignements personnels, la FATCA, la norme commune de déclaration, les actifs numériques, le règlement d’un jour, l’accessibilité et le Règlement 91-507."
+        },
+        {
+          "id": "bnc-037",
+          "section": "",
+          "page_pdf": null,
+          "subsection": "",
+          "change": "Modification de la définition des risques environnementaux et sociaux et intégration de leurs effets sur les risques de crédit, de marché, de liquidité, de financement et opérationnels, ainsi que sur les clients."
+        },
+        {
+          "id": "bnc-038",
+          "section": "",
+          "page_pdf": null,
+          "subsection": "",
+          "change": "Modification du texte sur la structure de gouvernance et ajout d’un passage sur le caractère collaboratif de la gouvernance au sein de la Banque."
+        },
+        {
+          "id": "bnc-039",
+          "section": "",
+          "page_pdf": null,
+          "subsection": "",
+          "change": "Suppression des textes relatifs aux engagements PCAF, NZBA et PRB Biodiversity Community, et ajout de textes sur la quantification des émissions de GES ainsi que sur la qualité et les limites des données et des méthodologies."
+        },
+        {
+          "id": "bnc-040",
+          "section": "",
+          "page_pdf": null,
+          "subsection": "",
+          "change": "Mise à jour des textes sur les faits nouveaux en matière de réglementation et introduction d’un nouveau texte. La description originale est incomplète.",
+          "source_description_incomplete": true
+        }
+      ]
+    }
+  }
+}
