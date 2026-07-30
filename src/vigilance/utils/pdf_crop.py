@@ -473,3 +473,31 @@ def crop_footnote_region_to_bytes(
     except Exception:
         full = render_pdf_page(pdf_path, page_number, scale=zoom, format="png")
         return full if full else b""
+
+
+def crop_page_region_bytes(
+    pdf_path: str,
+    page_number: int,
+    bbox_norm: list[float] | None = None,
+    dpi: int = 200,
+) -> bytes:
+    """Rend la zone spécifiée (ou toute la page) d'un PDF sous forme de bytes PNG.
+
+    Args:
+        pdf_path: Chemin du fichier PDF.
+        page_number: Numéro de page (base 1).
+        bbox_norm: Bounding box normalisée [l, t, r, b] ou None pour la page entière.
+        dpi: Résolution de rendu.
+
+    Returns:
+        Bytes PNG de l'image.
+    """
+    if not bbox_norm:
+        return render_pdf_page(pdf_path, page_number, scale=dpi / 72, format="png") or b""
+
+    return crop_table_region_to_bytes(
+        pdf_path,
+        page_number,
+        bbox_norm,
+        dpi=dpi,
+    )
