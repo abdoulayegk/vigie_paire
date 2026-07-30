@@ -42,7 +42,7 @@ _MAX_TRIAGE_LLM_WORKERS = 6
 _SEMANTIC_ALIGNMENT_DECISIONS = frozenset(
     {"same_disclosure", "distinct_disclosures", "moved_text", "uncertain"}
 )
-_COSMETIC_SEQUENCE_THRESHOLD = 0.97
+_COSMETIC_SEQUENCE_THRESHOLD = 0.985
 _BANK_NOISE_SEQUENCE_THRESHOLD = 0.92
 _TRIAGE_DEDUP_EMBEDDING_THRESHOLD = 0.92
 _TRIAGE_EMBEDDING_TRUNCATE_CHARS = 1800
@@ -128,7 +128,10 @@ _GOVERNANCE_SIGNAL_RE = re.compile(
     r"lignes?\s+de\s+d[ée]fense|responsabilit[ée]s?|supervision|"
     r"reddition\s+de\s+comptes|escalade|autorit[ée]\s+d[ée]cisionnelle|"
     r"droits?\s+d['’]approbation|culture\s+de\s+risque|"
-    r"r[ée]mun[ée]ration|app[ée]tit\s+(?:pour\s+le|au)\s+risque"
+    r"r[ée]mun[ée]ration|app[ée]tit\s+(?:pour\s+le|au)\s+risque|"
+    r"imp[ôo]t|fiscalit[ée]|d[ée]sinterm[ée]diation|donn[ée]es?|technologies?|"
+    r"cyber|blanchiment|sanctions?|bsif|b[âa]le|tarifs?|commerciale?|"
+    r"cryptos?|climatique?|environnemental|mod[èe]les?"
     r")\b",
     flags=re.IGNORECASE,
 )
