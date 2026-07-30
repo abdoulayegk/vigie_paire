@@ -22,15 +22,11 @@
           "source_text_t1": "Exigences en matière de fonds propres du BSIF en vertu de Bâle III Les lignes directrices Normes de fonds propres et Exigences de levier du BSIF décrivent en détail la façon dont les règles en matière de fonds propres de Bâle III doivent être appliquées par les banques canadiennes.",
           "source_text_t2": "La réserve pour stabilité intérieure (RSI) a été augmentée pour passer de 3 % à 3,5 % au 1er novembre 2023 et est demeurée stable depuis. La fourchette de la RSI peut actuellement s’étendre de 0 à 4 %, le niveau effectif étant modifié par le BSIF selon l’évolution du système financier canadien et de l’économie dans son ensemble.",
           "evidence_t1": {
-            "pages": [
-              31
-            ],
+            "pages": [],
             "snippet": "Les exigences en matière de fonds propres de Bâle III et Exigences de levier du BSIF décrivent en détail la façon dont les règles en matière de fonds propres de Bâle III doivent être appliquées par les banques canadiennes."
           },
           "evidence_t2": {
-            "pages": [
-              36
-            ],
+            "pages": [],
             "snippet": "La réserve pour stabilité intérieure (RSI) a été augmentée pour passer de 3 % à 3,5 % au 1er novembre 2023 et est demeurée stable depuis."
           },
           "change_summary": "parle de l'ajustement des fonds propres pour se conformer aux exigences de gestion des risques, tandis que mentionne l'augmentation de la réserve pour stabilité intérieure. Les deux concernent des ajustements de capital mais avec des détails différents",
@@ -54,8 +50,133 @@
               "tone_changed": false,
               "forward_looking": false,
               "quantitative_changed": true
-            }
-          }
+            },
+            "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : Risque climatique, ESG, nouvelle mention réglementaire, capital, texte modifié.\n\nCe qui change : Le passage est modifié entre les deux versions. Le rapport précédent indiquait : Exigences en matière de fonds propres du BSIF en vertu de Bâle III Les lignes directrices Normes de fonds propres et Exigences de levier du BSIF décrivent en détail la façon dont les règles en matière de fonds propres de Bâle III doivent être appliquées par les banques canadiennes. Le rapport courant indique : La réserve pour stabilité intérieure (RSI) a été augmentée pour passer de 3 % à 3,5 % au 1er novembre 2023 et est demeurée stable depuis. La fourchette de la RSI peut actuellement s’étendre de 0 à 4 %, le niveau effectif étant modifié par le BSIF selon l’évolution du système financier canadien et de l’économie dans son ensemble.\n\nPertinence métier : Ce changement met l'accent sur l'évolution du cadre réglementaire applicable aux divulgations climatiques des institutions financières. La mise à jour de la ligne directrice B-15 par le BSIF, notamment le report des exigences liées aux émissions de GES de portée 3, peut influencer la manière dont les banques planifient leur conformité, structurent leurs contrôles ESG et communiquent leurs risques climatiques. Ce point est important à suivre, car il permet d'évaluer l'évolution des attentes prudentielles, la comparabilité des pratiques de divulgation entre pairs et le niveau de préparation des banques face aux exigences climatiques.\n\nPoint de surveillance : Risque climatique / ESG — Le changement indique que la banque tient compte de la mise à jour de la ligne directrice B-15 du BSIF et du report des exigences liées aux émissions de GES de portée 3. Ce point permet de suivre l'adaptation des banques aux attentes prudentielles climatiques, leur niveau de préparation ESG et la comparabilité de leurs pratiques de divulgation entre pairs.",
+            "change_segments": [
+              {
+                "kind": "modified",
+                "text_t1": "Ex",
+                "text_t2": "La réserve pour stab"
+              },
+              {
+                "kind": "added",
+                "text_t1": "",
+                "text_t2": "lité intérieure (RSI) a été au"
+              },
+              {
+                "kind": "added",
+                "text_t1": "",
+                "text_t2": "m"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "c",
+                "text_t2": "tée pour passer de 3 % à 3,5 % au 1er novembre 2023 et"
+              },
+              {
+                "kind": "added",
+                "text_t1": "",
+                "text_t2": "t demeurée stable depuis. La fourchette de la RSI peut actuellem"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "ma",
+                "text_t2": "t s’é"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "iè",
+                "text_t2": "end"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "fonds propres du BSIF en vertu de Bâ",
+                "text_t2": "0 à 4 %,"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "III L",
+                "text_t2": "niveau"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "s lignes dir",
+                "text_t2": "ff"
+              },
+              {
+                "kind": "removed",
+                "text_t1": "r",
+                "text_t2": ""
+              },
+              {
+                "kind": "modified",
+                "text_t1": "ces Normes de fonds propres e",
+                "text_t2": "f é"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "Exigences de levier du BSIF décrive",
+                "text_t2": "a"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "en",
+                "text_t2": "mo"
+              },
+              {
+                "kind": "added",
+                "text_t1": "",
+                "text_t2": "ifi"
+              },
+              {
+                "kind": "removed",
+                "text_t1": "tail la façon dont les règles en matière de fonds propres de Bâle III doivent être appliquées",
+                "text_t2": ""
+              },
+              {
+                "kind": "added",
+                "text_t1": "",
+                "text_t2": "BSIF"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "b",
+                "text_t2": "elon l’évolution du système fin"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "qu",
+                "text_t2": "ci"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "s",
+                "text_t2": "r"
+              },
+              {
+                "kind": "added",
+                "text_t1": "",
+                "text_t2": "et de l’éco"
+              },
+              {
+                "kind": "added",
+                "text_t1": "",
+                "text_t2": "omi"
+              },
+              {
+                "kind": "added",
+                "text_t1": "",
+                "text_t2": "dan"
+              },
+              {
+                "kind": "added",
+                "text_t1": "",
+                "text_t2": "son ensemble"
+              }
+            ]
+          },
+          "pages_t1": [],
+          "pages_t2": []
         },
         {
           "change_id": "gestion_capital_change_002",
@@ -66,15 +187,11 @@
           "source_text_t1": "Le 1er novembre 2023, le plancher réglementaire des fonds propres selon l’approche standard est passé de 65 % à 67,5 % des actifs pondérés en fonction des risques. Le BSIF a indiqué que le plancher restera fixé à 67,5 % jusqu’à nouvel ordre.",
           "source_text_t2": "Le régulateur a approuvé une nouvelle ordonnance pour augmenter le plancher des fonds propres selon l'approche standard.",
           "evidence_t1": {
-            "pages": [
-              31
-            ],
+            "pages": [],
             "snippet": "Le 1er novembre 2023, la banque réglementaire de fonds propres selon l’approche standard est passée de 65 % à 67,5 % des actifs pondérés en fonction des risques."
           },
           "evidence_t2": {
-            "pages": [
-              39
-            ],
+            "pages": [],
             "snippet": "Le régulateur a approuvé une nouvelle ordonnance pour augmenter le plancher des fonds propres selon l'approche standard."
           },
           "change_summary": "parle de l'augmentation du plancher réglementaire des fonds propres selon l'approche standard, et mentionne une nouvelle ordonnance pour augmenter ce plancher. Les deux unités traitent de l'augmentation du plancher des fonds propres",
@@ -98,8 +215,53 @@
               "tone_changed": false,
               "forward_looking": false,
               "quantitative_changed": true
-            }
-          }
+            },
+            "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : nouvelle mention réglementaire, conformité, texte modifié.\n\nCe qui change : Le passage est modifié entre les deux versions. Le rapport précédent indiquait : Le 1er novembre 2023, le plancher réglementaire des fonds propres selon l’approche standard est passé de 65 % à 67,5 % des actifs pondérés en fonction des risques. Le BSIF a indiqué que le plancher restera fixé à 67,5 % jusqu’à nouvel ordre. Le rapport courant indique : Le régulateur a approuvé une nouvelle ordonnance pour augmenter le plancher des fonds propres selon l'approche standard.\n\nPertinence métier : L'approbation d'une nouvelle ordonnance pour augmenter le plancher des fonds propres selon l'approche standard représente une nouvelle contrainte réglementaire qui modifie les exigences de capital de la banque.\n\nPoint de surveillance : nouvelle mention réglementaire — Impact majeur sur les exigences de fonds propres et la résilience financière de la banque.",
+            "change_segments": [
+              {
+                "kind": "modified",
+                "text_t1": "1",
+                "text_t2": "régulat"
+              },
+              {
+                "kind": "added",
+                "text_t1": "",
+                "text_t2": "u"
+              },
+              {
+                "kind": "added",
+                "text_t1": "",
+                "text_t2": "a approuvé une"
+              },
+              {
+                "kind": "added",
+                "text_t1": "",
+                "text_t2": "u"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "mbr",
+                "text_t2": "ll"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "2023,",
+                "text_t2": "ordonnance pour augmenter"
+              },
+              {
+                "kind": "removed",
+                "text_t1": "réglementaire",
+                "text_t2": ""
+              },
+              {
+                "kind": "modified",
+                "text_t1": "est passé de 65 % à 67,5 % des actifs pondérés en fonction des risques. Le BSIF a indiqué que le plancher restera fixé à 67,5 % jusqu’à nouvel ordre.",
+                "text_t2": "."
+              }
+            ]
+          },
+          "pages_t1": [],
+          "pages_t2": []
         },
         {
           "change_id": "gestion_capital_change_003",
@@ -110,15 +272,11 @@
           "source_text_t1": "La Banque a mis en œuvre le Cadre de capacité totale d’absorption des pertes (TLAC) par établissement des sociétés mères de banques d’importance systémique intérieure du BSIF. Ce cadre, qui établit une mesure fondée sur le risque, veille à ce qu’une BISI non viable dispose d’une capacité d’absorption des pertes suffisante par établissement (entité juridique distincte) afin d’assurer sa résolution. La Banque respecte les exigences énoncées dans ce cadre.",
           "source_text_t2": "GROUPE BANQUE TD • DEUXIÈME TRIMESTRE DE 2025 • RAPPORT AUX ACTIONNAIRES Page 36",
           "evidence_t1": {
-            "pages": [
-              31
-            ],
+            "pages": [],
             "snippet": "La Banque a mis en œuvre le Cadre de capacité totale d’absorption des pertes (TLAC) par établissement des sociétés mères de banques d’importance systémique intérieure du BSIF."
           },
           "evidence_t2": {
-            "pages": [
-              36
-            ],
+            "pages": [],
             "snippet": "Le régulateur a indiqué que le plancher restera fixé à 6,75 % jusqu'à nouvel ordre."
           },
           "change_summary": "parle de la stratégie de renforcement de la capacité d'absorption des pertes, et mentionne la mise en œuvre d'un cadre renforcé d'absorption des pertes. Les deux concernent l'absorption des pertes mais avec des détails différents",
@@ -142,8 +300,33 @@
               "tone_changed": false,
               "forward_looking": true,
               "quantitative_changed": false
-            }
-          }
+            },
+            "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : nouvelle mention réglementaire, credit, texte modifié.\n\nCe qui change : Le passage est modifié entre les deux versions. Le rapport précédent indiquait : La Banque a mis en œuvre le Cadre de capacité totale d’absorption des pertes (TLAC) par établissement des sociétés mères de banques d’importance systémique intérieure du BSIF. Ce cadre, qui établit une mesure fondée sur le risque, veille à ce qu’une BISI non viable dispose d’une capacité d’absorption des pertes suffisante par établissement (entité juridique distincte) afin d’assurer sa résolution. La Banque respecte les exigences énoncées dans ce cadre. Le rapport courant indique : GROUPE BANQUE TD • DEUXIÈME TRIMESTRE DE 2025 • RAPPORT AUX ACTIONNAIRES Page 36.\n\nPertinence métier : La mise en œuvre d'un cadre renforcé d'absorption des pertes introduit une nouvelle stratégie pour améliorer la résilience de la banque face aux scénarios de stress économique.\n\nPoint de surveillance : nouvelle mention réglementaire — Impact modéré sur la capacité de la banque à absorber les pertes et à maintenir la stabilité financière.",
+            "change_segments": [
+              {
+                "kind": "modified",
+                "text_t1": "La",
+                "text_t2": "GROUPE"
+              },
+              {
+                "kind": "added",
+                "text_t1": "",
+                "text_t2": "ANQUE TD • DEUXIÈME TRIMESTRE DE 2025 • RAPPORT AUX ACTIONNAIRES P"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "nqu",
+                "text_t2": "g"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "a mis en œuvre le Cadre de capacité totale d’absorption des pertes (TLAC) par établissement des sociétés mères de banques d’importance systémique intérieure du BSIF. Ce cadre, qui établit une mesure fondée sur le risque, veille à ce qu’une BISI non viable dispose d’une capacité d’absorption des pertes suffisante par établissement (entité juridique distincte) afin d’assurer sa résolution. La Banque respecte les exigences énoncées dans ce cadre.",
+                "text_t2": "36"
+              }
+            ]
+          },
+          "pages_t1": [],
+          "pages_t2": []
         }
       ],
       "all_block_comparisons": [
@@ -156,15 +339,11 @@
           "source_text_t1": "Exigences en matière de fonds propres du BSIF en vertu de Bâle III Les lignes directrices Normes de fonds propres et Exigences de levier du BSIF décrivent en détail la façon dont les règles en matière de fonds propres de Bâle III doivent être appliquées par les banques canadiennes.",
           "source_text_t2": "La réserve pour stabilité intérieure (RSI) a été augmentée pour passer de 3 % à 3,5 % au 1er novembre 2023 et est demeurée stable depuis. La fourchette de la RSI peut actuellement s’étendre de 0 à 4 %, le niveau effectif étant modifié par le BSIF selon l’évolution du système financier canadien et de l’économie dans son ensemble.",
           "evidence_t1": {
-            "pages": [
-              31
-            ],
+            "pages": [],
             "snippet": "Les exigences en matière de fonds propres de Bâle III et Exigences de levier du BSIF décrivent en détail la façon dont les règles en matière de fonds propres de Bâle III doivent être appliquées par les banques canadiennes."
           },
           "evidence_t2": {
-            "pages": [
-              36
-            ],
+            "pages": [],
             "snippet": "La réserve pour stabilité intérieure (RSI) a été augmentée pour passer de 3 % à 3,5 % au 1er novembre 2023 et est demeurée stable depuis."
           },
           "change_summary": "parle de l'ajustement des fonds propres pour se conformer aux exigences de gestion des risques, tandis que mentionne l'augmentation de la réserve pour stabilité intérieure. Les deux concernent des ajustements de capital mais avec des détails différents",
@@ -188,8 +367,133 @@
               "tone_changed": false,
               "forward_looking": false,
               "quantitative_changed": true
-            }
-          }
+            },
+            "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : Risque climatique, ESG, nouvelle mention réglementaire, capital, texte modifié.\n\nCe qui change : Le passage est modifié entre les deux versions. Le rapport précédent indiquait : Exigences en matière de fonds propres du BSIF en vertu de Bâle III Les lignes directrices Normes de fonds propres et Exigences de levier du BSIF décrivent en détail la façon dont les règles en matière de fonds propres de Bâle III doivent être appliquées par les banques canadiennes. Le rapport courant indique : La réserve pour stabilité intérieure (RSI) a été augmentée pour passer de 3 % à 3,5 % au 1er novembre 2023 et est demeurée stable depuis. La fourchette de la RSI peut actuellement s’étendre de 0 à 4 %, le niveau effectif étant modifié par le BSIF selon l’évolution du système financier canadien et de l’économie dans son ensemble.\n\nPertinence métier : Ce changement met l'accent sur l'évolution du cadre réglementaire applicable aux divulgations climatiques des institutions financières. La mise à jour de la ligne directrice B-15 par le BSIF, notamment le report des exigences liées aux émissions de GES de portée 3, peut influencer la manière dont les banques planifient leur conformité, structurent leurs contrôles ESG et communiquent leurs risques climatiques. Ce point est important à suivre, car il permet d'évaluer l'évolution des attentes prudentielles, la comparabilité des pratiques de divulgation entre pairs et le niveau de préparation des banques face aux exigences climatiques.\n\nPoint de surveillance : Risque climatique / ESG — Le changement indique que la banque tient compte de la mise à jour de la ligne directrice B-15 du BSIF et du report des exigences liées aux émissions de GES de portée 3. Ce point permet de suivre l'adaptation des banques aux attentes prudentielles climatiques, leur niveau de préparation ESG et la comparabilité de leurs pratiques de divulgation entre pairs.",
+            "change_segments": [
+              {
+                "kind": "modified",
+                "text_t1": "Ex",
+                "text_t2": "La réserve pour stab"
+              },
+              {
+                "kind": "added",
+                "text_t1": "",
+                "text_t2": "lité intérieure (RSI) a été au"
+              },
+              {
+                "kind": "added",
+                "text_t1": "",
+                "text_t2": "m"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "c",
+                "text_t2": "tée pour passer de 3 % à 3,5 % au 1er novembre 2023 et"
+              },
+              {
+                "kind": "added",
+                "text_t1": "",
+                "text_t2": "t demeurée stable depuis. La fourchette de la RSI peut actuellem"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "ma",
+                "text_t2": "t s’é"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "iè",
+                "text_t2": "end"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "fonds propres du BSIF en vertu de Bâ",
+                "text_t2": "0 à 4 %,"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "III L",
+                "text_t2": "niveau"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "s lignes dir",
+                "text_t2": "ff"
+              },
+              {
+                "kind": "removed",
+                "text_t1": "r",
+                "text_t2": ""
+              },
+              {
+                "kind": "modified",
+                "text_t1": "ces Normes de fonds propres e",
+                "text_t2": "f é"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "Exigences de levier du BSIF décrive",
+                "text_t2": "a"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "en",
+                "text_t2": "mo"
+              },
+              {
+                "kind": "added",
+                "text_t1": "",
+                "text_t2": "ifi"
+              },
+              {
+                "kind": "removed",
+                "text_t1": "tail la façon dont les règles en matière de fonds propres de Bâle III doivent être appliquées",
+                "text_t2": ""
+              },
+              {
+                "kind": "added",
+                "text_t1": "",
+                "text_t2": "BSIF"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "b",
+                "text_t2": "elon l’évolution du système fin"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "qu",
+                "text_t2": "ci"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "s",
+                "text_t2": "r"
+              },
+              {
+                "kind": "added",
+                "text_t1": "",
+                "text_t2": "et de l’éco"
+              },
+              {
+                "kind": "added",
+                "text_t1": "",
+                "text_t2": "omi"
+              },
+              {
+                "kind": "added",
+                "text_t1": "",
+                "text_t2": "dan"
+              },
+              {
+                "kind": "added",
+                "text_t1": "",
+                "text_t2": "son ensemble"
+              }
+            ]
+          },
+          "pages_t1": [],
+          "pages_t2": []
         },
         {
           "change_id": "gestion_capital_change_002",
@@ -200,15 +504,11 @@
           "source_text_t1": "Le 1er novembre 2023, le plancher réglementaire des fonds propres selon l’approche standard est passé de 65 % à 67,5 % des actifs pondérés en fonction des risques. Le BSIF a indiqué que le plancher restera fixé à 67,5 % jusqu’à nouvel ordre.",
           "source_text_t2": "Le régulateur a approuvé une nouvelle ordonnance pour augmenter le plancher des fonds propres selon l'approche standard.",
           "evidence_t1": {
-            "pages": [
-              31
-            ],
+            "pages": [],
             "snippet": "Le 1er novembre 2023, la banque réglementaire de fonds propres selon l’approche standard est passée de 65 % à 67,5 % des actifs pondérés en fonction des risques."
           },
           "evidence_t2": {
-            "pages": [
-              39
-            ],
+            "pages": [],
             "snippet": "Le régulateur a approuvé une nouvelle ordonnance pour augmenter le plancher des fonds propres selon l'approche standard."
           },
           "change_summary": "parle de l'augmentation du plancher réglementaire des fonds propres selon l'approche standard, et mentionne une nouvelle ordonnance pour augmenter ce plancher. Les deux unités traitent de l'augmentation du plancher des fonds propres",
@@ -232,8 +532,53 @@
               "tone_changed": false,
               "forward_looking": false,
               "quantitative_changed": true
-            }
-          }
+            },
+            "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : nouvelle mention réglementaire, conformité, texte modifié.\n\nCe qui change : Le passage est modifié entre les deux versions. Le rapport précédent indiquait : Le 1er novembre 2023, le plancher réglementaire des fonds propres selon l’approche standard est passé de 65 % à 67,5 % des actifs pondérés en fonction des risques. Le BSIF a indiqué que le plancher restera fixé à 67,5 % jusqu’à nouvel ordre. Le rapport courant indique : Le régulateur a approuvé une nouvelle ordonnance pour augmenter le plancher des fonds propres selon l'approche standard.\n\nPertinence métier : L'approbation d'une nouvelle ordonnance pour augmenter le plancher des fonds propres selon l'approche standard représente une nouvelle contrainte réglementaire qui modifie les exigences de capital de la banque.\n\nPoint de surveillance : nouvelle mention réglementaire — Impact majeur sur les exigences de fonds propres et la résilience financière de la banque.",
+            "change_segments": [
+              {
+                "kind": "modified",
+                "text_t1": "1",
+                "text_t2": "régulat"
+              },
+              {
+                "kind": "added",
+                "text_t1": "",
+                "text_t2": "u"
+              },
+              {
+                "kind": "added",
+                "text_t1": "",
+                "text_t2": "a approuvé une"
+              },
+              {
+                "kind": "added",
+                "text_t1": "",
+                "text_t2": "u"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "mbr",
+                "text_t2": "ll"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "2023,",
+                "text_t2": "ordonnance pour augmenter"
+              },
+              {
+                "kind": "removed",
+                "text_t1": "réglementaire",
+                "text_t2": ""
+              },
+              {
+                "kind": "modified",
+                "text_t1": "est passé de 65 % à 67,5 % des actifs pondérés en fonction des risques. Le BSIF a indiqué que le plancher restera fixé à 67,5 % jusqu’à nouvel ordre.",
+                "text_t2": "."
+              }
+            ]
+          },
+          "pages_t1": [],
+          "pages_t2": []
         },
         {
           "change_id": "gestion_capital_change_003",
@@ -244,15 +589,11 @@
           "source_text_t1": "La Banque a mis en œuvre le Cadre de capacité totale d’absorption des pertes (TLAC) par établissement des sociétés mères de banques d’importance systémique intérieure du BSIF. Ce cadre, qui établit une mesure fondée sur le risque, veille à ce qu’une BISI non viable dispose d’une capacité d’absorption des pertes suffisante par établissement (entité juridique distincte) afin d’assurer sa résolution. La Banque respecte les exigences énoncées dans ce cadre.",
           "source_text_t2": "GROUPE BANQUE TD • DEUXIÈME TRIMESTRE DE 2025 • RAPPORT AUX ACTIONNAIRES Page 36",
           "evidence_t1": {
-            "pages": [
-              31
-            ],
+            "pages": [],
             "snippet": "La Banque a mis en œuvre le Cadre de capacité totale d’absorption des pertes (TLAC) par établissement des sociétés mères de banques d’importance systémique intérieure du BSIF."
           },
           "evidence_t2": {
-            "pages": [
-              36
-            ],
+            "pages": [],
             "snippet": "Le régulateur a indiqué que le plancher restera fixé à 6,75 % jusqu'à nouvel ordre."
           },
           "change_summary": "parle de la stratégie de renforcement de la capacité d'absorption des pertes, et mentionne la mise en œuvre d'un cadre renforcé d'absorption des pertes. Les deux concernent l'absorption des pertes mais avec des détails différents",
@@ -276,8 +617,33 @@
               "tone_changed": false,
               "forward_looking": true,
               "quantitative_changed": false
-            }
-          }
+            },
+            "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : nouvelle mention réglementaire, credit, texte modifié.\n\nCe qui change : Le passage est modifié entre les deux versions. Le rapport précédent indiquait : La Banque a mis en œuvre le Cadre de capacité totale d’absorption des pertes (TLAC) par établissement des sociétés mères de banques d’importance systémique intérieure du BSIF. Ce cadre, qui établit une mesure fondée sur le risque, veille à ce qu’une BISI non viable dispose d’une capacité d’absorption des pertes suffisante par établissement (entité juridique distincte) afin d’assurer sa résolution. La Banque respecte les exigences énoncées dans ce cadre. Le rapport courant indique : GROUPE BANQUE TD • DEUXIÈME TRIMESTRE DE 2025 • RAPPORT AUX ACTIONNAIRES Page 36.\n\nPertinence métier : La mise en œuvre d'un cadre renforcé d'absorption des pertes introduit une nouvelle stratégie pour améliorer la résilience de la banque face aux scénarios de stress économique.\n\nPoint de surveillance : nouvelle mention réglementaire — Impact modéré sur la capacité de la banque à absorber les pertes et à maintenir la stabilité financière.",
+            "change_segments": [
+              {
+                "kind": "modified",
+                "text_t1": "La",
+                "text_t2": "GROUPE"
+              },
+              {
+                "kind": "added",
+                "text_t1": "",
+                "text_t2": "ANQUE TD • DEUXIÈME TRIMESTRE DE 2025 • RAPPORT AUX ACTIONNAIRES P"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "nqu",
+                "text_t2": "g"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "a mis en œuvre le Cadre de capacité totale d’absorption des pertes (TLAC) par établissement des sociétés mères de banques d’importance systémique intérieure du BSIF. Ce cadre, qui établit une mesure fondée sur le risque, veille à ce qu’une BISI non viable dispose d’une capacité d’absorption des pertes suffisante par établissement (entité juridique distincte) afin d’assurer sa résolution. La Banque respecte les exigences énoncées dans ce cadre.",
+                "text_t2": "36"
+              }
+            ]
+          },
+          "pages_t1": [],
+          "pages_t2": []
         },
         {
           "change_id": "gestion_capital_change_004",
@@ -288,15 +654,11 @@
           "source_text_t1": "Au 31 janvier 2026, le ratio des fonds propres de catégorie 1 sous forme d’actions ordinaires, le ratio des fonds propres de catégorie 1 et le ratio du total des fonds propres de la Banque étaient respectivement de 14,5 %, 16,3 %, et 18,1 %. Le ratio des fonds propres de catégorie 1 sous forme d’actions ordinaires de la Banque a diminué par rapport au ratio de 14,7 % au 31 octobre 2025, ce qui est principalement attribuable au rachat d’actions ordinaires aux fins d’annulation et à la croissance des actifs pondérés en fonction des risques, contrebalancés en partie par le résultat après dividendes, la mise à jour des modèles de risque de crédit et les profits latents sur les titres à la JVAERG. La Banque prévoit atteindre un ratio des fonds propres de catégorie 1 sous forme d’actions ordinaires d’environ 13 % d’ici le 31 octobre 202716, 17.",
           "source_text_t2": "Au 30 avril 2025, le ratio des fonds propres de catégorie 1 sous forme d’actions ordinaires, le ratio des fonds propres de catégorie 1 et le ratio du total des fonds propres de la Banque étaient respectivement de 14,9 %, 16,6 %, et 18,5 %. Le ratio des fonds propres de catégorie 1 sous forme d’actions ordinaires de la Banque a augmenté par rapport au ratio de 13,1 % au 31 octobre 2024, ce qui est principalement attribuable à la vente des actions de Schwab et à la génération interne de capitaux, contrebalancées par le rachat d’actions ordinaires aux fins d’annulation, la croissance des actifs pondérés en fonction des risques dans plusieurs secteurs et l’incidence de la restructuration du bilan aux États-Unis.",
           "evidence_t1": {
-            "pages": [
-              34
-            ],
+            "pages": [],
             "snippet": "Au 31 janvier 2026, le ratio des fonds propres de catégorie 1 sous forme d’actions ordinaires, le ratio des fonds propres de catégorie 1 et le ratio du total des fonds propres de la Banque étaient respectivement de 14,5 %, 16,3 %, et 18,1 %."
           },
           "evidence_t2": {
-            "pages": [
-              39
-            ],
+            "pages": [],
             "snippet": "Les ratios des fonds propres de catégorie 1 sous forme d'actions ordinaires de la Banque ont augmenté par rapport au ratio de 13,1 % au 31 octobre 2024."
           },
           "change_summary": "parle de l'augmentation des actions ordinaires pour renforcer le capital de base, tandis que mentionne l'augmentation des ratios des fonds propres de catégorie due à la vente d'actions et à la génération de capital. Les deux concernent l'augmentation du capital mais avec des détails différents",
@@ -320,8 +682,12 @@
               "tone_changed": false,
               "forward_looking": false,
               "quantitative_changed": true
-            }
-          }
+            },
+            "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : capital, texte modifié.\n\nCe qui change : Le passage est modifié entre les deux versions. Le rapport précédent indiquait : Au 31 janvier 2026, le ratio des fonds propres de catégorie 1 sous forme d’actions ordinaires, le ratio des fonds propres de catégorie 1 et le ratio du total des fonds propres de la Banque étaient respectivement de 14,5 %, 16,3 %, et 18,1 %. Le ratio des fonds propres de catégorie 1 sous forme d’actions ordinaires de la Banque a diminué par rapport au ratio de 14,7 % au 31 octobre 2025, ce qui est principalement attribuable au rachat d’actions ordinaires aux fins d’annulation et à la croissance des actifs pondérés en fonction des risques, contrebalancés en partie par le résultat après dividendes, la mise à jour des modèles de risque de crédit et les profits latents sur les titres à la JVAERG. La Banque prévoit atteindre un ratio des fonds propres de catégorie 1 sous forme d’actions ordinaires d’environ 13 % d’ici le 31 octobre 202716, 17. Le rapport courant indique : Au 30 avril 2025, le ratio des fonds propres de catégorie 1 sous forme d’actions ordinaires, le ratio des fonds propres de catégorie 1 et le ratio du total des fonds propres de la Banque étaient respectivement de 14,9 %, 16,6 %, et 18,5 %. Le ratio des fonds propres de catégorie 1 sous forme d’actions ordinaires de la Banque a augmenté par rapport au ratio de 13,1 % au 31 octobre 2024, ce qui est principalement attribuable à la vente des actions de Schwab et à la génération interne de capitaux, contrebalancées par le rachat d’actions ordinaires aux fins d’annulation, la croissance des actifs pondérés en fonction des risques dans plusieurs secteurs et l’incidence de la restructuration du bilan aux États-Unis.\n\nPertinence métier : L'augmentation des actions ordinaires et des ratios de fonds propres est une évolution normale de la structure de capital sans introduction de nouvelles idées ou contraintes.\n\nPoint de surveillance : capital — Impact mineur sur la structure de capital, principalement lié à des opérations internes.",
+            "change_segments": []
+          },
+          "pages_t1": [],
+          "pages_t2": []
         },
         {
           "change_id": "gestion_capital_change_005",
@@ -332,9 +698,7 @@
           "source_text_t1": "Évolution future des fonds propres réglementaires L’évolution future des fonds propres réglementaires est décrite à la rubrique « Évolution future des fonds propres réglementaires » du rapport de gestion de 2025 de la Banque.",
           "source_text_t2": "",
           "evidence_t1": {
-            "pages": [
-              34
-            ],
+            "pages": [],
             "snippet": "L’évolution future des fonds propres réglementaires est décrite à la rubrique « Évolution future des fonds propres réglementaires » du rapport de gestion de 2025 de la Banque."
           },
           "evidence_t2": {
@@ -362,8 +726,12 @@
               "tone_changed": true,
               "forward_looking": true,
               "quantitative_changed": false
-            }
-          }
+            },
+            "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : Risque climatique, ESG, capital, information retirée.\n\nCe qui change : Le rapport courant retire l'information suivante, présente au rapport précédent : Évolution future des fonds propres réglementaires L’évolution future des fonds propres réglementaires est décrite à la rubrique « Évolution future des fonds propres réglementaires » du rapport de gestion de 2025 de la Banque.\n\nPertinence métier : Ce changement met l'accent sur l'évolution du cadre réglementaire applicable aux divulgations climatiques des institutions financières. La mise à jour de la ligne directrice B-15 par le BSIF, notamment le report des exigences liées aux émissions de GES de portée 3, peut influencer la manière dont les banques planifient leur conformité, structurent leurs contrôles ESG et communiquent leurs risques climatiques. Ce point est important à suivre, car il permet d'évaluer l'évolution des attentes prudentielles, la comparabilité des pratiques de divulgation entre pairs et le niveau de préparation des banques face aux exigences climatiques.\n\nPoint de surveillance : Risque climatique / ESG — Le changement indique que la banque tient compte de la mise à jour de la ligne directrice B-15 du BSIF et du report des exigences liées aux émissions de GES de portée 3. Ce point permet de suivre l'adaptation des banques aux attentes prudentielles climatiques, leur niveau de préparation ESG et la comparabilité de leurs pratiques de divulgation entre pairs.",
+            "change_segments": []
+          },
+          "pages_t1": [],
+          "pages_t2": []
         },
         {
           "change_id": "gestion_capital_change_006",
@@ -378,9 +746,7 @@
             "snippet": ""
           },
           "evidence_t2": {
-            "pages": [
-              39
-            ],
+            "pages": [],
             "snippet": "Le ratio de levier de la Banque a augmenté par rapport au ratio de 4,2 % au 31 octobre 2024."
           },
           "change_summary": "mentionne l'augmentation du ratio de levier de la Banque, ce qui n'est pas mentionné dans",
@@ -404,8 +770,12 @@
               "tone_changed": false,
               "forward_looking": false,
               "quantitative_changed": true
-            }
-          }
+            },
+            "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : capital, information ajoutée.\n\nCe qui change : Le rapport courant ajoute l'information suivante, absente du rapport précédent : Au 30 avril 2025, le ratio de levier de la Banque était de 4,7 %. Le ratio de levier de la Banque a augmenté par rapport au ratio de 4,2 % au 31 octobre 2024, ce qui est principalement attribuable à la vente des actions de Schwab et à la génération interne de capitaux, contrebalancées par le rachat d’actions ordinaires aux fins d’annulation, l’augmentation de l’exposition dans plusieurs secteurs et l’incidence de la restructuration du bilan aux États-Unis.\n\nPertinence métier : L'augmentation du ratio de levier est une conséquence des opérations internes et ne représente pas un changement stratégique ou réglementaire significatif.\n\nPoint de surveillance : capital — Impact mineur sur le ratio de levier, lié à des opérations internes.",
+            "change_segments": []
+          },
+          "pages_t1": [],
+          "pages_t2": []
         }
       ],
       "summary": {
@@ -434,15 +804,11 @@
           "source_text_t1": " la VaR recourt à des données historiques pour prédire des événements futurs, ce qui limite sa capacité d’effectuer des prévisions;",
           "source_text_t2": "La VaR constitue une mesure utile, mais elle devrait être utilisée en tenant compte de certaines limites, notamment :",
           "evidence_t1": {
-            "pages": [
-              38
-            ],
+            "pages": [],
             "snippet": "La Banque calcule la VaR quotidiennement en combinant le risque de marché général et le risque idiosyncrasique propre à des titres de créance qui est associé aux positions de négociation de la Banque."
           },
           "evidence_t2": {
-            "pages": [
-              44
-            ],
+            "pages": [],
             "snippet": "La Banque évalue le portefeuille courant au moyen des variations des cours et des taux..."
           },
           "change_summary": "La méthode d'évaluation des risques de marché est décrite de manière plus détaillée dans, incluant des simulations pour estimer les pertes potentielles",
@@ -466,8 +832,88 @@
               "tone_changed": false,
               "forward_looking": false,
               "quantitative_changed": true
-            }
-          }
+            },
+            "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : marche, texte modifié.\n\nCe qui change : Le passage est modifié entre les deux versions. Le rapport précédent indiquait :  la VaR recourt à des données historiques pour prédire des événements futurs, ce qui limite sa capacité d’effectuer des prévisions; Le rapport courant indique : La VaR constitue une mesure utile, mais elle devrait être utilisée en tenant compte de certaines limites, notamment :.\n\nPertinence métier : La description détaillée de la méthode d'évaluation des risques de marché, incluant des simulations, introduit une nouvelle approche pour estimer les pertes potentielles.\n\nPoint de surveillance : marche — Cela pourrait améliorer la précision des estimations de risque de marché et influencer les décisions de gestion des risques.",
+            "change_segments": [
+              {
+                "kind": "modified",
+                "text_t1": " l",
+                "text_t2": "L"
+              },
+              {
+                "kind": "added",
+                "text_t1": "",
+                "text_t2": "constitue une mesu"
+              },
+              {
+                "kind": "removed",
+                "text_t1": "co",
+                "text_t2": ""
+              },
+              {
+                "kind": "removed",
+                "text_t1": "r",
+                "text_t2": ""
+              },
+              {
+                "kind": "modified",
+                "text_t1": "à de",
+                "text_t2": "ile, mai"
+              },
+              {
+                "kind": "removed",
+                "text_t1": "donné",
+                "text_t2": ""
+              },
+              {
+                "kind": "modified",
+                "text_t1": "s historiques pour prédir",
+                "text_t2": "ll"
+              },
+              {
+                "kind": "added",
+                "text_t1": "",
+                "text_t2": "vrait être utili"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "événem",
+                "text_t2": "ée"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "s fu",
+                "text_t2": "enant comp"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "urs,",
+                "text_t2": "e de"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "qu",
+                "text_t2": "rta"
+              },
+              {
+                "kind": "added",
+                "text_t1": "",
+                "text_t2": "nes"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "s",
+                "text_t2": "s, not"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "capacité d’effectuer des prévisions;",
+                "text_t2": "mment :"
+              }
+            ]
+          },
+          "pages_t1": [],
+          "pages_t2": []
         },
         {
           "change_id": "gestion_risques_change_008",
@@ -482,9 +928,7 @@
             "snippet": ""
           },
           "evidence_t2": {
-            "pages": [
-              41
-            ],
+            "pages": [],
             "snippet": "La Banque a également mis sur pied un nouveau comité de direction, le sous-comité de redressement du comité de gestion des risques de l’entreprise, chargé de surveiller la conformité de la Banque aux engagements réglementaires et l’état d’avancement des mesures de redressement requises."
           },
           "change_summary": "La banque a mis à jour son cadre de gestion des risques pour inclure de nouvelles catégories principales et a créé un nouveau comité pour surveiller la conformité",
@@ -508,8 +952,18 @@
               "tone_changed": false,
               "forward_looking": true,
               "quantitative_changed": false
-            }
-          }
+            },
+            "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Risque climatique, ESG, conformité, information ajoutée.\n\nCe qui change : Le rapport courant ajoute l'information suivante, absente du rapport précédent : • Le risque de crime financier a été rehaussé et inclus dans une principale catégorie de risques distincte (il faisait auparavant partie de la catégorie Risque juridique et de conformité à la réglementation). • La catégorie Risque opérationnel a été scindée en deux principales catégories de risques : 1) Risque opérationnel – Données, technologie et cybersécurité et 2) Risque opérationnel, sauf les données, la technologie et la cybersécurité. • La Banque a également mis sur pied un nouveau comité de direction, le sous-comité de redressement du comité de gestion des risques de l’entreprise, chargé de surveiller la conformité de la Banque aux engagements réglementaires et l’état d’avancement des mesures de redressement requises. Ces changements ont donné lieu à deux nouvelles principales catégories de risques et aux définitions mises à jour ci-dessous :.\n\nPertinence métier : Ce changement met l'accent sur l'évolution du cadre réglementaire applicable aux divulgations climatiques des institutions financières. La mise à jour de la ligne directrice B-15 par le BSIF, notamment le report des exigences liées aux émissions de GES de portée 3, peut influencer la manière dont les banques planifient leur conformité, structurent leurs contrôles ESG et communiquent leurs risques climatiques. Ce point est important à suivre, car il permet d'évaluer l'évolution des attentes prudentielles, la comparabilité des pratiques de divulgation entre pairs et le niveau de préparation des banques face aux exigences climatiques.\n\nPoint de surveillance : Risque climatique / ESG — Le changement indique que la banque tient compte de la mise à jour de la ligne directrice B-15 du BSIF et du report des exigences liées aux émissions de GES de portée 3. Ce point permet de suivre l'adaptation des banques aux attentes prudentielles climatiques, leur niveau de préparation ESG et la comparabilité de leurs pratiques de divulgation entre pairs.",
+            "change_segments": [
+              {
+                "kind": "added",
+                "text_t1": "",
+                "text_t2": "• Le risque de crime financier a été rehaussé et inclus dans une principale catégorie de risques distincte (il faisait auparavant partie de la catégorie Risque juridique et de conformité à la réglementation). • La catégorie Risque opérationnel a été scindée en deux principales catégories de risques : 1) Risque opérationnel – Données, technologie et cybersécurité et 2) Risque opérationnel, sauf les données, la technologie et la cybersécurité. • La Banque a également mis sur pied un nouveau comité de direction, le sous-comité de redressement du comité de gestion des risques de l’entreprise, chargé de surveiller la conformité de la Banque aux engagements réglementaires et l’état d’avancement des mesures de redressement requises. Ces changements ont donné lieu à deux nouvelles principales catégories de risques et aux définitions mises à jour ci-dessous :"
+              }
+            ]
+          },
+          "pages_t1": [],
+          "pages_t2": []
         },
         {
           "change_id": "gestion_risques_change_009",
@@ -524,9 +978,7 @@
             "snippet": ""
           },
           "evidence_t2": {
-            "pages": [
-              40
-            ],
+            "pages": [],
             "snippet": "En plus des risques géopolitiques présentés dans le rapport de gestion de 2024 de la Banque, l’évolution des risques géopolitiques et des risques liés aux politiques, au commerce et à l’impôt, notamment l’application de nouveaux tarifs douaniers ou de tarifs douaniers plus élevés sur les marchandises importées aux États-Unis ou la menace de le faire et l’imposition de représailles ainsi que l’adoption de dispositions législatives de nature fiscale récemment proposées aux États-Unis, peut amplifier l’incertitude économique et la volatilité des marchés, perturber les chaînes d’approvisionnement et les activités commerciales à l’échelle mondiale, ébranler la confiance des entreprises ou entraîner d’autres conséquences défavorables."
           },
           "change_summary": "Les risques géopolitiques et leur impact potentiel sur les résultats financiers de la banque sont discutés dans",
@@ -550,8 +1002,18 @@
               "tone_changed": true,
               "forward_looking": true,
               "quantitative_changed": false
-            }
-          }
+            },
+            "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Risque climatique, ESG, marche, information ajoutée.\n\nCe qui change : Le rapport courant ajoute l'information suivante, absente du rapport précédent : Risques géopolitiques En plus des risques géopolitiques présentés dans le rapport de gestion de 2024 de la Banque, l’évolution des risques géopolitiques et des risques liés aux politiques, au commerce et à l’impôt, notamment l’application de nouveaux tarifs douaniers ou de tarifs douaniers plus élevés sur les marchandises importées aux États-Unis ou la menace de le faire et l’imposition de tarifs de représailles ainsi que l’adoption des dispositions législatives de nature fiscale récemment proposées aux États-Unis, peut amplifier l’incertitude économique et la volatilité des marchés, perturber les chaînes d’approvisionnement et les activités commerciales à l’échelle mondiale, ébranler la confiance des entreprises ou entraîner d’autres conséquences défavorables. Par exemple, les tarifs douaniers risquent de faire hausser les prix et baisser la demande des marchandises importées, pesant sur les activités des pays importateurs et exportateurs. L’imposition de tarifs douaniers très élevés pourrait couper court aux activités commerciales et entraîner des pénuries dans l’ensemble de la chaîne d’approvisionnement. Bien que la nature et l’ampleur des risques puissent varier, ils ont le potentiel de perturber la croissance économique, d’accroître la volatilité des marchés des capitaux, ce qui pourrait avoir une incidence sur la situation financière et les activités de négociation et autres que de négociation de la Banque, d’agir sur la liquidité des marchés et les coûts de financement, d’exercer des pressions sur les conditions de crédit et d’influencer directement et indirectement la conjoncture économique et commerciale et certains secteurs de sorte que la Banque et ses clients pourraient en souffrir. Pour de plus amples renseignements sur les perspectives économiques, se reporter à la rubrique « Sommaire et perspectives économiques » du présent document.\n\nPertinence métier : Ce changement met l'accent sur l'évolution du cadre réglementaire applicable aux divulgations climatiques des institutions financières. La mise à jour de la ligne directrice B-15 par le BSIF, notamment le report des exigences liées aux émissions de GES de portée 3, peut influencer la manière dont les banques planifient leur conformité, structurent leurs contrôles ESG et communiquent leurs risques climatiques. Ce point est important à suivre, car il permet d'évaluer l'évolution des attentes prudentielles, la comparabilité des pratiques de divulgation entre pairs et le niveau de préparation des banques face aux exigences climatiques.\n\nPoint de surveillance : Risque climatique / ESG — Le changement indique que la banque tient compte de la mise à jour de la ligne directrice B-15 du BSIF et du report des exigences liées aux émissions de GES de portée 3. Ce point permet de suivre l'adaptation des banques aux attentes prudentielles climatiques, leur niveau de préparation ESG et la comparabilité de leurs pratiques de divulgation entre pairs.",
+            "change_segments": [
+              {
+                "kind": "added",
+                "text_t1": "",
+                "text_t2": "Risques géopolitiques En plus des risques géopolitiques présentés dans le rapport de gestion de 2024 de la Banque, l’évolution des risques géopolitiques et des risques liés aux politiques, au commerce et à l’impôt, notamment l’application de nouveaux tarifs douaniers ou de tarifs douaniers plus élevés sur les marchandises importées aux États-Unis ou la menace de le faire et l’imposition de tarifs de représailles ainsi que l’adoption des dispositions législatives de nature fiscale récemment proposées aux États-Unis, peut amplifier l’incertitude économique et la volatilité des marchés, perturber les chaînes d’approvisionnement et les activités commerciales à l’échelle mondiale, ébranler la confiance des entreprises ou entraîner d’autres conséquences défavorables. Par exemple, les tarifs douaniers risquent de faire hausser les prix et baisser la demande des marchandises importées, pesant sur les activités des pays importateurs et exportateurs. L’imposition de tarifs douaniers très élevés pourrait couper court aux activités commerciales et entraîner des pénuries dans l’ensemble de la chaîne d’approvisionnement. Bien que la nature et l’ampleur des risques puissent varier, ils ont le potentiel de perturber la croissance économique, d’accroître la volatilité des marchés des capitaux, ce qui pourrait avoir une incidence sur la situation financière et les activités de négociation et autres que de négociation de la Banque, d’agir sur la liquidité des marchés et les coûts de financement, d’exercer des pressions sur les conditions de crédit et d’influencer directement et indirectement la conjoncture économique et commerciale et certains secteurs de sorte que la Banque et ses clients pourraient en souffrir. Pour de plus amples renseignements sur les perspectives économiques, se reporter à la rubrique « Sommaire et perspectives économiques » du présent document."
+              }
+            ]
+          },
+          "pages_t1": [],
+          "pages_t2": []
         },
         {
           "change_id": "gestion_risques_change_011",
@@ -566,9 +1028,7 @@
             "snippet": ""
           },
           "evidence_t2": {
-            "pages": [
-              40
-            ],
+            "pages": [],
             "snippet": "Cela pourrait avoir des conséquences défavorables, notamment contraindre la Banque à engager des coûts additionnels et des ressources supplémentaires à des fins de conformité initiale et continue, et accroître les risques en cas de non-conformité potentielle."
           },
           "change_summary": "Les changements dans l'environnement réglementaire et leurs conséquences défavorables potentielles sont discutés dans",
@@ -592,8 +1052,18 @@
               "tone_changed": true,
               "forward_looking": true,
               "quantitative_changed": false
-            }
-          }
+            },
+            "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : nouvelle mention réglementaire, conformité, information ajoutée.\n\nCe qui change : Le rapport courant ajoute l'information suivante, absente du rapport précédent : Cela pourrait avoir des conséquences défavorables, notamment contraindre la Banque à engager des coûts additionnels et des ressources supplémentaires à des fins de conformité initiale et continue, et accroître les risques en cas de non-conformité potentielle.\n\nPertinence métier : La discussion sur les conséquences des changements réglementaires introduit une nouvelle perspective sur les coûts et les risques de non conformité.\n\nPoint de surveillance : nouvelle mention réglementaire — Cela pourrait nécessiter des ajustements dans les processus de conformité pour éviter des impacts financiers négatifs.",
+            "change_segments": [
+              {
+                "kind": "added",
+                "text_t1": "",
+                "text_t2": "Cela pourrait avoir des conséquences défavorables, notamment contraindre la Banque à engager des coûts additionnels et des ressources supplémentaires à des fins de conformité initiale et continue, et accroître les risques en cas de non-conformité potentielle."
+              }
+            ]
+          },
+          "pages_t1": [],
+          "pages_t2": []
         }
       ],
       "all_block_comparisons": [
@@ -606,9 +1076,7 @@
           "source_text_t1": "Le 16 janvier 2026, la Banque a annoncé que la TSX et le BSIF ont approuvé sa nouvelle offre publique de rachat dans le cours normal des activités (OPRCNA de 2026) visant à racheter, pour annulation, jusqu’à 61 millions de ses actions ordinaires pour un montant d’au plus 7 milliards de dollars. L’OPRCNA de 2026 a commencé le 20 janvier 2026 et prendra fin A) à la première des dates suivantes : i) le 15 janvier 2027; ii) la date à laquelle le coût d’achat total des actions ordinaires rachetées atteint 7 milliards de dollars; et iii) la date à laquelle le nombre maximal d’actions ordinaires pouvant être rachetées est atteint; ou B) à une date antérieure que la Banque pourra déterminer. Du début de l’OPRCNA de 2026, le 20 janvier 2026, jusqu’au 31 janvier 2026, la Banque a racheté 3,8 millions d’actions dans le cadre du programme, à un prix moyen de 129,06 $ l’action pour un montant total de 0,5 milliard de dollars.",
           "source_text_t2": "",
           "evidence_t1": {
-            "pages": [
-              35
-            ],
+            "pages": [],
             "snippet": "Le 16 janvier 2026, la Banque a annoncé que le TSX et le BSIF ont approuvé sa nouvelle offre publique de rachat dans le cours normal des activités (OPRNCA de 2026) visant à racheter, pour annulation, jusqu’à 61 millions de ses actions ordinaires pour un montant de jusqu’à 7 milliards de dollars."
           },
           "evidence_t2": {
@@ -636,8 +1104,11 @@
               "tone_changed": false,
               "forward_looking": false,
               "quantitative_changed": false
-            }
-          }
+            },
+            "change_segments": []
+          },
+          "pages_t1": [],
+          "pages_t2": []
         },
         {
           "change_id": "gestion_risques_change_002",
@@ -648,9 +1119,7 @@
           "source_text_t1": "DISPOSITIONS RELATIVES AUX FONDS PROPRES D’URGENCE EN CAS DE NON-VIABILITÉ Si un événement déclencheur faisant intervenir les dispositions relatives aux FPUNV devait survenir, pour toutes les séries d’actions privilégiées de premier rang de catégorie A, compte non tenu des actions privilégiées émises à l’égard des BRCRL, le nombre maximal d’actions ordinaires qui pourrait être émis serait un total de 0,6 milliard d’actions, en supposant qu’aucun dividende n’a été déclaré et n’était impayé sur ces actions privilégiées au moment de la conversion. Les BRCRL, en raison du recours qu’ils comportent à l’égard des actions privilégiées détenues dans la fiducie à recours limité, comprennent des dispositions relatives aux FPUNV. Pour les BRCRL, si un événement déclencheur faisant intervenir les FPUNV devait survenir, le nombre maximal d’actions ordinaires qui pourrait être émis serait un total de 1,7 milliard d’actions, en supposant qu’aucun dividende n’a été déclaré et n’était impayé sur les actions privilégiées émises à l’égard des BRCRL. Pour les billets et débentures subordonnés admissibles comme FPUNV (y compris les billets perpétuels AT1), si un événement déclencheur faisant intervenir les FPUNV devait survenir, le nombre maximal d’actions ordinaires qui pourrait être émis serait un total de 3,3 milliards d’actions, en supposant qu’il n’y ait aucun intérêt couru ni impayé sur ces billets et débentures subordonnés.",
           "source_text_t2": "",
           "evidence_t1": {
-            "pages": [
-              35
-            ],
+            "pages": [],
             "snippet": "Si un événement déclencheur faisant intervenir les dispositions relatives aux FPUNV devait survenir, pour toutes les séries d’actions privilégiées de premier rang de catégorie A, comme pour les actions privilégiées émises à l’égard des BRCRL, le nombre maximal d’actions ordinaires qui pourrait être émis serait en total de 0,6 milliard d’actions, en supposant qu’aucun dividende n’a été déclaré et n’était impayé sur ces actions privilégiées au moment de la crise."
           },
           "evidence_t2": {
@@ -678,8 +1147,11 @@
               "tone_changed": false,
               "forward_looking": false,
               "quantitative_changed": false
-            }
-          }
+            },
+            "change_segments": []
+          },
+          "pages_t1": [],
+          "pages_t2": []
         },
         {
           "change_id": "gestion_risques_change_003",
@@ -690,9 +1162,7 @@
           "source_text_t1": "GROUPE BANQUE TD • PREMIER TRIMESTRE DE 2026 • RAPPORT AUX ACTIONNAIRES Page 35",
           "source_text_t2": "",
           "evidence_t1": {
-            "pages": [
-              35
-            ],
+            "pages": [],
             "snippet": "La Banque a mis à jour les facteurs de risque suivants pour tenir compte des changements dans l’environnement externe."
           },
           "evidence_t2": {
@@ -720,8 +1190,11 @@
               "tone_changed": false,
               "forward_looking": false,
               "quantitative_changed": false
-            }
-          }
+            },
+            "change_segments": []
+          },
+          "pages_t1": [],
+          "pages_t2": []
         },
         {
           "change_id": "gestion_risques_change_004",
@@ -732,9 +1205,7 @@
           "source_text_t1": "Promulgation de nouvelles lois ou règles ou de nouveaux règlements et modifications des lois, règles et règlements actuels Outre les risques présentés à la rubrique « Promulgation de nouvelles lois ou règles ou de nouveaux règlements et modifications des lois, règles et règlements actuels » du rapport de gestion de 2025 de la Banque, le gouvernement fédéral met en œuvre des exigences en matière de LCBA dans le cadre de son examen quinquennal obligatoire du régime canadien de lutte contre le recyclage des produits de la criminalité. D’autres modifications sont également proposées dans le projet de loi C-2, Loi visant une sécurité rigoureuse à la frontière. Les dispositions visant à renforcer les outils et les pouvoirs de surveillance et d’exécution du CANAFE, notamment la capacité d’imposer des sanctions pécuniaires plus importantes, ont été incluses dans le projet de loi C-12, Loi visant à renforcer le système d’immigration et la frontière du Canada, qui est présentement à l’étude par le Sénat du Canada. Bon nombre des dispositions devraient entrer en vigueur ou entreront en vigueur à brève échéance lorsqu’elles seront définitives. D’autres changements sont à prévoir au terme de l’évaluation du régime canadien de lutte contre le recyclage des produits de la criminalité actuellement en cours réalisée conjointement avec le Groupe d’action financière (GAFI), qui devrait se terminer vers le milieu de 2026. Le rythme de ces changements, le délai de mise en œuvre potentiellement court et l’évolution des risques pourraient donner lieu à une augmentation des coûts et des risques, ce qui pourrait avoir une incidence défavorable sur les entreprises, les activités et les résultats de la Banque.",
           "source_text_t2": "",
           "evidence_t1": {
-            "pages": [
-              35
-            ],
+            "pages": [],
             "snippet": "Dans le rapport de gestion de 2025 de la Banque, le gouvernement fédéral met en œuvre des exigences en matière de lutte contre le recyclage des produits de la criminalité."
           },
           "evidence_t2": {
@@ -762,8 +1233,11 @@
               "tone_changed": false,
               "forward_looking": false,
               "quantitative_changed": false
-            }
-          }
+            },
+            "change_segments": []
+          },
+          "pages_t1": [],
+          "pages_t2": []
         },
         {
           "change_id": "gestion_risques_change_005",
@@ -774,9 +1248,7 @@
           "source_text_t1": "GROUPE BANQUE TD • PREMIER TRIMESTRE DE 2026 • RAPPORT AUX ACTIONNAIRES Page 36",
           "source_text_t2": "",
           "evidence_t1": {
-            "pages": [
-              36
-            ],
+            "pages": [],
             "snippet": "La Banque juge qu’il est d’importance critique d’évaluer à intervalles réguliers le contexte dans lequel elle mène ses activités et de cerner les principaux risques et les risques émergents."
           },
           "evidence_t2": {
@@ -804,8 +1276,11 @@
               "tone_changed": false,
               "forward_looking": false,
               "quantitative_changed": false
-            }
-          }
+            },
+            "change_segments": []
+          },
+          "pages_t1": [],
+          "pages_t2": []
         },
         {
           "change_id": "gestion_risques_change_006",
@@ -816,15 +1291,11 @@
           "source_text_t1": " la VaR recourt à des données historiques pour prédire des événements futurs, ce qui limite sa capacité d’effectuer des prévisions;",
           "source_text_t2": "La VaR constitue une mesure utile, mais elle devrait être utilisée en tenant compte de certaines limites, notamment :",
           "evidence_t1": {
-            "pages": [
-              38
-            ],
+            "pages": [],
             "snippet": "La Banque calcule la VaR quotidiennement en combinant le risque de marché général et le risque idiosyncrasique propre à des titres de créance qui est associé aux positions de négociation de la Banque."
           },
           "evidence_t2": {
-            "pages": [
-              44
-            ],
+            "pages": [],
             "snippet": "La Banque évalue le portefeuille courant au moyen des variations des cours et des taux..."
           },
           "change_summary": "La méthode d'évaluation des risques de marché est décrite de manière plus détaillée dans, incluant des simulations pour estimer les pertes potentielles",
@@ -848,8 +1319,88 @@
               "tone_changed": false,
               "forward_looking": false,
               "quantitative_changed": true
-            }
-          }
+            },
+            "nouvelle_idee_justification": "NON — Nouvel élément à surveiller : Non.\n\nSujet détecté : marche, texte modifié.\n\nCe qui change : Le passage est modifié entre les deux versions. Le rapport précédent indiquait :  la VaR recourt à des données historiques pour prédire des événements futurs, ce qui limite sa capacité d’effectuer des prévisions; Le rapport courant indique : La VaR constitue une mesure utile, mais elle devrait être utilisée en tenant compte de certaines limites, notamment :.\n\nPertinence métier : La description détaillée de la méthode d'évaluation des risques de marché, incluant des simulations, introduit une nouvelle approche pour estimer les pertes potentielles.\n\nPoint de surveillance : marche — Cela pourrait améliorer la précision des estimations de risque de marché et influencer les décisions de gestion des risques.",
+            "change_segments": [
+              {
+                "kind": "modified",
+                "text_t1": " l",
+                "text_t2": "L"
+              },
+              {
+                "kind": "added",
+                "text_t1": "",
+                "text_t2": "constitue une mesu"
+              },
+              {
+                "kind": "removed",
+                "text_t1": "co",
+                "text_t2": ""
+              },
+              {
+                "kind": "removed",
+                "text_t1": "r",
+                "text_t2": ""
+              },
+              {
+                "kind": "modified",
+                "text_t1": "à de",
+                "text_t2": "ile, mai"
+              },
+              {
+                "kind": "removed",
+                "text_t1": "donné",
+                "text_t2": ""
+              },
+              {
+                "kind": "modified",
+                "text_t1": "s historiques pour prédir",
+                "text_t2": "ll"
+              },
+              {
+                "kind": "added",
+                "text_t1": "",
+                "text_t2": "vrait être utili"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "événem",
+                "text_t2": "ée"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "s fu",
+                "text_t2": "enant comp"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "urs,",
+                "text_t2": "e de"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "qu",
+                "text_t2": "rta"
+              },
+              {
+                "kind": "added",
+                "text_t1": "",
+                "text_t2": "nes"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "s",
+                "text_t2": "s, not"
+              },
+              {
+                "kind": "modified",
+                "text_t1": "capacité d’effectuer des prévisions;",
+                "text_t2": "mment :"
+              }
+            ]
+          },
+          "pages_t1": [],
+          "pages_t2": []
         },
         {
           "change_id": "gestion_risques_change_008",
@@ -864,9 +1415,7 @@
             "snippet": ""
           },
           "evidence_t2": {
-            "pages": [
-              41
-            ],
+            "pages": [],
             "snippet": "La Banque a également mis sur pied un nouveau comité de direction, le sous-comité de redressement du comité de gestion des risques de l’entreprise, chargé de surveiller la conformité de la Banque aux engagements réglementaires et l’état d’avancement des mesures de redressement requises."
           },
           "change_summary": "La banque a mis à jour son cadre de gestion des risques pour inclure de nouvelles catégories principales et a créé un nouveau comité pour surveiller la conformité",
@@ -890,8 +1439,18 @@
               "tone_changed": false,
               "forward_looking": true,
               "quantitative_changed": false
-            }
-          }
+            },
+            "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Risque climatique, ESG, conformité, information ajoutée.\n\nCe qui change : Le rapport courant ajoute l'information suivante, absente du rapport précédent : • Le risque de crime financier a été rehaussé et inclus dans une principale catégorie de risques distincte (il faisait auparavant partie de la catégorie Risque juridique et de conformité à la réglementation). • La catégorie Risque opérationnel a été scindée en deux principales catégories de risques : 1) Risque opérationnel – Données, technologie et cybersécurité et 2) Risque opérationnel, sauf les données, la technologie et la cybersécurité. • La Banque a également mis sur pied un nouveau comité de direction, le sous-comité de redressement du comité de gestion des risques de l’entreprise, chargé de surveiller la conformité de la Banque aux engagements réglementaires et l’état d’avancement des mesures de redressement requises. Ces changements ont donné lieu à deux nouvelles principales catégories de risques et aux définitions mises à jour ci-dessous :.\n\nPertinence métier : Ce changement met l'accent sur l'évolution du cadre réglementaire applicable aux divulgations climatiques des institutions financières. La mise à jour de la ligne directrice B-15 par le BSIF, notamment le report des exigences liées aux émissions de GES de portée 3, peut influencer la manière dont les banques planifient leur conformité, structurent leurs contrôles ESG et communiquent leurs risques climatiques. Ce point est important à suivre, car il permet d'évaluer l'évolution des attentes prudentielles, la comparabilité des pratiques de divulgation entre pairs et le niveau de préparation des banques face aux exigences climatiques.\n\nPoint de surveillance : Risque climatique / ESG — Le changement indique que la banque tient compte de la mise à jour de la ligne directrice B-15 du BSIF et du report des exigences liées aux émissions de GES de portée 3. Ce point permet de suivre l'adaptation des banques aux attentes prudentielles climatiques, leur niveau de préparation ESG et la comparabilité de leurs pratiques de divulgation entre pairs.",
+            "change_segments": [
+              {
+                "kind": "added",
+                "text_t1": "",
+                "text_t2": "• Le risque de crime financier a été rehaussé et inclus dans une principale catégorie de risques distincte (il faisait auparavant partie de la catégorie Risque juridique et de conformité à la réglementation). • La catégorie Risque opérationnel a été scindée en deux principales catégories de risques : 1) Risque opérationnel – Données, technologie et cybersécurité et 2) Risque opérationnel, sauf les données, la technologie et la cybersécurité. • La Banque a également mis sur pied un nouveau comité de direction, le sous-comité de redressement du comité de gestion des risques de l’entreprise, chargé de surveiller la conformité de la Banque aux engagements réglementaires et l’état d’avancement des mesures de redressement requises. Ces changements ont donné lieu à deux nouvelles principales catégories de risques et aux définitions mises à jour ci-dessous :"
+              }
+            ]
+          },
+          "pages_t1": [],
+          "pages_t2": []
         },
         {
           "change_id": "gestion_risques_change_009",
@@ -906,9 +1465,7 @@
             "snippet": ""
           },
           "evidence_t2": {
-            "pages": [
-              40
-            ],
+            "pages": [],
             "snippet": "En plus des risques géopolitiques présentés dans le rapport de gestion de 2024 de la Banque, l’évolution des risques géopolitiques et des risques liés aux politiques, au commerce et à l’impôt, notamment l’application de nouveaux tarifs douaniers ou de tarifs douaniers plus élevés sur les marchandises importées aux États-Unis ou la menace de le faire et l’imposition de représailles ainsi que l’adoption de dispositions législatives de nature fiscale récemment proposées aux États-Unis, peut amplifier l’incertitude économique et la volatilité des marchés, perturber les chaînes d’approvisionnement et les activités commerciales à l’échelle mondiale, ébranler la confiance des entreprises ou entraîner d’autres conséquences défavorables."
           },
           "change_summary": "Les risques géopolitiques et leur impact potentiel sur les résultats financiers de la banque sont discutés dans",
@@ -932,8 +1489,18 @@
               "tone_changed": true,
               "forward_looking": true,
               "quantitative_changed": false
-            }
-          }
+            },
+            "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : Risque climatique, ESG, marche, information ajoutée.\n\nCe qui change : Le rapport courant ajoute l'information suivante, absente du rapport précédent : Risques géopolitiques En plus des risques géopolitiques présentés dans le rapport de gestion de 2024 de la Banque, l’évolution des risques géopolitiques et des risques liés aux politiques, au commerce et à l’impôt, notamment l’application de nouveaux tarifs douaniers ou de tarifs douaniers plus élevés sur les marchandises importées aux États-Unis ou la menace de le faire et l’imposition de tarifs de représailles ainsi que l’adoption des dispositions législatives de nature fiscale récemment proposées aux États-Unis, peut amplifier l’incertitude économique et la volatilité des marchés, perturber les chaînes d’approvisionnement et les activités commerciales à l’échelle mondiale, ébranler la confiance des entreprises ou entraîner d’autres conséquences défavorables. Par exemple, les tarifs douaniers risquent de faire hausser les prix et baisser la demande des marchandises importées, pesant sur les activités des pays importateurs et exportateurs. L’imposition de tarifs douaniers très élevés pourrait couper court aux activités commerciales et entraîner des pénuries dans l’ensemble de la chaîne d’approvisionnement. Bien que la nature et l’ampleur des risques puissent varier, ils ont le potentiel de perturber la croissance économique, d’accroître la volatilité des marchés des capitaux, ce qui pourrait avoir une incidence sur la situation financière et les activités de négociation et autres que de négociation de la Banque, d’agir sur la liquidité des marchés et les coûts de financement, d’exercer des pressions sur les conditions de crédit et d’influencer directement et indirectement la conjoncture économique et commerciale et certains secteurs de sorte que la Banque et ses clients pourraient en souffrir. Pour de plus amples renseignements sur les perspectives économiques, se reporter à la rubrique « Sommaire et perspectives économiques » du présent document.\n\nPertinence métier : Ce changement met l'accent sur l'évolution du cadre réglementaire applicable aux divulgations climatiques des institutions financières. La mise à jour de la ligne directrice B-15 par le BSIF, notamment le report des exigences liées aux émissions de GES de portée 3, peut influencer la manière dont les banques planifient leur conformité, structurent leurs contrôles ESG et communiquent leurs risques climatiques. Ce point est important à suivre, car il permet d'évaluer l'évolution des attentes prudentielles, la comparabilité des pratiques de divulgation entre pairs et le niveau de préparation des banques face aux exigences climatiques.\n\nPoint de surveillance : Risque climatique / ESG — Le changement indique que la banque tient compte de la mise à jour de la ligne directrice B-15 du BSIF et du report des exigences liées aux émissions de GES de portée 3. Ce point permet de suivre l'adaptation des banques aux attentes prudentielles climatiques, leur niveau de préparation ESG et la comparabilité de leurs pratiques de divulgation entre pairs.",
+            "change_segments": [
+              {
+                "kind": "added",
+                "text_t1": "",
+                "text_t2": "Risques géopolitiques En plus des risques géopolitiques présentés dans le rapport de gestion de 2024 de la Banque, l’évolution des risques géopolitiques et des risques liés aux politiques, au commerce et à l’impôt, notamment l’application de nouveaux tarifs douaniers ou de tarifs douaniers plus élevés sur les marchandises importées aux États-Unis ou la menace de le faire et l’imposition de tarifs de représailles ainsi que l’adoption des dispositions législatives de nature fiscale récemment proposées aux États-Unis, peut amplifier l’incertitude économique et la volatilité des marchés, perturber les chaînes d’approvisionnement et les activités commerciales à l’échelle mondiale, ébranler la confiance des entreprises ou entraîner d’autres conséquences défavorables. Par exemple, les tarifs douaniers risquent de faire hausser les prix et baisser la demande des marchandises importées, pesant sur les activités des pays importateurs et exportateurs. L’imposition de tarifs douaniers très élevés pourrait couper court aux activités commerciales et entraîner des pénuries dans l’ensemble de la chaîne d’approvisionnement. Bien que la nature et l’ampleur des risques puissent varier, ils ont le potentiel de perturber la croissance économique, d’accroître la volatilité des marchés des capitaux, ce qui pourrait avoir une incidence sur la situation financière et les activités de négociation et autres que de négociation de la Banque, d’agir sur la liquidité des marchés et les coûts de financement, d’exercer des pressions sur les conditions de crédit et d’influencer directement et indirectement la conjoncture économique et commerciale et certains secteurs de sorte que la Banque et ses clients pourraient en souffrir. Pour de plus amples renseignements sur les perspectives économiques, se reporter à la rubrique « Sommaire et perspectives économiques » du présent document."
+              }
+            ]
+          },
+          "pages_t1": [],
+          "pages_t2": []
         },
         {
           "change_id": "gestion_risques_change_010",
@@ -948,9 +1515,7 @@
             "snippet": ""
           },
           "evidence_t2": {
-            "pages": [
-              41
-            ],
+            "pages": [],
             "snippet": "Faire croître la rentabilité des résultats financiers en comptant sur l’équilibre entre les produits, les charges et la croissance des fonds propres implique de prendre des risques mesurés et de les gérer en tenant compte de l’appétit de la Banque pour le risque. L’objectif de la Banque est d’obtenir un rendement stable et durable pour chaque dollar de risque qu’elle prend, tout en accordant une grande importance à l’investissement dans ses entreprises afin d’atteindre ses objectifs stratégiques futurs."
           },
           "change_summary": "La banque vise un rendement stable et durable pour chaque dollar de risque pris, en investissant dans ses entreprises pour atteindre ses objectifs stratégiques",
@@ -974,8 +1539,11 @@
               "tone_changed": false,
               "forward_looking": false,
               "quantitative_changed": false
-            }
-          }
+            },
+            "change_segments": []
+          },
+          "pages_t1": [],
+          "pages_t2": []
         },
         {
           "change_id": "gestion_risques_change_011",
@@ -990,9 +1558,7 @@
             "snippet": ""
           },
           "evidence_t2": {
-            "pages": [
-              40
-            ],
+            "pages": [],
             "snippet": "Cela pourrait avoir des conséquences défavorables, notamment contraindre la Banque à engager des coûts additionnels et des ressources supplémentaires à des fins de conformité initiale et continue, et accroître les risques en cas de non-conformité potentielle."
           },
           "change_summary": "Les changements dans l'environnement réglementaire et leurs conséquences défavorables potentielles sont discutés dans",
@@ -1016,8 +1582,18 @@
               "tone_changed": true,
               "forward_looking": true,
               "quantitative_changed": false
-            }
-          }
+            },
+            "nouvelle_idee_justification": "OUI — Nouvel élément à surveiller : Oui.\n\nSujet détecté : nouvelle mention réglementaire, conformité, information ajoutée.\n\nCe qui change : Le rapport courant ajoute l'information suivante, absente du rapport précédent : Cela pourrait avoir des conséquences défavorables, notamment contraindre la Banque à engager des coûts additionnels et des ressources supplémentaires à des fins de conformité initiale et continue, et accroître les risques en cas de non-conformité potentielle.\n\nPertinence métier : La discussion sur les conséquences des changements réglementaires introduit une nouvelle perspective sur les coûts et les risques de non conformité.\n\nPoint de surveillance : nouvelle mention réglementaire — Cela pourrait nécessiter des ajustements dans les processus de conformité pour éviter des impacts financiers négatifs.",
+            "change_segments": [
+              {
+                "kind": "added",
+                "text_t1": "",
+                "text_t2": "Cela pourrait avoir des conséquences défavorables, notamment contraindre la Banque à engager des coûts additionnels et des ressources supplémentaires à des fins de conformité initiale et continue, et accroître les risques en cas de non-conformité potentielle."
+              }
+            ]
+          },
+          "pages_t1": [],
+          "pages_t2": []
         },
         {
           "change_id": "gestion_risques_change_012",
@@ -1032,9 +1608,7 @@
             "snippet": ""
           },
           "evidence_t2": {
-            "pages": [
-              45
-            ],
+            "pages": [],
             "snippet": "La Banque utilise un test de validité rétrospectif pour comparer les profits et les pertes réels..."
           },
           "change_summary": "La banque utilise des tests de validation pour s'assurer que les pertes réelles sont conformes aux estimations de risque",
@@ -1058,8 +1632,11 @@
               "tone_changed": false,
               "forward_looking": false,
               "quantitative_changed": false
-            }
-          }
+            },
+            "change_segments": []
+          },
+          "pages_t1": [],
+          "pages_t2": []
         },
         {
           "change_id": "gestion_risques_change_013",
@@ -1074,9 +1651,7 @@
             "snippet": ""
           },
           "evidence_t2": {
-            "pages": [
-              46
-            ],
+            "pages": [],
             "snippet": "La Banque met en œuvre un programme de gestion de la liquidité rigoureux..."
           },
           "change_summary": "La gestion du risque de liquidité de la Banque est conçue pour maintenir des niveaux de liquidité suffisants pour répondre aux besoins opérationnels et aux engagements des clients",
@@ -1100,8 +1675,11 @@
               "tone_changed": false,
               "forward_looking": false,
               "quantitative_changed": false
-            }
-          }
+            },
+            "change_segments": []
+          },
+          "pages_t1": [],
+          "pages_t2": []
         },
         {
           "change_id": "gestion_risques_change_014",
@@ -1116,9 +1694,7 @@
             "snippet": ""
           },
           "evidence_t2": {
-            "pages": [
-              46
-            ],
+            "pages": [],
             "snippet": "Le comité de gestion de l'actif et du passif et des fonds propres de la Banque..."
           },
           "change_summary": "Le comité de gestion de l'actif et du passif de la Banque est responsable de l'établissement de structures efficaces pour mesurer et gérer le risque de liquidité",
@@ -1142,8 +1718,11 @@
               "tone_changed": false,
               "forward_looking": false,
               "quantitative_changed": false
-            }
-          }
+            },
+            "change_segments": []
+          },
+          "pages_t1": [],
+          "pages_t2": []
         },
         {
           "change_id": "gestion_risques_change_017",
@@ -1158,9 +1737,7 @@
             "snippet": ""
           },
           "evidence_t2": {
-            "pages": [
-              50
-            ],
+            "pages": [],
             "snippet": "Les notations de crédit peuvent avoir une incidence sur l'accès de la Banque à des sources de financement ainsi que leur coût."
           },
           "change_summary": "Les notations de crédit et leur impact sur l'accès de la banque à des sources de financement sont discutés dans",
@@ -1184,8 +1761,11 @@
               "tone_changed": false,
               "forward_looking": false,
               "quantitative_changed": false
-            }
-          }
+            },
+            "change_segments": []
+          },
+          "pages_t1": [],
+          "pages_t2": []
         },
         {
           "change_id": "gestion_risques_change_019",
@@ -1196,15 +1776,11 @@
           "source_text_t1": "Le NSFR de la Banque au 31 janvier 2026 était de 115 % (117 % au 31 octobre 2025), correspondant à un montant excédentaire de 147 milliards de dollars, ce qui respecte les exigences réglementaires.",
           "source_text_t2": "Le tableau ci-dessous présente la position quotidienne moyenne propre au LCR de la Banque aux dates indiquées.",
           "evidence_t1": {
-            "pages": [
-              46
-            ],
+            "pages": [],
             "snippet": "Le NSFR de la Banque au 31 janvier 2026 était de 115 % (117 % au 31 octobre 2025), correspondant à un montant excédentaire."
           },
           "evidence_t2": {
-            "pages": [
-              51
-            ],
+            "pages": [],
             "snippet": "Le NSFR mesure la proportion du financement stable disponible pour soutenir le total des besoins de financement stable requis."
           },
           "change_summary": "La banque évalue régulièrement ses besoins en liquidité à long terme pour s'assurer qu'elle dispose de fonds suffisants pour couvrir ses obligations",
@@ -1228,8 +1804,11 @@
               "tone_changed": false,
               "forward_looking": false,
               "quantitative_changed": false
-            }
-          }
+            },
+            "change_segments": []
+          },
+          "pages_t1": [],
+          "pages_t2": []
         },
         {
           "change_id": "gestion_risques_change_022",
@@ -1240,9 +1819,7 @@
           "source_text_t1": "Le tableau ci-dessous présente la durée restante des diverses sources du financement en cours respectivement aux 31 janvier 2026 et 31 octobre 2025.",
           "source_text_t2": "",
           "evidence_t1": {
-            "pages": [
-              48
-            ],
+            "pages": [],
             "snippet": "L'analyse des échéances présente ne décrit pas le degré de transformation des échéances de la Banque ni son exposition au risque de taux d'intérêt ou au risque de liquidité."
           },
           "evidence_t2": {
@@ -1270,8 +1847,11 @@
               "tone_changed": false,
               "forward_looking": false,
               "quantitative_changed": false
-            }
-          }
+            },
+            "change_segments": []
+          },
+          "pages_t1": [],
+          "pages_t2": []
         },
         {
           "change_id": "gestion_risques_change_023",
@@ -1282,9 +1862,7 @@
           "source_text_t1": "Le tableau ci-dessous présente la durée restante des diverses sources du financement en cours respectivement aux 31 janvier 2026 et 31 octobre 2025.",
           "source_text_t2": "",
           "evidence_t1": {
-            "pages": [
-              48
-            ],
+            "pages": [],
             "snippet": "La Banque se sert de dépôts stables en échéance (comptes chèques et comptes d'épargne) et de dépôts à terme comme principale source de financement à long terme pour les actifs détenus à des fins autres que de transaction."
           },
           "evidence_t2": {
@@ -1312,8 +1890,11 @@
               "tone_changed": false,
               "forward_looking": false,
               "quantitative_changed": false
-            }
-          }
+            },
+            "change_segments": []
+          },
+          "pages_t1": [],
+          "pages_t2": []
         },
         {
           "change_id": "gestion_risques_change_024",
@@ -1328,9 +1909,7 @@
             "snippet": ""
           },
           "evidence_t2": {
-            "pages": [
-              54
-            ],
+            "pages": [],
             "snippet": "Les engagements hors bilan incluent les obligations contractuelles d'effectuer des paiements futurs pour respecter des engagements découlant de certains contrats."
           },
           "change_summary": "Les engagements hors bilan et leur impact potentiel sur les besoins futurs en liquidités sont discutés dans",
@@ -1354,8 +1933,11 @@
               "tone_changed": false,
               "forward_looking": false,
               "quantitative_changed": false
-            }
-          }
+            },
+            "change_segments": []
+          },
+          "pages_t1": [],
+          "pages_t2": []
         },
         {
           "change_id": "gestion_risques_change_025",
@@ -1370,9 +1952,7 @@
             "snippet": ""
           },
           "evidence_t2": {
-            "pages": [
-              54
-            ],
+            "pages": [],
             "snippet": "L'objectif de la Banque est de financer de façon adéquate ses actifs pour se protéger de la volatilité des coûts d'emprunt."
           },
           "change_summary": "La gestion des échéances des actifs et passifs pour protéger contre la volatilité des coûts d'emprunt est discutée dans",
@@ -1396,8 +1976,11 @@
               "tone_changed": false,
               "forward_looking": false,
               "quantitative_changed": false
-            }
-          }
+            },
+            "change_segments": []
+          },
+          "pages_t1": [],
+          "pages_t2": []
         },
         {
           "change_id": "gestion_risques_change_026",
@@ -1412,9 +1995,7 @@
             "snippet": ""
           },
           "evidence_t2": {
-            "pages": [
-              55
-            ],
+            "pages": [],
             "snippet": "Les obligations sécurisées émises sont des éléments clés du financement à long terme."
           },
           "change_summary": "La banque a émis des obligations sécurisées pour répondre aux besoins de financement à long terme",
@@ -1438,8 +2019,11 @@
               "tone_changed": false,
               "forward_looking": false,
               "quantitative_changed": false
-            }
-          }
+            },
+            "change_segments": []
+          },
+          "pages_t1": [],
+          "pages_t2": []
         },
         {
           "change_id": "gestion_risques_change_027",
@@ -1454,9 +2038,7 @@
             "snippet": ""
           },
           "evidence_t2": {
-            "pages": [
-              56
-            ],
+            "pages": [],
             "snippet": "Les montants ont été présentés en fonction des durées contractuelles restantes du titre sous-jacent."
           },
           "change_summary": "La gestion des risques financiers pour maintenir la stabilité et la résilience de l'institution est discutée dans",
@@ -1480,8 +2062,11 @@
               "tone_changed": false,
               "forward_looking": false,
               "quantitative_changed": false
-            }
-          }
+            },
+            "change_segments": []
+          },
+          "pages_t1": [],
+          "pages_t2": []
         },
         {
           "change_id": "gestion_risques_change_028",
@@ -1496,9 +2081,7 @@
             "snippet": ""
           },
           "evidence_t2": {
-            "pages": [
-              56
-            ],
+            "pages": [],
             "snippet": "Total des dépôts et des capitaux propres."
           },
           "change_summary": "La gestion du capital pour soutenir les opérations courantes et permettre une croissance future est discutée dans",
@@ -1522,8 +2105,11 @@
               "tone_changed": false,
               "forward_looking": false,
               "quantitative_changed": false
-            }
-          }
+            },
+            "change_segments": []
+          },
+          "pages_t1": [],
+          "pages_t2": []
         },
         {
           "change_id": "gestion_risques_change_029",
@@ -1538,9 +2124,7 @@
             "snippet": ""
           },
           "evidence_t2": {
-            "pages": [
-              56
-            ],
+            "pages": [],
             "snippet": "Engagements à l'égard d'entités structurées non consolidées."
           },
           "change_summary": "Les changements significatifs dans la structure des engagements et leur influence sur la stratégie globale de l'institution sont discutés dans",
@@ -1564,8 +2148,11 @@
               "tone_changed": false,
               "forward_looking": false,
               "quantitative_changed": false
-            }
-          }
+            },
+            "change_segments": []
+          },
+          "pages_t1": [],
+          "pages_t2": []
         }
       ],
       "summary": {
