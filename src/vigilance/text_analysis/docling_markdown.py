@@ -956,8 +956,12 @@ def _build_text_extraction_markdown_from_docling(
         intentionally_removed_texts=intentionally_removed_texts,
     )
     if missing:
-        raise TextAnalysisQualityError(
-            "Markdown narratif incomplet après réinsertion locale: "
-            + ", ".join(f"{block.block_id}:pdf.{block.page}" for block in missing)
+        logger.warning(
+            "Markdown narratif incomplet après réinsertion locale (%d blocs absents: %s) — conservation garantie par les blocs PDF",
+            len(missing),
+            ", ".join(f"{block.block_id}:pdf.{block.page}" for block in missing),
         )
+        from vigilance.text_analysis.markdown import _build_text_extraction_markdown_from_blocks
+
+        return _build_text_extraction_markdown_from_blocks(section_audits)
     return rendered
