@@ -99,81 +99,11 @@ from .table_title_resolver import (
 logger = logging.getLogger(__name__)
 configure_mupdf_runtime(fitz)
 
-_REFERENCE_TEXT_SPLIT_RE = re.compile(r"\s{2,}|\t+|\s+\|\s+")
-
-
-def _coerce_pdf_path(pdf_path: str | Path | os.PathLike[str] | None) -> Path:
-    """Valider et convertir un chemin PDF en objet Path."""
-    if pdf_path is None:
-        raise ValueError("Chemin PDF requis pour l'extraction.")
-    try:
-        path = Path(pdf_path)
-    except TypeError as exc:
-        raise ValueError(f"Chemin PDF invalide: {pdf_path!r}") from exc
-    if not str(path).strip():
-        raise ValueError("Chemin PDF vide pour l'extraction.")
-    return path
-
-
-_ENV_TRUE = {"1", "true", "yes", "on"}
-_ENV_FALSE = {"0", "false", "no", "off"}
-
-
-def _looks_short_textual_header_fragment(value: str) -> bool:
-    """Determiner si une valeur ressemble a un fragment d'en-tete textuel court."""
-    text = re.sub(r"\s+", " ", str(value or "").strip())
-    if not text:
-        return False
-    if any(char.isdigit() for char in text):
-        return False
-    words = text.split()
-    if len(words) == 0 or len(words) > 4:
-        return False
-    if len(text) > 28:
-        return False
-    return any(char.isalpha() for char in text)
-
-
-def _build_indicator_reference_text(
-    raw_text: str | None,
-    *,
-    max_chars: int,
-) -> str | None:
-    """Retourner un dictionnaire OCR filtre pour l'extraction d'indicateurs.
-
-    Pour les tableaux textuels multi-colonnes, le ``table.text`` complet de
-    Docling melange souvent toute la ligne sur plusieurs colonnes. Renvoyer
-    ce texte a Vision lors du sauvetage peut transformer le contenu des
-    colonnes de droite en faux indicateurs de premiere colonne. Lorsque les
-    premieres lignes ressemblent a plusieurs en-tetes textuels courts, le
-    dictionnaire est desactive.
-
-    Args:
-        raw_text: Texte brut du tableau Docling.
-        max_chars: Nombre maximal de caracteres a conserver.
-
-    Returns:
-        Texte tronque a ``max_chars`` ou ``None`` si le dictionnaire est desactive.
-    """
-    text = str(raw_text or "").strip()
-    if len(text) <= 20 or max_chars <= 0:
-        return None
-
-    raw_lines = [str(line).strip() for line in text.splitlines() if str(line).strip()]
-    lines = [re.sub(r"\s+", " ", line).strip() for line in raw_lines]
-    if not lines:
-        return None
-
-    for line in raw_lines[:3]:
-        parts = [
-            re.sub(r"\s+", " ", part).strip()
-            for part in _REFERENCE_TEXT_SPLIT_RE.split(line)
-            if re.sub(r"\s+", " ", part).strip()
-        ]
-        if len(parts) >= 3 and all(_looks_short_textual_header_fragment(part) for part in parts[:3]):
-            return None
-
-    return text[:max_chars]
+from .docling_bbox_helpers import (
+    _build_indicator_reference_text,
+    _coerce_pdf_path,
+    _looks_short_textual_header_fragment,
+)
 
 
 def _env_bool(*names: str) -> bool | None:
