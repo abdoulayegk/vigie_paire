@@ -405,12 +405,6 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "La note de bas de page n-4 a été supprimée dans le tableau des exigences réglementaires de ratios des fonds propres, de levier et TLAC au T2 2025.\n\nCette note indiquait que les ratios au 31 janvier 2025 prenaient en compte le rachat d’actions privilégiées série 32 effectué le 17 février 2025. La suppression de cette note pourrait indiquer que l'impact de ce rachat n'est plus pertinent pour les ratios actuels ou que l'information a été intégrée ailleurs dans le rapport.\n\nIl s'agit d'une mise à jour potentiellement significative, car elle pourrait affecter la compréhension des ajustements des ratios de fonds propres. L'analyste devrait confirmer si cette information est redondante ou si elle a été déplacée, et s'assurer que la transparence des divulgations est maintenue."
-            },
-            "_analyst_review": {
-              "status": "approved",
-              "notes": "",
-              "at": "2026-07-28T03:59:28.404628+00:00",
-              "by": "analyst"
             }
           }
         ],
@@ -554,7 +548,7 @@
             "_analyst_review": {
               "status": "approved",
               "notes": "",
-              "at": "2026-07-28T03:57:01.038922+00:00",
+              "at": "2026-07-30T18:40:54.988811+00:00",
               "by": "analyst"
             }
           },
@@ -1135,12 +1129,6 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "La note de bas de page n°3 a été supprimée du tableau de gestion du capital réglementaire, du ratio de levier et du TLAC dans le rapport du T2 2025. Cette note indiquait que les données au 31 janvier 2025 prenaient en compte le rachat d’actions privilégiées série 32 effectué le 17 février 2025.\n\nL'absence de cette note dans le rapport actuel pourrait avoir des implications sur la transparence des informations fournies aux investisseurs et aux régulateurs. Le rachat d'actions privilégiées peut affecter les fonds propres de catégorie 1 et, par conséquent, les ratios de capital réglementaire. Selon les lignes directrices de Bâle III et les exigences du BSIF, toute modification significative des fonds propres doit être clairement divulguée pour assurer la conformité réglementaire et la transparence.\n\nIl s'agit d'une mise à jour structurelle qui nécessite une vérification pour s'assurer que l'impact du rachat d'actions est toujours correctement reflété dans les données financières présentées. L'analyste devrait confirmer que l'absence de cette note n'entraîne pas de malentendu sur les chiffres rapportés et que les informations pertinentes sont intégrées ailleurs dans le rapport."
-            },
-            "_analyst_review": {
-              "status": "approved",
-              "notes": "",
-              "at": "2026-07-28T03:59:45.951819+00:00",
-              "by": "analyst"
             }
           }
         ],
@@ -3343,12 +3331,6 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "La note de bas de page n-1 a été ajoutée dans le tableau des échéances contractuelles des actifs financiers au T2 2025.\n\nCette note précise que la Banque a conclu l'acquisition de CWB le 3 février 2025, et que les résultats de CWB ont été consolidés à partir de cette date, impactant ainsi les soldes au 30 avril 2025. Cette information est cruciale car elle affecte directement la présentation des actifs financiers et pourrait influencer les ratios financiers et les analyses de risque associées.\n\nIl s'agit d'une divulgation importante liée à une acquisition stratégique. L'analyste devrait confirmer l'intégration correcte des résultats de CWB dans les états financiers consolidés et s'assurer que toutes les implications réglementaires et comptables ont été correctement adressées."
-            },
-            "_analyst_review": {
-              "status": "approved",
-              "notes": "",
-              "at": "2026-07-28T03:59:55.662559+00:00",
-              "by": "analyst"
             }
           }
         ],
@@ -4234,9 +4216,9 @@
     "total_relevant": 7
   },
   "review_decisions_summary": {
-    "matched": 4,
+    "matched": 1,
     "unmatched": 0,
-    "pending": 9,
-    "updated_at": "2026-07-28T03:59:55+00:00"
+    "pending": 12,
+    "updated_at": "2026-07-30T18:40:54+00:00"
   }
 }
