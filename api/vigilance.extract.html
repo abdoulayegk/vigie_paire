@@ -44,12 +44,7 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">Guides</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../ARCHITECTURE_TECHNIQUE.html">Architecture technique de Vigie de paire</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../CONVENTION_DOCSTRINGS.html">Convention des docstrings – Vigie de paire</a></li>
-</ul>
-<p class="caption" role="heading"><span class="caption-text">Référence technique</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Référence technique</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">Référence technique</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="modules.html">Moteur applicatif</a><ul class="current">
@@ -126,95 +121,11 @@
 <section id="modules">
 <h2>Modules<a class="headerlink" href="#modules" title="Lien vers cette rubrique"></a></h2>
 </section>
-<section id="module-vigilance.extract.exclusions">
-<span id="extract-exclusions"></span><h2>extract.exclusions<a class="headerlink" href="#module-vigilance.extract.exclusions" title="Lien vers cette rubrique"></a></h2>
-<p>Logique d’exclusion de pages basee sur des patterns regex configures en YAML.</p>
-<dl class="py function">
-<dt class="sig sig-object py" id="vigilance.extract.exclusions.compile_exclusion_patterns">
-<span class="sig-name descname"><span class="pre">compile_exclusion_patterns</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.extract.exclusions.compile_exclusion_patterns" title="Lien vers cette définition"></a></dt>
-<dd><p>Compile les patterns regex depuis le bloc de configuration des exclusions.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>cfg</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span>) – Dictionnaire de configuration bancaire contenant
-<code class="docutils literal notranslate"><span class="pre">cfg[&quot;exclusions&quot;][&quot;block_title_patterns&quot;]</span></code>.</p>
-</dd>
-<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Pattern</span></code>]</span></p>
-</dd>
-<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Patterns compiles (insensibles a la casse).</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="vigilance.extract.exclusions.get_skipped_pages">
-<span class="sig-name descname"><span class="pre">get_skipped_pages</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pdf_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cfg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_pages</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.extract.exclusions.get_skipped_pages" title="Lien vers cette définition"></a></dt>
-<dd><p>Retourne la liste triee des indices de pages (0-indexe) a ignorer.</p>
-<p>Une page est ignoree lorsque le nombre de patterns d’exclusion distincts
-qui correspondent a son texte atteint ou depasse le seuil
-<code class="docutils literal notranslate"><span class="pre">min_hits_to_skip</span></code> configure.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>pdf_path</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Chemin du fichier PDF.</p></li>
-<li><p><strong>cfg</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span>) – Dictionnaire de configuration bancaire avec bloc <code class="docutils literal notranslate"><span class="pre">exclusions</span></code>.</p></li>
-<li><p><strong>max_pages</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Si fourni, n’inspecte que les <em>max_pages</em> premieres pages.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>]</span></p>
-</dd>
-<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Indices de pages 0-indexes a ignorer, tries.</p>
-</dd>
-</dl>
-</dd></dl>
-
+<section id="extract-exclusions">
+<h2>extract.exclusions<a class="headerlink" href="#extract-exclusions" title="Lien vers cette rubrique"></a></h2>
 </section>
-<section id="module-vigilance.extract.pdf_text">
-<span id="extract-pdf-text"></span><h2>extract.pdf_text<a class="headerlink" href="#module-vigilance.extract.pdf_text" title="Lien vers cette rubrique"></a></h2>
-<p>Extraction de texte depuis des pages PDF via pdfplumber.</p>
-<dl class="py function">
-<dt class="sig sig-object py" id="vigilance.extract.pdf_text.extract_page_text">
-<span class="sig-name descname"><span class="pre">extract_page_text</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pdf_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_index</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.extract.pdf_text.extract_page_text" title="Lien vers cette définition"></a></dt>
-<dd><p>Extrait le contenu textuel d’une page PDF unique.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>pdf_path</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Chemin du fichier PDF.</p></li>
-<li><p><strong>page_index</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – Index de page 0-indexe.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
-</dd>
-<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Texte extrait, ou <code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code> si pdfplumber retourne <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="vigilance.extract.pdf_text.extract_pages_text">
-<span class="sig-name descname"><span class="pre">extract_pages_text</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pdf_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_indices</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigilance.extract.pdf_text.extract_pages_text" title="Lien vers cette définition"></a></dt>
-<dd><p>Extrait le texte de plusieurs pages PDF en un seul appel d’ouverture.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>pdf_path</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Chemin du fichier PDF.</p></li>
-<li><p><strong>page_indices</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>]</span>) – Indices de pages 0-indexes a extraire.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
-<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]</span></p>
-</dd>
-<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Dictionnaire <code class="docutils literal notranslate"><span class="pre">{index_de_page:</span> <span class="pre">texte_extrait}</span></code>.</p>
-</dd>
-</dl>
-</dd></dl>
-
+<section id="extract-pdf-text">
+<h2>extract.pdf_text<a class="headerlink" href="#extract-pdf-text" title="Lien vers cette rubrique"></a></h2>
 </section>
 </section>
 
