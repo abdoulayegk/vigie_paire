@@ -124,8 +124,6 @@ Les actifs pondérés en fonction des risques totalisaient 437,9 milliards de do
 
 Le capital économique correspond aux fonds propres que doit détenir l'organisation, compte tenu de son appréciation des risques économiques sous-jacents à ses activités commerciales. Il représente l'estimation par la direction de l'ampleur potentielle des pertes économiques qui pourraient découler de circonstances extrêmement défavorables. La perte économique représente la perte de valeur économique ou de marché subie sur un intervalle de temps donné et selon un degré de confiance déterminé, par rapport à la perte attendue au cours de la même période. Le capital économique est calculé pour divers types de risques, y compris le risque de crédit, le risque de marché (lié aux activités de négociation et autres), le risque opérationnel, le risque d'entreprise et le risque d'assurance, en fonction d'un horizon de un an et selon un degré de confiance préétabli.
 
-### Capital économique et actifs pondérés en fonction des risques par unité d'exploitation et type de risque [pdf.65]
-
 Actifs pondérés par type de risque (en millions de dollars canadiens)
 
 ### Activités de gestion du capital [pdf.66]
@@ -309,8 +307,6 @@ Le cadre de gestion des risques est revu régulièrement par le Comité d'évalu
 2 Ce comité est coprésidé par le chef des finances et le chef de la gestion des risques.
 
 3 Ce comité est présidé par le chef de la gestion des risques.
-
-- 4 Ce comité est présidé par le conseiller général.
 
 - 5 Ce comité est coprésidé par le chef des finances et le chef de la gestion des risques.
 
@@ -923,8 +919,6 @@ Nous sommes déterminés à détecter, à évaluer, à mesurer, à gérer et à 
 ### Programme de gestion du risque de modèle [pdf.103]
 
 Le programme de gestion du risque de modèle définit une approche de la gouvernance du risque de modèle tout au long du cycle de vie des modèles et de gestion de ce risque dans les limites de notre appétit pour le risque.
-
-### Cycle de vie des modèles [pdf.103]
 
 Le programme s'applique à tous les modèles, allant des modèles liés au risque de marché, au risque de crédit et au risque non financier aux modèles de simulation de crise, de tarification et d'évaluation, et de lutte contre le blanchiment d'argent. Il intègre des directives sur la gestion des risques, l'adoption responsable des dernières avancées relatives à la prise de décision automatisée, tels que les grands modèles de langage et le commerce algorithmique, ainsi que d'autres applications d'IA et d'apprentissage machine. Le programme est documenté au moyen de la politique et des lignes directrices générales concernant le risque de modèle ainsi que des procédures d'exploitation connexes, lesquelles définissent les principes directeurs de la gestion de ce risque, décrivent de façon détaillée les processus connexes et indiquent les rôles et les responsabilités des parties intéressées. Dans le cadre de ce programme, les responsables des modèles, leurs concepteurs et leurs utilisateurs constituent le premier point de contrôle, le groupe Gestion du risque de modèle, le deuxième, et l'Audit interne, le troisième.
 

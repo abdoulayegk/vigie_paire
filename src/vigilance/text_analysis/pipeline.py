@@ -7,6 +7,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from tqdm import tqdm
+
 from vigilance.cli.quarter_logic import normalize_quarter, resolve_previous_quarter
 from vigilance.config import get_text_extraction_config
 from vigilance.text_analysis.comparison import _compare_section_texts
@@ -402,7 +404,14 @@ def run_text_analysis_pipeline(
     # between different subsections (or even target sections).
     client = _build_openai_client()
     provisional_by_section: dict[str, list[dict[str, Any]]] = {}
-    for section_key in section_keys:
+    pbar_pass1 = tqdm(
+        section_keys,
+        desc=f"Analyse Texte ({quarter_current} vs {quarter_previous}) - Comparaison",
+        unit="section",
+    )
+    for section_key in pbar_pass1:
+        sec_title = _SECTION_LABELS.get(section_key, section_key)
+        pbar_pass1.set_postfix_str(f"Section: {sec_title[:30]}")
         text_t1 = _extract_section_text_from_markdown(md_previous, section_key)
         text_t2 = _extract_section_text_from_markdown(md_current, section_key)
         changes = _compare_section_texts(
@@ -461,7 +470,14 @@ def run_text_analysis_pipeline(
     # Second GPT pass: AMF triage only after global reconciliation has removed
     # false added/removed records created by a split or a move.
     section_comparisons: list[dict[str, Any]] = []
-    for section_key in section_keys:
+    pbar_pass2 = tqdm(
+        section_keys,
+        desc=f"Analyse Texte ({quarter_current} vs {quarter_previous}) - Triage AMF",
+        unit="section",
+    )
+    for section_key in pbar_pass2:
+        sec_title = _SECTION_LABELS.get(section_key, section_key)
+        pbar_pass2.set_postfix_str(f"Section: {sec_title[:30]}")
         changes = reconciled_by_section.get(section_key, [])
         non_unchanged = [change for change in changes if change.get("diff_type") != "unchanged"]
         enriched = _triage_section_changes(

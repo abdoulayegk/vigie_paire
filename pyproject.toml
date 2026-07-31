@@ -45,7 +45,6 @@ packages = [
     "vigilance.dash_app.components",
     "vigilance.dash_app.layouts",
     "vigilance.extraction",
-    "vigilance.extract",
     "vigilance.i18n",
     "vigilance.models",
     "vigilance.quality",

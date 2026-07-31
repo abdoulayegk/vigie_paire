@@ -132,8 +132,6 @@ Les actifs pondérés en fonction des risques totalisaient 420,8 milliards de do
 
 Le capital économique correspond aux fonds propres que doit détenir l'organisation, compte tenu des risques économiques sous-jacents à ses activités commerciales. Il représente l'estimation par la direction de l'ampleur potentielle des pertes économiques qui pourraient découler de circonstances extrêmement défavorables. La perte économique représente la perte de valeur économique ou de marché subie sur un intervalle de temps donné et selon un degré de confiance déterminé, par rapport à la perte attendue au cours de la même période. Le capital économique est calculé pour divers types de risques, y compris le risque de crédit, le risque de marché (lié aux activités de négociation et autres), le risque opérationnel, le risque d'entreprise et le risque d'assurance, en fonction d'un horizon de un an et selon un degré de confiance préétabli.
 
-### Capital économique et actifs pondérés en fonction des risques par groupe d'exploitation et type de risque [pdf.66]
-
 Actifs pondérés en fonction des risques (en millions de dollars canadiens)
 
 ### Activités de gestion du capital [pdf.67]
@@ -287,8 +285,6 @@ Le cadre de gestion globale des risques expose une approche de gouvernance qui e
 Des politiques spécifiques approuvées par notre Conseil d'administration régissent notre approche à l'égard de la gestion des risques importants et une surveillance est exercée à chacun des échelons de l'organisation au moyen d'une hiérarchie de comités et de responsables, comme l'illustre le diagramme ci-après. Le Conseil d'administration veille à faire en sorte que les objectifs généraux reposent sur une stratégie de gestion des risques solide, un appétit pour le risque prudent et un cadre de gestion globale des risques efficace qui convient à la nature, à l'ampleur, à la complexité et au profil de risque de nos secteurs d'activité et nos autres services. Le Conseil d'administration assume également la responsabilité de surveillance générale du cadre de gouvernance et de la culture d'entreprise de la Banque. La haute direction examine les risques importants qui se présentent dans la réalisation de la stratégie de l'organisation et discute, au besoin, des plans d'action à mettre en œuvre, en exerçant la supervision des risques, la gouvernance des risques assumés par l'organisation ainsi que des processus grâce auxquels l'exposition à ces risques est repérée, évaluée, gérée, surveillée et signalée conformément aux politiques, aux limites approuvées et au degré d'appétit pour le risque.
 
 Le cadre de gestion globale des risques est revu régulièrement par le Comité d'évaluation des risques du Conseil d'administration afin qu'il supervise et oriente les activités de prise de risques.
-
-- 2 Ce comité est coprésidé par le chef des finances et le chef de la gestion globale des risques.
 
 3 Ce comité est présidé par le chef de la gestion globale des risques.
 
@@ -642,8 +638,6 @@ Les graphiques ci-dessous mettent en corrélation les revenus nets quotidiens et
 
 (avant impôts et en millions de dollars canadiens)
 
-### Répartition des revenus nets quotidiens selon la fréquence [pdf.89]
-
 Revenus nets quotidiens (avant impôts)
 
 ### Risque structurel de marché (lié aux activités autres que de négociation) [pdf.89]
@@ -782,11 +776,7 @@ Outre la trésorerie et les valeurs mobilières que nous détenons, nous pouvons
 
 Le tableau ci-après présente un résumé du total des actifs liquides grevés et non grevés de BMO. Pour d'autres informations sur les actifs grevés, il y a lieu de se reporter à la note 25 afférente aux états financiers consolidés annuels audités.
 
-1 Avec prise d'effet au premier trimestre de l'exercice 2024, nous avons modifié notre méthode comptable pour comptabiliser les transactions sur titres à la date de transaction, au lieu de la date de règlement, ce qui a donné lieu à une augmentation des autres actifs et des autres passifs en raison de la comptabilisation anticipée des transactions et du reclassement de certains éléments au bilan. Les chiffres comparatifs de l'exercice 2023 ont été reclassés en fonction de la méthodologie adoptée pour la période à l'étude. Il y a lieu de se reporter à la section Modifications futures de méthodes comptables en 2024 pour obtenir plus de détails.
-
 4 Aux termes des IFRS, les titres adossés à des créances hypothécaires en vertu de la Loi nationale sur l'habitation (LNH) qui comprennent les prêts hypothécaires détenus par BMO à titre de sûretés sousjacentes sont classés dans les prêts. Les titres adossés à des créances hypothécaires en vertu de la LNH non grevés sont liquides et inclus à titre d'actifs liquides conformément au cadre de gestion du risque de liquidité et de financement de BMO. Ce montant est présenté comme un poste distinct appelé Titres adossés à des créances hypothécaires en vertu de la LNH.
-
-1 Avec prise d'effet au premier trimestre de l'exercice 2024, nous avons modifié notre méthode comptable pour comptabiliser les transactions sur titres à la date de transaction, au lieu de la date de règlement, ce qui a donné lieu à une augmentation des autres actifs et des autres passifs en raison de la comptabilisation anticipée des transactions et du reclassement de certains éléments au bilan. Les chiffres comparatifs de l'exercice 2023 ont été reclassés en fonction de la méthodologie adoptée pour la période à l'étude. Il y a lieu de se reporter à la section Modifications futures de méthodes comptables en 2024 pour obtenir plus de détails.
 
 3 Les actifs donnés en garantie renvoient à la partie des actifs figurant au bilan ainsi qu'à la trésorerie et aux valeurs mobilières qui sont données en garantie au moyen de mises en pension de titres, de prêts de titres, de contrats dérivés, et aux termes des exigences associées à la participation à des chambres de compensation et des systèmes de paiement. Les autres actifs grevés comprennent les actifs qui font l'objet de restrictions de nature juridique ou autre, tels que les dépôts minimaux requis auprès de banques centrales, les actifs liés à des ventes à découvert et certains titres émis par des agences américaines qui ont été vendus à des tiers, mais qui sont consolidés selon les IFRS.
 
@@ -795,8 +785,6 @@ Le tableau ci-après présente un résumé du total des actifs liquides grevés 
 5 Les prêts indiqués comme pouvant être donnés en garantie représentent des prêts qui sont actuellement détenus dans des banques centrales et qui peuvent servir à obtenir du financement auprès de celles-ci. Les prêts pouvant être donnés en garantie ne tiennent pas compte d'autres sources de liquidité supplémentaire pouvant être utilisées et associées au portefeuille de prêts de BMO, ce qui inclut d'autres titrisations, les émissions d'obligations sécurisées et les avances de la Federal Home Loan Bank (FHLB) des États-Unis.
 
 6 Comprennent des valeurs mobilières, des titres pris en pension ou empruntés et des titres adossés à des créances hypothécaires en vertu de la LNH (présentés comme des prêts au coût amorti).
-
-1 Avec prise d'effet au premier trimestre de l'exercice 2024, nous avons modifié notre méthode comptable pour comptabiliser les transactions sur titres à la date de transactiaon, au lieu de la date de règlement, ce qui a donné lieu à une augmentation des autres actifs et des autres passifs en raison de la comptabilisation anticipée des transactions et du reclassement de certains éléments au bilan. Les chiffres comparatifs de l'exercice 2023 ont été reclassés en fonction de la méthodologie adoptée pour la période à l'étude. Il y a lieu de se reporter à la section Modifications futures de méthodes comptables en 2024 pour obtenir plus de détails.
 
 ### Stratégie de financement [pdf.96]
 
@@ -809,8 +797,6 @@ L'encours du financement de gros, garanti et non garanti, constitué en grande p
 4 Le total du financement de gros était constitué de 51,8 milliards de dollars de fonds libellés en dollars canadiens et de 203,7 milliards de fonds libellés en dollars américains et autres monnaies au 31 octobre 2024.
 
 La diversification de nos sources de financement de gros à terme constitue un volet important de notre stratégie globale de gestion de la liquidité. Notre financement de gros à terme est bien diversifié, et ce, par territoire, monnaie, type d'investisseurs, type d'instrument et profil d'échéances. Nous nous assurons d'avoir constamment accès à du financement de gros à long terme au moyen de divers programmes d'emprunt, notamment un programme d'émission de billets européens, des programmes de billets à moyen terme canadiens, australiens et américains, la titrisation de créances hypothécaires canadiennes et américaines, la titrisation de créances de cartes de crédit canadiennes, de prêts automobiles et de marges de crédit sur valeur domiciliaire, de prêts au financement de matériel de transport, des obligations sécurisées et des dépôts de premier rang non garantis canadiens et américains.
-
-### Composition du financement à terme du marché des capitaux de gros (%) [pdf.97]
 
 Obligations sécurisées Titrisation de créances hypothécaires, de créances de cartes de crédit, de créances automobiles et de marges de crédit sur valeur domiciliaire, et avances de FHLB Titres d’emprunt de premier rang (en dollars canadiens) Titres d’emprunt de premier rang (émissions mondiales)
 
@@ -965,8 +951,6 @@ Ces outils d'analyse fournissent de précieux renseignements et sont fort utiles
 ### Cadre de gestion du risque de modèle [pdf.106]
 
 Les modèles posent inévitablement des risques puisque les résultats qu'ils produisent constituent des estimations relevant de techniques statistiques et mathématiques ou d'autres techniques quantitatives qui se rapprochent de la réalité et qui convertissent des données en estimations ou en prévision des résultats futurs. L'utilisation inappropriée du modèle ou des données générées par le modèle représente aussi un risque de modèle. BMO régit le risque de modèle grâce au cadre de gestion du risque de modèle qui est utilisé à l'échelle de l'organisation et établi en fonction des risques.
-
-### Cycle de vie des modèles [pdf.106]
 
 Le cadre de gestion du risque de modèle définit une approche globale de la gouvernance du risque de modèle tout au long du cycle de vie des modèles et de gestion de ce risque dans les limites de notre appétit pour le risque. Ce cadre englobe la politique et les lignes directrices générales concernant le risque de modèle ainsi que les procédures d'exploitation connexes, lesquelles définissent les principes directeurs de la gestion de ce risque, décrivent de façon détaillée les processus de gestion connexes et indiquent les rôles et les responsabilités des parties intéressées, et ce, tout au long du cycle de vie des modèles. Les responsables des modèles, leurs concepteurs et leurs utilisateurs constituent le premier point de contrôle, le groupe Gestion du risque de modèle, le deuxième, et l'Audit interne, le troisième.
 
