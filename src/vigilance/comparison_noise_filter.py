@@ -54,7 +54,7 @@ def is_pure_numeric_or_date_noise(prev: str, curr: str) -> bool:
 
 
 def _filter_noise_from_diff(technical_diff: dict[str, Any]) -> dict[str, Any]:
-    """Retire les renommages non substantifs (marqueurs de notes, numeros de page, dates récurrentes) du diff."""
+    """Retire les renommages non substantifs (marqueurs de notes, numeros de page, dates récurrentes, fausses ajouts) du diff."""
     clean_ind_renamed = []
     for item in technical_diff.get("indicators_renamed", []):
         prev = str(item.get("previous", item.get("from", "")) or "")
@@ -77,8 +77,21 @@ def _filter_noise_from_diff(technical_diff: dict[str, Any]) -> dict[str, Any]:
             continue
         clean_fn_renamed.append(item)
 
+    clean_fn_added = []
+    fn_removed_texts = {
+        _strip_page_and_date_refs(str(item.get("text", "") or ""))
+        for item in technical_diff.get("footnotes_removed", [])
+    }
+    for item in technical_diff.get("footnotes_added", []):
+        text = _strip_page_and_date_refs(str(item.get("text", "") or ""))
+        if text in fn_removed_texts or any(is_pure_numeric_or_date_noise(text, r_text) for r_text in fn_removed_texts):
+            logger.debug("Filtered noise: false positive footnote_added '%s' exists in removed list", text)
+            continue
+        clean_fn_added.append(item)
+
     return {
         **technical_diff,
         "indicators_renamed": clean_ind_renamed,
         "footnotes_renamed": clean_fn_renamed,
+        "footnotes_added": clean_fn_added,
     }
