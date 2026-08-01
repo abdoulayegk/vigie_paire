@@ -73,7 +73,7 @@ def run_langgraph_comparison(
     if output_dir:
         out_path = Path(output_dir)
     else:
-        out_path = RESULTATS_DIR / bank_clean / f"{year_current}_{q_curr}_vs_{year_previous}_{q_prev}"
+        out_path = OUTPUT_DIR / "langgraph_resultats" / bank_clean / f"{year_current}_{q_curr}_vs_{year_previous}_{q_prev}"
 
     out_path.mkdir(parents=True, exist_ok=True)
     json_path = out_path / "comparison.json"
