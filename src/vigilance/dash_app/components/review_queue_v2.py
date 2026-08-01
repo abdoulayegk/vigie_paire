@@ -11,6 +11,7 @@ import dash_bootstrap_components as dbc
 from dash import html
 
 from vigilance.dash_app.components.review_display_shared import section_display_label
+from vigilance.dash_app.components.table_title_resolver import resolve_display_table_title
 from vigilance.i18n import t
 from vigilance.review_models_v2 import ChangeType
 
@@ -941,13 +942,7 @@ def build_review_queue_v2(
 
         # Table display info
         section = _format_section(table.get("section", ""))
-        table_name = (
-            table.get("table_name")
-            or table.get("table_title_raw")
-            or table.get("table_id_t2")
-            or table.get("table_id_t1")
-            or "Tableau"
-        )
+        table_name = resolve_display_table_title(table)
         page_summary = _queue_page_summary_v2(table)
         context_text = f"{section} - {page_summary}" if page_summary else section
         stat_badges = _build_table_metric_badges(summary)
