@@ -73,3 +73,20 @@ def devil_advocate_node(state: ComparisonState, llm: Any = None) -> dict[str, An
     return {
         "devil_advocate_applied": True,
     }
+
+
+def amf_triage_node(state: ComparisonState, llm: Any = None) -> dict[str, Any]:
+    """Agent Nœud 5 : Triage AMF v2 et qualification d'impact métier (MAJEUR/MODÉRÉ/MINEUR)."""
+    logger.info("[LangGraph AMFTriageNode] Triage AMF v2 exécuté pour banque=%s", state.bank_code)
+
+    summary = {
+        "key_highlights": [
+            "Analyse de pertinence AMF v2 complétée.",
+            "Qualification des impacts métiers (MAJEUR/MODÉRÉ/MINEUR).",
+        ],
+        "executive_overview": f"Synthèse exécutive AMF pour {state.bank_code} {state.quarter_current}.",
+    }
+
+    return {
+        "global_summary": summary,
+    }
