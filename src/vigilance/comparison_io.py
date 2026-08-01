@@ -277,7 +277,20 @@ def _normalize_extraction_status(value: Any) -> str:
 # ---------------------------------------------------------------------------
 
 
-def _table_card(entry: dict[str, Any]) -> dict[str, Any]:
+def _clean_title_for_bank(title: str, bank_code: str | None = None) -> str:
+    """Nettoie le titre d'un tableau selon les spécificités de la banque.
+
+    Pour RBC uniquement: supprime les suffixes de numéros de tableau (ex: Tableau 43, Tableau 54).
+    """
+    if not title:
+        return ""
+    if bank_code and str(bank_code).strip().lower() == "rbc":
+        cleaned = re.sub(r"\s*Tableau\s+\d+\b", "", title, flags=re.IGNORECASE).strip()
+        return cleaned
+    return title
+
+
+def _table_card(entry: dict[str, Any], bank_code: str | None = None) -> dict[str, Any]:
     """Construit une fiche resumee d'un tableau pour l'etape d'appariement."""
     indicators = [str(value).strip() for value in list(entry.get("indicators", []) or []) if str(value).strip()]
     row_count = int(entry.get("row_count", len(indicators)) or 0)
@@ -297,11 +310,14 @@ def _table_card(entry: dict[str, Any]) -> dict[str, Any]:
         page = None
 
     footnotes = _normalize_footnotes(entry.get("footnotes", []))
+    raw_title = str(entry.get("title", "") or "")
+    effective_bank = bank_code or str(entry.get("bank_code", "") or "")
+    clean_title = _clean_title_for_bank(raw_title, bank_code=effective_bank)
 
     return {
         "table_id": str(entry.get("table_id", "") or ""),
         "section": str(entry.get("section", "") or "unknown_section"),
-        "title": str(entry.get("title", "") or ""),
+        "title": clean_title,
         "table_summary": str(entry.get("table_summary", "") or ""),
         "page": page,
         "row_count": row_count,

@@ -18,6 +18,7 @@ from vigilance.comparison_devil_advocate import (
 from vigilance.comparison_diff_gpt import diff_table_pair_gpt
 from vigilance.comparison_io import (
     _atomic_write_json,
+    _clean_title_for_bank,
     _coerce_int,
     _coerce_pathlike,
     _extract_usage_metrics,
@@ -630,6 +631,12 @@ def compare_reports_gpt4o(
     bank_code = str(current_payload.get("bank_code") or previous_payload.get("bank_code") or "")
     if not bank_code:
         raise ValueError("Missing bank_code in tables.json payloads")
+
+    if bank_code.strip().lower() == "rbc":
+        for card in previous_cards:
+            card["title"] = _clean_title_for_bank(card.get("title", ""), bank_code=bank_code)
+        for card in current_cards:
+            card["title"] = _clean_title_for_bank(card.get("title", ""), bank_code=bank_code)
     year_previous = int(previous_payload.get("year", 0) or 0)
     year_current = int(current_payload.get("year", 0) or 0)
     quarter_previous = str(previous_payload.get("quarter", "") or "")
