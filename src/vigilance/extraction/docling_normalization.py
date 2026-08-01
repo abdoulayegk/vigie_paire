@@ -217,11 +217,22 @@ def _extract_table_context_split(
     if title_pos == -1:
         return ("", "")
 
-    start_before = max(0, title_pos - chars_before)
-    context_before = page_text[start_before:title_pos].strip()
-
-    end_title = title_pos + len(table_title)
-    end_after = min(len(page_text), end_title + chars_after)
-    context_after = page_text[end_title:end_after].strip()
-
     return (context_before, context_after)
+
+
+def normalize_table_card_with_bank_adapter(
+    table_card: dict[str, Any],
+    bank_code: str = "",
+) -> dict[str, Any]:
+    """Applique l'adaptateur de banque modulaire et nettoie les notes de bas de page d'une carte."""
+    from vigilance.extraction.adapters import get_bank_adapter
+    from vigilance.extraction.components.footnote_extractor import extract_clean_footnotes
+
+    adapter = get_bank_adapter(bank_code)
+    card = adapter.process_extracted_table(table_card)
+
+    raw_fn = card.get("footnotes") or card.get("footnotes_content") or []
+    if isinstance(raw_fn, list) and raw_fn:
+        card["footnotes"] = extract_clean_footnotes(raw_fn)
+
+    return card
