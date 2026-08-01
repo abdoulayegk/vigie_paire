@@ -79,20 +79,24 @@ def run_langgraph_comparison(
     json_path = out_path / "comparison.json"
     excel_path = out_path / "comparison.xlsx"
 
-    # Si un fichier comparison.json réel préexistant existe avec des données de diff complètes,
-    # nous préservons le schéma pour Dash tout en injectant les résultats du graphe LangGraph.
-    if json_path.exists():
+    # Emplacement du JSON de comparaison préexistant en production (le cas échéant)
+    prod_json = RESULTATS_DIR / bank_clean / f"{year_current}_{q_curr}_vs_{year_previous}_{q_prev}" / "comparison.json"
+    source_json = json_path if json_path.exists() else (prod_json if prod_json.exists() else None)
+
+    # Si des données de diff préexistantes existent, on les enrichit avec l'état LangGraph
+    if source_json and source_json.exists():
         try:
-            with open(json_path, "r", encoding="utf-8") as f:
+            with open(source_json, "r", encoding="utf-8") as f:
                 existing_data = json.load(f)
-                if "summary" in existing_data and "matching" in existing_data:
+                if isinstance(existing_data, dict):
+                    existing_data["artifact_type"] = "report_comparison"
                     existing_data["global_summary"] = final_state.get("global_summary", existing_data.get("global_summary", {}))
                     _atomic_write_json(json_path, existing_data)
-                    logger.info("[LangGraph Runner] Mis à jour JSON de production existant : %s", json_path)
+                    logger.info("[LangGraph Runner] Mis à jour JSON conforme pour Dash : %s", json_path)
                     generate_comparison_excel(existing_data, excel_path)
                     return json_path
         except Exception as e:
-            logger.warning("[LangGraph Runner] Impossible de charger le JSON existant : %s", e)
+            logger.warning("[LangGraph Runner] Erreur lors du chargement de %s: %s", source_json, e)
 
     matched_pairs = final_state.get("matched_pairs", [])
     tables_removed = final_state.get("unmatched_previous", [])
@@ -108,8 +112,10 @@ def run_langgraph_comparison(
         "high_priority_items_total": sum(1 for p in pair_comparisons if p.get("priority") in ("critique", "prioritaire")),
     }
 
-    # Formatage de la sortie d'analyse unifiée avec la clef "summary" requise par Dash
+    # Formatage de la sortie d'analyse unifiée avec le schéma canonique "report_comparison" requis par Dash
     payload = {
+        "schema_version": "1.0.0",
+        "artifact_type": "report_comparison",
         "bank_code": bank,
         "year_current": year_current,
         "quarter_current": quarter_current,
@@ -126,7 +132,7 @@ def run_langgraph_comparison(
     }
 
     _atomic_write_json(json_path, payload)
-    logger.info("[LangGraph Runner] Sauvegardé JSON : %s", json_path)
+    logger.info("[LangGraph Runner] Sauvegardé JSON conforme Dash : %s", json_path)
 
     generate_comparison_excel(payload, excel_path)
     logger.info("[LangGraph Runner] Généré Excel : %s", excel_path)
