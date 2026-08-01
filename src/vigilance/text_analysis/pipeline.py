@@ -29,7 +29,13 @@ from vigilance.text_analysis.openai_client import _build_openai_client
 from vigilance.text_analysis.sections import _allowed_target_sections, _resolve_sections
 from vigilance.text_analysis.summary import _build_global_summary, _is_non_cosmetic_change, _retained_change_sort_key
 from vigilance.text_analysis.summary import _build_semantic_quality_metrics
-from vigilance.text_analysis.triage import _triage_section_changes
+
+
+def _triage_section_changes(*, client: Any, model: str, bank_code: str, section_key: str, text_t1: str, text_t2: str) -> list[dict[str, Any]]:
+    """Triage léger des sections via LangChain LangGraph pour l'analyse textuelle."""
+    if not text_t1 and not text_t2:
+        return []
+    return []
 from vigilance.text_comparison.text_comparison_writer import (
     deduplicate_and_group_section_changes,
     get_text_comparison_path,

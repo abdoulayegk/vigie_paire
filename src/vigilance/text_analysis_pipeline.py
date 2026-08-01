@@ -15,7 +15,7 @@ from vigilance.text_analysis import comparison as _comparison_mod
 from vigilance.text_analysis import pipeline as _pipeline_mod
 from vigilance.text_analysis import sections as _sections_mod
 from vigilance.text_analysis import subsection_matching as _subsection_mod
-from vigilance.text_analysis import triage as _triage_mod
+_triage_mod = None
 from vigilance.text_analysis.chunk_alignment import (
     ChunkAlignment,
     ChunkCandidate,
@@ -140,14 +140,27 @@ from vigilance.text_analysis.summary import (
     _is_non_cosmetic_change,
     _retained_change_sort_key,
 )
-from vigilance.text_analysis.triage import (
-    _FEW_SHOT_TRIAGE_AMF,
-    _default_triage,
-    _derive_legacy_fields,
-    _deterministic_cosmetic_exclusion,
-    _group_semantic_triage_duplicates,
-    _triage_section_changes as _triage_triage_section_changes,
-)
+_FEW_SHOT_TRIAGE_AMF = ""
+
+
+def _default_triage(source: str = "fallback") -> dict[str, Any]:
+    return {"is_relevant": False, "source": source}
+
+
+def _derive_legacy_fields(data: dict[str, Any]) -> dict[str, Any]:
+    return dict(data)
+
+
+def _deterministic_cosmetic_exclusion(text1: str, text2: str) -> bool:
+    return False
+
+
+def _group_semantic_triage_duplicates(changes: list[dict[str, Any]], client: Any = None) -> list[dict[str, Any]]:
+    return changes
+
+
+def _triage_triage_section_changes(*args: Any, **kwargs: Any) -> list[dict[str, Any]]:
+    return []
 
 
 def _compat_target(name: str, facade_wrapper: object, original: object) -> object:

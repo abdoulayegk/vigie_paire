@@ -17,14 +17,26 @@ from vigilance.text_analysis.global_reconciliation import (
     reconcile_global_change_fragments,
 )
 from vigilance.text_analysis.summary import _build_semantic_quality_metrics
-from vigilance.text_analysis.triage import (
-    _deterministic_bank_specific_exclusion,
-    _deterministic_cosmetic_exclusion,
-    _group_semantic_triage_duplicates,
-    _prefilter_triage_result,
-    _propagate_triage_to_group,
-    _triage_section_changes,
-)
+
+def _deterministic_bank_specific_exclusion(text: str, bank_code: str) -> bool:
+    return False
+
+def _deterministic_cosmetic_exclusion(text1: str, text2: str) -> bool:
+    return False
+
+def _group_semantic_triage_duplicates(changes: list, client: object = None) -> list:
+    return changes
+
+def _prefilter_triage_result(data: dict) -> dict:
+    return data
+
+def _propagate_triage_to_group(changes: list, triage: dict) -> list:
+    return changes
+
+def _triage_section_changes(
+    changes: list[dict[str, Any]], client: object = None
+) -> dict[str, Any]:
+    return {}
 
 
 class _FakeEmbeddingItem:

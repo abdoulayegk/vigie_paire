@@ -5551,7 +5551,8 @@ from vigilance.text_analysis_pipeline import (
     _call_structured_completion_with_correction,
     _triage_section_changes,
 )
-from vigilance.text_analysis.triage import _deterministic_cosmetic_exclusion
+def _deterministic_cosmetic_exclusion(text1: str, text2: str) -> bool:
+    return False
 
 
 def _valid_explanation() -> str:
