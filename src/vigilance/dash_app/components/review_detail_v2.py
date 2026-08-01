@@ -15,6 +15,7 @@ import dash_bootstrap_components as dbc
 from dash import dcc, html
 
 from vigilance.dash_app.components.review_display_shared import section_display_label
+from vigilance.dash_app.components.table_title_resolver import resolve_display_table_title
 from vigilance.review_models_v2 import ChangeType
 
 _CHANGE_TYPE_LABELS = {
@@ -840,7 +841,7 @@ def build_review_detail_v2(
             ]
         )
 
-    table_name = table.get("table_name", "Tableau")
+    table_name = resolve_display_table_title(table)
     section = _format_section(table.get("section", ""))
     page_t1 = table.get("page_t1")
     page_t2 = table.get("page_t2")
