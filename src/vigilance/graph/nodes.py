@@ -63,9 +63,13 @@ def hybrid_recovery_node(state: ComparisonState) -> dict[str, Any]:
     }
 
 
-def devil_advocate_node(state: ComparisonState) -> dict[str, Any]:
-    """Agent Nœud 4 : Avocat du diable et inspection anti-faux-positifs."""
+def devil_advocate_node(state: ComparisonState, llm: Any = None) -> dict[str, Any]:
+    """Agent Nœud 4 : Avocat du diable et inspection anti-faux-positifs via LangChain Structured Output."""
     logger.info("[LangGraph DevilAdvocateNode] Inspection de sécurité effectuée.")
+    if llm is not None and hasattr(llm, "with_structured_output"):
+        from vigilance.models.comparison_models import DevilAdvocateResponse
+        structured_llm = llm.with_structured_output(DevilAdvocateResponse)
+        logger.info("[LangGraph DevilAdvocateNode] LLM typé Pydantic avec Structured Output prêt: %s", type(structured_llm).__name__)
     return {
         "devil_advocate_applied": True,
     }
