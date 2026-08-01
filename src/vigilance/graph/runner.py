@@ -138,3 +138,108 @@ def run_langgraph_comparison(
     logger.info("[LangGraph Runner] Généré Excel : %s", excel_path)
 
     return json_path
+
+async def arun_langgraph_comparison(
+    bank: str,
+    year_current: int,
+    quarter_current: str,
+    year_previous: int,
+    quarter_previous: str,
+    output_dir: Path | str | None = None,
+) -> Path:
+    """Exécute de manière asynchrone la comparaison bancaire via le graphe LangGraph."""
+    bank_clean = bank.strip().lower()
+    q_curr = quarter_current.strip().lower()
+    q_prev = quarter_previous.strip().lower()
+
+    extraction_root = OUTPUT_DIR / "extractions"
+    t2_path = extraction_root / bank_clean / str(year_current) / q_curr / "tables.json"
+    t1_path = extraction_root / bank_clean / str(year_previous) / q_prev / "tables.json"
+
+    previous_cards: list[dict[str, Any]] = []
+    current_cards: list[dict[str, Any]] = []
+
+    if t1_path.exists():
+        with open(t1_path, "r", encoding="utf-8") as f:
+            previous_cards = json.load(f).get("tables", [])
+
+    if t2_path.exists():
+        with open(t2_path, "r", encoding="utf-8") as f:
+            current_cards = json.load(f).get("tables", [])
+
+    initial_state = ComparisonState(
+        bank_code=bank,
+        year_current=year_current,
+        year_previous=year_previous,
+        quarter_current=quarter_current,
+        quarter_previous=quarter_previous,
+        previous_cards=previous_cards,
+        current_cards=current_cards,
+    )
+
+    graph = build_comparison_graph()
+    final_state = await graph.ainvoke(initial_state)
+
+    if output_dir:
+        out_path = Path(output_dir)
+    else:
+        out_path = OUTPUT_DIR / "langgraph_resultats" / bank_clean / f"{year_current}_{q_curr}_vs_{year_previous}_{q_prev}"
+
+    out_path.mkdir(parents=True, exist_ok=True)
+    json_path = out_path / "comparison.json"
+    excel_path = out_path / "comparison.xlsx"
+
+    prod_json = RESULTATS_DIR / bank_clean / f"{year_current}_{q_curr}_vs_{year_previous}_{q_prev}" / "comparison.json"
+    source_json = json_path if json_path.exists() else (prod_json if prod_json.exists() else None)
+
+    if source_json and source_json.exists():
+        try:
+            with open(source_json, "r", encoding="utf-8") as f:
+                existing_data = json.load(f)
+                if isinstance(existing_data, dict):
+                    existing_data["artifact_type"] = "report_comparison"
+                    existing_data["global_summary"] = final_state.get("global_summary", existing_data.get("global_summary", {}))
+                    _atomic_write_json(json_path, existing_data)
+                    logger.info("[LangGraph Async Runner] Mis à jour JSON conforme pour Dash : %s", json_path)
+                    generate_comparison_excel(existing_data, excel_path)
+                    return json_path
+        except Exception as e:
+            logger.warning("[LangGraph Async Runner] Erreur lors du chargement de %s: %s", source_json, e)
+
+    matched_pairs = final_state.get("matched_pairs", [])
+    tables_removed = final_state.get("unmatched_previous", [])
+    tables_added = final_state.get("unmatched_current", [])
+    pair_comparisons = final_state.get("pair_comparisons", [])
+
+    summary = {
+        "matched_pairs_total": len(matched_pairs),
+        "tables_added_total": len(tables_added),
+        "tables_removed_total": len(tables_removed),
+        "indicator_changes_total": sum(len(p.get("added_indicators", []) or []) + len(p.get("removed_indicators", []) or []) for p in pair_comparisons),
+        "footnote_changes_total": sum(sum(p.get("footnotes_counts", {}).values()) for p in pair_comparisons if isinstance(p.get("footnotes_counts"), dict)),
+        "high_priority_items_total": sum(1 for p in pair_comparisons if p.get("priority") in ("critique", "prioritaire")),
+    }
+
+    payload = {
+        "schema_version": "1.0.0",
+        "artifact_type": "report_comparison",
+        "bank_code": bank,
+        "year_current": year_current,
+        "quarter_current": quarter_current,
+        "year_previous": year_previous,
+        "quarter_previous": quarter_previous,
+        "global_summary": final_state.get("global_summary", {}),
+        "matching": {
+            "matched_pairs": matched_pairs,
+            "tables_removed": tables_removed,
+            "tables_added": tables_added,
+        },
+        "pair_comparisons": pair_comparisons,
+        "summary": summary,
+    }
+
+    _atomic_write_json(json_path, payload)
+    generate_comparison_excel(payload, excel_path)
+    logger.info("[LangGraph Runner] Généré Excel : %s", excel_path)
+
+    return json_path
