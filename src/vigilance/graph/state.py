@@ -6,12 +6,18 @@ from typing import Any
 from pydantic import BaseModel, Field
 
 
-class ComparisonState(BaseModel):
-    """État unifié échangé entre tous les nœuds du graphe LangGraph.
+class TextTriageResponse(BaseModel):
+    """Réponse typée Pydantic pour le triage d'un fragment ou d'une section textuelle."""
 
-    Cet objet conserve la mémoire d'exécution, le statut des sous-agents,
-    et les résultats cumulés de l'analyse (tableaux, diffs, triage AMF).
-    """
+    is_relevant: bool = Field(default=True, description="Indique si le changement textuel est pertinent au niveau prudentiel/AMF")
+    themes_amf: list[str] = Field(default_factory=list, description="Liste des thèmes AMF v2 associés (multi-labels)")
+    posture_change: str = Field(default="RENFORCEMENT", description="Changement de posture: RENFORCEMENT, ALLEGEMENT, NOUVEAU_DISPOSITIF, RETRAIT_DISPOSITIF, AUCUN")
+    impact_level: str = Field(default="MODERE", description="Niveau d'impact: MAJEUR, MODERE, MINEUR")
+    explanation: str = Field(default="", description="Explication et note synthétique pour l'analyste")
+
+
+class ComparisonState(BaseModel):
+    """État unifié échangé entre tous les nœuds du graphe LangGraph."""
 
     bank_code: str = Field(default="", description="Code de la banque (ex: RBC, BMO)")
     year_current: int = Field(default=0, description="Année courante")
@@ -30,5 +36,6 @@ class ComparisonState(BaseModel):
     devil_advocate_applied: bool = Field(default=False)
 
     pair_comparisons: list[dict[str, Any]] = Field(default_factory=list)
+    text_section_triages: list[dict[str, Any]] = Field(default_factory=list)
     global_summary: dict[str, Any] = Field(default_factory=dict)
     warnings: list[str] = Field(default_factory=list)
