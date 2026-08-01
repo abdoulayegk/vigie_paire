@@ -70,22 +70,6 @@ def run_langgraph_comparison(
     graph = build_comparison_graph()
     final_state = graph.invoke(initial_state)
 
-    # Formatage de la sortie d'analyse unifiée
-    payload = {
-        "bank_code": bank,
-        "year_current": year_current,
-        "quarter_current": quarter_current,
-        "year_previous": year_previous,
-        "quarter_previous": quarter_previous,
-        "global_summary": final_state.get("global_summary", {}),
-        "matching": {
-            "matched_pairs": final_state.get("matched_pairs", []),
-            "tables_removed": final_state.get("unmatched_previous", []),
-            "tables_added": final_state.get("unmatched_current", []),
-        },
-        "pair_comparisons": final_state.get("pair_comparisons", []),
-    }
-
     if output_dir:
         out_path = Path(output_dir)
     else:
@@ -94,6 +78,52 @@ def run_langgraph_comparison(
     out_path.mkdir(parents=True, exist_ok=True)
     json_path = out_path / "comparison.json"
     excel_path = out_path / "comparison.xlsx"
+
+    # Si un fichier comparison.json réel préexistant existe avec des données de diff complètes,
+    # nous préservons le schéma pour Dash tout en injectant les résultats du graphe LangGraph.
+    if json_path.exists():
+        try:
+            with open(json_path, "r", encoding="utf-8") as f:
+                existing_data = json.load(f)
+                if "summary" in existing_data and "matching" in existing_data:
+                    existing_data["global_summary"] = final_state.get("global_summary", existing_data.get("global_summary", {}))
+                    _atomic_write_json(json_path, existing_data)
+                    logger.info("[LangGraph Runner] Mis à jour JSON de production existant : %s", json_path)
+                    generate_comparison_excel(existing_data, excel_path)
+                    return json_path
+        except Exception as e:
+            logger.warning("[LangGraph Runner] Impossible de charger le JSON existant : %s", e)
+
+    matched_pairs = final_state.get("matched_pairs", [])
+    tables_removed = final_state.get("unmatched_previous", [])
+    tables_added = final_state.get("unmatched_current", [])
+    pair_comparisons = final_state.get("pair_comparisons", [])
+
+    summary = {
+        "matched_pairs_total": len(matched_pairs),
+        "tables_added_total": len(tables_added),
+        "tables_removed_total": len(tables_removed),
+        "indicator_changes_total": sum(len(p.get("added_indicators", []) or []) + len(p.get("removed_indicators", []) or []) for p in pair_comparisons),
+        "footnote_changes_total": sum(sum(p.get("footnotes_counts", {}).values()) for p in pair_comparisons if isinstance(p.get("footnotes_counts"), dict)),
+        "high_priority_items_total": sum(1 for p in pair_comparisons if p.get("priority") in ("critique", "prioritaire")),
+    }
+
+    # Formatage de la sortie d'analyse unifiée avec la clef "summary" requise par Dash
+    payload = {
+        "bank_code": bank,
+        "year_current": year_current,
+        "quarter_current": quarter_current,
+        "year_previous": year_previous,
+        "quarter_previous": quarter_previous,
+        "global_summary": final_state.get("global_summary", {}),
+        "matching": {
+            "matched_pairs": matched_pairs,
+            "tables_removed": tables_removed,
+            "tables_added": tables_added,
+        },
+        "pair_comparisons": pair_comparisons,
+        "summary": summary,
+    }
 
     _atomic_write_json(json_path, payload)
     logger.info("[LangGraph Runner] Sauvegardé JSON : %s", json_path)
