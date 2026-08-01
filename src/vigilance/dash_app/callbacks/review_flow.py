@@ -270,39 +270,6 @@ def on_validate_change_v2(
 
     next_selection = dict(resolved_selection)
     remembered_positions = _remember_selection(last_positions, resolved_selection)
-    if change_idx + 1 < len(changes):
-        next_selection["change_id"] = str(changes[change_idx + 1].get("change_id", ""))
-    else:
-        visible_ids = _visible_review_ids(new_queue, filters) or [
-            _review_id(t) for t in new_queue if _review_id(t)
-        ]
-        current_review_id = str(resolved_selection.get("review_id") or "")
-        if current_review_id in visible_ids:
-            pos = visible_ids.index(current_review_id)
-            if pos + 1 < len(visible_ids):
-                next_review_id = visible_ids[pos + 1]
-                _, next_table = _get_table_by_review_id(new_queue, next_review_id)
-                if next_table is not None:
-                    next_selection = {
-                        "review_id": next_review_id,
-                        "change_id": _resolve_change_id(
-                            next_table,
-                            None,
-                            remembered_positions,
-                        ),
-                    }
-            else:
-                next_selection["change_id"] = _resolve_change_id(
-                    table,
-                    None,
-                    remembered_positions,
-                )
-        else:
-            next_selection["change_id"] = _resolve_change_id(
-                table,
-                None,
-                remembered_positions,
-            )
 
     next_selection, new_table_idx, new_change_idx = _resolve_selection(
         new_queue, next_selection, filters, remembered_positions
