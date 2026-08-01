@@ -9,11 +9,24 @@ from __future__ import annotations
 
 from typing import Any
 
+from langchain_core.messages import SystemMessage
+from langchain_core.prompts import ChatPromptTemplate
+
 from vigilance.analyst_change_presentation import bank_subject
 from vigilance.amf_taxonomy import (
     format_theme_subjects_for_prompt,
     format_themes_for_prompt,
 )
+
+
+def get_triage_chat_prompt_template() -> ChatPromptTemplate:
+    """Retourne l'objet ChatPromptTemplate LangChain pour le triage AMF v2."""
+    return ChatPromptTemplate.from_messages(
+        [
+            SystemMessage(content=_TRIAGE_SYSTEM_PROMPT),
+            ("human", "{change_description}"),
+        ]
+    )
 
 
 def _indicator_label(ind: Any) -> str:
