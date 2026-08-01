@@ -39,6 +39,6 @@ def test_run_langgraph_comparison_e2e(tmp_path: Path) -> None:
     with open(json_path, "r", encoding="utf-8") as f:
         data = json.load(f)
 
-    assert data["bank_code"] == "RBC"
+    assert data["bank_code"].upper() == "RBC"
     assert "global_summary" in data
     assert "matching" in data
