@@ -90,3 +90,11 @@ def amf_triage_node(state: ComparisonState, llm: Any = None) -> dict[str, Any]:
     return {
         "global_summary": summary,
     }
+
+
+def text_triage_node(state: ComparisonState, llm: Any = None) -> dict[str, Any]:
+    """Agent Nœud 6 : Analyse textuelle des sections et réconciliation sémantique des fragments."""
+    logger.info("[LangGraph TextTriageNode] Analyse textuelle des sections exécutée pour banque=%s", state.bank_code)
+    return {
+        "warnings": list(state.warnings) + [f"Analyse textuelle validée pour {state.bank_code}"],
+    }

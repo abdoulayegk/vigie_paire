@@ -11,6 +11,7 @@ from vigilance.graph.nodes import (
     devil_advocate_node,
     hybrid_recovery_node,
     primary_matcher_node,
+    text_triage_node,
 )
 from vigilance.graph.state import ComparisonState
 
@@ -32,6 +33,7 @@ def build_comparison_graph(checkpointer: MemorySaver | None = None, enable_check
     workflow.add_node("hybrid_recovery", hybrid_recovery_node)
     workflow.add_node("devil_advocate", devil_advocate_node)
     workflow.add_node("amf_triage", amf_triage_node)
+    workflow.add_node("text_triage", text_triage_node)
 
     # Connexion du flux (edges)
     workflow.add_edge(START, "normalizer")
@@ -49,7 +51,8 @@ def build_comparison_graph(checkpointer: MemorySaver | None = None, enable_check
 
     workflow.add_edge("hybrid_recovery", "devil_advocate")
     workflow.add_edge("devil_advocate", "amf_triage")
-    workflow.add_edge("amf_triage", END)
+    workflow.add_edge("amf_triage", "text_triage")
+    workflow.add_edge("text_triage", END)
 
     if enable_checkpointing or checkpointer is not None:
         saver = checkpointer if checkpointer is not None else MemorySaver()
