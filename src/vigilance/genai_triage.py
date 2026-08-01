@@ -109,37 +109,38 @@ async def _call_openai_json_async(
     temperature: float = 0.1,
     max_tokens: int | None = None,
 ) -> dict[str, Any] | None:
-    """Appel asynchrone unique a OpenAI retournant du JSON parse.
+    """Appel asynchrone via LangChain ChatOpenAI retournant du JSON parsé."""
+    if client is not None and hasattr(client, "chat") and hasattr(client.chat, "completions"):
+        try:
+            kwargs: dict[str, Any] = {
+                "model": model,
+                "messages": [
+                    {"role": "system", "content": system},
+                    {"role": "user", "content": user},
+                ],
+                "temperature": temperature,
+                "response_format": {"type": "json_object"},
+            }
+            if max_tokens is not None:
+                kwargs["max_tokens"] = max_tokens
+            response = await client.chat.completions.create(**kwargs)
+            raw = response.choices[0].message.content or ""
+            return json.loads(raw)
+        except Exception as exc:
+            logger.warning("GenAI triage call via client failed: %s", exc)
+            return None
 
-    Args:
-        client: Instance ``AsyncOpenAI``.
-        system: Contenu du message systeme.
-        user: Contenu du message utilisateur.
-        model: Identifiant du modele OpenAI.
-        temperature: Temperature d'echantillonnage.
-        max_tokens: Nombre maximal de tokens de completion. ``None`` laisse le
-            modele s'arreter naturellement — preferer la qualite complete.
-
-    Returns:
-        Dictionnaire JSON parse ou ``None`` en cas d'echec.
-    """
     try:
-        kwargs: dict[str, Any] = {
-            "model": model,
-            "messages": [
-                {"role": "system", "content": system},
-                {"role": "user", "content": user},
-            ],
-            "temperature": temperature,
-            "response_format": {"type": "json_object"},
-        }
-        if max_tokens is not None:
-            kwargs["max_tokens"] = max_tokens
-        response = await client.chat.completions.create(**kwargs)
-        raw = response.choices[0].message.content or ""
-        return json.loads(raw)
+        from vigilance.graph.llm import get_llm
+        llm = get_llm(model_name=model, temperature=temperature)
+        messages = [
+            ("system", system),
+            ("human", user),
+        ]
+        res = await llm.ainvoke(messages)
+        return json.loads(res.content)
     except Exception as exc:
-        logger.warning("GenAI triage call failed: %s", exc)
+        logger.warning("GenAI triage call via LangChain LLM failed: %s", exc)
         return None
 
 
