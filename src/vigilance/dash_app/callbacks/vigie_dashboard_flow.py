@@ -20,6 +20,7 @@ from reportlab.platypus import Flowable, PageBreak, Paragraph, SimpleDocTemplate
 
 from vigilance.dash_app.services.export_helpers import _is_high_priority_item
 from vigilance.dash_app.services.review_navigation import _table_decision_bucket
+from vigilance.dash_app.components.detail_widgets import build_comparison_proof_card, build_proof_badges
 from vigilance.quarter_utils import get_payload_quarter_context
 from vigilance.vigie_columns import build_text_vigie_display_row
 

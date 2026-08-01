@@ -19,6 +19,7 @@ from ..utils.openai_schema import (
     validate_strict_openai_response_format,
 )
 from .page_table_locator import should_use_page_context_rescue
+from vigilance.extraction.components.footnote_extractor import extract_clean_footnotes
 from .vision_cache import (
     cache_get,
     cache_put,

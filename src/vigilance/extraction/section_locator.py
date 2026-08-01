@@ -19,6 +19,7 @@ from dataclasses import dataclass, field, replace
 from pathlib import Path
 
 from .section_taxonomy import canonicalize_section
+from vigilance.extraction.components.section_detector import detect_section_key
 
 logger = logging.getLogger(__name__)
 
