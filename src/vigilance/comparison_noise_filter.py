@@ -43,37 +43,37 @@ def recompute_table_level_change(technical_diff: dict[str, Any]) -> str:
     return "modifie" if has_changes else "inchange"
 
 
+_YEAR_OR_NUM_RE = re.compile(r"\b\d{1,4}(?:\s*[\/\.-]\s*\d{1,4})?\b")
+
+
+def is_pure_numeric_or_date_noise(prev: str, curr: str) -> bool:
+    """Retourne True si la seule différence entre prev et curr concerne des nombres ou des dates."""
+    p_norm = _YEAR_OR_NUM_RE.sub("", prev).strip()
+    c_norm = _YEAR_OR_NUM_RE.sub("", curr).strip()
+    return p_norm == c_norm
+
+
 def _filter_noise_from_diff(technical_diff: dict[str, Any]) -> dict[str, Any]:
-    """Retire les renommages non substantifs (marqueurs de notes, numeros de page) du diff.
-
-    Args:
-        technical_diff: Dictionnaire du diff technique contenant les listes de
-            changements d'indicateurs et de notes de bas de page.
-
-    Returns:
-        Copie du diff avec les renommages non substantifs retires.
-    """
-    # Filter indicator renames where only footnote marker differs
+    """Retire les renommages non substantifs (marqueurs de notes, numeros de page, dates récurrentes) du diff."""
     clean_ind_renamed = []
     for item in technical_diff.get("indicators_renamed", []):
         prev = str(item.get("previous", item.get("from", "")) or "")
         cur = str(item.get("current", item.get("to", "")) or "")
-        if _strip_footnote_markers(prev) == _strip_footnote_markers(cur):
+        if _strip_footnote_markers(prev) == _strip_footnote_markers(cur) or is_pure_numeric_or_date_noise(prev, cur):
             logger.debug(
-                "Filtered noise: indicator rename '%s' -> '%s' (footnote marker only)",
+                "Filtered noise: indicator rename '%s' -> '%s' (footnote marker or date only)",
                 prev,
                 cur,
             )
             continue
         clean_ind_renamed.append(item)
 
-    # Filter footnote renames where only page/date references differ
     clean_fn_renamed = []
     for item in technical_diff.get("footnotes_renamed", []):
         prev_text = str(item.get("previous_text", "") or "")
         cur_text = str(item.get("current_text", "") or "")
-        if _strip_page_and_date_refs(prev_text) == _strip_page_and_date_refs(cur_text):
-            logger.debug("Filtered noise: footnote rename (page/date ref only)")
+        if _strip_page_and_date_refs(prev_text) == _strip_page_and_date_refs(cur_text) or is_pure_numeric_or_date_noise(prev_text, cur_text):
+            logger.debug("Filtered noise: footnote rename (page/date/numeric ref only)")
             continue
         clean_fn_renamed.append(item)
 
