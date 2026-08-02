@@ -43,14 +43,23 @@ Références figées hors dépôt dans `~/vigie-goldens/e4cce93/` (voir son READ
 - `locator/` — sortie de `locate_sections_in_pdf` pour les 36 PDF d'`Inputs/`.
   Déterministe, sans appel LLM, rejouable gratuitement. C'est la référence
   prioritaire pour tout ce qui touche `section_locator.py`.
+  Capture initiale : 36/36 en succès, 14,4 min. **Déterminisme vérifié** : deux
+  passes indépendantes sur RBC (dont deux rapports annuels T4) produisent une
+  sortie identique au caractère près.
 - `resultats/` — copie de `outputs/resultats` à `e4cce93`, référence end-to-end.
+
+Observation figée par le golden, à ne pas confondre avec une régression : 16 des
+36 PDF ne remontent que 2 sections sur 3 (`regulatory_updates` absent chez TD sur
+tous les trimestres, chez CIBC et RBC sur certains). C'est le comportement actuel
+— le localisateur a un `_bank_has_regulatory_section()` — pas un défaut introduit
+par le découpage.
 
 ## État des phases
 
 | Phase | Contenu | État |
 |---|---|---|
-| 0 | Garde-fous, packaging, goldens | en cours |
-| 1 | Extractions de données (patterns, modèles, prompts, schéma) | à venir |
+| 0 | Garde-fous, packaging, goldens | fait |
+| 1 | Extractions de données (patterns, modèles, prompts, schéma) | en cours |
 | 2 | Fonctions pures (heuristiques qualité, parsing, TDM) | à venir |
 | 3 | Découpage par responsabilité de `SectionLocator` | à venir |
 | 4 | `locate_sections` en pipeline d'étapes | à venir |
@@ -62,6 +71,47 @@ Références figées hors dépôt dans `~/vigie-goldens/e4cce93/` (voir son READ
 Table de correspondance `source : lignes → destination`, à tenir à jour à chaque phase.
 Elle sert au merge final : un correctif fait sur `main` dans un monolithe atterrit
 sinon en conflit sur du code qui n'existe plus au même endroit.
+
+### Phase 1 — extractions de données
+
+Déplacements **à l'identique** (extraction par plage de lignes, aucune ligne retapée).
+Les modules d'origine restent les façades publiques et re-exportent tout.
+
+`section_locator.py` : 4 565 → 4 044 lignes
+
+| Source (lignes d'origine) | Destination | Contenu |
+|---|---|---|
+| 26-195 | `extraction/locator/models.py` | `normalize_text`, `VisualTextElement`, `TocEntry`, `LocatedSection`, `SHARED_PAGE_TOP_THRESHOLD`, `SectionMapping` |
+| 198-526 | `extraction/locator/patterns.py` | `SECTION_PATTERNS`, `FOLLOWING_SECTION_PATTERNS`, `SECTION_TITLE_ALIASES`, `T4_SECTION_TITLE_PROFILES` |
+| 564-616 | `extraction/locator/patterns.py` | `RISK_SUBSECTIONS`, `TOC_PATTERNS` |
+
+`vision_full_extractor.py` : 3 569 → 2 832 lignes
+
+| Source (lignes d'origine) | Destination | Contenu |
+|---|---|---|
+| 40, 97-588 | `extraction/vision_full/prompts.py` | `_DEFAULT_REFERENCE_TEXT_MAX_CHARS`, les 4 prompts, identifiants de variante |
+| 796-897 | `extraction/vision_full/prompts.py` | `_build_prompt`, `_build_precision_prompt` |
+| 937-962 | `extraction/vision_full/prompts.py` | `_build_content`, `_build_repair_prompt` |
+| 591-722 | `extraction/vision_full/schema.py` | modèles Pydantic, `_build_openai_json_schema`, `_validate_openai_strict_schema_contract` |
+
+**Non déplacés volontairement** :
+
+- `_load_bank_config` et ses dépendants (`_get_bank_section_names`, `BANK_SECTION_NAMES`)
+  restent dans `section_locator.py`. La fonction résout la racine du projet par
+  `Path(__file__).resolve().parents[3]` : la descendre d'un niveau dans un
+  sous-package décalerait la profondeur et casserait le repli de configuration,
+  visible seulement quand `vigilance.config.loader` échoue. Reporté en phase 3,
+  avec l'ajustement traité explicitement et un test dédié.
+- `_extract_native_text_indicators` reste dans `vision_full_extractor.py` : il
+  appelle `_is_period_like_indicator`, `_is_weak_indicator` et
+  `_looks_narrative_indicator`, qui partent en phase 2. Le déplacer maintenant
+  créerait un import circulaire.
+
+**Piège rencontré** : `SECTION_TITLE_ALIASES` et `T4_SECTION_TITLE_PROFILES` sont
+des constantes *annotées* (`NOM: type = ...`). Un relevé des constantes par
+`grep '^NOM ='` les manque. Pour les phases suivantes, utiliser
+`grep -n '^_\?[A-Z_][A-Z_0-9]*\s*[:=]'`. Les tests ont attrapé l'omission
+(11 échecs, `NameError`), corrigée par re-export.
 
 ### Phase 0 — aucun déplacement de code
 

@@ -9,521 +9,55 @@ Strategies de detection (par ordre de priorite):
 2. Detection via la Table des matieres (TDM) complete
 3. Detection des sections suivantes (pour determiner la fin)
 4. Scan des titres de sections dans le PDF
+
+Les structures de donnees et les patterns de detection vivent desormais dans le
+sous-package ``locator`` ; ce module les re-exporte pour rester la facade publique.
 """
 
 import json
 import logging
 import re
-import unicodedata
-from dataclasses import dataclass, field, replace
+from dataclasses import replace
 from pathlib import Path
 
+from .locator.models import (
+    SHARED_PAGE_TOP_THRESHOLD,
+    LocatedSection,
+    SectionMapping,
+    TocEntry,
+    VisualTextElement,
+    normalize_text,
+)
+from .locator.patterns import (
+    FOLLOWING_SECTION_PATTERNS,
+    RISK_SUBSECTIONS,
+    SECTION_PATTERNS,
+    SECTION_TITLE_ALIASES,
+    T4_SECTION_TITLE_PROFILES,
+    TOC_PATTERNS,
+)
 from .section_taxonomy import canonicalize_section
 
 logger = logging.getLogger(__name__)
 
+__all__ = [
+    "BANK_SECTION_NAMES",
+    "FOLLOWING_SECTION_PATTERNS",
+    "RISK_SUBSECTIONS",
+    "SECTION_PATTERNS",
+    "SECTION_TITLE_ALIASES",
+    "SHARED_PAGE_TOP_THRESHOLD",
+    "T4_SECTION_TITLE_PROFILES",
+    "TOC_PATTERNS",
+    "LocatedSection",
+    "SectionLocator",
+    "SectionMapping",
+    "TocEntry",
+    "VisualTextElement",
+    "locate_sections_in_pdf",
+    "normalize_text",
+]
 
-def normalize_text(text: str) -> str:
-    """Normaliser le texte en supprimant les accents et en mettant en minuscules.
-
-    Permet de matcher "réglementation" avec "reglementation", etc.
-
-    Args:
-        text: Texte a normaliser
-
-    Returns:
-        Texte sans accents, en minuscules
-    """
-    if not text:
-        return ""
-    # NFD decompose les caracteres accentues (e + accent)
-    # encode/decode supprime les caracteres non-ASCII (les accents)
-    normalized = unicodedata.normalize("NFD", text)
-    ascii_text = normalized.encode("ascii", "ignore").decode("utf-8")
-    return ascii_text.lower()
-
-
-@dataclass
-class VisualTextElement:
-    """Element de texte avec ses caracteristiques visuelles."""
-
-    text: str
-    page: int
-    x0: float  # Position horizontale gauche
-    y0: float  # Position verticale haute
-    x1: float  # Position horizontale droite
-    y1: float  # Position verticale basse
-    font_size: float = 0.0
-    font_name: str = ""
-    is_bold: bool = False
-    is_uppercase: bool = False
-    line_number: int = 0  # Position relative sur la page
-    page_width: float = 0.0
-    page_height: float = 0.0
-
-    @property
-    def height(self) -> float:
-        """Hauteur de l'element en points."""
-        return abs(self.y1 - self.y0)
-
-    @property
-    def width(self) -> float:
-        """Largeur de l'element en points."""
-        return abs(self.x1 - self.x0)
-
-    @property
-    def is_likely_header(self) -> bool:
-        """Determiner si l'element a les caracteristiques d'un titre."""
-        # Criteres: grande taille, gras, ou majuscules
-        return self.font_size >= 12.0 or self.is_bold or (self.is_uppercase and len(self.text) > 10)
-
-    @property
-    def bbox_norm(self) -> list[float] | None:
-        """Retourner la bbox normalisee [x0, y0, x1, y1] si la taille de page est connue."""
-        if self.page_width <= 0 or self.page_height <= 0:
-            return None
-        return [
-            max(0.0, min(1.0, self.x0 / self.page_width)),
-            max(0.0, min(1.0, self.y0 / self.page_height)),
-            max(0.0, min(1.0, self.x1 / self.page_width)),
-            max(0.0, min(1.0, self.y1 / self.page_height)),
-        ]
-
-
-@dataclass
-class TocEntry:
-    """Entree de la Table des matieres."""
-
-    title: str
-    page: int
-    level: int = 0  # 0 = section principale, 1+ = sous-section
-    raw_line: str = ""
-
-    def __repr__(self):
-        """Representation textuelle courte de l'entree TDM."""
-        return f"TocEntry('{self.title[:30]}...', page={self.page}, level={self.level})"
-
-
-@dataclass
-class LocatedSection:
-    """Represente une section localisee dans le document."""
-
-    section_type: str  # "gestion_capital" ou "gestion_risques"
-    title_found: str
-    start_page: int
-    end_page: int | None = None
-    confidence: float = 0.0
-    detection_method: str = ""  # "toc", "scan", "manual_override", "following_section"
-    end_detection_method: str = ""  # Comment la fin a ete determinee
-    detected_span: int | None = None
-    final_span: int | None = None
-    constraint_applied: bool = False
-    constraint_reason: str = ""
-    anchor_page: int | None = None
-    anchor_text: str | None = None
-    anchor_bbox_norm: list[float] | None = None
-    anchor_found: bool = False
-    end_anchor_page: int | None = None
-    end_anchor_text: str | None = None
-    end_anchor_bbox_norm: list[float] | None = None
-
-
-SHARED_PAGE_TOP_THRESHOLD = 0.12
-
-
-@dataclass
-class SectionMapping:
-    """Mapping complet des sections pour un document."""
-
-    bank_code: str
-    bank_name: str
-    quarter: str
-    year: int
-    file_path: str
-    sections: list[LocatedSection] = field(default_factory=list)
-    total_pages: int = 0
-    toc_entries: list[TocEntry] = field(default_factory=list)  # TDM complete
-    toc_score: float = 0.0
-    toc_reliable: bool = False
-    toc_used: bool = False
-    override_applied: bool = False
-    boundary_validation: dict = field(default_factory=dict)
-
-    def to_dict(self) -> dict:
-        """Convertir le mapping de sections en dictionnaire serialisable.
-
-        Returns:
-            Dictionnaire contenant toutes les informations du mapping.
-        """
-        sections_dict = {}
-        for section in self.sections:
-            sections_dict[section.section_type] = {
-                "pages": f"{section.start_page}-{section.end_page}" if section.end_page else str(section.start_page),
-                "start_page": section.start_page,
-                "end_page": section.end_page,
-                "title_found": section.title_found,
-                "confidence": section.confidence,
-                "detection_method": section.detection_method,
-                "end_detection_method": section.end_detection_method,
-                "detected_span": section.detected_span,
-                "final_span": section.final_span,
-                "constraint_applied": section.constraint_applied,
-                "constraint_reason": section.constraint_reason,
-                "anchor_page": section.anchor_page,
-                "anchor_text": section.anchor_text,
-                "anchor_bbox_norm": section.anchor_bbox_norm,
-                "anchor_found": section.anchor_found,
-                "end_anchor_page": section.end_anchor_page,
-                "end_anchor_text": section.end_anchor_text,
-                "end_anchor_bbox_norm": section.end_anchor_bbox_norm,
-            }
-
-        return {
-            "bank_code": self.bank_code,
-            "bank_name": self.bank_name,
-            "quarter": self.quarter,
-            "year": self.year,
-            "file_path": self.file_path,
-            "total_pages": self.total_pages,
-            "sections": sections_dict,
-            "toc_entry_count": len(self.toc_entries),
-            "toc_score": self.toc_score,
-            "toc_reliable": self.toc_reliable,
-            "toc_used": self.toc_used,
-            "override_applied": self.override_applied,
-            "boundary_validation": self.boundary_validation,
-        }
-
-
-# Patterns de detection par type de section
-# Note: L'ordre des patterns est important - les plus specifiques en premier
-SECTION_PATTERNS = {
-    "gestion_capital": {
-        "patterns": [
-            # Variantes exactes (prioritaires)
-            r"gestion\s+du\s+capital",
-            r"gestion\s+des\s+fonds\s+propres",
-            r"situation\s+des\s+fonds\s+propres",
-            # RBC: Examen de la conjoncture economique (avec/sans accents)
-            r"examen\s+de\s+la\s+conjoncture\s+[eé]conomique",
-            # Variantes avec contexte reglementaire
-            r"fonds\s+propres\s+r[eé]glementaires",
-            r"capital\s+r[eé]glementaire",
-            # Variantes anglaises
-            r"capital\s+management",
-            r"regulatory\s+capital",
-            # Variantes partielles (moins prioritaires)
-            r"capitaux\s+propres",
-        ],
-        # Mots-cles pour valider le contenu (variantes avec/sans accents)
-        "keywords": [
-            "cet1",
-            "tier 1",
-            "tier 2",
-            "fonds propres",
-            "capital",
-            "capitaux",
-            "ratio",
-            "levier",
-            "leverage",
-            "bâle",
-            "bale",
-            "bsif",
-            "tlac",
-            "lcr",
-            "nsfr",
-            "liquidit",
-            "dividende",
-            "rachat",
-            "actions",
-        ],
-        # Termes qui indiquent que ce n'est PAS la bonne section
-        "exclude_patterns": [
-            r"risque\s+de",  # Eviter confusion avec sections risques
-            r"rendement\s+des?\s+capitaux\s+propres",
-        ],
-    },
-    "gestion_risques": {
-        "patterns": [
-            # Variantes principales (titre de section)
-            r"gestion\s+des\s+risques",
-            r"gestion\s+du\s+risque(?!\s+de\s+cr[eé]dit)",  # Pas suivi de "de credit"
-            r"risk\s+management",
-            r"facteurs?\s+de\s+risque\s+et\s+gestion",
-            # Variantes avec contexte
-            r"facteurs?\s+de\s+risque",
-            r"exposition\s+aux?\s+risques?",
-            # Sections autonomes pouvant remplacer le titre global des risques
-            r"risques?\s+(?:li[eé]s?\s+aux?\s+)?donn[eé]es(?:,\s*technologie\s+et\s+cybers[eé]curit[eé])?",
-            r"risques?\s+technologiques?",
-            r"technolog(?:ie|ique),?\s+cybers[eé]curit[eé]\s+et\s+donn[eé]es",
-            r"risques?\s+(?:li[eé]s?\s+aux?\s+)?tiers",
-            r"gestion\s+des?\s+fournisseurs",
-            r"services?\s+infonuagiques?",
-            r"r[eé]silience\s+op[eé]rationnelle",
-            r"protection\s+des?\s+donn[eé]es\s+et\s+vie\s+priv[eé]e",
-        ],
-        # Mots-cles pour valider le contenu (variantes avec/sans accents)
-        "keywords": [
-            "risque",
-            "risk",
-            "crédit",
-            "credit",
-            "marché",
-            "marche",
-            "market",
-            "liquidité",
-            "liquidite",
-            "liquidity",
-            "opérationnel",
-            "operationnel",
-            "operational",
-            "var",
-            "exposition",
-            "exposure",
-            "provision",
-            "perte",
-            "loss",
-            "portefeuille",
-            "portfolio",
-            "stress",
-            "scénario",
-            "scenario",
-            "données",
-            "donnees",
-            "data",
-            "technologie",
-            "technology",
-            "cybersécurité",
-            "cybersecurite",
-            "cloud",
-            "infonuagique",
-            "tiers",
-            "fournisseur",
-            "impartition",
-            "résilience",
-            "resilience",
-            "vie privée",
-            "vie privee",
-            "qualité des données",
-            "qualite des donnees",
-            "intégrité des données",
-            "integrite des donnees",
-            "confidentialité",
-            "confidentialite",
-            "protection des données",
-            "protection des donnees",
-            "localisation des données",
-            "localisation des donnees",
-            "souveraineté",
-            "souverainete",
-            "conservation des données",
-            "conservation des donnees",
-            "traçabilité",
-            "tracabilite",
-            "lignage",
-            "cycle de vie des données",
-            "cycle de vie des donnees",
-            "fuite de données",
-            "fuite de donnees",
-            "tiers critique",
-            "fournisseur critique",
-            "sous-traitant",
-            "concentration des fournisseurs",
-            "verrouillage fournisseur",
-            "stratégie de sortie",
-            "strategie de sortie",
-            "continuité des services",
-            "continuite des services",
-            "exigence contractuelle",
-        ],
-        # Sous-sections qui font partie de "Gestion des risques"
-        "subsections": [
-            r"risque\s+de\s+cr[eé]dit",
-            r"risque\s+de\s+march[eé]",
-            r"risque\s+de\s+liquidit[eé]",
-            r"risque\s+op[eé]rationnel",
-            r"credit\s+risk",
-            r"market\s+risk",
-            r"liquidity\s+risk",
-            r"operational\s+risk",
-            r"risques?\s+(?:li[eé]s?\s+aux?\s+)?donn[eé]es",
-            r"risques?\s+technologiques?",
-            r"risques?\s+(?:li[eé]s?\s+aux?\s+)?tiers",
-            r"risques?\s+li[eé]s?\s+[àa]\s+l['’]impartition",
-            r"services?\s+infonuagiques?",
-            r"r[eé]silience\s+op[eé]rationnelle",
-            r"protection\s+des?\s+donn[eé]es",
-            r"vie\s+priv[eé]e",
-            r"data\s+risk",
-            r"technology\s+risk",
-            r"third[-\s]party\s+risk",
-            r"cloud\s+risk",
-            r"operational\s+resilience",
-        ],
-        "exclude_patterns": [
-            r"chef\s+des?\s+risques",
-            r"chef\s+de\s+la\s+gestion\s+des?\s+risques?",
-            r"comit[ée]\s+de\s+gestion\s+des?\s+risques?",
-            r"structure\s+de\s+gestion\s+des?\s+risques?",
-            r"gestion\s+du\s+risque\s+d['e]\s*entreprise",
-            r"gestion\s+du\s+risque\s+li[eé]",
-        ],
-    },
-    "gestion_reglementation": {
-        "patterns": [
-            # RBC: Examen de la conjoncture economique
-            r"examen\s+de\s+la\s+conjoncture\s+[eé]conomique",
-            r"contexte\s+r[eé]glementaire\s+et\s+perspectives",
-            # BNS/BMO: Faits nouveaux en matiere de reglementation
-            r"faits?\s+nouveaux?\s+en\s+mati[eè]re\s+de\s+r[eé]glementation",
-            r"autres?\s+faits?\s+nouveaux?\s+en\s+mati[eè]re\s+de\s+r[eé]glementation",
-            # Variantes generiques
-            r"mise\s+[àa]\s+jour\s+r[eé]glementaire",
-            r"[eé]volution\s+r[eé]glementaire",
-        ],
-        "keywords": [
-            "reglementation",
-            "réglementation",
-            "bsif",
-            "bale",
-            "bâle",
-            "normes",
-            "conjoncture",
-            "perspectives",
-            "contexte",
-            "economique",
-            "économique",
-        ],
-        "exclude_patterns": [],
-    },
-}
-
-# Patterns des sections qui suivent typiquement nos sections cibles
-# Utilises pour determiner la FIN d'une section
-FOLLOWING_SECTION_PATTERNS = {
-    "gestion_capital": [
-        r"gestion\s+des?\s+risques?",
-        r"gestion\s+du\s+risque",
-        r"risque\s+de\s+cr[eé]dit",
-        r"facteurs?\s+de\s+risque",
-        r"r[eé]sultats?\s+consolid[eé]s?",
-        r"analyse\s+des?\s+r[eé]sultats?",
-    ],
-    "gestion_risques": [
-        r"normes\s+et\s+m[eé]thodes\s+comptables",
-        r"m[eé]thodes\s+et\s+estimations\s+comptables",
-        r"m[eé]thodes\s+comptables\s+significatives",
-        r"[eé]tats?\s+financiers?",
-        r"informations?\s+compl[eé]mentaires?",
-        r"renseignements?\s+compl[eé]mentaires?",
-        r"donn[eé]es?\s+compl[eé]mentaires?",
-        r"annexes?",
-        r"notes?\s+aux?\s+[eé]tats",
-        r"glossaire",
-        r"d[eé]finitions?",
-    ],
-    "gestion_reglementation": [
-        r"gestion\s+des?\s+fonds?\s+propres?",
-        r"gestion\s+du\s+capital",
-        r"gestion\s+des?\s+risques?",
-        r"gestion\s+du\s+risque",
-        r"[eé]tats?\s+financiers?",
-    ],
-}
-
-SECTION_TITLE_ALIASES: dict[str, list[str]] = {
-    "gestion_capital": [
-        "Gestion du capital",
-        "Gestion des fonds propres",
-        "Situation des fonds propres",
-    ],
-    "gestion_risques": [
-        "Gestion des risques",
-        "Gestion du risque",
-        "Risk management",
-    ],
-    "gestion_reglementation": [
-        "Réglementation",
-        "Reglementation",
-    ],
-}
-
-# Repères sémantiques réservés aux rapports annuels T4. Ils ne contiennent
-# volontairement aucun numéro de page : le localisateur doit retrouver les
-# titres dans l'ordre physique du PDF. Les titres configurés ici complètent les
-# alias génériques et évitent d'imposer aux rapports T1-T3 la structure T4.
-T4_SECTION_TITLE_PROFILES: dict[str, dict[str, dict[str, list[str]]]] = {
-    "td": {
-        "gestion_capital": {
-            "start": ["Situation des fonds propres"],
-            "end": ["Situation financière du groupe"],
-        },
-        "gestion_risques": {
-            "start": ["Facteurs de risque et gestion des risques"],
-            "end": ["Normes et méthodes comptables"],
-        },
-    },
-    "bmo": {
-        "gestion_capital": {
-            "start": ["Gestion globale du capital"],
-            # Les rapports annuels BMO intercalent un vrai chapitre sur les
-            # entités structurées/titrisation entre le capital et les risques.
-            # Les titres, et non des pages fixes, bornent donc le capital.
-            "end": [
-                "Entités structurées et titrisation",
-                "Entités de titrisation soutenues par BMO",
-                "Gestion globale des risques",
-            ],
-        },
-        "gestion_risques": {
-            "start": ["Gestion globale des risques"],
-            "end": ["Questions comptables"],
-        },
-    },
-    "rbc": {
-        "gestion_capital": {
-            "start": ["Gestion des fonds propres"],
-            "end": ["Contrôles et procédures"],
-        },
-        "gestion_risques": {
-            "start": ["Gestion du risque"],
-            "end": ["Gestion des fonds propres"],
-        },
-    },
-    "bns": {
-        "gestion_capital": {
-            # Le rapport BNS ouvre ce bloc par le chapitre financier, puis
-            # présente la gestion du capital sans titre racine autonome.
-            "start": ["Situation financière du Groupe"],
-            "end": ["Arrangements hors bilan"],
-        },
-        "gestion_risques": {
-            "start": ["Gestion du risque"],
-            "end": ["Contrôles et méthodes comptables", "Contrôles et procédures"],
-        },
-    },
-    "bnc": {
-        "gestion_capital": {
-            "start": ["Gestion du capital"],
-            "end": ["Gestion des risques"],
-        },
-        "gestion_risques": {
-            "start": ["Gestion des risques"],
-            "end": ["Méthodes comptables significatives et estimations comptables"],
-        },
-    },
-    "cibc": {
-        "gestion_capital": {
-            "start": ["Gestion des fonds propres"],
-            "end": ["Arrangements hors bilan"],
-        },
-        "gestion_risques": {
-            "start": ["Gestion du risque"],
-            "end": ["Questions relatives à la comptabilité et au contrôle"],
-        },
-    },
-}
 
 # NOTE: Les noms de sections par banque sont maintenant charges dynamiquement
 # depuis bank_profiles.json via la fonction _get_bank_section_names()
@@ -559,61 +93,6 @@ def _get_bank_section_names(bank_code: str) -> dict:
         "gestion_risques": ["Gestion des risques", "Gestion du risque"],
         "gestion_reglementation": [],
     }
-
-
-# Sous-sections de "Gestion des risques" qui ne doivent pas etre confondues
-# avec la section principale. Ces sous-sections font PARTIE de la section risques.
-RISK_SUBSECTIONS = [
-    "Risque de credit",
-    "Risque de marche",
-    "Risque de liquidite",
-    "Risque operationnel",
-    "Risque de taux d'interet",
-    "Risque de change",
-    "Divulgation d'information sur les risques",
-    "Divulgation d'informations sur les risques",
-    "Divulgation d’information sur les risques",
-    "Divulgation d’informations sur les risques",
-    "Divulgation dinformation sur les risques",
-    "Divulgation dinformations sur les risques",
-    "Cotes de credit",
-    "Cotes de crédit",
-    "Credit Risk",
-    "Market Risk",
-    "Liquidity Risk",
-    "Operational Risk",
-    "Risque lié aux données",
-    "Risque lié aux donnees",
-    "Risque technologique",
-    "Risque lié aux tiers",
-    "Risque lie aux tiers",
-    "Risque lié à l'impartition",
-    "Services infonuagiques",
-    "Résilience opérationnelle",
-    "Resilience operationnelle",
-    "Protection des données",
-    "Protection des donnees",
-    "Vie privée",
-    "Vie privee",
-    "Data Risk",
-    "Technology Risk",
-    "Third-Party Risk",
-    "Cloud Risk",
-    "Operational Resilience",
-]
-
-# Patterns pour detecter la Table des matieres
-TOC_PATTERNS = [
-    r"table\s+des\s+mati[eè]res",
-    r"sommaire",
-    r"table\s+of\s+contents",
-    r"contents",
-    # BNC utilise "Rapport de gestion" comme en-tete de la page TDM
-    r"rapport\s+de\s+gestion",
-    # Patterns additionnels pour detecter les pages avec TDM
-    r"aper[çc]u\s+du\s+rapport",
-    r"guide\s+du\s+lecteur",
-]
 
 
 def _load_bank_config() -> dict:
