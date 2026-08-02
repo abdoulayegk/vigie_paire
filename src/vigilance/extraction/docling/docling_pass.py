@@ -82,8 +82,6 @@ class DoclingPassMixin:
             page_table_locator = None
             vision_model_name: str | None = None
             pdf_sha = ""
-            vision_extraction_disabled_reason: str | None = None
-            vision_schema_contract_failed = False
             vision_schema_error_cls: type[Exception] = Exception
             if use_vision_extraction:
                 try:

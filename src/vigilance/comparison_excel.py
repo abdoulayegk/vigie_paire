@@ -132,8 +132,6 @@ def _collect_rows(comparison: dict[str, Any]) -> list[dict[str, Any]]:
         # Triage global du tableau
         triage = pair.get("genai_triage") or {}
         table_justification = str(triage.get("nouvelle_idee_justification") or "").strip()
-        table_is_relevant = bool(triage.get("is_relevant", False))
-        table_category = str(triage.get("category") or "").upper()
 
         # Indicateurs ajoutés
         for ind in diff.get("indicators_added") or []:
@@ -276,8 +274,6 @@ def _collect_rows(comparison: dict[str, Any]) -> list[dict[str, Any]]:
         justification = sanitize_analyst_french(
             str(triage.get("nouvelle_idee_justification") or "").strip()
         )
-        category = str(triage.get("category") or "").upper()
-        is_relevant = bool(triage.get("is_relevant", False))
         rows.append({
             "section": _section_label(tbl.get("section") or ""),
             "title": str(tbl.get("title") or "(sans titre)"),
@@ -301,8 +297,6 @@ def _collect_rows(comparison: dict[str, Any]) -> list[dict[str, Any]]:
         justification = sanitize_analyst_french(
             str(triage.get("nouvelle_idee_justification") or "").strip()
         )
-        category = str(triage.get("category") or "").upper()
-        is_relevant = bool(triage.get("is_relevant", False))
         rows.append({
             "section": _section_label(tbl.get("section") or ""),
             "title": str(tbl.get("title") or "(sans titre)"),

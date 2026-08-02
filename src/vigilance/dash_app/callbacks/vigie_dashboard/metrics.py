@@ -134,7 +134,6 @@ def _indicator_metrics(indicator: dict | None) -> dict[str, Any]:
     footnote_removed = sum(_footnote_counts(comp).get("removed", 0) for comp in comparisons)
     footnote_modified = sum(_footnote_counts(comp).get("modified", 0) for comp in comparisons)
     footnote_renamed = sum(_footnote_counts(comp).get("renamed", 0) for comp in comparisons)
-    renamed = indicator_renamed + footnote_renamed
     notes = footnote_added + footnote_removed + footnote_modified + footnote_renamed
     confidence_values = [score for score in (_indicator_confidence(comp) for comp in comparisons) if score is not None]
     tables_added_count = len(tables_added) or _safe_int(summary.get("tables_added_total"))

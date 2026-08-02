@@ -357,10 +357,6 @@ def _iter_expert_excel_rows(
     indicator_result: dict[str, Any] | None,
 ) -> Iterator[dict[str, str]]:
     """Produit les lignes Excel expert avec une ligne par changement metier."""
-    ir = indicator_result or {}
-    banque = _sanitize_cell(ir.get("bank_code", "")).upper()
-    trimestre = _build_trimestre_label(ir)
-
     for item in review_items:
         base = item.to_dict()
         indicators = list(base.get("indicators", []) or [])
@@ -701,15 +697,6 @@ def _iter_validation_rows(
         base = item.to_dict()
         indicators = base.get("indicators", [])
         table_status = str(base.get("table_status", ""))
-        confidence_raw = base.get("confidence")
-        if confidence_raw is not None:
-            try:
-                score = round(float(confidence_raw), 2)
-            except (TypeError, ValueError):
-                score = 0.0
-        else:
-            score = 0.0
-        score_str = f"{score:.2f}"
         match_method = str(base.get("match_method", ""))
         suspect = _to_suspect(match_method)
         validation = _to_validation_finale(base.get("review_status", ""))
@@ -726,10 +713,6 @@ def _iter_validation_rows(
         # Lecture directe AMF v2 — plus de champs legacy translated.
         pertinence_genai = _sanitize_cell(ga.get("category", ""))
         niveau_risque_genai = _sanitize_cell(ga.get("impact_level", ""))
-        impact_type_genai = _sanitize_cell(ga.get("impact_type", ""))
-        phase_genai = _sanitize_cell(ga.get("project_phase", ""))
-        action_genai = _sanitize_cell(ga.get("action_requise", ""))
-        ref_regl_genai = _sanitize_cell(ga.get("reference_reglementaire", ""))
 
         if not ga:
             nouvelle_divulgation = "Non analysé"

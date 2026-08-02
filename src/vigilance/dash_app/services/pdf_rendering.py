@@ -140,9 +140,6 @@ def _get_proof_render_result_for_item(
         Dictionnaire avec ``image_b64``, ``status`` et ``mode_effective``.
     """
     display_mode = (proof_display_mode or "crop").strip().lower()
-    highlight_color = (
-        PROOF_HIGHLIGHT_COLOR_T1 if side == "t1" else PROOF_HIGHLIGHT_COLOR_T2
-    )
     if display_mode not in {"crop", "full", "footnote"}:
         display_mode = "crop"
 

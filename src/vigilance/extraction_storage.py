@@ -126,7 +126,6 @@ def table_artifact_from_dict(d: dict[str, Any]) -> TableArtifact:
         ]
     elif footnotes is not None and not isinstance(footnotes, list):
         footnotes = None
-    fragmentation_detected = bool(d.get("fragmentation_detected", False))
     debug_metrics = d.get("debug_metrics")
     if debug_metrics is not None and not isinstance(debug_metrics, dict):
         debug_metrics = None

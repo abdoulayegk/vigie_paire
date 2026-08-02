@@ -227,7 +227,6 @@ class VisualLayoutMixin:
                 continue
 
             page_elements = visual_elements[page_num]
-            page_text = text_by_page.get(page_num, "")
 
             for elem in page_elements:
                 # Verifier si c'est potentiellement un titre
@@ -247,7 +246,6 @@ class VisualLayoutMixin:
                     continue
 
                 # Verifier si le texte correspond a un pattern de section
-                text_normalized = normalize_text(elem.text)
 
                 for section_type, config in self.compiled_patterns.items():
                     # Verifier les patterns

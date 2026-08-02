@@ -64,7 +64,6 @@ class SectionAssociationMixin:
         # Pour chaque tableau, trouver la section précédente la plus proche
         for table in tables:
             # Chercher dans le texte autour du titre du tableau
-            table_title = table.title or ""
 
             # Trouver la section la plus proche avant ce tableau (basé sur page)
             best_section = None

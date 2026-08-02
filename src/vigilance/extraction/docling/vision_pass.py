@@ -36,8 +36,6 @@ class VisionPassMixin:
         idx, page_num, table_bbox, table_id, reference_text = item
         pdf_path = shared["pdf_path"]
         bank_code = shared["bank_code"]
-        quarter = shared["quarter"]
-        year = shared["year"]
         pdf_sha = shared["pdf_sha"]
         vision_extraction_cfg = shared["vision_extraction_cfg"]
         bottom_extension_footnotes = shared["bottom_extension_footnotes"]
@@ -50,7 +48,6 @@ class VisionPassMixin:
         schema_failure_policy = shared["schema_failure_policy"]
         labels_only = shared["labels_only"]
         vision_crop_dpi: int = shared.get("vision_crop_dpi", 300)
-        vision_preprocess: bool | None = shared.get("vision_preprocess")
         vision_model_name: str | None = shared.get("vision_model_name")
 
         vision_status_str = "failed"
