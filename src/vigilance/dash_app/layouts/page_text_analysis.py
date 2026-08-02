@@ -31,6 +31,11 @@ from vigilance.dash_app.components.text_change_presentation import (
     build_atomic_change_group,
     build_source_evidence_details,
 )
+from vigilance.dash_app.layouts.text_analysis import (
+    build_text_analysis_detail_panel,
+    build_text_analysis_filters,
+    build_text_section_card,
+)
 from vigilance.i18n.fr import sanitize_analyst_french
 from vigilance.quarter_utils import quarter_label_from_payload
 from vigilance.text_comparison.justification import build_text_triage_justification
