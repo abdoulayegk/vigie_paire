@@ -12,7 +12,7 @@ from vigilance.extraction.vision import (
 
 def test_build_vision_prompts() -> None:
     sys_p = build_vision_system_prompt()
-    assert "financières" in sys_p
+    assert "Canadian bank" in sys_p
 
     usr_p = build_vision_user_prompt("td", "Section liquidité")
     assert "TD" in usr_p
