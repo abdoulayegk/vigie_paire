@@ -35,23 +35,13 @@ vigie-validateur = "vigie.validateur:main"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
-packages = [
-    "vigie",
-    "vigilance",
-    "vigilance.cli",
-    "vigilance.config",
-    "vigilance.dash_app",
-    "vigilance.dash_app.callbacks",
-    "vigilance.dash_app.components",
-    "vigilance.dash_app.layouts",
-    "vigilance.extraction",
-    "vigilance.i18n",
-    "vigilance.models",
-    "vigilance.quality",
-    "vigilance.report",
-    "vigilance.text_analysis",
-    "vigilance.utils",
-]
+
+# Decouverte automatique : la liste explicite precedente omettait deja
+# vigilance.dash_app.services, vigilance.text_comparison et vigilance.text_extraction,
+# qui etaient donc absents de `pip install -e . --no-deps` (poste validateur).
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["vigie*", "vigilance*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
