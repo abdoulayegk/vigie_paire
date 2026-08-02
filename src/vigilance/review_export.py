@@ -9,6 +9,10 @@ from collections import Counter, defaultdict
 from datetime import datetime
 from typing import Any, Iterator
 
+from vigilance.export import (
+    export_comparison_to_excel,
+    export_summary_to_pdf,
+)
 from vigilance.quarter_utils import quarter_label_from_payload
 from vigilance.review_models import ReviewItem
 
