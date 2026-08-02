@@ -1089,7 +1089,7 @@ def test_quality_pass_cache_preserves_final_self_healing_decision(
         use_cache=True,
     )
     monkeypatch.setattr(
-        "vigilance.extraction.vision_full_extractor.get_vision_cache_dir",
+        "vigilance.extraction.vision_full.quality_pass.get_vision_cache_dir",
         lambda: tmp_path,
     )
     calls: list[bytes] = []
@@ -1135,7 +1135,7 @@ def test_quality_pass_does_not_cache_unresolved_empty_candidate(
         use_cache=True,
     )
     monkeypatch.setattr(
-        "vigilance.extraction.vision_full_extractor.get_vision_cache_dir",
+        "vigilance.extraction.vision_full.quality_pass.get_vision_cache_dir",
         lambda: tmp_path,
     )
     calls: list[bytes] = []
