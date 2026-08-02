@@ -5,6 +5,11 @@ conserve les anciens imports, y compris plusieurs helpers privés encore utilis�
 par les tests et certains monkeypatchs historiques.
 """
 
+# Facade de compatibilite : les imports ci-dessous sont des re-exports volontaires,
+# consommes par les tests et par des monkeypatchs historiques. F401 est neutralise
+# pour tout le module afin de ne pas les faire disparaitre par mégarde.
+# ruff: noqa: F401
+
 from __future__ import annotations
 
 import time

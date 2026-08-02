@@ -9,7 +9,6 @@ from __future__ import annotations
 import os
 import re
 from pathlib import Path
-from typing import Any
 
 _ENV_TRUE = {"1", "true", "yes", "on"}
 _ENV_FALSE = {"0", "false", "no", "off"}

@@ -14,7 +14,6 @@ from vigilance.text_analysis.docling_segment_repair import (
     _repair_nonadjacent_dangling_boundaries,
     _segment_audit_text,
 )
-from vigilance.text_analysis.constants import _SECTION_LABELS
 from vigilance.text_analysis.list_items import (
     format_list_item_markdown,
     parse_list_item_line,
@@ -25,7 +24,7 @@ from vigilance.text_analysis.markdown import (
     _is_out_of_scope_accounting_heading,
     _is_structural_markdown_heading,
 )
-from vigilance.text_analysis.models import PDFBlock, SectionAudit, TextAnalysisQualityError
+from vigilance.text_analysis.models import PDFBlock, SectionAudit
 from vigilance.text_analysis.normalization import (
     _is_chart_axis_label_row,
     _is_not_applicable_marker,

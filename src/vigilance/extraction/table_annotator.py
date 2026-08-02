@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 # Import conditionnel de PIL
 try:
-    from PIL import Image, ImageDraw, ImageFont
+    from PIL import Image, ImageDraw, ImageFont  # noqa: F401 - sonde de disponibilite
 
     PIL_AVAILABLE = True
 except ImportError:

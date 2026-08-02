@@ -13,7 +13,6 @@ from typing import Any
 
 from vigilance.models.table_models import (
     TABLE_EXTRACTION_STATUS_CONFIRMED_NO_TABLE,
-    TABLE_EXTRACTION_STATUS_OK,
     TABLE_EXTRACTION_STATUS_RESCUED,
     TABLE_EXTRACTION_STATUS_SUSPECT_UNRESOLVED,
     get_extraction_confidence,

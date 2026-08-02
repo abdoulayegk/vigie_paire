@@ -25,7 +25,7 @@ except ImportError:
 
 # Import conditionnel de PIL
 try:
-    from PIL import Image
+    from PIL import Image  # noqa: F401 - sonde de disponibilite
 
     PIL_AVAILABLE = True
 except ImportError:

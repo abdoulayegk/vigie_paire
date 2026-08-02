@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
-from typing import Any
 
 from vigilance.utils.text_normalize_base import normalize_text_base
 

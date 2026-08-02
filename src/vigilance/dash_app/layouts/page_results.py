@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import dash_bootstrap_components as dbc
-from dash import dcc, html
+from dash import html
 
 from vigilance.i18n import t
 

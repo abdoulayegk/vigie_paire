@@ -21,14 +21,6 @@ from typing import Any
 
 from tqdm import tqdm
 
-from vigilance.analyst_change_presentation import bank_subject
-from vigilance.amf_taxonomy import (
-    IMPACT_IT_DETAIL_LABELS,
-    POSTURE_DETAIL_LABELS,
-    format_theme_subjects_for_prompt,
-    format_themes_for_prompt,
-    missing_labeled_analysis_sections,
-)
 from vigilance.triage_prompts import (
     _SUMMARY_SYSTEM_PROMPT,
     _TRIAGE_SYSTEM_PROMPT,
@@ -36,17 +28,7 @@ from vigilance.triage_prompts import (
     _build_summary_user_prompt,
 )
 from vigilance.triage_validation import (
-    VALID_ACTIONS,
-    VALID_CATEGORIES,
-    VALID_CHANGEMENTS_POSTURE,
-    VALID_CONFIANCES_POSTURE,
-    VALID_IMPACT_IT,
-    VALID_IMPACT_TYPES,
-    VALID_PROJECT_PHASES,
     VALID_RELEVANCE,
-    VALID_RISK_LEVELS,
-    VALID_STATUTS_MISE_EN_OEUVRE,
-    VALID_THEMES_AMF,
     _validate_triage_response,
 )
 

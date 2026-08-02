@@ -7,7 +7,6 @@ des ajustements de dates et des filtres d'immunit√© pour la gouvernance et la r√
 from __future__ import annotations
 
 import re
-from typing import Any
 
 _COSMETIC_SEQUENCE_THRESHOLD = 0.985
 _BANK_NOISE_SEQUENCE_THRESHOLD = 0.92

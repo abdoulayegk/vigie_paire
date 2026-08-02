@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
 
 from vigilance.cli.quarter_logic import normalize_quarter
 from vigilance.extraction.section_locator import locate_sections_in_pdf

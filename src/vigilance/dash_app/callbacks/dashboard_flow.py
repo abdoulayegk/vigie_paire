@@ -16,7 +16,6 @@ from vigilance.dash_app.components.review_display_shared import (
 )
 from vigilance.dash_app.layouts.page_results import build_analyst_kpi_card
 from vigilance.dash_app.services.comparison_context import (
-    _comparison_path_from_meta,
     _pdf_paths_from_comparison_meta,
 )
 from vigilance.dash_app.services.export_helpers import (

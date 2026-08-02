@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import base64
 import logging
-from typing import Any
 
 from vigilance.utils.genai import get_openai_api_key
 

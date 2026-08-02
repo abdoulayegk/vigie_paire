@@ -6,7 +6,6 @@ des structures d'indicateurs et la construction des requêtes d'extraction d'ima
 
 from __future__ import annotations
 
-from typing import Any
 from pydantic import BaseModel, ConfigDict, Field
 
 

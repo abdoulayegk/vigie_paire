@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import re
-import unicodedata
 
 from vigilance.utils.indicator_cleaner import normalize_indicator_for_comparison
 
