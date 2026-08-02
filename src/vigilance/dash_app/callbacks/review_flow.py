@@ -454,12 +454,14 @@ def on_change_row_click(n_clicks, queue, selection, filters, last_positions):
         raise PreventUpdate
 
     owner_table = None
-    for t in queue:
+    # Variable nommee 'table' et non 't' : 't' est la fonction de traduction i18n
+    # importee en tete de module, que la boucle masquait dans cette fonction.
+    for table in queue:
         if any(
             str(c.get("change_id", "")) == change_id
-            for c in (t.get("changes", []) or [])
+            for c in (table.get("changes", []) or [])
         ):
-            owner_table = t
+            owner_table = table
             break
     if owner_table is None:
         raise PreventUpdate

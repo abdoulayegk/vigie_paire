@@ -47,7 +47,6 @@ from vigilance.triage_validation import (
     VALID_RISK_LEVELS,
     VALID_STATUTS_MISE_EN_OEUVRE,
     VALID_THEMES_AMF,
-    _empty_triage_skeleton,
     _validate_triage_response,
 )
 
@@ -142,81 +141,6 @@ async def _call_openai_json_async(
         logger.warning("GenAI triage call failed: %s", exc)
         return None
 
-
-        changement_posture = "INDETERMINE"
-        justification_posture = ""
-        statut_mise_en_oeuvre = "INDETERMINE"
-        confiance_posture = "INDETERMINE"
-
-    if not is_relevant:
-        impact_it = "INDETERMINE"
-        impact_it_justification = ""
-        changement_posture = "AUCUN"
-        justification_posture = ""
-        statut_mise_en_oeuvre = "INDETERMINE"
-        confiance_posture = "INDETERMINE"
-
-    try:
-        confidence = max(0.0, min(1.0, float(data.get("confidence", 0.5))))
-    except (TypeError, ValueError):
-        confidence = 0.5
-
-    explanation = str(data.get("explanation") or "")[:1200]
-
-    impact_type = str(data.get("impact_type") or "non_substantif").lower()
-    if impact_type not in VALID_IMPACT_TYPES:
-        impact_type = "non_substantif"
-
-    project_phase = str(data.get("project_phase") or "autre").lower()
-    if project_phase not in VALID_PROJECT_PHASES:
-        project_phase = "autre"
-
-    action_requise = str(data.get("action_requise") or "aucune").lower()
-    if action_requise not in VALID_ACTIONS:
-        action_requise = "aucune"
-
-    reference_reglementaire = str(data.get("reference_reglementaire") or "")[:200]
-    impact_description = str(data.get("impact_description") or "")[:500]
-
-    invariant_error = _validate_amf_invariants(
-        is_relevant=is_relevant,
-        themes_amf=themes_amf,
-        category=category,
-        nouvelle_idee=nouvelle_idee,
-        nouvelle_idee_justification=nouvelle_idee_justification,
-        action_requise=action_requise,
-    )
-    if invariant_error:
-        logger.warning(
-            "Invariants AMF violés dans la sortie LLM (%s) — triage forcé en NON_PERTINENT",
-            invariant_error,
-        )
-        return _empty_triage_skeleton(source="invariant_violation")
-
-    return {
-        "is_relevant": is_relevant,
-        "themes_amf": themes_amf,
-        "nouvelle_idee": nouvelle_idee,
-        "nouvelle_idee_justification": nouvelle_idee_justification,
-        "impact_level": impact_level,
-        "impact_it": impact_it,
-        "impact_it_justification": impact_it_justification,
-        "changement_posture": changement_posture,
-        "justification_posture": justification_posture,
-        "statut_mise_en_oeuvre": statut_mise_en_oeuvre,
-        "confiance_posture": confiance_posture,
-        "category": category,
-        "relevance_score": relevance,
-        "risk_level": risk_level,
-        "confidence": confidence,
-        "explanation": explanation,
-        "impact_type": impact_type,
-        "project_phase": project_phase,
-        "action_requise": action_requise,
-        "reference_reglementaire": reference_reglementaire,
-        "impact_description": impact_description,
-        "source": "llm",
-    }
 
 
 def _empty_triage_skeleton(*, source: str = "heuristic") -> dict[str, Any]:

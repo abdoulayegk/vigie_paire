@@ -493,6 +493,11 @@ def crop_page_region_bytes(
         Bytes PNG de l'image.
     """
     if not bbox_norm:
+        # Import paresseux : render_pdf_page etait appele sans etre importe, ce qui
+        # levait NameError sur cette branche. Charge ici pour eviter tout cycle
+        # entre vigilance.utils et vigilance.extraction.
+        from vigilance.extraction.pdf_preview import render_pdf_page
+
         return render_pdf_page(pdf_path, page_number, scale=dpi / 72, format="png") or b""
 
     return crop_table_region_to_bytes(
