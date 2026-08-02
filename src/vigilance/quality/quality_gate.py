@@ -20,6 +20,11 @@ from vigilance.models.table_models import (
     get_extraction_quality_flags,
     normalize_extraction_status,
 )
+from vigilance.quality.checks import (
+    check_extraction_completeness,
+    check_indicator_consistency,
+    check_schema_compliance,
+)
 from vigilance.utils.indicator_cleaner import (
     clean_table_title_contamination,
     is_table_title_contaminated,
