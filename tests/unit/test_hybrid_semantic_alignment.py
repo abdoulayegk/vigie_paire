@@ -768,7 +768,7 @@ def test_triage_dedup_groups_compatible_near_duplicates(monkeypatch) -> None:
         },
     ]
     monkeypatch.setattr(
-        "vigilance.text_analysis.triage._embed_texts",
+        "vigilance.text_analysis.triage_parts.dedup._embed_texts",
         lambda client, texts, model="text-embedding-3-small": [
             [1.0, 0.0, 0.0],
             [0.99, 0.05, 0.0],
