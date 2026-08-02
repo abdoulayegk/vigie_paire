@@ -20,6 +20,14 @@ from ..utils.openai_schema import (
 )
 from .page_table_locator import should_use_page_context_rescue
 from vigilance.extraction.components.footnote_extractor import extract_clean_footnotes
+from vigilance.extraction.vision import (
+    VisionFootnoteItem,
+    VisionIndicatorItem,
+    VisionTableResponse,
+    build_vision_system_prompt,
+    build_vision_user_prompt,
+    crop_image_bbox,
+)
 from .vision_cache import (
     cache_get,
     cache_put,
