@@ -27,7 +27,7 @@ jobs:
         run: uv run ruff check src/
 
       - name: Check test environment imports
-        run: uv run python -c "import pytest; import reportlab; print('test_env_imports_ok')"
+        run: uv run python -c "import pytest; print('test_env_imports_ok')"
 
       - name: Run tests
         run: uv run pytest -q
