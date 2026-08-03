@@ -8,6 +8,33 @@ Point de branchement : `e4cce93` (main).
 Réduire les fichiers qui concentrent une part importante des 70 718 lignes de `src/vigilance`,
 sans changer aucun comportement.
 
+### Priorité 1 terminée — cœur de la comparaison
+
+Le premier lot fonctionnel a été découpé sur la branche courante en quatre commits
+indépendants. Les anciens chemins restent des façades compatibles afin de préserver
+les imports existants et les points de `monkeypatch` utilisés par les tests.
+
+| Phase | Façade | Avant | Après | Modules de responsabilité | Commit |
+|---|---|---:|---:|---|---|
+| Rapprochement | `comparison_matching.py` | 1 316 | 45 | `rapprochement_tableaux/contrats.py`, `normalisation_reponses.py`, `correction_reponses.py`, `moteur_rapprochement.py` | `8e38b4d` |
+| Différences | `comparison_diff_gpt.py` | 1 171 | 44 | `differences_tableaux/normalisation_elements.py`, `comparaison_deterministe.py`, `comparaison_llm.py`, `filtrage_artefacts.py`, `comparaison_paire.py` | `11d83db` |
+| Sections textuelles | `text_analysis/comparison.py` | 1 228 | 98 | `comparaison_sections/modeles.py`, `preparation_lots.py`, `execution_llm.py`, `resolution_alignements.py`, `traitement_fragments_orphelins.py`, `comparaison_section.py` | `10d82fd` |
+| Pipeline complet | `compare_gpt.py` | 1 287 | 73 | `pipeline_comparaison/client_openai.py`, `ancrages_visuels.py`, `evenements_tableaux.py`, `traitement_paires.py`, `construction_resultat.py`, `orchestration.py` | `08ad09e` |
+
+Responsabilités obtenues :
+
+- le **rapprochement** valide, normalise, corrige puis apparie les tableaux ;
+- les **différences** séparent la comparaison déterministe, l'analyse LLM et le
+  filtrage des artefacts ;
+- la **comparaison textuelle** sépare les modèles, les lots, l'exécution LLM,
+  l'alignement et les fragments orphelins ;
+- le **pipeline complet** ne conserve dans l'orchestrateur que l'enchaînement des
+  étapes. Le transport OpenAI, les preuves visuelles, les événements non appariés,
+  les paires et l'écriture du résultat sont isolés.
+
+Validation du lot : `1 106 passed, 18 skipped`; Ruff et Bandit passent sur tous
+les fichiers modifiés, ainsi que dans les hooks de chacun des quatre commits.
+
 | Fichier | Lignes au départ | Cible |
 |---|---|---|
 | `extraction/section_locator.py` | 4 565 | ~12 modules de 150 à 600 lignes |
@@ -18,9 +45,10 @@ sans changer aucun comportement.
 
 ## Règles
 
-1. Une phase = une PR vers `refactor/split-monoliths`. Jamais vers `main`.
-2. Aucun changement de comportement dans une PR de découpage. Un bug trouvé
-   en route fait l'objet d'une PR séparée.
+1. Une phase = un commit séparé sur `refactor/split-monoliths`. Les phases restent
+   sur cette même branche ; aucune PR distincte n'est requise.
+2. Aucun changement de comportement dans un commit de découpage. Un bug trouvé
+   en route fait l'objet d'un commit séparé.
 3. Les modules d'origine restent en place comme **façades de re-export** : plusieurs
    tests importent des symboles privés (`_PROMPT_BASE`, `_parse_vision_result`,
    `_grade_extraction_quality`, `_viable_indicator_count`, `_structural_indicator_count`,
