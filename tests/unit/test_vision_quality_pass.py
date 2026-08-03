@@ -71,6 +71,29 @@ def test_vision_client_uses_direct_120_second_timeout(monkeypatch) -> None:
     assert OPENAI_VISION_TIMEOUT_SECONDS == 120.0
 
 
+def test_vision_extractor_exposes_model_metadata() -> None:
+    extractor = VisionFullExtractor(api_key="test-key", model="gpt-4o-test")
+
+    assert extractor.model_name == "gpt-4o-test"
+    assert extractor.model_role == "extraction_primary"
+
+
+def test_vision_schema_validation_is_callable_and_idempotent(monkeypatch) -> None:
+    extractor = VisionFullExtractor(api_key="test-key", model="gpt-4o-test")
+    validated_schemas: list[dict] = []
+
+    monkeypatch.setattr(
+        "vigilance.extraction.vision_full_extractor._validate_openai_strict_schema_contract",
+        validated_schemas.append,
+    )
+
+    extractor.validate_schema()
+    extractor.validate_schema()
+
+    assert len(validated_schemas) == 1
+    assert extractor._schema_contract_checked == {"full"}
+
+
 @pytest.mark.parametrize(
     "reasons,critiques,qa_missing,expected",
     [

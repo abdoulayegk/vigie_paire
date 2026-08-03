@@ -157,7 +157,15 @@ class VisionFullExtractor(ConsensusMixin, QualityPassMixin):
         self._schema_contract_error_logged = False
 
     @property
+    def model_name(self) -> str:
+        """Retourne le nom du modele d'extraction resolu."""
+        return self._model
+
     @property
+    def model_role(self) -> str:
+        """Retourne le role logique utilise pour la resolution du modele."""
+        return _MODEL_ROLE
+
     def _ensure_schema_validated(self, schema: dict[str, Any] | None = None) -> None:
         """Valide le schema une seule fois et le marque comme verifie. Raises VisionSchemaContractError si invalide."""
         if "full" in self._schema_contract_checked:
