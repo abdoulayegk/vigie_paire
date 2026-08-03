@@ -336,53 +336,6 @@ def _table_entry_footnotes(
     }
 
 
-def write_indicators_json(
-    tables_t1: list[Any],
-    tables_t2: list[Any],
-    out_dir: Path,
-    bank_code: str,
-    run_id: str,
-) -> Path:
-    """Ecrire ``indicators.json`` pour l'audit.
-
-    Chaque entree contient : table_id, title, date_reference, page, source
-    (T1/T2), sections.
-
-    Args:
-        tables_t1: Tableaux du trimestre T1.
-        tables_t2: Tableaux du trimestre T2.
-        out_dir: Repertoire de sortie.
-        bank_code: Code de la banque.
-        run_id: Identifiant de l'execution.
-
-    Returns:
-        Chemin du fichier ``indicators.json`` ecrit.
-    """
-    out_dir.mkdir(parents=True, exist_ok=True)
-    entries: list[dict[str, Any]] = []
-    for t in tables_t1:
-        entries.append(_table_entry_indicators(t, "t1"))
-    for t in tables_t2:
-        entries.append(_table_entry_indicators(t, "t2"))
-
-    payload: dict[str, Any] = {
-        "bank_code": bank_code,
-        "run_timestamp": datetime.now().isoformat(timespec="seconds"),
-        "run_id": run_id,
-        "artifact_role": "audit_only",
-        "authoritative_source": "table_artifacts_for_comparison",
-        "tables": entries,
-    }
-
-    out_path = out_dir / "indicators.json"
-    out_path.write_text(
-        json.dumps(payload, ensure_ascii=False, indent=2),
-        encoding="utf-8",
-    )
-    logger.debug("Wrote indicators.json to %s", out_path)
-    return out_path
-
-
 def write_footnotes_json(
     tables_t1: list[Any],
     tables_t2: list[Any],

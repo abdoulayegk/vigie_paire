@@ -92,15 +92,6 @@ def classify_rbc_title_reliability(
     return "reliable"
 
 
-def is_unreliable_rbc_title(
-    title: str | None,
-    *,
-    bank_code: str | None = None,
-) -> bool:
-    """Retourne ``True`` si le titre RBC est absent ou non fiable."""
-    return classify_rbc_title_reliability(title, bank_code=bank_code) != "reliable"
-
-
 @dataclass(slots=True)
 class RbcFirstColumnSignals:
     """Signaux extraits de la premiere colonne d'un tableau RBC."""

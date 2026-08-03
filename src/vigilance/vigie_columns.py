@@ -153,45 +153,6 @@ def _truncate_at_sentence(value: str, limit: int) -> str:
     return window.rstrip(" ,;:") + "."
 
 
-def summarize_change(
-    change: dict[str, Any],
-    *,
-    previous_text: str = "",
-    current_text: str = "",
-    limit: int = 300,
-) -> str:
-    """Produit une phrase factuelle courte, indépendante du triage AMF."""
-    from vigilance.i18n.fr import sanitize_analyst_french
-
-    summary = str(
-        change.get("what_changed") or change.get("change_summary") or ""
-    ).strip()
-    if summary:
-        value = sanitize_analyst_french(re.sub(r"\s+", " ", summary))
-        if len(value) > limit:
-            value = _truncate_at_sentence(value, limit)
-        return value
-
-    diff_type = str(change.get("diff_type") or change.get("change_type") or "").lower()
-    if diff_type in {"added", "table_added"}:
-        value = current_text
-        prefix = "Ajout : "
-    elif diff_type in {"removed", "table_removed"}:
-        value = previous_text
-        prefix = "Suppression : "
-    elif diff_type == "renamed":
-        value = f"{previous_text} → {current_text}".strip(" →")
-        prefix = "Renommage : "
-    else:
-        value = current_text or previous_text
-        prefix = "Modification : "
-
-    value = re.sub(r"\s+", " ", str(value or "")).strip()
-    if len(value) > limit:
-        value = _truncate_at_sentence(value, limit)
-    return sanitize_analyst_french(prefix + value if value else prefix.rstrip(" :"))
-
-
 def subsection_label(change: dict[str, Any]) -> str:
     """Retourne le libellé de sous-section utilisable par Dash et Excel."""
     heading = str(change.get("subsection_heading") or "").strip()
@@ -206,14 +167,6 @@ def subsection_label(change: dict[str, Any]) -> str:
         if slug and slug != "full":
             return slug.replace("_", " ").strip()
     return ""
-
-
-def relevance_reason_for_display(change: dict[str, Any]) -> str:
-    """Retourne uniquement l'analyse métier, jamais le constat factuel."""
-    relevance = build_analyst_narrative(change).business_relevance
-    if relevance:
-        return relevance
-    return "La pertinence n’a pas encore été qualifiée par l’analyse automatisée."
 
 
 def what_changed_for_display(change: dict[str, Any], *, limit: int = 300) -> str:

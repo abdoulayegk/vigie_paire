@@ -58,19 +58,6 @@ vision_extraction:
     max_pages_per_run: 50
     cache_enabled: true
 
-quality_gate:
-  enabled: true
-  duplicate_ratio_threshold: 0.15
-  max_tables_duplicate_excess: 3
-  max_contaminated_titles: 2
-  line_split_max_per_table: 2
-  missing_marker_majority_threshold: 0.5
-  title_numeric_density_threshold: 0.45
-  # Extraction certification (quality-first): fail run when blocked/review_required exceed limits.
-  max_tables_blocked: 0
-  max_tables_review_required: 10
-  fail_on_budget_exhausted: true
-
 validation:
   vision_unmatched_rescue_enabled: true
   cross_section_rescue_enabled: false
@@ -869,7 +856,6 @@ filtering_rules:
   min_indicators_for_structural_change: 2
 
 genai_settings:
-  enable_genai_summary: true
   genai_model: "gpt-4o"
   genai_timeout_s: 60
   genai_max_tables: 50

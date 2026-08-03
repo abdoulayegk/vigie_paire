@@ -192,17 +192,6 @@ def changements_communs_output_path(
     return root / normalized_period / "changements_communs_banques.json"
 
 
-def list_changements_communs_periods(root_dir: Path | str | None = None) -> list[str]:
-    """List result periods that contain at least one text comparison."""
-    root = Path(root_dir) if root_dir else TEXT_COMPARISON_DIR
-    periods = {
-        path.parent.name
-        for path in root.glob("*/*/text_comparison.json")
-        if path.parent.name
-    }
-    return sorted(periods)
-
-
 def latest_changements_communs_report_path(
     base_dir: Path | str | None = None,
 ) -> Path | None:
@@ -260,44 +249,6 @@ def build_changements_communs_source_stats(records: list[ChangementCommunRecord]
             sorted(posture_confidence_counts.items())
         ),
     }
-
-
-def retrieve_changements_communs_candidates(
-    query: str,
-    records: list[ChangementCommunRecord],
-    *,
-    client: Any,
-    embedding_model: str = DEFAULT_EMBEDDING_MODEL,
-    top_k: int = DEFAULT_MAX_CANDIDATES,
-) -> list[ChangementCommunRecord]:
-    """Retrieve semantically relevant change records using OpenAI embeddings.
-
-    Args:
-        query: Analyst topic or question.
-        records: Source records to search.
-        client: OpenAI client instance.
-        embedding_model: Embedding model name.
-        top_k: Maximum number of candidate records to return.
-
-    Returns:
-        Records ranked by embedding similarity.
-    """
-    if not records:
-        return []
-
-    search_query = str(query or "").strip() or (
-        "changements de divulgation similaires entre banques canadiennes"
-    )
-    query_embedding = _embed_texts(client, [search_query], embedding_model)[0]
-    record_texts = [record.retrieval_text() for record in records]
-    record_embeddings = _embed_texts(client, record_texts, embedding_model)
-
-    scored = [
-        (_cosine_similarity(query_embedding, embedding), record)
-        for embedding, record in zip(record_embeddings, records, strict=False)
-    ]
-    scored.sort(key=lambda item: item[0], reverse=True)
-    return [record for _, record in scored[: max(1, top_k)]]
 
 
 def build_changements_communs_discovery_queries(topic: str) -> list[str]:

@@ -254,35 +254,6 @@ def get_extraction_quality_flags(table: Any) -> dict[str, bool]:
     }
 
 
-def get_extraction_quality_profile(table: Any) -> dict[str, Any]:
-    """Retourner un profil qualite normalise pour une table.
-
-    Agregue la confiance, les drapeaux, le bbox_sanity_profile et les metadonnees
-    associees. Utilise par le matcher et l'observabilite.
-
-    Args:
-        table: Objet table avec debug_metrics.
-
-    Returns:
-        Dictionnaire avec les cles : confidence, flags, bbox_sanity_profile,
-        page_title_assist_used, page_title_assist_match_method, warnings.
-    """
-    if table is None:
-        return {}
-    dm = getattr(table, "debug_metrics", None) or {}
-    if not isinstance(dm, dict):
-        return {}
-    profile: dict[str, Any] = {
-        "confidence": get_extraction_confidence(table),
-        "flags": get_extraction_quality_flags(table),
-        "bbox_sanity_profile": dm.get("bbox_sanity_profile"),
-        "page_title_assist_used": dm.get("page_title_assist_used"),
-        "page_title_assist_match_method": dm.get("page_title_assist_match_method"),
-        "warnings": list(dm.get("warnings") or []),
-    }
-    return profile
-
-
 @dataclass(slots=True)
 class TableArtifact:
     """Representation canonique en memoire d'une table extraite.

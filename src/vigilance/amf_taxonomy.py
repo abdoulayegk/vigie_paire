@@ -926,11 +926,6 @@ def format_theme_subjects_for_prompt() -> str:
     return "\n".join(f"- {code} -> {subject}" for code, subject in THEMES_AMF_ANALYST_SUBJECTS.items())
 
 
-def format_exclusion_reasons_for_prompt() -> str:
-    """Formate les raisons d'exclusion pour injection dans le prompt GPT-4o."""
-    return "\n".join(f"- {code} : {description}" for code, description in EXCLUSION_REASONS_DESCRIPTIONS.items())
-
-
 def empty_triage_skeleton() -> dict:
     """Squelette de triage non pertinent pour un changement absent du batch GPT.
 

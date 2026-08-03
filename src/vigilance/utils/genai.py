@@ -20,8 +20,3 @@ def get_openai_api_key() -> str | None:
     """
     raw = os.getenv("OPENAI_API_KEY") or ""
     return raw.strip() if isinstance(raw, str) else None
-
-
-def is_genai_configured() -> bool:
-    """Retourne True lorsqu'une cle API GenAI est disponible."""
-    return bool(get_openai_api_key())

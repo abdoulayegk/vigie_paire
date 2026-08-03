@@ -368,50 +368,6 @@ def get_validation_config(
     return base
 
 
-def get_quality_gate_config(
-    config_path: str | Path = "configs/bank_profiles.yaml",
-    bank_code: str | None = None,
-) -> dict[str, Any]:
-    """Charger la configuration du portail qualite avec surcharges bancaires.
-
-    Args:
-        config_path: Chemin vers le fichier YAML de configuration.
-        bank_code: Code banque optionnel pour les surcharges par banque.
-
-    Returns:
-        Dictionnaire fusionne du bloc global quality_gate et des surcharges
-        bancaires optionnelles. Dictionnaire vide si la configuration est
-        absente ou invalide.
-    """
-    path = _resolve_config_path(config_path)
-    if not path.exists():
-        return {}
-
-    try:
-        cfg = load_config(path)
-    except Exception:
-        return {}
-
-    global_block = cfg.get("quality_gate")
-    if not isinstance(global_block, dict):
-        base: dict[str, Any] = {}
-    else:
-        base = dict(global_block)
-
-    if bank_code:
-        banks = cfg.get("banks")
-        if isinstance(banks, dict):
-            key = str(bank_code).strip().lower()
-            if key in banks:
-                bank_cfg = banks[key]
-                if isinstance(bank_cfg, dict):
-                    bank_qg = bank_cfg.get("quality_gate")
-                    if isinstance(bank_qg, dict):
-                        base = {**base, **bank_qg}
-
-    return base
-
-
 __all__ = [
     "load_config",
     "get_bank_cfg",
@@ -421,6 +377,5 @@ __all__ = [
     "resolve_openai_model",
     "get_vision_extraction_config",
     "get_text_extraction_config",
-    "get_quality_gate_config",
     "get_validation_config",
 ]

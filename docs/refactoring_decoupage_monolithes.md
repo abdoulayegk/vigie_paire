@@ -152,10 +152,13 @@ des constantes *annotées* (`NOM: type = ...`). Un relevé des constantes par
 Non réutilisée. Vérification faite avant de démarrer : elle ne réduit aucun des deux
 plus gros fichiers (`section_locator.py` +1 ligne, `docling_processor.py` inchangé) ;
 ses « modules » sont des réimplémentations parallèles neuves, pas des extractions
-(`export_comparison_to_excel()` ignore ses arguments et n'exporte rien,
-`check_extraction_completeness()` teste si une clé est non vide alors que
-`quality_gate.py` fait 1 132 lignes de contrôles réels) ; et ses imports sont morts
-(`detect_section_key` et les trois `check_*` sont importés mais jamais appelés).
-Elle ajoute par ailleurs `langchain-core`, `langchain-openai` et `langgraph` en
-dépendances runtime, et remplace `triage.py` (2 103 lignes) par une façade de
-73 lignes — un changement de comportement, pas un découpage.
+(`export_comparison_to_excel()` ignore ses arguments et n'exporte rien) ; et ses
+imports sont morts (`detect_section_key` et les trois `check_*` sont importés mais
+jamais appelés). Elle ajoute par ailleurs `langchain-core`, `langchain-openai` et
+`langgraph` en dépendances runtime, et remplace `triage.py` (2 103 lignes) par une
+façade de 73 lignes — un changement de comportement, pas un découpage.
+
+> Note : l'argument initial opposait `check_extraction_completeness()` aux
+> « 1 132 lignes de contrôles réels » de `quality_gate.py`. L'audit de code mort a
+> montré que `quality_gate.py` n'était appelé par aucun pipeline — le module a été
+> supprimé. La comparaison ne tient plus ; les autres motifs de rejet restent valides.

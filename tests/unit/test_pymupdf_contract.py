@@ -23,7 +23,6 @@ from vigilance.utils.pdf_crop import (
     render_page_with_bbox_highlight_to_bytes,
 )
 from vigilance.utils.pdf_highlight import find_text_bboxes_in_region
-from vigilance.utils.pdf_image import pdf_page_to_image
 
 _PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 
@@ -110,8 +109,8 @@ def test_crop_render_and_highlight_contract(sample_pdf: Path, tmp_path: Path) ->
     assert all(0.0 <= coordinate <= 1.0 for coordinate in matches[0])
 
 
-def test_fallback_blocks_and_numpy_image_contract(sample_pdf: Path) -> None:
-    """Verifier le fallback du pipeline texte et le rendu NumPy Vision."""
+def test_fallback_blocks_contract(sample_pdf: Path) -> None:
+    """Verifier le fallback du pipeline texte."""
     blocks_by_page = _extract_pymupdf_fallback_blocks(sample_pdf, [1, 2])
     assert blocks_by_page[2] == []
     assert any("Revenue 2026" in block.text for block in blocks_by_page[1])
@@ -120,8 +119,3 @@ def test_fallback_blocks_and_numpy_image_contract(sample_pdf: Path) -> None:
         and all(0.0 <= coordinate <= 1.0 for coordinate in block.bbox_norm)
         for block in blocks_by_page[1]
     )
-
-    pytest.importorskip("numpy")
-    image = pdf_page_to_image(str(sample_pdf), 1, dpi=72)
-    assert image is not None
-    assert image.shape == (400, 300, 3)

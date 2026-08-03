@@ -150,30 +150,6 @@ def compute_changed_tables_t2(result: dict[str, Any]) -> int:
     return len(changed)
 
 
-def get_meta_value(meta: dict[str, Any] | None, *keys: str) -> Any:
-    """Recupere une valeur imbriquee depuis les metadonnees de maniere securisee.
-
-    Parcourt le chemin de cles dans le dict imbrique. Retourne ``None`` si
-    ``meta`` est ``None``, si une valeur intermediaire n'est pas un dict,
-    ou si une cle est absente.
-
-    Args:
-        meta: Dictionnaire de metadonnees, ou ``None`` (traite comme vide).
-        *keys: Une ou plusieurs cles pour la recherche imbriquee
-            (ex. ``("section", "title")``).
-
-    Returns:
-        La valeur au chemin imbrique, ou ``None`` si le chemin ne peut etre
-        parcouru.
-    """
-    cur: Any = meta or {}
-    for key in keys:
-        if not isinstance(cur, dict):
-            return None
-        cur = cur.get(key)
-    return cur
-
-
 def is_ui_comparison_payload(payload: Any) -> bool:
     """Retourne True lorsque le payload suit le contrat canonique Dash/UI de comparaison."""
     return (
@@ -968,11 +944,6 @@ def to_ui_comparison_payload(payload: Any) -> dict[str, Any]:
 def is_canonical_comparison(payload: Any) -> bool:
     """Alias retro-compatible pour :func:`is_ui_comparison_payload`."""
     return is_ui_comparison_payload(payload)
-
-
-def _empty_canonical() -> dict[str, Any]:
-    """Alias retro-compatible pour :func:`new_empty_ui_comparison_payload`."""
-    return new_empty_ui_comparison_payload()
 
 
 def to_canonical_payload(payload: Any) -> dict[str, Any]:

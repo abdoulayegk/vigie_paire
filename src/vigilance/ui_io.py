@@ -81,8 +81,3 @@ def get_available_indicator_comparison_options() -> list[dict[str, str]]:
         rel_value = rel.as_posix()
         options.append({"label": rel_value, "value": rel_value})
     return options
-
-
-def get_available_comparisons() -> list[dict[str, str]]:
-    """Alias retro-compatible utilise par les anciennes variantes de l'UI."""
-    return get_available_indicator_comparison_options()

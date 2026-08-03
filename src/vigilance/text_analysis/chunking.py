@@ -93,33 +93,6 @@ def _candidate_kind(lines: list[str]) -> str:
     return "paragraph"
 
 
-def _split_candidate_blocks(text: str) -> list[tuple[str, str]]:
-    """Découpe un texte en blocs candidats par lignes vides, sans titres markdown."""
-    candidates: list[tuple[str, str]] = []
-    current: list[str] = []
-
-    def flush_current() -> None:
-        if not current:
-            return
-        cleaned = "\n".join(line.rstrip() for line in current).strip()
-        if cleaned:
-            candidates.append((_candidate_kind(current), cleaned))
-        current.clear()
-
-    for raw_line in str(text or "").splitlines():
-        line = raw_line.rstrip()
-        if _is_heading_line(line):
-            flush_current()
-            continue
-        if not line.strip():
-            flush_current()
-            continue
-        current.append(line)
-
-    flush_current()
-    return candidates
-
-
 def _split_repairable_blocks(text: str) -> list[RepairableBlock]:
     """Découpe le Markdown tout en conservant les barrières structurelles."""
     candidates: list[RepairableBlock] = []

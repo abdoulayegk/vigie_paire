@@ -87,49 +87,6 @@ def preprocess_for_vision(image_bytes: bytes, *, enabled: bool | None = None) ->
         return image_bytes
 
 
-def preprocess_pil_image(img: Image) -> Image:
-    """Meme pipeline que ``preprocess_for_vision`` mais accepte/retourne un objet PIL Image.
-
-    Utilise par ``GPT4VisionFallback._encode_image`` qui dispose deja d'un
-    objet PIL.
-
-    Args:
-        img: Image PIL source.
-
-    Returns:
-        Image PIL pre-traitee (ou originale si desactive / en erreur).
-    """
-    if not _is_enabled():
-        return img
-
-    try:
-        from PIL import ImageFilter, ImageOps
-
-        if img.mode == "RGBA":
-            background = img.copy().convert("RGB")
-            from PIL import Image as _Img
-
-            background = _Img.new("RGB", img.size, (255, 255, 255))
-            background.paste(img, mask=img.split()[3])
-            img = background
-        elif img.mode != "RGB":
-            img = img.convert("RGB")
-
-        gray = img.convert("L")
-        gray = ImageOps.autocontrast(gray, cutoff=0.5)
-        img = gray.convert("RGB")
-
-        img = img.filter(ImageFilter.UnsharpMask(radius=1.5, percent=120, threshold=2))
-
-        img = _normalize_background(img, threshold=240)
-
-        return img
-
-    except Exception as e:
-        logger.debug("Vision PIL preprocessing failed, returning original: %s", e)
-        return img
-
-
 def _normalize_background(img: Image, threshold: int = 240) -> Image:
     """Remplacer les pixels quasi-blancs par du blanc pur pour supprimer les fonds gris."""
     import numpy as np

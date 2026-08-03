@@ -297,31 +297,3 @@ def load_extraction(
     except (json.JSONDecodeError, TypeError, KeyError) as e:
         logger.debug("Load extraction failed %s: %s", target_dir, e)
         return None
-
-
-def load_stored_extractions(
-    bank_code: str,
-    year: int,
-    base_dir: Path,
-) -> (
-    tuple[list[TableArtifact], list[TableArtifact], dict[str, Any], dict[str, Any]]
-    | None
-):
-    """Charger les extractions T1 et T2 si elles existent toutes les deux.
-
-    Args:
-        bank_code: Code identifiant la banque.
-        year: Annee du rapport.
-        base_dir: Repertoire racine des extractions.
-
-    Returns:
-        Tuple (tables_t1, tables_t2, meta_t1, meta_t2) ou ``None`` si l'une
-        des deux est absente.
-    """
-    t1 = load_extraction(bank_code, year, "t1", base_dir)
-    t2 = load_extraction(bank_code, year, "t2", base_dir)
-    if t1 is None or t2 is None:
-        return None
-    tables_t1, meta_t1 = t1
-    tables_t2, meta_t2 = t2
-    return (tables_t1, tables_t2, meta_t1, meta_t2)

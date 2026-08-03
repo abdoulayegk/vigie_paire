@@ -509,35 +509,6 @@ def infer_header_schema(headers: list[str] | tuple[str, ...] | None) -> list[str
     return [infer_header_schema_type(str(item)) for item in headers]
 
 
-def header_schema_similarity(
-    headers1: list[str] | tuple[str, ...] | None,
-    headers2: list[str] | tuple[str, ...] | None,
-) -> float:
-    """Compare les schemas d'en-tetes (DATE/YEAR/CURRENCY/PERCENT/TEXT) avec une tolerance de position.
-
-    Args:
-        headers1: Premiere ligne d'en-tete.
-        headers2: Deuxieme ligne d'en-tete.
-
-    Returns:
-        Score de similarite entre 0.0 et 1.0.
-    """
-    schema1 = infer_header_schema(headers1)
-    schema2 = infer_header_schema(headers2)
-    if not schema1 or not schema2:
-        return 0.0
-
-    max_len = max(len(schema1), len(schema2), 1)
-    same_pos = 0
-    for idx in range(min(len(schema1), len(schema2))):
-        if schema1[idx] == schema2[idx]:
-            same_pos += 1
-
-    set_score = len(set(schema1) & set(schema2)) / len(set(schema1) | set(schema2))
-    pos_score = same_pos / max_len
-    return max(0.0, min(1.0, (0.6 * pos_score) + (0.4 * set_score)))
-
-
 def is_generic_title(
     title: str, generic_titles: set[str] | frozenset[str] | None = None
 ) -> bool:

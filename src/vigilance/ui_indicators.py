@@ -167,11 +167,3 @@ def build_indicator_change_rows(
         )
 
     return rows
-
-
-def run_indicator_auto_pipeline(payload: dict[str, Any]) -> dict[str, Any]:
-    """Utilitaire conserve pour compatibilite avec les anciens callbacks."""
-    rows = build_indicator_change_rows(
-        payload, include_uncertain=True, include_review_status=False
-    )
-    return {"rows": rows, "count": len(rows)}
