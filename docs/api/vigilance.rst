@@ -191,13 +191,6 @@ review\_queue\_normalizer
    :members:
    :show-inheritance:
 
-review\_state
-------------------------------
-
-.. automodule:: vigilance.review_state
-   :members:
-   :show-inheritance:
-
 review\_storage
 --------------------------------
 

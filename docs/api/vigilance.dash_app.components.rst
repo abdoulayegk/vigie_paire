@@ -4,20 +4,6 @@ Composants de l'interface
 Modules
 ----------
 
-dash\_app.components.indicator\_table
-------------------------------------------------------
-
-.. automodule:: vigilance.dash_app.components.indicator_table
-   :members:
-   :show-inheritance:
-
-dash\_app.components.metrics\_cards
-----------------------------------------------------
-
-.. automodule:: vigilance.dash_app.components.metrics_cards
-   :members:
-   :show-inheritance:
-
 dash\_app.components.pdf\_preview
 --------------------------------------------------
 

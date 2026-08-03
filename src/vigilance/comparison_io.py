@@ -9,7 +9,6 @@ from __future__ import annotations
 import json
 import logging
 import re
-import shutil
 from datetime import datetime
 from pathlib import Path
 from typing import Any, TypedDict
@@ -497,35 +496,6 @@ def _merge_extraction_suspect_side(
 def _make_run_id() -> str:
     """Genere un identifiant d'execution base sur l'horodatage courant."""
     return datetime.now().strftime("%Y%m%d_%H%M%S")
-
-
-def _archive_pdf(source_path: str | None, out_dir: Path, filename: str) -> str:
-    """Copie un PDF source dans le repertoire de sortie s'il n'y est pas deja.
-
-    Args:
-        source_path: Chemin du fichier PDF source, ou ``None``.
-        out_dir: Repertoire de destination pour l'archivage.
-        filename: Nom du fichier de destination.
-
-    Returns:
-        Chemin du fichier archive, ou chaine vide si la copie echoue.
-    """
-    text = str(source_path or "").strip()
-    if not text:
-        return ""
-    source = Path(text)
-    if not source.exists() or not source.is_file():
-        return ""
-    out_dir.mkdir(parents=True, exist_ok=True)
-    target = out_dir / filename
-    try:
-        if source.resolve() != target.resolve():
-            # Ne pas écraser si le fichier existe déjà (on garde le PDF original validé)
-            if not target.exists():
-                shutil.copy2(source, target)
-        return str(target)
-    except OSError:
-        return ""
 
 
 def _require_string(value: Any, field: str) -> str:

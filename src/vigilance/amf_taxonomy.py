@@ -708,36 +708,6 @@ def _compact_complete_sentence_parts(value: str) -> list[str]:
     return parts
 
 
-def _strip_compact_sentence_ending(value: str) -> str:
-    """Retire la ponctuation terminale d'une phrase, sans perdre ses guillemets."""
-    match = re.search(
-        r"(?P<mark>[.!?]+)(?P<closers>[\u00bb\u201d\"')\]]*)$",
-        value,
-    )
-    if match is None:
-        return value.strip()
-    return f"{value[: match.start('mark')].rstrip()}{match.group('closers')}"
-
-
-def _collapse_compact_reason_to_sentence_count(
-    value: str,
-    sentence_count: int,
-) -> str:
-    """Fusionne les phrases excédentaires sans supprimer leur contenu lexical."""
-    normalized = " ".join(str(value or "").split())
-    parts = _compact_complete_sentence_parts(normalized)
-    if len(parts) <= sentence_count:
-        return normalized
-
-    preserved_sentences = parts[: sentence_count - 1]
-    final_clauses = [
-        _strip_compact_sentence_ending(part)
-        for part in parts[sentence_count - 1 :]
-    ]
-    final_sentence = "; ".join(final_clauses).strip()
-    return " ".join([*preserved_sentences, f"{final_sentence}."])
-
-
 def count_complete_sentences(value: str) -> int:
     """Compte les phrases terminées qui contiennent du contenu lexical."""
     return sum(

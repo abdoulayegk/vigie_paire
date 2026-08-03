@@ -4,13 +4,6 @@ Utilitaires
 Modules
 ----------
 
-utils.feature\_flags
--------------------------------------
-
-.. automodule:: vigilance.utils.feature_flags
-   :members:
-   :show-inheritance:
-
 utils.footnotes\_utils
 ---------------------------------------
 

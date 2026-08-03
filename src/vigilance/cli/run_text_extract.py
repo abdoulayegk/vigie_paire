@@ -10,7 +10,6 @@ from __future__ import annotations
 import argparse
 import logging
 import sys
-from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
@@ -47,110 +46,6 @@ def build_parser() -> argparse.ArgumentParser:
         "(ignore gestion_reglementation même si présente au profil banque).",
     )
     return parser
-
-
-# Mapping from canonical section keys (section_taxonomy) → text pipeline keys
-_CANONICAL_TO_TEXT_KEY: dict[str, str] = {
-    "capital_management": "gestion_capital",
-    "risk_management": "gestion_risques",
-    "regulatory_updates": "gestion_reglementation",
-    # French names pass through unchanged
-    "gestion_capital": "gestion_capital",
-    "gestion_risques": "gestion_risques",
-    "gestion_reglementation": "gestion_reglementation",
-}
-
-
-def _is_t4(quarter: str) -> bool:
-    """Indiquer si le libelle correspond au T4."""
-    return str(quarter or "").strip().lower() in {"t4", "q4"}
-
-
-def _filter_t4_target_ranges(ranges: list[dict]) -> list[dict]:
-    """Conserver uniquement les sections cibles T4, sans combler les trous."""
-    target_sections = {"gestion_capital", "gestion_risques"}
-    target_ranges = [item for item in ranges if item.get("section") in target_sections]
-    return target_ranges or ranges
-
-
-def _get_section_ranges_from_locator(
-    pdf_path: Path,
-    bank_code: str,
-    year: int,
-    quarter: str,
-) -> list[dict]:
-    """Utilise section_locator pour obtenir les plages de pages par section.
-
-    Convertit les clés canoniques (capital_management, etc.) vers les clés
-    du pipeline texte (gestion_capital, etc.).
-    """
-    try:
-        from vigilance.extraction.section_locator import locate_sections_in_pdf
-        mapping = locate_sections_in_pdf(
-            pdf_path=pdf_path,
-            bank_code=bank_code,
-            quarter=quarter,
-            year=year,
-        )
-        ranges = []
-        for located in getattr(mapping, "sections", []) or []:
-            start = int(getattr(located, "start_page", 0) or 0)
-            if start <= 0:
-                continue
-            end = int(getattr(located, "end_page", start) or start)
-            if end < start:
-                end = start
-            section_raw = str(getattr(located, "section_type", "") or "")
-            # Canonicalize via taxonomy first
-            try:
-                from vigilance.extraction.section_taxonomy import canonicalize_section
-                section_raw = canonicalize_section(section_raw) or section_raw
-            except Exception:
-                pass
-            # Map to text pipeline key
-            section = _CANONICAL_TO_TEXT_KEY.get(section_raw, section_raw)
-            if section:
-                ranges.append({
-                    "section": section,
-                    "start": start,
-                    "end": end,
-                    "anchor_page": getattr(located, "anchor_page", None),
-                    "anchor_text": getattr(located, "anchor_text", None),
-                    "anchor_bbox_norm": getattr(located, "anchor_bbox_norm", None),
-                    "anchor_found": bool(getattr(located, "anchor_found", False)),
-                })
-        if _is_t4(quarter):
-            return _filter_t4_target_ranges(ranges)
-        return ranges
-    except Exception as exc:
-        logger.error("Erreur lors de la localisation des sections : %s", exc)
-        return []
-
-
-def _get_target_sections_for_bank(bank_code: str, config_path: str) -> set[str]:
-    """Retourne les sections texte autorisées pour cette banque depuis bank_profiles.yaml.
-
-    Mappe les clés canoniques (capital_management, etc.) vers les clés texte
-    (gestion_capital, etc.). Si le config est inaccessible, retourne les 3 sections.
-    """
-    try:
-        import yaml
-        cfg = yaml.safe_load(open(config_path))
-        bank_cfg = cfg.get("banks", {}).get(bank_code.lower(), {})
-        canonical_sections = set(bank_cfg.get("sections", {}).keys())
-        if not canonical_sections:
-            raise ValueError("Sections vides")
-        return {
-            _CANONICAL_TO_TEXT_KEY[s]
-            for s in canonical_sections
-            if s in _CANONICAL_TO_TEXT_KEY
-        }
-    except Exception as exc:
-        logger.warning(
-            "Impossible de lire les sections pour %s depuis %s (%s) — utilisation des 3 sections par défaut.",
-            bank_code.upper(), config_path, exc,
-        )
-        return {"gestion_capital", "gestion_risques", "gestion_reglementation"}
 
 
 def main(argv: list[str] | None = None) -> int:

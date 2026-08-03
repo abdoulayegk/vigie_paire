@@ -39,23 +39,6 @@ def _bbox_top_left(t: Any) -> tuple[float, float]:
     return (0.0, 0.0)
 
 
-def _bbox_top_only(t: Any) -> float | None:
-    """Extrait uniquement la coordonnee haute (top) de la bbox d'un tableau."""
-    bbox = getattr(t, "bbox", None)
-    if bbox is None:
-        return None
-    if isinstance(bbox, (list, tuple)) and len(bbox) >= 4:
-        return float(bbox[1])
-    if isinstance(bbox, dict):
-        if "t" in bbox:
-            return float(bbox["t"])
-        if "y0" in bbox:
-            return float(bbox["y0"])
-        if "y" in bbox:
-            return float(bbox["y"])
-    return None
-
-
 def derive_page_local_structure(
     tables: list[Any],
 ) -> dict[tuple[str, int], dict[str, Any]]:

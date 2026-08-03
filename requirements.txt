@@ -1,7 +1,6 @@
 # Generated from pyproject.toml direct dependencies using versions resolved in uv.lock.
 # Python: >=3.10
 
-rapidfuzz==3.14.3
 scipy==1.15.3 ; python_version < "3.11"
 scipy==1.17.0 ; python_version >= "3.11"
 PyYAML==6.0.3

@@ -58,27 +58,6 @@ _VALIDATION_STATUS_FR: dict[str, str] = {
     "": "En attente",
 }
 
-# ---------------------------------------------------------------------------
-# Heuristiques d'exclusion (dates pures et reformulations strictes)
-# ---------------------------------------------------------------------------
-
-_DATE_UPDATE_RE = re.compile(
-    r"(mise à jour|changement|modification|passé).{0,40}(date|période|trimestre|semestre|référence de clôture)|"
-    r"(date|période de référence).{0,20}(mise à jour|changé|modifié|passé)|"
-    r"\b(janvier|février|mars|avril|mai|juin|juillet|août|septembre|octobre|novembre|décembre)\b"
-    r".{0,25}→.{0,25}"
-    r"\b(janvier|février|mars|avril|mai|juin|juillet|août|septembre|octobre|novembre|décembre)\b|"
-    r"^(la )?date (de référence|de clôture|des échéances) (a été|est) (mis|modif|chang)",
-    flags=re.IGNORECASE,
-)
-
-_REFORMULATION_RE = re.compile(
-    r"\b(légère|simple|même|pure).{0,20}(reformulation|reformulé|reformulée)\b|"
-    r"\breformulation.{0,20}(légère|sans changement|sans nouveau fond)\b|"
-    r"\bmême (idée|information|sens|contenu).{0,30}(reformul|formulat différente)\b",
-    flags=re.IGNORECASE,
-)
-
 _CONTROL_CHAR_RE = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f]")
 
 
@@ -87,53 +66,6 @@ def _excel_safe(value: Any) -> Any:
     if isinstance(value, str):
         return _CONTROL_CHAR_RE.sub("", value)
     return value
-
-
-def _is_pure_date_update(change: dict[str, Any]) -> bool:
-    """Vrai uniquement pour les mises à jour de dates sans autre contenu."""
-    triage = change.get("genai_triage") or {}
-    if str(triage.get("impact_level") or "").upper() != "MINEUR":
-        return False
-    if str(triage.get("category") or "").upper() != "NON_PERTINENT":
-        return False
-    summary = change.get("change_summary") or ""
-    return bool(_DATE_UPDATE_RE.search(summary))
-
-
-def _is_pure_reformulation(change: dict[str, Any]) -> bool:
-    """Vrai uniquement pour les reformulations strictement identiques."""
-    triage = change.get("genai_triage") or {}
-    if str(triage.get("impact_level") or "").upper() != "MINEUR":
-        return False
-    if str(triage.get("category") or "").upper() != "NON_PERTINENT":
-        return False
-    summary = change.get("change_summary") or ""
-    return bool(_REFORMULATION_RE.search(summary))
-
-
-def _should_exclude(change: dict[str, Any]) -> bool:
-    """Indique si le changement doit être exclu de l'export (date ou reformulation)."""
-    return _is_pure_date_update(change) or _is_pure_reformulation(change)
-
-
-# ---------------------------------------------------------------------------
-# Extraction de la sous-section
-# ---------------------------------------------------------------------------
-
-def _subsection_label(change: dict[str, Any]) -> str:
-    """Retourne le nom lisible de la sous-section."""
-    heading = change.get("subsection_heading") or ""
-    if heading and heading not in ("__intro__", "full", ""):
-        return heading
-    # Fallback: extraire du change_id
-    change_id = change.get("change_id") or ""
-    section_key = change.get("section_key") or ""
-    prefix = section_key + "_"
-    if change_id.startswith(prefix):
-        slug = re.sub(r"_change_\d+$", "", change_id[len(prefix):])
-        if slug and slug != "full":
-            return slug.replace("_", " ").strip()
-    return ""
 
 
 # ---------------------------------------------------------------------------

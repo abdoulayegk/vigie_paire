@@ -57,13 +57,6 @@ def get_extraction_artifact_paths(
     }
 
 
-def _footnote_to_canonical(item: dict[str, Any]) -> dict[str, str]:
-    """Normaliser un element de note de bas de page vers la forme canonique stockee."""
-    fid = (item.get("id") or item.get("marker") or "").strip()
-    text = str(item.get("text") or "").strip()
-    return {"id": fid, "text": text}
-
-
 def _backfill_page_local_structure(tables: list[TableArtifact]) -> None:
     """Recalculer et assigner la structure locale de page sur chaque table apres rechargement."""
     structure = derive_page_local_structure(tables)
