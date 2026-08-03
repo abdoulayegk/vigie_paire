@@ -12,7 +12,7 @@ import logging
 from pathlib import Path
 from typing import Any
 
-import fitz
+import pymupdf
 
 from ..utils.pymupdf_utils import configure_mupdf_runtime
 from ..utils.table_page_structure import derive_page_local_structure
@@ -50,7 +50,7 @@ from .docling.titles import TableTitleMixin
 from .docling.vision_pass import VisionPassMixin
 
 logger = logging.getLogger("vigilance.extraction.docling_processor")
-configure_mupdf_runtime(fitz)
+configure_mupdf_runtime(pymupdf)
 
 
 class DoclingProcessor(

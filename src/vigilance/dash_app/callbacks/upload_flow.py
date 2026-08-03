@@ -22,9 +22,8 @@ from vigilance.comparison_canonical import (
     is_canonical_comparison,
     to_canonical_payload,
 )
-# Import paresseux de ``comparison_runner`` plus bas (dans le callback qui le
-# declenche). Cela permet d'importer ``upload_flow`` dans le .exe reader sans
-# entrainer ``docling``/``openai`` (exclus du bundle PyInstaller).
+# Import paresseux de ``comparison_runner`` plus bas, dans le callback qui le
+# declenche, afin de ne charger le pipeline lourd qu'au moment necessaire.
 from vigilance.dash_app.components.pdf_preview import pdf_images_from_base64
 from vigilance.dash_app.layouts import (
     build_page_results,

@@ -5,9 +5,9 @@ from __future__ import annotations
 import logging
 
 try:
-    import fitz  # PyMuPDF
+    import pymupdf
 except ImportError:
-    fitz = None
+    pymupdf = None
 
 logger = logging.getLogger(__name__)
 
@@ -30,9 +30,9 @@ def find_text_bboxes_in_region(
         Liste de bounding boxes normalisees [l, t, r, b] ou le texte a ete trouve.
         Retourne une liste vide si non trouve.
     """
-    if fitz is None:
+    if pymupdf is None:
         logger.warning(
-            "PyMuPDF (fitz) is not installed. Text search for highlights will be disabled."
+            "PyMuPDF is not installed. Text search for highlights will be disabled."
         )
         return []
 
@@ -46,7 +46,7 @@ def find_text_bboxes_in_region(
     search_text = text_to_find.strip().split("\n")[0].strip()
 
     try:
-        doc = fitz.open(pdf_path)
+        doc = pymupdf.open(pdf_path)
         if page_number < 1 or page_number > len(doc):
             return []
 
@@ -58,7 +58,7 @@ def find_text_bboxes_in_region(
         ry0 = rect.y0 + region_bbox_norm[1] * rect.height
         rx1 = rect.x0 + region_bbox_norm[2] * rect.width
         ry1 = rect.y0 + region_bbox_norm[3] * rect.height
-        clip_rect = fitz.Rect(rx0, ry0, rx1, ry1)
+        clip_rect = pymupdf.Rect(rx0, ry0, rx1, ry1)
 
         # Search for the text strictly inside the region
         matches = page.search_for(search_text, clip=clip_rect)

@@ -35,14 +35,14 @@ def crop_table_image(
         return False
 
     try:
-        import fitz  # type: ignore[import-untyped]
+        import pymupdf
     except ImportError:
-        logger.debug("PyMuPDF (fitz) not available for crop_table_image")
+        logger.debug("PyMuPDF not available for crop_table_image")
         return False
-    configure_mupdf_runtime(fitz)
+    configure_mupdf_runtime(pymupdf)
 
     try:
-        doc = fitz.open(pdf_path)
+        doc = pymupdf.open(pdf_path)
         try:
             page_idx = page_number - 1
             if page_idx < 0 or page_idx >= len(doc):
@@ -56,9 +56,9 @@ def crop_table_image(
             y0 = rect.y0 + max(0.0, t_norm - pad) * rect.height
             x1 = rect.x0 + min(1.0, r_norm + pad) * rect.width
             y1 = rect.y0 + min(1.0, b_norm_effective + pad) * rect.height
-            clip = fitz.Rect(x0, y0, x1, y1)
+            clip = pymupdf.Rect(x0, y0, x1, y1)
             zoom = dpi / 72
-            mat = fitz.Matrix(zoom, zoom)
+            mat = pymupdf.Matrix(zoom, zoom)
             pix = page.get_pixmap(matrix=mat, clip=clip, alpha=False)
             Path(out_path).parent.mkdir(parents=True, exist_ok=True)
             pix.save(out_path)
@@ -233,14 +233,14 @@ def crop_table_region_to_bytes(
         return b""
 
     try:
-        import fitz  # type: ignore[import-untyped]
+        import pymupdf
     except ImportError:
-        logger.debug("PyMuPDF (fitz) not available for crop_table_region_to_bytes")
+        logger.debug("PyMuPDF not available for crop_table_region_to_bytes")
         return b""
-    configure_mupdf_runtime(fitz)
+    configure_mupdf_runtime(pymupdf)
 
     try:
-        doc = fitz.open(pdf_path)
+        doc = pymupdf.open(pdf_path)
         try:
             page_idx = page_number - 1
             if page_idx < 0 or page_idx >= len(doc):
@@ -256,7 +256,7 @@ def crop_table_region_to_bytes(
             y0 = rect.y0 + t_norm_effective * rect.height
             x1 = rect.x0 + r_norm_effective * rect.width
             y1 = rect.y0 + b_norm_effective * rect.height
-            clip = fitz.Rect(x0, y0, x1, y1)
+            clip = pymupdf.Rect(x0, y0, x1, y1)
 
             # Secondary highlights first, dimmer, so primary renders on top.
             if secondary_highlight_rects:
@@ -267,7 +267,7 @@ def crop_table_region_to_bytes(
                         hx1 = rect.x0 + hl_norm[2] * rect.width
                         hy1 = rect.y0 + hl_norm[3] * rect.height
                         page.draw_rect(
-                            fitz.Rect(hx0, hy0, hx1, hy1),
+                            pymupdf.Rect(hx0, hy0, hx1, hy1),
                             color=secondary_color,
                             fill=secondary_color,
                             fill_opacity=0.2,
@@ -282,13 +282,13 @@ def crop_table_region_to_bytes(
                         hx1 = rect.x0 + hl_norm[2] * rect.width
                         hy1 = rect.y0 + hl_norm[3] * rect.height
                         page.draw_rect(
-                            fitz.Rect(hx0, hy0, hx1, hy1),
+                            pymupdf.Rect(hx0, hy0, hx1, hy1),
                             color=highlight_color,
                             fill=highlight_color,
                             fill_opacity=0.35,
                         )
 
-            mat = fitz.Matrix(zoom, zoom)
+            mat = pymupdf.Matrix(zoom, zoom)
             pix = page.get_pixmap(matrix=mat, clip=clip, alpha=False)
             return pix.tobytes("png")
         finally:
@@ -327,17 +327,17 @@ def render_page_with_bbox_highlight_to_bytes(
         return full if full else b""
 
     try:
-        import fitz  # type: ignore[import-untyped]
+        import pymupdf
     except ImportError:
         logger.debug(
-            "PyMuPDF (fitz) not available for render_page_with_bbox_highlight_to_bytes"
+            "PyMuPDF not available for render_page_with_bbox_highlight_to_bytes"
         )
         full = render_pdf_page(pdf_path, page_number, scale=zoom, format="png")
         return full if full else b""
-    configure_mupdf_runtime(fitz)
+    configure_mupdf_runtime(pymupdf)
 
     try:
-        doc = fitz.open(pdf_path)
+        doc = pymupdf.open(pdf_path)
         try:
             page_idx = page_number - 1
             if page_idx < 0 or page_idx >= len(doc):
@@ -354,9 +354,9 @@ def render_page_with_bbox_highlight_to_bytes(
             y1 = rect.y0 + b_norm_effective * rect.height
 
             # Draw a bright red rectangle with 3px width on the page
-            page.draw_rect(fitz.Rect(x0, y0, x1, y1), color=(1, 0, 0), width=3)
+            page.draw_rect(pymupdf.Rect(x0, y0, x1, y1), color=(1, 0, 0), width=3)
 
-            mat = fitz.Matrix(zoom, zoom)
+            mat = pymupdf.Matrix(zoom, zoom)
             pix = page.get_pixmap(matrix=mat, alpha=False)
             return pix.tobytes("png")
         finally:
@@ -406,15 +406,15 @@ def crop_footnote_region_to_bytes(
         return full if full else b""
 
     try:
-        import fitz  # type: ignore[import-untyped]
+        import pymupdf
     except ImportError:
-        logger.debug("PyMuPDF (fitz) not available for crop_footnote_region_to_bytes")
+        logger.debug("PyMuPDF not available for crop_footnote_region_to_bytes")
         full = render_pdf_page(pdf_path, page_number, scale=zoom, format="png")
         return full if full else b""
-    configure_mupdf_runtime(fitz)
+    configure_mupdf_runtime(pymupdf)
 
     try:
-        doc = fitz.open(pdf_path)
+        doc = pymupdf.open(pdf_path)
         try:
             page_idx = page_number - 1
             if page_idx < 0 or page_idx >= len(doc):
@@ -434,7 +434,7 @@ def crop_footnote_region_to_bytes(
             x1 = rect.x1
             y1 = rect.y0 + footnote_bottom * rect.height
 
-            clip = fitz.Rect(x0, y0, x1, y1)
+            clip = pymupdf.Rect(x0, y0, x1, y1)
             if secondary_highlight_rects:
                 for hl_norm in secondary_highlight_rects:
                     if len(hl_norm) == 4:
@@ -442,7 +442,7 @@ def crop_footnote_region_to_bytes(
                         hy0 = rect.y0 + hl_norm[1] * rect.height
                         hx1 = rect.x0 + hl_norm[2] * rect.width
                         hy1 = rect.y0 + hl_norm[3] * rect.height
-                        highlight = fitz.Rect(hx0, hy0, hx1, hy1)
+                        highlight = pymupdf.Rect(hx0, hy0, hx1, hy1)
                         if highlight.intersects(clip):
                             page.draw_rect(
                                 highlight,
@@ -457,7 +457,7 @@ def crop_footnote_region_to_bytes(
                         hy0 = rect.y0 + hl_norm[1] * rect.height
                         hx1 = rect.x0 + hl_norm[2] * rect.width
                         hy1 = rect.y0 + hl_norm[3] * rect.height
-                        highlight = fitz.Rect(hx0, hy0, hx1, hy1)
+                        highlight = pymupdf.Rect(hx0, hy0, hx1, hy1)
                         if highlight.intersects(clip):
                             page.draw_rect(
                                 highlight,
@@ -465,7 +465,7 @@ def crop_footnote_region_to_bytes(
                                 fill=highlight_color,
                                 fill_opacity=0.35,
                             )
-            mat = fitz.Matrix(zoom, zoom)
+            mat = pymupdf.Matrix(zoom, zoom)
             pix = page.get_pixmap(matrix=mat, clip=clip, alpha=False)
             return pix.tobytes("png")
         finally:

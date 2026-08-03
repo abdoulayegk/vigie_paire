@@ -5,7 +5,7 @@ from __future__ import annotations
 import dash_bootstrap_components as dbc
 from dash import dcc, html
 
-from vigilance.dash_app import reader_config
+from vigilance.dash_app import validator_config
 from vigilance.i18n import t
 from vigilance.ui_config import AVAILABLE_BANKS
 
@@ -34,9 +34,9 @@ def build_sidebar() -> dbc.Col:
         {"label": "T4", "value": "T4"},
     ]
 
-    reader_mode = reader_config.is_reader_mode()
-    hide_in_reader = {"display": "none"} if reader_mode else None
-    analyst_value = reader_config.current_username() if reader_mode else None
+    validator_mode = validator_config.is_validator_mode()
+    hide_in_validator = {"display": "none"} if validator_mode else None
+    analyst_value = validator_config.current_username() if validator_mode else None
 
     return dbc.Col(
         [
@@ -71,7 +71,7 @@ def build_sidebar() -> dbc.Col:
                         placeholder="ex: Jean Dupont",
                         className="mb-3",
                         value=analyst_value,
-                        readonly=reader_mode,
+                        readonly=validator_mode,
                     ),
                     # 2. Bank & Year
                     dbc.Row(
@@ -256,7 +256,7 @@ def build_sidebar() -> dbc.Col:
                         id="upload-source-container",
                         style={"display": "none"},
                     ),
-                    # 7. Options (Collapsed) - cachees en mode reader (pipeline only)
+                    # 7. Options (masquees dans le validateur sans pipeline)
                     html.Div(
                         [
                             dbc.Button(
@@ -310,7 +310,7 @@ def build_sidebar() -> dbc.Col:
                             ),
                         ],
                         id="advanced-options-wrapper",
-                        style=hide_in_reader,
+                        style=hide_in_validator,
                     ),
                 ],
                 id="analysis-sidebar-body",

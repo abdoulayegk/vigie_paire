@@ -12,7 +12,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
-import fitz
+import pymupdf
 
 from ...utils.footnotes_utils import normalize_footnotes_to_canonical
 from ..docling_bbox_helpers import _coerce_pdf_path
@@ -232,7 +232,7 @@ class DocumentExtractionMixin:
     def _get_page_count(self, pdf_path: Path) -> int:
         """Obtenir le nombre total de pages d'un PDF."""
         try:
-            doc = fitz.open(str(pdf_path))
+            doc = pymupdf.open(str(pdf_path))
             count = len(doc)
             doc.close()
             return count

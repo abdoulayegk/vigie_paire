@@ -34,16 +34,16 @@ def pdf_page_to_image(
     except ImportError:
         return None
     try:
-        import fitz  # PyMuPDF
+        import pymupdf
         from .pymupdf_utils import configure_mupdf_runtime
     except ImportError:
         return None
-    configure_mupdf_runtime(fitz)
+    configure_mupdf_runtime(pymupdf)
 
     try:
-        doc = fitz.open(pdf_path)
+        doc = pymupdf.open(pdf_path)
         page = doc.load_page(page_number - 1)
-        mat = fitz.Matrix(dpi / 72, dpi / 72)
+        mat = pymupdf.Matrix(dpi / 72, dpi / 72)
         pix = page.get_pixmap(matrix=mat)
         img = np.frombuffer(pix.samples, dtype=np.uint8).reshape(
             pix.height, pix.width, pix.n

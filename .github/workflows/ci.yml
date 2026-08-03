@@ -10,6 +10,10 @@ permissions:
 jobs:
   test-and-lint:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11"]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -18,16 +22,26 @@ jobs:
         uses: astral-sh/setup-uv@v3
 
       - name: Setup Python
-        run: uv python install 3.11
+        run: uv python install ${{ matrix.python-version }}
 
       - name: Install dependencies
-        run: uv sync --group dev
+        run: uv sync --python ${{ matrix.python-version }} --group dev
+
+      - name: Check modern PyMuPDF namespace
+        run: |
+          uv run python -c "import importlib.metadata as metadata; import pymupdf; assert all(str(dist.metadata.get('Name', '')).lower() != 'fitz' for dist in metadata.distributions()); print(pymupdf.__version__)"
+          if rg --glob '*.py' '(^|[[:space:]])(from[[:space:]]+fitz|import[[:space:]]+fitz)([^A-Za-z0-9_]|$)' src tests; then
+            echo "Legacy PyMuPDF import detected: use 'import pymupdf'."
+            exit 1
+          fi
 
       - name: Ruff (docstrings)
-        run: uv run ruff check src/
+        run: |
+          uv run ruff check src/
+          uv run ruff check tests/unit/test_pymupdf_utils.py tests/unit/test_pymupdf_contract.py tests/unit/test_validator_runtime.py
 
       - name: Check test environment imports
-        run: uv run python -c "import pytest; print('test_env_imports_ok')"
+        run: uv run python -c "import pymupdf; import pytest; print('test_env_imports_ok')"
 
       - name: Run tests
         run: uv run pytest -q

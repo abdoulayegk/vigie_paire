@@ -9,16 +9,16 @@ logger = logging.getLogger(__name__)
 _MUPDF_CONFIGURED = False
 
 
-def configure_mupdf_runtime(fitz: Any) -> None:
+def configure_mupdf_runtime(pymupdf_module: Any) -> None:
     """Reduit les avertissements stderr bruyants de MuPDF tout en preservant les exceptions Python.
 
     Args:
-        fitz: Module PyMuPDF (fitz) importe par l'appelant.
+        pymupdf_module: Module ``pymupdf`` importe par l'appelant.
     """
     global _MUPDF_CONFIGURED
     if _MUPDF_CONFIGURED:
         return
-    tools = getattr(fitz, "TOOLS", None)
+    tools = getattr(pymupdf_module, "TOOLS", None)
     if tools is None:
         _MUPDF_CONFIGURED = True
         return

@@ -101,7 +101,7 @@ def get_review_state_path(
     """Retourne le chemin du fichier sidecar d'etat de revue pour un JSON de comparaison.
 
     Si ``username`` est fourni, le chemin est suffixe ``<stem>.review_state.<username>.json``
-    pour la strategie multi-analystes (mode reader). Sans username, on conserve le
+    pour les usages multi-analystes. Sans username, on conserve le
     nom historique ``<stem>.review_state.json`` (compatibilite pipeline complet).
     """
     if not compare_path:
@@ -186,7 +186,7 @@ def save_review_state(
         comparison_run_id: Identifiant du run de comparaison.
         username: Identifiant analyste pour la strategie multi-utilisateurs.
             Si fourni, ecrit dans ``<stem>.review_state.<username>.json`` au lieu
-            du sidecar partage historique (mode reader uniquement).
+            du sidecar partage historique.
 
     Returns:
         Chemin du fichier d'etat sauvegarde, ou ``None`` si impossible.

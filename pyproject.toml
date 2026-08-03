@@ -35,9 +35,7 @@ vigie-validateur = "vigie.validateur:main"
 [tool.setuptools]
 package-dir = {"" = "src"}
 
-# Decouverte automatique : la liste explicite precedente omettait deja
-# vigilance.dash_app.services, vigilance.text_comparison et vigilance.text_extraction,
-# qui etaient donc absents de `pip install -e . --no-deps` (poste validateur).
+# Decouverte automatique des sous-packages du projet et de la facade CLI.
 [tool.setuptools.packages.find]
 where = ["src"]
 include = ["vigie*", "vigilance*"]

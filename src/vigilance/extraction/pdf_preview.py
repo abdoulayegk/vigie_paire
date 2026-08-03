@@ -14,11 +14,11 @@ logger = logging.getLogger(__name__)
 
 # Import conditionnel de PyMuPDF
 try:
-    import fitz  # PyMuPDF
+    import pymupdf
     from vigilance.utils.pymupdf_utils import configure_mupdf_runtime
 
     PYMUPDF_AVAILABLE = True
-    configure_mupdf_runtime(fitz)
+    configure_mupdf_runtime(pymupdf)
 except ImportError:
     PYMUPDF_AVAILABLE = False
     logger.warning("PyMuPDF non disponible - preview PDF desactive")
@@ -75,7 +75,7 @@ def render_pdf_page(
         return None
 
     try:
-        doc = fitz.open(str(pdf_path))
+        doc = pymupdf.open(str(pdf_path))
 
         # Conversion 1-indexed vers 0-indexed
         page_idx = page_number - 1
@@ -88,7 +88,7 @@ def render_pdf_page(
         page = doc[page_idx]
 
         # Matrice de transformation pour le scale
-        matrix = fitz.Matrix(scale, scale)
+        matrix = pymupdf.Matrix(scale, scale)
 
         # Rendre la page en pixmap
         pix = page.get_pixmap(matrix=matrix)
@@ -135,7 +135,7 @@ def render_pdf_pages(
     previews = []
 
     try:
-        doc = fitz.open(str(pdf_path))
+        doc = pymupdf.open(str(pdf_path))
         total_pages = len(doc)
 
         # Limiter les pages
@@ -143,7 +143,7 @@ def render_pdf_pages(
         actual_start = max(1, start_page)
         pages_to_render = min(actual_end - actual_start + 1, max_pages)
 
-        matrix = fitz.Matrix(scale, scale)
+        matrix = pymupdf.Matrix(scale, scale)
 
         for i in range(pages_to_render):
             page_num = actual_start + i
@@ -208,7 +208,7 @@ def extract_text_from_pages(
             return ""
 
     try:
-        doc = fitz.open(str(pdf_path))
+        doc = pymupdf.open(str(pdf_path))
         text_parts = []
 
         for page_num in range(start_page - 1, min(end_page, len(doc))):
@@ -247,7 +247,7 @@ def get_pdf_info(pdf_path: str | Path) -> dict:
             return {"error": str(e), "available": False}
 
     try:
-        doc = fitz.open(str(pdf_path))
+        doc = pymupdf.open(str(pdf_path))
         info = {
             "total_pages": len(doc),
             "metadata": doc.metadata or {},
@@ -320,7 +320,7 @@ def create_thumbnail(
         return None
 
     try:
-        doc = fitz.open(str(pdf_path))
+        doc = pymupdf.open(str(pdf_path))
         page_idx = page_number - 1
 
         if page_idx < 0 or page_idx >= len(doc):
@@ -333,7 +333,7 @@ def create_thumbnail(
         page_width = page.rect.width
         scale = width / page_width
 
-        matrix = fitz.Matrix(scale, scale)
+        matrix = pymupdf.Matrix(scale, scale)
         pix = page.get_pixmap(matrix=matrix)
 
         image_bytes = pix.tobytes("png")

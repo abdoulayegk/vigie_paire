@@ -15,20 +15,20 @@ class _FakeTools:
         self.reset_calls += 1
 
 
-class _FakeFitz:
+class _FakePyMuPDF:
     def __init__(self) -> None:
         self.TOOLS = _FakeTools()
 
 
 def test_configure_mupdf_runtime_disables_warnings_once() -> None:
-    fitz = _FakeFitz()
+    pymupdf_module = _FakePyMuPDF()
     original = pymupdf_utils._MUPDF_CONFIGURED
     pymupdf_utils._MUPDF_CONFIGURED = False
     try:
-        pymupdf_utils.configure_mupdf_runtime(fitz)
-        pymupdf_utils.configure_mupdf_runtime(fitz)
+        pymupdf_utils.configure_mupdf_runtime(pymupdf_module)
+        pymupdf_utils.configure_mupdf_runtime(pymupdf_module)
 
-        assert fitz.TOOLS.warning_calls == [False]
-        assert fitz.TOOLS.reset_calls == 1
+        assert pymupdf_module.TOOLS.warning_calls == [False]
+        assert pymupdf_module.TOOLS.reset_calls == 1
     finally:
         pymupdf_utils._MUPDF_CONFIGURED = original

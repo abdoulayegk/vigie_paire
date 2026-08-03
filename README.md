@@ -88,9 +88,13 @@ copy .env.example .env      # puis renseigner OPENAI_API_KEY
 
 `requirements.txt` couvre les dépendances runtime. Les dépendances de développement comme `pytest` ne sont pas incluses dans le parcours `pip` standard.
 
-Pour un poste analyste qui doit uniquement lancer l'interface Dash en consultation/validation
-des résultats déjà générés, utiliser plutôt `requirements-validateur.txt`. Ce fichier
-n'installe pas les dépendances de pipeline (`docling`, `openai`, `scipy`, etc.).
+Le paquet PDF attendu est `PyMuPDF` et le namespace utilise par le projet est
+`pymupdf`. Ne pas installer le paquet PyPI distinct nomme `fitz` : il est sans
+lien avec PyMuPDF et entre en conflit avec son ancien alias de compatibilite.
+
+Les postes qui consultent et valident uniquement des resultats existants peuvent
+utiliser `requirements-validateur.txt`. Ce profil leger n'installe ni Docling ni
+le client OpenAI et ne peut donc pas lancer d'extraction ou d'appel LLM.
 
 ---
 
@@ -265,64 +269,60 @@ bash scripts/run_dash.sh
 uv run python -m vigilance.dash_app.app
 ```
 
-### Validateur Dash — Windows sans pipeline ni LLM
+### Validateur leger sans LLM — Windows, macOS et Linux
 
-Ce mode sert aux postes Desjardins qui consultent uniquement les fichiers déjà
-présents dans `outputs/resultats` ou dans un dossier `resultats` synchronisé
-SharePoint/OneDrive. Il ne lance pas l'extraction PDF et ne fait aucun appel LLM.
-Les dépendances LLM et le pipeline (docling, openai, scipy…) ne sont **pas**
-installés sur le poste analyste : seul `requirements-validateur.txt` est requis.
-Pour le validateur, privilégier une installation `pip` dans un environnement
-virtuel Windows. `uv` reste réservé aux postes de développement et au pipeline
-complet.
+Le validateur sert aux analystes qui consultent les fichiers deja produits dans
+`outputs/resultats` ou dans un dossier synchronise. Il ne lance ni extraction,
+ni comparaison, ni appel LLM. Il s'execute avec Python directement : aucun
+`.exe` et aucun packaging PyInstaller ne sont utilises.
 
-La commande à lancer côté analyste est `vigie.validateur` (façade francophone
-qui appelle le lecteur interne `vigilance.dash_app.reader`).
+```bash
+python -m venv .venv
+```
 
-Python doit être en version `>=3.10`. Les postes employés peuvent avoir des
-versions différentes : vérifier d'abord la version utilisée par la commande
-`python`.
-
-#### Installation recommandée avec `pip`
+Activation de l'environnement :
 
 ```powershell
-python --version
-python -m venv .venv
+# Windows PowerShell
 .venv\Scripts\Activate.ps1
+```
+
+```bash
+# macOS / Linux
+source .venv/bin/activate
+```
+
+Installation et lancement, identiques sur les trois plateformes :
+
+```bash
 python -m pip install --upgrade pip
 python -m pip install -r requirements-validateur.txt
 python -m pip install -e . --no-deps
-python -m vigie.validateur
+python -m vigie.validateur --resultats /chemin/vers/resultats
 ```
 
-> Après `pip install -e .`, la commande console `vigie-validateur` est aussi
-> disponible et équivaut à `python -m vigie.validateur`.
-
-Si `python --version` retourne une version inférieure à `3.10`, utiliser le
-launcher Windows pour choisir une version installée compatible :
+Sous Windows, un chemin peut par exemple etre fourni ainsi :
 
 ```powershell
-py -0p
-py -3.10 -m venv .venv
+python -m vigie.validateur --resultats "C:\Users\analyste\Vigie\resultats"
 ```
 
-Au premier lancement, l'application demande le dossier `resultats`. Il est aussi
-possible de le fixer explicitement :
+Le dossier peut aussi etre defini avec `VIGIE_RESULTATS_DIR`. Sans argument ni
+variable, un selecteur de dossier est affiche et le choix est memorise dans le
+dossier de configuration standard de l'OS : `%APPDATA%` sous Windows,
+`~/Library/Application Support` sous macOS et `$XDG_CONFIG_HOME` ou `~/.config`
+sous Linux.
 
-```powershell
-$env:VIGIE_RESULTATS_DIR="C:\Users\<utilisateur>\Desjardins\Vigie\resultats"
-python -m vigie.validateur
+Options utiles :
+
+```text
+--analyste NOM       identifiant du fichier de validation individuel
+--port PORT          port Dash prefere
+--sans-navigateur    ne pas ouvrir le navigateur automatiquement
 ```
 
-Si Windows affiche `No module named vigie` ou `No module named vigilance`,
-relancer l'installation locale depuis la racine du projet avec le même
-environnement virtuel activé :
-
-```powershell
-python -m pip install -e . --no-deps
-python -c "import vigie, vigilance; print('vigie_ok')"
-python -m vigie.validateur
-```
+La commande console `vigie-validateur` est equivalente a
+`python -m vigie.validateur`.
 
 ### Dash complet — Avec `pip`
 

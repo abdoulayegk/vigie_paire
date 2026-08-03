@@ -49,7 +49,7 @@ def build_changements_communs_tab(
                         dbc.Alert(
                             [
                                 html.I(className="bi bi-shield-check me-2"),
-                                "Mode validateur: lecture seule, sans LLM",
+                                "Consultation des resultats, sans appel LLM",
                             ],
                             color="info",
                             className="py-2 mb-0",

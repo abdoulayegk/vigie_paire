@@ -91,13 +91,13 @@ def _extract_pymupdf_fallback_blocks(
     déjà un bloc Docling ne seront pas ajoutés.
     """
     try:
-        import fitz
+        import pymupdf
     except Exception:
         return {}
 
     fallback: dict[int, list[PDFBlock]] = {page: [] for page in page_numbers}
     try:
-        with fitz.open(str(pdf_path)) as doc:
+        with pymupdf.open(str(pdf_path)) as doc:
             for page in page_numbers:
                 if page < 1 or page > doc.page_count:
                     continue
