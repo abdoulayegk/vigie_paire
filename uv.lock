@@ -4102,9 +4102,12 @@ dependencies = [
     { name = "dash" },
     { name = "dash-bootstrap-components" },
     { name = "docling" },
+    { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
+    { name = "numpy", version = "2.4.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "openai" },
     { name = "openpyxl" },
     { name = "pdfplumber" },
+    { name = "pillow" },
     { name = "pydantic" },
     { name = "pymupdf" },
     { name = "python-dotenv" },
@@ -4113,6 +4116,7 @@ dependencies = [
     { name = "scikit-learn", version = "1.9.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "scipy", version = "1.15.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "scipy", version = "1.17.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
+    { name = "tqdm" },
 ]
 
 [package.dev-dependencies]
@@ -4140,15 +4144,18 @@ requires-dist = [
     { name = "dash", specifier = ">=4.0.0" },
     { name = "dash-bootstrap-components", specifier = ">=2.0.4" },
     { name = "docling", specifier = ">=2.73.1" },
+    { name = "numpy", specifier = ">=1.26.0" },
     { name = "openai", specifier = ">=2.21.0" },
     { name = "openpyxl", specifier = ">=3.1.0" },
     { name = "pdfplumber", specifier = ">=0.10" },
+    { name = "pillow", specifier = ">=10.0.0" },
     { name = "pydantic", specifier = ">=2.0.0" },
     { name = "pymupdf", specifier = ">=1.27.1" },
     { name = "python-dotenv", specifier = ">=1.2.1" },
     { name = "pyyaml", specifier = ">=6.0" },
     { name = "scikit-learn", specifier = ">=1.5.0" },
     { name = "scipy", specifier = ">=1.11.0" },
+    { name = "tqdm", specifier = ">=4.66.0" },
 ]
 
 [package.metadata.requires-dev]

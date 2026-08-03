@@ -9,17 +9,20 @@ description = "Outil d'extraction et de comparaison de rapports bancaires PDF"
 requires-python = ">=3.10"
 dependencies = [
     "scipy>=1.11.0",
+    "numpy>=1.26.0",
     "pyyaml>=6.0",
     "pdfplumber>=0.10",
     "dash>=4.0.0",
     "dash-bootstrap-components>=2.0.4",
     "pymupdf>=1.27.1",
+    "pillow>=10.0.0",
     "docling>=2.73.1",
     "python-dotenv>=1.2.1",
     "openai>=2.21.0",
     "openpyxl>=3.1.0",
     "pydantic>=2.0.0",
     "scikit-learn>=1.5.0",
+    "tqdm>=4.66.0",
 ]
 
 [project.scripts]
