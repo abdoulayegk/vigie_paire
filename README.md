@@ -86,7 +86,7 @@ copy .env.example .env      # puis renseigner OPENAI_API_KEY
 
 `uv` reste préférable pour la reproductibilité et les workflows dev. `pip` suffit pour exécuter les pipelines applicatifs sans changement de code sur les scripts principaux.
 
-`requirements.txt` couvre les dépendances runtime. Les dépendances de développement comme `pytest` et `reportlab` ne sont pas incluses dans le parcours `pip` standard.
+`requirements.txt` couvre les dépendances runtime. Les dépendances de développement comme `pytest` ne sont pas incluses dans le parcours `pip` standard.
 
 Pour un poste analyste qui doit uniquement lancer l'interface Dash en consultation/validation
 des résultats déjà générés, utiliser plutôt `requirements-validateur.txt`. Ce fichier

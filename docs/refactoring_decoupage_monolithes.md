@@ -5,7 +5,7 @@ Point de branchement : `e4cce93` (main).
 
 ## Objectif
 
-Réduire les six fichiers qui concentrent 15 000 des 70 718 lignes de `src/vigilance`,
+Réduire les fichiers qui concentrent une part importante des 70 718 lignes de `src/vigilance`,
 sans changer aucun comportement.
 
 | Fichier | Lignes au départ | Cible |
@@ -14,7 +14,6 @@ sans changer aucun comportement.
 | `extraction/vision_full_extractor.py` | 3 569 | ~7 modules |
 | `extraction/docling_processor.py` | 3 029 | phase 6 |
 | `text_analysis/triage.py` | 2 103 | phase 6 |
-| `dash_app/callbacks/vigie_dashboard_flow.py` | 1 629 | phase 6 |
 | `dash_app/layouts/page_text_analysis.py` | 1 586 | phase 6 |
 
 ## Règles

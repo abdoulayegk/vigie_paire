@@ -18,8 +18,8 @@ def build_page_upload() -> html.Div:
             html.H4("Comparateur de Rapports Bancaires"),
             html.P(
                 "Consultez d'abord les analyses enregistrées dans la barre latérale. "
-                "Sélectionnez une analyse disponible, puis chargez-la pour consulter le dashboard, "
-                "les indicateurs et l'analyse textuelle.",
+                "Sélectionnez une analyse disponible, puis chargez-la pour consulter les indicateurs, "
+                "l'analyse textuelle et les changements communs entre banques.",
                 className="text-muted",
             ),
             dbc.Alert(
