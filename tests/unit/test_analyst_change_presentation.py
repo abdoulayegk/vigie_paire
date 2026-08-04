@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from vigilance.analyst_change_presentation import (
+from vigie.comparaison.analyst_change_presentation import (
     build_analyst_narrative,
     build_change_presentation,
     business_relevance_paragraph,

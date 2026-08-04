@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from vigilance.extraction.docling_processor import DoclingProcessor
+from vigie.extraction.docling import DoclingProcessor
 
 
 def test_extract_document_rejects_none_pdf_path_before_path_conversion() -> None:

@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-from vigilance.config import get_matching_thresholds
-from vigilance.extraction.docling_normalization import _is_footnote_row
-from vigilance.utils.indicator_cleaner import (
+from vigie.support.config import get_matching_thresholds
+from vigie.extraction.docling_normalization import _is_footnote_row
+from vigie.support.utils.indicator_cleaner import (
     is_header_footer_table_title,
     strip_note_refs_from_title,
 )
-from vigilance.utils.matching_normalizer import (
+from vigie.support.utils.matching_normalizer import (
     _classify_excluded_line,
     is_date_only_line,
     is_non_indicator_line,

@@ -6,19 +6,22 @@ from types import SimpleNamespace
 
 import pytest
 
-from vigilance.compare_gpt import (
-    DIFF_PROMPT_VERSION,
-    MATCH_PROMPT_VERSION,
+from vigie.comparaison.io import normalize_quarter, resolve_reference_period
+from vigie.comparaison.pipeline.ancrages_visuels import (
+    _infer_opposite_page_from_matched_pairs,
+    _resolve_visual_table_anchor,
+)
+from vigie.comparaison.pipeline.client_openai import (
     OPENAI_COMPARISON_TIMEOUT_SECONDS,
     _call_openai_embeddings,
     _call_openai_json,
-    _infer_opposite_page_from_matched_pairs,
-    _resolve_visual_table_anchor,
-    compare_reports_gpt4o,
-    normalize_quarter,
-    resolve_reference_period,
 )
-from vigilance.comparison_io import _is_boundary_inventory_candidate
+from vigie.comparaison.pipeline.construction_resultat import (
+    DIFF_PROMPT_VERSION,
+    MATCH_PROMPT_VERSION,
+)
+from vigie.comparaison.pipeline.orchestration import compare_reports_gpt4o
+from vigie.comparaison.io import _is_boundary_inventory_candidate
 
 
 def _table(
@@ -202,7 +205,7 @@ def test_compare_excludes_unmatched_boundary_candidates_from_change_counts(
     )
 
     monkeypatch.setattr(
-        "vigilance.compare_gpt._run_table_matching",
+        "vigie.comparaison.pipeline.orchestration._run_table_matching",
         lambda *_args, **_kwargs: {
             "matched_pairs": [],
             "tables_added": [
@@ -216,7 +219,7 @@ def test_compare_excludes_unmatched_boundary_candidates_from_change_counts(
         },
     )
     monkeypatch.setattr(
-        "vigilance.compare_gpt._devil_advocate_review",
+        "vigie.comparaison.pipeline.orchestration._devil_advocate_review",
         lambda *_args, **_kwargs: {
             "new_matches": [],
             "contested_pairs": [],
@@ -342,7 +345,7 @@ def test_comparison_openai_clients_use_direct_120_second_timeout(monkeypatch) ->
                 )
             )
 
-    monkeypatch.setattr("vigilance.compare_gpt.get_openai_api_key", lambda: "test-key")
+    monkeypatch.setattr("vigie.comparaison.pipeline.client_openai.get_openai_api_key", lambda: "test-key")
     monkeypatch.setattr("openai.OpenAI", FakeOpenAI)
 
     assert _call_openai_json(model="gpt-test", messages=[]) == {}
@@ -518,7 +521,7 @@ def test_compare_reports_gpt4o_uses_canonical_prompt_cards_and_gpt_diff(
         seen_prompts.append((kind, prompt))
         return responses_by_kind[kind].pop(0)
 
-    monkeypatch.setattr("vigilance.compare_gpt._call_openai_json", fake_call_openai_json)
+    monkeypatch.setattr("vigie.comparaison.pipeline.orchestration._call_openai_json", fake_call_openai_json)
 
     comparison_path = compare_reports_gpt4o(
         previous_dir=previous_dir,
@@ -670,7 +673,7 @@ def test_compare_reports_gpt4o_allows_cross_section_matching_in_single_pass(
             seen_modes.append(prompt["task"])
         return responses_by_kind[kind].pop(0)
 
-    monkeypatch.setattr("vigilance.compare_gpt._call_openai_json", fake_call_openai_json)
+    monkeypatch.setattr("vigie.comparaison.pipeline.orchestration._call_openai_json", fake_call_openai_json)
 
     comparison_path = compare_reports_gpt4o(
         previous_dir=previous_dir,
@@ -778,7 +781,7 @@ def test_compare_reports_gpt4o_retries_invalid_matching_output(
                 feedbacks.append(prompt["validation_feedback"])
         return responses_by_kind[kind].pop(0)
 
-    monkeypatch.setattr("vigilance.compare_gpt._call_openai_json", fake_call_openai_json)
+    monkeypatch.setattr("vigie.comparaison.pipeline.orchestration._call_openai_json", fake_call_openai_json)
 
     comparison_path = compare_reports_gpt4o(
         previous_dir=previous_dir,
@@ -899,7 +902,7 @@ def test_compare_reports_gpt4o_rejects_duplicate_pairs_without_local_scoring(
     }
 
     monkeypatch.setattr(
-        "vigilance.compare_gpt._call_openai_json",
+        "vigie.comparaison.pipeline.orchestration._call_openai_json",
         lambda **kwargs: responses_by_kind[kwargs["call_kind"]].pop(0),
     )
 
@@ -1021,7 +1024,7 @@ def test_compare_reports_gpt4o_recovers_unresolved_pairs_in_second_matching_stag
             stages.append(str(prompt.get("stage", "")))
         return responses_by_kind[kind].pop(0)
 
-    monkeypatch.setattr("vigilance.compare_gpt._call_openai_json", fake_call_openai_json)
+    monkeypatch.setattr("vigie.comparaison.pipeline.orchestration._call_openai_json", fake_call_openai_json)
 
     comparison_path = compare_reports_gpt4o(
         previous_dir=previous_dir,
@@ -1166,7 +1169,7 @@ def test_compare_reports_gpt4o_retries_incomplete_matching_coverage(
                 feedbacks.append(prompt["validation_feedback"])
         return responses_by_kind[kind].pop(0)
 
-    monkeypatch.setattr("vigilance.compare_gpt._call_openai_json", fake_call_openai_json)
+    monkeypatch.setattr("vigie.comparaison.pipeline.orchestration._call_openai_json", fake_call_openai_json)
 
     comparison_path = compare_reports_gpt4o(
         previous_dir=previous_dir,
@@ -1291,7 +1294,7 @@ def test_compare_reports_gpt4o_separates_artifacts_and_extraction_suspects(
     }
 
     monkeypatch.setattr(
-        "vigilance.compare_gpt._call_openai_json",
+        "vigie.comparaison.pipeline.orchestration._call_openai_json",
         lambda **kwargs: responses_by_kind[kwargs["call_kind"]].pop(0),
     )
 
@@ -1367,7 +1370,7 @@ def test_compare_reports_gpt4o_preclassifies_artifacts_and_suspects_before_audit
         call_kinds.append(kwargs["call_kind"])
         return {}
 
-    monkeypatch.setattr("vigilance.compare_gpt._call_openai_json", fake_call_openai_json)
+    monkeypatch.setattr("vigie.comparaison.pipeline.orchestration._call_openai_json", fake_call_openai_json)
 
     comparison_path = compare_reports_gpt4o(
         previous_dir=previous_dir,
@@ -1424,7 +1427,7 @@ def test_compare_reports_gpt4o_sends_trivial_ok_tables_to_business_matching(
         call_kinds.append(kwargs["call_kind"])
         return {}
 
-    monkeypatch.setattr("vigilance.compare_gpt._call_openai_json", fake_call_openai_json)
+    monkeypatch.setattr("vigie.comparaison.pipeline.orchestration._call_openai_json", fake_call_openai_json)
 
     comparison_path = compare_reports_gpt4o(
         previous_dir=previous_dir,
@@ -1528,7 +1531,7 @@ def test_compare_reports_gpt4o_always_uses_gpt_for_unchanged_diff(
         call_kinds.append(kind)
         return responses_by_kind[kind].pop(0)
 
-    monkeypatch.setattr("vigilance.compare_gpt._call_openai_json", fake_call_openai_json)
+    monkeypatch.setattr("vigie.comparaison.pipeline.orchestration._call_openai_json", fake_call_openai_json)
 
     comparison_path = compare_reports_gpt4o(
         previous_dir=previous_dir,
@@ -1673,12 +1676,12 @@ def test_compare_reports_gpt4o_runs_visual_sanity_for_footnote_only_diff(
             "visual_sanity_render_status": "ok",
         }
 
-    monkeypatch.setattr("vigilance.compare_gpt._call_openai_json", fake_call_openai_json)
+    monkeypatch.setattr("vigie.comparaison.pipeline.orchestration._call_openai_json", fake_call_openai_json)
     monkeypatch.setattr(
-        "vigilance.compare_gpt.render_visual_sanity_proof",
+        "vigie.comparaison.pipeline.orchestration.render_visual_sanity_proof",
         fake_render_visual_sanity_proof,
     )
-    monkeypatch.setattr("vigilance.compare_gpt.visual_sanity_check", fake_visual_sanity_check)
+    monkeypatch.setattr("vigie.comparaison.pipeline.orchestration.visual_sanity_check", fake_visual_sanity_check)
 
     source_pdf_previous = tmp_path / "prev.pdf"
     source_pdf_current = tmp_path / "curr.pdf"
@@ -1802,13 +1805,13 @@ def test_compare_reports_gpt4o_filters_table_added_removed_with_visual_sanity(
             "visual_sanity_render_status": "ok",
         }
 
-    monkeypatch.setattr("vigilance.compare_gpt._call_openai_json", fake_call_openai_json)
+    monkeypatch.setattr("vigie.comparaison.pipeline.orchestration._call_openai_json", fake_call_openai_json)
     monkeypatch.setattr(
-        "vigilance.compare_gpt.render_visual_sanity_proof",
+        "vigie.comparaison.pipeline.orchestration.render_visual_sanity_proof",
         fake_render_visual_sanity_proof,
     )
     monkeypatch.setattr(
-        "vigilance.compare_gpt.visual_sanity_check_table_event",
+        "vigie.comparaison.pipeline.orchestration.visual_sanity_check_table_event",
         fake_visual_sanity_check_table_event,
     )
 
@@ -1914,13 +1917,13 @@ def test_compare_reports_gpt4o_skips_table_visual_sanity_without_anchor(
         kind = kwargs["call_kind"]
         return responses_by_kind[kind].pop(0)
 
-    monkeypatch.setattr("vigilance.compare_gpt._call_openai_json", fake_call_openai_json)
+    monkeypatch.setattr("vigie.comparaison.pipeline.orchestration._call_openai_json", fake_call_openai_json)
     monkeypatch.setattr(
-        "vigilance.compare_gpt.render_visual_sanity_proof",
+        "vigie.comparaison.pipeline.orchestration.render_visual_sanity_proof",
         lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("unexpected render")),
     )
     monkeypatch.setattr(
-        "vigilance.compare_gpt.visual_sanity_check_table_event",
+        "vigie.comparaison.pipeline.orchestration.visual_sanity_check_table_event",
         lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("unexpected sanity")),
     )
 
@@ -2047,7 +2050,7 @@ def test_compare_reports_gpt4o_recomputes_table_level_change_after_noise_filter(
         kind = kwargs["call_kind"]
         return responses_by_kind[kind].pop(0)
 
-    monkeypatch.setattr("vigilance.compare_gpt._call_openai_json", fake_call_openai_json)
+    monkeypatch.setattr("vigie.comparaison.pipeline.orchestration._call_openai_json", fake_call_openai_json)
 
     comparison_path = compare_reports_gpt4o(
         previous_dir=previous_dir,

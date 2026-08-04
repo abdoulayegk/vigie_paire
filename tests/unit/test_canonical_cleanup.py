@@ -2,28 +2,28 @@ from __future__ import annotations
 
 import pytest
 
-from vigilance.text_analysis.boundary_repair import (
+from vigie.analyse_texte.boundary_repair import (
     BoundaryDisposition,
     RepairableBlock,
     classify_boundary,
     repair_block_boundaries,
 )
-from vigilance.text_analysis.canonical_cleanup import (
+from vigie.analyse_texte.canonical_cleanup import (
     adjacent_duplicate_key,
     canonicalize_surface_text,
     cleanup_canonical_fragment,
     is_quarterly_running_chrome,
     is_standalone_table_marker_definition,
 )
-from vigilance.text_analysis.chunking import _chunk_subsection_text
-from vigilance.text_analysis.docling_markdown import (
+from vigie.analyse_texte.chunking import _chunk_subsection_text
+from vigie.analyse_texte.docling_markdown import (
     DoclingSegment,
     _filter_reinserted_section_segments,
     _parse_docling_markdown,
     _repair_nonadjacent_dangling_boundaries,
     _should_keep_docling_segment,
 )
-from vigilance.text_analysis.models import SectionAudit
+from vigie.analyse_texte.models import SectionAudit
 
 
 def test_surface_cleanup_decodes_html_and_normalizes_spaces() -> None:

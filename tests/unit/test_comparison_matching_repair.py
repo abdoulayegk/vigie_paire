@@ -7,8 +7,10 @@ import json
 import pytest
 from pydantic import ValidationError
 
-from vigilance.comparison_matching import (
+from vigie.comparaison.rapprochement.correction_reponses import (
     _build_matching_repair_response_model,
+)
+from vigie.comparaison.rapprochement.moteur_rapprochement import (
     _run_matching_stage,
 )
 

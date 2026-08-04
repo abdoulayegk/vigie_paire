@@ -4,13 +4,13 @@ from typing import Any
 
 from dash.development.base_component import Component
 
-from vigilance.dash_app.callbacks.text_flow import (
+from vigie.interface.callbacks.text_flow import (
     download_text_excel,
     filter_text_cards,
     render_text_analysis,
     show_remaining_text_changes,
 )
-from vigilance.dash_app.layouts.page_text_analysis import build_text_analysis_tab
+from vigie.interface.layouts.text_analysis import build_text_analysis_tab
 
 
 def _flat_text(node: object) -> str:
@@ -68,11 +68,11 @@ def test_download_text_excel_reload_latest_payload_before_export(monkeypatch) ->
         return b"excel-bytes"
 
     monkeypatch.setattr(
-        "vigilance.dash_app.services.text_comparison_store.load_text_comparison_for_dash",
+        "vigie.interface.services.text_comparison_store.load_text_comparison_for_dash",
         _fake_load_text_comparison_for_dash,
     )
     monkeypatch.setattr(
-        "vigilance.text_comparison.generate_text_comparison_excel",
+        "vigie.analyse_texte.text_comparison.generate_text_comparison_excel",
         _fake_generate_text_comparison_excel,
     )
 

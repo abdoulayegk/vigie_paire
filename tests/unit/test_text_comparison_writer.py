@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from vigilance.text_comparison.text_comparison_writer import write_text_comparison
+from vigie.analyse_texte.text_comparison.text_comparison_writer import write_text_comparison
 
 
 def test_write_text_comparison_normalizes_legacy_justification_and_segments(

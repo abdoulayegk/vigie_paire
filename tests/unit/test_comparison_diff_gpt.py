@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from vigilance.comparison_diff_gpt import _table_context, diff_table_pair_gpt
+from vigie.comparaison.differences.comparaison_paire import diff_table_pair_gpt
+from vigie.comparaison.differences.normalisation_elements import _table_context
 
 
 def _table(

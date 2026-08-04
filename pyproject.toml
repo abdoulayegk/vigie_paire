@@ -26,21 +26,21 @@ dependencies = [
 ]
 
 [project.scripts]
-vigie-run-ranges = "vigilance.cli.run_ranges:main"
-vigie-run-tables = "vigilance.cli.run_tables:main"
-vigie-run-extract-report = "vigilance.cli.run_extract_report:main"
-vigie-run-compare-gpt4o = "vigilance.cli.run_compare_gpt4o:main"
-vigie-run-changements-communs = "vigilance.cli.run_changements_communs:main"
-vigie-run = "run_full_pipeline:main"
-vigie-validateur = "vigie.validateur:main"
+vigie-run-ranges = "vigie.cli.run_ranges:main"
+vigie-run-tables = "vigie.cli.run_tables:main"
+vigie-run-extract-report = "vigie.cli.run_extract_report:main"
+vigie-run-compare-gpt4o = "vigie.cli.run_compare_gpt4o:main"
+vigie-run-changements-communs = "vigie.cli.run_changements_communs:main"
+vigie-run = "vigie.pipelines.complet:main"
+vigie-validateur = "vigie.interface.validator:main"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
 
-# Decouverte automatique des sous-packages du projet et de la facade CLI.
+# Decouverte automatique du package vigie (entree + coeur).
 [tool.setuptools.packages.find]
 where = ["src"]
-include = ["vigie*", "vigilance*"]
+include = ["vigie*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

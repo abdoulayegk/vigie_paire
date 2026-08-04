@@ -4,15 +4,15 @@ from __future__ import annotations
 
 import pytest
 
-from vigilance.review_adapters import build_review_items_from_indicator_result
-from vigilance.review_models import (
+from vigie.interface.review_adapters import build_review_items_from_indicator_result
+from vigie.interface.review_models import (
     CHANGE_TYPE_TABLE_ADDED,
     CHANGE_TYPE_TABLE_REMOVED,
     EVENT_TYPE_MATCHED_PAIR,
     EVENT_TYPE_TABLE_ADDED,
     EVENT_TYPE_TABLE_REMOVED,
 )
-from vigilance.ui_indicators import build_indicator_change_rows
+from vigie.interface.ui_indicators import build_indicator_change_rows
 
 
 def test_tables_added_has_no_indicators_and_event_type() -> None:

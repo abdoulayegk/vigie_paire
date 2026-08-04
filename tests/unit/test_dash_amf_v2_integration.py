@@ -3,7 +3,7 @@
 Vérifie que :
 - ``review_queue_v2._build_genai_summary_row`` filtre les items non pertinents
 - ``review_detail_v2._build_themes_amf_chips`` rend correctement l'overflow ``+N``
-- ``page_text_analysis._build_change_card`` affiche les nouveaux champs AMF
+- ``text_analysis._build_change_card`` affiche les nouveaux champs AMF
   et garde les changements ``is_relevant=False`` visibles pour revue humaine
 """
 
@@ -13,13 +13,13 @@ import pytest
 from dash import html
 from dash.development.base_component import Component
 
-from vigilance.dash_app.components.review_detail_v2 import (
+from vigie.interface.components.review_detail_v2 import (
     _build_genai_section,
     _build_themes_amf_chips,
 )
-from vigilance.dash_app.components.review_queue_v2 import _build_genai_summary_row
-from vigilance.dash_app.layouts.page_changements_communs import _build_signal_card
-from vigilance.dash_app.layouts.page_text_analysis import _build_change_card
+from vigie.interface.components.review_queue_v2 import _build_genai_summary_row
+from vigie.interface.layouts.page_changements_communs import _build_signal_card
+from vigie.interface.layouts.text_analysis import _build_change_card
 
 
 def _flatten_text(node: object) -> str:
@@ -173,7 +173,7 @@ def test_themes_amf_chips_render_data_and_third_party_cloud_labels() -> None:
     assert "Tiers / Cloud" in text
 
 
-# --- page_text_analysis affiche les nouveaux champs AMF ---
+# --- text_analysis affiche les nouveaux champs AMF ---
 
 
 def test_text_analysis_change_card_renders_amf_fields() -> None:
@@ -534,7 +534,7 @@ def test_text_analysis_hides_structured_non_relevance_reason_from_main_card() ->
 # --- Side-by-side avec highlights AMF v2 ---
 
 
-from vigilance.dash_app.layouts.page_text_analysis import (
+from vigie.interface.layouts.text_analysis import (
     _HIGHLIGHT_ADDED_STYLE,
     _HIGHLIGHT_REMOVED_STYLE,
     _build_side_by_side,
@@ -735,7 +735,7 @@ def test_change_segment_pydantic_invariants() -> None:
     """Pydantic rejette les ChangeSegment incohérents."""
     from pydantic import ValidationError as _PydErr
 
-    from vigilance.amf_taxonomy import ChangeSegment
+    from vigie.comparaison.triage.amf_taxonomy import ChangeSegment
 
     # Valid added
     s = ChangeSegment(kind="added", text_t2="x")

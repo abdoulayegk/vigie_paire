@@ -4,14 +4,14 @@ import base64
 
 from dash.development.base_component import Component
 
-from vigilance.dash_app.callbacks import proof_flow as proof_mod
-from vigilance.dash_app.components.review_detail_v2 import _build_change_full_detail
-from vigilance.dash_app.components.review_display_shared import (
+from vigie.interface.callbacks import proof_flow as proof_mod
+from vigie.interface.components.review_detail_v2 import _build_change_full_detail
+from vigie.interface.components.review_display_shared import (
     build_proofs_section,
     compute_flag_state,
 )
-from vigilance.dash_app.layouts import page_results
-from vigilance.dash_app.services import pdf_rendering as pdf_mod
+from vigie.interface.layouts import page_results
+from vigie.interface.services import pdf_rendering as pdf_mod
 
 
 def _flatten_text(node: object) -> str:
@@ -589,7 +589,7 @@ def test_footnote_render_passes_highlights_to_crop(monkeypatch) -> None:
         return b"abc"
 
     monkeypatch.setattr(
-        "vigilance.utils.pdf_crop.crop_footnote_region_to_bytes",
+        "vigie.support.utils.pdf_crop.crop_footnote_region_to_bytes",
         _fake_crop_footnote,
     )
 
@@ -626,7 +626,7 @@ def test_table_render_uses_current_quarter_highlight_color(monkeypatch) -> None:
         return b"abc"
 
     monkeypatch.setattr(
-        "vigilance.utils.pdf_crop.crop_table_region_to_bytes",
+        "vigie.support.utils.pdf_crop.crop_table_region_to_bytes",
         _fake_crop_table,
     )
 

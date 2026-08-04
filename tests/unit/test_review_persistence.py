@@ -5,16 +5,16 @@ from pathlib import Path
 import pytest
 from types import SimpleNamespace
 
-from vigilance.comparison_canonical import to_canonical_payload
-from vigilance.dash_app.callbacks import dashboard_flow as dashboard_mod
-from vigilance.dash_app.callbacks import review_flow as review_mod
-from vigilance.dash_app.services.export_helpers import _review_items_from_v2_queue
-from vigilance.quarter_utils import quarter_label_from_payload
-from vigilance.review_adapters import build_review_items_from_indicator_result
-from vigilance.review_models import ReviewItem
-from vigilance.review_queue_normalizer import build_normalized_review_queue
-from vigilance.review_storage import load_review_state, save_review_state
-from vigilance.ui_io import load_comparison_result
+from vigie.comparaison.canonical import to_canonical_payload
+from vigie.interface.callbacks import dashboard_flow as dashboard_mod
+from vigie.interface.callbacks import review_flow as review_mod
+from vigie.interface.services.export_helpers import _review_items_from_v2_queue
+from vigie.support.quarter_utils import quarter_label_from_payload
+from vigie.interface.review_adapters import build_review_items_from_indicator_result
+from vigie.interface.review_models import ReviewItem
+from vigie.interface.review_queue_normalizer import build_normalized_review_queue
+from vigie.interface.review_storage import load_review_state, save_review_state
+from vigie.interface.ui_io import load_comparison_result
 
 
 class _FakeTable:
@@ -418,7 +418,7 @@ def test_td_review_queue_keeps_structure_and_actions_tables_separate() -> None:
 
 
 def test_legacy_review_callbacks_are_removed() -> None:
-    from vigilance.dash_app import app as _app_mod
+    from vigie.interface import app as _app_mod
 
     assert not hasattr(_app_mod, "on_modern_nav")
     assert not hasattr(_app_mod, "on_review_navigate")

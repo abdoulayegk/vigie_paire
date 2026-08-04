@@ -1,11 +1,11 @@
-"""Tests for the GenAI batch triage module (vigilance.genai_triage)."""
+"""Tests for the GenAI batch triage module (vigie.comparaison.triage.genai_triage)."""
 
 from __future__ import annotations
 
 import json
 from unittest.mock import patch
 
-from vigilance.genai_triage import (
+from vigie.comparaison.triage.genai_triage import (
     _build_change_prompt,
     _fallback_enrich,
     _has_meaningful_diff,
@@ -526,7 +526,7 @@ class TestEnrichComparison:
         path = tmp_path / "comparison.json"
         path.write_text(json.dumps(comparison), encoding="utf-8")
 
-        with patch("vigilance.utils.genai.get_openai_api_key", return_value=None):
+        with patch("vigie.support.utils.genai.get_openai_api_key", return_value=None):
             result_path = enrich_comparison_with_genai_triage(path)
 
         enriched = json.loads(result_path.read_text(encoding="utf-8"))
@@ -540,7 +540,7 @@ class TestEnrichComparison:
         path = tmp_path / "comparison.json"
         path.write_text(json.dumps(comparison), encoding="utf-8")
 
-        with patch("vigilance.utils.genai.get_openai_api_key", return_value=None):
+        with patch("vigie.support.utils.genai.get_openai_api_key", return_value=None):
             enrich_comparison_with_genai_triage(path)
 
         enriched = json.loads(path.read_text(encoding="utf-8"))

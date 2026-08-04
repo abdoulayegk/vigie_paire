@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import re
 
-from vigilance.extraction.genai_toc_detector import GenAITOCDetector
-from vigilance.extraction.section_locator import (
+from vigie.extraction.genai_toc_detector import GenAITOCDetector
+from vigie.extraction.localisation_sections import (
     RISK_SUBSECTIONS,
     SECTION_PATTERNS,
     LocatedSection,

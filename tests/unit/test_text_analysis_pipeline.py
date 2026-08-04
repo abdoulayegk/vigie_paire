@@ -5,73 +5,93 @@ from pathlib import Path
 
 import pytest
 
-from vigilance.text_analysis_pipeline import (
-    _align_chunks_tfidf,
-    _build_comparison_batches,
-    _format_alignments_for_prompt,
+from vigie.analyse_texte.chunk_alignment import (
     ChunkAlignment,
     ChunkCandidate,
+    _align_chunks_tfidf,
+    _format_alignments_for_prompt,
+)
+from vigie.analyse_texte.chunking import _chunk_subsection_text
+from vigie.analyse_texte.comparaison_sections import (
+    _build_comparison_batches,
+    _compare_section_texts,
+)
+from vigie.analyse_texte.extraction import (
+    _build_section_audit,
+    _classify_block_type,
+    _extract_audits_for_pdf,
+)
+from vigie.analyse_texte.markdown import (
+    _build_text_extraction_markdown,
+    _extract_section_text_from_markdown,
+    _format_page_marker,
+    _format_page_suffix,
+    _parse_page_index_from_markdown,
+    _rewrite_page_markers_for_display,
+)
+from vigie.analyse_texte.models import (
     PDFBlock,
     ResolvedSection,
     SectionAudit,
     SemanticUnit,
-    _allowed_target_sections,
-    _build_section_audit,
-    _build_global_summary,
-    _build_text_extraction_markdown,
-    _call_json_completion,
-    _chunk_subsection_text,
-    _classify_block_type,
-    _compare_section_texts,
-    _default_triage,
-    _derive_legacy_fields,
-    _extract_audits_for_pdf,
-    _extract_section_text_from_markdown,
-    _FEW_SHOT_TRIAGE_AMF,
-    _format_page_marker,
-    _format_page_suffix,
-    _gpt_match_orphan_headings,
-    _is_new_major_or_allowed_moderate,
-    _is_non_cosmetic_change,
+    TextAnalysisQualityError,
+)
+from vigie.analyse_texte.normalization import (
     _looks_like_footnote,
+    _sanitize_semantic_text,
+)
+from vigie.analyse_texte.openai_client import (
+    _call_json_completion,
     _max_output_tokens_for_model,
+)
+from vigie.analyse_texte.pipeline import run_text_analysis_pipeline
+from vigie.analyse_texte.sections import (
+    _allowed_target_sections,
+    _resolve_sections,
+    _section_window_for_page,
+)
+from vigie.analyse_texte.subsection_matching import (
+    _gpt_match_orphan_headings,
     _normalize_heading,
     _pair_subsections,
-    _parse_page_index_from_markdown,
     _parse_subsections,
     _resolve_orphan_subsections,
-    _resolve_sections,
-    _rewrite_page_markers_for_display,
-    _sanitize_semantic_text,
-    _section_window_for_page,
-    TextAnalysisQualityError,
-    run_text_analysis_pipeline,
 )
-from vigilance.text_analysis.chunk_alignment import (
+from vigie.analyse_texte.summary import (
+    _build_global_summary,
+    _is_new_major_or_allowed_moderate,
+    _is_non_cosmetic_change,
+)
+from vigie.analyse_texte.triage_parts import (
+    _FEW_SHOT_TRIAGE_AMF,
+    _default_triage,
+    _derive_legacy_fields,
+)
+from vigie.analyse_texte.chunk_alignment import (
     _reassemble_adjacent_one_to_many,
     _tfidf_similarity_matrix_from_texts,
 )
-from vigilance.text_analysis.chunking import TextChunk
-from vigilance.text_analysis.semantic_chunking import SemanticChunkingError
-from vigilance.text_analysis.comparison import (
+from vigie.analyse_texte.chunking import TextChunk
+from vigie.analyse_texte.semantic_chunking import SemanticChunkingError
+from vigie.analyse_texte.comparaison_sections import (
     ChunkComparisonLLMResponse,
     _attach_alignment_metadata,
     _materialize_semantic_alignment_decisions,
 )
-from vigilance.text_analysis.global_reconciliation import (
+from vigie.analyse_texte.global_reconciliation import (
     _ReconciliationResponse,
     _components,
     _one_sided_nodes,
     reconcile_global_change_fragments,
 )
-from vigilance.text_comparison.change_segments import build_change_segments_from_texts
-from vigilance.text_analysis.subsection_matching import OrphanMatchLLMResponse, OrphanSubsection
-from vigilance.text_extraction.text_extraction_markdown_writer import (
+from vigie.analyse_texte.text_comparison.change_segments import build_change_segments_from_texts
+from vigie.analyse_texte.subsection_matching import OrphanMatchLLMResponse, OrphanSubsection
+from vigie.analyse_texte.text_extraction.text_extraction_markdown_writer import (
     get_raw_docling_markdown_path,
     has_current_text_extraction_cache_schema,
     stamp_text_extraction_cache_schema,
 )
-from vigilance.text_analysis.docling_markdown import (
+from vigie.analyse_texte.docling_markdown import (
     DoclingSegment,
     _assign_segments_to_sections,
     _build_text_extraction_markdown_from_docling,
@@ -79,16 +99,16 @@ from vigilance.text_analysis.docling_markdown import (
     _parse_docling_markdown,
     _should_keep_docling_segment,
 )
-from vigilance.text_analysis.extraction import (
+from vigie.analyse_texte.extraction import (
     _augment_table_regions_with_composite_grids,
     _docling_page_batches,
 )
-from vigilance.text_analysis.normalization import (
+from vigie.analyse_texte.normalization import (
     _infer_table_footnote_bboxes,
     _is_running_report_chrome,
     _sanitize_explanation,
 )
-from vigilance.text_analysis.markdown import _is_out_of_scope_accounting_heading
+from vigie.analyse_texte.markdown import _is_out_of_scope_accounting_heading
 
 
 class _FakeChoice:
@@ -218,7 +238,7 @@ def test_resolve_sections_ignores_regulatory_for_bnc(monkeypatch, tmp_path: Path
         ]
 
     monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline.locate_sections_in_pdf",
+        "vigie.analyse_texte.sections.locate_sections_in_pdf",
         lambda pdf_path, bank_code=None, quarter=None, year=2025: _FakeMapping(),
     )
 
@@ -265,7 +285,7 @@ def test_resolve_sections_passes_t4_context_and_filters_regulatory(
         return _FakeMapping()
 
     monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline.locate_sections_in_pdf",
+        "vigie.analyse_texte.sections.locate_sections_in_pdf",
         fake_locate_sections_in_pdf,
     )
 
@@ -494,7 +514,7 @@ def test_call_json_completion_uses_model_max_by_default() -> None:
 
 def test_compare_section_texts_surfaces_section_key_on_json_failure(monkeypatch) -> None:
     monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline._call_structured_completion_with_correction",
+        "vigie.analyse_texte.comparaison_sections.execution_llm._call_structured_completion_with_correction",
         lambda *args, **kwargs: (_ for _ in ()).throw(RuntimeError("invalid structured output from model")),
     )
 
@@ -546,17 +566,17 @@ def test_pipeline_retains_non_cosmetic_changes_and_discards_cosmetic(monkeypatch
         excluded_blocks=[],
     )
 
-    monkeypatch.setattr("vigilance.text_analysis_pipeline._build_openai_client", lambda: object())
+    monkeypatch.setattr("vigie.analyse_texte.pipeline._build_openai_client", lambda: object())
     monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline._resolve_sections",
+        "vigie.analyse_texte.pipeline._resolve_sections",
         lambda pdf_path, bank_code, quarter=None, year=None: {"gestion_risques": section},
     )
     monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline._extract_audits_for_pdf",
+        "vigie.analyse_texte.pipeline._extract_audits_for_pdf",
         lambda **kwargs: ([audit_prev], "") if "prev" in str(kwargs["pdf_path"]) else ([audit_curr], ""),
     )
     monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline._compare_section_texts",
+        "vigie.analyse_texte.pipeline._compare_section_texts",
         lambda **kwargs: [
             {"change_id": "c1", "section_key": "gestion_risques", "diff_type": "added",
              "semantic_text_t1": "", "semantic_text_t2": "Nouvelle idee", "source_text_t1": "",
@@ -583,7 +603,7 @@ def test_pipeline_retains_non_cosmetic_changes_and_discards_cosmetic(monkeypatch
         ],
     )
     monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline._triage_section_changes",
+        "vigie.analyse_texte.pipeline._triage_section_changes",
         lambda **kwargs: [
             {
                 **kwargs["changes"][0],
@@ -1650,7 +1670,7 @@ def test_extract_audits_for_pdf_writes_raw_docling_markdown_before_filtering(
         )
 
     monkeypatch.setattr(
-        "vigilance.text_analysis.extraction._extract_docling_page_blocks",
+        "vigie.analyse_texte.extraction._extract_docling_page_blocks",
         _fake_extract_docling_page_blocks,
     )
     raw_path = tmp_path / "outputs" / "text_extractions" / "td" / "2025" / "t4" / "td_current_2025_t4.md"
@@ -1906,7 +1926,7 @@ def test_compare_section_texts_prompt_requests_all_observable_changes(monkeypatc
         return ChunkComparisonLLMResponse(changes=[])
 
     monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline._call_structured_completion_with_correction",
+        "vigie.analyse_texte.comparaison_sections.execution_llm._call_structured_completion_with_correction",
         _fake_structured_completion,
     )
 
@@ -3152,7 +3172,7 @@ def test_build_text_extraction_markdown_excludes_structural_parent_heading() -> 
 
 def test_compare_section_texts_skips_empty_orphan_headings(monkeypatch) -> None:
     monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline._compare_texts_single_call",
+        "vigie.analyse_texte.comparaison_sections.execution_llm._compare_texts_single_call",
         lambda **kw: [],
     )
 
@@ -3169,7 +3189,7 @@ def test_compare_section_texts_skips_empty_orphan_headings(monkeypatch) -> None:
 
 def test_compare_section_texts_skips_matched_table_only_subsection(monkeypatch) -> None:
     monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline._compare_texts_single_call",
+        "vigie.analyse_texte.comparaison_sections.execution_llm._compare_texts_single_call",
         lambda **kw: pytest.fail("Un tableau ne doit pas être envoyé à GPT."),
     )
 
@@ -3193,7 +3213,7 @@ def test_compare_section_texts_sends_financial_paragraphs_to_comparison(monkeypa
         raise RuntimeError("comparison reached")
 
     monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline._compare_texts_single_call",
+        "vigie.analyse_texte.comparaison_sections.execution_llm._compare_texts_single_call",
         _capture_comparison,
     )
 
@@ -3258,13 +3278,13 @@ def test_run_text_analysis_pipeline_writes_md_as_source_of_truth(monkeypatch, tm
 
     compare_texts_kwargs: dict = {}
 
-    monkeypatch.setattr("vigilance.text_analysis_pipeline._build_openai_client", lambda: object())
+    monkeypatch.setattr("vigie.analyse_texte.pipeline._build_openai_client", lambda: object())
     monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline._resolve_sections",
+        "vigie.analyse_texte.pipeline._resolve_sections",
         lambda pdf_path, bank_code, quarter=None, year=None: {"gestion_risques": section},
     )
     monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline._extract_audits_for_pdf",
+        "vigie.analyse_texte.pipeline._extract_audits_for_pdf",
         lambda **kwargs: ([audit_prev], "") if "prev" in str(kwargs["pdf_path"]) else ([audit_curr], ""),
     )
 
@@ -3272,8 +3292,8 @@ def test_run_text_analysis_pipeline_writes_md_as_source_of_truth(monkeypatch, tm
         compare_texts_kwargs.update(kwargs)
         return []
 
-    monkeypatch.setattr("vigilance.text_analysis_pipeline._compare_section_texts", _fake_compare_section_texts)
-    monkeypatch.setattr("vigilance.text_analysis_pipeline._triage_section_changes", lambda **kwargs: [])
+    monkeypatch.setattr("vigie.analyse_texte.pipeline._compare_section_texts", _fake_compare_section_texts)
+    monkeypatch.setattr("vigie.analyse_texte.pipeline._triage_section_changes", lambda **kwargs: [])
 
     payload, out_path = run_text_analysis_pipeline(
         bank_code="td",
@@ -3729,7 +3749,7 @@ def test_global_reconciliation_removes_bnc_style_resegmented_fragments(monkeypat
         }
     )
     monkeypatch.setattr(
-        "vigilance.text_analysis.global_reconciliation._call_structured_completion_with_correction",
+        "vigie.analyse_texte.global_reconciliation._call_structured_completion_with_correction",
         lambda *_args, **_kwargs: response,
     )
 
@@ -3761,7 +3781,7 @@ def test_global_reconciliation_keeps_a_genuine_unmatched_addition(monkeypatch) -
         }
     ]
     monkeypatch.setattr(
-        "vigilance.text_analysis.global_reconciliation._call_structured_completion_with_correction",
+        "vigie.analyse_texte.global_reconciliation._call_structured_completion_with_correction",
         lambda *_args, **_kwargs: pytest.fail("Aucun candidat opposé : pas d'appel GPT de réconciliation."),
     )
 
@@ -3996,7 +4016,7 @@ def test_compare_section_texts_calls_gpt_once_per_subsection_pair(monkeypatch) -
         calls.append(heading_slug)
         return []
 
-    monkeypatch.setattr("vigilance.text_analysis_pipeline._compare_texts_single_call", fake_single_call)
+    monkeypatch.setattr("vigie.analyse_texte.comparaison_sections.execution_llm._compare_texts_single_call", fake_single_call)
 
     md_t1 = "### Risque de marché\n\nCorps T1 A.\n\n### Risque de liquidité\n\nCorps T1 B.\n"
     md_t2 = "### Risque de marché\n\nCorps T2 A.\n\n### Risque de liquidité\n\nCorps T2 B.\n"
@@ -4024,7 +4044,7 @@ def test_compare_section_texts_sends_chunked_subsection_bodies(monkeypatch) -> N
         captured["text_t2"] = text_t2
         return []
 
-    monkeypatch.setattr("vigilance.text_analysis_pipeline._compare_texts_single_call", fake_single_call)
+    monkeypatch.setattr("vigie.analyse_texte.comparaison_sections.execution_llm._compare_texts_single_call", fake_single_call)
 
     paragraph_a = (
         "Le risque de stratégie s'entend de la possibilité d'une perte financière ou d'une atteinte à la "
@@ -4058,7 +4078,7 @@ def test_compare_section_texts_sends_chunked_subsection_bodies(monkeypatch) -> N
 
 def test_compare_section_texts_sends_tfidf_alignment_context(monkeypatch) -> None:
     monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline._compare_texts_single_call",
+        "vigie.analyse_texte.comparaison_sections.execution_llm._compare_texts_single_call",
         lambda **kw: [],
     )
 
@@ -4116,7 +4136,7 @@ def test_compare_section_texts_chunk_change_carries_alignment_metadata(monkeypat
     )
 
     monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline._call_structured_completion_with_correction",
+        "vigie.analyse_texte.comparaison_sections.execution_llm._call_structured_completion_with_correction",
         lambda *args, **kwargs: ChunkComparisonLLMResponse(
             changes=[
                 {
@@ -4173,7 +4193,7 @@ def test_compare_section_texts_chunk_change_never_keeps_full_multichunk_body(mon
     body_t2 = "\n\n".join(paragraphs_t2)
 
     monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline._call_structured_completion_with_correction",
+        "vigie.analyse_texte.comparaison_sections.execution_llm._call_structured_completion_with_correction",
         lambda *args, **kwargs: ChunkComparisonLLMResponse(
             changes=[
                 {
@@ -4230,9 +4250,9 @@ def test_compare_section_texts_splits_large_alignment_set_into_batches(monkeypat
         calls.append({"text_t1": text_t1, "text_t2": text_t2})
         return []
 
-    monkeypatch.setattr("vigilance.text_analysis_pipeline._compare_texts_single_call", fake_single_call)
+    monkeypatch.setattr("vigie.analyse_texte.comparaison_sections.execution_llm._compare_texts_single_call", fake_single_call)
     monkeypatch.setattr(
-        "vigilance.text_analysis.chunk_alignment._embed_texts",
+        "vigie.analyse_texte.chunk_alignment._embed_texts",
         lambda client, texts, model="text-embedding-3-small": _paragraph_index_embedding(texts),
     )
 
@@ -4322,9 +4342,9 @@ def test_compare_section_texts_merges_parallel_batch_results_in_source_order(mon
             }
         ]
 
-    monkeypatch.setattr("vigilance.text_analysis_pipeline._compare_texts_single_call", fake_single_call)
+    monkeypatch.setattr("vigie.analyse_texte.comparaison_sections.execution_llm._compare_texts_single_call", fake_single_call)
     monkeypatch.setattr(
-        "vigilance.text_analysis.chunk_alignment._embed_texts",
+        "vigie.analyse_texte.chunk_alignment._embed_texts",
         lambda client, texts, model="text-embedding-3-small": _paragraph_index_embedding(texts),
     )
 
@@ -4349,9 +4369,9 @@ def test_compare_section_texts_reports_batch_id_on_batch_failure(monkeypatch) ->
     def fake_single_call(**kwargs):
         raise RuntimeError("boom")
 
-    monkeypatch.setattr("vigilance.text_analysis_pipeline._compare_texts_single_call", fake_single_call)
+    monkeypatch.setattr("vigie.analyse_texte.comparaison_sections.execution_llm._compare_texts_single_call", fake_single_call)
     monkeypatch.setattr(
-        "vigilance.text_analysis.chunk_alignment._embed_texts",
+        "vigie.analyse_texte.chunk_alignment._embed_texts",
         lambda client, texts, model="text-embedding-3-small": [[1.0, 0.0] for _ in texts],
     )
 
@@ -4376,7 +4396,7 @@ def test_compare_section_texts_reports_batch_id_on_batch_failure(monkeypatch) ->
 def test_compare_section_texts_synthetic_change_for_removed_subsection(monkeypatch) -> None:
     """Une sous-section T1 sans contrepartie T2 produit un retrait par chunk."""
     monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline._compare_texts_single_call",
+        "vigie.analyse_texte.comparaison_sections.execution_llm._compare_texts_single_call",
         lambda **kw: [],
     )
 
@@ -4401,7 +4421,7 @@ def test_compare_section_texts_synthetic_change_for_removed_subsection(monkeypat
 def test_compare_section_texts_synthetic_change_for_added_subsection(monkeypatch) -> None:
     """Une sous-section T2 sans contrepartie T1 produit un ajout par chunk."""
     monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline._compare_texts_single_call",
+        "vigie.analyse_texte.comparaison_sections.execution_llm._compare_texts_single_call",
         lambda **kw: [],
     )
 
@@ -4425,7 +4445,7 @@ def test_compare_section_texts_synthetic_change_for_added_subsection(monkeypatch
 
 def test_compare_section_texts_chunks_unmatched_long_subsection(monkeypatch) -> None:
     monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline._compare_texts_single_call",
+        "vigie.analyse_texte.comparaison_sections.execution_llm._compare_texts_single_call",
         lambda **kw: [],
     )
     paragraphs = [
@@ -4524,11 +4544,11 @@ def test_compare_section_texts_rescues_cross_subsection_move(monkeypatch) -> Non
         "la banque accepte dans la conduite de ses activités."
     )
     monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline._compare_texts_single_call",
+        "vigie.analyse_texte.comparaison_sections.execution_llm._compare_texts_single_call",
         lambda **kw: [],
     )
     monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline._resolve_orphan_subsections",
+        "vigie.analyse_texte.comparaison_sections.comparaison_section._resolve_orphan_subsections",
         lambda **kw: [],
     )
 
@@ -4583,11 +4603,11 @@ def test_compare_section_texts_keeps_true_addition_after_section_rescue(monkeypa
         "sur les scénarios de crise liés aux droits de douane internationaux."
     )
     monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline._compare_texts_single_call",
+        "vigie.analyse_texte.comparaison_sections.execution_llm._compare_texts_single_call",
         lambda **kw: [],
     )
     monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline._resolve_orphan_subsections",
+        "vigie.analyse_texte.comparaison_sections.comparaison_section._resolve_orphan_subsections",
         lambda **kw: [],
     )
 
@@ -4616,11 +4636,11 @@ def test_compare_section_texts_local_match_unchanged_same_subsection(monkeypatch
         "trimestriellement pour chacun des secteurs d'exploitation de la Banque."
     )
     monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline._resolve_orphan_subsections",
+        "vigie.analyse_texte.comparaison_sections.comparaison_section._resolve_orphan_subsections",
         lambda **kw: [],
     )
     monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline._call_structured_completion_with_correction",
+        "vigie.analyse_texte.comparaison_sections.execution_llm._call_structured_completion_with_correction",
         lambda *args, **kwargs: ChunkComparisonLLMResponse(
             changes=[
                 {
@@ -4655,7 +4675,7 @@ def test_compare_section_texts_deduplicates_multiple_llm_details_for_one_alignme
     previous = "Le cadre prévoit une surveillance régulière des risques de marché et des rapports au comité."
     current = previous + " Il ajoute un indicateur de concentration."
     monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline._call_structured_completion_with_correction",
+        "vigie.analyse_texte.comparaison_sections.execution_llm._call_structured_completion_with_correction",
         lambda *args, **kwargs: ChunkComparisonLLMResponse(
             changes=[
                 {
@@ -4720,7 +4740,7 @@ def test_orphan_match_llm_response_rejects_invalid_confidence() -> None:
 def test_gpt_match_orphan_headings_filters_low_confidence(monkeypatch) -> None:
     """Matches de confidence 'low' sont exclus du résultat."""
     monkeypatch.setattr(
-        "vigilance.text_analysis.subsection_matching._deterministic_match_orphan_headings",
+        "vigie.analyse_texte.subsection_matching._deterministic_match_orphan_headings",
         lambda *_args, **_kwargs: [],
     )
 
@@ -4730,7 +4750,7 @@ def test_gpt_match_orphan_headings_filters_low_confidence(monkeypatch) -> None:
                 {"heading_t1": "Incidence des tarifs", "heading_t2": "Incidence des tarifs douaniers", "confidence": "low", "reason": "x"},
             ]
         )
-    monkeypatch.setattr("vigilance.text_analysis.subsection_matching._call_structured_completion_with_correction", fake_call)
+    monkeypatch.setattr("vigie.analyse_texte.subsection_matching._call_structured_completion_with_correction", fake_call)
 
     result = _gpt_match_orphan_headings(
         client=object(),
@@ -4745,7 +4765,7 @@ def test_gpt_match_orphan_headings_filters_low_confidence(monkeypatch) -> None:
 def test_gpt_match_orphan_headings_rejects_hallucinated_headings(monkeypatch) -> None:
     """GPT invente un heading absent des listes orphelines → rejeté."""
     monkeypatch.setattr(
-        "vigilance.text_analysis.subsection_matching._deterministic_match_orphan_headings",
+        "vigie.analyse_texte.subsection_matching._deterministic_match_orphan_headings",
         lambda *_args, **_kwargs: [],
     )
 
@@ -4755,7 +4775,7 @@ def test_gpt_match_orphan_headings_rejects_hallucinated_headings(monkeypatch) ->
                 {"heading_t1": "Heading inventé", "heading_t2": "Incidence des tarifs douaniers", "confidence": "high", "reason": "x"},
             ]
         )
-    monkeypatch.setattr("vigilance.text_analysis.subsection_matching._call_structured_completion_with_correction", fake_call)
+    monkeypatch.setattr("vigie.analyse_texte.subsection_matching._call_structured_completion_with_correction", fake_call)
 
     result = _gpt_match_orphan_headings(
         client=object(),
@@ -4775,7 +4795,7 @@ def test_gpt_match_orphan_headings_accepts_high_confidence(monkeypatch) -> None:
                 {"heading_t1": "Incidence des tarifs", "heading_t2": "Incidence des tarifs douaniers", "confidence": "high", "reason": "précision ajoutée"},
             ]
         )
-    monkeypatch.setattr("vigilance.text_analysis_pipeline._call_structured_completion_with_correction", fake_call)
+    monkeypatch.setattr("vigie.analyse_texte.comparaison_sections.execution_llm._call_structured_completion_with_correction", fake_call)
 
     result = _gpt_match_orphan_headings(
         client=object(),
@@ -4791,7 +4811,7 @@ def test_gpt_match_orphan_headings_accepts_high_confidence(monkeypatch) -> None:
 
 def test_gpt_match_orphan_headings_enforces_1_to_1(monkeypatch) -> None:
     """GPT tente d'associer le même T1 heading à deux T2 headings → seule la première paire est acceptée."""
-    from vigilance.text_analysis import subsection_matching as sm
+    from vigie.analyse_texte import subsection_matching as sm
 
     monkeypatch.setattr(sm, "_deterministic_match_orphan_headings", lambda *_args, **_kwargs: [])
 
@@ -4841,8 +4861,8 @@ def test_compare_section_texts_resolves_renamed_subsection(monkeypatch) -> None:
             },
         ]
 
-    monkeypatch.setattr("vigilance.text_analysis_pipeline._compare_texts_single_call", fake_single_call)
-    monkeypatch.setattr("vigilance.text_analysis_pipeline._resolve_orphan_subsections", fake_resolve_orphans)
+    monkeypatch.setattr("vigie.analyse_texte.comparaison_sections.execution_llm._compare_texts_single_call", fake_single_call)
+    monkeypatch.setattr("vigie.analyse_texte.comparaison_sections.comparaison_section._resolve_orphan_subsections", fake_resolve_orphans)
 
     md_t1 = "### Risque de marché\n\nCorps T1.\n\n### Incidence des tarifs\n\nTexte T1.\n"
     md_t2 = "### Risque de marché\n\nCorps T2.\n\n### Incidence des tarifs douaniers\n\nTexte T2.\n"
@@ -4896,7 +4916,7 @@ def test_resolve_orphan_subsections_embedding_strong_matches_without_gpt(monkeyp
     orphans_t1 = [OrphanSubsection(heading="Service conformité T1", body=body_t1)]
     orphans_t2 = [OrphanSubsection(heading="Service conformité T2", body=body_t2)]
 
-    from vigilance.text_analysis.subsection_matching import OrphanCandidate, _shortlist_orphan_candidates
+    from vigie.analyse_texte.subsection_matching import OrphanCandidate, _shortlist_orphan_candidates
 
     shortlist = _shortlist_orphan_candidates(orphans_t1, orphans_t2)
 
@@ -4915,7 +4935,7 @@ def test_resolve_orphan_subsections_embedding_strong_matches_without_gpt(monkeyp
         ]
         return enriched, {}
 
-    monkeypatch.setattr("vigilance.text_analysis.subsection_matching._attach_embedding_scores", fake_attach)
+    monkeypatch.setattr("vigie.analyse_texte.subsection_matching._attach_embedding_scores", fake_attach)
     gpt_called = {"value": False}
 
     def fail_if_called(**kwargs):
@@ -4923,11 +4943,11 @@ def test_resolve_orphan_subsections_embedding_strong_matches_without_gpt(monkeyp
         return []
 
     monkeypatch.setattr(
-        "vigilance.text_analysis.subsection_matching._gpt_arbitrate_orphan_subsections",
+        "vigie.analyse_texte.subsection_matching._gpt_arbitrate_orphan_subsections",
         fail_if_called,
     )
 
-    from vigilance.text_analysis.subsection_matching import _resolve_orphan_subsections as resolve_direct
+    from vigie.analyse_texte.subsection_matching import _resolve_orphan_subsections as resolve_direct
 
     matches = resolve_direct(
         client=object(),
@@ -4951,7 +4971,7 @@ def test_resolve_orphan_subsections_embedding_strong_match_when_llm_confirms(mon
     orphans_t1 = [OrphanSubsection(heading="Service conformité T1", body=body_t1)]
     orphans_t2 = [OrphanSubsection(heading="Service conformité T2", body=body_t2)]
 
-    from vigilance.text_analysis.subsection_matching import OrphanCandidate, _shortlist_orphan_candidates
+    from vigie.analyse_texte.subsection_matching import OrphanCandidate, _shortlist_orphan_candidates
 
     shortlist = _shortlist_orphan_candidates(orphans_t1, orphans_t2)
 
@@ -4970,9 +4990,9 @@ def test_resolve_orphan_subsections_embedding_strong_match_when_llm_confirms(mon
         ]
         return enriched, {}
 
-    monkeypatch.setattr("vigilance.text_analysis.subsection_matching._attach_embedding_scores", fake_attach)
+    monkeypatch.setattr("vigie.analyse_texte.subsection_matching._attach_embedding_scores", fake_attach)
     monkeypatch.setattr(
-        "vigilance.text_analysis.subsection_matching._call_structured_completion_with_correction",
+        "vigie.analyse_texte.subsection_matching._call_structured_completion_with_correction",
         lambda *args, **kwargs: OrphanMatchLLMResponse(
             matches=[
                 {
@@ -4985,7 +5005,7 @@ def test_resolve_orphan_subsections_embedding_strong_match_when_llm_confirms(mon
         ),
     )
 
-    from vigilance.text_analysis.subsection_matching import _resolve_orphan_subsections as resolve_direct
+    from vigie.analyse_texte.subsection_matching import _resolve_orphan_subsections as resolve_direct
 
     matches = resolve_direct(
         client=object(),
@@ -5013,7 +5033,7 @@ def test_resolve_orphan_subsections_llm_arbitration_when_embedding_weak(monkeypa
         )
     ]
 
-    from vigilance.text_analysis.subsection_matching import OrphanCandidate, _shortlist_orphan_candidates
+    from vigie.analyse_texte.subsection_matching import OrphanCandidate, _shortlist_orphan_candidates
 
     shortlist = _shortlist_orphan_candidates(orphans_t1, orphans_t2)
 
@@ -5032,9 +5052,9 @@ def test_resolve_orphan_subsections_llm_arbitration_when_embedding_weak(monkeypa
         ]
         return enriched, {}
 
-    monkeypatch.setattr("vigilance.text_analysis.subsection_matching._attach_embedding_scores", fake_attach)
+    monkeypatch.setattr("vigie.analyse_texte.subsection_matching._attach_embedding_scores", fake_attach)
     monkeypatch.setattr(
-        "vigilance.text_analysis.subsection_matching._call_structured_completion_with_correction",
+        "vigie.analyse_texte.subsection_matching._call_structured_completion_with_correction",
         lambda *args, **kwargs: OrphanMatchLLMResponse(
             matches=[
                 {
@@ -5047,7 +5067,7 @@ def test_resolve_orphan_subsections_llm_arbitration_when_embedding_weak(monkeypa
         ),
     )
 
-    from vigilance.text_analysis.subsection_matching import _resolve_orphan_subsections as resolve_direct
+    from vigie.analyse_texte.subsection_matching import _resolve_orphan_subsections as resolve_direct
 
     matches = resolve_direct(
         client=object(),
@@ -5069,7 +5089,7 @@ def test_compare_section_texts_orphan_match_avoids_duplicate_synthetics(monkeypa
     )
 
     monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline._compare_texts_single_call",
+        "vigie.analyse_texte.comparaison_sections.execution_llm._compare_texts_single_call",
         lambda **kwargs: [],
     )
 
@@ -5084,7 +5104,7 @@ def test_compare_section_texts_orphan_match_avoids_duplicate_synthetics(monkeypa
             }
         ]
 
-    monkeypatch.setattr("vigilance.text_analysis_pipeline._resolve_orphan_subsections", fake_resolve_orphans)
+    monkeypatch.setattr("vigie.analyse_texte.comparaison_sections.comparaison_section._resolve_orphan_subsections", fake_resolve_orphans)
 
     md_t1 = (
         "### Risque de marché\n\nCorps T1.\n\n"
@@ -5129,7 +5149,7 @@ def test_compare_section_texts_td_renamed_orphans_avoid_duplicate_synthetics(mon
     )
 
     monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline._compare_texts_single_call",
+        "vigie.analyse_texte.comparaison_sections.execution_llm._compare_texts_single_call",
         lambda **kwargs: [],
     )
 
@@ -5159,7 +5179,7 @@ def test_compare_section_texts_td_renamed_orphans_avoid_duplicate_synthetics(mon
             },
         ]
 
-    monkeypatch.setattr("vigilance.text_analysis_pipeline._resolve_orphan_subsections", fake_resolve_orphans)
+    monkeypatch.setattr("vigie.analyse_texte.comparaison_sections.comparaison_section._resolve_orphan_subsections", fake_resolve_orphans)
 
     md_t1 = (
         "### Surveillance réglementaire et conformité\n\n"
@@ -5205,7 +5225,7 @@ def test_compare_section_texts_td_renamed_orphans_avoid_duplicate_synthetics(mon
 
 
 def test_deterministic_confirm_orphan_matches_td_frauduleuses() -> None:
-    from vigilance.text_analysis.subsection_matching import (
+    from vigie.analyse_texte.subsection_matching import (
         OrphanCandidate,
         _deterministic_confirm_orphan_matches,
     )
@@ -5232,7 +5252,7 @@ def test_resolve_orphan_subsections_gpt_failure_keeps_deterministic_matches(monk
     orphans_t1 = [OrphanSubsection(heading="Activités frauduleuses", body=body_shared)]
     orphans_t2 = [OrphanSubsection(heading="Activités frauduleuses externes", body=body_shared)]
 
-    from vigilance.text_analysis.subsection_matching import OrphanCandidate, _shortlist_orphan_candidates
+    from vigie.analyse_texte.subsection_matching import OrphanCandidate, _shortlist_orphan_candidates
 
     shortlist = _shortlist_orphan_candidates(orphans_t1, orphans_t2)
 
@@ -5253,13 +5273,13 @@ def test_resolve_orphan_subsections_gpt_failure_keeps_deterministic_matches(monk
     def fake_gpt_failure(**kwargs):
         raise RuntimeError("gpt down")
 
-    monkeypatch.setattr("vigilance.text_analysis.subsection_matching._attach_embedding_scores", fake_attach)
+    monkeypatch.setattr("vigie.analyse_texte.subsection_matching._attach_embedding_scores", fake_attach)
     monkeypatch.setattr(
-        "vigilance.text_analysis.subsection_matching._gpt_arbitrate_orphan_subsections",
+        "vigie.analyse_texte.subsection_matching._gpt_arbitrate_orphan_subsections",
         fake_gpt_failure,
     )
 
-    from vigilance.text_analysis.subsection_matching import _resolve_orphan_subsections as resolve_direct
+    from vigie.analyse_texte.subsection_matching import _resolve_orphan_subsections as resolve_direct
 
     matches = resolve_direct(
         client=object(),
@@ -5294,7 +5314,7 @@ def test_resolve_orphan_subsections_ambiguous_still_calls_gpt(monkeypatch) -> No
         )
     ]
 
-    from vigilance.text_analysis.subsection_matching import OrphanCandidate, _shortlist_orphan_candidates
+    from vigie.analyse_texte.subsection_matching import OrphanCandidate, _shortlist_orphan_candidates
 
     shortlist = _shortlist_orphan_candidates(orphans_t1, orphans_t2)
     gpt_called = {"value": False}
@@ -5329,10 +5349,10 @@ def test_resolve_orphan_subsections_ambiguous_still_calls_gpt(monkeypatch) -> No
             }
         ]
 
-    monkeypatch.setattr("vigilance.text_analysis.subsection_matching._attach_embedding_scores", fake_attach)
-    monkeypatch.setattr("vigilance.text_analysis.subsection_matching._gpt_arbitrate_orphan_subsections", fake_gpt)
+    monkeypatch.setattr("vigie.analyse_texte.subsection_matching._attach_embedding_scores", fake_attach)
+    monkeypatch.setattr("vigie.analyse_texte.subsection_matching._gpt_arbitrate_orphan_subsections", fake_gpt)
 
-    from vigilance.text_analysis.subsection_matching import _resolve_orphan_subsections as resolve_direct
+    from vigie.analyse_texte.subsection_matching import _resolve_orphan_subsections as resolve_direct
 
     matches = resolve_direct(
         client=object(),
@@ -5353,9 +5373,9 @@ def test_resolve_orphan_subsections_embedding_failure_falls_back_to_llm(monkeypa
     def exploding_attach(**kwargs):
         raise RuntimeError("embedding down")
 
-    monkeypatch.setattr("vigilance.text_analysis.subsection_matching._attach_embedding_scores", exploding_attach)
+    monkeypatch.setattr("vigie.analyse_texte.subsection_matching._attach_embedding_scores", exploding_attach)
     monkeypatch.setattr(
-        "vigilance.text_analysis.subsection_matching._call_structured_completion_with_correction",
+        "vigie.analyse_texte.subsection_matching._call_structured_completion_with_correction",
         lambda *args, **kwargs: OrphanMatchLLMResponse(
             matches=[
                 {
@@ -5368,7 +5388,7 @@ def test_resolve_orphan_subsections_embedding_failure_falls_back_to_llm(monkeypa
         ),
     )
 
-    from vigilance.text_analysis.subsection_matching import _resolve_orphan_subsections as resolve_direct
+    from vigie.analyse_texte.subsection_matching import _resolve_orphan_subsections as resolve_direct
 
     matches = resolve_direct(
         client=object(),
@@ -5386,7 +5406,7 @@ def test_resolve_orphan_subsections_short_body_uses_title_only_fallback(monkeypa
     orphans_t2 = [OrphanSubsection(heading="Objectif de capital", body="Capital disponible.")]
 
     monkeypatch.setattr(
-        "vigilance.text_analysis.subsection_matching._call_structured_completion_with_correction",
+        "vigie.analyse_texte.subsection_matching._call_structured_completion_with_correction",
         lambda *args, **kwargs: OrphanMatchLLMResponse(
             matches=[
                 {
@@ -5399,7 +5419,7 @@ def test_resolve_orphan_subsections_short_body_uses_title_only_fallback(monkeypa
         ),
     )
 
-    from vigilance.text_analysis.subsection_matching import _resolve_orphan_subsections as resolve_direct
+    from vigie.analyse_texte.subsection_matching import _resolve_orphan_subsections as resolve_direct
 
     matches = resolve_direct(
         client=object(),
@@ -5420,7 +5440,7 @@ def test_bmo_risque_de_strategie_2024_t4_chunks_into_six(monkeypatch) -> None:
         pytest.skip("Artefact local BMO 2024 T4 absent.")
 
     monkeypatch.setattr(
-        "vigilance.text_analysis.chunking._requires_semantic_partition",
+        "vigie.analyse_texte.chunking._requires_semantic_partition",
         lambda text: False,
     )
 
@@ -5454,7 +5474,7 @@ def test_bmo_risque_de_strategie_tfidf_alignment_stays_local(monkeypatch) -> Non
         pytest.skip("Artefacts locaux BMO T4 absents.")
 
     monkeypatch.setattr(
-        "vigilance.text_analysis.chunking._requires_semantic_partition",
+        "vigie.analyse_texte.chunking._requires_semantic_partition",
         lambda text: False,
     )
 
@@ -5535,7 +5555,7 @@ def test_td_future_capital_disclosures_are_not_merged_only_for_similar_boilerpla
 
 from pydantic import ValidationError as _PydValidationError
 
-from vigilance.amf_taxonomy import (
+from vigie.comparaison.triage.amf_taxonomy import (
     TriageAMFCompactLLMBatch,
     TriageAMFCompactLLMResultWithIndex,
     TriageAMFBatch,
@@ -5546,12 +5566,12 @@ from vigilance.amf_taxonomy import (
     TriageValidationError,
     count_complete_sentences,
 )
-from vigilance.text_analysis_pipeline import (
+from vigie.analyse_texte.openai_client import (
     _call_structured_completion,
     _call_structured_completion_with_correction,
-    _triage_section_changes,
 )
-from vigilance.text_analysis.triage import _deterministic_cosmetic_exclusion
+from vigie.analyse_texte.triage_parts import _triage_section_changes
+from vigie.analyse_texte.triage_parts import _deterministic_cosmetic_exclusion
 
 
 def _valid_explanation() -> str:
@@ -6282,7 +6302,7 @@ def test_correction_retry_does_not_retry_runtime_errors() -> None:
 def test_correction_retry_retries_transient_timeout(monkeypatch) -> None:
     valid_batch = TriageAMFBatch(triages=[])
     state = {"calls": 0}
-    monkeypatch.setattr("vigilance.text_analysis_pipeline.time.sleep", lambda _seconds: None)
+    monkeypatch.setattr("time.sleep", lambda _seconds: None)
 
     def timeout_then_success(**kwargs):
         state["calls"] += 1
@@ -6306,7 +6326,7 @@ def test_correction_retry_retries_transient_timeout(monkeypatch) -> None:
 
 
 def test_correction_retry_exhausts_transient_timeout(monkeypatch) -> None:
-    monkeypatch.setattr("vigilance.text_analysis_pipeline.time.sleep", lambda _seconds: None)
+    monkeypatch.setattr("time.sleep", lambda _seconds: None)
 
     def always_timeout(**kwargs):
         raise TimeoutError("Request timed out.")
@@ -6590,7 +6610,7 @@ def test_triage_section_changes_batches_two_sides_of_one_semantic_distinct_decis
 
 
 def test_triage_section_changes_reads_long_sources_as_full_evidence_packets() -> None:
-    from vigilance.text_analysis.triage import (
+    from vigie.analyse_texte.triage_parts import (
         _EvidencePacketCoherenceCheck,
         _EvidencePacketObservation,
     )
@@ -6652,7 +6672,7 @@ def test_triage_section_changes_reads_long_sources_as_full_evidence_packets() ->
 
 
 def test_full_evidence_contract_rejects_a_collection_or_packet_index() -> None:
-    from vigilance.text_analysis.triage import _EvidencePacketObservation
+    from vigie.analyse_texte.triage_parts import _EvidencePacketObservation
 
     with pytest.raises(_PydValidationError):
         _EvidencePacketObservation.model_validate(
@@ -6676,7 +6696,7 @@ def test_full_evidence_contract_rejects_a_collection_or_packet_index() -> None:
 
 
 def test_full_evidence_invalid_response_is_corrected_then_pipeline_continues() -> None:
-    from vigilance.text_analysis.triage import (
+    from vigie.analyse_texte.triage_parts import (
         _EvidencePacketCoherenceCheck,
         _EvidencePacketObservation,
     )
@@ -6741,7 +6761,7 @@ def test_full_evidence_invalid_response_is_corrected_then_pipeline_continues() -
 
 
 def test_full_evidence_persistent_failure_marks_only_change_for_review() -> None:
-    from vigilance.text_analysis.triage import _EvidencePacketObservation
+    from vigie.analyse_texte.triage_parts import _EvidencePacketObservation
 
     def response_with_invalid_evidence(**kwargs):
         response_format = kwargs["response_format"]
@@ -7119,7 +7139,7 @@ def test_triage_section_changes_does_not_request_posture_or_it_impact() -> None:
 
 
 def test_normalize_themes_amf_clamps_unknown_to_emergent() -> None:
-    from vigilance.text_analysis.triage import _normalize_themes_amf
+    from vigie.analyse_texte.triage_parts import _normalize_themes_amf
 
     assert _normalize_themes_amf(["EXIGENCES_REGLEMENTAIRES"]) == [
         "EXIGENCES_REGLEMENTAIRES"
@@ -7135,7 +7155,7 @@ def test_normalize_themes_amf_clamps_unknown_to_emergent() -> None:
 
 def test_triage_accepts_amf_theme_outside_candidate_shortlist(monkeypatch) -> None:
     """Un thème AMF valide hors shortlist ne fait plus planter le pipeline."""
-    from vigilance.text_analysis import triage as triage_mod
+    from vigie.analyse_texte.triage_parts import section_triage as triage_mod
 
     def _narrow_candidates(change, *, section_key, limit=6):
         return [

@@ -5,8 +5,8 @@ from pathlib import Path
 
 from dash.development.base_component import Component
 
-from vigilance.dash_app.layouts.sidebar import build_sidebar
-from vigilance.dash_app.services.comparison_store import build_file_comparison_store
+from vigie.interface.layouts.sidebar import build_sidebar
+from vigie.interface.services.comparison_store import build_file_comparison_store
 
 
 def _walk_components(node: object) -> list[Component]:

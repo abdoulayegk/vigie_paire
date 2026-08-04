@@ -9,17 +9,16 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from types import SimpleNamespace
 from unittest.mock import patch
 
 import pytest
 
-from vigilance.extraction.docling_processor import (
+from vigie.extraction.docling import (
     ExtractedDocument,
     ExtractedTable,
     extract_tables_docling_by_sections,
 )
-from vigilance.extraction.vision_extraction_writer import write_footnotes_json
+from vigie.extraction.vision_extraction_writer import write_footnotes_json
 
 
 def test_vision_pipeline_produces_footnotes_with_real_text(tmp_path: Path) -> None:
@@ -60,7 +59,7 @@ def test_vision_pipeline_produces_footnotes_with_real_text(tmp_path: Path) -> No
         )
 
     with patch(
-        "vigilance.extraction.docling_processor.extract_pdf",
+        "vigie.extraction.docling.processor.extract_pdf",
         side_effect=mock_extract_pdf,
     ):
         tables = extract_tables_docling_by_sections(
@@ -134,7 +133,7 @@ def test_docling_only_flags_stay_strict_when_disabled(tmp_path: Path) -> None:
         )
 
     with patch(
-        "vigilance.extraction.docling_processor.extract_pdf",
+        "vigie.extraction.docling.processor.extract_pdf",
         side_effect=mock_extract_pdf,
     ):
         tables = extract_tables_docling_by_sections(
@@ -148,37 +147,3 @@ def test_docling_only_flags_stay_strict_when_disabled(tmp_path: Path) -> None:
 
     assert tables
     assert tables[0].extraction_method == "docling"
-
-
-@pytest.mark.skip(
-    reason="_table_to_artifact retire de comparison_runner; a rebrancher sur le writer actuel."
-)
-def test_vision_writer_handles_vision_style_footnotes(tmp_path: Path) -> None:
-    """Direct test: Vision-style list[dict] footnotes produce clean footnotes_content."""
-    from vigilance.comparison_runner import _table_to_artifact
-
-    fake = SimpleNamespace(
-        rows=[["a", "1"]],
-        headers=["Col1"],
-        first_column_indicators=["Ind"],
-        first_column_indicators_raw=None,
-        section="test",
-        page_number=42,
-        table_id="TABLE_1",
-        title="LCR",
-        extraction_method="vision_full_gpt4o",
-        table_number=None,
-        bbox=None,
-        footnotes=[
-            {"id": "1", "text": "Methode LCR selon reglementation."},
-            {"id": "2", "text": "Donnees non ponderees."},
-        ],
-    )
-    art = _table_to_artifact(fake, bank_code="rbc", quarter="t1", pdf_path="/tmp/t.pdf")
-    write_footnotes_json([art], [], tmp_path, "rbc", "direct_test")
-    data = json.loads((tmp_path / "footnotes.json").read_text(encoding="utf-8"))
-    entry = data["tables"][0]
-    assert entry["footnotes_content"]["1"] == "Methode LCR selon reglementation."
-    assert entry["footnotes_content"]["2"] == "Donnees non ponderees."
-    for v in entry["footnotes_content"].values():
-        assert "{" not in v and "'" not in v

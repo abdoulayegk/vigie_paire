@@ -3,9 +3,9 @@ from __future__ import annotations
 from copy import deepcopy
 import logging
 
-from vigilance import comparison_canonical as cc
-from vigilance.review_adapters import build_review_items_from_indicator_result
-from vigilance.review_queue_normalizer import build_normalized_review_queue
+from vigie.comparaison import canonical as cc
+from vigie.interface.review_adapters import build_review_items_from_indicator_result
+from vigie.interface.review_queue_normalizer import build_normalized_review_queue
 
 
 def _raw_report_comparison() -> dict:

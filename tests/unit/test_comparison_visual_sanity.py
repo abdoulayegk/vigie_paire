@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from vigilance.comparison_visual_sanity import (
+from vigie.comparaison.visual_sanity import (
     render_visual_sanity_proof,
     visual_sanity_check,
     visual_sanity_check_table_event,
@@ -114,7 +114,7 @@ def test_render_visual_sanity_proof_allows_full_page_fallback(
     monkeypatch,
 ) -> None:
     monkeypatch.setattr(
-        "vigilance.comparison_visual_sanity.render_full_proof_bytes",
+        "vigie.comparaison.visual_sanity.render_full_proof_bytes",
         lambda *args, **kwargs: (b"page-proof", "ok", "full_without_bbox"),
     )
 

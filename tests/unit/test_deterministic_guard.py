@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-from vigilance.comparison_diff_gpt import (
+from vigie.comparaison.differences.comparaison_deterministe import (
     _deterministic_footnote_diff,
     _deterministic_indicator_diff,
-    _normalize_indicator_text,
-    diff_table_pair_gpt,
 )
+from vigie.comparaison.differences.comparaison_paire import diff_table_pair_gpt
+from vigie.comparaison.differences.normalisation_elements import _normalize_indicator_text
 
 # ---------------------------------------------------------------------------
 # Helpers

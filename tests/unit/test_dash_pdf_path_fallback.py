@@ -5,8 +5,8 @@ from pathlib import Path
 
 import dash_bootstrap_components as dbc
 
-from vigilance.dash_app.callbacks import load_flow as load_mod
-from vigilance.dash_app.services.comparison_store import FileComparisonStore
+from vigie.interface.callbacks import load_flow as load_mod
+from vigie.interface.services.comparison_store import FileComparisonStore
 
 
 def _write_report_comparison(path: Path) -> None:
@@ -63,7 +63,7 @@ def test_on_load_comparison_falls_back_to_run_archived_pdfs(
     monkeypatch.setattr(load_mod, "INDICATOR_COMPARISON_DIR", tmp_path)
     monkeypatch.setattr(load_mod, "build_page_results", lambda: "results-page")
     monkeypatch.setattr(
-        "vigilance.dash_app.services.text_comparison_store.resolve_text_comparison_from_payload",
+        "vigie.interface.services.text_comparison_store.resolve_text_comparison_from_payload",
         lambda _payload: None,
     )
 

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from vigilance.utils import pymupdf_utils
+from vigie.support.utils import pymupdf_utils
 
 
 class _FakeTools:

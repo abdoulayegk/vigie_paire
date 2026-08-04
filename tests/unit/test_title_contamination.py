@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from vigilance.utils.indicator_cleaner import (
+from vigie.support.utils.indicator_cleaner import (
     clean_table_title_contamination,
     is_table_title_contaminated,
 )
@@ -64,7 +64,7 @@ def test_clean_table_title_unchanged_when_normal() -> None:
 
 def test_writer_uses_title_clean_when_present() -> None:
     """vision_extraction_writer uses title_clean as primary for export."""
-    from vigilance.extraction.vision_extraction_writer import _table_entry_indicators
+    from vigie.extraction.vision_extraction_writer import _table_entry_indicators
 
     class Table:
         table_id = "tableau_1"
@@ -82,7 +82,7 @@ def test_writer_uses_title_clean_when_present() -> None:
 
 def test_writer_falls_back_to_title_when_title_clean_missing() -> None:
     """When title_clean is missing, writer uses title."""
-    from vigilance.extraction.vision_extraction_writer import _table_entry_indicators
+    from vigie.extraction.vision_extraction_writer import _table_entry_indicators
 
     class Table:
         table_id = "tableau_1"
@@ -102,7 +102,7 @@ def test_writer_falls_back_to_title_when_title_clean_missing() -> None:
 
 def test_dedupe_removes_exact_duplicates_preserves_order() -> None:
     """Repeated block removed, order preserved."""
-    from vigilance.utils.indicator_cleaner import dedupe_indicators
+    from vigie.support.utils.indicator_cleaner import dedupe_indicators
 
     raw = ["Total actifs", "Total passifs", "Total actifs", "Fonds propres", "Total actifs"]
     result, ratio, removed = dedupe_indicators(raw, duplicate_ratio_threshold=0.15)
@@ -113,7 +113,7 @@ def test_dedupe_removes_exact_duplicates_preserves_order() -> None:
 
 def test_dedupe_below_threshold_returns_original() -> None:
     """When duplicate_ratio < threshold, list unchanged."""
-    from vigilance.utils.indicator_cleaner import dedupe_indicators
+    from vigie.support.utils.indicator_cleaner import dedupe_indicators
 
     raw = ["A", "B", "C", "D", "A"]  # 1 dup, ratio 0.2
     result, ratio, _ = dedupe_indicators(raw, duplicate_ratio_threshold=0.5)

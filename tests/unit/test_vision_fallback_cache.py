@@ -7,7 +7,7 @@ import tempfile
 
 def test_cache_key_uses_date_row_prompt_version() -> None:
     """Le prompt qui conserve les dates-lignes ne reutilise pas le cache v6."""
-    from vigilance.extraction.vision_cache import make_cache_key
+    from vigie.extraction.vision_cache import make_cache_key
 
     key = make_cache_key(
         "pdf-sha",
@@ -21,7 +21,7 @@ def test_cache_key_uses_date_row_prompt_version() -> None:
 
 def test_cache_get_ignores_corrupted_indicators_string() -> None:
     """When cache stores indicators as string instead of list, integration ignores it."""
-    from vigilance.extraction.vision_cache import cache_get, cache_put
+    from vigie.extraction.vision_cache import cache_get, cache_put
 
     with tempfile.TemporaryDirectory() as d:
         key = "test_sha_1_0.1_0.2_0.8_0.9"
@@ -38,7 +38,7 @@ def test_cache_get_ignores_corrupted_indicators_string() -> None:
 
 def test_cache_validation_integration_fallback() -> None:
     """Corrupted cache (indicators as string) causes fallback logic: ignore payload, confidence=0."""
-    from vigilance.extraction.vision_cache import cache_get, cache_put
+    from vigie.extraction.vision_cache import cache_get, cache_put
 
     with tempfile.TemporaryDirectory() as tmpdir:
         key = "abc123_5_0.1_0.2_0.8_0.9"
@@ -58,7 +58,7 @@ def test_get_vision_cache_dir_default() -> None:
     """VISION_CACHE_DIR uses default when not set."""
     import os
 
-    from vigilance.extraction.vision_cache import DEFAULT_CACHE_DIR, get_vision_cache_dir
+    from vigie.extraction.vision_cache import DEFAULT_CACHE_DIR, get_vision_cache_dir
 
     os.environ.pop("VISION_CACHE_DIR", None)
     assert get_vision_cache_dir() == DEFAULT_CACHE_DIR
@@ -68,7 +68,7 @@ def test_get_vision_cache_dir_from_env() -> None:
     """VISION_CACHE_DIR uses env when set."""
     import os
 
-    from vigilance.extraction.vision_cache import get_vision_cache_dir
+    from vigie.extraction.vision_cache import get_vision_cache_dir
 
     os.environ["VISION_CACHE_DIR"] = "/custom/cache"
     try:
@@ -81,7 +81,7 @@ def test_get_vision_crop_dir_default() -> None:
     """VISION_CROP_DIR uses default when not set."""
     import os
 
-    from vigilance.extraction.vision_cache import DEFAULT_CROP_DIR, get_vision_crop_dir
+    from vigie.extraction.vision_cache import DEFAULT_CROP_DIR, get_vision_crop_dir
 
     os.environ.pop("VISION_CROP_DIR", None)
     assert get_vision_crop_dir() == DEFAULT_CROP_DIR
@@ -89,7 +89,7 @@ def test_get_vision_crop_dir_default() -> None:
 
 def test_cache_validation_rejects_nested_list() -> None:
     """indicators as list of lists is rejected (must be list of strings)."""
-    from vigilance.extraction.vision_cache import cache_get, cache_put
+    from vigie.extraction.vision_cache import cache_get, cache_put
 
     with tempfile.TemporaryDirectory() as tmpdir:
         key = "nest_1_0.0_0.0_1.0_1.0"
@@ -102,7 +102,7 @@ def test_cache_validation_rejects_nested_list() -> None:
 
 def test_cache_validation_rejects_list_of_numbers() -> None:
     """indicators as list of numbers is rejected."""
-    from vigilance.extraction.vision_cache import cache_get, cache_put
+    from vigie.extraction.vision_cache import cache_get, cache_put
 
     with tempfile.TemporaryDirectory() as tmpdir:
         key = "num_1_0.0_0.0_1.0_1.0"

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from vigilance.extraction.docling_processor import (
+from vigie.extraction.docling import (
     ExtractedTable,
     extract_tables_docling_by_sections,
 )
@@ -30,7 +30,7 @@ def test_extract_tables_docling_by_sections_assigns_page_local_table_ids(
         return raw_tables
 
     monkeypatch.setattr(
-        "vigilance.extraction.docling_processor.extract_tables_docling_priority",
+        "vigie.extraction.docling.processor.extract_tables_docling_priority",
         fake_extract_tables_docling_priority,
     )
 

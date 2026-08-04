@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from vigilance.comparison_io import _is_ghost_table
-from vigilance.extraction.vision_full_extractor import (
+from vigie.comparaison.io import _is_ghost_table
+from vigie.extraction.vision_full import (
     VisionFullResult,
     _grade_extraction_quality,
     _structural_indicator_count,

@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import pytest
 
-from vigilance.comparison_canonical import (
+from vigie.comparaison.canonical import (
     _is_comparison_changed,
     compute_changed_tables_t1,
     compute_changed_tables_t2,

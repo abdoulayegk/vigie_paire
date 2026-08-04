@@ -1,0 +1,1104 @@
+"""Composant de detail de revue V2 -- interface de validation par changement.
+
+Ce composant genere le panneau droit de l'interface de revue et affiche :
+- Les images de preuve (T1 et T2)
+- La liste des changements pour le tableau courant
+- Les boutons de validation par changement
+- Les controles de navigation
+"""
+
+from __future__ import annotations
+
+from typing import Any
+
+import dash_bootstrap_components as dbc
+from dash import dcc, html
+
+from vigie.interface.components.review_display_shared import section_display_label
+from vigie.interface.components.table_title_resolver import resolve_display_table_title
+from vigie.interface.review_models_v2 import ChangeType
+
+_CHANGE_TYPE_LABELS = {
+    ChangeType.INDICATOR_ADDED.value: "Ajouté",
+    ChangeType.INDICATOR_REMOVED.value: "Supprimé",
+    ChangeType.INDICATOR_RENAMED.value: "Renommé",
+    ChangeType.FOOTNOTE_ADDED.value: "Note ajoutée",
+    ChangeType.FOOTNOTE_REMOVED.value: "Note supprimée",
+    ChangeType.FOOTNOTE_MODIFIED.value: "Note modifiée",
+    ChangeType.TABLE_ADDED.value: "Tableau ajouté",
+    ChangeType.TABLE_REMOVED.value: "Tableau supprimé",
+    ChangeType.STRUCTURE_CHANGE.value: "Structure modifiée",
+    ChangeType.UNCERTAIN.value: "Incertain",
+    ChangeType.MODIFIED.value: "Modifié",
+    "indicator_added": "Ajouté",
+    "indicator_removed": "Supprimé",
+    "indicator_renamed": "Renommé",
+    "footnote_added": "Note ajoutée",
+    "footnote_removed": "Note supprimée",
+    "footnote_modified": "Note modifiée",
+    "table_added": "Tableau ajouté",
+    "table_removed": "Tableau supprimé",
+    "structure_change": "Structure modifiée",
+    "uncertain": "Incertain",
+    "modified": "Modifié",
+}
+
+_CHANGE_TYPE_COLORS = {
+    ChangeType.INDICATOR_ADDED.value: "success",
+    ChangeType.INDICATOR_REMOVED.value: "danger",
+    ChangeType.INDICATOR_RENAMED.value: "warning",
+    ChangeType.FOOTNOTE_ADDED.value: "info",
+    ChangeType.FOOTNOTE_REMOVED.value: "dark",
+    ChangeType.FOOTNOTE_MODIFIED.value: "info",
+    ChangeType.TABLE_ADDED.value: "success",
+    ChangeType.TABLE_REMOVED.value: "danger",
+    ChangeType.STRUCTURE_CHANGE.value: "primary",
+    ChangeType.UNCERTAIN.value: "secondary",
+    ChangeType.MODIFIED.value: "primary",
+    "indicator_added": "success",
+    "indicator_removed": "danger",
+    "indicator_renamed": "warning",
+    "footnote_added": "info",
+    "footnote_removed": "dark",
+    "footnote_modified": "info",
+    "table_added": "success",
+    "table_removed": "danger",
+    "structure_change": "primary",
+    "uncertain": "secondary",
+    "modified": "primary",
+}
+
+_FOOTNOTE_CHANGE_TYPES = {
+    ChangeType.FOOTNOTE_ADDED.value,
+    ChangeType.FOOTNOTE_REMOVED.value,
+    ChangeType.FOOTNOTE_MODIFIED.value,
+    "footnote_added",
+    "footnote_removed",
+    "footnote_modified",
+}
+
+
+def _format_section(section: str) -> str:
+    """Formate le nom de section pour l'affichage."""
+    return section_display_label(section)
+
+
+def _normalize_text(value: object) -> str:
+    """Normalise une valeur en chaine nettoyee."""
+    return str(value or "").strip()
+
+
+def _is_footnote_change(change_type: str) -> bool:
+    """Verifie si le type de changement concerne une note de bas de page."""
+    return str(change_type or "") in _FOOTNOTE_CHANGE_TYPES
+
+
+def _get_change_row_summary(change: dict) -> str:
+    """Retourne un libelle compact et lisible pour la ligne de changement.
+
+    Le resume reste volontairement court. Le texte integral des notes longues
+    est affiche separement pour le changement selectionne.
+    """
+    change_type = str(change.get("change_type", "") or "")
+    payload = change.get("payload", {}) or {}
+
+    if change_type in (
+        "indicator_added",
+        "indicator_removed",
+        ChangeType.INDICATOR_ADDED.value,
+        ChangeType.INDICATOR_REMOVED.value,
+    ):
+        return _normalize_text(payload.get("indicator_name")) or "(indicateur)"
+
+    if change_type in ("indicator_renamed", ChangeType.INDICATOR_RENAMED.value):
+        from_val = _normalize_text(payload.get("from"))
+        to_val = _normalize_text(payload.get("to"))
+        return f"{from_val} → {to_val}"
+
+    if _is_footnote_change(change_type):
+        ref = _normalize_text(payload.get("footnote_ref"))
+        ref_label = f" [{ref}]" if ref else ""
+        if change_type in ("footnote_added", ChangeType.FOOTNOTE_ADDED.value):
+            return f"Note ajoutée{ref_label}"
+        if change_type in ("footnote_removed", ChangeType.FOOTNOTE_REMOVED.value):
+            return f"Note supprimée{ref_label}"
+        return f"Note modifiée{ref_label}"
+
+    if change_type in (
+        "table_added",
+        "table_removed",
+        ChangeType.TABLE_ADDED.value,
+        ChangeType.TABLE_REMOVED.value,
+    ):
+        return _normalize_text(payload.get("description")) or "Tableau entier"
+
+    return _normalize_text(payload.get("description")) or "Changement"
+
+
+def _build_detail_block(label: str, text: str, muted: bool = False) -> html.Div:
+    """Construit un bloc de detail avec libelle et texte."""
+    content = text or "Élément absent"
+    text_class = "text-muted fst-italic" if muted or not text else "text-dark"
+    return html.Div(
+        [
+            html.Div(label, className="fw-semibold border-bottom px-3 py-2"),
+            html.Div(
+                content,
+                className=f"px-3 py-3 {text_class}",
+                style={
+                    "whiteSpace": "pre-wrap",
+                    "overflowWrap": "anywhere",
+                    "wordBreak": "break-word",
+                    "lineHeight": "1.55",
+                },
+            ),
+        ],
+        className="border rounded bg-white overflow-hidden",
+    )
+
+
+def _build_change_full_detail(
+    change: dict,
+    *,
+    current_quarter_label: str | None = None,
+    previous_quarter_label: str | None = None,
+) -> html.Div | None:
+    """Construit le détail complet d'un changement (note de bas de page et/ou justification GPT)."""
+    change_type = str(change.get("change_type", "") or "")
+    blocks: list[Any] = []
+    current_label = str(current_quarter_label or "").strip() or "Trimestre courant"
+    previous_label = str(previous_quarter_label or "").strip() or "Trimestre précédent"
+
+    # --- Détail texte des notes de bas de page ---
+    if _is_footnote_change(change_type):
+        payload = change.get("payload", {}) or {}
+        old_text = _normalize_text(payload.get("old_text"))
+        new_text = _normalize_text(payload.get("new_text"))
+
+        if change_type in ("footnote_added", ChangeType.FOOTNOTE_ADDED.value):
+            blocks.append(_build_detail_block(f"{current_label} - note ajoutée", new_text))
+            blocks.append(_build_detail_block(previous_label, "", muted=True))
+        elif change_type in ("footnote_removed", ChangeType.FOOTNOTE_REMOVED.value):
+            blocks.append(_build_detail_block(current_label, "", muted=True))
+            blocks.append(
+                _build_detail_block(f"{previous_label} - note supprimée", old_text)
+            )
+        else:
+            blocks.append(
+                _build_detail_block(
+                    f"{current_label} - nouvelle version",
+                    new_text,
+                    muted=not new_text,
+                )
+            )
+            blocks.append(
+                _build_detail_block(
+                    f"{previous_label} - ancienne version",
+                    old_text,
+                    muted=not old_text,
+                )
+            )
+
+    # --- Justification GPT par changement ---
+    payload = change.get("payload", {}) or {}
+    assessment = payload.get("analyst_assessment") or {}
+    justification = str(assessment.get("justification", "") or "").strip()
+    if justification:
+        relevance_level = assessment.get("relevance_level")
+        level_labels = {1: "Critique / Réglementaire", 2: "Élevé / Structurel", 3: "Faible / Non substantif"}
+        level_colors = {1: "danger", 2: "warning", 3: "secondary"}
+        level_badge = (
+            dbc.Badge(
+                level_labels.get(relevance_level, ""),
+                color=level_colors.get(relevance_level, "secondary"),
+                className="me-2",
+            )
+            if relevance_level in level_labels
+            else None
+        )
+        blocks.append(
+            html.Div(
+                [
+                    html.Small(
+                        [level_badge, "Justification IA :"] if level_badge else "Justification IA :",
+                        className="fw-bold text-muted",
+                    ),
+                    html.P(justification, className="mb-0 mt-1 small fst-italic"),
+                ],
+                className="mt-2 p-2 bg-light rounded",
+            )
+        )
+
+    if not blocks:
+        return None
+
+    return html.Div(blocks, className="d-grid gap-3 mt-3")
+
+
+_THEMES_AMF_DISPLAY: dict[str, str] = {
+    "DIVULGATION_AJOUT": "Ajout de divulgation",
+    "DIVULGATION_RETRAIT": "Retrait de divulgation",
+    "MODIFICATION_TEXTE_RISQUE": "Modif. texte risque",
+    "MODIFICATION_METHODOLOGIE": "Modif. méthodologie",
+    "FACTEUR_RISQUE_CHANGEMENT": "Facteur de risque",
+    "CAPITAL_REGLEMENTAIRE": "Capital régl.",
+    "LIQUIDITE": "Liquidité",
+    "FONDS_PROPRES_REGLEMENTAIRES": "Fonds propres",
+    "EXIGENCES_REGLEMENTAIRES": "Exigences régl.",
+    "RATIOS_REGLEMENTAIRES": "Ratios régl.",
+    "STRUCTURE_RAPPORT": "Structure rapport",
+    "HYPOTHESES_EXPLICATIONS_RISQUES": "Hypothèses risques",
+    "ESG_CLIMATIQUE": "ESG / Climat",
+    "RISQUE_EMERGENT": "Risque émergent",
+    "RISQUE_DONNEES": "Risque données",
+    "RISQUE_TIERS_CLOUD": "Tiers / Cloud",
+    "RISQUE_MACRO_GEOPOLITIQUE": "Commercial / géopolitique",
+    "GOUVERNANCE_RISQUES": "Gouvernance",
+    "CONTROLE_CONFORMITE": "Contrôle / Conformité",
+    "NOUVELLE_MENTION_REGLEMENTAIRE": "Nouvelle mention régl.",
+    "MONTANT_REGLEMENTAIRE": "Montant régl.",
+}
+
+_EXCLUSION_REASON_DISPLAY: dict[str, str] = {
+    "variation_numerique_propre_banque": "Variation chiffrée propre à la banque",
+    "operation_interne_banque": "Opération interne propre à la banque",
+    "mise_a_jour_calendrier": "Mise à jour de calendrier d'application",
+    "reformulation_mineure": "Reformulation sans nouveau fond",
+    "deplacement_texte": "Déplacement de texte sans modification",
+    "formatage_visuel": "Formatage visuel",
+    "non_pertinent_autre": "Non pertinent",
+}
+
+_IMPACT_LEVEL_DISPLAY: dict[str, str] = {
+    "MAJEUR": "MAJEUR",
+    "MODERE": "MODÉRÉ",
+    "MINEUR": "MINEUR",
+}
+
+_IMPACT_LEVEL_COLORS: dict[str, str] = {
+    "MAJEUR": "danger",
+    "MODERE": "warning",
+    "MINEUR": "info",
+}
+
+_IMPACT_IT_DISPLAY: dict[str, str] = {
+    "ELEVE": "Impact IT élevé",
+    "MOYEN": "Impact IT moyen",
+    "FAIBLE": "Impact IT faible",
+}
+
+_POSTURE_DISPLAY: dict[str, str] = {
+    "RENFORCEMENT": "Posture renforcée",
+    "ALLEGEMENT": "Posture allégée",
+    "NOUVEAU_DISPOSITIF": "Nouveau dispositif",
+    "RETRAIT_DISPOSITIF": "Dispositif retiré",
+    "AUCUN": "Posture inchangée",
+}
+
+_IMPLEMENTATION_DISPLAY: dict[str, str] = {
+    "ANNONCE": "Mise en œuvre annoncée",
+    "PLANIFIE": "Mise en œuvre planifiée",
+    "EN_COURS": "Mise en œuvre en cours",
+    "MIS_EN_OEUVRE": "Mise en œuvre réalisée",
+}
+
+_POSTURE_CONFIDENCE_DISPLAY: dict[str, str] = {
+    "ELEVEE": "Confiance posture élevée",
+    "MOYENNE": "Confiance posture moyenne",
+    "FAIBLE": "Confiance posture faible",
+}
+
+_ACTION_REQUISE_DISPLAY: dict[str, str] = {
+    "revue_prioritaire": "Revue prioritaire",
+    "investigation": "Analyse approfondie",
+    "confirmation": "À confirmer",
+    "information": "Pour information",
+    "aucune": "Aucune",
+}
+
+
+def _build_themes_amf_chips(themes: list[str], *, max_visible: int = 4) -> html.Div:
+    """Affiche les thèmes AMF en chips gris (max ``max_visible`` puis « +N »)."""
+    if not themes:
+        return html.Div()
+    visible = themes[:max_visible]
+    overflow = themes[max_visible:]
+    chips: list = [
+        dbc.Badge(
+            _THEMES_AMF_DISPLAY.get(theme, theme),
+            color="light",
+            text_color="dark",
+            className="me-1 mb-1 border",
+        )
+        for theme in visible
+    ]
+    if overflow:
+        tooltip = ", ".join(_THEMES_AMF_DISPLAY.get(t, t) for t in overflow)
+        chips.append(
+            dbc.Badge(
+                f"+{len(overflow)}",
+                color="secondary",
+                className="me-1 mb-1",
+                title=tooltip,
+            )
+        )
+    return html.Div(chips, className="mb-2")
+
+
+def _build_non_relevant_card(exclusion_reason: str | None) -> html.Div:
+    """Carte minimaliste pour les changements jugés non pertinents par GPT.
+
+    Affiche la raison d'exclusion AMF (sans le « Activez GPT » fallback ancien).
+    """
+    reason_label = _EXCLUSION_REASON_DISPLAY.get(
+        str(exclusion_reason or ""), "Non pertinent"
+    )
+    return html.Div(
+        [
+            html.H6("Explication IA générative", className="mb-2"),
+            html.Div(
+                dbc.Badge(
+                    "Non pertinent",
+                    color="secondary",
+                    className="me-2",
+                ),
+                className="mb-2",
+            ),
+            html.Small(
+                [html.Strong("Raison : "), reason_label],
+                className="text-muted",
+            ),
+        ],
+        className="mb-4",
+    )
+
+
+def _build_genai_section(table: dict) -> html.Div:
+    """Génère le bloc d'explication IA aligné taxonomie AMF.
+
+    Hiérarchie d'affichage (alignée avec la charge cognitive analyste) :
+    1. Bandeau du haut : ✨ Nouvelle idée + badge impact_level (couleur)
+    2. Thèmes AMF en chips gris (max 4 + overflow)
+    3. Justification IA (nouvelle_idee_justification — note d'analyste)
+    4. Action suggérée (discrète, en bas)
+
+    Si ``is_relevant=False`` → carte minimaliste avec la raison d'exclusion.
+    Si ``genai_analysis`` est totalement vide (legacy data sans triage) →
+    message court signalant l'absence de classification.
+    """
+    ga = table.get("genai_analysis") or {}
+
+    if not ga:
+        return html.Div(
+            [
+                html.H6("Explication IA générative", className="mb-2"),
+                html.P(
+                    "Aucune classification IA disponible pour cet élément.",
+                    className="text-muted mb-0",
+                ),
+            ],
+            className="mb-4",
+        )
+
+    is_relevant = bool(ga.get("is_relevant", False))
+    if not is_relevant:
+        return _build_non_relevant_card(ga.get("exclusion_reason"))
+
+    nouvelle_idee = bool(ga.get("nouvelle_idee", False))
+    nouvelle_idee_justification = str(
+        ga.get("nouvelle_idee_justification", "") or ""
+    ).strip()
+    themes_amf = list(ga.get("themes_amf") or [])
+    impact_level = str(ga.get("impact_level", "") or "").upper()
+    impact_it = str(ga.get("impact_it", "") or "").upper()
+    impact_it_justification = str(
+        ga.get("impact_it_justification", "") or ""
+    ).strip()
+    changement_posture = str(
+        ga.get("changement_posture", "") or ""
+    ).upper()
+    justification_posture = str(
+        ga.get("justification_posture", "") or ""
+    ).strip()
+    statut_mise_en_oeuvre = str(
+        ga.get("statut_mise_en_oeuvre", "") or ""
+    ).upper()
+    confiance_posture = str(
+        ga.get("confiance_posture", "") or ""
+    ).upper()
+    action_requise = str(ga.get("action_requise", "") or "").lower()
+
+    # Bandeau principal : nouvelle idée + impact (deux signaux les plus
+    # importants pour le triage analyste).
+    header_badges: list = []
+    if nouvelle_idee:
+        header_badges.append(
+            dbc.Badge(
+                "✨ Nouvelle idée",
+                color="primary",
+                className="me-2",
+            )
+        )
+    else:
+        header_badges.append(
+            dbc.Badge(
+                "Pas une nouvelle idée",
+                color="secondary",
+                className="me-2",
+            )
+        )
+    if impact_level:
+        header_badges.append(
+            dbc.Badge(
+                _IMPACT_LEVEL_DISPLAY.get(impact_level, impact_level),
+                color=_IMPACT_LEVEL_COLORS.get(impact_level, "secondary"),
+                className="me-2",
+            )
+        )
+    if impact_it in _IMPACT_IT_DISPLAY and impact_it_justification:
+        header_badges.append(
+            dbc.Badge(
+                _IMPACT_IT_DISPLAY[impact_it],
+                color=_IMPACT_LEVEL_COLORS.get(
+                    {"ELEVE": "MAJEUR", "MOYEN": "MODERE", "FAIBLE": "MINEUR"}[
+                        impact_it
+                    ],
+                    "secondary",
+                ),
+                className="me-2",
+            )
+        )
+    if changement_posture in _POSTURE_DISPLAY:
+        header_badges.append(
+            dbc.Badge(
+                _POSTURE_DISPLAY[changement_posture],
+                color="primary",
+                className="me-2",
+            )
+        )
+    if statut_mise_en_oeuvre in _IMPLEMENTATION_DISPLAY:
+        header_badges.append(
+            dbc.Badge(
+                _IMPLEMENTATION_DISPLAY[statut_mise_en_oeuvre],
+                color="info",
+                className="me-2",
+            )
+        )
+    if confiance_posture in _POSTURE_CONFIDENCE_DISPLAY:
+        header_badges.append(
+            dbc.Badge(
+                _POSTURE_CONFIDENCE_DISPLAY[confiance_posture],
+                color="secondary",
+                className="me-2",
+            )
+        )
+
+    # Justification IA — schéma AMF v2 strict (plus de fallback legacy).
+    # Si vide, on affiche un message explicite : ré-exécuter la pipeline.
+    justification = nouvelle_idee_justification
+
+    # Action suggérée (discrète, sous la justification).
+    action_line: html.Small | None = None
+    if action_requise and action_requise != "aucune":
+        action_line = html.Small(
+            [
+                html.Strong("Action suggérée : "),
+                _ACTION_REQUISE_DISPLAY.get(action_requise, action_requise.capitalize()),
+            ],
+            className="d-block text-muted mt-2",
+        )
+
+    body: list = [
+        html.H6("Explication IA générative", className="mb-2"),
+        html.Div(header_badges, className="mb-2"),
+        _build_themes_amf_chips(themes_amf),
+        html.P(
+            justification
+            or "Justification AMF non disponible — relancer la pipeline pour obtenir le triage.",
+            className="mb-0 small",
+            style={"whiteSpace": "pre-wrap"},
+        ),
+    ]
+    if impact_it_justification:
+        body.append(
+            html.P(
+                [
+                    html.Strong("Impact IT : "),
+                    impact_it_justification,
+                ],
+                className="mb-0 mt-2 small text-muted",
+            )
+        )
+    if justification_posture:
+        body.append(
+            html.P(
+                [
+                    html.Strong("Posture de gestion : "),
+                    justification_posture,
+                ],
+                className="mb-0 mt-2 small text-muted",
+            )
+        )
+    if action_line is not None:
+        body.append(action_line)
+
+    return html.Div(body, className="mb-4")
+
+
+def build_change_list_v2(
+    changes: list[dict],
+    current_change_idx: int,
+    *,
+    current_quarter_label: str | None = None,
+    previous_quarter_label: str | None = None,
+) -> dbc.ListGroup:
+    """Construit la liste des changements pour un tableau.
+
+    Args:
+        changes: Liste de dictionnaires ``ChangeItem``.
+        current_change_idx: Index du changement actuellement selectionne.
+        current_quarter_label: Libelle du trimestre courant, si disponible.
+        previous_quarter_label: Libelle du trimestre precedent, si disponible.
+
+    Returns:
+        Un ``Div`` contenant la liste des changements.
+    """
+    if not changes:
+        return html.Div(
+            [
+                html.P("Aucun changement dans ce tableau.", className="text-muted"),
+            ]
+        )
+
+    change_rows = []
+    for idx, change in enumerate(changes):
+        is_current = idx == current_change_idx
+        status = change.get("validation_status", "pending")
+        change_type = change.get("change_type", "")
+        is_required = change.get("is_required", True)
+        change_id = str(change.get("change_id", "") or f"idx_{idx}")
+
+        # Status icon
+        if status == "approved":
+            status_icon = html.I(className="bi bi-check-circle-fill text-success me-2")
+        elif status == "rejected":
+            status_icon = html.I(className="bi bi-x-circle-fill text-danger me-2")
+        elif status == "skipped":
+            status_icon = html.I(className="bi bi-dash-circle text-secondary me-2")
+        else:
+            status_icon = html.I(className="bi bi-circle text-warning me-2")
+
+        # Change type badge
+        type_label = _CHANGE_TYPE_LABELS.get(change_type, change_type)
+        type_color = _CHANGE_TYPE_COLORS.get(change_type, "secondary")
+
+        # Description
+        description = _get_change_row_summary(change)
+        full_detail = (
+            _build_change_full_detail(
+                change,
+                current_quarter_label=current_quarter_label,
+                previous_quarter_label=previous_quarter_label,
+            )
+            if is_current
+            else None
+        )
+
+        # Required indicator
+        required_badge = None
+        if not is_required:
+            required_badge = dbc.Badge(
+                "Optionnel", color="light", text_color="dark", className="ms-2"
+            )
+
+        # Current item highlight
+        current_class = (
+            "bg-primary bg-opacity-10 border-start border-3 border-primary"
+            if is_current
+            else ""
+        )
+
+        row = dbc.ListGroupItem(
+            [
+                html.Div(
+                    [
+                        html.Div(
+                            [
+                                status_icon,
+                                dbc.Badge(
+                                    type_label,
+                                    color=type_color,
+                                    className="me-2",
+                                ),
+                                html.Span(
+                                    description,
+                                    className="small flex-grow-1",
+                                    style={"wordBreak": "break-word"},
+                                ),
+                                required_badge,
+                            ],
+                            className="d-flex align-items-center flex-wrap flex-grow-1 gap-1",
+                        ),
+                    ],
+                    className="d-flex align-items-start gap-2",
+                ),
+                # Show validation notes if present
+                html.Small(
+                    change.get("validation_notes", ""),
+                    className="text-muted d-block mt-1 fst-italic",
+                )
+                if change.get("validation_notes")
+                else None,
+                full_detail,
+                # Store the change exact text for highlight callback
+                dcc.Store(
+                    id={"type": "change-text-data-v2", "change_id": change_id},
+                    data=change,
+                ),
+            ],
+            id={"type": "change-row-v2", "change_id": change_id},
+            className=f"p-2 {current_class}",
+            style={"cursor": "pointer"},
+            action=True,
+        )
+        change_rows.append(row)
+
+    # Added active-highlight store inside the list container to avoid duplication
+    # but still available in the DOM for callbacks
+    return html.Div(
+        [
+            dbc.ListGroup(change_rows, flush=True, className="mb-3"),
+            dcc.Store(id="active-highlight-store", data=None),
+        ]
+    )
+
+
+def build_validation_panel_v2(
+    table: dict,
+    current_change_idx: int,
+) -> html.Div:
+    """Construit les boutons de validation et le champ de notes pour le changement courant.
+
+    Args:
+        table: Dictionnaire ``ReviewTableItem`` courant.
+        current_change_idx: Index du changement courant dans le tableau.
+
+    Returns:
+        Un ``Div`` contenant les controles de validation.
+    """
+    changes = table.get("changes", [])
+    n_changes = len(changes)
+
+    if not changes or current_change_idx >= n_changes:
+        return html.Div()
+
+    current_change = changes[current_change_idx]
+    change_type = current_change.get("change_type", "")
+    status = current_change.get("validation_status", "pending")
+    description = _get_change_row_summary(current_change)
+
+    review_status_badges = {
+        "approved": ("Validé", "success"),
+        "rejected": ("Rejeté", "danger"),
+        "skipped": ("Passé", "secondary"),
+    }
+    review_badge = None
+    if status in review_status_badges:
+        review_label, review_color = review_status_badges[status]
+        review_badge = dbc.Badge(
+            f"Décision : {review_label}",
+            color=review_color,
+            className="ms-2",
+        )
+
+    change_info = html.Div(
+        [
+            html.Div(
+                [
+                    html.Span("Revue analyste", className="fw-semibold small text-muted me-2"),
+                    review_badge,
+                ],
+                className="mb-2 d-flex align-items-center flex-wrap",
+            ),
+            html.Div(
+                [
+                    dbc.Badge(
+                        _CHANGE_TYPE_LABELS.get(change_type, change_type),
+                        color=_CHANGE_TYPE_COLORS.get(change_type, "secondary"),
+                        className="me-2",
+                    ),
+                    html.Span(description, className="fw-semibold"),
+                ],
+                className="mb-2 d-flex align-items-center flex-wrap gap-1",
+            ),
+        ]
+    )
+
+    notes_input = dbc.Textarea(
+        id="validation-notes-v2",
+        placeholder="Commentaire analyste (optionnel)...",
+        value=current_change.get("validation_notes", ""),
+        className="mb-2",
+        rows=2,
+        style={"minHeight": "64px", "resize": "vertical"},
+    )
+
+    validation_buttons = html.Div(
+        [
+            dbc.Button(
+                "Valider",
+                id="btn-approve-change-v2",
+                color="success",
+                size="sm",
+                outline=status != "approved",
+                className="me-2",
+            ),
+            dbc.Button(
+                "Rejeter",
+                id="btn-reject-change-v2",
+                color="danger",
+                size="sm",
+                outline=status != "rejected",
+                className="me-2",
+            ),
+            dbc.Button(
+                "Passer",
+                id="btn-skip-change-v2",
+                color="secondary",
+                size="sm",
+                outline=status != "skipped",
+            ),
+        ],
+        className="mb-3 d-flex flex-wrap",
+    )
+
+    # Navigation buttons
+    nav_buttons = html.Div(
+        [
+            dbc.Button(
+                [html.I(className="bi bi-chevron-left me-1"), "Précédent"],
+                id="btn-prev-change-v2",
+                color="light",
+                className="me-2",
+                disabled=current_change_idx <= 0,
+            ),
+            dbc.Button(
+                ["Suivant", html.I(className="bi bi-chevron-right ms-1")],
+                id="btn-next-change-v2",
+                color="light",
+                disabled=current_change_idx >= n_changes - 1,
+            ),
+            html.Span(
+                f" {current_change_idx + 1} / {n_changes}",
+                className="ms-3 text-muted small",
+            ),
+        ],
+        className="mb-3",
+    )
+
+    return html.Div(
+        [
+            change_info,
+            notes_input,
+            validation_buttons,
+            html.Hr(),
+            nav_buttons,
+        ]
+    )
+
+
+def build_review_detail_v2(
+    table: dict | None,
+    current_change_idx: int,
+    proof_image_t1_b64: str = "",
+    proof_image_t2_b64: str = "",
+    show_proofs: bool = True,
+    current_quarter_label: str | None = None,
+    previous_quarter_label: str | None = None,
+) -> html.Div:
+    """Construit le panneau complet de detail de revue V2.
+
+    Args:
+        table: Dictionnaire ``ReviewTableItem`` courant.
+        current_change_idx: Index du changement courant.
+        proof_image_t1_b64: Image de preuve T1 encodee en base64.
+        proof_image_t2_b64: Image de preuve T2 encodee en base64.
+        show_proofs: Si ``True``, affiche la section des preuves visuelles.
+        current_quarter_label: Libelle du trimestre courant, si disponible.
+        previous_quarter_label: Libelle du trimestre precedent, si disponible.
+
+    Returns:
+        Le panneau de detail de revue complet.
+    """
+    if not table:
+        return html.Div(
+            [
+                html.H5("Aucun élément sélectionné"),
+                html.P(
+                    "Sélectionnez un tableau dans la file de revue.",
+                    className="text-muted",
+                ),
+            ]
+        )
+
+    table_name = resolve_display_table_title(table)
+    section = _format_section(table.get("section", ""))
+    page_t1 = table.get("page_t1")
+    page_t2 = table.get("page_t2")
+    table_status = table.get("table_status", "pending")
+    summary = table.get("summary", {})
+    match_meta = table.get("match_metadata") or {}
+    current_label = str(current_quarter_label or "").strip() or "Trimestre courant"
+    previous_label = str(previous_quarter_label or "").strip() or "Trimestre précédent"
+
+    alert_badges = []
+    if match_meta.get("drastic_row_drop"):
+        alert_badges.append(
+            dbc.Alert(
+                [
+                    html.I(className="bi bi-exclamation-triangle-fill me-2"),
+                    "ALERTE CRITIQUE : Baisse drastique du nombre de lignes détectée. Vérifiez manuellement une potentielle troncature du modèle.",
+                ],
+                color="danger",
+                className="py-2 mb-3 fw-bold",
+            )
+        )
+
+    # Header with table info
+    header = html.Div(
+        [
+            html.Div(
+                [
+                    html.H5(table_name, className="mb-1"),
+                    html.Small(
+                        [
+                            f"Section : {section}",
+                            html.Span(" | ", className="text-muted"),
+                            f"Pages : {previous_label} p.{page_t1 or '?'} / {current_label} p.{page_t2 or '?'}",
+                        ],
+                        className="text-muted",
+                    ),
+                ]
+            ),
+            # Status badge
+            dbc.Badge(
+                "Complété"
+                if table_status == "completed"
+                else ("En cours" if table_status == "partial" else "En attente"),
+                color="success"
+                if table_status == "completed"
+                else ("info" if table_status == "partial" else "warning"),
+                className="ms-auto",
+            ),
+        ],
+        className="d-flex justify-content-between align-items-start mb-3",
+    )
+
+    # Summary badges
+    summary_badges = html.Div(
+        [
+            dbc.Badge(
+                f"+{summary.get('indicators_added', 0)}",
+                color="success",
+                className="me-1",
+            )
+            if summary.get("indicators_added", 0)
+            else None,
+            dbc.Badge(
+                f"-{summary.get('indicators_removed', 0)}",
+                color="danger",
+                className="me-1",
+            )
+            if summary.get("indicators_removed", 0)
+            else None,
+            dbc.Badge(
+                f"~{summary.get('indicators_renamed', 0)}",
+                color="warning",
+                className="me-1",
+            )
+            if summary.get("indicators_renamed", 0)
+            else None,
+            dbc.Badge(
+                f"FN {summary.get('footnotes_changed', 0)}",
+                color="info",
+                className="me-1",
+            )
+            if summary.get("footnotes_changed", 0)
+            else None,
+            html.Span(
+                f"Validé : {summary.get('validated', 0)}/{summary.get('total_changes', 0)}",
+                className="ms-2 text-muted small",
+            ),
+        ],
+        className="mb-3",
+    )
+
+    # Proof images
+    proof_section = (
+        html.Div(
+            [
+                dbc.Row(
+                    [
+                        dbc.Col(
+                            [
+                                html.H6(
+                                    [
+                                        html.I(className="bi bi-file-earmark-pdf me-2"),
+                                        current_label,
+                                    ],
+                                    className="mb-2",
+                                ),
+                                html.Img(
+                                    src=f"data:image/png;base64,{proof_image_t2_b64}"
+                                    if proof_image_t2_b64
+                                    else "",
+                                    className="img-fluid border rounded",
+                                    style={
+                                        "maxHeight": "400px",
+                                        "width": "100%",
+                                        "objectFit": "contain",
+                                    },
+                                )
+                                if proof_image_t2_b64
+                                else html.Div(
+                                    "Image non disponible",
+                                    className="text-muted p-4 bg-light rounded text-center",
+                                ),
+                            ],
+                            md=6,
+                        ),
+                        dbc.Col(
+                            [
+                                html.H6(
+                                    [
+                                        html.I(className="bi bi-file-earmark-pdf me-2"),
+                                        previous_label,
+                                    ],
+                                    className="mb-2",
+                                ),
+                                html.Img(
+                                    src=f"data:image/png;base64,{proof_image_t1_b64}"
+                                    if proof_image_t1_b64
+                                    else "",
+                                    className="img-fluid border rounded",
+                                    style={
+                                        "maxHeight": "400px",
+                                        "width": "100%",
+                                        "objectFit": "contain",
+                                    },
+                                )
+                                if proof_image_t1_b64
+                                else html.Div(
+                                    "Image non disponible",
+                                    className="text-muted p-4 bg-light rounded text-center",
+                                ),
+                            ],
+                            md=6,
+                        ),
+                    ]
+                ),
+            ],
+            className="mb-4",
+        )
+        if show_proofs
+        else html.Div()
+    )
+
+    genai_section = _build_genai_section(table)
+
+    # Changes list
+    changes = table.get("changes", [])
+    table_only_change = len(changes) == 1 and str(changes[0].get("change_type", "")) in {
+        ChangeType.TABLE_ADDED.value,
+        ChangeType.TABLE_REMOVED.value,
+        "table_added",
+        "table_removed",
+    }
+    changes_section = html.Div(
+        [
+            html.H6(
+                [
+                    html.I(className="bi bi-list-check me-2"),
+                    (
+                        "Validation au niveau tableau"
+                        if table_only_change
+                        else f"Changements ({len(changes)})"
+                    ),
+                ],
+                className="mb-2",
+            ),
+            build_change_list_v2(
+                changes,
+                current_change_idx,
+                current_quarter_label=current_label,
+                previous_quarter_label=previous_label,
+            ),
+        ],
+        className="mb-4",
+    )
+
+    # Validation panel
+    validation_section = html.Div(
+        [
+            html.H6(
+                [html.I(className="bi bi-clipboard-check me-2"), "Validation"],
+                className="mb-2",
+            ),
+            build_validation_panel_v2(table, current_change_idx),
+        ]
+    )
+
+    # Table navigation buttons
+    table_nav = html.Div(
+        [
+            html.Hr(),
+            dbc.Row(
+                [
+                    dbc.Col(
+                        [
+                            dbc.Button(
+                                [
+                                    html.I(className="bi bi-arrow-left me-1"),
+                                    "Tableau précédent",
+                                ],
+                                id="btn-prev-table-v2",
+                                color="outline-primary",
+                                className="w-100",
+                            ),
+                        ],
+                        md=6,
+                    ),
+                    dbc.Col(
+                        [
+                            dbc.Button(
+                                [
+                                    "Tableau suivant",
+                                    html.I(className="bi bi-arrow-right ms-1"),
+                                ],
+                                id="btn-next-table-v2",
+                                color="primary",
+                                className="w-100",
+                            ),
+                        ],
+                        md=6,
+                    ),
+                ],
+                className="g-2",
+            ),
+        ],
+        className="mt-4",
+    )
+
+    return html.Div(
+        [
+            header,
+            html.Div(alert_badges) if alert_badges else None,
+            summary_badges,
+            html.Hr(),
+            proof_section,
+            genai_section,
+            changes_section,
+            validation_section,
+            table_nav,
+        ]
+    )

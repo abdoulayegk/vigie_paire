@@ -4,7 +4,7 @@ import io
 
 from openpyxl import load_workbook
 
-from vigilance.comparison_excel import generate_comparison_excel
+from vigie.comparaison.excel import generate_comparison_excel
 
 
 def test_comparison_excel_prefers_amf_justification() -> None:

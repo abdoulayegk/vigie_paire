@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from vigilance.utils.table_page_structure import derive_page_local_structure
+from vigie.support.utils.table_page_structure import derive_page_local_structure
 
 
 def test_derive_page_local_structure_empty() -> None:

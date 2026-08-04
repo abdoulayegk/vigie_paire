@@ -2,10 +2,8 @@
 
 from __future__ import annotations
 
-from vigilance.comparison_diff_gpt import (
-    _inspect_diff_artifacts_gpt,
-    diff_table_pair_gpt,
-)
+from vigie.comparaison.differences.comparaison_paire import diff_table_pair_gpt
+from vigie.comparaison.differences.filtrage_artefacts import _inspect_diff_artifacts_gpt
 
 # ---------------------------------------------------------------------------
 # Helpers

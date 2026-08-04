@@ -1,1 +1,1 @@
-"""Facade publique francophone pour les commandes Vigie."""
+"""Couche publique et coeur metier Vigie (CLI, pipelines, domaines)."""

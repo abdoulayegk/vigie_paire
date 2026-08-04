@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from vigilance.dash_app.callbacks.dashboard_flow import render_results
+from vigie.interface.callbacks.dashboard_flow import render_results
 
 
 def _component_texts(node: Any) -> list[str]:

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from vigilance.extraction.section_locator import (
+from vigie.extraction.localisation_sections import (
     LocatedSection,
     SectionLocator,
     TocEntry,

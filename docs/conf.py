@@ -43,7 +43,7 @@ autodoc_default_options = {
     "show-inheritance": True,
 }
 add_module_names = False
-modindex_common_prefix = ["vigilance."]
+modindex_common_prefix = ["vigie."]
 
 source_suffix = {
     ".rst": "restructuredtext",

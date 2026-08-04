@@ -4,20 +4,20 @@ from __future__ import annotations
 
 from typing import Any
 
-from vigilance.text_analysis.chunk_alignment import (
+from vigie.analyse_texte.chunk_alignment import (
     _align_chunks_hybrid,
     _align_chunks_tfidf,
 )
-from vigilance.text_analysis.chunking import _chunk_subsection_text
-from vigilance.text_analysis.global_reconciliation import (
+from vigie.analyse_texte.chunking import _chunk_subsection_text
+from vigie.analyse_texte.global_reconciliation import (
     _ReconciliationResponse,
     _components,
     _one_sided_nodes,
     _pair_retrieval_scores,
     reconcile_global_change_fragments,
 )
-from vigilance.text_analysis.summary import _build_semantic_quality_metrics
-from vigilance.text_analysis.triage import (
+from vigie.analyse_texte.summary import _build_semantic_quality_metrics
+from vigie.analyse_texte.triage_parts import (
     _deterministic_bank_specific_exclusion,
     _deterministic_cosmetic_exclusion,
     _group_semantic_triage_duplicates,
@@ -89,7 +89,7 @@ def test_hybrid_alignment_skips_non_reciprocal_pairs(monkeypatch) -> None:
     # Embeddings volontairement croisés pour créer une fausse meilleure paire non réciproque
     # si on consommait les slots trop tôt: T1-0↔T2-0 et T1-1↔T2-1 seraient mauvais.
     monkeypatch.setattr(
-        "vigilance.text_analysis.chunk_alignment._embed_texts",
+        "vigie.analyse_texte.chunk_alignment._embed_texts",
         lambda client, texts, model="text-embedding-3-small": [
             [1.0, 0.0, 0.0],  # T1-0
             [0.0, 1.0, 0.0],  # T1-1
@@ -134,7 +134,7 @@ def test_hybrid_alignment_recovers_strong_reformulation(monkeypatch) -> None:
     assert not tfidf_matched or tfidf_matched[0].alignment_type != "matched_strong" or tfidf_matched[0].similarity_score < 0.95
 
     monkeypatch.setattr(
-        "vigilance.text_analysis.chunk_alignment._embed_texts",
+        "vigie.analyse_texte.chunk_alignment._embed_texts",
         lambda client, texts, model="text-embedding-3-small": [
             [1.0, 0.0, 0.0],
             [0.98, 0.1, 0.0],
@@ -164,7 +164,7 @@ def test_hybrid_alignment_marks_boilerplate_as_ambiguous_for_gpt(monkeypatch) ->
     chunks_t2 = _chunk_subsection_text(current, subsection_heading="Financement")
 
     monkeypatch.setattr(
-        "vigilance.text_analysis.chunk_alignment._embed_texts",
+        "vigie.analyse_texte.chunk_alignment._embed_texts",
         lambda client, texts, model="text-embedding-3-small": [
             [1.0, 0.0, 0.0],
             [0.99, 0.05, 0.0],
@@ -211,7 +211,7 @@ def test_global_reconciliation_uses_embedding_scores_in_audit(monkeypatch) -> No
     ]
 
     monkeypatch.setattr(
-        "vigilance.text_analysis.global_reconciliation._embed_texts",
+        "vigie.analyse_texte.global_reconciliation._embed_texts",
         lambda client, texts, model="text-embedding-3-small": [
             [1.0, 0.0, 0.0],
             [0.95, 0.1, 0.0],
@@ -234,7 +234,7 @@ def test_global_reconciliation_uses_embedding_scores_in_audit(monkeypatch) -> No
         )
 
     monkeypatch.setattr(
-        "vigilance.text_analysis.global_reconciliation._call_structured_completion_with_correction",
+        "vigie.analyse_texte.global_reconciliation._call_structured_completion_with_correction",
         _fake_llm,
     )
 
@@ -337,7 +337,7 @@ def test_global_components_reject_weak_transitive_bridge(monkeypatch) -> None:
         },
     ]
     monkeypatch.setattr(
-        "vigilance.text_analysis.global_reconciliation._candidate_edges",
+        "vigie.analyse_texte.global_reconciliation._candidate_edges",
         lambda nodes, embeddings_by_id: [dict(edge) for edge in candidate_edges],
     )
 
@@ -407,7 +407,7 @@ def test_global_components_preserve_one_to_many_strong_split(monkeypatch) -> Non
         },
     ]
     monkeypatch.setattr(
-        "vigilance.text_analysis.global_reconciliation._candidate_edges",
+        "vigie.analyse_texte.global_reconciliation._candidate_edges",
         lambda nodes, embeddings_by_id: [dict(edge) for edge in candidate_edges],
     )
 
@@ -447,14 +447,14 @@ def test_global_reconciliation_keeps_real_unilateral_when_embeddings_weak(monkey
         },
     ]
     monkeypatch.setattr(
-        "vigilance.text_analysis.global_reconciliation._embed_texts",
+        "vigie.analyse_texte.global_reconciliation._embed_texts",
         lambda client, texts, model="text-embedding-3-small": [
             [1.0, 0.0, 0.0],
             [0.0, 1.0, 0.0],
         ],
     )
     monkeypatch.setattr(
-        "vigilance.text_analysis.global_reconciliation._call_structured_completion_with_correction",
+        "vigie.analyse_texte.global_reconciliation._call_structured_completion_with_correction",
         lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("LLM should not be called")),
     )
     reconciled, audit = reconcile_global_change_fragments(
@@ -495,7 +495,7 @@ def test_global_reconciliation_does_not_mix_capital_and_risks(monkeypatch) -> No
         },
     ]
     monkeypatch.setattr(
-        "vigilance.text_analysis.global_reconciliation._embed_texts",
+        "vigie.analyse_texte.global_reconciliation._embed_texts",
         lambda client, texts, model="text-embedding-3-small": [
             [1.0, 0.0, 0.0],
             [0.99, 0.05, 0.0],
@@ -512,7 +512,7 @@ def test_global_reconciliation_does_not_mix_capital_and_risks(monkeypatch) -> No
     assert components == []
 
     monkeypatch.setattr(
-        "vigilance.text_analysis.global_reconciliation._call_structured_completion_with_correction",
+        "vigie.analyse_texte.global_reconciliation._call_structured_completion_with_correction",
         lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("LLM should not be called")),
     )
     reconciled, audit = reconcile_global_change_fragments(
@@ -768,7 +768,7 @@ def test_triage_dedup_groups_compatible_near_duplicates(monkeypatch) -> None:
         },
     ]
     monkeypatch.setattr(
-        "vigilance.text_analysis.triage_parts.dedup._embed_texts",
+        "vigie.analyse_texte.triage_parts.dedup._embed_texts",
         lambda client, texts, model="text-embedding-3-small": [
             [1.0, 0.0, 0.0],
             [0.99, 0.05, 0.0],
@@ -800,7 +800,7 @@ def test_triage_section_changes_applies_cosmetic_prefilter(monkeypatch) -> None:
         raise AssertionError("GPT triage should be skipped for cosmetic changes")
 
     monkeypatch.setattr(
-        "vigilance.text_analysis.triage._call_structured_completion_with_correction",
+        "vigie.analyse_texte.triage_parts.section_triage._call_structured_completion_with_correction",
         _fake_structured,
     )
     result = _triage_section_changes(

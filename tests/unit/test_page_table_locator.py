@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from vigilance.extraction.page_table_locator import (
+from vigie.extraction.page_table_locator import (
     OPENAI_PAGE_LOCATOR_TIMEOUT_SECONDS,
     PageTableLocator,
     _parse_page_layout,

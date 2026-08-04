@@ -253,7 +253,7 @@ Les comparaisons indicateurs et texte partagent la même racine `outputs/resulta
 ### Option A — Avec `uv`
 
 ```bash
-uv run python -m vigilance.dash_app.app
+uv run python -m vigie.interface.app
 ```
 
 ### Dash — Linux / macOS
@@ -266,7 +266,7 @@ bash scripts/run_dash.sh
 ### Dash — Windows (PowerShell)
 
 ```powershell
-uv run python -m vigilance.dash_app.app
+uv run python -m vigie.interface.app
 ```
 
 ### Validateur leger sans LLM — Windows, macOS et Linux
@@ -298,13 +298,13 @@ Installation et lancement, identiques sur les trois plateformes :
 python -m pip install --upgrade pip
 python -m pip install -r requirements-validateur.txt
 python -m pip install -e . --no-deps
-python -m vigie.validateur --resultats /chemin/vers/resultats
+python -m vigie.interface.validator --resultats /chemin/vers/resultats
 ```
 
 Sous Windows, un chemin peut par exemple etre fourni ainsi :
 
 ```powershell
-python -m vigie.validateur --resultats "C:\Users\analyste\Vigie\resultats"
+python -m vigie.interface.validator --resultats "C:\Users\analyste\Vigie\resultats"
 ```
 
 Le dossier peut aussi etre defini avec `VIGIE_RESULTATS_DIR`. Sans argument ni
@@ -322,7 +322,7 @@ Options utiles :
 ```
 
 La commande console `vigie-validateur` est equivalente a
-`python -m vigie.validateur`.
+`python -m vigie.interface.validator`.
 
 ### Dash complet — Avec `pip`
 
@@ -330,7 +330,7 @@ Le mode `pip` est officiellement documenté pour les pipelines CLI. Pour Dash, i
 
 ```bash
 python -m pip install -e .
-python -m vigilance.dash_app.app
+python -m vigie.interface.app
 ```
 
 Le script `bash scripts/run_dash.sh` dépend de `uv` et ne convient pas à un environnement `pip` pur.

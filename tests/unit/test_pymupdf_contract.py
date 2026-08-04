@@ -7,22 +7,22 @@ from pathlib import Path
 import pymupdf
 import pytest
 
-from vigilance.extraction.pdf_preview import (
+from vigie.extraction.pdf_preview import (
     create_thumbnail,
     extract_text_from_pages,
     get_pdf_info,
     render_pdf_page,
     render_pdf_pages,
 )
-from vigilance.text_analysis.extraction import _extract_pymupdf_fallback_blocks
-from vigilance.utils.pdf_crop import (
+from vigie.analyse_texte.extraction import _extract_pymupdf_fallback_blocks
+from vigie.support.utils.pdf_crop import (
     crop_footnote_region_to_bytes,
     crop_page_region_bytes,
     crop_table_image,
     crop_table_region_to_bytes,
     render_page_with_bbox_highlight_to_bytes,
 )
-from vigilance.utils.pdf_highlight import find_text_bboxes_in_region
+from vigie.support.utils.pdf_highlight import find_text_bboxes_in_region
 
 _PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
 

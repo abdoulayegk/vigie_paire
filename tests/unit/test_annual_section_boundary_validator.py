@@ -2,18 +2,18 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from vigilance.extraction.annual_section_boundary_validator import (
+from vigie.extraction.annual_section_boundary_validator import (
     AnnualSectionBoundaryValidator,
     StructuredTOCEntry,
     parse_docling_toc_markdown,
     reconcile_boundary_roles,
 )
-from vigilance.extraction.genai_toc_detector import (
+from vigie.extraction.genai_toc_detector import (
     AnnualTOCAnalysis,
     PageTransitionValidation,
     TOCBoundaryRole,
 )
-from vigilance.extraction.section_locator import LocatedSection
+from vigie.extraction.localisation_sections import LocatedSection
 
 
 BNC_TOC_MARKDOWN = """

@@ -4,8 +4,8 @@ import io
 
 from openpyxl import load_workbook
 
-from vigilance.text_comparison.justification import build_text_triage_justification
-from vigilance.text_comparison.text_comparison_excel import generate_text_comparison_excel
+from vigie.analyse_texte.text_comparison.justification import build_text_triage_justification
+from vigie.analyse_texte.text_comparison.text_comparison_excel import generate_text_comparison_excel
 
 
 def _column(ws, header: str) -> int:
@@ -581,7 +581,7 @@ def test_generate_text_comparison_excel_uses_french_analyst_labels() -> None:
 
 
 def test_what_changed_for_display_prefers_relevance_reason() -> None:
-    from vigilance.vigie_columns import what_changed_for_display
+    from vigie.support.vigie_columns import what_changed_for_display
 
     change = {
         "diff_type": "modified",

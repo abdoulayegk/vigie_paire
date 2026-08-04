@@ -7,7 +7,7 @@ import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from vigilance.report.vigie_extract_schema import (
+from vigie.support.report.vigie_extract_schema import (
     SLUG_TO_CANONICAL,
     SCHEMA_VERSION,
     build_vigie_extract,

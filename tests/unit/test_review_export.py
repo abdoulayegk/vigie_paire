@@ -4,7 +4,7 @@ import io
 
 from openpyxl import load_workbook
 
-from vigilance.review_export import (
+from vigie.interface.review_export import (
     EXPERT_EXCEL_COLUMNS,
     EXPERT_EXCEL_SHEET_REVIEW,
     EXPERT_EXCEL_SHEET_SUMMARY,
@@ -12,7 +12,7 @@ from vigilance.review_export import (
     generate_validation_excel,
     generate_validation_txt,
 )
-from vigilance.review_models import ReviewItem
+from vigie.interface.review_models import ReviewItem
 
 
 def test_generate_validation_csv_includes_comment_in_summary_without_schema_change() -> None:

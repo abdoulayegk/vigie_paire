@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 
-from vigilance.dash_app.services.text_review import (
+from vigie.interface.services.text_review import (
     apply_text_review_decision,
     write_text_review_to_disk,
 )
@@ -58,9 +58,9 @@ def test_write_text_review_to_disk_can_skip_excel_regeneration(tmp_path, monkeyp
     def _fake_generate_text_comparison_excel(*args, **kwargs):
         called["excel"] = True
 
-    monkeypatch.setattr("vigilance.dash_app.services.text_review.TEXT_COMPARISON_DIR", tmp_path)
+    monkeypatch.setattr("vigie.interface.services.text_review.TEXT_COMPARISON_DIR", tmp_path)
     monkeypatch.setattr(
-        "vigilance.dash_app.services.text_review.generate_text_comparison_excel",
+        "vigie.interface.services.text_review.generate_text_comparison_excel",
         _fake_generate_text_comparison_excel,
     )
 

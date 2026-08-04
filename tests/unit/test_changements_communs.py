@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from vigilance.changements_communs import (
+from vigie.comparaison.changements_communs import (
     build_changements_communs_judge_messages,
     build_changements_communs_source_stats,
     changements_communs_output_path,

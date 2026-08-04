@@ -6,7 +6,7 @@ Rule 5: Vision failures result in empty content, not Docling content bleed-throu
 
 from __future__ import annotations
 
-from vigilance.extraction.vision_full_extractor import (
+from vigie.extraction.vision_full import (
     _parse_vision_result,
 )
 

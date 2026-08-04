@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from vigilance.config import (
+from vigie.support.config import (
     get_llm_model_config,
     get_vision_extraction_config,
     resolve_openai_model,

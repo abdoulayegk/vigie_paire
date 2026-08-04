@@ -5,7 +5,7 @@ Rule 3: footnotes MUST be returned in visual order (top to bottom), never sorted
 
 from __future__ import annotations
 
-from vigilance.extraction.vision_full_extractor import (
+from vigie.extraction.vision_full import (
     _parse_vision_result,
 )
 

@@ -4,17 +4,17 @@ from types import SimpleNamespace
 
 import pytest
 
-from vigilance.extraction.docling_processor import _build_indicator_reference_text
-from vigilance.extraction.vision_full_extractor import (
+from vigie.extraction.docling import _build_indicator_reference_text
+from vigie.extraction.vision_full import (
     VisionFullExtractor,
     VisionFullResult,
 )
-from vigilance.extraction.vision_qa_inspector import (
+from vigie.extraction.vision_qa_inspector import (
     OPENAI_VISION_QA_TIMEOUT_SECONDS,
     QAResult,
     VisionTableInspector,
 )
-from vigilance.utils.openai_schema import build_strict_openai_response_format
+from vigie.support.utils.openai_schema import build_strict_openai_response_format
 
 
 def _result(

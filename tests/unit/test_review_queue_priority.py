@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from vigilance.review_priority import sort_review_items_by_priority
+from vigie.interface.review_priority import sort_review_items_by_priority
 
 
 def test_sort_review_items_by_priority_orders_by_category_then_impact() -> None:

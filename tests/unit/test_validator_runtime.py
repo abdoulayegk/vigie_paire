@@ -9,7 +9,7 @@ import sys
 
 import pytest
 
-from vigilance.dash_app import validator, validator_config
+from vigie.interface import validator, validator_config
 
 
 def test_platform_config_base_uses_windows_appdata(monkeypatch, tmp_path: Path) -> None:
@@ -95,9 +95,9 @@ class BlockPipelineDependencies(importlib.abc.MetaPathFinder):
         return None
 
 sys.meta_path.insert(0, BlockPipelineDependencies())
-from vigilance.dash_app import validator_config
+from vigie.interface import validator_config
 validator_config.set_validator_mode(True)
-import vigilance.dash_app.app
+import vigie.interface.app
 """
     environment = dict(os.environ)
     environment["PYTHONDONTWRITEBYTECODE"] = "1"

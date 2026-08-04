@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from types import SimpleNamespace
 
-from vigilance.text_analysis.vision_boundary_validator import (
+from vigie.analyse_texte.vision_boundary_validator import (
     OpenAITextBoundaryValidator,
     VisionBoundaryAssessment,
 )

@@ -3,8 +3,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from vigilance.comparison_canonical import to_canonical_payload
-from vigilance.dash_app.services.text_comparison_store import (
+from vigie.comparaison.canonical import to_canonical_payload
+from vigie.interface.services.text_comparison_store import (
     resolve_text_comparison_from_payload,
 )
 

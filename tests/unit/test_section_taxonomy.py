@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from vigilance.extraction.section_taxonomy import canonicalize_section
+from vigie.extraction.section_taxonomy import canonicalize_section
 
 
 def test_canonicalize_gestion_capital() -> None:

@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from vigilance import comparison_runner as cr
+from vigie.comparaison import runner as cr
 
 
 def _write_tables_json(path: Path, *, bank: str, year: int, quarter: str, table_id: str, title: str) -> None:
@@ -261,7 +261,7 @@ def test_extract_tables_reuses_schema_v7_storage(
         raise AssertionError("fresh extraction should not run when schema_version=7 is already stored")
 
     monkeypatch.setattr(
-        "vigilance.extraction.docling_processor.extract_tables_docling_by_sections",
+        "vigie.extraction.docling.processor.extract_tables_docling_by_sections",
         should_not_extract,
     )
 

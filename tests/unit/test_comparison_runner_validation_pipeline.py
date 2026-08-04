@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from vigilance import comparison_runner as cr
+from vigie.comparaison import runner as cr
 
 
 def _write_report_comparison(

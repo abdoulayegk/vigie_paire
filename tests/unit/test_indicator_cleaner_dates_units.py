@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from vigilance.utils.indicator_cleaner import (
+from vigie.support.utils.indicator_cleaner import (
     normalize_indicator_for_comparison,
     strip_dates_from_indicator_label,
     strip_units_currency_from_indicator_label,

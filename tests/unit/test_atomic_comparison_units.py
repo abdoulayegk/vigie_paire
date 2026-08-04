@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from vigilance.text_analysis.chunk_alignment import (
+from vigie.analyse_texte.chunk_alignment import (
     _align_chunks_tfidf,
     _embedding_similarity_matrix,
 )
-from vigilance.text_analysis.chunking import _chunk_subsection_text
-from vigilance.text_analysis.comparison import (
+from vigie.analyse_texte.chunking import _chunk_subsection_text
+from vigie.analyse_texte.comparaison_sections import (
     _attach_alignment_metadata,
     _deduplicate_alignment_changes,
     _exact_diff_change_for_strong_alignment,
@@ -315,7 +315,7 @@ def test_embedding_input_excludes_atomic_markers(monkeypatch) -> None:
         return [[1.0, float(index)] for index, _text in enumerate(texts)]
 
     monkeypatch.setattr(
-        "vigilance.text_analysis.chunk_alignment._embed_texts",
+        "vigie.analyse_texte.chunk_alignment._embed_texts",
         fake_embed,
     )
 

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from vigilance.text_comparison.change_segments import build_change_segments_from_texts
+from vigie.analyse_texte.text_comparison.change_segments import build_change_segments_from_texts
 
 
 def test_build_change_segments_detects_inline_removed_committee() -> None:

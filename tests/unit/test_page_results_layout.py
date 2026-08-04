@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dash.development.base_component import Component
 
-from vigilance.dash_app.layouts.page_results import build_page_results
+from vigie.interface.layouts.page_results import build_page_results
 
 
 def _find_by_id(node: object, target_id: str) -> Component:

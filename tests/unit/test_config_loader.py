@@ -1,4 +1,4 @@
-"""Tests for vigilance.config.loader."""
+"""Tests for vigie.support.config.loader."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 import yaml
 
-from vigilance.config.loader import get_bank_cfg, load_config
+from vigie.support.config.loader import get_bank_cfg, load_config
 
 
 @pytest.fixture()
@@ -57,7 +57,7 @@ def test_load_config_file_not_found() -> None:
 
 def test_get_validation_config(tmp_path: Path) -> None:
     """get_validation_config loads validation section with bank override."""
-    from vigilance.config import get_validation_config
+    from vigie.support.config import get_validation_config
 
     cfg = tmp_path / "bank_profiles.yaml"
     cfg.write_text(

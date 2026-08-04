@@ -7,7 +7,7 @@ historical and no longer match the public payload emitted by the app.
 
 from __future__ import annotations
 
-from vigilance.comparison_canonical import (
+from vigie.comparaison.canonical import (
     UI_COMPARISON_PAYLOAD_SCHEMA_VERSION,
     is_ui_comparison_payload,
     new_empty_ui_comparison_payload,

@@ -5,12 +5,12 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from vigilance.comparison_matching import _run_table_matching
-from vigilance.comparison_rbc_hybrid_matching import (
+from vigie.comparaison.rapprochement.moteur_rapprochement import _run_table_matching
+from vigie.comparaison.rbc_hybrid_matching import (
     partition_trusted_rbc_primary_pairs,
     run_rbc_hybrid_recovery,
 )
-from vigilance.config import get_matching_thresholds
+from vigie.support.config import get_matching_thresholds
 
 
 def _card(
@@ -245,7 +245,7 @@ def test_configuration_enables_hybrid_only_for_rbc() -> None:
 
 
 def test_clean_title_for_bank_rbc_only() -> None:
-    from vigilance.comparison_io import _clean_title_for_bank
+    from vigie.comparaison.io import _clean_title_for_bank
 
     # For RBC: strips "Tableau XX" suffixes
     assert _clean_title_for_bank("Charges grevant les actifs Tableau 54", bank_code="RBC") == "Charges grevant les actifs"

@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 from types import SimpleNamespace
 
-from vigilance.extraction.vision_extraction_writer import write_compact_report_artifacts
+from vigie.extraction.vision_extraction_writer import write_compact_report_artifacts
 
 
 def _table(
