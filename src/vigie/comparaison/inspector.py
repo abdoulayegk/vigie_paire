@@ -18,6 +18,7 @@ import logging
 import unicodedata
 from typing import Any, Callable
 
+from vigie.comparaison.io import json_sanitize
 from vigie.support.models.comparison_models import SinglePairInspectorResponse
 
 logger = logging.getLogger(__name__)
@@ -209,7 +210,7 @@ def _inspect_matched_pairs(
                     {"role": "system", "content": MATCH_INSPECTOR_SYSTEM_PROMPT},
                     {
                         "role": "user",
-                        "content": json.dumps(user_payload, ensure_ascii=False),
+                        "content": json.dumps(json_sanitize(user_payload), ensure_ascii=False),
                     },
                 ],
                 temperature=0.0,

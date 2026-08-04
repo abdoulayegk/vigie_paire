@@ -7,7 +7,7 @@ import logging
 from typing import Any, Callable
 
 from vigie.comparaison.inspector import _inspect_matched_pairs
-from vigie.comparaison.io import _coerce_int
+from vigie.comparaison.io import _coerce_int, table_view_as_dict
 from vigie.comparaison.rbc_hybrid_matching import (
     partition_trusted_rbc_primary_pairs,
     run_rbc_hybrid_recovery,
@@ -33,7 +33,14 @@ from vigie.comparaison.rapprochement.normalisation_reponses import (
     _matching_decisions_to_table_refs,
     _normalize_matching_response,
     _normalize_matching_warnings,
+    _pairs_from_dicts,
+    _refs_from_dicts,
     _sort_matched_pairs,
+)
+from vigie.comparaison.rapprochement.etat import MatchingResult, MatchingState
+from vigie.support.models.comparison_models import (
+    PrimaryMatchResponse,
+    RecoveryMatchResponse,
 )
 
 logger = logging.getLogger(__name__)
@@ -111,8 +118,8 @@ def _build_matching_stage_prompt(
         "allowed_decisions": decision_values,
         "required_current_table_ids": sorted(current_ids),
         "allowed_previous_table_ids": sorted(previous_ids),
-        "previous_tables": previous_cards,
-        "current_tables": current_cards,
+        "previous_tables": [table_view_as_dict(card) for card in previous_cards],
+        "current_tables": [table_view_as_dict(card) for card in current_cards],
     }
     if validation_feedback:
         prompt["validation_feedback"] = validation_feedback
@@ -176,6 +183,9 @@ def _run_matching_stage(
                 allowed_decisions=allowed_decisions,
                 validation_feedback="",
             )
+            stage_response_model = (
+                PrimaryMatchResponse if stage == "primary" else RecoveryMatchResponse
+            )
             data = call_openai_json(
                 model=model,
                 messages=[
@@ -187,6 +197,7 @@ def _run_matching_stage(
                 ],
                 usage_recorder=usage_recorder,
                 call_kind="matching",
+                response_model=stage_response_model,
             )
         else:
             repair_state = _analyze_matching_candidate(
@@ -289,7 +300,7 @@ def _match_tables(
     hybrid_top_k: int = 5,
     hybrid_min_confidence: float = 0.75,
     call_openai_embeddings: Callable[..., list[list[float]]] | None = None,
-) -> dict[str, Any]:
+) -> MatchingResult:
     """Orchestre l'appariement complet en deux etapes avec inspection intermediaire.
 
     Etape 1 (primaire) : appariement strict precision-first.
@@ -309,7 +320,7 @@ def _match_tables(
         call_openai_embeddings: Callable injecte pour calculer les embeddings.
 
     Returns:
-        Dictionnaire contenant les paires appariees, tableaux ajoutes/supprimes,
+        ``MatchingResult`` contenant les paires appariees, tableaux ajoutes/supprimes,
         avertissements et metriques detaillees des deux etapes.
     """
     if not previous_cards and not current_cards:
@@ -324,6 +335,11 @@ def _match_tables(
             for card in previous_cards
         ]
         return _empty_matching_result(tables_removed=tables_removed)
+
+    state = MatchingState(
+        previous_cards=list(previous_cards),
+        current_cards=list(current_cards),
+    )
 
     stage1 = _run_matching_stage(
         previous_cards,
@@ -370,6 +386,9 @@ def _match_tables(
             len(rejected_stage1_pairs),
         )
 
+    state.confirmed_pairs = _pairs_from_dicts(confirmed_stage1_pairs)
+    state.rejected_pairs = _pairs_from_dicts(rejected_stage1_pairs)
+
     # Use only confirmed pairs as consumed; rejected pairs go back to pools
     used_previous_stage1 = {
         item["previous_table_id"]
@@ -388,6 +407,10 @@ def _match_tables(
         unresolved_lookup[table_id] for table_id in unresolved_ids if table_id in unresolved_lookup
     ]
     remaining_previous_cards = [card for card in previous_cards if card["table_id"] not in used_previous_stage1]
+    state.unresolved_current_ids = list(unresolved_ids)
+    state.remaining_previous_ids = [
+        str(card.get("table_id", "") or "") for card in remaining_previous_cards
+    ]
 
     stage2_decisions: list[dict[str, Any]] = []
     stage2_metrics = {
@@ -477,41 +500,44 @@ def _match_tables(
     warnings = _normalize_matching_warnings(
         list(stage1.get("warnings", []) or []) + list(stage2_metrics.get("warnings", []) or [])
     )
+    state.tables_added = _refs_from_dicts(tables_added)
+    state.tables_removed = _refs_from_dicts(tables_removed)
+    state.warnings = warnings
 
-    return {
-        "executed": bool(stage1.get("executed") or stage2_metrics.get("executed")),
-        "matched_pairs": matched_pairs,
-        "tables_added": tables_added,
-        "tables_removed": tables_removed,
-        "warnings": warnings,
-        "matching_pairs_llm_duplicates_total": _coerce_int(stage1.get("matching_pairs_llm_duplicates_total"))
+    return MatchingResult(
+        executed=bool(stage1.get("executed") or stage2_metrics.get("executed")),
+        matched_pairs=_pairs_from_dicts(matched_pairs),
+        tables_added=state.tables_added,
+        tables_removed=state.tables_removed,
+        warnings=warnings,
+        matching_pairs_llm_duplicates_total=_coerce_int(stage1.get("matching_pairs_llm_duplicates_total"))
         + _coerce_int(stage2_metrics.get("matching_pairs_llm_duplicates_total")),
-        "matching_pairs_llm_deduped_total": _coerce_int(stage1.get("matching_pairs_llm_deduped_total"))
+        matching_pairs_llm_deduped_total=_coerce_int(stage1.get("matching_pairs_llm_deduped_total"))
         + _coerce_int(stage2_metrics.get("matching_pairs_llm_deduped_total")),
-        "validation_retries_total": _coerce_int(stage1.get("validation_retries_total"))
+        validation_retries_total=_coerce_int(stage1.get("validation_retries_total"))
         + _coerce_int(stage2_metrics.get("validation_retries_total")),
-        "matching_validation_failures_total": _coerce_int(stage1.get("matching_validation_failures_total"))
+        matching_validation_failures_total=_coerce_int(stage1.get("matching_validation_failures_total"))
         + _coerce_int(stage2_metrics.get("matching_validation_failures_total")),
-        "stage1_validation_retries_total": _coerce_int(stage1.get("validation_retries_total")),
-        "stage2_validation_retries_total": _coerce_int(stage2_metrics.get("validation_retries_total")),
-        "unresolved_after_stage1_total": len(unresolved_current_cards),
-        "matched_in_stage2_total": len([item for item in stage2_decisions if item.get("decision") == "matched"]),
-        "matching_passes_total": int(bool(stage1.get("executed"))) + int(bool(stage2_metrics.get("executed"))),
-        "inspector_passes_total": _coerce_int(inspector_stats.get("total_inspected")),
-        "unmatched_after_primary_total": len(unresolved_current_cards) + len(remaining_previous_cards),
-        "unmatched_after_rescue_total": len(tables_added) + len(tables_removed),
-        "inspector_rejected_total": _coerce_int(inspector_stats.get("rejected")),
-        "inspector_confirmed_total": _coerce_int(inspector_stats.get("confirmed")),
-        "hybrid_recovery_executed": _coerce_int(stage2_metrics.get("hybrid_recovery_executed")),
-        "hybrid_primary_pairs_released_total": len(released_primary_pairs),
-        "hybrid_candidate_pairs_total": _coerce_int(stage2_metrics.get("hybrid_candidate_pairs_total")),
-        "hybrid_judge_calls_total": _coerce_int(stage2_metrics.get("hybrid_judge_calls_total")),
-        "hybrid_final_inspector_calls_total": _coerce_int(
+        stage1_validation_retries_total=_coerce_int(stage1.get("validation_retries_total")),
+        stage2_validation_retries_total=_coerce_int(stage2_metrics.get("validation_retries_total")),
+        unresolved_after_stage1_total=len(unresolved_current_cards),
+        matched_in_stage2_total=len([item for item in stage2_decisions if item.get("decision") == "matched"]),
+        matching_passes_total=int(bool(stage1.get("executed"))) + int(bool(stage2_metrics.get("executed"))),
+        inspector_passes_total=_coerce_int(inspector_stats.get("total_inspected")),
+        unmatched_after_primary_total=len(unresolved_current_cards) + len(remaining_previous_cards),
+        unmatched_after_rescue_total=len(tables_added) + len(tables_removed),
+        inspector_rejected_total=_coerce_int(inspector_stats.get("rejected")),
+        inspector_confirmed_total=_coerce_int(inspector_stats.get("confirmed")),
+        hybrid_recovery_executed=_coerce_int(stage2_metrics.get("hybrid_recovery_executed")),
+        hybrid_primary_pairs_released_total=len(released_primary_pairs),
+        hybrid_candidate_pairs_total=_coerce_int(stage2_metrics.get("hybrid_candidate_pairs_total")),
+        hybrid_judge_calls_total=_coerce_int(stage2_metrics.get("hybrid_judge_calls_total")),
+        hybrid_final_inspector_calls_total=_coerce_int(
             stage2_metrics.get("hybrid_final_inspector_calls_total")
         ),
-        "hybrid_pairs_rejected_total": _coerce_int(stage2_metrics.get("hybrid_pairs_rejected_total")),
-        "hybrid_embedding_calls_total": _coerce_int(stage2_metrics.get("hybrid_embedding_calls_total")),
-    }
+        hybrid_pairs_rejected_total=_coerce_int(stage2_metrics.get("hybrid_pairs_rejected_total")),
+        hybrid_embedding_calls_total=_coerce_int(stage2_metrics.get("hybrid_embedding_calls_total")),
+    )
 
 
 def _run_table_matching(
@@ -545,8 +571,9 @@ def _run_table_matching(
         call_openai_embeddings: Callable injecte pour calculer les embeddings.
 
     Returns:
-        Dictionnaire structure contenant ``matched_pairs``, ``tables_added``,
-        ``tables_removed``, ``warnings`` et toutes les metriques de suivi.
+        Dictionnaire structure (dump de ``MatchingResult`` enrichi) contenant
+        ``matched_pairs``, ``tables_added``, ``tables_removed``, ``warnings``
+        et toutes les metriques de suivi.
     """
     result = _match_tables(
         previous_cards,
@@ -560,40 +587,52 @@ def _run_table_matching(
         hybrid_min_confidence=hybrid_min_confidence,
         call_openai_embeddings=call_openai_embeddings,
     )
-    result["matched_pairs"] = _sort_matched_pairs(result["matched_pairs"], previous_cards)
-    tables_added = list(result.get("tables_added", []) or [])
-    tables_removed = list(result.get("tables_removed", []) or [])
-    return {
-        "matched_pairs": result["matched_pairs"],
-        "tables_added": tables_added,
-        "tables_removed": tables_removed,
-        "matching_passes_total": _coerce_int(result.get("matching_passes_total")),
-        "inspector_passes_total": _coerce_int(result.get("inspector_passes_total")),
-        "audit_passes_total": 0,
-        "matching_output_retries_total": _coerce_int(result.get("validation_retries_total")),
-        "matching_validation_failures_total": _coerce_int(result.get("matching_validation_failures_total")),
-        "stage1_validation_retries_total": _coerce_int(result.get("stage1_validation_retries_total")),
-        "stage2_validation_retries_total": _coerce_int(result.get("stage2_validation_retries_total")),
-        "unresolved_after_stage1_total": _coerce_int(result.get("unresolved_after_stage1_total")),
-        "matched_in_stage2_total": _coerce_int(result.get("matched_in_stage2_total")),
-        "unmatched_previous_table_ids": [item["table_id"] for item in tables_removed],
-        "unmatched_current_table_ids": [item["table_id"] for item in tables_added],
-        "unmatched_after_primary_total": _coerce_int(result.get("unmatched_after_primary_total")),
-        "unmatched_after_rescue_total": _coerce_int(result.get("unmatched_after_rescue_total")),
-        "matching_pairs_llm_duplicates_total": _coerce_int(result.get("matching_pairs_llm_duplicates_total")),
-        "matching_pairs_llm_deduped_total": _coerce_int(result.get("matching_pairs_llm_deduped_total")),
-        "inspector_rejected_total": _coerce_int(result.get("inspector_rejected_total")),
-        "inspector_confirmed_total": _coerce_int(result.get("inspector_confirmed_total")),
-        "hybrid_recovery_executed": _coerce_int(result.get("hybrid_recovery_executed")),
-        "hybrid_primary_pairs_released_total": _coerce_int(
-            result.get("hybrid_primary_pairs_released_total")
-        ),
-        "hybrid_candidate_pairs_total": _coerce_int(result.get("hybrid_candidate_pairs_total")),
-        "hybrid_judge_calls_total": _coerce_int(result.get("hybrid_judge_calls_total")),
-        "hybrid_final_inspector_calls_total": _coerce_int(
-            result.get("hybrid_final_inspector_calls_total")
-        ),
-        "hybrid_pairs_rejected_total": _coerce_int(result.get("hybrid_pairs_rejected_total")),
-        "hybrid_embedding_calls_total": _coerce_int(result.get("hybrid_embedding_calls_total")),
-        "warnings": _normalize_matching_warnings(result.get("warnings", [])),
-    }
+    sorted_pairs = _sort_matched_pairs(
+        [pair.model_dump(mode="json") for pair in result.matched_pairs],
+        previous_cards,
+    )
+    result.matched_pairs = _pairs_from_dicts(sorted_pairs)
+    tables_added = [ref.model_dump(mode="json") for ref in result.tables_added]
+    tables_removed = [ref.model_dump(mode="json") for ref in result.tables_removed]
+    payload = result.to_legacy_dict()
+    payload.update(
+        {
+            "matched_pairs": sorted_pairs,
+            "tables_added": tables_added,
+            "tables_removed": tables_removed,
+            "matching_passes_total": _coerce_int(result.matching_passes_total),
+            "inspector_passes_total": _coerce_int(result.inspector_passes_total),
+            "audit_passes_total": 0,
+            "matching_output_retries_total": _coerce_int(result.validation_retries_total),
+            "matching_validation_failures_total": _coerce_int(
+                result.matching_validation_failures_total
+            ),
+            "stage1_validation_retries_total": _coerce_int(result.stage1_validation_retries_total),
+            "stage2_validation_retries_total": _coerce_int(result.stage2_validation_retries_total),
+            "unresolved_after_stage1_total": _coerce_int(result.unresolved_after_stage1_total),
+            "matched_in_stage2_total": _coerce_int(result.matched_in_stage2_total),
+            "unmatched_previous_table_ids": [item["table_id"] for item in tables_removed],
+            "unmatched_current_table_ids": [item["table_id"] for item in tables_added],
+            "unmatched_after_primary_total": _coerce_int(result.unmatched_after_primary_total),
+            "unmatched_after_rescue_total": _coerce_int(result.unmatched_after_rescue_total),
+            "matching_pairs_llm_duplicates_total": _coerce_int(
+                result.matching_pairs_llm_duplicates_total
+            ),
+            "matching_pairs_llm_deduped_total": _coerce_int(result.matching_pairs_llm_deduped_total),
+            "inspector_rejected_total": _coerce_int(result.inspector_rejected_total),
+            "inspector_confirmed_total": _coerce_int(result.inspector_confirmed_total),
+            "hybrid_recovery_executed": _coerce_int(result.hybrid_recovery_executed),
+            "hybrid_primary_pairs_released_total": _coerce_int(
+                result.hybrid_primary_pairs_released_total
+            ),
+            "hybrid_candidate_pairs_total": _coerce_int(result.hybrid_candidate_pairs_total),
+            "hybrid_judge_calls_total": _coerce_int(result.hybrid_judge_calls_total),
+            "hybrid_final_inspector_calls_total": _coerce_int(
+                result.hybrid_final_inspector_calls_total
+            ),
+            "hybrid_pairs_rejected_total": _coerce_int(result.hybrid_pairs_rejected_total),
+            "hybrid_embedding_calls_total": _coerce_int(result.hybrid_embedding_calls_total),
+            "warnings": _normalize_matching_warnings(result.warnings),
+        }
+    )
+    return payload

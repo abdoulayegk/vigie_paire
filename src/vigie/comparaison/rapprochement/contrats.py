@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from typing import TypedDict
-
 
 _MATCHING_VALIDATION_ATTEMPTS = 3
 
@@ -154,26 +152,6 @@ otherwise return `unresolved` or `added`. Return JSON only.
 """
 
 
-class MatchedPair(TypedDict):
-    """Paire de tableaux apparies entre le trimestre precedent et le trimestre courant."""
-
-    previous_table_id: str
-    current_table_id: str
-    match_confidence: float
-    reason: str
-
-
-class MatchingResult(TypedDict):
-    """Resultat complet du processus d'appariement des tableaux."""
-
-    executed: bool
-    matched_pairs: list[MatchedPair]
-    tables_added: list[dict[str, str]]
-    tables_removed: list[dict[str, str]]
-    warnings: list[str]
-    matching_passes_total: int
-
-
 class _MatchingValidationError(ValueError):
     """Erreur de validation structurelle de la reponse d'appariement du LLM."""
 
@@ -184,7 +162,31 @@ class _MatchingValidationError(ValueError):
         duplicate_count: int = 0,
         validation_failures: int = 1,
     ) -> None:
-        """Initialise l'erreur avec les compteurs de duplicatas et d'échecs de validation."""
+        """Initialise l'erreur avec les compteurs de duplicatas et d'echecs de validation."""
         super().__init__(message)
         self.duplicate_count = int(max(0, duplicate_count))
         self.validation_failures = int(max(1, validation_failures))
+
+
+# Re-export des modeles d'etat Pydantic (anciens TypedDict retires).
+from vigie.comparaison.rapprochement.etat import (  # noqa: E402
+    MatchedPair,
+    MatchingResult,
+    MatchingState,
+    TableRef,
+)
+
+__all__ = [
+    "MATCHING_ADJUDICATOR_SYSTEM_PROMPT",
+    "MATCHING_REPAIR_SYSTEM_PROMPT",
+    "PRIMARY_MATCH_SYSTEM_PROMPT",
+    "RECOVERY_MATCH_SYSTEM_PROMPT",
+    "MatchedPair",
+    "MatchingResult",
+    "MatchingState",
+    "TableRef",
+    "_MATCHING_VALIDATION_ATTEMPTS",
+    "_MatchingValidationError",
+    "_CURRENT_ID_PREFIX",
+    "_PREVIOUS_ID_PREFIX",
+]

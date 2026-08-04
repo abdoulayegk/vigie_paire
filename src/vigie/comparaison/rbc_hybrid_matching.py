@@ -18,6 +18,7 @@ from typing import Any, Callable, Literal
 from pydantic import BaseModel, ConfigDict, Field
 from scipy.optimize import linear_sum_assignment
 
+from vigie.comparaison.io import json_sanitize
 from vigie.support.utils.indicator_cleaner import normalize_indicator_for_comparison
 from vigie.support.utils.matching_normalizer import normalize_for_matching, strip_temporal_expressions
 
@@ -300,8 +301,15 @@ def _embed_cards(
         table_id = str(card.get("table_id", ""))
         views = _embedding_views(card)
         for view_name in view_names:
+            # Une vue vide (p. ex. un tableau sans indicateurs) n'est pas envoyee
+            # a l'API embeddings (qui rejette les chaines vides en 400) : c'est une
+            # absence de signal, pas un contenu a inventer. Elle est simplement
+            # omise et contribuera 0 a la similarite via ``_cosine``.
+            view_text = str(views[view_name] or "").strip()
+            if not view_text:
+                continue
             positions.append((table_id, view_name))
-            texts.append(views[view_name])
+            texts.append(view_text)
     vectors = call_openai_embeddings(
         model=model,
         inputs=texts,
@@ -328,8 +336,10 @@ def _candidate_shortlist(
     ranked: list[tuple[float, float, str, dict[str, Any], dict[str, Any]]] = []
     for previous in previous_cards:
         previous_id = str(previous.get("table_id", ""))
+        current_views = embeddings.get(current_id, {})
+        previous_views = embeddings.get(previous_id, {})
         similarity = sum(
-            weight * _cosine(embeddings[current_id][view], embeddings[previous_id][view])
+            weight * _cosine(current_views.get(view, []), previous_views.get(view, []))
             for view, weight in weights.items()
         )
         facts = _pair_facts(previous, current)
@@ -372,7 +382,7 @@ def _judge_candidates(
         model=model,
         messages=[
             {"role": "system", "content": _CANDIDATE_SYSTEM_PROMPT},
-            {"role": "user", "content": json.dumps(payload, ensure_ascii=False)},
+            {"role": "user", "content": json.dumps(json_sanitize(payload), ensure_ascii=False)},
         ],
         usage_recorder=usage_recorder,
         call_kind="rbc_hybrid_judge",
@@ -457,7 +467,7 @@ def _final_inspect(
         model=model,
         messages=[
             {"role": "system", "content": _FINAL_INSPECTION_SYSTEM_PROMPT},
-            {"role": "user", "content": json.dumps(payload, ensure_ascii=False)},
+            {"role": "user", "content": json.dumps(json_sanitize(payload), ensure_ascii=False)},
         ],
         usage_recorder=usage_recorder,
         call_kind="rbc_hybrid_final_inspector",

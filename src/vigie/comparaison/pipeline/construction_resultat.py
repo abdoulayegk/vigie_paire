@@ -15,6 +15,12 @@ from vigie.comparaison.metrics import (
     _count_high_priority_items,
     _count_pair_changes,
 )
+from vigie.comparaison.pipeline.resultat_models import (
+    ComparisonRunResult,
+    ComparisonSummary,
+    MatchingBlock,
+    ReferenceResolution,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -123,63 +129,64 @@ def ecrire_resultat_comparaison(
         source_pdf_current,
         out_dir / "current_report.pdf",
     )
-    payload = {
-        "schema_version": COMPARISON_SCHEMA_VERSION,
-        "artifact_type": "report_comparison",
-        "run_id": _make_run_id(),
-        "bank_code": bank_code,
-        "year_previous": year_previous,
-        "quarter_previous": quarter_previous,
-        "year_current": year_current,
-        "quarter_current": quarter_current,
-        "created_at": datetime.now().isoformat(timespec="seconds"),
-        "source_pdf_previous": str(source_pdf_previous or "").strip(),
-        "source_pdf_current": str(source_pdf_current or "").strip(),
-        "archived_pdf_previous": archived_pdf_previous,
-        "archived_pdf_current": archived_pdf_current,
-        "model_version": model_name,
-        "prompt_version_match": MATCH_PROMPT_VERSION,
-        "prompt_version_diff": DIFF_PROMPT_VERSION,
-        "reference_resolution": (
-            dict(reference_resolution)
-            if isinstance(reference_resolution, dict)
-            else {
-                "mode": "automatique",
-                "year_previous": year_previous,
-                "quarter_previous": quarter_previous,
-                "rule": REFERENCE_RESOLUTION_RULE,
-            }
+    reference = (
+        ReferenceResolution.model_validate(reference_resolution)
+        if isinstance(reference_resolution, dict)
+        else ReferenceResolution(
+            mode="automatique",
+            year_previous=year_previous,
+            quarter_previous=quarter_previous,
+            rule=REFERENCE_RESOLUTION_RULE,
+        )
+    )
+    result = ComparisonRunResult(
+        schema_version=COMPARISON_SCHEMA_VERSION,
+        artifact_type="report_comparison",
+        run_id=_make_run_id(),
+        bank_code=bank_code,
+        year_previous=year_previous,
+        quarter_previous=quarter_previous,
+        year_current=year_current,
+        quarter_current=quarter_current,
+        created_at=datetime.now().isoformat(timespec="seconds"),
+        source_pdf_previous=str(source_pdf_previous or "").strip(),
+        source_pdf_current=str(source_pdf_current or "").strip(),
+        archived_pdf_previous=archived_pdf_previous,
+        archived_pdf_current=archived_pdf_current,
+        model_version=model_name,
+        prompt_version_match=MATCH_PROMPT_VERSION,
+        prompt_version_diff=DIFF_PROMPT_VERSION,
+        reference_resolution=reference,
+        matching=MatchingBlock(
+            matched_pairs=match_result["matched_pairs"],
+            tables_added=tables_added,
+            tables_removed=tables_removed,
+            artifacts_confirmed_previous=artifacts_confirmed_previous,
+            artifacts_confirmed_current=artifacts_confirmed_current,
+            extraction_suspects_previous=extraction_suspects_previous,
+            extraction_suspects_current=extraction_suspects_current,
+            boundary_scope_exclusions_previous=boundary_scope_exclusions_previous,
+            boundary_scope_exclusions_current=boundary_scope_exclusions_current,
         ),
-        "matching": {
-            "matched_pairs": match_result["matched_pairs"],
-            "tables_added": tables_added,
-            "tables_removed": tables_removed,
-            "artifacts_confirmed_previous": artifacts_confirmed_previous,
-            "artifacts_confirmed_current": artifacts_confirmed_current,
-            "extraction_suspects_previous": extraction_suspects_previous,
-            "extraction_suspects_current": extraction_suspects_current,
-            "boundary_scope_exclusions_previous": boundary_scope_exclusions_previous,
-            "boundary_scope_exclusions_current": boundary_scope_exclusions_current,
-        },
-        "pair_comparisons": pair_comparisons,
-        "run_metrics": run_metrics,
-        "summary": {
-            "matched_pairs_total": len(match_result["matched_pairs"]),
-            "tables_added_total": len(tables_added),
-            "tables_removed_total": len(tables_removed),
-            "artifacts_confirmed_previous_total": len(artifacts_confirmed_previous),
-            "artifacts_confirmed_current_total": len(artifacts_confirmed_current),
-            "extraction_suspects_previous_total": len(extraction_suspects_previous),
-            "extraction_suspects_current_total": len(extraction_suspects_current),
-            "boundary_scope_exclusions_previous_total": len(
+        pair_comparisons=pair_comparisons,
+        run_metrics=run_metrics,
+        summary=ComparisonSummary(
+            matched_pairs_total=len(match_result["matched_pairs"]),
+            tables_added_total=len(tables_added),
+            tables_removed_total=len(tables_removed),
+            artifacts_confirmed_previous_total=len(artifacts_confirmed_previous),
+            artifacts_confirmed_current_total=len(artifacts_confirmed_current),
+            extraction_suspects_previous_total=len(extraction_suspects_previous),
+            extraction_suspects_current_total=len(extraction_suspects_current),
+            boundary_scope_exclusions_previous_total=len(
                 boundary_scope_exclusions_previous
             ),
-            "boundary_scope_exclusions_current_total": len(
+            boundary_scope_exclusions_current_total=len(
                 boundary_scope_exclusions_current
             ),
-            "indicator_changes_total": indicator_changes_total,
-            "footnote_changes_total": footnote_changes_total,
-            "high_priority_items_total": high_priority_items_total,
-        },
-    }
-    return _atomic_write_json(out_dir / "comparison.json", payload)
+            indicator_changes_total=indicator_changes_total,
+            footnote_changes_total=footnote_changes_total,
+            high_priority_items_total=high_priority_items_total,
+        ),
+    )
+    return _atomic_write_json(out_dir / "comparison.json", result.to_json_dict())

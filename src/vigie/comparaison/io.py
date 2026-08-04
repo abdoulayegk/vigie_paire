@@ -5,9 +5,12 @@ from __future__ import annotations
 import json
 import logging
 import re
+from collections.abc import Iterator, Mapping
 from datetime import datetime
 from pathlib import Path
-from typing import Any, TypedDict
+from typing import Any
+
+from pydantic import BaseModel, ConfigDict, Field
 
 logger = logging.getLogger(__name__)
 
@@ -21,46 +24,110 @@ _SUSPECT_EXTRACTION_STATUSES: frozenset[str] = frozenset()  # No longer excludin
 
 
 # ---------------------------------------------------------------------------
-# TypedDict interfaces (annotation-only, no runtime cost)
+# Table views (Pydantic — Mapping-compatible for legacy ``**view`` / ``view[k]``)
 # ---------------------------------------------------------------------------
 
 
-class TableCard(TypedDict):
+class _TableViewBase(BaseModel, Mapping[str, Any]):
+    """Base commune : attributs Pydantic + API dict pour le code legacy."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    def __getitem__(self, key: str) -> Any:
+        return getattr(self, key)
+
+    def __setitem__(self, key: str, value: Any) -> None:
+        setattr(self, key, value)
+
+    def get(self, key: str, default: Any = None) -> Any:
+        return getattr(self, key, default)
+
+    def __iter__(self) -> Iterator[str]:
+        return iter(type(self).model_fields)
+
+    def __len__(self) -> int:
+        return len(type(self).model_fields)
+
+    def keys(self):
+        return type(self).model_fields.keys()
+
+    def items(self):
+        data = self.model_dump(mode="python")
+        return data.items()
+
+    def values(self):
+        data = self.model_dump(mode="python")
+        return data.values()
+
+
+class TableCard(_TableViewBase):
     """Fiche resumee d'un tableau utilisee pour l'appariement entre trimestres."""
 
     table_id: str
     section: str
     title: str
     table_summary: str
-    page: int | None
-    row_count: int
-    first_indicator: str
-    footnote_count: int
-    headers: list[str]
-    indicators: list[str]
-    footnotes: list[dict[str, str]]
+    page: int | None = None
+    row_count: int = 0
+    first_indicator: str = ""
+    footnote_count: int = 0
+    headers: list[str] = Field(default_factory=list)
+    indicators: list[str] = Field(default_factory=list)
+    footnotes: list[dict[str, str]] = Field(default_factory=list)
 
 
-class TableSnapshot(TypedDict):
+class TableDetail(_TableViewBase):
+    """Vue detaillee d'un tableau pour la comparaison paire a paire."""
+
+    table_id: str
+    section: str
+    title: str
+    table_summary: str
+    page: Any = None
+    row_count: int = 0
+    headers: list[str] = Field(default_factory=list)
+    indicators: list[str] = Field(default_factory=list)
+    footnotes: list[dict[str, str]] = Field(default_factory=list)
+
+
+class TableSnapshot(_TableViewBase):
     """Instantane complet d'un tableau incluant le statut d'extraction et la bbox."""
 
     table_id: str
     title: str
     table_summary: str
-    extraction_status: str
-    page: int | None
-    section: str
-    bbox: object
-    bbox_source: str
-    bbox_confidence: object
-    page_context_title: str
-    page_context_continuation: object
-    row_count: int
-    headers: list[str]
-    indicators: list[str]
-    footnotes: list[dict[str, str]]
+    extraction_status: str = "ok"
+    page: Any = None
+    section: str = "unknown_section"
+    bbox: Any = None
+    bbox_source: str = ""
+    bbox_confidence: Any = None
+    page_context_title: str = ""
+    page_context_continuation: Any = None
+    row_count: int = 0
+    headers: list[str] = Field(default_factory=list)
+    indicators: list[str] = Field(default_factory=list)
+    footnotes: list[dict[str, str]] = Field(default_factory=list)
 
 
+def table_view_as_dict(view: BaseModel | dict[str, Any]) -> dict[str, Any]:
+    """Serialise une vue tableau pour prompts LLM / JSON."""
+    if isinstance(view, BaseModel):
+        return view.model_dump(mode="json")
+    return dict(view)
+
+
+def json_sanitize(obj: Any) -> Any:
+    """Rend un payload JSON-serializable (BaseModel -> dict recursively)."""
+    if isinstance(obj, BaseModel):
+        return obj.model_dump(mode="json")
+    if isinstance(obj, Mapping):
+        return {str(key): json_sanitize(value) for key, value in obj.items()}
+    if isinstance(obj, list):
+        return [json_sanitize(value) for value in obj]
+    if isinstance(obj, tuple):
+        return [json_sanitize(value) for value in obj]
+    return obj
 # ---------------------------------------------------------------------------
 # Ghost-table detection
 # ---------------------------------------------------------------------------
@@ -285,7 +352,7 @@ def _clean_title_for_bank(title: str, bank_code: str | None = None) -> str:
     return title
 
 
-def _table_card(entry: dict[str, Any], bank_code: str | None = None) -> dict[str, Any]:
+def _table_card(entry: dict[str, Any], bank_code: str | None = None) -> TableCard:
     """Construit une fiche resumee d'un tableau pour l'etape d'appariement."""
     indicators = [str(value).strip() for value in list(entry.get("indicators", []) or []) if str(value).strip()]
     row_count = int(entry.get("row_count", len(indicators)) or 0)
@@ -309,38 +376,38 @@ def _table_card(entry: dict[str, Any], bank_code: str | None = None) -> dict[str
     effective_bank = bank_code or str(entry.get("bank_code", "") or "")
     clean_title = _clean_title_for_bank(raw_title, bank_code=effective_bank)
 
-    return {
-        "table_id": str(entry.get("table_id", "") or ""),
-        "section": str(entry.get("section", "") or "unknown_section"),
-        "title": clean_title,
-        "table_summary": str(entry.get("table_summary", "") or ""),
-        "page": page,
-        "row_count": row_count,
-        "first_indicator": indicators[0] if indicators else "",
-        "footnote_count": len(footnotes),
-        "headers": headers,
-        "indicators": indicators,
-        "footnotes": footnotes,
-    }
+    return TableCard(
+        table_id=str(entry.get("table_id", "") or ""),
+        section=str(entry.get("section", "") or "unknown_section"),
+        title=clean_title,
+        table_summary=str(entry.get("table_summary", "") or ""),
+        page=page,
+        row_count=row_count,
+        first_indicator=indicators[0] if indicators else "",
+        footnote_count=len(footnotes),
+        headers=headers,
+        indicators=indicators,
+        footnotes=footnotes,
+    )
 
 
-def _table_detail(entry: dict[str, Any]) -> dict[str, Any]:
+def _table_detail(entry: dict[str, Any]) -> TableDetail:
     """Construit une vue detaillee d'un tableau pour la comparaison paire a paire."""
     indicators = [str(value).strip() for value in list(entry.get("indicators", []) or []) if str(value).strip()]
-    return {
-        "table_id": str(entry.get("table_id", "") or ""),
-        "section": str(entry.get("section", "") or "unknown_section"),
-        "title": str(entry.get("title", "") or ""),
-        "table_summary": str(entry.get("table_summary", "") or ""),
-        "page": entry.get("page"),
-        "row_count": int(entry.get("row_count", len(indicators)) or 0),
-        "headers": [str(value).strip() for value in list(entry.get("headers", []) or []) if str(value).strip()],
-        "indicators": indicators,
-        "footnotes": _normalize_footnotes(entry.get("footnotes", [])),
-    }
+    return TableDetail(
+        table_id=str(entry.get("table_id", "") or ""),
+        section=str(entry.get("section", "") or "unknown_section"),
+        title=str(entry.get("title", "") or ""),
+        table_summary=str(entry.get("table_summary", "") or ""),
+        page=entry.get("page"),
+        row_count=int(entry.get("row_count", len(indicators)) or 0),
+        headers=[str(value).strip() for value in list(entry.get("headers", []) or []) if str(value).strip()],
+        indicators=indicators,
+        footnotes=_normalize_footnotes(entry.get("footnotes", [])),
+    )
 
 
-def _table_snapshot(entry: dict[str, Any]) -> dict[str, Any]:
+def _table_snapshot(entry: dict[str, Any]) -> TableSnapshot:
     """Construit un instantane complet d'un tableau incluant le statut et la bbox."""
     indicators = [str(value).strip() for value in list(entry.get("indicators", []) or []) if str(value).strip()]
     if isinstance(entry.get("bbox_provenance"), dict):
@@ -349,27 +416,27 @@ def _table_snapshot(entry: dict[str, Any]) -> dict[str, Any]:
         bbox_provenance = entry["debug_metrics"]
     else:
         bbox_provenance = {}
-    return {
-        "table_id": str(entry.get("table_id", "") or ""),
-        "title": str(entry.get("title", "") or ""),
-        "table_summary": str(entry.get("table_summary", "") or ""),
-        "extraction_status": str(entry.get("extraction_status", "") or "ok"),
-        "page": entry.get("page"),
-        "section": str(entry.get("section", "") or "unknown_section"),
-        "bbox": entry.get("bbox"),
-        "bbox_source": str(bbox_provenance.get("bbox_source") or ""),
-        "bbox_confidence": bbox_provenance.get("bbox_confidence"),
-        "page_context_title": str(
+    return TableSnapshot(
+        table_id=str(entry.get("table_id", "") or ""),
+        title=str(entry.get("title", "") or ""),
+        table_summary=str(entry.get("table_summary", "") or ""),
+        extraction_status=str(entry.get("extraction_status", "") or "ok"),
+        page=entry.get("page"),
+        section=str(entry.get("section", "") or "unknown_section"),
+        bbox=entry.get("bbox"),
+        bbox_source=str(bbox_provenance.get("bbox_source") or ""),
+        bbox_confidence=bbox_provenance.get("bbox_confidence"),
+        page_context_title=str(
             bbox_provenance.get("page_context_title") or ""
         ),
-        "page_context_continuation": bbox_provenance.get(
+        page_context_continuation=bbox_provenance.get(
             "page_context_continuation"
         ),
-        "row_count": int(entry.get("row_count", len(indicators)) or 0),
-        "headers": [str(value).strip() for value in list(entry.get("headers", []) or []) if str(value).strip()],
-        "indicators": indicators,
-        "footnotes": _normalize_footnotes(entry.get("footnotes", [])),
-    }
+        row_count=int(entry.get("row_count", len(indicators)) or 0),
+        headers=[str(value).strip() for value in list(entry.get("headers", []) or []) if str(value).strip()],
+        indicators=indicators,
+        footnotes=_normalize_footnotes(entry.get("footnotes", [])),
+    )
 
 
 # ---------------------------------------------------------------------------

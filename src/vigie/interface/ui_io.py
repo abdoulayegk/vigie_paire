@@ -43,6 +43,13 @@ def save_pdfs_to_temp(
 def load_comparison_result(path: str | Path) -> dict | None:
     """Charge un payload JSON de comparaison depuis le disque.
 
+    Pour les artefacts ``report_comparison`` (schema v3+), valide le JSON via
+    ``ComparisonRunResult`` afin de detecter d'eventuelles corruptions, mais
+    retourne le dict brut d'origine. On evite ainsi de muter la forme publique
+    (p. ex. injecter des cles par defaut absentes des anciens fichiers). En cas
+    d'echec de validation, conserve egalement le dict brut afin de ne pas casser
+    le chargement UI.
+
     Args:
         path: Chemin du fichier JSON.
 
@@ -55,9 +62,22 @@ def load_comparison_result(path: str | Path) -> dict | None:
     if not target.exists():
         return None
     try:
-        return json.loads(target.read_text(encoding="utf-8"))
+        raw = json.loads(target.read_text(encoding="utf-8"))
     except Exception:
         return None
+    if not isinstance(raw, dict):
+        return None
+    if raw.get("artifact_type") == "report_comparison" or (
+        "matching" in raw and "pair_comparisons" in raw and "summary" in raw
+    ):
+        try:
+            from vigie.comparaison.pipeline.resultat_models import ComparisonRunResult
+
+            ComparisonRunResult.model_validate(raw)
+        except Exception:
+            return raw
+        return raw
+    return raw
 
 
 def get_available_indicator_comparison_options() -> list[dict[str, str]]:

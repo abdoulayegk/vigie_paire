@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 OPENAI_PAGE_LOCATOR_TIMEOUT_SECONDS = 120.0
 DEFAULT_PAGE_LOCATOR_MIN_CONFIDENCE = 0.85
-_PAGE_LOCATOR_CACHE_VERSION = "v1"
+_PAGE_LOCATOR_CACHE_VERSION = "v2"
 _MAX_TABLES_PER_PAGE = 16
 _MIN_NEIGHBOR_GAP = 0.005
 _GEOMETRY_RESCUE_REASONS = {
@@ -53,7 +53,8 @@ graphiques et des notes de bas de tableaux.
 
 MISSION UNIQUE
 Localiser chaque tableau visible et retourner sa geometrie :
-- table_bbox : corps complet du tableau, en-tetes et toutes les lignes inclus;
+- table_bbox : corps complet du tableau, incluant la COLONNE DE GAUCHE des
+  libelles de lignes, les en-tetes et toutes les lignes;
 - title_bbox : bloc du titre directement associe au tableau, ou null;
 - footnotes_bbox : bloc des notes directement associees sous le tableau, ou null;
 - title_text : texte du titre seulement, ou chaine vide;
@@ -65,19 +66,26 @@ INTERDICTIONS ABSOLUES
 - Ne traite pas un paragraphe, un graphique ou une liste comme un tableau.
 - Ne fusionne jamais deux tableaux voisins dans le meme table_bbox.
 - N'associe pas au tableau les notes ou titres d'un tableau voisin.
+- Ne coupe jamais la colonne de gauche des libelles de lignes, meme si elle
+  depasse a gauche de la zone grisee ou quadrillee.
 
 COORDONNEES
 Toutes les boites utilisent [x_min, y_min, x_max, y_max], normalisees entre
 0.0 et 1.0, origine en haut a gauche. Respecte l'ordre visuel haut vers bas.
 
 REGLES DE PRECISION
-1. table_bbox doit serrer le corps du tableau sans couper sa premiere ou sa
-   derniere ligne.
-2. title_bbox ne couvre que le titre situe immediatement au-dessus s'il exist sinon utilise celui qui existe en haut avant le text narratif.
-3. footnotes_bbox ne couvre que les notes situees immediatement au-dessous.
-4. Sur une page multi-tableaux, garde des boites separees et attribue chaque
+1. table_bbox englobe l'INTEGRALITE du tableau : ne coupe ni la premiere/derniere
+   ligne, ni la premiere/derniere COLONNE. La colonne des libelles (a gauche)
+   est TOUJOURS incluse.
+2. Le bord gauche s'aligne sur le debut des LIBELLES, pas sur la grille des
+   chiffres. Les libelles sont souvent a gauche de la zone grisee/coloree ou
+   dans la marge blanche : etends la boite jusqu'a les inclure. Ne "serre"
+   jamais la boite sur la seule grille des donnees.
+3. title_bbox ne couvre que le titre situe immediatement au-dessus s'il exist sinon utilise celui qui existe en haut avant le text narratif.
+4. footnotes_bbox ne couvre que les notes situees immediatement au-dessous.
+5. Sur une page multi-tableaux, garde des boites separees et attribue chaque
    titre/note au tableau le plus proche.
-5. En cas d'ambiguite, diminue confidence. N'invente aucune boite.
+6. En cas d'ambiguite, diminue confidence. N'invente aucune boite.
 
 Retourne uniquement le JSON conforme au schema demande.
 """
@@ -430,8 +438,18 @@ def build_page_table_crop_plan(
         )
         return None
 
+    # Garde-fou horizontal : le bord gauche/droit ne peut jamais reculer
+    # au-dela de l'ancre Docling (target_bbox). Sur les tableaux-matrices
+    # larges, le localisateur Vision serre parfois la grille des chiffres et
+    # coupe la colonne des libelles ; on restaure alors la largeur Docling.
+    union_bbox = (
+        min(table_bbox[0], float(target_bbox[0])),
+        table_bbox[1],
+        max(table_bbox[2], float(target_bbox[2])),
+        table_bbox[3],
+    )
     return PageTableCropPlan(
-        bbox_norm=table_bbox,
+        bbox_norm=union_bbox,
         top_extension=max(0.0, table_bbox[1] - safe_top),
         bottom_extension=max(0.0, safe_bottom - table_bbox[3]),
         confidence=best.confidence,

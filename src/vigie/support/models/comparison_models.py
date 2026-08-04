@@ -1,6 +1,7 @@
 """Modeles Pydantic pour le pipeline de comparaison GPT (Structured Outputs).
 
 Ces modeles definissent les schemas de reponse stricts utilises par :
+- le rapprochement primary / recovery
 - la revue Devil's Advocate
 - le diff d'indicateurs
 - le diff de notes de bas de page
@@ -27,6 +28,49 @@ class AnalystAssessment(BaseModel):
 
     relevance_level: int = Field(description="1=Critical/Regulatory, 2=High/Structural, 3=Low/Cosmetic")
     justification: str = Field(description="Business impact justification for the analyst")
+
+
+# ---------------------------------------------------------------------------
+# Table matching — primary / recovery LLM responses
+# ---------------------------------------------------------------------------
+
+
+class MatchingDecision(BaseModel):
+    """Decision d'appariement pour un tableau du trimestre courant."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    current_table_id: str
+    decision: str = Field(description="'matched', 'unresolved', or 'added'")
+    reason: str = ""
+    previous_table_id: str = Field(
+        default="",
+        description="Required when decision is matched; empty string otherwise",
+    )
+    match_confidence: float | None = Field(
+        default=None,
+        ge=0.0,
+        le=1.0,
+        description="Required when decision is matched; null otherwise",
+    )
+
+
+class PrimaryMatchResponse(BaseModel):
+    """Schema de reponse strict pour la passe primaire (matched | unresolved)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    current_table_decisions: list[MatchingDecision]
+    warnings: list[str] = Field(default_factory=list)
+
+
+class RecoveryMatchResponse(BaseModel):
+    """Schema de reponse strict pour la passe de recuperation (matched | added)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    current_table_decisions: list[MatchingDecision]
+    warnings: list[str] = Field(default_factory=list)
 
 
 # ---------------------------------------------------------------------------

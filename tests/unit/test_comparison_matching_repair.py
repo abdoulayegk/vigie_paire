@@ -52,7 +52,7 @@ def test_valid_primary_response_keeps_existing_single_call_path() -> None:
     )
 
     assert len(calls) == 1
-    assert "response_model" not in calls[0]
+    assert calls[0].get("response_model") is not None
     assert result["current_table_decisions"][0]["previous_table_id"] == "prev_a"
     assert result["validation_retries_total"] == 0
 

@@ -10,6 +10,7 @@ import json
 import logging
 from typing import Any, Callable
 
+from vigie.comparaison.io import json_sanitize
 from vigie.support.models.comparison_models import DevilAdvocateResponse
 
 logger = logging.getLogger(__name__)
@@ -109,7 +110,7 @@ def _devil_advocate_review(
                 {"role": "system", "content": DEVIL_ADVOCATE_SYSTEM_PROMPT},
                 {
                     "role": "user",
-                    "content": json.dumps(user_payload, ensure_ascii=False),
+                    "content": json.dumps(json_sanitize(user_payload), ensure_ascii=False),
                 },
             ],
             temperature=0.0,

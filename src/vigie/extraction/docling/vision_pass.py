@@ -198,7 +198,7 @@ class VisionPassMixin:
                             ):
                                 return None
                             from vigie.extraction.page_table_locator import build_page_table_crop_plan
-                            from .pdf_preview import render_pdf_page
+                            from ..pdf_preview import render_pdf_page
 
                             page_image = render_pdf_page(
                                 str(pdf_path),

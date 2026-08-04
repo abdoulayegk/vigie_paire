@@ -184,7 +184,7 @@ class DoclingPassMixin:
                 from vigie.extraction.page_table_locator import (
                     build_near_full_page_crop_plan,
                 )
-                from .pdf_preview import render_pdf_page
+                from ..pdf_preview import render_pdf_page
 
                 near_full_positions_by_page: dict[int, list[int]] = {}
                 for position, item in enumerate(vision_items):
@@ -318,7 +318,7 @@ class DoclingPassMixin:
                 )
             ):
                 from vigie.extraction.page_table_locator import build_page_table_crop_plan
-                from .pdf_preview import render_pdf_page
+                from ..pdf_preview import render_pdf_page
 
                 inventory_page_padding = max(
                     0,
