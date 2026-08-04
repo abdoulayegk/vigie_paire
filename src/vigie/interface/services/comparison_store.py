@@ -25,7 +25,7 @@ from vigie.interface.services.comparison_context import (
 )
 from vigie.support.quarter_utils import build_quarter_context
 from vigie.interface.review_storage import load_review_state, save_review_state
-from vigie.interface.ui_config import INDICATOR_COMPARISON_DIR
+from vigie.interface.ui_config import INDICATOR_COMPARISON_DIR, bank_short_name
 from vigie.interface.ui_io import load_comparison_result
 
 
@@ -239,7 +239,10 @@ class FileComparisonStore:
             except ValueError:
                 relative_parent = compare_path.parent.as_posix()
             pretty_parent = relative_parent.replace("_", " ").replace("vs", " vs ")
-            label = f"{pdf_icon} {bank_code.upper()} - {pretty_parent} ({timestamp_label})"
+            label = (
+                f"{pdf_icon} {bank_short_name(bank_code)} - "
+                f"{pretty_parent} ({timestamp_label})"
+            )
             filtered_options.append({"label": label, "value": value})
 
         filtered_options.sort(key=lambda item: str(item["value"]), reverse=True)

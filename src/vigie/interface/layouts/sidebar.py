@@ -7,7 +7,7 @@ from dash import dcc, html
 
 from vigie.interface import validator_config
 from vigie.support.i18n import t
-from vigie.interface.ui_config import AVAILABLE_BANKS
+from vigie.interface.ui_config import AVAILABLE_BANKS, bank_option_label
 
 
 def build_sidebar() -> dbc.Col:
@@ -20,7 +20,7 @@ def build_sidebar() -> dbc.Col:
         Composant ``dbc.Col`` representant la barre laterale complete.
     """
     bank_options = [
-        {"label": f"{k.upper()} - {v}", "value": k} for k, v in AVAILABLE_BANKS.items()
+        {"label": bank_option_label(k), "value": k} for k in AVAILABLE_BANKS
     ]
 
     # Generate years from the current year through 2050.
