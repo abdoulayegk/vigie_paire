@@ -174,9 +174,12 @@ Le trimestre de référence est déduit automatiquement :
 # Flux complet : extraction + comparaison indicateurs + comparaison texte
 python run_full_pipeline.py --banque BNC --annee 2025 --T2
 
-# Réutiliser les extractions indicateurs existantes (tables.json déjà présents)
+# Reutiliser les extractions indicateurs existantes (tables.json deja presents)
 # Le pipeline texte fait toujours son extraction de texte
 python run_full_pipeline.py --banque BNC --annee 2025 --T2 --sans-extraction
+
+# Forcer la re-extraction texte
+python run_full_pipeline.py --banque BNC --annee 2025 --T2 --forcer-extraction
 
 # Indicateurs seulement (sauter le pipeline texte)
 python run_full_pipeline.py --banque BNC --annee 2025 --T2 --sans-texte
@@ -199,6 +202,7 @@ uv run python run_full_pipeline.py --banque BNC --annee 2025 --T2
 | `--annee` | Année du rapport courant (ex : `2025`) |
 | `--T1` / `--T2` / `--T3` / `--T4` | Trimestre courant (flags exclusifs) |
 | `--sans-extraction` | Saute l’extraction indicateurs — le pipeline texte s’exécute en entier |
+| `--forcer-extraction` | Force la ré-extraction texte même si les artefacts existent |
 | `--sans-comparaison` | Saute toutes les comparaisons GPT-4o (indicateurs et texte) |
 | `--sans-indicateurs` | Ignore entièrement le pipeline indicateurs (tableaux chiffrés) |
 | `--sans-texte` | Ignore entièrement le pipeline texte (risques, capital, etc.) |
@@ -215,24 +219,24 @@ Il est aussi possible de lancer chaque pipeline séparément.
 **Pipeline indicateurs uniquement :**
 
 ```bash
-# Extraction + Comparaison complètes des tableaux
-python run_pipeline.py --bank TD --year 2026 --quarter T1
+# Extraction + Comparaison completes des tableaux
+python run_pipeline.py --banque TD --annee 2026 --T1
 
-# Réutiliser l’extraction existante (tables.json déjà présent)
-python run_pipeline.py --bank TD --year 2026 --quarter T1 --skip-extraction
+# Reutiliser l'extraction existante (tables.json deja present)
+python run_pipeline.py --banque TD --annee 2026 --T1 --sans-extraction
 
-# Sauter la comparaison (re-triage uniquement)
-python run_pipeline.py --bank TD --year 2026 --quarter T1 --skip-comparison
+# Sauter la comparaison (re-extraction uniquement)
+python run_pipeline.py --banque TD --annee 2026 --T1 --sans-comparaison
 ```
 
 **Pipeline texte uniquement :**
 
 ```bash
-# Extraction + Comparaison sémantique par sous-sections (T2 vs T1)
-python run_text_pipeline.py --bank BNS --year 2025 --T2
+# Extraction + Comparaison semantique par sous-sections (T2 vs T1)
+python run_text_pipeline.py --banque BNS --annee 2025 --T2
 
 # Sauter la comparaison (extraction seulement)
-python run_text_pipeline.py --bank BNS --year 2025 --T2 --skip-comparison
+python run_text_pipeline.py --banque BNS --annee 2025 --T2 --sans-comparaison
 ```
 
 ---
