@@ -3,18 +3,15 @@
 
 Usage::
 
-    python run_text_pipeline.py --bank BNS --year 2025 --T2
+    python run_text_pipeline.py --banque BNS --annee 2025 --T2
 
 Ce pipeline:
-1. Déduit automatiquement le trimestre précédent (T2→T1, T1→T3 N-1, …).
+1. Deduit automatiquement le trimestre precedent (T2→T1, T1→T3 N-1, …).
 2. Localise les deux PDFs dans Inputs/{BANK}/{YEAR}/.
-3. Extrait des unités sémantiques propres via GPT-4o Vision.
-4. Compare explicitement les idées T1 vs T2.
-5. Trie les changements et ne garde que les majeurs ou modérés réellement nouveaux.
-6. Écrit text_comparison.json dans outputs/resultats/.
-
-Architecture:
-    outputs/resultats/{bank}/{year_q_vs_year_q}/text_comparison.json
+3. Extrait des unites semantiques propres via GPT-4o Vision.
+4. Compare explicitement les idees T1 vs T2.
+5. Trie les changements et ne garde que les majeurs ou moderes reellement nouveaux.
+6. Ecrit text_comparison.json dans outputs/resultats/.
 """
 
 from __future__ import annotations
@@ -50,47 +47,48 @@ DEFAULT_COMPARISON_ROOT = "outputs/resultats"
 def build_parser() -> argparse.ArgumentParser:
     """Construit le parseur CLI du pipeline texte."""
     p = argparse.ArgumentParser(
-        description="Vigilance — Pipeline Texte Batch (Extraction + Comparaison sémantique).",
+        description="Vigie — Pipeline texte (extraction + comparaison semantique).",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=(
             "Exemples:\n"
-            "  python run_text_pipeline.py --bank BNS --year 2025 --T2\n"
-            "  python run_text_pipeline.py --bank RBC --year 2025 --T2\n"
-            "  python run_text_pipeline.py --bank BMO --year 2025 --T4 --extract-only --force-extraction\n"
+            "  python run_text_pipeline.py --banque BNS --annee 2025 --T2\n"
+            "  python run_text_pipeline.py --banque RBC --annee 2025 --T2\n"
+            "  python run_text_pipeline.py --banque BMO --annee 2025 --T4 "
+            "--extraction-seule --forcer-extraction\n"
         ),
     )
-    p.add_argument("--bank", required=True, help="Code de la banque (ex: BNS, BNC, RBC)")
-    p.add_argument("--year", required=True, type=int, help="Année du rapport courant (ex: 2025)")
-    quarter_group = p.add_mutually_exclusive_group(required=True)
-    quarter_group.add_argument("--T1", dest="quarter_flag", action="store_const", const="T1", help="Trimestre courant T1")
-    quarter_group.add_argument("--T2", dest="quarter_flag", action="store_const", const="T2", help="Trimestre courant T2")
-    quarter_group.add_argument("--T3", dest="quarter_flag", action="store_const", const="T3", help="Trimestre courant T3")
-    quarter_group.add_argument("--T4", dest="quarter_flag", action="store_const", const="T4", help="Trimestre courant T4")
-    p.add_argument("--inputs-root", default=DEFAULT_INPUTS_ROOT, help="Répertoire racine des PDFs")
+    p.add_argument("--banque", required=True, help="Code de la banque (ex: BNS, BNC, RBC)")
+    p.add_argument("--annee", required=True, type=int, help="Annee du rapport courant (ex: 2025)")
+    trimestre = p.add_mutually_exclusive_group(required=True)
+    trimestre.add_argument("--T1", dest="trimestre", action="store_const", const="T1", help="Trimestre courant T1")
+    trimestre.add_argument("--T2", dest="trimestre", action="store_const", const="T2", help="Trimestre courant T2")
+    trimestre.add_argument("--T3", dest="trimestre", action="store_const", const="T3", help="Trimestre courant T3")
+    trimestre.add_argument("--T4", dest="trimestre", action="store_const", const="T4", help="Trimestre courant T4")
+    p.add_argument("--entrees", default=DEFAULT_INPUTS_ROOT, help="Repertoire racine des PDFs")
     p.add_argument(
-        "--out-root",
+        "--sortie",
         default=DEFAULT_COMPARISON_ROOT,
-        help=f"Répertoire racine des comparaisons texte (défaut: {DEFAULT_COMPARISON_ROOT})",
+        help=f"Repertoire racine des comparaisons texte (defaut: {DEFAULT_COMPARISON_ROOT})",
     )
     p.add_argument(
         "--model",
         default="gpt-4o",
-        help="Modèle OpenAI (défaut: gpt-4o)",
+        help="Modele OpenAI (defaut: gpt-4o)",
     )
     p.add_argument(
-        "--skip-comparison",
+        "--sans-comparaison",
         action="store_true",
         help="Faire seulement l'extraction texte, sans comparaison GPT",
     )
     p.add_argument(
-        "--extract-only",
+        "--extraction-seule",
         action="store_true",
-        help="Alias explicite de --skip-comparison",
+        help="Alias explicite de --sans-comparaison",
     )
     p.add_argument(
-        "--force-extraction",
+        "--forcer-extraction",
         action="store_true",
-        help="Ignorer les text_extraction.md existants et régénérer les artefacts",
+        help="Ignorer les text_extraction.md existants et regenerer les artefacts",
     )
     return p
 
@@ -162,17 +160,17 @@ def main(argv: list[str] | None = None) -> int:
     """Point d'entrée du pipeline texte batch."""
     args = build_parser().parse_args(argv)
 
-    bank = args.bank.upper()
+    bank = args.banque.upper()
     bank_lower = bank.lower()
-    year_current = args.year
-    quarter_value = str(args.quarter_flag or "").strip()
+    year_current = args.annee
+    quarter_value = str(args.trimestre or "").strip()
     q_current = normalize_quarter(quarter_value)
     year_previous, q_previous = resolve_previous_quarter(year_current, q_current)
 
     project_root = _PROJECT_ROOT
-    inputs_root = project_root / args.inputs_root
+    inputs_root = project_root / args.entrees
     legacy_data = project_root / DEFAULT_LEGACY_DATA_ROOT
-    out_root = project_root / args.out_root
+    out_root = project_root / args.sortie
 
     print("=" * 70)
     print("  VIGILANCE — Pipeline Texte Batch")
@@ -203,7 +201,7 @@ def main(argv: list[str] | None = None) -> int:
     print(f"  Période précédente : {previous_pdf}")
     print(f"  Période courante   : {current_pdf}")
 
-    extraction_only = bool(args.skip_comparison or args.extract_only)
+    extraction_only = bool(args.sans_comparaison or args.extraction_seule)
     if extraction_only:
         print(
             f"\n🧾 Extraction texte seule "
@@ -218,7 +216,7 @@ def main(argv: list[str] | None = None) -> int:
                 previous_pdf=previous_pdf,
                 current_pdf=current_pdf,
                 out_root=out_root,
-                force_extraction=args.force_extraction,
+                force_extraction=args.forcer_extraction,
             )
             elapsed = time.time() - t0
             print(f"  ✓ Extraction texte terminée ({elapsed:.1f}s)")
@@ -239,7 +237,7 @@ def main(argv: list[str] | None = None) -> int:
                 current_pdf=current_pdf,
                 out_root=out_root,
                 model=args.model,
-                force_extraction=args.force_extraction,
+                force_extraction=args.forcer_extraction,
             )
             elapsed = time.time() - t0
             print(f"  ✓ Comparaison texte terminée ({elapsed:.1f}s) : {comparison_path}")

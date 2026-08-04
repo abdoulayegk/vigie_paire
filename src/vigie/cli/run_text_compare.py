@@ -1,8 +1,8 @@
 """CLI du pipeline texte canonique GPT-first.
 
-Cette commande ne charge plus d'artefact intermédiaire public. Elle localise
-les PDFs T1/T2, exécute l'analyse sémantique Vision + comparaison + triage,
-et écrit directement ``text_comparison.json``.
+Cette commande ne charge plus d'artefact intermediaire public. Elle localise
+les PDFs T1/T2, execute l'analyse semantique Vision + comparaison + triage,
+et ecrit directement ``text_comparison.json``.
 """
 
 from __future__ import annotations
@@ -22,57 +22,57 @@ DEFAULT_INPUTS_ROOT = "Inputs"
 def build_parser() -> argparse.ArgumentParser:
     """Construit le parser CLI pour la commande run_text_compare."""
     parser = argparse.ArgumentParser(
-        description="Compare text paragraphs between two quarters using GPT-4o semantic diff + triage."
+        description="Comparer les paragraphes texte entre deux trimestres (GPT-4o)."
     )
-    parser.add_argument("--bank", required=True, help="Bank code (e.g. bns, bnc, rbc)")
-    parser.add_argument("--year", required=True, type=int, help="Current report year")
-    quarter_group = parser.add_mutually_exclusive_group(required=True)
-    quarter_group.add_argument(
-        "--T1", dest="quarter_flag", action="store_const", const="T1", help="Current report quarter T1"
+    parser.add_argument("--banque", required=True, help="Code banque (ex: bns, bnc, rbc)")
+    parser.add_argument("--annee", required=True, type=int, help="Annee du rapport courant")
+    trimestre = parser.add_mutually_exclusive_group(required=True)
+    trimestre.add_argument(
+        "--T1", dest="trimestre", action="store_const", const="T1", help="Trimestre courant T1"
     )
-    quarter_group.add_argument(
-        "--T2", dest="quarter_flag", action="store_const", const="T2", help="Current report quarter T2"
+    trimestre.add_argument(
+        "--T2", dest="trimestre", action="store_const", const="T2", help="Trimestre courant T2"
     )
-    quarter_group.add_argument(
-        "--T3", dest="quarter_flag", action="store_const", const="T3", help="Current report quarter T3"
+    trimestre.add_argument(
+        "--T3", dest="trimestre", action="store_const", const="T3", help="Trimestre courant T3"
     )
-    quarter_group.add_argument(
-        "--T4", dest="quarter_flag", action="store_const", const="T4", help="Current report quarter T4"
+    trimestre.add_argument(
+        "--T4", dest="trimestre", action="store_const", const="T4", help="Trimestre courant T4"
     )
     parser.add_argument(
-        "--extraction-root",
+        "--racine-extraction",
         default=DEFAULT_OUT_ROOT_EXTRACTIONS,
         help=(
-            "Paramètre conservé pour compatibilité CLI. "
-            "Le pipeline canonique n'écrit plus d'extraction publique."
+            "Parametre conserve pour compatibilite CLI. "
+            "Le pipeline canonique n'ecrit plus d'extraction publique."
         ),
     )
     parser.add_argument(
-        "--inputs-root",
+        "--entrees",
         default=DEFAULT_INPUTS_ROOT,
-        help=f"Root directory of quarterly PDFs (default: {DEFAULT_INPUTS_ROOT})",
+        help=f"Racine des PDFs trimestriels (defaut: {DEFAULT_INPUTS_ROOT})",
     )
     parser.add_argument(
-        "--out-root",
+        "--sortie",
         default=DEFAULT_OUT_ROOT_COMPARISONS,
-        help=f"Root directory for text comparison output (default: {DEFAULT_OUT_ROOT_COMPARISONS})",
+        help=f"Racine des sorties de comparaison texte (defaut: {DEFAULT_OUT_ROOT_COMPARISONS})",
     )
     parser.add_argument(
         "--model",
         default="gpt-4o",
-        help="OpenAI model to use (default: gpt-4o)",
+        help="Modele OpenAI (defaut: gpt-4o)",
     )
-    parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose logging")
+    parser.add_argument("--verbose", "-v", action="store_true", help="Activer les logs detailles")
     parser.add_argument(
         "--strict-sections",
         action="store_true",
-        help="Ne comparer que gestion_capital et gestion_risques (ignorer gestion_reglementation dans les JSON).",
+        help="Ne comparer que gestion_capital et gestion_risques.",
     )
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
-    """Exécuter l'analyse texte canonique entre deux trimestres."""
+    """Executer l'analyse texte canonique entre deux trimestres."""
     args = build_parser().parse_args(argv)
 
     log_level = logging.DEBUG if args.verbose else logging.INFO
@@ -90,13 +90,13 @@ def main(argv: list[str] | None = None) -> int:
     from vigie.analyse_texte.models import TextAnalysisQualityError
     from vigie.analyse_texte.pipeline import run_text_analysis_pipeline
 
-    bank_code = args.bank.lower()
-    year_t2 = args.year
-    quarter_t2 = normalize_quarter(args.quarter_flag)
-    out_root = Path(args.out_root)
+    bank_code = args.banque.lower()
+    year_t2 = args.annee
+    quarter_t2 = normalize_quarter(args.trimestre)
+    out_root = Path(args.sortie)
     model = args.model
     project_root = Path.cwd()
-    inputs_root = project_root / args.inputs_root
+    inputs_root = project_root / args.entrees
 
     year_t1, quarter_t1 = resolve_previous_quarter(year_t2, quarter_t2)
 
@@ -134,7 +134,7 @@ def main(argv: list[str] | None = None) -> int:
         allowed_section_keys = None
         if args.strict_sections:
             allowed_section_keys = {"gestion_capital", "gestion_risques"}
-            logger.info("Mode --strict-sections activé : %s", sorted(allowed_section_keys))
+            logger.info("Mode --strict-sections active : %s", sorted(allowed_section_keys))
         payload, out_path = run_text_analysis_pipeline(
             bank_code=bank_code,
             year_current=year_t2,
@@ -146,15 +146,15 @@ def main(argv: list[str] | None = None) -> int:
             allowed_section_keys=allowed_section_keys,
         )
     except TextAnalysisQualityError as exc:
-        logger.error("Erreur qualité pipeline texte: %s", exc)
+        logger.error("Erreur qualite pipeline texte: %s", exc)
         return 1
 
     retained = payload.get("global_summary", {}).get("counts", {}).get("total_relevant", 0)
     excel_path = out_path.with_suffix(".xlsx")
     generate_text_comparison_excel(payload, excel_path)
-    logger.info("Excel analyste généré → %s", excel_path)
+    logger.info("Excel analyste genere → %s", excel_path)
     logger.info(
-        "Analyse texte canonique terminée → %s\n  %d sections | %d changements retenus",
+        "Analyse texte canonique terminee → %s\n  %d sections | %d changements retenus",
         out_path,
         len(payload.get("section_comparisons", [])),
         retained,

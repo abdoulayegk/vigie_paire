@@ -348,7 +348,7 @@ def build_text_analysis_tab(
                     html.Span(
                         "Lancez le pipeline texte pour cette banque : "
                         "uv run python -m vigie.cli.run_text_compare "
-                        "--bank <BANK> --year <YEAR> --T2"
+                        "--banque <BANQUE> --annee <ANNEE> --T2"
                     ),
                 ],
                 color="secondary",

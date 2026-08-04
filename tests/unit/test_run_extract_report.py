@@ -83,17 +83,17 @@ def test_run_extract_report_writes_compact_artifacts(tmp_path: Path, monkeypatch
     out_root = tmp_path / "outputs"
     main(
         [
-            "--bank",
+            "--banque",
             "bnc",
             "--pdf",
             "dummy.pdf",
-            "--year",
+            "--annee",
             "2025",
-            "--quarter",
+            "--trimestre",
             "T1",
             "--config",
             str(cfg_path),
-            "--out-root",
+            "--sortie",
             str(out_root),
         ]
     )

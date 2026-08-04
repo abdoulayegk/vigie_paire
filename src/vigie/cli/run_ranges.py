@@ -13,10 +13,10 @@ Usage typique
 .. code-block:: bash
 
     python -m vigie.cli.run_ranges \\
-        --bank rbc \\
+        --banque rbc \\
         --pdf /data/rbc_q1_2025.pdf \\
-        --quarter t1-2025 \\
-        --out_root outputs/runs
+        --trimestre t1-2025 \\
+        --sortie outputs/runs
 
 Le chemin du fichier JSON produit est affiché sur la sortie standard.
 
@@ -76,11 +76,11 @@ def build_parser() -> argparse.ArgumentParser:
 
     Arguments obligatoires
     ----------------------
-    --bank:
+    --banque:
         Code identifiant la banque (ex. ``rbc``).
     --pdf:
         Chemin vers le fichier PDF à analyser.
-    --quarter:
+    --trimestre:
         Libellé du trimestre (ex. ``t1-2025``).
 
     Arguments optionnels
@@ -88,18 +88,18 @@ def build_parser() -> argparse.ArgumentParser:
     --config:
         Chemin vers le fichier YAML de configuration. Défaut :
         ``configs/bank_profiles.yaml``.
-    --out_root:
+    --sortie:
         Répertoire racine pour les fichiers de sortie. Le fichier JSON sera
-        écrit dans ``<out_root>/<quarter>/<bank>/section_ranges.json``.
+        écrit dans ``<sortie>/<trimestre>/<banque>/section_ranges.json``.
         Défaut : ``outputs/runs``.
     """
-    parser = argparse.ArgumentParser(description="Detect section ranges for one PDF.")
-    parser.add_argument("--bank", required=True, help="Bank code (e.g. rbc)")
-    parser.add_argument("--pdf", required=True, help="Input PDF path")
-    parser.add_argument("--quarter", required=True, help="Quarter label (e.g. t1-2025)")
-    parser.add_argument("--config", default=DEFAULT_CONFIG, help="YAML config path")
+    parser = argparse.ArgumentParser(description="Detecter les plages de sections d'un PDF.")
+    parser.add_argument("--banque", required=True, help="Code banque (ex: rbc)")
+    parser.add_argument("--pdf", required=True, help="Chemin du PDF d'entree")
+    parser.add_argument("--trimestre", required=True, help="Libelle trimestre (ex: t1-2025)")
+    parser.add_argument("--config", default=DEFAULT_CONFIG, help="Chemin YAML de configuration")
     parser.add_argument(
-        "--out_root", default=DEFAULT_OUT_ROOT, help="Output root directory"
+        "--sortie", default=DEFAULT_OUT_ROOT, help="Racine des sorties"
     )
     return parser
 
@@ -187,7 +187,7 @@ def main(argv: list[str] | None = None) -> None:
     """
     args = build_parser().parse_args(argv)
     cfg = load_config(args.config)
-    get_bank_cfg(cfg, args.bank)
+    get_bank_cfg(cfg, args.banque)
 
     try:
         from vigie.extraction.localisation_sections.section_locator import locate_sections_in_pdf
@@ -197,12 +197,12 @@ def main(argv: list[str] | None = None) -> None:
         ) from exc
 
     mapping = locate_sections_in_pdf(
-        args.pdf, bank_code=args.bank, quarter=args.quarter
+        args.pdf, bank_code=args.banque, quarter=args.trimestre
     )
     result = _to_result(
-        mapping, bank_code=args.bank, quarter=args.quarter, pdf_path=args.pdf
+        mapping, bank_code=args.banque, quarter=args.trimestre, pdf_path=args.pdf
     )
-    out_dir = Path(args.out_root) / args.quarter / args.bank
+    out_dir = Path(args.sortie) / args.trimestre / args.banque
     out_path = write_section_ranges(out_dir=out_dir, result=result)
     print(out_path)
 

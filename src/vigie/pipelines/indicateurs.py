@@ -1,21 +1,17 @@
 #!/usr/bin/env python
-"""Batch pipeline orchestrator for the Vigilance system.
+"""Orchestrateur batch du pipeline indicateurs (extraction + comparaison).
 
 Usage::
 
-    python run_pipeline.py --bank BNC --year 2025 --quarter T2
+    python run_pipeline.py --banque BNC --annee 2025 --T2
 
-This single command will:
+Ce script :
 
-1. Deduce the previous quarter automatically (T2→T1, T1→T3 N-1, …).
-2. Locate the two PDF reports.
-3. Extract tables from both reports (Docling for layout, GPT-4o Vision for table content).
-4. Compare the two sets of tables semantically (GPT-4o).
-5. Generate all output files (comparison.json, manifest.json) in canonical locations.
-
-Architecture:
-    outputs/extractions/{bank}/{year}/{quarter}/tables.json   — one per extraction
-    outputs/resultats/{bank}/{year_q_vs_year_q}/comparison.json  — one per comparison
+1. Deduit le trimestre precedent (T2→T1, T1→T3 N-1, …).
+2. Localise les deux PDF.
+3. Extrait les tableaux (Docling + Vision).
+4. Compare semantiquement (GPT-4o).
+5. Ecrit comparison.json / manifest.json sous outputs/resultats/.
 """
 
 from __future__ import annotations
@@ -54,33 +50,37 @@ DEFAULT_LEGACY_DATA_ROOT = "data"
 def build_parser() -> argparse.ArgumentParser:
     """Construire le parseur CLI du pipeline indicateurs."""
     p = argparse.ArgumentParser(
-        description="Vigilance — Pipeline Batch de Nuit (Extraction + Comparaison).",
+        description="Vigie — Pipeline indicateurs (extraction + comparaison).",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=(
             "Exemples:\n"
-            "  python run_pipeline.py --bank BNC --year 2025 --quarter T2\n"
-            "  python run_pipeline.py --bank RBC --year 2025 --quarter T1 --skip-extraction\n"
+            "  python run_pipeline.py --banque BNC --annee 2025 --T2\n"
+            "  python run_pipeline.py --banque RBC --annee 2025 --T1 --sans-extraction\n"
         ),
     )
-    p.add_argument("--bank", required=True, help="Code de la banque (ex: BNC, RBC, TD)")
-    p.add_argument("--year", required=True, type=int, help="Année du rapport courant (ex: 2025)")
-    p.add_argument("--quarter", required=True, help="Trimestre courant (ex: T1, T2, T3)")
+    p.add_argument("--banque", required=True, help="Code de la banque (ex: BNC, RBC, TD)")
+    p.add_argument("--annee", required=True, type=int, help="Annee du rapport courant (ex: 2025)")
+    trimestre = p.add_mutually_exclusive_group(required=True)
+    trimestre.add_argument("--T1", dest="trimestre", action="store_const", const="T1")
+    trimestre.add_argument("--T2", dest="trimestre", action="store_const", const="T2")
+    trimestre.add_argument("--T3", dest="trimestre", action="store_const", const="T3")
+    trimestre.add_argument("--T4", dest="trimestre", action="store_const", const="T4")
     p.add_argument("--config", default=DEFAULT_CONFIG, help="Chemin YAML de configuration")
-    p.add_argument("--inputs-root", default=DEFAULT_INPUTS_ROOT, help="Répertoire racine des PDFs")
+    p.add_argument("--entrees", default=DEFAULT_INPUTS_ROOT, help="Repertoire racine des PDFs")
     p.add_argument(
-        "--out-root",
+        "--sortie",
         default="outputs/resultats",
-        help="Répertoire racine des sorties de comparaison (défaut: outputs/resultats)",
+        help="Repertoire racine des sorties de comparaison (defaut: outputs/resultats)",
     )
     p.add_argument(
-        "--skip-extraction",
+        "--sans-extraction",
         action="store_true",
-        help="Sauter l'étape d'extraction (utile si les tables.json existent déjà)",
+        help="Sauter l'etape d'extraction (si les tables.json existent deja)",
     )
     p.add_argument(
-        "--skip-comparison",
+        "--sans-comparaison",
         action="store_true",
-        help="Sauter l'étape de comparaison (utile pour réextraire sans recomparer)",
+        help="Sauter l'etape de comparaison (utile pour reextraire sans recomparer)",
     )
     return p
 
@@ -103,17 +103,17 @@ def _step_extract(
 
     extract_main(
         [
-            "--bank",
+            "--banque",
             bank,
             "--pdf",
             str(pdf_path),
-            "--year",
+            "--annee",
             str(year),
-            "--quarter",
+            "--trimestre",
             quarter,
             "--config",
             config,
-            "--out-root",
+            "--sortie",
             str(extraction_root),  # extraction writes {root}/{bank}/{year}/{quarter}/
         ]
     )
@@ -156,23 +156,23 @@ def _step_compare(
     from vigie.cli.run_compare_gpt4o import main as compare_main
 
     cmd = [
-        "--bank",
+        "--banque",
         bank,
-        "--year-current",
+        "--annee-courante",
         str(year_current),
-        "--quarter-current",
+        "--trimestre-courant",
         quarter_current,
         "--config",
         config,
-        "--extraction-root",
+        "--racine-extraction",
         str(extraction_root),
-        "--out-root",
+        "--sortie",
         str(out_root),
     ]
     if pdf_previous:
-        cmd += ["--pdf-previous", str(pdf_previous)]
+        cmd += ["--pdf-precedent", str(pdf_previous)]
     if pdf_current:
-        cmd += ["--pdf-current", str(pdf_current)]
+        cmd += ["--pdf-courant", str(pdf_current)]
 
     compare_main(cmd)
 
@@ -197,14 +197,14 @@ def main(argv: list[str] | None = None) -> int:
     """Executer le pipeline indicateurs de bout en bout."""
     args = build_parser().parse_args(argv)
 
-    bank = args.bank.upper()
-    year_current = args.year
-    q_current = normalize_quarter(args.quarter)
+    bank = args.banque.upper()
+    year_current = args.annee
+    q_current = normalize_quarter(args.trimestre)
     year_previous, q_previous = resolve_previous_quarter(year_current, q_current)
     config = args.config
 
     project_root = _PROJECT_ROOT
-    inputs_root = project_root / args.inputs_root
+    inputs_root = project_root / args.entrees
     legacy_data = project_root / DEFAULT_LEGACY_DATA_ROOT
 
     print("=" * 70)
@@ -230,7 +230,7 @@ def main(argv: list[str] | None = None) -> int:
     extraction_root = project_root / "outputs" / "extractions"
     extraction_root.mkdir(parents=True, exist_ok=True)
 
-    comparison_root = project_root / args.out_root
+    comparison_root = project_root / args.sortie
     comparison_dir = (
         comparison_root
         / bank.lower()
@@ -241,7 +241,7 @@ def main(argv: list[str] | None = None) -> int:
     prev_extraction_dir = extraction_root / bank.lower() / str(year_previous) / q_previous
 
     # ── Step 1: Extraction ───────────────────────────────────────────────
-    if not args.skip_extraction:
+    if not args.sans_extraction:
         print("\n" + "─" * 70)
         print("⚗️  ÉTAPE 1 — Extraction des tableaux")
         print("─" * 70)
@@ -258,12 +258,12 @@ def main(argv: list[str] | None = None) -> int:
         elapsed = time.time() - t0
         print(f"\n   ⏱  Extraction terminée en {elapsed:.1f}s")
     else:
-        print("\n⏩ Extraction ignorée (--skip-extraction)")
+        print("\n⏩ Extraction ignoree (--sans-extraction)")
 
     # ── Step 2: Comparison ───────────────────────────────────────────────
     comparison_path: Path | None = None
 
-    if not args.skip_comparison:
+    if not args.sans_comparaison:
         print("\n" + "─" * 70)
         print("🔍 ÉTAPE 2 — Comparaison sémantique (GPT-4o)")
         print("─" * 70)
@@ -285,7 +285,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"\n   ✓ comparison.json → {comparison_dir}")
         print(f"   ⏱  Comparaison terminée en {elapsed:.1f}s")
     else:
-        print("\n⏩ Comparaison ignorée (--skip-comparison)")
+        print("\n⏩ Comparaison ignoree (--sans-comparaison)")
 
     # ── Step 2.5: GenAI Triage (Batch LLM Analysis) ────────────────────
     if comparison_path and comparison_path.exists():

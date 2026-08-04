@@ -74,17 +74,17 @@ def test_run_tables_keeps_section_context(tmp_path: Path, monkeypatch) -> None:
     out_root = tmp_path / "outputs"
     main(
         [
-            "--bank",
+            "--banque",
             "rbc",
             "--pdf",
             "dummy.pdf",
-            "--quarter",
+            "--trimestre",
             "t1-2025",
             "--config",
             str(cfg_path),
             "--ranges_json",
             str(ranges_path),
-            "--out_root",
+            "--sortie",
             str(out_root),
         ]
     )

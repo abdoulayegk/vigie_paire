@@ -67,19 +67,19 @@ def _build_section_ranges(mapping: Any, quarter: str = "") -> list[dict[str, Any
 def build_parser() -> argparse.ArgumentParser:
     """Construire le parseur d'arguments pour l'extraction de rapport."""
     parser = argparse.ArgumentParser(
-        description="Extract compact tables/indicators/footnotes artifacts for one report."
+        description="Extraire les artefacts tables/indicateurs/notes pour un rapport."
     )
-    parser.add_argument("--bank", required=True, help="Bank code (e.g. bnc)")
-    parser.add_argument("--pdf", required=True, help="Input PDF path")
+    parser.add_argument("--banque", required=True, help="Code banque (ex: bnc)")
+    parser.add_argument("--pdf", required=True, help="Chemin du PDF d'entree")
     parser.add_argument(
-        "--year", required=True, type=int, help="Report year (e.g. 2025)"
+        "--annee", required=True, type=int, help="Annee du rapport (ex: 2025)"
     )
-    parser.add_argument("--quarter", required=True, help="Quarter label (e.g. t1)")
-    parser.add_argument("--config", default=DEFAULT_CONFIG, help="YAML config path")
+    parser.add_argument("--trimestre", required=True, help="Libelle trimestre (ex: t1)")
+    parser.add_argument("--config", default=DEFAULT_CONFIG, help="Chemin YAML de configuration")
     parser.add_argument(
-        "--out-root",
+        "--sortie",
         default=DEFAULT_OUT_ROOT,
-        help="Output root directory (default: outputs/extractions)",
+        help="Racine des sorties (defaut: outputs/extractions)",
     )
     return parser
 
@@ -88,7 +88,7 @@ def main(argv: list[str] | None = None) -> None:
     """Detecter les sections d'un PDF et extraire les artefacts compacts."""
     args = build_parser().parse_args(argv)
     cfg = load_config(args.config)
-    get_bank_cfg(cfg, args.bank)
+    get_bank_cfg(cfg, args.banque)
 
     try:
         from vigie.extraction.docling.processor import (
@@ -100,27 +100,27 @@ def main(argv: list[str] | None = None) -> None:
             "Extraction backends are not importable in this environment."
         ) from exc
 
-    quarter_norm = _normalize_storage_quarter(args.quarter)
+    quarter_norm = _normalize_storage_quarter(args.trimestre)
     mapping = locate_sections_in_pdf(
         args.pdf,
-        bank_code=args.bank,
+        bank_code=args.banque,
         quarter=quarter_norm,
-        year=int(args.year),
+        year=int(args.annee),
     )
-    section_ranges = _build_section_ranges(mapping, args.quarter)
+    section_ranges = _build_section_ranges(mapping, args.trimestre)
     if not section_ranges:
         raise ValueError(f"No valid section ranges detected for {args.pdf}")
 
     tables = extract_tables_docling_by_sections(
         pdf_path=args.pdf,
-        bank_code=args.bank,
+        bank_code=args.banque,
         quarter=quarter_norm,
-        year=int(args.year),
+        year=int(args.annee),
         section_ranges=section_ranges,
     )
 
     out_dir = (
-        Path(args.out_root) / str(args.bank).lower() / str(args.year) / quarter_norm
+        Path(args.sortie) / str(args.banque).lower() / str(args.annee) / quarter_norm
     )
     model_version = ""
     try:
@@ -133,8 +133,8 @@ def main(argv: list[str] | None = None) -> None:
     paths = write_compact_report_artifacts(
         tables=tables,
         out_dir=out_dir,
-        bank_code=str(args.bank).lower(),
-        year=int(args.year),
+        bank_code=str(args.banque).lower(),
+        year=int(args.annee),
         quarter=quarter_norm,
         meta={
             "model_version": model_version,

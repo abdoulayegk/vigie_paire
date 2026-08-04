@@ -16,11 +16,11 @@ Usage typique
 .. code-block:: bash
 
     python -m vigie.cli.run_tables \\
-        --bank rbc \\
+        --banque rbc \\
         --pdf /data/rbc_q1_2025.pdf \\
-        --quarter t1-2025 \\
+        --trimestre t1-2025 \\
         --ranges_json outputs/runs/t1-2025/rbc/section_ranges.json \\
-        --out_root outputs/runs \\
+        --sortie outputs/runs \\
         --vigie_extract
 
 Le chemin du fichier JSON produit est affiché sur la sortie standard.
@@ -89,11 +89,11 @@ def build_parser() -> argparse.ArgumentParser:
 
     Arguments obligatoires
     ----------------------
-    --bank:
+    --banque:
         Code identifiant la banque (ex. ``rbc``).
     --pdf:
         Chemin vers le fichier PDF à extraire.
-    --quarter:
+    --trimestre:
         Libellé du trimestre (ex. ``t1-2025``).
     --ranges_json:
         Chemin vers le fichier ``section_ranges.json`` produit par ``run_ranges``.
@@ -103,7 +103,7 @@ def build_parser() -> argparse.ArgumentParser:
     --config:
         Chemin vers le fichier YAML de configuration. Défaut :
         ``configs/bank_profiles.yaml``.
-    --out_root:
+    --sortie:
         Répertoire racine pour les fichiers de sortie. Défaut : ``outputs/runs``.
     --vigie_extract:
         Si présent, produit également un fichier ``vigie_extract_v1.json`` en
@@ -112,17 +112,17 @@ def build_parser() -> argparse.ArgumentParser:
         Code de langue pour le fichier ``vigie_extract_v1`` (défaut : ``fr``).
     """
     parser = argparse.ArgumentParser(
-        description="Extract tables on selected page ranges."
+        description="Extraire les tableaux sur des plages de pages selectionnees."
     )
-    parser.add_argument("--bank", required=True, help="Bank code (e.g. rbc)")
-    parser.add_argument("--pdf", required=True, help="Input PDF path")
-    parser.add_argument("--quarter", required=True, help="Quarter label (e.g. t1-2025)")
-    parser.add_argument("--config", default=DEFAULT_CONFIG, help="YAML config path")
+    parser.add_argument("--banque", required=True, help="Code banque (ex: rbc)")
+    parser.add_argument("--pdf", required=True, help="Chemin du PDF d'entree")
+    parser.add_argument("--trimestre", required=True, help="Libelle trimestre (ex: t1-2025)")
+    parser.add_argument("--config", default=DEFAULT_CONFIG, help="Chemin YAML de configuration")
     parser.add_argument(
-        "--ranges_json", required=True, help="Path to section_ranges.json"
+        "--ranges_json", required=True, help="Chemin vers section_ranges.json"
     )
     parser.add_argument(
-        "--out_root", default=DEFAULT_OUT_ROOT, help="Output root directory"
+        "--sortie", default=DEFAULT_OUT_ROOT, help="Racine des sorties"
     )
     parser.add_argument(
         "--vigie_extract",
@@ -139,13 +139,13 @@ def build_parser() -> argparse.ArgumentParser:
         default=False,
         help=(
             "Also call save_extraction: writes tables.json, indicators.json, "
-            "footnotes.json, report_summary.* under --extraction-root (same layout as the app)."
+            "footnotes.json, report_summary.* under --racine-extraction (same layout as the app)."
         ),
     )
     parser.add_argument(
-        "--extraction-root",
+        "--racine-extraction",
         default="outputs/extractions",
-        help="Root directory when using --save-extraction (default: outputs/extractions)",
+        help="Racine lors de --save-extraction (defaut: outputs/extractions)",
     )
     return parser
 
@@ -382,7 +382,7 @@ def main(argv: list[str] | None = None) -> None:
 
     args = build_parser().parse_args(argv)
     cfg = load_config(args.config)
-    get_bank_cfg(cfg, args.bank)
+    get_bank_cfg(cfg, args.banque)
     section_ranges = _load_section_ranges(args.ranges_json)
 
     try:
@@ -394,18 +394,18 @@ def main(argv: list[str] | None = None) -> None:
             "Docling extraction backend from extraction/ is not importable in this environment."
         ) from exc
 
-    year = _infer_year(args.quarter)
+    year = _infer_year(args.trimestre)
     raw_tables = extract_tables_docling_by_sections(
         pdf_path=args.pdf,
-        bank_code=args.bank,
-        quarter=args.quarter,
+        bank_code=args.banque,
+        quarter=args.trimestre,
         year=year,
         section_ranges=section_ranges,
     )
     artifacts = _to_artifacts(
-        raw_tables, bank=args.bank, quarter=args.quarter, pdf_path=args.pdf
+        raw_tables, bank=args.banque, quarter=args.trimestre, pdf_path=args.pdf
     )
-    out_dir = Path(args.out_root) / args.quarter / args.bank
+    out_dir = Path(args.sortie) / args.trimestre / args.banque
     out_path = write_tables_docling(out_dir=out_dir, tables=artifacts)
     print(out_path)
 
@@ -417,8 +417,8 @@ def main(argv: list[str] | None = None) -> None:
 
         payload = build_vigie_extract(
             pdf_path=args.pdf,
-            bank_code=args.bank,
-            quarter=args.quarter,
+            bank_code=args.banque,
+            quarter=args.trimestre,
             year=year,
             language=args.language,
             section_ranges=section_ranges,
@@ -433,7 +433,7 @@ def main(argv: list[str] | None = None) -> None:
             save_extraction,
         )
 
-        extraction_root = Path(args.extraction_root)
+        extraction_root = Path(args.racine_extraction)
         extraction_method = "docling"
         for art in artifacts:
             em = getattr(art, "extraction_method", None)
@@ -446,15 +446,15 @@ def main(argv: list[str] | None = None) -> None:
             "extraction_method": extraction_method,
         }
         save_extraction(
-            bank_code=args.bank,
+            bank_code=args.banque,
             year=year,
-            quarter=args.quarter,
+            quarter=args.trimestre,
             tables=artifacts,
             meta=meta,
             base_dir=extraction_root,
         )
         paths = get_extraction_artifact_paths(
-            args.bank, year, args.quarter, extraction_root
+            args.banque, year, args.trimestre, extraction_root
         )
         print(paths["indicators"])
         print(paths["footnotes"])

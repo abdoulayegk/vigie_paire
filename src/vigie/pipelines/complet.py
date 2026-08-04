@@ -42,7 +42,7 @@ def build_parser() -> argparse.ArgumentParser:
         epilog=(
             "Exemples:\n"
             "  python run_full_pipeline.py --banque BNC --annee 2025 --T2\n"
-            "  python run_full_pipeline.py --banque BNC --annee 2025 --T2 --force-extraction\n"
+            "  python run_full_pipeline.py --banque BNC --annee 2025 --T2 --forcer-extraction\n"
             "  python run_full_pipeline.py --banque BNC --annee 2025 --T2 --sans-extraction\n"
             "  python run_full_pipeline.py --banque BNC --annee 2025 --T2 --sans-indicateurs\n"
             "  python run_full_pipeline.py --banque BNC --annee 2025 --T2 --sans-texte\n"
@@ -68,9 +68,9 @@ def build_parser() -> argparse.ArgumentParser:
         help="Sauter l'extraction des tableaux (reutiliser les tables.json existants)",
     )
     p.add_argument(
-        "--force-extraction",
+        "--forcer-extraction",
         action="store_true",
-        help="Forcer la ré-extraction texte même si les text_extraction.md existent déjà",
+        help="Forcer la re-extraction texte meme si les text_extraction.md existent deja",
     )
     p.add_argument(
         "--sans-comparaison",
@@ -102,15 +102,15 @@ def _run_pipeline_indicateurs(
     from vigie.pipelines.indicateurs import main as indicateurs_main
 
     argv = [
-        "--bank", banque,
-        "--year", str(annee),
-        "--quarter", trimestre,
-        "--out-root", out_root,
+        "--banque", banque,
+        "--annee", str(annee),
+        f"--{trimestre}",
+        "--sortie", out_root,
     ]
     if sans_extraction:
-        argv.append("--skip-extraction")
+        argv.append("--sans-extraction")
     if sans_comparaison:
-        argv.append("--skip-comparison")
+        argv.append("--sans-comparaison")
 
     return indicateurs_main(argv)
 
@@ -121,21 +121,21 @@ def _run_pipeline_texte(
     trimestre: str,
     out_root: str,
     sans_comparaison: bool,
-    force_extraction: bool,
+    forcer_extraction: bool,
 ) -> int:
     """Lance le pipeline texte et retourne le code de sortie."""
     from vigie.pipelines.texte import main as texte_main
 
     argv = [
-        "--bank", banque,
-        "--year", str(annee),
+        "--banque", banque,
+        "--annee", str(annee),
         f"--{trimestre}",
-        "--out-root", out_root,
+        "--sortie", out_root,
     ]
     if sans_comparaison:
-        argv.append("--skip-comparison")
-    if force_extraction:
-        argv.append("--force-extraction")
+        argv.append("--sans-comparaison")
+    if forcer_extraction:
+        argv.append("--forcer-extraction")
 
     return texte_main(argv)
 
@@ -203,7 +203,7 @@ def main(argv: list[str] | None = None) -> int:
                 trimestre=trimestre,
                 out_root=out_root,
                 sans_comparaison=args.sans_comparaison,
-                force_extraction=args.force_extraction,
+                forcer_extraction=args.forcer_extraction,
             )
             elapsed = time.time() - t0
             if rc == 0:
