@@ -79,7 +79,12 @@ _INTERNAL_RISK_ACCOUNTING_HEADING_RE = re.compile(
 
 
 def _is_end_boundary_heading(segment: DoclingSegment, audits: list[SectionAudit]) -> bool:
-    """Indique si un titre Docling marque la fin de la section courante."""
+    """Indique si un titre Docling marque la fin de la section courante.
+
+    L'ancre ``end_anchor_text`` exige une égalité de texte normalisé : une
+    sous-chaîne comme « Cadre de gestion des fonds propres » ne doit jamais
+    fermer les risques dont l'ancre de fin est « Gestion des fonds propres ».
+    """
     if segment.kind != "heading":
         return False
     text = str(segment.text or "").strip()
@@ -91,7 +96,7 @@ def _is_end_boundary_heading(segment: DoclingSegment, audits: list[SectionAudit]
         if not end_text:
             continue
         end_norm = _normalized_block_text(end_text)
-        if segment_norm == end_norm or end_norm in segment_norm or segment_norm in end_norm:
+        if segment_norm == end_norm:
             return True
 
     # Les rapports BNC contiennent cette sous-section comptable précise à
