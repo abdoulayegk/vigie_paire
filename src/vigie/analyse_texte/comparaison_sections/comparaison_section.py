@@ -15,6 +15,7 @@ from vigie.analyse_texte.comparaison_sections.traitement_fragments_orphelins imp
     _is_matched_alignment,
     _process_alignment_group,
 )
+from vigie.analyse_texte.markdown import _first_page_marker
 from vigie.analyse_texte.models import TextAnalysisQualityError
 from vigie.analyse_texte.subsection_matching import (
     OrphanSubsection,
@@ -40,11 +41,18 @@ def _compare_section_texts(
     ré-alignés une fois sur toute la section (Phase B) avant tout add/remove
     définitif, ce qui récupère les passages déplacés entre rubriques.
     """
-    # Safety: the .md canonique contient des marqueurs ``[p.N]`` pour la
-    # reconstruction de l'index page→texte. Ils DOIVENT avoir été strippés
-    # avant d'arriver ici par ``_extract_section_text_from_markdown``.
-    if "[p." in text_t1 or "[p." in text_t2:
-        raise TextAnalysisQualityError("Fuite de marqueurs de page vers le prompt GPT — strip manquant ?")
+    # Safety: le .md canonique porte des marqueurs ``[pdf.N]`` sur ses titres
+    # pour la reconstruction de l'index page→texte. Ils DOIVENT avoir été
+    # strippés avant d'arriver ici par ``_extract_section_text_from_markdown``.
+    # Le motif vient de ``markdown.py``: le redéfinir ici l'avait fait diverger
+    # du format réel, au point de se déclencher sur « [p. ex., ...] ».
+    for period, text in (("T1", text_t1), ("T2", text_t2)):
+        marker = _first_page_marker(text)
+        if marker is not None:
+            raise TextAnalysisQualityError(
+                f"Fuite du marqueur de page {marker} vers le prompt GPT "
+                f"(section {section_key}, période {period}) — strip manquant ?"
+            )
     if not text_t1.strip() and not text_t2.strip():
         return []
 

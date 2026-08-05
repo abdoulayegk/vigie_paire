@@ -57,6 +57,10 @@ class BoundsMixin:
             if self._is_annual_t4_target_section(section) and not section.detection_method.startswith(
                 "manual_override"
             ):
+                # Bornes deja fournies par la TDM structurelle: ne pas ecraser.
+                if section.detection_method.startswith("annual_t4_toc") and section.end_page is not None:
+                    self._apply_section_length_constraints(section, total_pages, source="annual_t4_toc")
+                    continue
                 end_page, end_method = self._detect_annual_t4_section_end(
                     section.section_type, section.start_page, text_by_page, total_pages
                 )

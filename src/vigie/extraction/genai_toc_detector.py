@@ -6,6 +6,8 @@ du SectionLocator échouent à détecter les sections cibles.
 Inspiré du prototype "Jad" avec triple vérification Vision+Texte.
 """
 
+from __future__ import annotations
+
 import base64
 import io
 import json
@@ -13,10 +15,63 @@ import logging
 import re
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Literal, TypeVar
+
+from pydantic import BaseModel, ConfigDict, Field
 
 from vigie.support.utils.genai import get_openai_api_key
 
 logger = logging.getLogger(__name__)
+
+_T_StructuredModel = TypeVar("_T_StructuredModel", bound=BaseModel)
+
+
+class AnnualTocEntryLLM(BaseModel):
+    """Entrée TDM renvoyée par Vision en sortie structurée."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    title: str
+    page: int = Field(ge=1)
+    level: int = Field(ge=0, le=5)
+
+
+class AnnualTocBoundaryLLM(BaseModel):
+    """Bornes de chapitre cible lues dans la TDM annuelle."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    section_type: Literal["capital_management", "risk_management"]
+    title_found: str
+    start_page: int = Field(ge=1)
+    successor_title: str
+    successor_page: int = Field(ge=1)
+    confidence: float = Field(ge=0.0, le=1.0)
+
+
+class AnnualTocAnalysisLLM(BaseModel):
+    """Réponse structurée Vision pour une page TDM annuelle candidate."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    is_master_toc: bool
+    confidence: float = Field(ge=0.0, le=1.0)
+    entries: list[AnnualTocEntryLLM]
+    boundaries: list[AnnualTocBoundaryLLM]
+    warnings: list[str]
+
+
+class PageTransitionLLM(BaseModel):
+    """Réponse structurée Vision pour une transition de chapitre."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    confirmed: bool
+    confidence: float = Field(ge=0.0, le=1.0)
+    observed_title: str
+    previous_page_belongs_to_prior_section: bool
+    candidate_page_starts_expected_section: bool
+    reason: str
 
 
 @dataclass
@@ -194,25 +249,10 @@ Si un grand titre n'a aucun numéro propre, utilise le numéro de sa première s
 N'infère jamais son numéro depuis l'entrée précédente. Préserve les titres visibles et signale toute
 ambiguïté dans warnings.
 
-Réponds uniquement avec cet objet JSON :
-{
-  "is_master_toc": true,
-  "confidence": 0.0,
-  "entries": [
-    {"title": "Titre exact", "page": 12, "level": 0}
-  ],
-  "boundaries": [
-    {
-      "section_type": "capital_management",
-      "title_found": "Titre exact de début",
-      "start_page": 53,
-      "successor_title": "Titre exact du chapitre suivant",
-      "successor_page": 62,
-      "confidence": 0.95
-    }
-  ],
-  "warnings": []
-}"""
+Priorise les boundaries des sections cibles, puis les entrées de niveau 0-1. Évite de saturer la
+sortie avec des sous-sections profondes si l'espace est limité.
+
+Réponds strictement selon le schéma structuré fourni."""
 
     PAGE_TRANSITION_PROMPT = """Tu reçois deux pages physiques complètes et consécutives d'un rapport bancaire.
 La PREMIÈRE IMAGE est la page précédente. La DEUXIÈME IMAGE est la page candidate.
@@ -226,15 +266,7 @@ un renvoi n'est pas un début de chapitre. Le titre peut toutefois varier légè
 La page précédente doit encore appartenir au chapitre antérieur, sauf si la mise en page explique
 clairement une transition sur la même page.
 
-Réponds uniquement avec cet objet JSON :
-{{
-  "confirmed": true,
-  "confidence": 0.0,
-  "observed_title": "Titre réellement visible",
-  "previous_page_belongs_to_prior_section": true,
-  "candidate_page_starts_expected_section": true,
-  "reason": "Justification courte"
-}}"""
+Réponds strictement selon le schéma structuré fourni."""
 
     def __init__(self, api_key: str | None = None, model: str = "gpt-4o"):
         """Initialiser le détecteur GenAI.
@@ -342,14 +374,19 @@ Réponds uniquement avec cet objet JSON :
             logger.error(f"Erreur API Vision: {e}")
             return None
 
-    def _call_vision_api_images(
+    def _call_vision_structured(
         self,
         prompt: str,
         images_base64: list[str],
         *,
+        response_format: type[_T_StructuredModel],
         max_completion_tokens: int = 4000,
-    ) -> dict | None:
-        """Appeler Vision avec plusieurs pages complètes dans un ordre explicite."""
+    ) -> _T_StructuredModel | None:
+        """Appeler Vision multi-images avec sortie Pydantic structurée.
+
+        Remplace ``json_object`` + ``json.loads`` pour les lectures TDM / transitions
+        annuelles. Soft-fail (``None``) en cas d'erreur, refus ou troncature.
+        """
         if not self.client or not images_base64:
             return None
 
@@ -372,27 +409,37 @@ Réponds uniquement avec cet objet JSON :
             )
 
         try:
-            response = self.client.chat.completions.create(
+            response = self.client.beta.chat.completions.parse(
                 model=self.model,
                 messages=[{"role": "user", "content": content}],
-                temperature=0,
+                response_format=response_format,
+                temperature=0.0,
                 max_completion_tokens=max_completion_tokens,
-                response_format={"type": "json_object"},
             )
-            raw_content = response.choices[0].message.content or ""
-            parsed = json.loads(raw_content)
-            return parsed if isinstance(parsed, dict) else None
+            choice = response.choices[0]
+            finish_reason = getattr(choice, "finish_reason", None)
+            if finish_reason == "length":
+                logger.error(
+                    "Erreur API Vision multi-pages: sortie structurée tronquée "
+                    "(finish_reason=length, max_completion_tokens=%s)",
+                    max_completion_tokens,
+                )
+                return None
+
+            message = choice.message
+            refusal = getattr(message, "refusal", None)
+            if refusal:
+                logger.error("Erreur API Vision multi-pages: refus modèle: %s", refusal)
+                return None
+
+            parsed = getattr(message, "parsed", None)
+            if parsed is None:
+                logger.error("Erreur API Vision multi-pages: sortie structurée vide")
+                return None
+            return parsed
         except Exception as e:
             logger.error("Erreur API Vision multi-pages: %s", e)
             return None
-
-    @staticmethod
-    def _safe_int(value: object) -> int:
-        """Convertir un numéro de page Vision sans lever d'exception."""
-        try:
-            return int(value)
-        except (TypeError, ValueError):
-            return 0
 
     def analyze_annual_toc_page(
         self,
@@ -407,51 +454,38 @@ Réponds uniquement avec cet objet JSON :
         if not image_b64:
             return AnnualTOCAnalysis(False, 0.0, page_num, [], [], [])
 
-        result = self._call_vision_api_images(
+        result = self._call_vision_structured(
             self.ANNUAL_TOC_ANALYSIS_PROMPT,
             [image_b64],
+            response_format=AnnualTocAnalysisLLM,
             max_completion_tokens=6000,
         )
         if not result:
             return AnnualTOCAnalysis(False, 0.0, page_num, [], [], [])
 
-        entries = result.get("entries")
-        if not isinstance(entries, list):
-            entries = []
-
         boundaries: list[TOCBoundaryRole] = []
-        for raw_boundary in result.get("boundaries", []):
-            if not isinstance(raw_boundary, dict):
-                continue
-            section_type = str(raw_boundary.get("section_type") or "").strip()
-            if section_type not in {"capital_management", "risk_management"}:
-                continue
-            start_page = self._safe_int(raw_boundary.get("start_page"))
-            successor_page = self._safe_int(raw_boundary.get("successor_page"))
-            if start_page <= 0 or successor_page <= start_page:
+        for raw_boundary in result.boundaries:
+            if raw_boundary.successor_page <= raw_boundary.start_page:
                 continue
             boundaries.append(
                 TOCBoundaryRole(
-                    section_type=section_type,
-                    title_found=str(raw_boundary.get("title_found") or "").strip(),
-                    start_page=start_page,
-                    successor_title=str(raw_boundary.get("successor_title") or "").strip(),
-                    successor_page=successor_page,
-                    confidence=float(raw_boundary.get("confidence") or 0.0),
+                    section_type=raw_boundary.section_type,
+                    title_found=raw_boundary.title_found.strip(),
+                    start_page=raw_boundary.start_page,
+                    successor_title=raw_boundary.successor_title.strip(),
+                    successor_page=raw_boundary.successor_page,
+                    confidence=raw_boundary.confidence,
                 )
             )
 
-        warnings = result.get("warnings")
-        if not isinstance(warnings, list):
-            warnings = []
         return AnnualTOCAnalysis(
-            is_master_toc=bool(result.get("is_master_toc")),
-            confidence=float(result.get("confidence") or 0.0),
+            is_master_toc=result.is_master_toc,
+            confidence=result.confidence,
             page_number=page_num,
-            entries=[entry for entry in entries if isinstance(entry, dict)],
+            entries=[entry.model_dump() for entry in result.entries],
             boundaries=boundaries,
-            warnings=[str(warning) for warning in warnings if str(warning).strip()],
-            raw_response=json.dumps(result, ensure_ascii=False),
+            warnings=[warning for warning in result.warnings if str(warning).strip()],
+            raw_response=result.model_dump_json(),
         )
 
     def validate_section_transition(
@@ -476,28 +510,25 @@ Réponds uniquement avec cet objet JSON :
         if not images:
             return PageTransitionValidation(False, 0.0, "", False, False, "")
 
-        result = self._call_vision_api_images(
+        result = self._call_vision_structured(
             self.PAGE_TRANSITION_PROMPT.format(
                 section_type=section_type,
                 expected_title=expected_title,
             ),
             images,
+            response_format=PageTransitionLLM,
             max_completion_tokens=1200,
         )
         if not result:
             return PageTransitionValidation(False, 0.0, "", False, False, "")
         return PageTransitionValidation(
-            confirmed=bool(result.get("confirmed")),
-            confidence=float(result.get("confidence") or 0.0),
-            observed_title=str(result.get("observed_title") or "").strip(),
-            previous_page_belongs_to_prior_section=bool(
-                result.get("previous_page_belongs_to_prior_section")
-            ),
-            candidate_page_starts_expected_section=bool(
-                result.get("candidate_page_starts_expected_section")
-            ),
-            reason=str(result.get("reason") or "").strip(),
-            raw_response=json.dumps(result, ensure_ascii=False),
+            confirmed=result.confirmed,
+            confidence=result.confidence,
+            observed_title=result.observed_title.strip(),
+            previous_page_belongs_to_prior_section=result.previous_page_belongs_to_prior_section,
+            candidate_page_starts_expected_section=result.candidate_page_starts_expected_section,
+            reason=result.reason.strip(),
+            raw_response=result.model_dump_json(),
         )
 
     def detect_toc_page(

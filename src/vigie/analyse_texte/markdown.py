@@ -180,84 +180,41 @@ def _format_heading_line(prefix: str, title: str, physical_page: int | None) -> 
     return f"{prefix} {clean_title}"
 
 
-def _format_page_marker(physical_page: int, *, page_number_offset: int = 0) -> str:
-    """Formate un marqueur de page PDF autonome (migration legacy)."""
-    _ = page_number_offset
-    return f"[pdf.{int(physical_page)}]"
-
-
 _INLINE_PDF_MARKER_RE = re.compile(r"\s*\[pdf\.(\d+)\]\s*$")
-_INLINE_LEGACY_MARKER_RE = re.compile(r"\s*\[p\.(\d+)(?:\s*\|\s*pdf\.(\d+))?\]\s*$")
 _STANDALONE_PDF_MARKER_RE = re.compile(r"^\[pdf\.(\d+)\]\s*$")
-_STANDALONE_LEGACY_MARKER_RE = re.compile(
-    r"^\[p\.(\d+)(?:\s*\|\s*pdf\.(\d+))?\]\s*$",
-)
+# Motif unique du marqueur de page, reconnaissable n'importe où dans une ligne.
+# Les chiffres collés au point sont ce qui distingue un marqueur d'une
+# abréviation française entre crochets : « [p. ex., ...] », « [p. 45] ».
+_ANY_PAGE_MARKER_RE = re.compile(r"\[pdf\.\d+\]")
+
+
+def _first_page_marker(text: str) -> str | None:
+    """Retourne le premier marqueur de page d'un texte, sinon ``None``.
+
+    Unique définition du format hors de ce module : les gardes du flux texte
+    consomment cette fonction au lieu de redéfinir le motif de leur côté. C'est
+    cette duplication qui avait laissé une garde reconnaître seulement un
+    ancien format tout en se déclenchant sur du français correct.
+    """
+    match = _ANY_PAGE_MARKER_RE.search(str(text or ""))
+    return match.group(0) if match else None
 
 
 def _extract_inline_pdf_page(line: str) -> int | None:
     """Extrait la page PDF physique d'un suffixe inline sur un titre."""
     match = _INLINE_PDF_MARKER_RE.search(line)
-    if match:
-        return int(match.group(1))
-    legacy = _INLINE_LEGACY_MARKER_RE.search(line)
-    if legacy:
-        return int(legacy.group(2) or legacy.group(1))
-    return None
+    return int(match.group(1)) if match else None
 
 
 def _strip_inline_page_suffix(text: str) -> str:
-    """Retire les suffixes de page inline d'un titre."""
-    value = _INLINE_PDF_MARKER_RE.sub("", text)
-    return _INLINE_LEGACY_MARKER_RE.sub("", value).strip()
+    """Retire le suffixe de page inline d'un titre."""
+    return _INLINE_PDF_MARKER_RE.sub("", text).strip()
 
 
 def _extract_physical_page_from_standalone_marker(line: str) -> int | None:
-    """Extrait la page PDF d'une ligne marqueur autonome (formats legacy inclus)."""
-    stripped = line.strip()
-    pdf_match = _STANDALONE_PDF_MARKER_RE.match(stripped)
-    if pdf_match:
-        return int(pdf_match.group(1))
-    legacy_match = _STANDALONE_LEGACY_MARKER_RE.match(stripped)
-    if legacy_match:
-        return int(legacy_match.group(2) or legacy_match.group(1))
-    return None
-
-
-def _rewrite_page_markers_for_display(md_content: str) -> str:
-    """Migre les marqueurs autonomes vers ``[pdf.N]`` inline sur les titres seulement."""
-    lines = md_content.splitlines()
-    result: list[str] = []
-    pending_page: int | None = None
-
-    for raw in lines:
-        line = raw.rstrip()
-        if not line.strip():
-            result.append(line)
-            continue
-
-        standalone_page = _extract_physical_page_from_standalone_marker(line)
-        if standalone_page is not None:
-            pending_page = standalone_page
-            continue
-
-        if line.startswith("### "):
-            title = _strip_inline_page_suffix(line[4:]).strip()
-            page = _extract_inline_pdf_page(line) or pending_page
-            pending_page = None
-            result.append(_format_heading_line("###", title, page))
-            continue
-
-        if line.startswith("## "):
-            title = _strip_inline_page_suffix(line[3:]).strip()
-            page = _extract_inline_pdf_page(line) or pending_page
-            pending_page = None
-            result.append(_format_heading_line("##", title, page))
-            continue
-
-        pending_page = None
-        result.append(line)
-
-    return "\n".join(result).strip() + "\n"
+    """Extrait la page PDF d'une ligne ne portant qu'un marqueur."""
+    match = _STANDALONE_PDF_MARKER_RE.match(line.strip())
+    return int(match.group(1)) if match else None
 
 
 def _build_text_extraction_markdown(

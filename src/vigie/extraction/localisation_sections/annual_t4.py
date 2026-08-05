@@ -328,11 +328,11 @@ class AnnualT4Mixin:
                     return page_num - 1, "annual_t4_physical_successor"
 
         logger.warning(
-            "T4 annuel: aucune section suivante validée après %s p.%s; application de la borne de sécurité documentée.",
+            "T4 annuel: aucune section suivante validée après %s p.%s; borne non résolue (pas de cap silencieux).",
             section_type,
             start_page,
         )
-        return min(total_pages, start_page + 119), "annual_t4_safety_cap_no_successor"
+        return None, "annual_t4_unresolved_no_successor"
 
     def _find_annual_t4_risk_start(
         self,

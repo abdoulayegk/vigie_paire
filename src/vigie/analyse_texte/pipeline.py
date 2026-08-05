@@ -20,8 +20,8 @@ from vigie.analyse_texte.markdown import (
     _build_text_extraction_markdown,
     _extract_section_text_from_markdown,
     _find_page_for_fragment,
+    _first_page_marker,
     _parse_page_index_from_markdown,
-    _rewrite_page_markers_for_display,
     _section_page_range_from_index,
 )
 from vigie.analyse_texte.models import TextAnalysisQualityError
@@ -53,6 +53,29 @@ from vigie.analyse_texte.vision_boundary_validator import build_text_boundary_va
 logger = logging.getLogger(__name__)
 
 
+def _assert_no_page_marker_leak(
+    md: str,
+    section_keys: set[str],
+    *,
+    source: str,
+) -> None:
+    """Vérifie que le strip des marqueurs est complet avant tout appel GPT.
+
+    Le contrôle porte sur le texte réellement envoyé au modèle, c'est-à-dire
+    après ``_extract_section_text_from_markdown``. Le placer au chargement du
+    ``.md`` fait échouer en quelques secondes plutôt qu'après les premiers
+    appels GPT d'une section.
+    """
+    for section_key in sorted(section_keys):
+        marker = _first_page_marker(_extract_section_text_from_markdown(md, section_key))
+        if marker is None:
+            continue
+        raise TextAnalysisQualityError(
+            f"Marqueur de page {marker} présent dans le texte destiné à GPT "
+            f"(section {section_key}, source {source}) — le strip du .md canonique est incomplet."
+        )
+
+
 def _prepare_period_extraction(
     *,
     pdf_path: Path,
@@ -80,10 +103,10 @@ def _prepare_period_extraction(
             if not has_current_text_extraction_cache_schema(original_md):
                 logger.info(".md canonique d'un schéma obsolète — ré-extraction: %s", md_path)
             else:
-                md = _rewrite_page_markers_for_display(original_md)
-                if md != original_md:
-                    md_path.write_text(md, encoding="utf-8")
-                    logger.info("Migration des marqueurs de pages du .md canonique: %s", md_path)
+                # Le cache est relu tel quel : aucune réécriture à la lecture.
+                # Un .md d'un format antérieur ne porte pas le tampon de schéma
+                # et part donc en ré-extraction, jamais en migration.
+                md = original_md
                 page_idx_by_key, section_start_pages = _parse_page_index_from_markdown(md)
                 if any(page_idx_by_key.values()):
                     section_range_by_key = {
@@ -95,9 +118,13 @@ def _prepare_period_extraction(
                         available_keys &= allowed_section_keys
                         page_idx_by_key = {k: v for k, v in page_idx_by_key.items() if k in available_keys}
                         section_range_by_key = {k: v for k, v in section_range_by_key.items() if k in available_keys}
+                    _assert_no_page_marker_leak(md, available_keys, source=str(md_path))
                     logger.info("Réutilisation du .md canonique: %s", md_path)
                     return md, page_idx_by_key, section_range_by_key, available_keys
                 logger.warning(".md canonique vide — ré-extraction: %s", md_path)
+        except TextAnalysisQualityError:
+            # Une fuite de marqueur est un défaut du rendu, pas un cache illisible.
+            raise
         except Exception as exc:  # noqa: BLE001
             logger.warning(".md canonique illisible (%s) — ré-extraction: %s", exc, md_path)
     elif md_path.exists():
@@ -177,6 +204,7 @@ def _prepare_period_extraction(
     page_idx_by_key = {a.section_key: _build_block_page_index(a) for a in audits}
     section_range_by_key = {a.section_key: (a.start_page, a.end_page) for a in audits}
     available_keys = {a.section_key for a in audits}
+    _assert_no_page_marker_leak(md, available_keys, source=str(md_path))
     return md, page_idx_by_key, section_range_by_key, available_keys
 
 

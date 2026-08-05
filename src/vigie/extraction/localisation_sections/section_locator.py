@@ -240,10 +240,63 @@ class SectionLocator(
                             f"page {genai_section.start_page} (conf={genai_section.confidence:.2f})"
                         )
 
-        # T4 annuel: la TDM sert à trouver le chapitre, mais les bornes sont
-        # confirmées sur les pages physiques du PDF. Cette étape ne s'applique
-        # pas aux rapports T1-T3.
-        sections = self._rebase_annual_t4_section_starts(sections, text_by_page, total_pages)
+        # T4 annuel: TDM structurelle (Rapport de gestion) avant le rebase titres.
+        # Les titres hardcodes restent un prior/repli si la TDM est incomplete.
+        toc_structure = None
+        if self._is_t4_quarter():
+            from vigie.extraction.localisation_sections.boundary_resolver import resolve_t4_section_bounds
+            from vigie.extraction.localisation_sections.toc_locator import locate_toc_structure
+
+            try:
+                configured_offset = self._get_page_number_offset()
+                toc_structure = locate_toc_structure(
+                    text_by_page,
+                    pdf_path=pdf_path,
+                    configured_offset=configured_offset,
+                )
+                resolve_outcome = resolve_t4_section_bounds(
+                    toc_structure,
+                    bank_code=self.bank_code or "",
+                    text_by_page=text_by_page,
+                    total_pages=total_pages,
+                    find_start=lambda key: self._find_annual_t4_section_start(
+                        key, text_by_page, total_pages
+                    ),
+                    find_end=lambda key, start: self._detect_annual_t4_section_end(
+                        key, start, text_by_page, total_pages
+                    ),
+                    pdf_path=pdf_path,
+                )
+                if resolve_outcome.sections:
+                    resolved_keys = {s.section_type for s in resolve_outcome.sections}
+                    sections = [s for s in sections if s.section_type not in resolved_keys]
+                    sections.extend(resolve_outcome.sections)
+                    found_types |= resolved_keys
+                    if resolve_outcome.used_toc:
+                        toc_used = True
+                    for anomaly in resolve_outcome.anomalies[:12]:
+                        logger.info("T4 TOC/boundary: %s", anomaly)
+            except Exception as exc:
+                logger.warning("Resolution TDM structurelle T4 indisponible: %s", exc)
+                toc_structure = None
+
+        # T4 annuel: confirmer/completer sur titres physiques si la TDM n'a pas
+        # fourni les deux cibles. Ne s'applique pas aux rapports T1-T3.
+        if not (
+            self._is_t4_quarter()
+            and toc_structure is not None
+            and toc_structure.confidence >= 0.55
+            and {canonicalize_section(k) for k in ("gestion_capital", "gestion_risques")}.issubset(
+                {canonicalize_section(s.section_type) for s in sections}
+            )
+        ):
+            sections = self._rebase_annual_t4_section_starts(sections, text_by_page, total_pages)
+        else:
+            # Completer uniquement les cibles absentes.
+            present = {canonicalize_section(s.section_type) for s in sections}
+            missing = {canonicalize_section(k) for k in ("gestion_capital", "gestion_risques")} - present
+            if missing:
+                sections = self._rebase_annual_t4_section_starts(sections, text_by_page, total_pages)
 
         # ETAPE 3: Determiner les pages de fin avec la logique hybride
         sections = self._determine_end_pages(sections, text_by_page, toc_entries, total_pages)
@@ -306,9 +359,12 @@ class SectionLocator(
                 from vigie.extraction.annual_section_boundary_validator import AnnualSectionBoundaryValidator
 
                 front_pages = list(range(1, min(31, total_pages + 1)))
+                # Preferer la page RG structurelle quand elle est connue.
+                preferred_rg = getattr(toc_structure, "rg_page", None) if toc_structure else None
                 candidate_pages = sorted(
                     front_pages,
                     key=lambda page: (
+                        100 if preferred_rg is not None and page == preferred_rg else 0,
                         self._score_toc_candidate_page(
                             page,
                             text_by_page.get(page, ""),
@@ -319,6 +375,8 @@ class SectionLocator(
                     ),
                     reverse=True,
                 )[:12]
+                if preferred_rg is not None and preferred_rg not in candidate_pages:
+                    candidate_pages = [preferred_rg, *candidate_pages][:12]
                 outcome = AnnualSectionBoundaryValidator(
                     bank_code=self.bank_code or "",
                     year=self.year,

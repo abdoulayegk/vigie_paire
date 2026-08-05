@@ -394,7 +394,8 @@ def _classify_block_type(
     """Classifie un bloc PDF en contenu, table ou note de table.
 
     Priorités d'application :
-    1. Type ``table`` ou chevauchement géométrique avec un tableau → table.
+    1. Type ``table`` ou chevauchement géométrique avec un tableau → table,
+       sauf paragraphe narratif long (grilles titre|Description Docling).
     2. Chevauchement avec une zone sous un tableau + indice de note → note de table.
     3. Le marqueur autonome « s.o. » → non applicable.
     4. Tout le reste est conservé pour le markdown et la comparaison. Les
@@ -459,6 +460,10 @@ def _classify_block_type(
     if repeated >= 2 and (block.y1 <= 0.12 or block.y0 >= 0.88):
         return "header_footer"
     if _block_overlaps_table(block, table_bboxes):
+        # Grilles narratives 2 colonnes (ex. Risques connus | Description) :
+        # Docling pose une bbox TABLE, mais les cellules Description sont du prose.
+        if _looks_like_narrative_paragraph(text):
+            return "narrative"
         return "table"
     if _block_overlaps_table(block, footnote_bboxes) and _looks_like_table_footnote_text(text):
         return "table_footnote"

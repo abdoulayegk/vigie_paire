@@ -24,10 +24,9 @@ from vigie.analyse_texte.extraction import (
 from vigie.analyse_texte.markdown import (
     _build_text_extraction_markdown,
     _extract_section_text_from_markdown,
-    _format_page_marker,
+    _first_page_marker,
     _format_page_suffix,
     _parse_page_index_from_markdown,
-    _rewrite_page_markers_for_display,
 )
 from vigie.analyse_texte.models import (
     PDFBlock,
@@ -1764,6 +1763,72 @@ def test_classify_block_type_rejects_block_overlapping_docling_table_bbox() -> N
     assert _classify_block_type(block, {}, [[0.10, 0.20, 0.90, 0.38]]) == "table"
 
 
+def test_classify_block_type_keeps_narrative_paragraph_overlapping_table_bbox() -> None:
+    """Grille narrative Docling (titre|Description): conserver le prose long."""
+    narrative = (
+        "Des rançongiciels de plus en plus perfectionnés sont utilisés pour attaquer "
+        "les grandes chaînes logistiques, ce qui pourrait entraîner une interruption "
+        "des activités, des perturbations des services des clients, des pertes "
+        "financières, le vol de propriété intellectuelle et de renseignements "
+        "confidentiels, des litiges, une attention accrue et des sanctions de la "
+        "part des organismes de réglementation ainsi qu'une atteinte à notre réputation."
+    )
+    block = PDFBlock(
+        "p082_d010",
+        82,
+        [0.35, 0.40, 0.92, 0.62],
+        narrative,
+        10,
+    )
+
+    assert _classify_block_type(block, {}, [[0.05, 0.10, 0.95, 0.90]]) == "narrative"
+
+
+def test_docling_filter_keeps_included_narrative_from_table_grid() -> None:
+    """Un paragraphe inclus (classé narrative) n'est pas droppé comme table_like."""
+    narrative = (
+        "Au Canada, le risque lié au marché de l'habitation et à l'endettement des "
+        "ménages demeure élevé compte tenu du climat économique incertain et des "
+        "enjeux d'abordabilité actuels. Les risques associés à la capacité des "
+        "ménages canadiens de s'acquitter de leurs dettes pourraient croître si "
+        "les taux d'intérêt demeuraient élevés ou si l'inflation persistait."
+    )
+    included = PDFBlock(
+        "p082_d011",
+        82,
+        [0.35, 0.20, 0.92, 0.40],
+        narrative,
+        11,
+        "narrative",
+        True,
+        "",
+    )
+    short_cell = PDFBlock(
+        "p082_d012",
+        82,
+        [0.08, 0.20, 0.30, 0.28],
+        "Description",
+        12,
+        "table",
+        False,
+        "table_like_block",
+    )
+    audit = SectionAudit(
+        section_key="gestion_risques",
+        section_title="Gestion des risques",
+        start_page=82,
+        end_page=82,
+        anchor_page=76,
+        anchor_text="Gestion du risque",
+        anchor_bbox_norm=[0.1, 0.1, 0.9, 0.2],
+        included_blocks=[included],
+        excluded_blocks=[short_cell],
+    )
+
+    assert _should_keep_docling_segment(DoclingSegment(kind="paragraph", text=narrative), [audit]) is True
+    assert _should_keep_docling_segment(DoclingSegment(kind="paragraph", text="Description"), [audit]) is False
+
+
 def test_classify_block_type_rejects_block_overlapping_table_footnote_bbox() -> None:
     block = PDFBlock(
         "p043_d003",
@@ -2010,7 +2075,6 @@ def test_build_text_extraction_markdown_inline_pdf_page_on_headings_only() -> No
 
 def test_format_page_suffix_pdf_only() -> None:
     assert _format_page_suffix(84) == " [pdf.84]"
-    assert _format_page_marker(62) == "[pdf.62]"
 
 
 def test_extract_section_text_from_markdown_strips_inline_pdf_page_marker() -> None:
@@ -2025,17 +2089,21 @@ def test_extract_section_text_from_markdown_strips_inline_pdf_page_marker() -> N
     assert capital == "### Sous-section\n\nLa banque maintient un niveau prudent de fonds propres."
 
 
-def test_extract_section_text_from_markdown_strips_legacy_standalone_markers() -> None:
-    md = (
+def test_markdown_with_former_marker_format_is_invalidated_not_migrated() -> None:
+    """Un .md d'un format antérieur part en ré-extraction, jamais en migration.
+
+    Le format ``[p.N]`` / ``[p.N | pdf.M]`` n'est plus lu : ces fichiers sont
+    tous antérieurs au tampon de schéma courant, donc invalidés en amont. Les
+    migrer réécrivait un numéro de page imprimée en page physique.
+    """
+    former_format = (
         "[p.58 | pdf.60]\n"
         "## Gestion du capital\n\n"
         "[p.58 | pdf.60]\n"
         "La banque maintient un niveau prudent de fonds propres.\n"
     )
 
-    capital = _extract_section_text_from_markdown(md, "gestion_capital")
-
-    assert capital == "La banque maintient un niveau prudent de fonds propres."
+    assert has_current_text_extraction_cache_schema(former_format) is False
 
 
 def test_parse_page_index_inherits_page_from_heading() -> None:
@@ -2054,16 +2122,74 @@ def test_parse_page_index_inherits_page_from_heading() -> None:
     ]
 
 
-def test_rewrite_migrates_legacy_markers_to_pdf_inline() -> None:
-    md = "[p.60]\n## Gestion du capital\n\n[p.61]\nUn paragraphe.\n"
+def test_page_marker_detection_ignores_french_bracketed_abbreviations() -> None:
+    """« [p. ex., ... ] » et « [p. 45] » sont du français, pas des marqueurs.
 
-    rewritten = _rewrite_page_markers_for_display(md)
-    page_index, section_start_pages = _parse_page_index_from_markdown(rewritten)
+    L'ancienne garde testait la sous-chaîne ``"[p."`` et bloquait donc le
+    pipeline sur la grille des risques émergents de RBC.
+    """
+    prose = (
+        "Notre exposition s'accroît, puisque nous continuons d'adopter de nouvelles "
+        "technologies [p. ex., l'infonuagique, les logiciels-services (SaaS), l'IA "
+        "générative et l'apprentissage automatique]. Se reporter au tableau [p. 45]."
+    )
 
-    assert rewritten.startswith("## Gestion du capital [pdf.60]")
-    assert "[pdf." not in "Un paragraphe."
-    assert section_start_pages["gestion_capital"] == 60
-    assert page_index["gestion_capital"] == [(60, "Un paragraphe.")]
+    assert _first_page_marker(prose) is None
+
+
+def test_page_marker_detection_catches_real_leaks() -> None:
+    """Les deux positions réellement émises doivent être détectées."""
+    assert _first_page_marker("### Cadre de gestion [pdf.82]") == "[pdf.82]"
+    assert _first_page_marker("[pdf.82]") == "[pdf.82]"
+    assert _first_page_marker("Un paragraphe suivi de [pdf.7] au milieu.") == "[pdf.7]"
+
+
+def test_extract_section_text_leaves_no_marker_on_french_grid_prose() -> None:
+    """Chaîne complète: le texte de section prêt pour GPT est exempt de marqueur."""
+    md = (
+        "<!-- vigilance-text-extraction-schema: 8 -->\n\n"
+        "## Gestion des risques [pdf.76]\n\n"
+        "### Risques connus et risques émergents [pdf.81]\n\n"
+        "Nous continuons d'adopter de nouvelles technologies [p. ex., l'infonuagique, "
+        "les logiciels-services (SaaS), l'IA générative et l'apprentissage automatique].\n"
+    )
+
+    section_text = _extract_section_text_from_markdown(md, "gestion_risques")
+
+    assert "[p. ex.," in section_text
+    assert _first_page_marker(section_text) is None
+
+
+def test_compare_section_texts_accepts_french_bracketed_abbreviation(monkeypatch) -> None:
+    monkeypatch.setattr(
+        "vigie.analyse_texte.comparaison_sections.execution_llm._compare_texts_single_call",
+        lambda **kw: [],
+    )
+    prose = "### Risques émergents\n\nDe nouvelles technologies [p. ex., l'infonuagique] sont adoptées."
+
+    changes = _compare_section_texts(
+        client=object(),
+        model="gpt-4o",
+        section_key="gestion_risques",
+        text_t1=prose,
+        text_t2=prose,
+    )
+
+    assert [change for change in changes if change["diff_type"] != "unchanged"] == []
+
+
+def test_compare_section_texts_rejects_leaked_page_marker() -> None:
+    with pytest.raises(TextAnalysisQualityError) as excinfo:
+        _compare_section_texts(
+            client=object(),
+            model="gpt-4o",
+            section_key="gestion_risques",
+            text_t1="### Cadre de gestion [pdf.82]\n\nCorps.",
+            text_t2="### Cadre de gestion\n\nCorps.",
+        )
+
+    assert "[pdf.82]" in str(excinfo.value)
+    assert "gestion_risques" in str(excinfo.value)
 
 
 def test_build_text_extraction_markdown_excludes_orphan_heading_from_matching() -> None:
