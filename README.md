@@ -86,11 +86,15 @@ copy .env.example .env      # puis renseigner OPENAI_API_KEY
 
 `uv` reste préférable pour la reproductibilité et les workflows dev. `pip` suffit pour exécuter les pipelines applicatifs sans changement de code sur les scripts principaux.
 
-`requirements.txt` couvre les dépendances runtime. Les dépendances de développement comme `pytest` et `reportlab` ne sont pas incluses dans le parcours `pip` standard.
+`requirements.txt` couvre les dépendances runtime. Les dépendances de développement comme `pytest` ne sont pas incluses dans le parcours `pip` standard.
 
-Pour un poste analyste qui doit uniquement lancer l'interface Dash en consultation/validation
-des résultats déjà générés, utiliser plutôt `requirements-validateur.txt`. Ce fichier
-n'installe pas les dépendances de pipeline (`docling`, `openai`, `scipy`, etc.).
+Le paquet PDF attendu est `PyMuPDF` et le namespace utilise par le projet est
+`pymupdf`. Ne pas installer le paquet PyPI distinct nomme `fitz` : il est sans
+lien avec PyMuPDF et entre en conflit avec son ancien alias de compatibilite.
+
+Les postes qui consultent et valident uniquement des resultats existants peuvent
+utiliser `requirements-validateur.txt`. Ce profil leger n'installe ni Docling ni
+le client OpenAI et ne peut donc pas lancer d'extraction ou d'appel LLM.
 
 ---
 
@@ -170,9 +174,12 @@ Le trimestre de référence est déduit automatiquement :
 # Flux complet : extraction + comparaison indicateurs + comparaison texte
 python run_full_pipeline.py --banque BNC --annee 2025 --T2
 
-# Réutiliser les extractions indicateurs existantes (tables.json déjà présents)
+# Reutiliser les extractions indicateurs existantes (tables.json deja presents)
 # Le pipeline texte fait toujours son extraction de texte
 python run_full_pipeline.py --banque BNC --annee 2025 --T2 --sans-extraction
+
+# Forcer la re-extraction texte
+python run_full_pipeline.py --banque BNC --annee 2025 --T2 --forcer-extraction
 
 # Indicateurs seulement (sauter le pipeline texte)
 python run_full_pipeline.py --banque BNC --annee 2025 --T2 --sans-texte
@@ -195,6 +202,7 @@ uv run python run_full_pipeline.py --banque BNC --annee 2025 --T2
 | `--annee` | Année du rapport courant (ex : `2025`) |
 | `--T1` / `--T2` / `--T3` / `--T4` | Trimestre courant (flags exclusifs) |
 | `--sans-extraction` | Saute l’extraction indicateurs — le pipeline texte s’exécute en entier |
+| `--forcer-extraction` | Force la ré-extraction texte même si les artefacts existent |
 | `--sans-comparaison` | Saute toutes les comparaisons GPT-4o (indicateurs et texte) |
 | `--sans-indicateurs` | Ignore entièrement le pipeline indicateurs (tableaux chiffrés) |
 | `--sans-texte` | Ignore entièrement le pipeline texte (risques, capital, etc.) |
@@ -211,24 +219,24 @@ Il est aussi possible de lancer chaque pipeline séparément.
 **Pipeline indicateurs uniquement :**
 
 ```bash
-# Extraction + Comparaison complètes des tableaux
-python run_pipeline.py --bank TD --year 2026 --quarter T1
+# Extraction + Comparaison completes des tableaux
+python run_pipeline.py --banque TD --annee 2026 --T1
 
-# Réutiliser l’extraction existante (tables.json déjà présent)
-python run_pipeline.py --bank TD --year 2026 --quarter T1 --skip-extraction
+# Reutiliser l'extraction existante (tables.json deja present)
+python run_pipeline.py --banque TD --annee 2026 --T1 --sans-extraction
 
-# Sauter la comparaison (re-triage uniquement)
-python run_pipeline.py --bank TD --year 2026 --quarter T1 --skip-comparison
+# Sauter la comparaison (re-extraction uniquement)
+python run_pipeline.py --banque TD --annee 2026 --T1 --sans-comparaison
 ```
 
 **Pipeline texte uniquement :**
 
 ```bash
-# Extraction + Comparaison sémantique par sous-sections (T2 vs T1)
-python run_text_pipeline.py --bank BNS --year 2025 --T2
+# Extraction + Comparaison semantique par sous-sections (T2 vs T1)
+python run_text_pipeline.py --banque BNS --annee 2025 --T2
 
 # Sauter la comparaison (extraction seulement)
-python run_text_pipeline.py --bank BNS --year 2025 --T2 --skip-comparison
+python run_text_pipeline.py --banque BNS --annee 2025 --T2 --sans-comparaison
 ```
 
 ---
@@ -249,7 +257,7 @@ Les comparaisons indicateurs et texte partagent la même racine `outputs/resulta
 ### Option A — Avec `uv`
 
 ```bash
-uv run python -m vigilance.dash_app.app
+uv run python -m vigie.interface.app
 ```
 
 ### Dash — Linux / macOS
@@ -262,67 +270,63 @@ bash scripts/run_dash.sh
 ### Dash — Windows (PowerShell)
 
 ```powershell
-uv run python -m vigilance.dash_app.app
+uv run python -m vigie.interface.app
 ```
 
-### Validateur Dash — Windows sans pipeline ni LLM
+### Validateur leger sans LLM — Windows, macOS et Linux
 
-Ce mode sert aux postes Desjardins qui consultent uniquement les fichiers déjà
-présents dans `outputs/resultats` ou dans un dossier `resultats` synchronisé
-SharePoint/OneDrive. Il ne lance pas l'extraction PDF et ne fait aucun appel LLM.
-Les dépendances LLM et le pipeline (docling, openai, scipy…) ne sont **pas**
-installés sur le poste analyste : seul `requirements-validateur.txt` est requis.
-Pour le validateur, privilégier une installation `pip` dans un environnement
-virtuel Windows. `uv` reste réservé aux postes de développement et au pipeline
-complet.
+Le validateur sert aux analystes qui consultent les fichiers deja produits dans
+`outputs/resultats` ou dans un dossier synchronise. Il ne lance ni extraction,
+ni comparaison, ni appel LLM. Il s'execute avec Python directement : aucun
+`.exe` et aucun packaging PyInstaller ne sont utilises.
 
-La commande à lancer côté analyste est `vigie.validateur` (façade francophone
-qui appelle le lecteur interne `vigilance.dash_app.reader`).
+```bash
+python -m venv .venv
+```
 
-Python doit être en version `>=3.10`. Les postes employés peuvent avoir des
-versions différentes : vérifier d'abord la version utilisée par la commande
-`python`.
-
-#### Installation recommandée avec `pip`
+Activation de l'environnement :
 
 ```powershell
-python --version
-python -m venv .venv
+# Windows PowerShell
 .venv\Scripts\Activate.ps1
+```
+
+```bash
+# macOS / Linux
+source .venv/bin/activate
+```
+
+Installation et lancement, identiques sur les trois plateformes :
+
+```bash
 python -m pip install --upgrade pip
 python -m pip install -r requirements-validateur.txt
 python -m pip install -e . --no-deps
-python -m vigie.validateur
+python -m vigie.interface.validator --resultats /chemin/vers/resultats
 ```
 
-> Après `pip install -e .`, la commande console `vigie-validateur` est aussi
-> disponible et équivaut à `python -m vigie.validateur`.
-
-Si `python --version` retourne une version inférieure à `3.10`, utiliser le
-launcher Windows pour choisir une version installée compatible :
+Sous Windows, un chemin peut par exemple etre fourni ainsi :
 
 ```powershell
-py -0p
-py -3.10 -m venv .venv
+python -m vigie.interface.validator --resultats "C:\Users\analyste\Vigie\resultats"
 ```
 
-Au premier lancement, l'application demande le dossier `resultats`. Il est aussi
-possible de le fixer explicitement :
+Le dossier peut aussi etre defini avec `VIGIE_RESULTATS_DIR`. Sans argument ni
+variable, un selecteur de dossier est affiche et le choix est memorise dans le
+dossier de configuration standard de l'OS : `%APPDATA%` sous Windows,
+`~/Library/Application Support` sous macOS et `$XDG_CONFIG_HOME` ou `~/.config`
+sous Linux.
 
-```powershell
-$env:VIGIE_RESULTATS_DIR="C:\Users\<utilisateur>\Desjardins\Vigie\resultats"
-python -m vigie.validateur
+Options utiles :
+
+```text
+--analyste NOM       identifiant du fichier de validation individuel
+--port PORT          port Dash prefere
+--sans-navigateur    ne pas ouvrir le navigateur automatiquement
 ```
 
-Si Windows affiche `No module named vigie` ou `No module named vigilance`,
-relancer l'installation locale depuis la racine du projet avec le même
-environnement virtuel activé :
-
-```powershell
-python -m pip install -e . --no-deps
-python -c "import vigie, vigilance; print('vigie_ok')"
-python -m vigie.validateur
-```
+La commande console `vigie-validateur` est equivalente a
+`python -m vigie.interface.validator`.
 
 ### Dash complet — Avec `pip`
 
@@ -330,7 +334,7 @@ Le mode `pip` est officiellement documenté pour les pipelines CLI. Pour Dash, i
 
 ```bash
 python -m pip install -e .
-python -m vigilance.dash_app.app
+python -m vigie.interface.app
 ```
 
 Le script `bash scripts/run_dash.sh` dépend de `uv` et ne convient pas à un environnement `pip` pur.

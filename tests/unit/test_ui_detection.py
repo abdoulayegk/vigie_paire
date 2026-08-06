@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from vigilance.ui_detection import _fallback_sections
+from vigie.interface.ui_detection import _fallback_sections
 
 
 def test_fallback_sections_splits_capital_and_risks() -> None:

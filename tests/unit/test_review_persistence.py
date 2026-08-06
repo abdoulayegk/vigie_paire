@@ -5,16 +5,16 @@ from pathlib import Path
 import pytest
 from types import SimpleNamespace
 
-from vigilance.comparison_canonical import to_canonical_payload
-from vigilance.dash_app.callbacks import dashboard_flow as dashboard_mod
-from vigilance.dash_app.callbacks import review_flow as review_mod
-from vigilance.dash_app.services.export_helpers import _review_items_from_v2_queue
-from vigilance.quarter_utils import quarter_label_from_payload
-from vigilance.review_adapters import build_review_items_from_indicator_result
-from vigilance.review_models import ReviewItem
-from vigilance.review_queue_normalizer import build_normalized_review_queue
-from vigilance.review_storage import load_review_state, save_review_state
-from vigilance.ui_io import load_comparison_result
+from vigie.comparaison.canonical import to_canonical_payload
+from vigie.interface.callbacks import dashboard_flow as dashboard_mod
+from vigie.interface.callbacks import review_flow as review_mod
+from vigie.interface.services.export_helpers import _review_items_from_v2_queue
+from vigie.support.quarter_utils import quarter_label_from_payload
+from vigie.interface.review_adapters import build_review_items_from_indicator_result
+from vigie.interface.review_models import ReviewItem
+from vigie.interface.review_queue_normalizer import build_normalized_review_queue
+from vigie.interface.review_storage import load_review_state, save_review_state
+from vigie.interface.ui_io import load_comparison_result
 
 
 class _FakeTable:
@@ -152,12 +152,10 @@ def test_init_review_items_restores_persisted_state(monkeypatch, tmp_path) -> No
         lambda *args, **kwargs: [_FakeTable(persisted_queue[0])],
     )
 
-    serialized, serialized_v2, selection, _last_positions, change_idx = (
-        dashboard_mod.init_review_items(
-            {"bank_code": "bnc", "quarter_from": "q1", "quarter_to": "q2"},
-            {"pdf_previous": "/tmp/t1.pdf", "pdf_current": "/tmp/t2.pdf"},
-            {"compare_path": str(compare_path)},
-        )
+    serialized, serialized_v2, selection, _last_positions, change_idx = dashboard_mod.init_review_items(
+        {"bank_code": "bnc", "quarter_from": "q1", "quarter_to": "q2"},
+        {"pdf_previous": "/tmp/t1.pdf", "pdf_current": "/tmp/t2.pdf"},
+        {"compare_path": str(compare_path)},
     )
 
     assert serialized_v2 == persisted_queue
@@ -166,9 +164,7 @@ def test_init_review_items_restores_persisted_state(monkeypatch, tmp_path) -> No
     assert change_idx == 0
 
 
-def test_init_review_items_discards_incompatible_persisted_state(
-    monkeypatch, tmp_path
-) -> None:
+def test_init_review_items_discards_incompatible_persisted_state(monkeypatch, tmp_path) -> None:
     compare_path = tmp_path / "bnc_q2_vs_q1_2025.json"
     compare_path.write_text("{}", encoding="utf-8")
     save_review_state(
@@ -249,12 +245,10 @@ def test_init_review_items_discards_incompatible_persisted_state(
         ],
     )
 
-    serialized, serialized_v2, selection, _last_positions, change_idx = (
-        dashboard_mod.init_review_items(
-            {"bank_code": "bnc", "quarter_from": "q1", "quarter_to": "q2"},
-            {"pdf_previous": "/tmp/t1.pdf", "pdf_current": "/tmp/t2.pdf"},
-            {"compare_path": str(compare_path)},
-        )
+    serialized, serialized_v2, selection, _last_positions, change_idx = dashboard_mod.init_review_items(
+        {"bank_code": "bnc", "quarter_from": "q1", "quarter_to": "q2"},
+        {"pdf_previous": "/tmp/t1.pdf", "pdf_current": "/tmp/t2.pdf"},
+        {"compare_path": str(compare_path)},
     )
 
     assert serialized[0]["change_id"] == "fresh-1"
@@ -264,9 +258,7 @@ def test_init_review_items_discards_incompatible_persisted_state(
     assert change_idx == 0
 
 
-def test_init_review_items_v2_ignores_legacy_cursor_restore(
-    monkeypatch, tmp_path
-) -> None:
+def test_init_review_items_v2_ignores_legacy_cursor_restore(monkeypatch, tmp_path) -> None:
     compare_path = tmp_path / "td_q1_vs_q3_2026.json"
     compare_path.write_text("{}", encoding="utf-8")
     save_review_state(
@@ -349,12 +341,10 @@ def test_init_review_items_v2_ignores_legacy_cursor_restore(
         ],
     )
 
-    serialized, serialized_v2, selection, _last_positions, change_idx = (
-        dashboard_mod.init_review_items(
-            {"bank_code": "td", "quarter_from": "q3", "quarter_to": "q1"},
-            {"pdf_previous": "/tmp/t1.pdf", "pdf_current": "/tmp/t2.pdf"},
-            {"compare_path": str(compare_path)},
-        )
+    serialized, serialized_v2, selection, _last_positions, change_idx = dashboard_mod.init_review_items(
+        {"bank_code": "td", "quarter_from": "q3", "quarter_to": "q1"},
+        {"pdf_previous": "/tmp/t1.pdf", "pdf_current": "/tmp/t2.pdf"},
+        {"compare_path": str(compare_path)},
     )
 
     assert serialized[0]["change_id"] == "fresh-1"
@@ -365,22 +355,8 @@ def test_init_review_items_v2_ignores_legacy_cursor_restore(
 
 def test_td_review_queue_keeps_structure_and_actions_tables_separate() -> None:
     repo_root = Path(__file__).resolve().parents[2]
-    compare_new = (
-        repo_root
-        / "outputs"
-        / "resultats"
-        / "td"
-        / "2026_t1_vs_2025_t3"
-        / "comparison.json"
-    )
-    compare_legacy = (
-        repo_root
-        / "outputs"
-        / "comparisons"
-        / "td"
-        / "2026_t1_vs_2025_t3"
-        / "comparison.json"
-    )
+    compare_new = repo_root / "outputs" / "resultats" / "td" / "2026_t1_vs_2025_t3" / "comparison.json"
+    compare_legacy = repo_root / "outputs" / "comparisons" / "td" / "2026_t1_vs_2025_t3" / "comparison.json"
     compare_path = compare_new if compare_new.exists() else compare_legacy
     if not compare_path.exists():
         pytest.skip("Fixture comparison.json introuvable (resultats ou comparisons).")
@@ -418,7 +394,7 @@ def test_td_review_queue_keeps_structure_and_actions_tables_separate() -> None:
 
 
 def test_legacy_review_callbacks_are_removed() -> None:
-    from vigilance.dash_app import app as _app_mod
+    from vigie.interface import app as _app_mod
 
     assert not hasattr(_app_mod, "on_modern_nav")
     assert not hasattr(_app_mod, "on_review_navigate")

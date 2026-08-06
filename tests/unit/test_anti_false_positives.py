@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-from vigilance.config import get_matching_thresholds
-from vigilance.extraction.docling_normalization import _is_footnote_row
-from vigilance.utils.indicator_cleaner import (
+from vigie.support.config import get_matching_thresholds
+from vigie.extraction.docling_normalization import _is_footnote_row
+from vigie.support.utils.indicator_cleaner import (
     is_header_footer_table_title,
     strip_note_refs_from_title,
 )
-from vigilance.utils.matching_normalizer import (
+from vigie.support.utils.matching_normalizer import (
     _classify_excluded_line,
     is_date_only_line,
     is_non_indicator_line,
@@ -17,9 +17,12 @@ from vigilance.utils.matching_normalizer import (
 
 def test_is_date_only_line_unit_headers() -> None:
     """is_date_only_line filtre correctement les unites et dates."""
-    assert is_date_only_line(
-        "(en milliers d'actions / de parts et en millions de dollars canadiens, sauf indication contraire)"
-    ) is True
+    assert (
+        is_date_only_line(
+            "(en milliers d'actions / de parts et en millions de dollars canadiens, sauf indication contraire)"
+        )
+        is True
+    )
     assert is_date_only_line("(en millions de dollars canadiens) Au 31 janvier 2025") is True
     assert is_date_only_line("Dépôts personnels") is False
 
@@ -74,13 +77,17 @@ def test_is_header_footer_table_title() -> None:
 # Tests for aggressive unit/period/date exclusion (false-positive suppression)
 # ---------------------------------------------------------------------------
 
+
 class TestClassifyExcludedLineUnitPeriod:
     """_classify_excluded_line excludes unit/period headers aggressively."""
 
     def test_en_millions_de_dollars_sauf(self) -> None:
-        assert _classify_excluded_line(
-            "En millions de dollars, sauf les montants par action et les pourcentages au 31 janvier 2025"
-        ) == "unit"
+        assert (
+            _classify_excluded_line(
+                "En millions de dollars, sauf les montants par action et les pourcentages au 31 janvier 2025"
+            )
+            == "unit"
+        )
 
     def test_en_millions(self) -> None:
         assert _classify_excluded_line("En millions") == "unit"
@@ -92,9 +99,7 @@ class TestClassifyExcludedLineUnitPeriod:
         assert _classify_excluded_line("En millions de dollars,") == "unit"
 
     def test_moyenne_du_trimestre_clos(self) -> None:
-        assert _classify_excluded_line(
-            "moyenne du trimestre clos le 31 janvier 2025"
-        ) == "unit"
+        assert _classify_excluded_line("moyenne du trimestre clos le 31 janvier 2025") == "unit"
 
     def test_en_milliards(self) -> None:
         assert _classify_excluded_line("En milliards de dollars") == "unit"
@@ -182,17 +187,13 @@ class TestClassifyExcludedLineExactRegression:
         assert _classify_excluded_line("En millions") == "unit"
 
     def test_en_millions_de_dollars_sauf_indication_contraire_unit(self) -> None:
-        assert _classify_excluded_line(
-            "En millions de dollars, sauf indication contraire"
-        ) == "unit"
+        assert _classify_excluded_line("En millions de dollars, sauf indication contraire") == "unit"
 
     def test_au_31_janvier_2025_date(self) -> None:
         assert _classify_excluded_line("Au 31 janvier 2025") == "date"
 
     def test_en_millions_de_dollars_au_31_janvier_2025_unit(self) -> None:
-        assert _classify_excluded_line(
-            "En millions de dollars, au 31 janvier 2025"
-        ) == "unit"
+        assert _classify_excluded_line("En millions de dollars, au 31 janvier 2025") == "unit"
 
     def test_31_janvier_2025_1_2_date(self) -> None:
         assert _classify_excluded_line("31 janvier 2025 1, 2") == "date"

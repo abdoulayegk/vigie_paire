@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 
-from vigilance.dash_app.services.review_writeback import write_back_to_disk
+from vigie.interface.services.review_writeback import write_back_to_disk
 
 
 def test_write_back_to_disk_treats_skipped_as_pending(tmp_path, monkeypatch) -> None:
@@ -34,7 +34,7 @@ def test_write_back_to_disk_treats_skipped_as_pending(tmp_path, monkeypatch) -> 
         called["xlsx"] = True
 
     monkeypatch.setattr(
-        "vigilance.dash_app.services.review_writeback.generate_comparison_excel",
+        "vigie.interface.services.review_writeback.generate_comparison_excel",
         _fake_generate_comparison_excel,
     )
     queue = [

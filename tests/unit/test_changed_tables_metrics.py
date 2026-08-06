@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import pytest
 
-from vigilance.comparison_canonical import (
+from vigie.comparaison.canonical import (
     _is_comparison_changed,
     compute_changed_tables_t1,
     compute_changed_tables_t2,
@@ -71,21 +71,15 @@ class TestIsComparisonChanged:
         assert _is_comparison_changed(c)
 
     def test_structure_change_is_changed(self):
-        c = _make_comparison(
-            "a", "b", status="structure_change", structure_change=True
-        )
+        c = _make_comparison("a", "b", status="structure_change", structure_change=True)
         assert _is_comparison_changed(c)
 
     def test_footnote_only_change_is_changed(self):
-        c = _make_comparison(
-            "a", "b", status="stable", footnotes_counts={"added": 1, "removed": 0, "modified": 0}
-        )
+        c = _make_comparison("a", "b", status="stable", footnotes_counts={"added": 1, "removed": 0, "modified": 0})
         assert _is_comparison_changed(c)
 
     def test_zero_footnotes_stable_is_not_changed(self):
-        c = _make_comparison(
-            "a", "b", status="stable", footnotes_counts={"added": 0, "removed": 0, "modified": 0}
-        )
+        c = _make_comparison("a", "b", status="stable", footnotes_counts={"added": 0, "removed": 0, "modified": 0})
         assert not _is_comparison_changed(c)
 
 
@@ -123,7 +117,8 @@ class TestComputeChangedTablesDeduplication:
             _make_comparison("t1_1", "t2_1", status="modifie", added=["ind_new"]),
             _make_comparison("t1_2", "t2_2", status="stable"),
             _make_comparison(
-                "t1_dup", "t2_split_a",
+                "t1_dup",
+                "t2_split_a",
                 status="structure_change",
                 structure_change=True,
             ),
@@ -157,13 +152,16 @@ class TestComputeChangedTablesFootnotesOnly:
     """Footnote-only changes should count as changed."""
 
     def test_footnote_change_counted(self):
-        result = _make_result([
-            _make_comparison(
-                "t1_fn", "t2_fn",
-                status="stable",
-                footnotes_counts={"added": 0, "removed": 2, "modified": 0},
-            ),
-        ])
+        result = _make_result(
+            [
+                _make_comparison(
+                    "t1_fn",
+                    "t2_fn",
+                    status="stable",
+                    footnotes_counts={"added": 0, "removed": 2, "modified": 0},
+                ),
+            ]
+        )
         assert compute_changed_tables_t1(result) == 1
         assert compute_changed_tables_t2(result) == 1
 

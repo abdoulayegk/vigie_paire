@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from vigilance.extraction.vision_full_extractor import (
+from vigie.extraction.vision_full import (
     OPENAI_VISION_TIMEOUT_SECONDS,
     VisionFullExtractor,
     VisionFullResult,
@@ -13,8 +13,8 @@ from vigilance.extraction.vision_full_extractor import (
     _normalize_footnote_marker_id,
     _select_targeted_rescue_variant,
 )
-from vigilance.extraction.vision_qa_inspector import QAResult
-from vigilance.utils.page_layout_context import clamp_variant_crop_to_neighbors
+from vigie.extraction.vision_qa_inspector import QAResult
+from vigie.support.utils.page_layout_context import clamp_variant_crop_to_neighbors
 
 
 def _result(
@@ -41,7 +41,7 @@ def _result(
 @pytest.fixture(autouse=True)
 def _stub_qa_inspector(monkeypatch) -> None:
     monkeypatch.setattr(
-        "vigilance.extraction.vision_qa_inspector.VisionTableInspector.inspect_extraction",
+        "vigie.extraction.vision_qa_inspector.VisionTableInspector.inspect_extraction",
         lambda self, image_bytes, extracted_json: QAResult(
             is_perfect=True,
             missing_elements=[],
@@ -69,6 +69,29 @@ def test_vision_client_uses_direct_120_second_timeout(monkeypatch) -> None:
         }
     ]
     assert OPENAI_VISION_TIMEOUT_SECONDS == 120.0
+
+
+def test_vision_extractor_exposes_model_metadata() -> None:
+    extractor = VisionFullExtractor(api_key="test-key", model="gpt-4o-test")
+
+    assert extractor.model_name == "gpt-4o-test"
+    assert extractor.model_role == "extraction_primary"
+
+
+def test_vision_schema_validation_is_callable_and_idempotent(monkeypatch) -> None:
+    extractor = VisionFullExtractor(api_key="test-key", model="gpt-4o-test")
+    validated_schemas: list[dict] = []
+
+    monkeypatch.setattr(
+        "vigie.extraction.vision_full.extractor._validate_openai_strict_schema_contract",
+        validated_schemas.append,
+    )
+
+    extractor.validate_schema()
+    extractor.validate_schema()
+
+    assert len(validated_schemas) == 1
+    assert extractor._schema_contract_checked == {"full"}
 
 
 @pytest.mark.parametrize(
@@ -108,7 +131,7 @@ def test_quality_pass_uses_only_bottom_extension_for_missing_footnote(
         )
 
     monkeypatch.setattr(
-        "vigilance.extraction.vision_qa_inspector.VisionTableInspector.inspect_extraction",
+        "vigie.extraction.vision_qa_inspector.VisionTableInspector.inspect_extraction",
         fake_inspect,
     )
 
@@ -346,10 +369,7 @@ def test_quality_pass_recovers_date_labeled_horizontal_rows_from_page_context(
     assert result.extraction_status == "rescued"
     assert result.selected_candidate_name == "page_context_rescue"
     assert result.indicators == ["Au 31 janvier 2025", "Au 31 octobre 2024"]
-    assert any(
-        "dates or periods" in instruction.lower()
-        for instruction in rescue_instructions
-    )
+    assert any("dates or periods" in instruction.lower() for instruction in rescue_instructions)
 
 
 def test_quality_pass_preserves_three_generic_rows_without_summary(
@@ -991,11 +1011,11 @@ def test_extract_cache_hit_preserves_decision_metadata(
         use_cache=True,
     )
     monkeypatch.setattr(
-        "vigilance.extraction.vision_full_extractor.get_vision_cache_dir",
+        "vigie.extraction.vision_full.extractor.get_vision_cache_dir",
         lambda: tmp_path,
     )
     monkeypatch.setattr(
-        "vigilance.extraction.vision_full_extractor.cache_get",
+        "vigie.extraction.vision_full.extractor.cache_get",
         lambda cache_dir, cache_key: {
             "table_title": "Tableau 1 - Capital",
             "table_summary": "Ratios de capital réglementaires",
@@ -1048,7 +1068,7 @@ def test_extract_ignores_cached_result_without_structural_rows(
         use_cache=True,
     )
     monkeypatch.setattr(
-        "vigilance.extraction.vision_full_extractor.cache_get",
+        "vigie.extraction.vision_full.extractor.cache_get",
         lambda *_args: {
             "table_title": "Correction de valeur",
             "table_summary": "",
@@ -1089,7 +1109,7 @@ def test_quality_pass_cache_preserves_final_self_healing_decision(
         use_cache=True,
     )
     monkeypatch.setattr(
-        "vigilance.extraction.vision_full_extractor.get_vision_cache_dir",
+        "vigie.extraction.vision_full.quality_pass.get_vision_cache_dir",
         lambda: tmp_path,
     )
     calls: list[bytes] = []
@@ -1135,7 +1155,7 @@ def test_quality_pass_does_not_cache_unresolved_empty_candidate(
         use_cache=True,
     )
     monkeypatch.setattr(
-        "vigilance.extraction.vision_full_extractor.get_vision_cache_dir",
+        "vigie.extraction.vision_full.quality_pass.get_vision_cache_dir",
         lambda: tmp_path,
     )
     calls: list[bytes] = []

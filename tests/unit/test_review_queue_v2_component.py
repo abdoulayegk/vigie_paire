@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dash.development.base_component import Component
 
-from vigilance.dash_app.components.review_queue_v2 import build_review_queue_v2
+from vigie.interface.components.review_queue_v2 import build_review_queue_v2
 
 
 def _collect_component_ids(node: object, acc: list[object]) -> None:

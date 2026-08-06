@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from vigilance.dash_app.components.table_title_resolver import resolve_display_table_title
+from vigie.interface.components.table_title_resolver import resolve_display_table_title
 
 
 def test_resolve_display_table_title_existing_valid_title() -> None:

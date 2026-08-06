@@ -10,7 +10,7 @@ from types import SimpleNamespace
 
 import yaml
 
-from vigilance.cli.run_tables import main
+from vigie.cli.run_tables import main
 
 
 def test_run_tables_keeps_section_context(tmp_path: Path, monkeypatch) -> None:
@@ -40,7 +40,7 @@ def test_run_tables_keeps_section_context(tmp_path: Path, monkeypatch) -> None:
         encoding="utf-8",
     )
 
-    fake_module = types.ModuleType("vigilance.extraction.docling_processor")
+    fake_module = types.ModuleType("vigie.extraction.docling.processor")
 
     def fake_extract_tables_docling_by_sections(
         pdf_path: str,
@@ -69,22 +69,22 @@ def test_run_tables_keeps_section_context(tmp_path: Path, monkeypatch) -> None:
         return out
 
     fake_module.extract_tables_docling_by_sections = fake_extract_tables_docling_by_sections
-    monkeypatch.setitem(sys.modules, "vigilance.extraction.docling_processor", fake_module)
+    monkeypatch.setitem(sys.modules, "vigie.extraction.docling.processor", fake_module)
 
     out_root = tmp_path / "outputs"
     main(
         [
-            "--bank",
+            "--banque",
             "rbc",
             "--pdf",
             "dummy.pdf",
-            "--quarter",
+            "--trimestre",
             "t1-2025",
             "--config",
             str(cfg_path),
             "--ranges_json",
             str(ranges_path),
-            "--out_root",
+            "--sortie",
             str(out_root),
         ]
     )

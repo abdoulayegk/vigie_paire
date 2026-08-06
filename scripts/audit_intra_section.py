@@ -33,6 +33,7 @@ def _is_unknown(section: Any) -> bool:
 
 
 def build_report(payload: dict[str, Any]) -> dict[str, Any]:
+    """Construit le rapport d'audit des appariements intra-section d'un payload."""
     pairs = _extract_pairs(payload)
     unmatched_t1 = _extract_entries(payload, "unmatched_t1")
     unmatched_t2 = _extract_entries(payload, "unmatched_t2")
@@ -54,9 +55,7 @@ def build_report(payload: dict[str, Any]) -> dict[str, Any]:
         ):
             cross_section_pairs += 1
 
-    unknown_unmatched = sum(
-        1 for item in [*unmatched_t1, *unmatched_t2] if _is_unknown(item.get("section"))
-    )
+    unknown_unmatched = sum(1 for item in [*unmatched_t1, *unmatched_t2] if _is_unknown(item.get("section")))
     potential_false_positive_signals = cross_section_pairs + unknown_matched_pairs
 
     return {
@@ -75,6 +74,7 @@ def build_report(payload: dict[str, Any]) -> dict[str, Any]:
 
 
 def main() -> None:
+    """Point d'entrée CLI: lit un payload de comparaison et écrit le rapport d'audit."""
     parser = argparse.ArgumentParser(description="Audit strict intra-section comparison payloads.")
     parser.add_argument("--input", required=True, help="Path to comparison JSON output")
     parser.add_argument("--output", required=True, help="Path to write audit JSON report")

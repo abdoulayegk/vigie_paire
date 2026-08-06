@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from vigilance import comparison_runner as cr
+from vigie.comparaison import runner as cr
 
 
 def _write_tables_json(path: Path, *, bank: str, year: int, quarter: str, table_id: str, title: str) -> None:
@@ -89,13 +89,7 @@ def test_run_comparison_with_sections_returns_dash_canonical(
         assert kwargs["source_pdf_current"].endswith("/curr.pdf")
         assert kwargs["runtime_extraction_sec"] >= 0.0
         assert set(kwargs["extraction_run_metrics"]) == {"previous", "current"}
-        out_path = (
-            Path(out_root)
-            / "bnc"
-            / "2026_t1_vs_2025_t3"
-            / "20260323_143015"
-            / "comparison.json"
-        )
+        out_path = Path(out_root) / "bnc" / "2026_t1_vs_2025_t3" / "20260323_143015" / "comparison.json"
         out_path.parent.mkdir(parents=True, exist_ok=True)
         out_path.write_text(
             json.dumps(
@@ -218,17 +212,13 @@ def test_run_comparison_with_sections_returns_dash_canonical(
     assert result["quarter_to"] == "Q1-2026"
     assert result["summary"]["tables_matched"] == 1
     assert result["meta"]["source_format"] == "report_comparison"
-    assert result["meta"]["compare_path"].endswith(
-        "2026_t1_vs_2025_t3/20260323_143015/comparison.json"
-    )
+    assert result["meta"]["compare_path"].endswith("2026_t1_vs_2025_t3/20260323_143015/comparison.json")
     assert result["meta"]["reference_resolution"]["quarter_previous"] == "t3"
     assert result["meta"]["run_id"] == "20260323_143015"
     assert result["meta"]["pdf_paths"]["pdf_previous"] == "/archive/prev.pdf"
     assert result["meta"]["pdf_paths"]["pdf_current"] == "/archive/curr.pdf"
     assert result["meta"]["run_metrics"]["comparison_calls_total"] == 1
-    assert result["meta"]["extraction_sources"]["previous"]["tables_path"].endswith(
-        "/2025/t3/tables.json"
-    )
+    assert result["meta"]["extraction_sources"]["previous"]["tables_path"].endswith("/2025/t3/tables.json")
     assert result["table_comparisons"][0]["table_id_t1"] == "prev_1"
     assert result["table_comparisons"][0]["bbox_t1"] == [0.1, 0.2, 0.8, 0.7]
     assert result["table_comparisons"][0]["bbox_t2"] == [0.1, 0.2, 0.8, 0.7]
@@ -261,7 +251,7 @@ def test_extract_tables_reuses_schema_v7_storage(
         raise AssertionError("fresh extraction should not run when schema_version=7 is already stored")
 
     monkeypatch.setattr(
-        "vigilance.extraction.docling_processor.extract_tables_docling_by_sections",
+        "vigie.extraction.docling.processor.extract_tables_docling_by_sections",
         should_not_extract,
     )
 

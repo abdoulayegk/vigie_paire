@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from vigilance.extraction.page_table_locator import (
+from vigie.extraction.page_table_locator import (
     OPENAI_PAGE_LOCATOR_TIMEOUT_SECONDS,
     PageTableLocator,
     _parse_page_layout,
@@ -61,6 +61,44 @@ def test_crop_plan_rejects_low_confidence_locator_region() -> None:
 
     assert layout is not None
     assert build_page_table_crop_plan(layout, [0.09, 0.19, 0.91, 0.42]) is None
+
+
+def test_crop_plan_preserves_docling_left_edge_when_locator_cuts_labels() -> None:
+    """Le localisateur serre parfois la grille et coupe la colonne de libelles.
+
+    L'ancre Docling (target_bbox) est plus large a gauche : le plan doit
+    restaurer ce bord gauche sans toucher au cadrage vertical du locator.
+    """
+    payload = {
+        "tables": [
+            {
+                # Locator serre sur la grille (bord gauche trop a droite).
+                "table_bbox": [0.24, 0.12, 0.93, 0.56],
+                "title_bbox": [0.07, 0.08, 0.70, 0.11],
+                "footnotes_bbox": [0.07, 0.57, 0.90, 0.62],
+                "title_text": "Tableau 43",
+                "continuation": False,
+                "confidence": 0.97,
+            }
+        ],
+        "table_count": 1,
+    }
+    layout = _parse_page_layout(payload, page_number=87)
+    assert layout is not None
+
+    # Ancre Docling pleine largeur (colonne des libelles incluse).
+    plan = build_page_table_crop_plan(
+        layout,
+        [0.065, 0.087, 0.936, 0.558],
+    )
+
+    assert plan is not None
+    assert plan.bbox_norm[0] == pytest.approx(0.065)
+    assert plan.bbox_norm[1] == pytest.approx(0.12)
+    assert plan.bbox_norm[2] == pytest.approx(0.936)
+    assert plan.bbox_norm[3] == pytest.approx(0.56)
+    assert plan.top_extension == pytest.approx(0.045)
+    assert plan.bottom_extension == pytest.approx(0.065)
 
 
 def test_near_full_page_plan_accepts_one_reliable_region() -> None:

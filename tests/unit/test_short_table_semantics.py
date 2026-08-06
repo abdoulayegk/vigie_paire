@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from vigilance.comparison_io import _is_ghost_table
-from vigilance.extraction.vision_full_extractor import (
+from vigie.comparaison.io import _is_ghost_table
+from vigie.extraction.vision_full import (
     VisionFullResult,
     _grade_extraction_quality,
     _structural_indicator_count,
@@ -49,9 +49,7 @@ def test_narrative_text_without_headers_remains_a_ghost_table() -> None:
             "table_id": "narrative",
             "title": "Rapport de gestion",
             "headers": [],
-            "indicators": [
-                "Le tableau présente les principales tendances observées au cours du trimestre."
-            ],
+            "indicators": ["Le tableau présente les principales tendances observées au cours du trimestre."],
         }
     )
 

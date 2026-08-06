@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from vigilance.analyst_change_presentation import (
+from vigie.comparaison.analyst_change_presentation import (
     build_analyst_narrative,
     build_change_presentation,
     business_relevance_paragraph,
@@ -89,9 +89,7 @@ def test_build_change_presentation_keeps_only_the_main_factual_sentence() -> Non
         ),
     )
 
-    assert presentation.summary == (
-        "BMO ajoute la surveillance des risques liés à l’IA."
-    )
+    assert presentation.summary == ("BMO ajoute la surveillance des risques liés à l’IA.")
 
 
 def test_business_relevance_removes_repeated_factual_sentence() -> None:
@@ -108,8 +106,7 @@ def test_business_relevance_removes_repeated_factual_sentence() -> None:
     )
 
     assert result == (
-        "Cet ajout permet de comparer la gouvernance et les pratiques de gestion "
-        "de l’IA entre les banques."
+        "Cet ajout permet de comparer la gouvernance et les pratiques de gestion de l’IA entre les banques."
     )
     assert result.count("introduit une nouvelle section") == 0
 
@@ -183,32 +180,19 @@ def test_structured_narrative_has_priority_and_preserves_bmo_na() -> None:
         "change_summary": "Résumé historique qui ne doit pas être publié.",
         "genai_triage": {
             "is_relevant": True,
-            "changement_constate": (
-                "Le rapport courant remplace BMO Harris Bank N.A. "
-                "par BMO Bank N.A."
-            ),
-            "signification_metier": (
-                "Cette mise à jour clarifie la dénomination juridique utilisée."
-            ),
-            "comparaison_interbanques": (
-                "Elle permet de comparer les entités juridiques visées par les banques."
-            ),
-            "limite_interpretation": (
-                "La divulgation ne démontre aucun changement de pratique."
-            ),
+            "changement_constate": ("Le rapport courant remplace BMO Harris Bank N.A. par BMO Bank N.A."),
+            "signification_metier": ("Cette mise à jour clarifie la dénomination juridique utilisée."),
+            "comparaison_interbanques": ("Elle permet de comparer les entités juridiques visées par les banques."),
+            "limite_interpretation": ("La divulgation ne démontre aucun changement de pratique."),
             "motif_non_pertinence": "",
-            "relevance_reason": (
-                "RAISON LEGACY contradictoire qui ne doit jamais être reparsée."
-            ),
+            "relevance_reason": ("RAISON LEGACY contradictoire qui ne doit jamais être reparsée."),
         },
     }
 
     narrative = build_analyst_narrative(change, bank_code="bmo")
 
     assert narrative.source == "structured"
-    assert narrative.changement_constate == (
-        "BMO remplace BMO Harris Bank N.A. par BMO Bank N.A."
-    )
+    assert narrative.changement_constate == ("BMO remplace BMO Harris Bank N.A. par BMO Bank N.A.")
     assert narrative.pertinence_metier == (
         "Cette mise à jour clarifie la dénomination juridique utilisée. "
         "Elle permet de comparer les entités juridiques visées par les banques. "
@@ -224,18 +208,13 @@ def test_structured_secondary_narrative_uses_only_non_relevance_reason() -> None
         "diff_type": "modified",
         "genai_triage": {
             "is_relevant": False,
-            "changement_constate": (
-                "BMO reformule la dénomination BMO Bank N.A. sans changer le fond."
-            ),
+            "changement_constate": ("BMO reformule la dénomination BMO Bank N.A. sans changer le fond."),
             "signification_metier": "",
             "comparaison_interbanques": "",
             "limite_interpretation": "",
-            "motif_non_pertinence": (
-                "Cette reformulation ne crée aucune nouvelle pratique comparable."
-            ),
+            "motif_non_pertinence": ("Cette reformulation ne crée aucune nouvelle pratique comparable."),
             "relevance_reason": (
-                "BMO ajoute à tort un changement substantiel. "
-                "Cette phrase legacy ne doit pas être affichée."
+                "BMO ajoute à tort un changement substantiel. Cette phrase legacy ne doit pas être affichée."
             ),
         },
     }
@@ -243,9 +222,7 @@ def test_structured_secondary_narrative_uses_only_non_relevance_reason() -> None
     narrative = build_analyst_narrative(change, bank_code="bmo")
 
     assert narrative.pertinence_metier == ""
-    assert narrative.motif_non_pertinence == (
-        "Cette reformulation ne crée aucune nouvelle pratique comparable."
-    )
+    assert narrative.motif_non_pertinence == ("Cette reformulation ne crée aucune nouvelle pratique comparable.")
     assert narrative.business_relevance == narrative.motif_non_pertinence
     assert "legacy" not in narrative.business_relevance.lower()
 
@@ -265,12 +242,8 @@ def test_legacy_narrative_still_splits_factual_and_business_units() -> None:
     narrative = build_analyst_narrative(change, bank_code="cibc")
 
     assert narrative.source == "legacy"
-    assert narrative.changement_constate == (
-        "CIBC ajoute un contrôle annuel de cybersécurité."
-    )
-    assert narrative.pertinence_metier == (
-        "Cet ajout rend la fréquence du contrôle comparable entre les banques."
-    )
+    assert narrative.changement_constate == ("CIBC ajoute un contrôle annuel de cybersécurité.")
+    assert narrative.pertinence_metier == ("Cet ajout rend la fréquence du contrôle comparable entre les banques.")
     assert "ajoute un contrôle annuel" not in narrative.business_relevance
 
 

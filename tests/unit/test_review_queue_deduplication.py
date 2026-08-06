@@ -7,14 +7,14 @@ Tests cover:
 - ReviewTableItem: summary computation and status
 """
 
-from vigilance.review_models_v2 import (
+from vigie.interface.review_models_v2 import (
     ChangeItem,
     ChangeType,
     ReviewTableItem,
     compute_table_key,
     legacy_change_type_to_new,
 )
-from vigilance.review_queue_normalizer import (
+from vigie.interface.review_queue_normalizer import (
     _change_exists,
     normalize_review_queue,
     sort_review_tables_by_priority,
@@ -479,13 +479,9 @@ class TestChangeExists:
     def test_renamed_match(self):
         """Should detect duplicate renamed by from_clean and to_clean."""
         existing = [
-            ChangeItem(
-                "1", "indicator_renamed", {"from_clean": "old", "to_clean": "new"}
-            ),
+            ChangeItem("1", "indicator_renamed", {"from_clean": "old", "to_clean": "new"}),
         ]
-        new = ChangeItem(
-            "2", "indicator_renamed", {"from_clean": "old", "to_clean": "new"}
-        )
+        new = ChangeItem("2", "indicator_renamed", {"from_clean": "old", "to_clean": "new"})
 
         assert _change_exists(existing, new)
 

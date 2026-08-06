@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from vigilance.comparison_visual_sanity import (
+from vigie.comparaison.visual_sanity import (
     render_visual_sanity_proof,
     visual_sanity_check,
     visual_sanity_check_table_event,
@@ -45,9 +45,7 @@ def test_visual_sanity_filters_indicator_and_footnote_rejections() -> None:
     )
 
     assert result["technical_diff"]["indicators_added"] == []
-    assert result["technical_diff"]["footnotes_added"] == [
-        {"id": "7", "text": "Nouvelle note", "reason": "new"}
-    ]
+    assert result["technical_diff"]["footnotes_added"] == [{"id": "7", "text": "Nouvelle note", "reason": "new"}]
     assert result["technical_diff"]["table_level_change"] == "modifie"
     assert result["visual_sanity_applied"] is True
     assert result["visual_sanity_rejected_count"] == 1
@@ -114,7 +112,7 @@ def test_render_visual_sanity_proof_allows_full_page_fallback(
     monkeypatch,
 ) -> None:
     monkeypatch.setattr(
-        "vigilance.comparison_visual_sanity.render_full_proof_bytes",
+        "vigie.comparaison.visual_sanity.render_full_proof_bytes",
         lambda *args, **kwargs: (b"page-proof", "ok", "full_without_bbox"),
     )
 

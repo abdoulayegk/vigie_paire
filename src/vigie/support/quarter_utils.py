@@ -1,0 +1,257 @@
+"""Helpers d'appariement de trimestres pour les comparaisons courant-vs-precedent."""
+
+from __future__ import annotations
+
+import re
+from dataclasses import dataclass
+from typing import Any
+
+_QUARTER_RE = re.compile(r"(?i)\b([qt])\s*([1-4])(?:\s*[-_/ ]\s*((?:19|20)\d{2}))?\b")
+_YEAR_QUARTER_RE = re.compile(r"(?i)\b((?:19|20)\d{2})\s*[-_/ ]\s*([qt])\s*([1-4])\b")
+
+
+def format_quarter_label(
+    quarter: "QuarterRef | int | str | None",
+    year: int | str | None = None,
+) -> str:
+    """Retourner le libelle canonique du depot comme ``Q2-2025``."""
+    if isinstance(quarter, QuarterRef):
+        return f"Q{quarter.quarter}-{quarter.year}"
+
+    if isinstance(quarter, int):
+        if year is None:
+            raise ValueError("Quarter year is required when quarter is numeric.")
+        return f"Q{quarter}-{int(year)}"
+
+    text = str(quarter or "").strip()
+    if not text:
+        return str(year or "")
+
+    match = _QUARTER_RE.search(text)
+    if match:
+        quarter_num = int(match.group(2))
+        resolved_year = match.group(3) or year
+        if resolved_year is None:
+            return f"Q{quarter_num}"
+        return f"Q{quarter_num}-{int(resolved_year)}"
+
+    return text
+
+
+def format_quarter_display_label(
+    quarter: "QuarterRef | int | str | None",
+    year: int | str | None = None,
+) -> str:
+    """Retourner le libelle utilisateur francais comme ``T2 2025``."""
+    if isinstance(quarter, QuarterRef):
+        return f"T{quarter.quarter} {quarter.year}"
+
+    if isinstance(quarter, int):
+        if year is None:
+            raise ValueError("Quarter year is required when quarter is numeric.")
+        return f"T{quarter} {int(year)}"
+
+    text = str(quarter or "").strip()
+    if not text:
+        return str(year or "")
+
+    try:
+        ref = parse_quarter_ref(text, year=year)
+    except Exception:
+        return text.replace("Q", "T").replace("q", "T")
+    return f"T{ref.quarter} {ref.year}"
+
+
+@dataclass(frozen=True, slots=True)
+class QuarterRef:
+    """Reference immutable a un trimestre (numero + annee)."""
+
+    quarter: int
+    year: int
+
+    @property
+    def code(self) -> str:
+        """Retourner le code canonique (ex. ``t2``)."""
+        return f"t{self.quarter}"
+
+    @property
+    def label(self) -> str:
+        """Retourner le libelle formate (ex. ``Q2-2025``)."""
+        return format_quarter_label(self)
+
+    @property
+    def display_label(self) -> str:
+        """Retourner le libelle utilisateur francais (ex. ``T2 2025``)."""
+        return format_quarter_display_label(self)
+
+
+def parse_quarter_ref(value: str | None, *, year: int | str | None = None) -> QuarterRef:
+    """Parser une reference de trimestre depuis des formats comme ``T2 2025``, ``Q2-2025`` ou ``T2``."""
+    text = str(value or "").strip()
+    if not text:
+        raise ValueError("Quarter value is required.")
+
+    year_first = _YEAR_QUARTER_RE.search(text)
+    if year_first:
+        return QuarterRef(
+            quarter=int(year_first.group(3)),
+            year=int(year_first.group(1)),
+        )
+
+    match = _QUARTER_RE.search(text)
+    if not match:
+        raise ValueError(f"Unsupported quarter format: {text!r}")
+
+    quarter_num = int(match.group(2))
+    parsed_year = match.group(3)
+    effective_year = int(parsed_year) if parsed_year else int(year) if year is not None else None
+    if effective_year is None:
+        raise ValueError(f"Quarter year is required for {text!r}")
+    return QuarterRef(quarter=quarter_num, year=int(effective_year))
+
+
+def previous_comparable_quarter(current: QuarterRef) -> QuarterRef:
+    """Retourner le trimestre comparable precedent.
+
+    Regle metier : T2 -> T1 meme annee, T3 -> T2 meme annee,
+    T1 -> T3 annee N-1, T4 -> T4 annee N-1.
+    """
+    if current.quarter == 1:
+        return QuarterRef(quarter=3, year=current.year - 1)
+    if current.quarter == 4:
+        return QuarterRef(quarter=4, year=current.year - 1)
+    return QuarterRef(quarter=current.quarter - 1, year=current.year)
+
+
+def build_quarter_context(
+    current_quarter: str | None,
+    *,
+    year: int | str | None = None,
+    previous_quarter: str | None = None,
+) -> dict[str, Any]:
+    """Construire un contexte canonique de trimestres courant/precedent."""
+    current_ref = parse_quarter_ref(current_quarter, year=year)
+    previous_ref = (
+        parse_quarter_ref(previous_quarter)
+        if previous_quarter is not None and str(previous_quarter).strip()
+        else previous_comparable_quarter(current_ref)
+    )
+    return {
+        "current": {
+            "quarter": current_ref.quarter,
+            "year": current_ref.year,
+            "code": current_ref.code,
+            "label": current_ref.label,
+            "display_label": current_ref.display_label,
+        },
+        "previous": {
+            "quarter": previous_ref.quarter,
+            "year": previous_ref.year,
+            "code": previous_ref.code,
+            "label": previous_ref.label,
+            "display_label": previous_ref.display_label,
+        },
+        "comparison_direction": "current_vs_previous",
+        "comparison_label": f"{current_ref.label} vs {previous_ref.label}",
+        "comparison_display_label": f"{current_ref.display_label} vs {previous_ref.display_label}",
+    }
+
+
+def get_payload_quarter_context(payload: dict[str, Any] | None) -> dict[str, Any]:
+    """Extraire le contexte de trimestres depuis un payload de comparaison (meilleur effort)."""
+    data = payload or {}
+    meta = data.get("meta") if isinstance(data, dict) else {}
+    if isinstance(meta, dict):
+        ctx = meta.get("quarter_context")
+        if isinstance(ctx, dict) and isinstance(ctx.get("current"), dict) and isinstance(ctx.get("previous"), dict):
+            current_ctx = ctx.get("current") or {}
+            previous_ctx = ctx.get("previous") or {}
+
+            current_quarter = (
+                current_ctx.get("label")
+                or current_ctx.get("code")
+                or (
+                    f"Q{int(current_ctx.get('quarter'))}-{int(current_ctx.get('year'))}"
+                    if current_ctx.get("quarter") and current_ctx.get("year")
+                    else ""
+                )
+            )
+            previous_quarter = (
+                previous_ctx.get("label")
+                or previous_ctx.get("code")
+                or (
+                    f"Q{int(previous_ctx.get('quarter'))}-{int(previous_ctx.get('year'))}"
+                    if previous_ctx.get("quarter") and previous_ctx.get("year")
+                    else ""
+                )
+            )
+            current_year = current_ctx.get("year")
+            previous_year = previous_ctx.get("year")
+            if current_quarter:
+                try:
+                    previous_quarter_value = (
+                        str(parse_quarter_ref(str(previous_quarter), year=previous_year).label)
+                        if previous_quarter and previous_year
+                        else str(previous_quarter or "") or None
+                    )
+                    return build_quarter_context(
+                        str(current_quarter),
+                        year=current_year,
+                        previous_quarter=previous_quarter_value,
+                    )
+                except Exception:
+                    pass
+            return ctx
+
+    current_label = str(
+        data.get("current_quarter", "") or data.get("quarter_current", "") or data.get("quarter_to", "")
+    ).strip()
+    previous_label = str(
+        data.get("previous_quarter", "") or data.get("quarter_previous", "") or data.get("quarter_from", "")
+    ).strip()
+    fallback_year = data.get("year") or data.get("year_current")
+    previous_year = data.get("year_previous")
+    if current_label:
+        try:
+            return build_quarter_context(
+                current_label,
+                year=fallback_year,
+                previous_quarter=(
+                    str(parse_quarter_ref(previous_label, year=previous_year).label)
+                    if previous_label and previous_year
+                    else previous_label or None
+                ),
+            )
+        except Exception:
+            pass
+    return {
+        "current": {
+            "label": "Trimestre courant",
+            "display_label": "Trimestre courant",
+            "code": "",
+            "quarter": None,
+            "year": fallback_year,
+        },
+        "previous": {
+            "label": "Trimestre précédent",
+            "display_label": "Trimestre précédent",
+            "code": "",
+            "quarter": None,
+            "year": fallback_year,
+        },
+        "comparison_direction": "current_vs_previous",
+        "comparison_label": "Trimestre courant vs trimestre précédent",
+        "comparison_display_label": "Trimestre courant vs trimestre précédent",
+    }
+
+
+def quarter_label_from_payload(payload: dict[str, Any] | None, role: str) -> str:
+    """Retourner le libelle du trimestre ``current`` ou ``previous`` pour l'affichage."""
+    ctx = get_payload_quarter_context(payload)
+    if role == "current":
+        current = ctx.get("current", {})
+        return str(current.get("display_label") or current.get("label") or "Trimestre courant")
+    if role == "previous":
+        previous = ctx.get("previous", {})
+        return str(previous.get("display_label") or previous.get("label") or "Trimestre précédent")
+    raise ValueError(f"Unsupported quarter role: {role!r}")

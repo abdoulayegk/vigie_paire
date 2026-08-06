@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dash.development.base_component import Component
 
-from vigilance.dash_app.callbacks.export_flow import render_export_tab
+from vigie.interface.callbacks.export_flow import render_export_tab
 
 
 def _collect_component_ids(node: object, acc: list[object]) -> None:

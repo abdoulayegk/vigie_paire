@@ -4,15 +4,15 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from vigilance.extraction.docling_processor import (
+from vigie.extraction.docling import (
     DoclingProcessor,
     ExtractedTable,
 )
-from vigilance.extraction.locator_merge_reconciliation import (
+from vigie.extraction.locator_merge_reconciliation import (
     _is_locator_merge_conflict,
     _reconcile_on_demand_locator_merges,
 )
-from vigilance.extraction.vision_full_extractor import VisionFullResult
+from vigie.extraction.vision_full import VisionFullResult
 
 
 def test_page_context_inventory_padding_includes_section_boundaries() -> None:
@@ -186,9 +186,7 @@ def test_on_demand_locator_collapses_contained_docling_copy() -> None:
         bbox_source="docling",
     )
 
-    reconciled = _reconcile_on_demand_locator_merges(
-        [locator, contained_docling]
-    )
+    reconciled = _reconcile_on_demand_locator_merges([locator, contained_docling])
 
     assert len(reconciled) == 1
     assert reconciled[0].bbox == locator.bbox
@@ -204,15 +202,15 @@ def test_page_context_bbox_replaces_docling_bbox_and_preserves_suspect_status(
     corrected_bbox = [0.08, 0.18, 0.92, 0.52]
 
     monkeypatch.setattr(
-        "vigilance.utils.pdf_crop.is_bbox_sane",
+        "vigie.support.utils.pdf_crop.is_bbox_sane",
         lambda *_args, **_kwargs: (True, None, {}),
     )
     monkeypatch.setattr(
-        "vigilance.utils.pdf_crop.crop_table_region_to_bytes",
+        "vigie.support.utils.pdf_crop.crop_table_region_to_bytes",
         lambda *_args, **_kwargs: b"crop",
     )
     monkeypatch.setattr(
-        "vigilance.utils.page_layout_context.compute_dynamic_extensions",
+        "vigie.support.utils.page_layout_context.compute_dynamic_extensions",
         lambda **_kwargs: (0.0, 0.0),
     )
 
@@ -280,7 +278,7 @@ def test_unresolved_near_full_page_bbox_is_preserved_as_suspect(
     original_bbox = [0.01, 0.01, 0.99, 0.99]
 
     monkeypatch.setattr(
-        "vigilance.utils.pdf_crop.is_bbox_sane",
+        "vigie.support.utils.pdf_crop.is_bbox_sane",
         lambda *_args, **_kwargs: (
             False,
             "bbox_near_full_page",
@@ -313,9 +311,7 @@ def test_unresolved_near_full_page_bbox_is_preserved_as_suspect(
                     "bbox_original": original_bbox,
                     "bbox_source": "near_full_page_unresolved",
                     "table_count": 2,
-                    "bbox_verification_reason": (
-                        "near_full_page_multiple_regions"
-                    ),
+                    "bbox_verification_reason": ("near_full_page_multiple_regions"),
                 }
             },
         },
@@ -326,7 +322,4 @@ def test_unresolved_near_full_page_bbox_is_preserved_as_suspect(
     assert table.debug_metrics["bbox_source"] == "near_full_page_unresolved"
     assert table.debug_metrics["bbox_verified"] is False
     assert table.debug_metrics["page_context_table_count"] == 2
-    assert (
-        table.debug_metrics["bbox_verification_reason"]
-        == "near_full_page_multiple_regions"
-    )
+    assert table.debug_metrics["bbox_verification_reason"] == "near_full_page_multiple_regions"

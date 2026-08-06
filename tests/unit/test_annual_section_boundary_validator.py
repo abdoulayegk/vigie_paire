@@ -2,18 +2,18 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from vigilance.extraction.annual_section_boundary_validator import (
+from vigie.extraction.annual_section_boundary_validator import (
     AnnualSectionBoundaryValidator,
     StructuredTOCEntry,
     parse_docling_toc_markdown,
     reconcile_boundary_roles,
 )
-from vigilance.extraction.genai_toc_detector import (
+from vigie.extraction.genai_toc_detector import (
     AnnualTOCAnalysis,
     PageTransitionValidation,
     TOCBoundaryRole,
 )
-from vigilance.extraction.section_locator import LocatedSection
+from vigie.extraction.localisation_sections import LocatedSection
 
 
 BNC_TOC_MARKDOWN = """
@@ -227,10 +227,7 @@ def test_validator_corrects_bnc_2023_risk_boundary_to_page_108() -> None:
             end_detection_method="annual_t4_safety_cap_no_successor",
         ),
     ]
-    text_by_page = {
-        page: ""
-        for page in range(1, 241)
-    }
+    text_by_page = {page: "" for page in range(1, 241)}
     text_by_page.update(
         {
             55: "Gestion du capital\nRatios de fonds propres",
@@ -251,10 +248,7 @@ def test_validator_corrects_bnc_2023_risk_boundary_to_page_108() -> None:
     assert by_type["capital_management"].end_page == 63
     assert by_type["risk_management"].start_page == 64
     assert by_type["risk_management"].end_page == 108
-    assert (
-        by_type["risk_management"].end_detection_method
-        == "annual_t4_vision_verified_successor"
-    )
+    assert by_type["risk_management"].end_detection_method == "annual_t4_vision_verified_successor"
     assert outcome.diagnostics["page_offset"] == 2
     assert outcome.diagnostics["offset_votes"] == [2, 2]
     assert outcome.diagnostics["status"] == "verified"

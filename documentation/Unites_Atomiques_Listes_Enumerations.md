@@ -679,16 +679,16 @@ Ces champs sont additionnels et ne cassent pas les consommateurs existants.
 
 | Fichier | Responsabilité |
 | --- | --- |
-| `src/vigilance/text_analysis/atomic_units.py` | Détection et décomposition des listes et énumérations |
-| `src/vigilance/text_analysis/atomic_alignment.py` | Texte de similarité, compatibilité des rôles et départage par marqueur |
+| `src/vigie/analyse_texte/atomic_units.py` | Détection et décomposition des listes et énumérations |
+| `src/vigie/analyse_texte/atomic_alignment.py` | Texte de similarité, compatibilité des rôles et départage par marqueur |
 
 ### 13.2 Modules adaptés
 
 | Fichier | Modification |
 | --- | --- |
-| `src/vigilance/text_analysis/chunking.py` | Création des parents, enfants et métadonnées |
-| `src/vigilance/text_analysis/chunk_alignment.py` | Similarité sans marqueur et alignement anti-bruit |
-| `src/vigilance/text_analysis/comparison.py` | Diff exact sans marqueur et propagation des métadonnées |
+| `src/vigie/analyse_texte/chunking.py` | Création des parents, enfants et métadonnées |
+| `src/vigie/analyse_texte/chunk_alignment.py` | Similarité sans marqueur et alignement anti-bruit |
+| `src/vigie/analyse_texte/comparison.py` | Diff exact sans marqueur et propagation des métadonnées |
 
 ### 13.3 Tests
 

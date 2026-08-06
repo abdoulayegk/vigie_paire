@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from vigilance.extraction.section_locator import (
+from vigie.extraction.localisation_sections import (
     LocatedSection,
     SectionLocator,
     TocEntry,
@@ -48,36 +48,11 @@ def test_cibc_page_number_offset_from_config() -> None:
 
 def test_period_page_number_offset_overrides_default() -> None:
     """Un offset par periode prend priorite sur l'offset par defaut."""
-    assert (
-        SectionLocator(
-            bank_code="cibc", quarter="t4", year=2025
-        )._get_page_number_offset()
-        == 13
-    )
-    assert (
-        SectionLocator(
-            bank_code="cibc", quarter="t4", year=2024
-        )._get_page_number_offset()
-        == 16
-    )
-    assert (
-        SectionLocator(
-            bank_code="cibc", quarter="t1", year=2025
-        )._get_page_number_offset()
-        == 3
-    )
-    assert (
-        SectionLocator(
-            bank_code="bnc", quarter="t4", year=2025
-        )._get_page_number_offset()
-        == 0
-    )
-    assert (
-        SectionLocator(
-            bank_code="bnc", quarter="t4", year=2024
-        )._get_page_number_offset()
-        == 2
-    )
+    assert SectionLocator(bank_code="cibc", quarter="t4", year=2025)._get_page_number_offset() == 13
+    assert SectionLocator(bank_code="cibc", quarter="t4", year=2024)._get_page_number_offset() == 16
+    assert SectionLocator(bank_code="cibc", quarter="t1", year=2025)._get_page_number_offset() == 3
+    assert SectionLocator(bank_code="bnc", quarter="t4", year=2025)._get_page_number_offset() == 0
+    assert SectionLocator(bank_code="bnc", quarter="t4", year=2024)._get_page_number_offset() == 2
 
 
 def test_offset_applied_only_to_document_sections() -> None:
@@ -148,10 +123,7 @@ def test_t4_toc_parser_scans_annual_report_front_matter() -> None:
     entries = locator._parse_full_toc(text_by_page)
 
     assert any(e.title == "Situation des fonds propres" and e.page == 75 for e in entries)
-    assert any(
-        e.title == "Facteurs de risque et gestion des risques" and e.page == 84
-        for e in entries
-    )
+    assert any(e.title == "Facteurs de risque et gestion des risques" and e.page == 84 for e in entries)
 
 
 def test_non_t4_toc_parser_keeps_existing_front_matter_window() -> None:
@@ -159,9 +131,7 @@ def test_non_t4_toc_parser_keeps_existing_front_matter_window() -> None:
     locator = SectionLocator(bank_code="td", quarter="t3", year=2025)
     text_by_page = {page: "" for page in range(1, 131)}
     text_by_page[18] = (
-        "Table des matières\n"
-        "75 Situation des fonds propres\n"
-        "84 Facteurs de risque et gestion des risques"
+        "Table des matières\n75 Situation des fonds propres\n84 Facteurs de risque et gestion des risques"
     )
 
     assert locator._parse_full_toc(text_by_page) == []

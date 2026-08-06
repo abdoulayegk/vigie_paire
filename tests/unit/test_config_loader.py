@@ -1,14 +1,13 @@
-"""Tests for vigilance.config.loader."""
+"""Tests for vigie.support.config.loader."""
 
 from __future__ import annotations
 
-import tempfile
 from pathlib import Path
 
 import pytest
 import yaml
 
-from vigilance.config.loader import get_bank_cfg, load_config
+from vigie.support.config.loader import get_bank_cfg, load_config
 
 
 @pytest.fixture()
@@ -57,26 +56,28 @@ def test_load_config_file_not_found() -> None:
 
 def test_get_validation_config(tmp_path: Path) -> None:
     """get_validation_config loads validation section with bank override."""
-    from vigilance.config import get_validation_config
+    from vigie.support.config import get_validation_config
 
     cfg = tmp_path / "bank_profiles.yaml"
     cfg.write_text(
-        yaml.dump({
-            "version": "1.0",
-            "validation": {
-                "vision_pair_validation": True,
-                "rename_validator_enabled": True,
-                "rename_validator_uncertain_score_band": [0.8, 0.93],
-            },
-            "banks": {
-                "td": {
-                    "validation": {
-                        "rename_validator_confidence_min": 0.9,
-                        "rename_validator_uncertain_score_band": [0.82, 0.9],
+        yaml.dump(
+            {
+                "version": "1.0",
+                "validation": {
+                    "vision_pair_validation": True,
+                    "rename_validator_enabled": True,
+                    "rename_validator_uncertain_score_band": [0.8, 0.93],
+                },
+                "banks": {
+                    "td": {
+                        "validation": {
+                            "rename_validator_confidence_min": 0.9,
+                            "rename_validator_uncertain_score_band": [0.82, 0.9],
+                        },
                     },
                 },
-            },
-        }),
+            }
+        ),
         encoding="utf-8",
     )
     val = get_validation_config(str(cfg), bank_code=None)

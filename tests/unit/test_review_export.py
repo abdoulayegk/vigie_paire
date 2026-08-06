@@ -4,7 +4,7 @@ import io
 
 from openpyxl import load_workbook
 
-from vigilance.review_export import (
+from vigie.interface.review_export import (
     EXPERT_EXCEL_COLUMNS,
     EXPERT_EXCEL_SHEET_REVIEW,
     EXPERT_EXCEL_SHEET_SUMMARY,
@@ -12,7 +12,7 @@ from vigilance.review_export import (
     generate_validation_excel,
     generate_validation_txt,
 )
-from vigilance.review_models import ReviewItem
+from vigie.interface.review_models import ReviewItem
 
 
 def test_generate_validation_csv_includes_comment_in_summary_without_schema_change() -> None:
@@ -114,9 +114,7 @@ def test_generate_validation_excel_generates_expert_workbook() -> None:
     assert wb.sheetnames == [EXPERT_EXCEL_SHEET_SUMMARY, EXPERT_EXCEL_SHEET_REVIEW]
 
     ws_review = wb[EXPERT_EXCEL_SHEET_REVIEW]
-    headers = [
-        ws_review.cell(row=1, column=i).value for i in range(1, ws_review.max_column + 1)
-    ]
+    headers = [ws_review.cell(row=1, column=i).value for i in range(1, ws_review.max_column + 1)]
     assert headers == EXPERT_EXCEL_COLUMNS
     assert "pertinence_genai" not in headers
     assert "niveau_risque_genai" not in headers
@@ -168,9 +166,7 @@ def test_generate_validation_excel_generates_expert_workbook() -> None:
     assert summary_pairs["Notes modifiées"] == 1
 
     section_header_row = 15
-    section_headers = [
-        ws_summary.cell(row=section_header_row, column=i).value for i in range(1, 6)
-    ]
+    section_headers = [ws_summary.cell(row=section_header_row, column=i).value for i in range(1, 6)]
     assert section_headers == [
         "Section",
         "Nombre de changements",

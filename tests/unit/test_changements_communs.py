@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from vigilance.changements_communs import (
+from vigie.comparaison.changements_communs import (
     build_changements_communs_judge_messages,
     build_changements_communs_source_stats,
     changements_communs_output_path,
@@ -272,9 +272,7 @@ def test_generate_report_classifies_two_bank_signal_as_minor(tmp_path: Path) -> 
                         "status": "consensus_3_plus",
                         "banks": ["bmo", "bnc", "td"],
                         "posture_summary": "Les deux banques renforcent leur suivi.",
-                        "mise_en_oeuvre_summary": (
-                            "Les rapports décrivent des mesures en cours."
-                        ),
+                        "mise_en_oeuvre_summary": ("Les rapports décrivent des mesures en cours."),
                         "confiance_posture": "Moyenne",
                         "evidence": [
                             {
@@ -286,7 +284,7 @@ def test_generate_report_classifies_two_bank_signal_as_minor(tmp_path: Path) -> 
                                 "record_id": record_ids[1],
                                 "quote": "tarifs douaniers",
                                 "why_relevant": "preuve bnc",
-                            }
+                            },
                         ],
                     }
                 ]
@@ -327,9 +325,7 @@ def test_generate_report_classifies_two_bank_signal_as_minor(tmp_path: Path) -> 
     assert signal["min_banks_met"] is False
     assert signal["status"] == "signal_mineur_2_banques"
     assert signal["posture_summary"] == "Les deux banques renforcent leur suivi."
-    assert signal["mise_en_oeuvre_summary"] == (
-        "Les rapports décrivent des mesures en cours."
-    )
+    assert signal["mise_en_oeuvre_summary"] == ("Les rapports décrivent des mesures en cours.")
     assert signal["confiance_posture"] == "Moyenne"
     assert report["signal_counts"] == {"total": 1, "consensus": 0, "minor": 1}
 

@@ -1,11 +1,11 @@
-"""Tests for the GenAI batch triage module (vigilance.genai_triage)."""
+"""Tests for the GenAI batch triage module (vigie.comparaison.triage.genai_triage)."""
 
 from __future__ import annotations
 
 import json
 from unittest.mock import patch
 
-from vigilance.genai_triage import (
+from vigie.comparaison.triage.genai_triage import (
     _build_change_prompt,
     _fallback_enrich,
     _has_meaningful_diff,
@@ -20,9 +20,7 @@ from vigilance.genai_triage import (
 # ---------------------------------------------------------------------------
 
 
-def _make_pair(
-    *, added=None, removed=None, renamed=None, fn_added=None, status="modifie"
-):
+def _make_pair(*, added=None, removed=None, renamed=None, fn_added=None, status="modifie"):
     return {
         "previous_table_id": "tbl_001",
         "current_table_id": "tbl_002",
@@ -213,6 +211,14 @@ class TestValidateTriageResponse:
         payload = self._base_payload()
         payload["risk_level"] = "CRITIQUE"
         result = _validate_triage_response(payload)
+        assert result["risk_level"] == "FAIBLE"
+
+    def test_irrelevant_forces_mineur_even_if_llm_returns_eleve(self):
+        payload = self._base_payload()
+        payload["risk_level"] = "ELEVE"
+        result = _validate_triage_response(payload)
+        assert result["is_relevant"] is False
+        assert result["impact_level"] == "MINEUR"
         assert result["risk_level"] == "FAIBLE"
 
     def test_confidence_clamped(self):
@@ -526,7 +532,7 @@ class TestEnrichComparison:
         path = tmp_path / "comparison.json"
         path.write_text(json.dumps(comparison), encoding="utf-8")
 
-        with patch("vigilance.utils.genai.get_openai_api_key", return_value=None):
+        with patch("vigie.support.utils.genai.get_openai_api_key", return_value=None):
             result_path = enrich_comparison_with_genai_triage(path)
 
         enriched = json.loads(result_path.read_text(encoding="utf-8"))
@@ -540,7 +546,7 @@ class TestEnrichComparison:
         path = tmp_path / "comparison.json"
         path.write_text(json.dumps(comparison), encoding="utf-8")
 
-        with patch("vigilance.utils.genai.get_openai_api_key", return_value=None):
+        with patch("vigie.support.utils.genai.get_openai_api_key", return_value=None):
             enrich_comparison_with_genai_triage(path)
 
         enriched = json.loads(path.read_text(encoding="utf-8"))

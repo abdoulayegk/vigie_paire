@@ -5,8 +5,8 @@ from pathlib import Path
 
 from dash.development.base_component import Component
 
-from vigilance.dash_app.layouts.sidebar import build_sidebar
-from vigilance.dash_app.services.comparison_store import build_file_comparison_store
+from vigie.interface.layouts.sidebar import build_sidebar
+from vigie.interface.services.comparison_store import build_file_comparison_store
 
 
 def _walk_components(node: object) -> list[Component]:
@@ -28,15 +28,9 @@ def test_sidebar_defaults_to_saved_analyses() -> None:
     sidebar = build_sidebar()
     components = _walk_components(sidebar)
     quarter_dropdown = next(
-        component
-        for component in components
-        if getattr(component, "id", None) == "current-quarter"
+        component for component in components if getattr(component, "id", None) == "current-quarter"
     )
-    radio = next(
-        component
-        for component in components
-        if getattr(component, "id", None) == "data-source-type"
-    )
+    radio = next(component for component in components if getattr(component, "id", None) == "data-source-type")
 
     assert [option["value"] for option in quarter_dropdown.options] == [
         "T1",
@@ -49,22 +43,16 @@ def test_sidebar_defaults_to_saved_analyses() -> None:
     assert labels == ["Analyses enregistrées"]
 
     saved_container = next(
-        component
-        for component in components
-        if getattr(component, "id", None) == "db-source-container"
+        component for component in components if getattr(component, "id", None) == "db-source-container"
     )
     upload_container = next(
-        component
-        for component in components
-        if getattr(component, "id", None) == "upload-source-container"
+        component for component in components if getattr(component, "id", None) == "upload-source-container"
     )
     assert saved_container.style == {"display": "block"}
     assert upload_container.style == {"display": "none"}
 
     source_wrapper = next(
-        component
-        for component in components
-        if getattr(component, "id", None) == "data-source-wrapper"
+        component for component in components if getattr(component, "id", None) == "data-source-wrapper"
     )
     assert source_wrapper.style == {"display": "none"}
 

@@ -8,50 +8,39 @@ version = "0.1.0"
 description = "Outil d'extraction et de comparaison de rapports bancaires PDF"
 requires-python = ">=3.10"
 dependencies = [
-    "rapidfuzz>=3.0.0",
     "scipy>=1.11.0",
+    "numpy>=1.26.0",
     "pyyaml>=6.0",
     "pdfplumber>=0.10",
     "dash>=4.0.0",
     "dash-bootstrap-components>=2.0.4",
     "pymupdf>=1.27.1",
+    "pillow>=10.0.0",
     "docling>=2.73.1",
     "python-dotenv>=1.2.1",
     "openai>=2.21.0",
     "openpyxl>=3.1.0",
     "pydantic>=2.0.0",
-    "reportlab>=4.0",
     "scikit-learn>=1.5.0",
+    "tqdm>=4.66.0",
 ]
 
 [project.scripts]
-vigie-run-ranges = "vigilance.cli.run_ranges:main"
-vigie-run-tables = "vigilance.cli.run_tables:main"
-vigie-run-extract-report = "vigilance.cli.run_extract_report:main"
-vigie-run-compare-gpt4o = "vigilance.cli.run_compare_gpt4o:main"
-vigie-run-changements-communs = "vigilance.cli.run_changements_communs:main"
-vigie-run = "run_full_pipeline:main"
-vigie-validateur = "vigie.validateur:main"
+vigie-run-ranges = "vigie.cli.run_ranges:main"
+vigie-run-tables = "vigie.cli.run_tables:main"
+vigie-run-extract-report = "vigie.cli.run_extract_report:main"
+vigie-run-compare-gpt4o = "vigie.cli.run_compare_gpt4o:main"
+vigie-run-changements-communs = "vigie.cli.run_changements_communs:main"
+vigie-run = "vigie.pipelines.complet:main"
+vigie-validateur = "vigie.interface.validator:main"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
-packages = [
-    "vigie",
-    "vigilance",
-    "vigilance.cli",
-    "vigilance.config",
-    "vigilance.dash_app",
-    "vigilance.dash_app.callbacks",
-    "vigilance.dash_app.components",
-    "vigilance.dash_app.layouts",
-    "vigilance.extraction",
-    "vigilance.i18n",
-    "vigilance.models",
-    "vigilance.quality",
-    "vigilance.report",
-    "vigilance.text_analysis",
-    "vigilance.utils",
-]
+
+# Decouverte automatique du package vigie (entree + coeur).
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["vigie*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -76,7 +65,11 @@ target-version = "py310"
 line-length = 120
 
 [tool.ruff.lint]
-select = ["D"]
+# D : docstrings. F : erreurs Pyflakes (noms non definis, imports morts,
+# variables locales inutilisees, redefinitions). F attrape des defauts que la
+# suite de tests ne voit pas — un appel a une fonction non importee ne casse
+# qu'a l'execution de la branche concernee.
+select = ["D", "F"]
 ignore = [
     "D105",
     "D107",

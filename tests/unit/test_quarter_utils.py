@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from vigilance.quarter_utils import (
+from vigie.support.quarter_utils import (
     build_quarter_context,
     format_quarter_display_label,
     quarter_label_from_payload,

@@ -4,17 +4,17 @@ from types import SimpleNamespace
 
 import pytest
 
-from vigilance.extraction.docling_processor import _build_indicator_reference_text
-from vigilance.extraction.vision_full_extractor import (
+from vigie.extraction.docling import _build_indicator_reference_text
+from vigie.extraction.vision_full import (
     VisionFullExtractor,
     VisionFullResult,
 )
-from vigilance.extraction.vision_qa_inspector import (
+from vigie.extraction.vision_qa_inspector import (
     OPENAI_VISION_QA_TIMEOUT_SECONDS,
     QAResult,
     VisionTableInspector,
 )
-from vigilance.utils.openai_schema import build_strict_openai_response_format
+from vigie.support.utils.openai_schema import build_strict_openai_response_format
 
 
 def _result(
@@ -39,7 +39,7 @@ def test_qa_prompt_limits_indicator_audit_to_leftmost_column() -> None:
 
     prompt = inspector._build_qa_prompt('{"indicators":["Programme A"]}')
 
-    assert 'FIRST / LEFTMOST COLUMN' in prompt
+    assert "FIRST / LEFTMOST COLUMN" in prompt
     assert 'Text appearing under "États-Unis", "Europe"' in prompt
     assert "must NEVER be reported as a missing indicator" in prompt
 
@@ -137,9 +137,7 @@ def test_qa_inspector_uses_openai_compatible_strict_schema(monkeypatch) -> None:
     class FakeOpenAI:
         def __init__(self, **kwargs) -> None:
             captured["client_kwargs"] = kwargs
-            self.beta = SimpleNamespace(
-                chat=SimpleNamespace(completions=FakeParseCompletions())
-            )
+            self.beta = SimpleNamespace(chat=SimpleNamespace(completions=FakeParseCompletions()))
 
     monkeypatch.setenv("OPENAI_API_KEY", "test-key")
     monkeypatch.setattr("openai.OpenAI", FakeOpenAI)

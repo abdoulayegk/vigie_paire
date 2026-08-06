@@ -1,14 +1,16 @@
 # Generated from pyproject.toml direct dependencies using versions resolved in uv.lock.
 # Python: >=3.10
 
-rapidfuzz==3.14.3
 scipy==1.15.3 ; python_version < "3.11"
 scipy==1.17.0 ; python_version >= "3.11"
+numpy==2.2.6 ; python_version < "3.11"
+numpy==2.4.2 ; python_version >= "3.11"
 PyYAML==6.0.3
 pdfplumber==0.11.9
 dash==4.0.0
 dash-bootstrap-components==2.0.4
 PyMuPDF==1.27.1
+Pillow==12.1.1
 docling==2.73.1
 python-dotenv==1.2.1
 openai==2.21.0
@@ -16,10 +18,10 @@ openpyxl==3.1.5
 pydantic==2.12.5
 scikit-learn==1.7.2 ; python_version < "3.11"
 scikit-learn==1.9.0 ; python_version >= "3.11"
+tqdm==4.67.3
 
 # Optional dev dependencies:
 # bandit[toml]==1.9.4
 # pre-commit==4.6.0
 # pytest==9.0.2
-# reportlab==4.4.10
 # ruff==0.14.10

@@ -4,13 +4,13 @@ from typing import Any
 
 from dash.development.base_component import Component
 
-from vigilance.dash_app.callbacks.text_flow import (
+from vigie.interface.callbacks.text_flow import (
     download_text_excel,
     filter_text_cards,
     render_text_analysis,
     show_remaining_text_changes,
 )
-from vigilance.dash_app.layouts.page_text_analysis import build_text_analysis_tab
+from vigie.interface.layouts.text_analysis import build_text_analysis_tab
 
 
 def _flat_text(node: object) -> str:
@@ -68,11 +68,11 @@ def test_download_text_excel_reload_latest_payload_before_export(monkeypatch) ->
         return b"excel-bytes"
 
     monkeypatch.setattr(
-        "vigilance.dash_app.services.text_comparison_store.load_text_comparison_for_dash",
+        "vigie.interface.services.text_comparison_store.load_text_comparison_for_dash",
         _fake_load_text_comparison_for_dash,
     )
     monkeypatch.setattr(
-        "vigilance.text_comparison.generate_text_comparison_excel",
+        "vigie.analyse_texte.text_comparison.generate_text_comparison_excel",
         _fake_generate_text_comparison_excel,
     )
 
@@ -259,9 +259,7 @@ def test_filter_text_cards_places_dates_and_reformulations_in_secondary_scope() 
 
 
 def test_filter_text_cards_groups_atomic_ideas_under_their_parent_context() -> None:
-    parent_context = (
-        "Notre cadre d’appétit pour le risque s’articule autour de cinq objectifs."
-    )
+    parent_context = "Notre cadre d’appétit pour le risque s’articule autour de cinq objectifs."
     text_data = {
         "bank_code": "bmo",
         "section_comparisons": [
@@ -278,13 +276,10 @@ def test_filter_text_cards_groups_atomic_ideas_under_their_parent_context() -> N
                         "parent_chunk_id_t2": "parent-1",
                         "parent_context_t2": parent_context,
                         "change_summary": (
-                            "Le T2 ajoute la surveillance des risques liés à "
-                            "l’intelligence artificielle."
+                            "Le T2 ajoute la surveillance des risques liés à l’intelligence artificielle."
                         ),
                         "source_text_t1": "Surveiller les risques technologiques.",
-                        "source_text_t2": (
-                            "Surveiller les risques technologiques et ceux liés à l’IA."
-                        ),
+                        "source_text_t2": ("Surveiller les risques technologiques et ceux liés à l’IA."),
                         "genai_triage": {
                             "is_relevant": True,
                             "nouvelle_idee": True,
@@ -300,13 +295,10 @@ def test_filter_text_cards_groups_atomic_ideas_under_their_parent_context() -> N
                         "parent_chunk_id_t2": "parent-1",
                         "parent_context_t2": parent_context,
                         "change_summary": (
-                            "Le T2 ajoute le renforcement de sa capacité à absorber "
-                            "les périodes de crise."
+                            "Le T2 ajoute le renforcement de sa capacité à absorber les périodes de crise."
                         ),
                         "source_text_t1": "Maintenir une solide situation de capital.",
-                        "source_text_t2": (
-                            "Maintenir une situation permettant d’absorber les crises."
-                        ),
+                        "source_text_t2": ("Maintenir une situation permettant d’absorber les crises."),
                         "genai_triage": {
                             "is_relevant": True,
                             "nouvelle_idee": True,
@@ -354,7 +346,7 @@ def test_text_analysis_banner_uses_auditable_text_total_not_retained_total() -> 
                 "total": 32,
                 "total_relevant": 17,
                 "by_impact": {"MAJEUR": 4, "MODERE": 13},
-            }
+            },
         },
         "section_comparisons": [
             {
@@ -437,9 +429,7 @@ def test_text_review_progress_counts_decisions_and_keeps_skipped_remaining() -> 
     rendered = _flat_text(view)
     progress = _find_by_id(view, "text-review-progress")
     progress_bar = next(
-        child
-        for child in progress.children
-        if isinstance(child, Component) and child.__class__.__name__ == "Progress"
+        child for child in progress.children if isinstance(child, Component) and child.__class__.__name__ == "Progress"
     )
 
     assert "3 / 5 décisions rendues" in rendered

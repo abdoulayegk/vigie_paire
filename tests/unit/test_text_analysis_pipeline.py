@@ -5,73 +5,93 @@ from pathlib import Path
 
 import pytest
 
-from vigilance.text_analysis_pipeline import (
-    _align_chunks_tfidf,
-    _build_comparison_batches,
-    _format_alignments_for_prompt,
+from vigie.analyse_texte.chunk_alignment import (
     ChunkAlignment,
     ChunkCandidate,
+    _align_chunks_tfidf,
+    _format_alignments_for_prompt,
+)
+from vigie.analyse_texte.chunking import _chunk_subsection_text
+from vigie.analyse_texte.comparaison_sections import (
+    _build_comparison_batches,
+    _compare_section_texts,
+)
+from vigie.analyse_texte.extraction import (
+    _build_section_audit,
+    _classify_block_type,
+    _extract_audits_for_pdf,
+)
+from vigie.analyse_texte.markdown import (
+    _build_text_extraction_markdown,
+    _build_text_extraction_markdown_from_blocks,
+    _extract_section_text_from_markdown,
+    _first_page_marker,
+    _format_page_suffix,
+    _parse_page_index_from_markdown,
+)
+from vigie.analyse_texte.models import (
     PDFBlock,
     ResolvedSection,
     SectionAudit,
-    SemanticUnit,
-    _allowed_target_sections,
-    _build_section_audit,
-    _build_global_summary,
-    _build_text_extraction_markdown,
-    _call_json_completion,
-    _chunk_subsection_text,
-    _classify_block_type,
-    _compare_section_texts,
-    _default_triage,
-    _derive_legacy_fields,
-    _extract_audits_for_pdf,
-    _extract_section_text_from_markdown,
-    _FEW_SHOT_TRIAGE_AMF,
-    _format_page_marker,
-    _format_page_suffix,
-    _gpt_match_orphan_headings,
-    _is_new_major_or_allowed_moderate,
-    _is_non_cosmetic_change,
+    TextAnalysisQualityError,
+)
+from vigie.analyse_texte.normalization import (
     _looks_like_footnote,
+    _sanitize_semantic_text,
+)
+from vigie.analyse_texte.openai_client import (
+    _call_json_completion,
     _max_output_tokens_for_model,
+)
+from vigie.analyse_texte.pipeline import run_text_analysis_pipeline
+from vigie.analyse_texte.sections import (
+    _allowed_target_sections,
+    _resolve_sections,
+    _section_window_for_page,
+)
+from vigie.analyse_texte.subsection_matching import (
+    _gpt_match_orphan_headings,
     _normalize_heading,
     _pair_subsections,
-    _parse_page_index_from_markdown,
     _parse_subsections,
-    _resolve_orphan_subsections,
-    _resolve_sections,
-    _rewrite_page_markers_for_display,
-    _sanitize_semantic_text,
-    _section_window_for_page,
-    TextAnalysisQualityError,
-    run_text_analysis_pipeline,
 )
-from vigilance.text_analysis.chunk_alignment import (
+from vigie.analyse_texte.summary import (
+    _build_global_summary,
+    _is_new_major_or_allowed_moderate,
+    _is_non_cosmetic_change,
+)
+from vigie.analyse_texte.triage_parts import (
+    _FEW_SHOT_TRIAGE_AMF,
+    _default_triage,
+    _derive_legacy_fields,
+)
+from vigie.analyse_texte.chunk_alignment import (
     _reassemble_adjacent_one_to_many,
     _tfidf_similarity_matrix_from_texts,
 )
-from vigilance.text_analysis.chunking import TextChunk
-from vigilance.text_analysis.semantic_chunking import SemanticChunkingError
-from vigilance.text_analysis.comparison import (
+from vigie.analyse_texte.chunking import TextChunk
+from vigie.analyse_texte.semantic_chunking import SemanticChunkingError
+from vigie.analyse_texte.comparaison_sections import (
     ChunkComparisonLLMResponse,
     _attach_alignment_metadata,
     _materialize_semantic_alignment_decisions,
 )
-from vigilance.text_analysis.global_reconciliation import (
+from vigie.analyse_texte.global_reconciliation import (
     _ReconciliationResponse,
     _components,
     _one_sided_nodes,
     reconcile_global_change_fragments,
 )
-from vigilance.text_comparison.change_segments import build_change_segments_from_texts
-from vigilance.text_analysis.subsection_matching import OrphanMatchLLMResponse, OrphanSubsection
-from vigilance.text_extraction.text_extraction_markdown_writer import (
+from vigie.analyse_texte.subsection_matching import (
+    OrphanMatchLLMResponse,
+    OrphanSubsection,
+)
+from vigie.analyse_texte.text_extraction.text_extraction_markdown_writer import (
     get_raw_docling_markdown_path,
     has_current_text_extraction_cache_schema,
     stamp_text_extraction_cache_schema,
 )
-from vigilance.text_analysis.docling_markdown import (
+from vigie.analyse_texte.docling_markdown import (
     DoclingSegment,
     _assign_segments_to_sections,
     _build_text_extraction_markdown_from_docling,
@@ -79,16 +99,16 @@ from vigilance.text_analysis.docling_markdown import (
     _parse_docling_markdown,
     _should_keep_docling_segment,
 )
-from vigilance.text_analysis.extraction import (
+from vigie.analyse_texte.extraction import (
     _augment_table_regions_with_composite_grids,
     _docling_page_batches,
 )
-from vigilance.text_analysis.normalization import (
+from vigie.analyse_texte.normalization import (
     _infer_table_footnote_bboxes,
     _is_running_report_chrome,
     _sanitize_explanation,
 )
-from vigilance.text_analysis.markdown import _is_out_of_scope_accounting_heading
+from vigie.analyse_texte.markdown import _is_out_of_scope_accounting_heading
 
 
 class _FakeChoice:
@@ -218,7 +238,7 @@ def test_resolve_sections_ignores_regulatory_for_bnc(monkeypatch, tmp_path: Path
         ]
 
     monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline.locate_sections_in_pdf",
+        "vigie.analyse_texte.sections.locate_sections_in_pdf",
         lambda pdf_path, bank_code=None, quarter=None, year=2025: _FakeMapping(),
     )
 
@@ -227,9 +247,7 @@ def test_resolve_sections_ignores_regulatory_for_bnc(monkeypatch, tmp_path: Path
     assert set(resolved) == {"gestion_capital", "gestion_risques"}
 
 
-def test_resolve_sections_passes_t4_context_and_filters_regulatory(
-    monkeypatch, tmp_path: Path
-) -> None:
+def test_resolve_sections_passes_t4_context_and_filters_regulatory(monkeypatch, tmp_path: Path) -> None:
     captured: dict[str, object] = {}
 
     class _FakeItem:
@@ -265,7 +283,7 @@ def test_resolve_sections_passes_t4_context_and_filters_regulatory(
         return _FakeMapping()
 
     monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline.locate_sections_in_pdf",
+        "vigie.analyse_texte.sections.locate_sections_in_pdf",
         fake_locate_sections_in_pdf,
     )
 
@@ -342,24 +360,22 @@ def test_default_triage_includes_amf_v2_and_legacy_fields() -> None:
     assert triage["comparaison_interbanques"] == ""
     assert triage["limite_interpretation"] == ""
     assert triage["motif_non_pertinence"]
-    assert triage["relevance_reason"] == (
-        f"{triage['changement_constate']} {triage['motif_non_pertinence']}"
-    )
+    assert triage["relevance_reason"] == (f"{triage['changement_constate']} {triage['motif_non_pertinence']}")
 
 
 def test_triage_few_shots_request_structured_analyst_fields() -> None:
     assert "relevance_reason" not in _FEW_SHOT_TRIAGE_AMF
     assert "impact_it" not in _FEW_SHOT_TRIAGE_AMF
     assert "justification_posture" not in _FEW_SHOT_TRIAGE_AMF
-    assert _FEW_SHOT_TRIAGE_AMF.count("Exemple ") == 9
+    assert _FEW_SHOT_TRIAGE_AMF.count("Exemple ") == 10
     assert "transfert de responsabilité de gouvernance" in _FEW_SHOT_TRIAGE_AMF
-    assert "comité renommé pertinent" in _FEW_SHOT_TRIAGE_AMF
+    assert "comité renommé ciblé de gouvernance pertinent" in _FEW_SHOT_TRIAGE_AMF
     outputs = [
         json.loads(line.removeprefix("Output : "))
         for line in _FEW_SHOT_TRIAGE_AMF.splitlines()
         if line.startswith("Output : ")
     ]
-    assert len(outputs) == 9
+    assert len(outputs) == 10
     for output in outputs:
         validated = TriageAMFCompactLLMResultWithIndex(**output)
         assert validated.changement_constate
@@ -381,10 +397,7 @@ def test_triage_few_shots_request_structured_analyst_fields() -> None:
             assert validated.comparaison_interbanques == ""
             assert validated.limite_interpretation == ""
             assert validated.motif_non_pertinence
-        assert (
-            "Ce changement est pertinent pour la vigie AMF"
-            not in validated.relevance_reason
-        )
+        assert "Ce changement est pertinent pour la vigie AMF" not in validated.relevance_reason
         assert "Ce changement n’est pas pertinent" not in validated.relevance_reason
 
 
@@ -459,8 +472,13 @@ def test_is_non_cosmetic_change_keeps_relevant_with_themes() -> None:
 def test_call_json_completion_retries_with_larger_token_budget_after_truncation() -> None:
     client = _FakeClient(
         responses=[
-            _FakeResponse('{"changes":[{"diff_type":"added","text_t1":"","text_t2":"texte tronqué', finish_reason="length"),
-            _FakeResponse('{"changes":[{"diff_type":"added","text_t1":"","text_t2":"texte complet","change_summary":"Ajout."}]}'),
+            _FakeResponse(
+                '{"changes":[{"diff_type":"added","text_t1":"","text_t2":"texte tronqué',
+                finish_reason="length",
+            ),
+            _FakeResponse(
+                '{"changes":[{"diff_type":"added","text_t1":"","text_t2":"texte complet","change_summary":"Ajout."}]}'
+            ),
         ]
     )
 
@@ -472,15 +490,14 @@ def test_call_json_completion_retries_with_larger_token_budget_after_truncation(
     )
 
     assert payload["changes"][0]["text_t2"] == "texte complet"
-    assert client.chat.completions.max_completion_tokens_seen == [100, _max_output_tokens_for_model("gpt-4o")]
+    assert client.chat.completions.max_completion_tokens_seen == [
+        100,
+        _max_output_tokens_for_model("gpt-4o"),
+    ]
 
 
 def test_call_json_completion_uses_model_max_by_default() -> None:
-    client = _FakeClient(
-        responses=[
-            _FakeResponse('{"changes":[]}')
-        ]
-    )
+    client = _FakeClient(responses=[_FakeResponse('{"changes":[]}')])
 
     payload = _call_json_completion(
         client,
@@ -492,9 +509,11 @@ def test_call_json_completion_uses_model_max_by_default() -> None:
     assert client.chat.completions.max_completion_tokens_seen == [None]
 
 
-def test_compare_section_texts_surfaces_section_key_on_json_failure(monkeypatch) -> None:
+def test_compare_section_texts_surfaces_section_key_on_json_failure(
+    monkeypatch,
+) -> None:
     monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline._call_structured_completion_with_correction",
+        "vigie.analyse_texte.comparaison_sections.execution_llm._call_structured_completion_with_correction",
         lambda *args, **kwargs: (_ for _ in ()).throw(RuntimeError("invalid structured output from model")),
     )
 
@@ -531,7 +550,18 @@ def test_pipeline_retains_non_cosmetic_changes_and_discards_cosmetic(monkeypatch
         anchor_page=1,
         anchor_text="Gestion des risques",
         anchor_bbox_norm=[0.1, 0.2, 0.9, 0.25],
-        included_blocks=[PDFBlock("p001_b001", 1, [0.1, 0.3, 0.9, 0.4], "Texte exact T1", 1, "narrative", True, "")],
+        included_blocks=[
+            PDFBlock(
+                "p001_b001",
+                1,
+                [0.1, 0.3, 0.9, 0.4],
+                "Texte exact T1",
+                1,
+                "narrative",
+                True,
+                "",
+            )
+        ],
         excluded_blocks=[],
     )
     audit_curr = SectionAudit(
@@ -542,48 +572,97 @@ def test_pipeline_retains_non_cosmetic_changes_and_discards_cosmetic(monkeypatch
         anchor_page=2,
         anchor_text="Gestion des risques",
         anchor_bbox_norm=[0.1, 0.2, 0.9, 0.25],
-        included_blocks=[PDFBlock("p002_b001", 2, [0.1, 0.3, 0.9, 0.4], "Texte exact T2", 1, "narrative", True, "")],
+        included_blocks=[
+            PDFBlock(
+                "p002_b001",
+                2,
+                [0.1, 0.3, 0.9, 0.4],
+                "Texte exact T2",
+                1,
+                "narrative",
+                True,
+                "",
+            )
+        ],
         excluded_blocks=[],
     )
 
-    monkeypatch.setattr("vigilance.text_analysis_pipeline._build_openai_client", lambda: object())
+    monkeypatch.setattr("vigie.analyse_texte.pipeline._build_openai_client", lambda: object())
     monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline._resolve_sections",
+        "vigie.analyse_texte.pipeline._resolve_sections",
         lambda pdf_path, bank_code, quarter=None, year=None: {"gestion_risques": section},
     )
     monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline._extract_audits_for_pdf",
+        "vigie.analyse_texte.pipeline._extract_audits_for_pdf",
         lambda **kwargs: ([audit_prev], "") if "prev" in str(kwargs["pdf_path"]) else ([audit_curr], ""),
     )
     monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline._compare_section_texts",
+        "vigie.analyse_texte.pipeline._compare_section_texts",
         lambda **kwargs: [
-            {"change_id": "c1", "section_key": "gestion_risques", "diff_type": "added",
-             "semantic_text_t1": "", "semantic_text_t2": "Nouvelle idee", "source_text_t1": "",
-             "source_text_t2": "Nouvelle idee", "source_block_ids_t1": [], "source_block_ids_t2": [],
-             "source_refs_t1": [], "source_refs_t2": [], "pages_t1": [], "pages_t2": [],
-             "source_resolution_t1": "markdown", "source_resolution_t2": "markdown",
-             "evidence_t1": {"pages": [], "snippet": ""}, "evidence_t2": {"pages": [], "snippet": ""},
-             "change_summary": "Ajout."},
-            {"change_id": "c2", "section_key": "gestion_risques", "diff_type": "modified",
-             "semantic_text_t1": "Avant", "semantic_text_t2": "Après", "source_text_t1": "Avant",
-             "source_text_t2": "Après", "source_block_ids_t1": [], "source_block_ids_t2": [],
-             "source_refs_t1": [], "source_refs_t2": [], "pages_t1": [], "pages_t2": [],
-             "source_resolution_t1": "markdown", "source_resolution_t2": "markdown",
-             "evidence_t1": {"pages": [], "snippet": ""}, "evidence_t2": {"pages": [], "snippet": ""},
-             "change_summary": "Modification."},
-            {"change_id": "c3", "section_key": "gestion_risques", "diff_type": "modified",
-             "semantic_text_t1": "Non substantif avant", "semantic_text_t2": "Non substantif apres",
-             "source_text_t1": "Non substantif avant", "source_text_t2": "Non substantif apres",
-             "source_block_ids_t1": [], "source_block_ids_t2": [], "source_refs_t1": [],
-             "source_refs_t2": [], "pages_t1": [], "pages_t2": [],
-             "source_resolution_t1": "markdown", "source_resolution_t2": "markdown",
-             "evidence_t1": {"pages": [], "snippet": ""}, "evidence_t2": {"pages": [], "snippet": ""},
-             "change_summary": "Reformulation non substantive."},
+            {
+                "change_id": "c1",
+                "section_key": "gestion_risques",
+                "diff_type": "added",
+                "semantic_text_t1": "",
+                "semantic_text_t2": "Nouvelle idee",
+                "source_text_t1": "",
+                "source_text_t2": "Nouvelle idee",
+                "source_block_ids_t1": [],
+                "source_block_ids_t2": [],
+                "source_refs_t1": [],
+                "source_refs_t2": [],
+                "pages_t1": [],
+                "pages_t2": [],
+                "source_resolution_t1": "markdown",
+                "source_resolution_t2": "markdown",
+                "evidence_t1": {"pages": [], "snippet": ""},
+                "evidence_t2": {"pages": [], "snippet": ""},
+                "change_summary": "Ajout.",
+            },
+            {
+                "change_id": "c2",
+                "section_key": "gestion_risques",
+                "diff_type": "modified",
+                "semantic_text_t1": "Avant",
+                "semantic_text_t2": "Après",
+                "source_text_t1": "Avant",
+                "source_text_t2": "Après",
+                "source_block_ids_t1": [],
+                "source_block_ids_t2": [],
+                "source_refs_t1": [],
+                "source_refs_t2": [],
+                "pages_t1": [],
+                "pages_t2": [],
+                "source_resolution_t1": "markdown",
+                "source_resolution_t2": "markdown",
+                "evidence_t1": {"pages": [], "snippet": ""},
+                "evidence_t2": {"pages": [], "snippet": ""},
+                "change_summary": "Modification.",
+            },
+            {
+                "change_id": "c3",
+                "section_key": "gestion_risques",
+                "diff_type": "modified",
+                "semantic_text_t1": "Non substantif avant",
+                "semantic_text_t2": "Non substantif apres",
+                "source_text_t1": "Non substantif avant",
+                "source_text_t2": "Non substantif apres",
+                "source_block_ids_t1": [],
+                "source_block_ids_t2": [],
+                "source_refs_t1": [],
+                "source_refs_t2": [],
+                "pages_t1": [],
+                "pages_t2": [],
+                "source_resolution_t1": "markdown",
+                "source_resolution_t2": "markdown",
+                "evidence_t1": {"pages": [], "snippet": ""},
+                "evidence_t2": {"pages": [], "snippet": ""},
+                "change_summary": "Reformulation non substantive.",
+            },
         ],
     )
     monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline._triage_section_changes",
+        "vigie.analyse_texte.pipeline._triage_section_changes",
         lambda **kwargs: [
             {
                 **kwargs["changes"][0],
@@ -596,7 +675,10 @@ def test_pipeline_retains_non_cosmetic_changes_and_discards_cosmetic(monkeypatch
                     "action_requise": "information",
                     "exclusion_reason": None,
                     "category": "RISQUE",
-                    "signals": {"regulatory_reference_added": False, "methodology_change": False},
+                    "signals": {
+                        "regulatory_reference_added": False,
+                        "methodology_change": False,
+                    },
                     "source": "gpt4o_triage_amf_v2",
                 },
             },
@@ -611,7 +693,10 @@ def test_pipeline_retains_non_cosmetic_changes_and_discards_cosmetic(monkeypatch
                     "action_requise": "revue_prioritaire",
                     "exclusion_reason": None,
                     "category": "RISQUE",
-                    "signals": {"regulatory_reference_added": False, "methodology_change": False},
+                    "signals": {
+                        "regulatory_reference_added": False,
+                        "methodology_change": False,
+                    },
                     "source": "gpt4o_triage_amf_v2",
                 },
             },
@@ -626,7 +711,10 @@ def test_pipeline_retains_non_cosmetic_changes_and_discards_cosmetic(monkeypatch
                     "action_requise": "aucune",
                     "exclusion_reason": "reformulation_mineure",
                     "category": "NON_PERTINENT",
-                    "signals": {"regulatory_reference_added": False, "methodology_change": False},
+                    "signals": {
+                        "regulatory_reference_added": False,
+                        "methodology_change": False,
+                    },
                     "source": "gpt4o_triage_amf_v2",
                 },
             },
@@ -785,7 +873,11 @@ def test_assign_segments_stops_at_end_boundary_heading() -> None:
     )
     segments = [
         DoclingSegment(kind="paragraph", text=risk_paragraph),
-        DoclingSegment(kind="heading", text="Faits nouveaux et événements subséquents", heading_level=3),
+        DoclingSegment(
+            kind="heading",
+            text="Faits nouveaux et événements subséquents",
+            heading_level=3,
+        ),
         DoclingSegment(kind="heading", text="NORMES ET MÉTHODES COMPTABLES", heading_level=2),
         DoclingSegment(kind="paragraph", text=accounting_paragraph),
     ]
@@ -1089,12 +1181,42 @@ def test_should_keep_audited_narrative_samples_from_every_bank(bank: str, paragr
 @pytest.mark.parametrize(
     ("bank", "note", "follows_table", "requires_audited_footnote"),
     [
-        ("bmo", "1 Les réserves de fonds propres sont calculées conformément à la ligne directrice du BSIF.", False, True),
-        ("bnc", "(1) Les ratios sont calculés selon les exigences de Bâle III publiées par le BSIF.", False, False),
-        ("bns", "1) Les montants des périodes précédentes ont été retraités afin de refléter une nouvelle norme.", False, False),
-        ("cibc", "i) Les expositions sur dérivés sont présentées selon les règles réglementaires applicables.", True, False),
-        ("rbc", "¹ Se reporter aux notes afférentes aux états financiers consolidés pour plus de précisions.", False, False),
-        ("td", "Note : le ratio de levier est calculé conformément aux exigences de levier du BSIF.", False, False),
+        (
+            "bmo",
+            "1 Les réserves de fonds propres sont calculées conformément à la ligne directrice du BSIF.",
+            False,
+            True,
+        ),
+        (
+            "bnc",
+            "(1) Les ratios sont calculés selon les exigences de Bâle III publiées par le BSIF.",
+            False,
+            False,
+        ),
+        (
+            "bns",
+            "1) Les montants des périodes précédentes ont été retraités afin de refléter une nouvelle norme.",
+            False,
+            False,
+        ),
+        (
+            "cibc",
+            "i) Les expositions sur dérivés sont présentées selon les règles réglementaires applicables.",
+            True,
+            False,
+        ),
+        (
+            "rbc",
+            "¹ Se reporter aux notes afférentes aux états financiers consolidés pour plus de précisions.",
+            False,
+            False,
+        ),
+        (
+            "td",
+            "Note : le ratio de levier est calculé conformément aux exigences de levier du BSIF.",
+            False,
+            False,
+        ),
     ],
 )
 def test_note_formats_are_kept_unless_confirmed_as_table_notes(
@@ -1115,7 +1237,17 @@ def test_note_formats_are_kept_unless_confirmed_as_table_notes(
         included_blocks=(
             []
             if requires_audited_footnote
-            else [PDFBlock(f"{bank}_p058_d010", 58, [0.1, 0.7, 0.9, 0.75], note, 10, "narrative", True)]
+            else [
+                PDFBlock(
+                    f"{bank}_p058_d010",
+                    58,
+                    [0.1, 0.7, 0.9, 0.75],
+                    note,
+                    10,
+                    "narrative",
+                    True,
+                )
+            ]
         ),
         excluded_blocks=(
             [
@@ -1177,10 +1309,42 @@ def test_build_docling_markdown_keeps_narrative_around_bns_d22_figure() -> None:
         anchor_text="Gestion du capital",
         anchor_bbox_norm=[0.1, 0.1, 0.9, 0.2],
         included_blocks=[
-            PDFBlock("p058_d001", 58, [0.1, 0.22, 0.9, 0.3], before_figure, 1, "narrative", True),
-            PDFBlock("p058_d002", 58, [0.1, 0.56, 0.9, 0.66], osfi_requirements, 2, "narrative", True),
-            PDFBlock("p058_d003", 58, [0.1, 0.67, 0.9, 0.74], stability_buffer, 3, "narrative", True),
-            PDFBlock("p058_d004", 58, [0.1, 0.75, 0.9, 0.82], current_requirements, 4, "narrative", True),
+            PDFBlock(
+                "p058_d001",
+                58,
+                [0.1, 0.22, 0.9, 0.3],
+                before_figure,
+                1,
+                "narrative",
+                True,
+            ),
+            PDFBlock(
+                "p058_d002",
+                58,
+                [0.1, 0.56, 0.9, 0.66],
+                osfi_requirements,
+                2,
+                "narrative",
+                True,
+            ),
+            PDFBlock(
+                "p058_d003",
+                58,
+                [0.1, 0.67, 0.9, 0.74],
+                stability_buffer,
+                3,
+                "narrative",
+                True,
+            ),
+            PDFBlock(
+                "p058_d004",
+                58,
+                [0.1, 0.75, 0.9, 0.82],
+                current_requirements,
+                4,
+                "narrative",
+                True,
+            ),
             PDFBlock("p058_d005", 58, [0.1, 0.85, 0.9, 0.92], leverage, 5, "narrative", True),
         ],
         excluded_blocks=[
@@ -1226,7 +1390,13 @@ def test_build_docling_markdown_keeps_narrative_around_bns_d22_figure() -> None:
 
     markdown = _build_text_extraction_markdown_from_docling([audit], raw_docling_markdown=raw_docling)
 
-    for paragraph in (before_figure, osfi_requirements, stability_buffer, current_requirements, leverage):
+    for paragraph in (
+        before_figure,
+        osfi_requirements,
+        stability_buffer,
+        current_requirements,
+        leverage,
+    ):
         assert paragraph in markdown
     assert "### Ratio de levier" in markdown
     assert "D22 Exigences" not in markdown
@@ -1234,10 +1404,7 @@ def test_build_docling_markdown_keeps_narrative_around_bns_d22_figure() -> None:
 
 def test_text_extraction_cache_schema_invalidates_legacy_markdown() -> None:
     legacy = "## Gestion du capital\n\nTexte narratif.\n"
-    previous_schema = (
-        "<!-- vigilance-text-extraction-schema: 5 -->\n\n"
-        "## Gestion du capital\n\nTexte narratif.\n"
-    )
+    previous_schema = "<!-- vigilance-text-extraction-schema: 5 -->\n\n## Gestion du capital\n\nTexte narratif.\n"
 
     stamped = stamp_text_extraction_cache_schema(legacy)
 
@@ -1335,7 +1502,13 @@ def test_build_section_audit_excludes_blocks_outside_target_section_and_tables()
     )
     blocks = [
         PDFBlock("p005_b001", 5, [0.1, 0.10, 0.9, 0.14], "Texte avant section", 1),
-        PDFBlock("p005_b002", 5, [0.1, 0.33, 0.9, 0.40], "La banque améliore sa stratégie de capital et renforce sa gestion des risques.", 2),
+        PDFBlock(
+            "p005_b002",
+            5,
+            [0.1, 0.33, 0.9, 0.40],
+            "La banque améliore sa stratégie de capital et renforce sa gestion des risques.",
+            2,
+        ),
         PDFBlock("p005_b003", 5, [0.1, 0.55, 0.9, 0.62], "31 45 78 90 120 150", 3),
     ]
 
@@ -1384,7 +1557,11 @@ def test_build_section_audit_keeps_every_in_scope_non_table_block() -> None:
         footnote_bboxes_by_page={5: [[0.0, 0.49, 1.0, 0.56]]},
     )
 
-    assert [block.block_id for block in audit.included_blocks] == ["p005_b001", "p005_b002", "p005_b003"]
+    assert [block.block_id for block in audit.included_blocks] == [
+        "p005_b001",
+        "p005_b002",
+        "p005_b003",
+    ]
     assert [(block.block_id, block.block_type) for block in audit.excluded_blocks] == [
         ("p005_b004", "table"),
         ("p005_b005", "table_footnote"),
@@ -1392,7 +1569,9 @@ def test_build_section_audit_keeps_every_in_scope_non_table_block() -> None:
 
 
 @pytest.mark.parametrize("marker", ["s.o.", "S.O.", "- s.o."])
-def test_build_section_audit_excludes_standalone_not_applicable_marker(marker: str) -> None:
+def test_build_section_audit_excludes_standalone_not_applicable_marker(
+    marker: str,
+) -> None:
     section = ResolvedSection(
         section_key="gestion_capital",
         title="Gestion du capital",
@@ -1501,10 +1680,7 @@ def test_running_report_chrome_recognizes_supported_bank_page_labels(text: str) 
             "1 Des détails sont présentés à la note 16 des états financiers consolidés "
             "audités du Rapport annuel de BMO pour 2025."
         ),
-        (
-            "2 La Banque Scotia explique dans son Rapport annuel 2025 que la gestion "
-            "des risques demeure une priorité."
-        ),
+        ("2 La Banque Scotia explique dans son Rapport annuel 2025 que la gestion des risques demeure une priorité."),
     ],
 )
 def test_running_report_chrome_preserves_numbered_narrative_and_incomplete_labels(
@@ -1641,7 +1817,13 @@ def test_extract_audits_for_pdf_writes_raw_docling_markdown_before_filtering(
                         "La banque maintient une gestion prudente des risques et renforce ses contrôles internes.",
                         1,
                     ),
-                    PDFBlock("p007_d002", 7, [0.10, 0.60, 0.90, 0.70], "2025 2024 2023 2022", 2),
+                    PDFBlock(
+                        "p007_d002",
+                        7,
+                        [0.10, 0.60, 0.90, 0.70],
+                        "2025 2024 2023 2022",
+                        2,
+                    ),
                 ]
             },
             {7: [[0.08, 0.58, 0.92, 0.72]]},
@@ -1650,7 +1832,7 @@ def test_extract_audits_for_pdf_writes_raw_docling_markdown_before_filtering(
         )
 
     monkeypatch.setattr(
-        "vigilance.text_analysis.extraction._extract_docling_page_blocks",
+        "vigie.analyse_texte.extraction._extract_docling_page_blocks",
         _fake_extract_docling_page_blocks,
     )
     raw_path = tmp_path / "outputs" / "text_extractions" / "td" / "2025" / "t4" / "td_current_2025_t4.md"
@@ -1671,7 +1853,7 @@ def test_extract_audits_for_pdf_writes_raw_docling_markdown_before_filtering(
     )
 
     assert raw_path.read_text(encoding="utf-8") == raw_markdown
-    assert "[p." not in written_raw
+    assert _first_page_marker(written_raw) is None
     assert "bbox=" not in written_raw
     assert "block_id=" not in written_raw
     assert [block.block_id for block in audits[0].included_blocks] == ["p007_d001"]
@@ -1742,6 +1924,72 @@ def test_classify_block_type_rejects_block_overlapping_docling_table_bbox() -> N
     )
 
     assert _classify_block_type(block, {}, [[0.10, 0.20, 0.90, 0.38]]) == "table"
+
+
+def test_classify_block_type_keeps_narrative_paragraph_overlapping_table_bbox() -> None:
+    """Grille narrative Docling (titre|Description): conserver le prose long."""
+    narrative = (
+        "Des rançongiciels de plus en plus perfectionnés sont utilisés pour attaquer "
+        "les grandes chaînes logistiques, ce qui pourrait entraîner une interruption "
+        "des activités, des perturbations des services des clients, des pertes "
+        "financières, le vol de propriété intellectuelle et de renseignements "
+        "confidentiels, des litiges, une attention accrue et des sanctions de la "
+        "part des organismes de réglementation ainsi qu'une atteinte à notre réputation."
+    )
+    block = PDFBlock(
+        "p082_d010",
+        82,
+        [0.35, 0.40, 0.92, 0.62],
+        narrative,
+        10,
+    )
+
+    assert _classify_block_type(block, {}, [[0.05, 0.10, 0.95, 0.90]]) == "narrative"
+
+
+def test_docling_filter_keeps_included_narrative_from_table_grid() -> None:
+    """Un paragraphe inclus (classé narrative) n'est pas droppé comme table_like."""
+    narrative = (
+        "Au Canada, le risque lié au marché de l'habitation et à l'endettement des "
+        "ménages demeure élevé compte tenu du climat économique incertain et des "
+        "enjeux d'abordabilité actuels. Les risques associés à la capacité des "
+        "ménages canadiens de s'acquitter de leurs dettes pourraient croître si "
+        "les taux d'intérêt demeuraient élevés ou si l'inflation persistait."
+    )
+    included = PDFBlock(
+        "p082_d011",
+        82,
+        [0.35, 0.20, 0.92, 0.40],
+        narrative,
+        11,
+        "narrative",
+        True,
+        "",
+    )
+    short_cell = PDFBlock(
+        "p082_d012",
+        82,
+        [0.08, 0.20, 0.30, 0.28],
+        "Description",
+        12,
+        "table",
+        False,
+        "table_like_block",
+    )
+    audit = SectionAudit(
+        section_key="gestion_risques",
+        section_title="Gestion des risques",
+        start_page=82,
+        end_page=82,
+        anchor_page=76,
+        anchor_text="Gestion du risque",
+        anchor_bbox_norm=[0.1, 0.1, 0.9, 0.2],
+        included_blocks=[included],
+        excluded_blocks=[short_cell],
+    )
+
+    assert _should_keep_docling_segment(DoclingSegment(kind="paragraph", text=narrative), [audit]) is True
+    assert _should_keep_docling_segment(DoclingSegment(kind="paragraph", text="Description"), [audit]) is False
 
 
 def test_classify_block_type_rejects_block_overlapping_table_footnote_bbox() -> None:
@@ -1898,7 +2146,9 @@ def test_chunk_comparison_llm_response_rejects_missing_alignment_id() -> None:
         )
 
 
-def test_compare_section_texts_prompt_requests_all_observable_changes(monkeypatch) -> None:
+def test_compare_section_texts_prompt_requests_all_observable_changes(
+    monkeypatch,
+) -> None:
     captured: dict[str, object] = {}
 
     def _fake_structured_completion(client, *, model, messages, **kwargs):
@@ -1906,7 +2156,7 @@ def test_compare_section_texts_prompt_requests_all_observable_changes(monkeypatc
         return ChunkComparisonLLMResponse(changes=[])
 
     monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline._call_structured_completion_with_correction",
+        "vigie.analyse_texte.comparaison_sections.execution_llm._call_structured_completion_with_correction",
         _fake_structured_completion,
     )
 
@@ -1934,11 +2184,41 @@ def test_build_text_extraction_markdown_keeps_headings_and_narrative_only() -> N
         anchor_text="Gestion du capital",
         anchor_bbox_norm=[0.1, 0.2, 0.8, 0.25],
         included_blocks=[
-            PDFBlock("p010_d002", 10, [0.1, 0.33, 0.9, 0.36], "Le 12 décembre 2023, la Banque avait débuté un programme de rachat d'actions ordinaires.", 2, "narrative", True, "", "paragraph"),
+            PDFBlock(
+                "p010_d002",
+                10,
+                [0.1, 0.33, 0.9, 0.36],
+                "Le 12 décembre 2023, la Banque avait débuté un programme de rachat d'actions ordinaires.",
+                2,
+                "narrative",
+                True,
+                "",
+                "paragraph",
+            ),
         ],
         excluded_blocks=[
-            PDFBlock("p010_d001", 10, [0.1, 0.28, 0.8, 0.31], "Rachat d'actions ordinaires", 1, "other", False, "non_narrative_block", "section_header"),
-            PDFBlock("p010_d003", 10, [0.1, 0.55, 0.9, 0.60], "TABLEAU 5 100 200 300", 3, "table", False, "table_like_block", "caption"),
+            PDFBlock(
+                "p010_d001",
+                10,
+                [0.1, 0.28, 0.8, 0.31],
+                "Rachat d'actions ordinaires",
+                1,
+                "other",
+                False,
+                "non_narrative_block",
+                "section_header",
+            ),
+            PDFBlock(
+                "p010_d003",
+                10,
+                [0.1, 0.55, 0.9, 0.60],
+                "TABLEAU 5 100 200 300",
+                3,
+                "table",
+                False,
+                "table_like_block",
+                "caption",
+            ),
         ],
         semantic_units=[],
     )
@@ -1949,6 +2229,155 @@ def test_build_text_extraction_markdown_keeps_headings_and_narrative_only() -> N
     assert "### Rachat d'actions ordinaires" in markdown
     assert "Le 12 décembre 2023" in markdown
     assert "TABLEAU 5" not in markdown
+
+
+def _section_h2_titles(markdown: str) -> list[str]:
+    return [line for line in markdown.splitlines() if line.startswith("## ") and not line.startswith("### ")]
+
+
+def test_markdown_follows_pdf_order_when_risks_precede_capital() -> None:
+    """RBC-like: risques avant capital dans le PDF, même si les audits arrivent capital-first."""
+    capital = SectionAudit(
+        section_key="gestion_capital",
+        section_title="Gestion du capital",
+        start_page=127,
+        end_page=140,
+        anchor_page=127,
+        anchor_text="Gestion du capital",
+        anchor_bbox_norm=[0.1, 0.2, 0.8, 0.25],
+        included_blocks=[
+            PDFBlock(
+                "p127_d001",
+                127,
+                [0.1, 0.30, 0.9, 0.40],
+                "La banque maintient une position de capital solide.",
+                1,
+                "narrative",
+                True,
+                "",
+                "paragraph",
+            ),
+        ],
+        excluded_blocks=[],
+    )
+    risks = SectionAudit(
+        section_key="gestion_risques",
+        section_title="Gestion des risques",
+        start_page=76,
+        end_page=120,
+        anchor_page=76,
+        anchor_text="Gestion des risques",
+        anchor_bbox_norm=[0.1, 0.2, 0.8, 0.25],
+        included_blocks=[
+            PDFBlock(
+                "p076_d001",
+                76,
+                [0.1, 0.30, 0.9, 0.40],
+                "La gestion des risques est centrale aux activités.",
+                1,
+                "narrative",
+                True,
+                "",
+                "paragraph",
+            ),
+        ],
+        excluded_blocks=[],
+    )
+    # Ordre piège volontaire : capital avant risques dans la liste d'entrée.
+    audits = [capital, risks]
+    raw_docling = "\n\n".join(
+        [
+            "## Gestion des risques",
+            "La gestion des risques est centrale aux activités.",
+            "## Gestion du capital",
+            "La banque maintient une position de capital solide.",
+        ]
+    )
+
+    from_blocks = _build_text_extraction_markdown_from_blocks(audits)
+    from_docling = _build_text_extraction_markdown_from_docling(
+        audits,
+        raw_docling_markdown=raw_docling,
+    )
+
+    expected = [
+        "## Gestion des risques [pdf.76]",
+        "## Gestion du capital [pdf.127]",
+    ]
+    assert _section_h2_titles(from_blocks) == expected
+    assert _section_h2_titles(from_docling) == expected
+
+
+def test_markdown_follows_pdf_order_when_capital_precedes_risks() -> None:
+    """BNC-like: capital avant risques dans le PDF reste capital-first dans le .md."""
+    capital = SectionAudit(
+        section_key="gestion_capital",
+        section_title="Gestion du capital",
+        start_page=62,
+        end_page=71,
+        anchor_page=62,
+        anchor_text="Gestion du capital",
+        anchor_bbox_norm=[0.1, 0.2, 0.8, 0.25],
+        included_blocks=[
+            PDFBlock(
+                "p062_d001",
+                62,
+                [0.1, 0.30, 0.9, 0.40],
+                "Les fonds propres réglementaires sont suivis trimestriellement.",
+                1,
+                "narrative",
+                True,
+                "",
+                "paragraph",
+            ),
+        ],
+        excluded_blocks=[],
+    )
+    risks = SectionAudit(
+        section_key="gestion_risques",
+        section_title="Gestion des risques",
+        start_page=72,
+        end_page=118,
+        anchor_page=72,
+        anchor_text="Gestion des risques",
+        anchor_bbox_norm=[0.1, 0.2, 0.8, 0.25],
+        included_blocks=[
+            PDFBlock(
+                "p072_d001",
+                72,
+                [0.1, 0.30, 0.9, 0.40],
+                "Le cadre d'appétit pour le risque guide les décisions.",
+                1,
+                "narrative",
+                True,
+                "",
+                "paragraph",
+            ),
+        ],
+        excluded_blocks=[],
+    )
+    audits = [risks, capital]
+    raw_docling = "\n\n".join(
+        [
+            "## Gestion du capital",
+            "Les fonds propres réglementaires sont suivis trimestriellement.",
+            "## Gestion des risques",
+            "Le cadre d'appétit pour le risque guide les décisions.",
+        ]
+    )
+
+    from_blocks = _build_text_extraction_markdown_from_blocks(audits)
+    from_docling = _build_text_extraction_markdown_from_docling(
+        audits,
+        raw_docling_markdown=raw_docling,
+    )
+
+    expected = [
+        "## Gestion du capital [pdf.62]",
+        "## Gestion des risques [pdf.72]",
+    ]
+    assert _section_h2_titles(from_blocks) == expected
+    assert _section_h2_titles(from_docling) == expected
 
 
 def test_build_text_extraction_markdown_inline_pdf_page_on_headings_only() -> None:
@@ -1982,15 +2411,12 @@ def test_build_text_extraction_markdown_inline_pdf_page_on_headings_only() -> No
 
     assert markdown.startswith("## Gestion du capital [pdf.60]")
     assert "[pdf." not in markdown.split("La banque", 1)[1]
-    assert page_index["gestion_capital"] == [
-        (60, "La banque maintient un niveau prudent de fonds propres.")
-    ]
+    assert page_index["gestion_capital"] == [(60, "La banque maintient un niveau prudent de fonds propres.")]
     assert section_start_pages["gestion_capital"] == 60
 
 
 def test_format_page_suffix_pdf_only() -> None:
     assert _format_page_suffix(84) == " [pdf.84]"
-    assert _format_page_marker(62) == "[pdf.62]"
 
 
 def test_extract_section_text_from_markdown_strips_inline_pdf_page_marker() -> None:
@@ -2005,26 +2431,25 @@ def test_extract_section_text_from_markdown_strips_inline_pdf_page_marker() -> N
     assert capital == "### Sous-section\n\nLa banque maintient un niveau prudent de fonds propres."
 
 
-def test_extract_section_text_from_markdown_strips_legacy_standalone_markers() -> None:
-    md = (
+def test_markdown_with_former_marker_format_is_invalidated_not_migrated() -> None:
+    """Un .md d'un format antérieur part en ré-extraction, jamais en migration.
+
+    Le format ``[p.N]`` / ``[p.N | pdf.M]`` n'est plus lu : ces fichiers sont
+    tous antérieurs au tampon de schéma courant, donc invalidés en amont. Les
+    migrer réécrivait un numéro de page imprimée en page physique.
+    """
+    former_format = (
         "[p.58 | pdf.60]\n"
         "## Gestion du capital\n\n"
         "[p.58 | pdf.60]\n"
         "La banque maintient un niveau prudent de fonds propres.\n"
     )
 
-    capital = _extract_section_text_from_markdown(md, "gestion_capital")
-
-    assert capital == "La banque maintient un niveau prudent de fonds propres."
+    assert has_current_text_extraction_cache_schema(former_format) is False
 
 
 def test_parse_page_index_inherits_page_from_heading() -> None:
-    md = (
-        "## Gestion du capital [pdf.60]\n\n"
-        "### Objectifs [pdf.61]\n\n"
-        "Premier paragraphe.\n\n"
-        "Deuxieme paragraphe.\n"
-    )
+    md = "## Gestion du capital [pdf.60]\n\n### Objectifs [pdf.61]\n\nPremier paragraphe.\n\nDeuxieme paragraphe.\n"
     page_index, section_start_pages = _parse_page_index_from_markdown(md)
 
     assert section_start_pages["gestion_capital"] == 60
@@ -2034,16 +2459,76 @@ def test_parse_page_index_inherits_page_from_heading() -> None:
     ]
 
 
-def test_rewrite_migrates_legacy_markers_to_pdf_inline() -> None:
-    md = "[p.60]\n## Gestion du capital\n\n[p.61]\nUn paragraphe.\n"
+def test_page_marker_detection_ignores_french_bracketed_abbreviations() -> None:
+    """« [p. ex., ... ] » et « [p. 45] » sont du français, pas des marqueurs.
 
-    rewritten = _rewrite_page_markers_for_display(md)
-    page_index, section_start_pages = _parse_page_index_from_markdown(rewritten)
+    L'ancienne garde testait la sous-chaîne ``"[p."`` et bloquait donc le
+    pipeline sur la grille des risques émergents de RBC.
+    """
+    prose = (
+        "Notre exposition s'accroît, puisque nous continuons d'adopter de nouvelles "
+        "technologies [p. ex., l'infonuagique, les logiciels-services (SaaS), l'IA "
+        "générative et l'apprentissage automatique]. Se reporter au tableau [p. 45]."
+    )
 
-    assert rewritten.startswith("## Gestion du capital [pdf.60]")
-    assert "[pdf." not in "Un paragraphe."
-    assert section_start_pages["gestion_capital"] == 60
-    assert page_index["gestion_capital"] == [(60, "Un paragraphe.")]
+    assert _first_page_marker(prose) is None
+
+
+def test_page_marker_detection_catches_real_leaks() -> None:
+    """Les deux positions réellement émises doivent être détectées."""
+    assert _first_page_marker("### Cadre de gestion [pdf.82]") == "[pdf.82]"
+    assert _first_page_marker("[pdf.82]") == "[pdf.82]"
+    assert _first_page_marker("Un paragraphe suivi de [pdf.7] au milieu.") == "[pdf.7]"
+
+
+def test_extract_section_text_leaves_no_marker_on_french_grid_prose() -> None:
+    """Chaîne complète: le texte de section prêt pour GPT est exempt de marqueur."""
+    md = (
+        "<!-- vigilance-text-extraction-schema: 8 -->\n\n"
+        "## Gestion des risques [pdf.76]\n\n"
+        "### Risques connus et risques émergents [pdf.81]\n\n"
+        "Nous continuons d'adopter de nouvelles technologies [p. ex., l'infonuagique, "
+        "les logiciels-services (SaaS), l'IA générative et l'apprentissage automatique].\n"
+    )
+
+    section_text = _extract_section_text_from_markdown(md, "gestion_risques")
+
+    assert "[p. ex.," in section_text
+    assert _first_page_marker(section_text) is None
+
+
+def test_compare_section_texts_accepts_french_bracketed_abbreviation(
+    monkeypatch,
+) -> None:
+    monkeypatch.setattr(
+        "vigie.analyse_texte.comparaison_sections.execution_llm._compare_texts_single_call",
+        lambda **kw: [],
+    )
+    prose = "### Risques émergents\n\nDe nouvelles technologies [p. ex., l'infonuagique] sont adoptées."
+
+    changes = _compare_section_texts(
+        client=object(),
+        model="gpt-4o",
+        section_key="gestion_risques",
+        text_t1=prose,
+        text_t2=prose,
+    )
+
+    assert [change for change in changes if change["diff_type"] != "unchanged"] == []
+
+
+def test_compare_section_texts_rejects_leaked_page_marker() -> None:
+    with pytest.raises(TextAnalysisQualityError) as excinfo:
+        _compare_section_texts(
+            client=object(),
+            model="gpt-4o",
+            section_key="gestion_risques",
+            text_t1="### Cadre de gestion [pdf.82]\n\nCorps.",
+            text_t2="### Cadre de gestion\n\nCorps.",
+        )
+
+    assert "[pdf.82]" in str(excinfo.value)
+    assert "gestion_risques" in str(excinfo.value)
 
 
 def test_build_text_extraction_markdown_excludes_orphan_heading_from_matching() -> None:
@@ -2057,7 +2542,17 @@ def test_build_text_extraction_markdown_excludes_orphan_heading_from_matching() 
         anchor_bbox_norm=[0.1, 0.2, 0.8, 0.25],
         included_blocks=[],
         excluded_blocks=[
-            PDFBlock("p010_d001", 10, [0.1, 0.28, 0.8, 0.31], "Accord de Bâle", 1, "other", False, "non_narrative_block", "section_header"),
+            PDFBlock(
+                "p010_d001",
+                10,
+                [0.1, 0.28, 0.8, 0.31],
+                "Accord de Bâle",
+                1,
+                "other",
+                False,
+                "non_narrative_block",
+                "section_header",
+            ),
         ],
         semantic_units=[],
     )
@@ -2101,17 +2596,28 @@ def test_docling_standalone_footnote_is_kept_without_table_context() -> None:
         excluded_blocks=[],
     )
 
-    assert _should_keep_docling_segment(
-        DoclingSegment(kind="paragraph", text=note),
-        [audit],
-    ) is True
+    assert (
+        _should_keep_docling_segment(
+            DoclingSegment(kind="paragraph", text=note),
+            [audit],
+        )
+        is True
+    )
 
 
 @pytest.mark.parametrize(
     ("text", "follows_table", "expected"),
     [
-        ("1 Les méthodes de présentation reposent sur la ligne directrice B-20.", False, True),
-        ("4 Comprennent la dette de premier rang et excluent des billets structurés.", False, True),
+        (
+            "1 Les méthodes de présentation reposent sur la ligne directrice B-20.",
+            False,
+            True,
+        ),
+        (
+            "4 Comprennent la dette de premier rang et excluent des billets structurés.",
+            False,
+            True,
+        ),
         ("n. s. - non significatif", False, False),
     ],
 )
@@ -2120,9 +2626,10 @@ def test_docling_filter_handles_note_forms_without_table_context(
     follows_table: bool,
     expected: bool,
 ) -> None:
-    assert _should_keep_docling_segment(
-        DoclingSegment(kind="paragraph", text=text, follows_table=follows_table)
-    ) is expected
+    assert (
+        _should_keep_docling_segment(DoclingSegment(kind="paragraph", text=text, follows_table=follows_table))
+        is expected
+    )
 
 
 @pytest.mark.parametrize("marker", ["s.o.", "S.O."])
@@ -2169,10 +2676,13 @@ def test_docling_filter_excludes_cell_confirmed_by_composite_table_audit() -> No
         excluded_blocks=[cell],
     )
 
-    assert _should_keep_docling_segment(
-        DoclingSegment(kind="paragraph", text="Crédit"),
-        [audit],
-    ) is False
+    assert (
+        _should_keep_docling_segment(
+            DoclingSegment(kind="paragraph", text="Crédit"),
+            [audit],
+        )
+        is False
+    )
 
 
 def test_docling_filter_keeps_long_dated_numbered_narrative_disclosure() -> None:
@@ -2181,9 +2691,7 @@ def test_docling_filter_keeps_long_dated_numbered_narrative_disclosure() -> None
         "de gérer son capital et de respecter les exigences réglementaires."
     )
 
-    assert _should_keep_docling_segment(
-        DoclingSegment(kind="paragraph", text=text, follows_table=True)
-    ) is True
+    assert _should_keep_docling_segment(DoclingSegment(kind="paragraph", text=text, follows_table=True)) is True
 
 
 def test_docling_parser_keeps_inline_note_clause_with_the_narrative() -> None:
@@ -2289,8 +2797,24 @@ def test_build_docling_markdown_keeps_all_non_table_content() -> None:
         anchor_bbox_norm=[0.1, 0.1, 0.9, 0.2],
         included_blocks=[
             PDFBlock("p030_d001", 30, [0.1, 0.25, 0.9, 0.29], short_label, 1, "other", True),
-            PDFBlock("p030_d002", 30, [0.1, 0.30, 0.9, 0.36], financial_paragraph, 2, "narrative", True),
-            PDFBlock("p030_d003", 30, [0.1, 0.37, 0.9, 0.43], standalone_note, 3, "footnote", True),
+            PDFBlock(
+                "p030_d002",
+                30,
+                [0.1, 0.30, 0.9, 0.36],
+                financial_paragraph,
+                2,
+                "narrative",
+                True,
+            ),
+            PDFBlock(
+                "p030_d003",
+                30,
+                [0.1, 0.37, 0.9, 0.43],
+                standalone_note,
+                3,
+                "footnote",
+                True,
+            ),
         ],
         excluded_blocks=[
             PDFBlock(
@@ -2406,7 +2930,9 @@ def test_parse_docling_markdown_normalizes_explicit_list_markers(
         "La Banque identifie les risques; elle évalue ensuite leur incidence.",
     ],
 )
-def test_parse_docling_markdown_does_not_infer_lists_from_numbered_prose(line: str) -> None:
+def test_parse_docling_markdown_does_not_infer_lists_from_numbered_prose(
+    line: str,
+) -> None:
     segments = _parse_docling_markdown(line)
 
     assert len(segments) == 1
@@ -2425,9 +2951,7 @@ def test_matchable_segments_drop_table_caption_chain_and_resume_parent_heading()
 
     selected = _matchable_section_segments(segments)
 
-    assert [segment.text for segment in selected if segment.kind == "heading"] == [
-        "Activités de négociation"
-    ]
+    assert [segment.text for segment in selected if segment.kind == "heading"] == ["Activités de négociation"]
     assert [segment.kind for segment in selected] == [
         "heading",
         "paragraph",
@@ -2590,8 +3114,7 @@ def test_docling_markdown_keeps_parent_across_table_and_inserts_missing_text_loc
 def test_docling_alignment_prefers_exact_heading_and_rejects_page_footer() -> None:
     heading = "Ratio de liquidité à long terme"
     paragraph = (
-        "Le CBCB a élaboré le ratio de liquidité à long terme afin de promouvoir "
-        "la résilience du secteur bancaire."
+        "Le CBCB a élaboré le ratio de liquidité à long terme afin de promouvoir la résilience du secteur bancaire."
     )
     audit = SectionAudit(
         section_key="gestion_risques",
@@ -2652,9 +3175,7 @@ def test_docling_alignment_prefers_exact_heading_and_rejects_page_footer() -> No
 
     markdown = _build_text_extraction_markdown_from_docling(
         [audit],
-        raw_docling_markdown=(
-            f"## Gestion des risques\n\n## {heading}\n\n{paragraph}\n\n106\n"
-        ),
+        raw_docling_markdown=(f"## Gestion des risques\n\n## {heading}\n\n{paragraph}\n\n106\n"),
     )
 
     assert f"### {heading} [pdf.106]" in markdown
@@ -2827,9 +3348,7 @@ def test_build_text_extraction_markdown_from_docling_keeps_headings_and_order() 
 
 def test_docling_bns_list_survives_canonical_markdown_and_chunking() -> None:
     heading = "Composantes du cadre de gestion du risque"
-    introduction = (
-        "Le cadre de gestion du risque de la Banque se compose de cinq principaux éléments :"
-    )
+    introduction = "Le cadre de gestion du risque de la Banque se compose de cinq principaux éléments :"
     list_items = [
         "la gouvernance du risque;",
         "l'appétence au risque;",
@@ -2906,9 +3425,7 @@ def test_docling_bns_list_survives_canonical_markdown_and_chunking() -> None:
     )
 
     assert "\x81" not in markdown
-    assert [line for line in markdown.splitlines() if line.startswith("- ")] == [
-        f"- {item}" for item in list_items
-    ]
+    assert [line for line in markdown.splitlines() if line.startswith("- ")] == [f"- {item}" for item in list_items]
     assert [chunk.kind for chunk in chunks] == [
         "list_context",
         "list_item",
@@ -2919,9 +3436,7 @@ def test_docling_bns_list_survives_canonical_markdown_and_chunking() -> None:
     ]
     assert chunks[0].text == introduction.replace(" :", ":")
     assert [chunk.comparison_text for chunk in chunks[1:]] == list_items
-    assert {chunk.parent_chunk_id for chunk in chunks[1:]} == {
-        chunks[0].chunk_id
-    }
+    assert {chunk.parent_chunk_id for chunk in chunks[1:]} == {chunks[0].chunk_id}
 
 
 def test_docling_heading_does_not_match_words_inside_capital_paragraph() -> None:
@@ -3152,7 +3667,7 @@ def test_build_text_extraction_markdown_excludes_structural_parent_heading() -> 
 
 def test_compare_section_texts_skips_empty_orphan_headings(monkeypatch) -> None:
     monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline._compare_texts_single_call",
+        "vigie.analyse_texte.comparaison_sections.execution_llm._compare_texts_single_call",
         lambda **kw: [],
     )
 
@@ -3169,7 +3684,7 @@ def test_compare_section_texts_skips_empty_orphan_headings(monkeypatch) -> None:
 
 def test_compare_section_texts_skips_matched_table_only_subsection(monkeypatch) -> None:
     monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline._compare_texts_single_call",
+        "vigie.analyse_texte.comparaison_sections.execution_llm._compare_texts_single_call",
         lambda **kw: pytest.fail("Un tableau ne doit pas être envoyé à GPT."),
     )
 
@@ -3184,7 +3699,9 @@ def test_compare_section_texts_skips_matched_table_only_subsection(monkeypatch) 
     assert changes == []
 
 
-def test_compare_section_texts_sends_financial_paragraphs_to_comparison(monkeypatch) -> None:
+def test_compare_section_texts_sends_financial_paragraphs_to_comparison(
+    monkeypatch,
+) -> None:
     captured: dict[str, str] = {}
 
     def _capture_comparison(**kwargs):
@@ -3193,7 +3710,7 @@ def test_compare_section_texts_sends_financial_paragraphs_to_comparison(monkeypa
         raise RuntimeError("comparison reached")
 
     monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline._compare_texts_single_call",
+        "vigie.analyse_texte.comparaison_sections.execution_llm._compare_texts_single_call",
         _capture_comparison,
     )
 
@@ -3202,14 +3719,8 @@ def test_compare_section_texts_sends_financial_paragraphs_to_comparison(monkeypa
             client=object(),
             model="gpt-4o",
             section_key="gestion_capital",
-            text_t1=(
-                "### Ratio CET1\n\n"
-                "Le ratio CET1 atteint 13,8 % et les fonds propres totalisent 525 M$.\n"
-            ),
-            text_t2=(
-                "### Ratio CET1\n\n"
-                "Le ratio CET1 atteint 14,2 % et les fonds propres totalisent 540 M$.\n"
-            ),
+            text_t1=("### Ratio CET1\n\nLe ratio CET1 atteint 13,8 % et les fonds propres totalisent 525 M$.\n"),
+            text_t2=("### Ratio CET1\n\nLe ratio CET1 atteint 14,2 % et les fonds propres totalisent 540 M$.\n"),
         )
 
     assert "13,8 %" in captured["text_t1"]
@@ -3241,7 +3752,18 @@ def test_run_text_analysis_pipeline_writes_md_as_source_of_truth(monkeypatch, tm
         anchor_page=3,
         anchor_text="Gestion des risques",
         anchor_bbox_norm=[0.1, 0.2, 0.9, 0.25],
-        included_blocks=[PDFBlock("p003_b001", 3, [0.1, 0.3, 0.9, 0.4], "Texte exact T1", 1, "narrative", True, "")],
+        included_blocks=[
+            PDFBlock(
+                "p003_b001",
+                3,
+                [0.1, 0.3, 0.9, 0.4],
+                "Texte exact T1",
+                1,
+                "narrative",
+                True,
+                "",
+            )
+        ],
         excluded_blocks=[],
     )
     audit_curr = SectionAudit(
@@ -3252,19 +3774,30 @@ def test_run_text_analysis_pipeline_writes_md_as_source_of_truth(monkeypatch, tm
         anchor_page=3,
         anchor_text="Gestion des risques",
         anchor_bbox_norm=[0.1, 0.2, 0.9, 0.25],
-        included_blocks=[PDFBlock("p004_b001", 4, [0.1, 0.3, 0.9, 0.4], "Texte exact T2", 1, "narrative", True, "")],
+        included_blocks=[
+            PDFBlock(
+                "p004_b001",
+                4,
+                [0.1, 0.3, 0.9, 0.4],
+                "Texte exact T2",
+                1,
+                "narrative",
+                True,
+                "",
+            )
+        ],
         excluded_blocks=[],
     )
 
     compare_texts_kwargs: dict = {}
 
-    monkeypatch.setattr("vigilance.text_analysis_pipeline._build_openai_client", lambda: object())
+    monkeypatch.setattr("vigie.analyse_texte.pipeline._build_openai_client", lambda: object())
     monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline._resolve_sections",
+        "vigie.analyse_texte.pipeline._resolve_sections",
         lambda pdf_path, bank_code, quarter=None, year=None: {"gestion_risques": section},
     )
     monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline._extract_audits_for_pdf",
+        "vigie.analyse_texte.pipeline._extract_audits_for_pdf",
         lambda **kwargs: ([audit_prev], "") if "prev" in str(kwargs["pdf_path"]) else ([audit_curr], ""),
     )
 
@@ -3272,8 +3805,11 @@ def test_run_text_analysis_pipeline_writes_md_as_source_of_truth(monkeypatch, tm
         compare_texts_kwargs.update(kwargs)
         return []
 
-    monkeypatch.setattr("vigilance.text_analysis_pipeline._compare_section_texts", _fake_compare_section_texts)
-    monkeypatch.setattr("vigilance.text_analysis_pipeline._triage_section_changes", lambda **kwargs: [])
+    monkeypatch.setattr(
+        "vigie.analyse_texte.pipeline._compare_section_texts",
+        _fake_compare_section_texts,
+    )
+    monkeypatch.setattr("vigie.analyse_texte.pipeline._triage_section_changes", lambda **kwargs: [])
 
     payload, out_path = run_text_analysis_pipeline(
         bank_code="td",
@@ -3354,9 +3890,7 @@ def test_parse_subsections_excludes_empty_headings_before_orphan_matching() -> N
         "La Banque maintient des fonds propres adéquats.\n"
     )
 
-    assert _parse_subsections(md) == [
-        ("OBJECTIFS DE LA BANQUE", "La Banque maintient des fonds propres adéquats.")
-    ]
+    assert _parse_subsections(md) == [("OBJECTIFS DE LA BANQUE", "La Banque maintient des fonds propres adéquats.")]
 
 
 def test_chunk_subsection_text_splits_long_paragraphs_into_chunks() -> None:
@@ -3511,7 +4045,9 @@ def test_chunk_subsection_text_keeps_every_non_table_fragment(text: str) -> None
 
 
 @pytest.mark.parametrize("marker", ["s.o.", "S.O.", "- s.o."])
-def test_chunk_subsection_text_excludes_standalone_not_applicable_marker(marker: str) -> None:
+def test_chunk_subsection_text_excludes_standalone_not_applicable_marker(
+    marker: str,
+) -> None:
     assert _chunk_subsection_text(marker, subsection_heading="Capital") == []
 
 
@@ -3531,7 +4067,9 @@ def test_chunk_subsection_text_keeps_short_complete_narrative_sentence() -> None
 
 def test_chunk_subsection_text_requires_semantic_services_for_complex_paragraph() -> None:
     first_idea = " ".join(["La Banque surveille les risques de crédit de façon continue."] * 35)
-    second_idea = " ".join(["Toutefois, le cadre prévoit des contrôles additionnels pour les portefeuilles sensibles."] * 35)
+    second_idea = " ".join(
+        ["Toutefois, le cadre prévoit des contrôles additionnels pour les portefeuilles sensibles."] * 35
+    )
     third_idea = " ".join(["Par ailleurs, les résultats sont transmis aux comités de surveillance."] * 35)
     paragraph = f"{first_idea} {second_idea} {third_idea}"
 
@@ -3679,7 +4217,9 @@ def test_semantic_distinct_disclosures_are_materialized_as_added_and_removed() -
     assert all(change["semantic_alignment_group_id"] == "a02" for change in materialized)
 
 
-def test_global_reconciliation_removes_bnc_style_resegmented_fragments(monkeypatch) -> None:
+def test_global_reconciliation_removes_bnc_style_resegmented_fragments(
+    monkeypatch,
+) -> None:
     """One old block split into two moved current blocks must not survive as 3 changes."""
     mitigation = (
         "Malgré ces mesures préventives, la Banque compte sur des mécanismes d'atténuation "
@@ -3723,13 +4263,23 @@ def test_global_reconciliation_removes_bnc_style_resegmented_fragments(monkeypat
             "confidence": "high",
             "rationale": "Le bloc T1 est conservé dans T2 sous deux fragments déplacés et réordonnés.",
             "matches": [
-                {"t1_node_id": "n0000", "t2_node_id": "n0001", "text_t1": b10, "text_t2": b10},
-                {"t1_node_id": "n0000", "t2_node_id": "n0002", "text_t1": mitigation, "text_t2": mitigation},
+                {
+                    "t1_node_id": "n0000",
+                    "t2_node_id": "n0001",
+                    "text_t1": b10,
+                    "text_t2": b10,
+                },
+                {
+                    "t1_node_id": "n0000",
+                    "t2_node_id": "n0002",
+                    "text_t1": mitigation,
+                    "text_t2": mitigation,
+                },
             ],
         }
     )
     monkeypatch.setattr(
-        "vigilance.text_analysis.global_reconciliation._call_structured_completion_with_correction",
+        "vigie.analyse_texte.global_reconciliation._call_structured_completion_with_correction",
         lambda *_args, **_kwargs: response,
     )
 
@@ -3761,7 +4311,7 @@ def test_global_reconciliation_keeps_a_genuine_unmatched_addition(monkeypatch) -
         }
     ]
     monkeypatch.setattr(
-        "vigilance.text_analysis.global_reconciliation._call_structured_completion_with_correction",
+        "vigie.analyse_texte.global_reconciliation._call_structured_completion_with_correction",
         lambda *_args, **_kwargs: pytest.fail("Aucun candidat opposé : pas d'appel GPT de réconciliation."),
     )
 
@@ -3795,15 +4345,10 @@ def test_bnc_t4_global_reconciliation_detects_the_split_third_party_block() -> N
     }
     present_ids = {str(row.get("change_id") or "") for row in unique_rows}
     if not expected_ids.issubset(present_ids):
-        pytest.skip(
-            "Les change_id historiques du cas BNC T4 ne sont plus présents dans l'artefact local."
-        )
+        pytest.skip("Les change_id historiques du cas BNC T4 ne sont plus présents dans l'artefact local.")
 
     components, _edges = _components(_one_sided_nodes(unique_rows))
-    component_ids = [
-        {str(node.change.get("change_id") or "") for node in component}
-        for component in components
-    ]
+    component_ids = [{str(node.change.get("change_id") or "") for node in component} for component in components]
 
     assert expected_ids in component_ids
 
@@ -3851,11 +4396,29 @@ def test_build_comparison_batches_uses_type_specific_sizes() -> None:
         subsection_heading="Risque de stratégie",
     )[0]
     alignments = [
-        ChunkAlignment(f"a{index:02d}", "matched_strong", base_chunk, base_chunk, 0.95, [], [], "test")
+        ChunkAlignment(
+            f"a{index:02d}",
+            "matched_strong",
+            base_chunk,
+            base_chunk,
+            0.95,
+            [],
+            [],
+            "test",
+        )
         for index in range(6)
     ]
     alignments.extend(
-        ChunkAlignment(f"w{index:02d}", "matched_weak", base_chunk, base_chunk, 0.55, [], [], "test")
+        ChunkAlignment(
+            f"w{index:02d}",
+            "matched_weak",
+            base_chunk,
+            base_chunk,
+            0.55,
+            [],
+            [],
+            "test",
+        )
         for index in range(4)
     )
     alignments.extend(
@@ -3881,7 +4444,15 @@ def test_build_comparison_batches_uses_type_specific_sizes() -> None:
         ("possible_added", 1),
         ("possible_removed", 1),
     ]
-    assert [batch.batch_id for batch in batches] == ["b00", "b01", "b02", "b03", "b04", "b05", "b06"]
+    assert [batch.batch_id for batch in batches] == [
+        "b00",
+        "b01",
+        "b02",
+        "b03",
+        "b04",
+        "b05",
+        "b06",
+    ]
 
 
 def test_normalize_heading_strips_table_prefix_and_lowercases() -> None:
@@ -3891,12 +4462,10 @@ def test_normalize_heading_strips_table_prefix_and_lowercases() -> None:
 
 def test_normalize_heading_strips_pdf_page_suffixes() -> None:
     assert (
-        _normalize_heading("Structure de la gouvernance du risque [pdf.62]")
-        == "structure de la gouvernance du risque"
+        _normalize_heading("Structure de la gouvernance du risque [pdf.62]") == "structure de la gouvernance du risque"
     )
     assert (
-        _normalize_heading("Structure de la gouvernance du risque [pdf.56]")
-        == "structure de la gouvernance du risque"
+        _normalize_heading("Structure de la gouvernance du risque [pdf.56]") == "structure de la gouvernance du risque"
     )
 
 
@@ -3934,7 +4503,10 @@ def test_pair_subsections_matches_headings_with_different_pdf_page_suffixes() ->
 
 
 def test_pair_subsections_marks_t1_only_heading_as_removed() -> None:
-    subs_t1 = [("Risque de marché", "Corps T1"), ("Risque opérationnel", "Opérationnel T1")]
+    subs_t1 = [
+        ("Risque de marché", "Corps T1"),
+        ("Risque opérationnel", "Opérationnel T1"),
+    ]
     subs_t2 = [("Risque de marché", "Corps T2")]
 
     pairs = _pair_subsections(subs_t1, subs_t2)
@@ -3989,14 +4561,25 @@ def test_compare_section_texts_calls_gpt_once_per_subsection_pair(monkeypatch) -
     calls: list[str] = []
 
     def fake_single_call(
-        *, client, model, section_key, heading_label, heading_slug,
-        text_t1, text_t2, idx_offset, bank_code,
+        *,
+        client,
+        model,
+        section_key,
+        heading_label,
+        heading_slug,
+        text_t1,
+        text_t2,
+        idx_offset,
+        bank_code,
     ):
         assert bank_code == ""
         calls.append(heading_slug)
         return []
 
-    monkeypatch.setattr("vigilance.text_analysis_pipeline._compare_texts_single_call", fake_single_call)
+    monkeypatch.setattr(
+        "vigie.analyse_texte.comparaison_sections.execution_llm._compare_texts_single_call",
+        fake_single_call,
+    )
 
     md_t1 = "### Risque de marché\n\nCorps T1 A.\n\n### Risque de liquidité\n\nCorps T1 B.\n"
     md_t2 = "### Risque de marché\n\nCorps T2 A.\n\n### Risque de liquidité\n\nCorps T2 B.\n"
@@ -4016,15 +4599,26 @@ def test_compare_section_texts_sends_chunked_subsection_bodies(monkeypatch) -> N
     captured: dict[str, str] = {}
 
     def fake_single_call(
-        *, client, model, section_key, heading_label, heading_slug,
-        text_t1, text_t2, idx_offset, bank_code,
+        *,
+        client,
+        model,
+        section_key,
+        heading_label,
+        heading_slug,
+        text_t1,
+        text_t2,
+        idx_offset,
+        bank_code,
     ):
         assert bank_code == ""
         captured["text_t1"] = text_t1
         captured["text_t2"] = text_t2
         return []
 
-    monkeypatch.setattr("vigilance.text_analysis_pipeline._compare_texts_single_call", fake_single_call)
+    monkeypatch.setattr(
+        "vigie.analyse_texte.comparaison_sections.execution_llm._compare_texts_single_call",
+        fake_single_call,
+    )
 
     paragraph_a = (
         "Le risque de stratégie s'entend de la possibilité d'une perte financière ou d'une atteinte à la "
@@ -4048,17 +4642,14 @@ def test_compare_section_texts_sends_chunked_subsection_bodies(monkeypatch) -> N
         text_t2=f"### Risque de stratégie\n\n{paragraph_a}\n\n{paragraph_b_t2}",
     )
 
-    assert (
-        "[risque_de_stratégie_c01 | paragraph | Gestion des risques > Risque de stratégie]"
-        in captured["text_t1"]
-    )
+    assert "[risque_de_stratégie_c01 | paragraph | Gestion des risques > Risque de stratégie]" in captured["text_t1"]
     assert paragraph_b_t1 in captured["text_t1"]
     assert paragraph_b_t2 in captured["text_t2"]
 
 
 def test_compare_section_texts_sends_tfidf_alignment_context(monkeypatch) -> None:
     monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline._compare_texts_single_call",
+        "vigie.analyse_texte.comparaison_sections.execution_llm._compare_texts_single_call",
         lambda **kw: [],
     )
 
@@ -4094,7 +4685,9 @@ def test_compare_section_texts_sends_tfidf_alignment_context(monkeypatch) -> Non
     assert added_changes[0]["alignment_type"] == "unmatched_added"
 
 
-def test_compare_section_texts_chunk_change_carries_alignment_metadata(monkeypatch) -> None:
+def test_compare_section_texts_chunk_change_carries_alignment_metadata(
+    monkeypatch,
+) -> None:
     paragraphs_t1 = [
         (
             "Le premier paragraphe décrit un contrôle stratégique durable, une gouvernance claire "
@@ -4116,7 +4709,7 @@ def test_compare_section_texts_chunk_change_carries_alignment_metadata(monkeypat
     )
 
     monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline._call_structured_completion_with_correction",
+        "vigie.analyse_texte.comparaison_sections.execution_llm._call_structured_completion_with_correction",
         lambda *args, **kwargs: ChunkComparisonLLMResponse(
             changes=[
                 {
@@ -4149,7 +4742,9 @@ def test_compare_section_texts_chunk_change_carries_alignment_metadata(monkeypat
     assert modified[0]["source_text_t2"] == paragraphs_t2[1]
 
 
-def test_compare_section_texts_chunk_change_never_keeps_full_multichunk_body(monkeypatch) -> None:
+def test_compare_section_texts_chunk_change_never_keeps_full_multichunk_body(
+    monkeypatch,
+) -> None:
     paragraphs_t1 = [
         (
             "Le premier bloc décrit une gouvernance robuste, un mandat clair et des mécanismes "
@@ -4173,7 +4768,7 @@ def test_compare_section_texts_chunk_change_never_keeps_full_multichunk_body(mon
     body_t2 = "\n\n".join(paragraphs_t2)
 
     monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline._call_structured_completion_with_correction",
+        "vigie.analyse_texte.comparaison_sections.execution_llm._call_structured_completion_with_correction",
         lambda *args, **kwargs: ChunkComparisonLLMResponse(
             changes=[
                 {
@@ -4219,20 +4814,33 @@ def _paragraph_index_embedding(texts: list[str]) -> list[list[float]]:
     return vectors
 
 
-def test_compare_section_texts_splits_large_alignment_set_into_batches(monkeypatch) -> None:
+def test_compare_section_texts_splits_large_alignment_set_into_batches(
+    monkeypatch,
+) -> None:
     calls: list[dict[str, str]] = []
 
     def fake_single_call(
-        *, client, model, section_key, heading_label, heading_slug,
-        text_t1, text_t2, idx_offset, bank_code,
+        *,
+        client,
+        model,
+        section_key,
+        heading_label,
+        heading_slug,
+        text_t1,
+        text_t2,
+        idx_offset,
+        bank_code,
     ):
         assert bank_code == ""
         calls.append({"text_t1": text_t1, "text_t2": text_t2})
         return []
 
-    monkeypatch.setattr("vigilance.text_analysis_pipeline._compare_texts_single_call", fake_single_call)
     monkeypatch.setattr(
-        "vigilance.text_analysis.chunk_alignment._embed_texts",
+        "vigie.analyse_texte.comparaison_sections.execution_llm._compare_texts_single_call",
+        fake_single_call,
+    )
+    monkeypatch.setattr(
+        "vigie.analyse_texte.chunk_alignment._embed_texts",
         lambda client, texts, model="text-embedding-3-small": _paragraph_index_embedding(texts),
     )
 
@@ -4244,8 +4852,7 @@ def test_compare_section_texts_splits_large_alignment_set_into_batches(monkeypat
         for index in range(6)
     ]
     paragraphs_t2 = [
-        paragraph + " La version courante ajoute une précision de suivi opérationnel."
-        for paragraph in paragraphs_t1
+        paragraph + " La version courante ajoute une précision de suivi opérationnel." for paragraph in paragraphs_t1
     ]
     body_t1 = "\n\n".join(paragraphs_t1)
     body_t2 = "\n\n".join(paragraphs_t2)
@@ -4266,7 +4873,9 @@ def test_compare_section_texts_splits_large_alignment_set_into_batches(monkeypat
     assert "[risque_de_stratégie_c00 |" not in second_batch["text_t1"]
 
 
-def test_compare_section_texts_merges_parallel_batch_results_in_source_order(monkeypatch) -> None:
+def test_compare_section_texts_merges_parallel_batch_results_in_source_order(
+    monkeypatch,
+) -> None:
     paragraphs_t1 = [
         (
             f"Le paragraphe {index} décrit un contrôle stratégique distinct, une responsabilité de gouvernance "
@@ -4275,13 +4884,20 @@ def test_compare_section_texts_merges_parallel_batch_results_in_source_order(mon
         for index in range(6)
     ]
     paragraphs_t2 = [
-        paragraph + " La version courante ajoute une précision de suivi opérationnel."
-        for paragraph in paragraphs_t1
+        paragraph + " La version courante ajoute une précision de suivi opérationnel." for paragraph in paragraphs_t1
     ]
 
     def fake_single_call(
-        *, client, model, section_key, heading_label, heading_slug,
-        text_t1, text_t2, idx_offset, bank_code,
+        *,
+        client,
+        model,
+        section_key,
+        heading_label,
+        heading_slug,
+        text_t1,
+        text_t2,
+        idx_offset,
+        bank_code,
     ):
         assert bank_code == ""
         if "[risque_de_stratégie_c05 |" in text_t2:
@@ -4322,9 +4938,12 @@ def test_compare_section_texts_merges_parallel_batch_results_in_source_order(mon
             }
         ]
 
-    monkeypatch.setattr("vigilance.text_analysis_pipeline._compare_texts_single_call", fake_single_call)
     monkeypatch.setattr(
-        "vigilance.text_analysis.chunk_alignment._embed_texts",
+        "vigie.analyse_texte.comparaison_sections.execution_llm._compare_texts_single_call",
+        fake_single_call,
+    )
+    monkeypatch.setattr(
+        "vigie.analyse_texte.chunk_alignment._embed_texts",
         lambda client, texts, model="text-embedding-3-small": _paragraph_index_embedding(texts),
     )
 
@@ -4332,11 +4951,14 @@ def test_compare_section_texts_merges_parallel_batch_results_in_source_order(mon
         client=object(),
         model="gpt-4o",
         section_key="gestion_risques",
-        text_t1=f"### Risque de stratégie\n\n" + "\n\n".join(paragraphs_t1),
-        text_t2=f"### Risque de stratégie\n\n" + "\n\n".join(paragraphs_t2),
+        text_t1="### Risque de stratégie\n\n" + "\n\n".join(paragraphs_t1),
+        text_t2="### Risque de stratégie\n\n" + "\n\n".join(paragraphs_t2),
     )
 
-    assert [change["source_text_t2"] for change in changes] == [paragraphs_t2[0], paragraphs_t2[5]]
+    assert [change["source_text_t2"] for change in changes] == [
+        paragraphs_t2[0],
+        paragraphs_t2[5],
+    ]
     assert [change["change_id"] for change in changes] == [
         "gestion_risques_risque_de_stratégie_change_001",
         "gestion_risques_risque_de_stratégie_change_002",
@@ -4349,9 +4971,12 @@ def test_compare_section_texts_reports_batch_id_on_batch_failure(monkeypatch) ->
     def fake_single_call(**kwargs):
         raise RuntimeError("boom")
 
-    monkeypatch.setattr("vigilance.text_analysis_pipeline._compare_texts_single_call", fake_single_call)
     monkeypatch.setattr(
-        "vigilance.text_analysis.chunk_alignment._embed_texts",
+        "vigie.analyse_texte.comparaison_sections.execution_llm._compare_texts_single_call",
+        fake_single_call,
+    )
+    monkeypatch.setattr(
+        "vigie.analyse_texte.chunk_alignment._embed_texts",
         lambda client, texts, model="text-embedding-3-small": [[1.0, 0.0] for _ in texts],
     )
 
@@ -4359,9 +4984,7 @@ def test_compare_section_texts_reports_batch_id_on_batch_failure(monkeypatch) ->
         "Le risque stratégique est surveillé par un cadre de gouvernance précis avec des contrôles internes "
         "et des rapports réguliers destinés au conseil afin de former un chunk autonome."
     )
-    paragraph_t2 = (
-        paragraph_t1 + " La version courante ajoute une précision sur le suivi trimestriel du comité."
-    )
+    paragraph_t2 = paragraph_t1 + " La version courante ajoute une précision sur le suivi trimestriel du comité."
 
     with pytest.raises(RuntimeError, match="b00"):
         _compare_section_texts(
@@ -4373,10 +4996,12 @@ def test_compare_section_texts_reports_batch_id_on_batch_failure(monkeypatch) ->
         )
 
 
-def test_compare_section_texts_synthetic_change_for_removed_subsection(monkeypatch) -> None:
+def test_compare_section_texts_synthetic_change_for_removed_subsection(
+    monkeypatch,
+) -> None:
     """Une sous-section T1 sans contrepartie T2 produit un retrait par chunk."""
     monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline._compare_texts_single_call",
+        "vigie.analyse_texte.comparaison_sections.execution_llm._compare_texts_single_call",
         lambda **kw: [],
     )
 
@@ -4398,10 +5023,12 @@ def test_compare_section_texts_synthetic_change_for_removed_subsection(monkeypat
     assert "Supprimé en T2" in removed[0]["source_text_t1"]
 
 
-def test_compare_section_texts_synthetic_change_for_added_subsection(monkeypatch) -> None:
+def test_compare_section_texts_synthetic_change_for_added_subsection(
+    monkeypatch,
+) -> None:
     """Une sous-section T2 sans contrepartie T1 produit un ajout par chunk."""
     monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline._compare_texts_single_call",
+        "vigie.analyse_texte.comparaison_sections.execution_llm._compare_texts_single_call",
         lambda **kw: [],
     )
 
@@ -4425,7 +5052,7 @@ def test_compare_section_texts_synthetic_change_for_added_subsection(monkeypatch
 
 def test_compare_section_texts_chunks_unmatched_long_subsection(monkeypatch) -> None:
     monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline._compare_texts_single_call",
+        "vigie.analyse_texte.comparaison_sections.execution_llm._compare_texts_single_call",
         lambda **kw: [],
     )
     paragraphs = [
@@ -4524,11 +5151,11 @@ def test_compare_section_texts_rescues_cross_subsection_move(monkeypatch) -> Non
         "la banque accepte dans la conduite de ses activités."
     )
     monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline._compare_texts_single_call",
+        "vigie.analyse_texte.comparaison_sections.execution_llm._compare_texts_single_call",
         lambda **kw: [],
     )
     monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline._resolve_orphan_subsections",
+        "vigie.analyse_texte.comparaison_sections.comparaison_section._resolve_orphan_subsections",
         lambda **kw: [],
     )
 
@@ -4537,12 +5164,10 @@ def test_compare_section_texts_rescues_cross_subsection_move(monkeypatch) -> Non
         model="gpt-4o",
         section_key="gestion_risques",
         text_t1=(
-            f"### Surveillance du Conseil\n\n{filler_a}\n\n{moved}\n\n"
-            f"### Cadre d'appétit pour le risque\n\n{filler_b}"
+            f"### Surveillance du Conseil\n\n{filler_a}\n\n{moved}\n\n### Cadre d'appétit pour le risque\n\n{filler_b}"
         ),
         text_t2=(
-            f"### Surveillance du Conseil\n\n{filler_a}\n\n"
-            f"### Cadre d'appétit pour le risque\n\n{filler_b}\n\n{moved}"
+            f"### Surveillance du Conseil\n\n{filler_a}\n\n### Cadre d'appétit pour le risque\n\n{filler_b}\n\n{moved}"
         ),
     )
 
@@ -4552,15 +5177,12 @@ def test_compare_section_texts_rescues_cross_subsection_move(monkeypatch) -> Non
         if change["diff_type"] == "removed" and moved in (change.get("source_text_t1") or "")
     ]
     moved_added = [
-        change
-        for change in changes
-        if change["diff_type"] == "added" and moved in (change.get("source_text_t2") or "")
+        change for change in changes if change["diff_type"] == "added" and moved in (change.get("source_text_t2") or "")
     ]
     rescued = [
         change
         for change in changes
-        if moved in (change.get("source_text_t1") or "")
-        and moved in (change.get("source_text_t2") or "")
+        if moved in (change.get("source_text_t1") or "") and moved in (change.get("source_text_t2") or "")
     ]
 
     assert moved_removed == []
@@ -4572,7 +5194,9 @@ def test_compare_section_texts_rescues_cross_subsection_move(monkeypatch) -> Non
     assert rescued[0].get("alignment_reason") == "section_rescue"
 
 
-def test_compare_section_texts_keeps_true_addition_after_section_rescue(monkeypatch) -> None:
+def test_compare_section_texts_keeps_true_addition_after_section_rescue(
+    monkeypatch,
+) -> None:
     """Un vrai ajout sans contrepartie T1 reste added après la Phase B."""
     shared = (
         "La banque surveille régulièrement le risque de marché et produit des rapports "
@@ -4583,11 +5207,11 @@ def test_compare_section_texts_keeps_true_addition_after_section_rescue(monkeypa
         "sur les scénarios de crise liés aux droits de douane internationaux."
     )
     monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline._compare_texts_single_call",
+        "vigie.analyse_texte.comparaison_sections.execution_llm._compare_texts_single_call",
         lambda **kw: [],
     )
     monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline._resolve_orphan_subsections",
+        "vigie.analyse_texte.comparaison_sections.comparaison_section._resolve_orphan_subsections",
         lambda **kw: [],
     )
 
@@ -4605,7 +5229,9 @@ def test_compare_section_texts_keeps_true_addition_after_section_rescue(monkeypa
     assert added[0]["subsection_heading"] == "Faits nouveaux"
 
 
-def test_compare_section_texts_local_match_unchanged_same_subsection(monkeypatch) -> None:
+def test_compare_section_texts_local_match_unchanged_same_subsection(
+    monkeypatch,
+) -> None:
     """Un match local Phase A reste dans la même sous-section sans section_rescue."""
     previous = (
         "La mesure du rendement du capital ajusté en fonction du risque est calculée "
@@ -4616,11 +5242,11 @@ def test_compare_section_texts_local_match_unchanged_same_subsection(monkeypatch
         "trimestriellement pour chacun des secteurs d'exploitation de la Banque."
     )
     monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline._resolve_orphan_subsections",
+        "vigie.analyse_texte.comparaison_sections.comparaison_section._resolve_orphan_subsections",
         lambda **kw: [],
     )
     monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline._call_structured_completion_with_correction",
+        "vigie.analyse_texte.comparaison_sections.execution_llm._call_structured_completion_with_correction",
         lambda *args, **kwargs: ChunkComparisonLLMResponse(
             changes=[
                 {
@@ -4651,11 +5277,13 @@ def test_compare_section_texts_local_match_unchanged_same_subsection(monkeypatch
     assert changes[0].get("alignment_reason") != "section_rescue"
 
 
-def test_compare_section_texts_deduplicates_multiple_llm_details_for_one_alignment(monkeypatch) -> None:
+def test_compare_section_texts_deduplicates_multiple_llm_details_for_one_alignment(
+    monkeypatch,
+) -> None:
     previous = "Le cadre prévoit une surveillance régulière des risques de marché et des rapports au comité."
     current = previous + " Il ajoute un indicateur de concentration."
     monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline._call_structured_completion_with_correction",
+        "vigie.analyse_texte.comparaison_sections.execution_llm._call_structured_completion_with_correction",
         lambda *args, **kwargs: ChunkComparisonLLMResponse(
             changes=[
                 {
@@ -4720,17 +5348,26 @@ def test_orphan_match_llm_response_rejects_invalid_confidence() -> None:
 def test_gpt_match_orphan_headings_filters_low_confidence(monkeypatch) -> None:
     """Matches de confidence 'low' sont exclus du résultat."""
     monkeypatch.setattr(
-        "vigilance.text_analysis.subsection_matching._deterministic_match_orphan_headings",
+        "vigie.analyse_texte.subsection_matching._deterministic_match_orphan_headings",
         lambda *_args, **_kwargs: [],
     )
 
     def fake_call(client, *, model, messages, **kwargs):
         return OrphanMatchLLMResponse(
             matches=[
-                {"heading_t1": "Incidence des tarifs", "heading_t2": "Incidence des tarifs douaniers", "confidence": "low", "reason": "x"},
+                {
+                    "heading_t1": "Incidence des tarifs",
+                    "heading_t2": "Incidence des tarifs douaniers",
+                    "confidence": "low",
+                    "reason": "x",
+                },
             ]
         )
-    monkeypatch.setattr("vigilance.text_analysis.subsection_matching._call_structured_completion_with_correction", fake_call)
+
+    monkeypatch.setattr(
+        "vigie.analyse_texte.subsection_matching._call_structured_completion_with_correction",
+        fake_call,
+    )
 
     result = _gpt_match_orphan_headings(
         client=object(),
@@ -4745,17 +5382,26 @@ def test_gpt_match_orphan_headings_filters_low_confidence(monkeypatch) -> None:
 def test_gpt_match_orphan_headings_rejects_hallucinated_headings(monkeypatch) -> None:
     """GPT invente un heading absent des listes orphelines → rejeté."""
     monkeypatch.setattr(
-        "vigilance.text_analysis.subsection_matching._deterministic_match_orphan_headings",
+        "vigie.analyse_texte.subsection_matching._deterministic_match_orphan_headings",
         lambda *_args, **_kwargs: [],
     )
 
     def fake_call(client, *, model, messages, **kwargs):
         return OrphanMatchLLMResponse(
             matches=[
-                {"heading_t1": "Heading inventé", "heading_t2": "Incidence des tarifs douaniers", "confidence": "high", "reason": "x"},
+                {
+                    "heading_t1": "Heading inventé",
+                    "heading_t2": "Incidence des tarifs douaniers",
+                    "confidence": "high",
+                    "reason": "x",
+                },
             ]
         )
-    monkeypatch.setattr("vigilance.text_analysis.subsection_matching._call_structured_completion_with_correction", fake_call)
+
+    monkeypatch.setattr(
+        "vigie.analyse_texte.subsection_matching._call_structured_completion_with_correction",
+        fake_call,
+    )
 
     result = _gpt_match_orphan_headings(
         client=object(),
@@ -4769,13 +5415,23 @@ def test_gpt_match_orphan_headings_rejects_hallucinated_headings(monkeypatch) ->
 
 def test_gpt_match_orphan_headings_accepts_high_confidence(monkeypatch) -> None:
     """Un match high-confidence avec headings valides est retourné."""
+
     def fake_call(client, *, model, messages, **kwargs):
         return OrphanMatchLLMResponse(
             matches=[
-                {"heading_t1": "Incidence des tarifs", "heading_t2": "Incidence des tarifs douaniers", "confidence": "high", "reason": "précision ajoutée"},
+                {
+                    "heading_t1": "Incidence des tarifs",
+                    "heading_t2": "Incidence des tarifs douaniers",
+                    "confidence": "high",
+                    "reason": "précision ajoutée",
+                },
             ]
         )
-    monkeypatch.setattr("vigilance.text_analysis_pipeline._call_structured_completion_with_correction", fake_call)
+
+    monkeypatch.setattr(
+        "vigie.analyse_texte.comparaison_sections.execution_llm._call_structured_completion_with_correction",
+        fake_call,
+    )
 
     result = _gpt_match_orphan_headings(
         client=object(),
@@ -4791,15 +5447,25 @@ def test_gpt_match_orphan_headings_accepts_high_confidence(monkeypatch) -> None:
 
 def test_gpt_match_orphan_headings_enforces_1_to_1(monkeypatch) -> None:
     """GPT tente d'associer le même T1 heading à deux T2 headings → seule la première paire est acceptée."""
-    from vigilance.text_analysis import subsection_matching as sm
+    from vigie.analyse_texte import subsection_matching as sm
 
     monkeypatch.setattr(sm, "_deterministic_match_orphan_headings", lambda *_args, **_kwargs: [])
 
     def fake_call(client, *, model, messages, **kwargs):
         return OrphanMatchLLMResponse(
             matches=[
-                {"heading_t1": "Risque de marché", "heading_t2": "Risque de marché amplifié", "confidence": "high", "reason": "a"},
-                {"heading_t1": "Risque de marché", "heading_t2": "Risque de marché étendu", "confidence": "medium", "reason": "b"},
+                {
+                    "heading_t1": "Risque de marché",
+                    "heading_t2": "Risque de marché amplifié",
+                    "confidence": "high",
+                    "reason": "a",
+                },
+                {
+                    "heading_t1": "Risque de marché",
+                    "heading_t2": "Risque de marché étendu",
+                    "confidence": "medium",
+                    "reason": "b",
+                },
             ]
         )
 
@@ -4822,15 +5488,31 @@ def test_compare_section_texts_resolves_renamed_subsection(monkeypatch) -> None:
     single_call_labels: list[str] = []
 
     def fake_single_call(
-        *, client, model, section_key, heading_label, heading_slug,
-        text_t1, text_t2, idx_offset, bank_code,
+        *,
+        client,
+        model,
+        section_key,
+        heading_label,
+        heading_slug,
+        text_t1,
+        text_t2,
+        idx_offset,
+        bank_code,
     ):
         assert bank_code == ""
         single_call_slugs.append(heading_slug)
         single_call_labels.append(heading_label)
         return []
 
-    def fake_resolve_orphans(*, client, model, section_key, orphans_t1, orphans_t2, embedding_model="text-embedding-3-small"):
+    def fake_resolve_orphans(
+        *,
+        client,
+        model,
+        section_key,
+        orphans_t1,
+        orphans_t2,
+        embedding_model="text-embedding-3-small",
+    ):
         return [
             {
                 "heading_t1": "Incidence des tarifs",
@@ -4841,8 +5523,14 @@ def test_compare_section_texts_resolves_renamed_subsection(monkeypatch) -> None:
             },
         ]
 
-    monkeypatch.setattr("vigilance.text_analysis_pipeline._compare_texts_single_call", fake_single_call)
-    monkeypatch.setattr("vigilance.text_analysis_pipeline._resolve_orphan_subsections", fake_resolve_orphans)
+    monkeypatch.setattr(
+        "vigie.analyse_texte.comparaison_sections.execution_llm._compare_texts_single_call",
+        fake_single_call,
+    )
+    monkeypatch.setattr(
+        "vigie.analyse_texte.comparaison_sections.comparaison_section._resolve_orphan_subsections",
+        fake_resolve_orphans,
+    )
 
     md_t1 = "### Risque de marché\n\nCorps T1.\n\n### Incidence des tarifs\n\nTexte T1.\n"
     md_t2 = "### Risque de marché\n\nCorps T2.\n\n### Incidence des tarifs douaniers\n\nTexte T2.\n"
@@ -4886,7 +5574,9 @@ def test_tfidf_similarity_matrix_from_texts_matches_chunk_wrapper() -> None:
     assert matrix_from_texts[0][1] == pytest.approx(matched[0].similarity_score, rel=1e-6)
 
 
-def test_resolve_orphan_subsections_embedding_strong_matches_without_gpt(monkeypatch) -> None:
+def test_resolve_orphan_subsections_embedding_strong_matches_without_gpt(
+    monkeypatch,
+) -> None:
     """Embedding fort + corps similaire → match déterministe sans GPT."""
     body_t1 = (
         "Le Service de la conformité est une fonction indépendante de gestion et de surveillance "
@@ -4896,7 +5586,10 @@ def test_resolve_orphan_subsections_embedding_strong_matches_without_gpt(monkeyp
     orphans_t1 = [OrphanSubsection(heading="Service conformité T1", body=body_t1)]
     orphans_t2 = [OrphanSubsection(heading="Service conformité T2", body=body_t2)]
 
-    from vigilance.text_analysis.subsection_matching import OrphanCandidate, _shortlist_orphan_candidates
+    from vigie.analyse_texte.subsection_matching import (
+        OrphanCandidate,
+        _shortlist_orphan_candidates,
+    )
 
     shortlist = _shortlist_orphan_candidates(orphans_t1, orphans_t2)
 
@@ -4915,7 +5608,7 @@ def test_resolve_orphan_subsections_embedding_strong_matches_without_gpt(monkeyp
         ]
         return enriched, {}
 
-    monkeypatch.setattr("vigilance.text_analysis.subsection_matching._attach_embedding_scores", fake_attach)
+    monkeypatch.setattr("vigie.analyse_texte.subsection_matching._attach_embedding_scores", fake_attach)
     gpt_called = {"value": False}
 
     def fail_if_called(**kwargs):
@@ -4923,11 +5616,13 @@ def test_resolve_orphan_subsections_embedding_strong_matches_without_gpt(monkeyp
         return []
 
     monkeypatch.setattr(
-        "vigilance.text_analysis.subsection_matching._gpt_arbitrate_orphan_subsections",
+        "vigie.analyse_texte.subsection_matching._gpt_arbitrate_orphan_subsections",
         fail_if_called,
     )
 
-    from vigilance.text_analysis.subsection_matching import _resolve_orphan_subsections as resolve_direct
+    from vigie.analyse_texte.subsection_matching import (
+        _resolve_orphan_subsections as resolve_direct,
+    )
 
     matches = resolve_direct(
         client=object(),
@@ -4937,12 +5632,17 @@ def test_resolve_orphan_subsections_embedding_strong_matches_without_gpt(monkeyp
         orphans_t2=orphans_t2,
     )
     assert len(matches) == 1
-    assert matches[0]["match_source"] in {"deterministic_heading", "deterministic_embedding"}
+    assert matches[0]["match_source"] in {
+        "deterministic_heading",
+        "deterministic_embedding",
+    }
     assert matches[0]["embedding_score"] == pytest.approx(0.95)
     assert gpt_called["value"] is False
 
 
-def test_resolve_orphan_subsections_embedding_strong_match_when_llm_confirms(monkeypatch) -> None:
+def test_resolve_orphan_subsections_embedding_strong_match_when_llm_confirms(
+    monkeypatch,
+) -> None:
     body_t1 = (
         "Le Service de la conformité est une fonction indépendante de gestion et de surveillance "
         "du risque de conformité à l'échelle mondiale de la Banque."
@@ -4951,7 +5651,10 @@ def test_resolve_orphan_subsections_embedding_strong_match_when_llm_confirms(mon
     orphans_t1 = [OrphanSubsection(heading="Service conformité T1", body=body_t1)]
     orphans_t2 = [OrphanSubsection(heading="Service conformité T2", body=body_t2)]
 
-    from vigilance.text_analysis.subsection_matching import OrphanCandidate, _shortlist_orphan_candidates
+    from vigie.analyse_texte.subsection_matching import (
+        OrphanCandidate,
+        _shortlist_orphan_candidates,
+    )
 
     shortlist = _shortlist_orphan_candidates(orphans_t1, orphans_t2)
 
@@ -4970,9 +5673,9 @@ def test_resolve_orphan_subsections_embedding_strong_match_when_llm_confirms(mon
         ]
         return enriched, {}
 
-    monkeypatch.setattr("vigilance.text_analysis.subsection_matching._attach_embedding_scores", fake_attach)
+    monkeypatch.setattr("vigie.analyse_texte.subsection_matching._attach_embedding_scores", fake_attach)
     monkeypatch.setattr(
-        "vigilance.text_analysis.subsection_matching._call_structured_completion_with_correction",
+        "vigie.analyse_texte.subsection_matching._call_structured_completion_with_correction",
         lambda *args, **kwargs: OrphanMatchLLMResponse(
             matches=[
                 {
@@ -4985,7 +5688,9 @@ def test_resolve_orphan_subsections_embedding_strong_match_when_llm_confirms(mon
         ),
     )
 
-    from vigilance.text_analysis.subsection_matching import _resolve_orphan_subsections as resolve_direct
+    from vigie.analyse_texte.subsection_matching import (
+        _resolve_orphan_subsections as resolve_direct,
+    )
 
     matches = resolve_direct(
         client=object(),
@@ -4995,12 +5700,18 @@ def test_resolve_orphan_subsections_embedding_strong_match_when_llm_confirms(mon
         orphans_t2=orphans_t2,
     )
     assert len(matches) == 1
-    assert matches[0]["match_source"] in {"deterministic_heading", "deterministic_embedding", "llm_embedding_confirmed"}
+    assert matches[0]["match_source"] in {
+        "deterministic_heading",
+        "deterministic_embedding",
+        "llm_embedding_confirmed",
+    }
     assert matches[0]["llm_confidence"] in {None, "high"}
     assert matches[0]["embedding_score"] == pytest.approx(0.95)
 
 
-def test_resolve_orphan_subsections_llm_arbitration_when_embedding_weak(monkeypatch) -> None:
+def test_resolve_orphan_subsections_llm_arbitration_when_embedding_weak(
+    monkeypatch,
+) -> None:
     body_shared = (
         "La Banque et ses entreprises sont assujetties à une réglementation considérable "
         "et à une surveillance active des autorités de réglementation."
@@ -5013,7 +5724,10 @@ def test_resolve_orphan_subsections_llm_arbitration_when_embedding_weak(monkeypa
         )
     ]
 
-    from vigilance.text_analysis.subsection_matching import OrphanCandidate, _shortlist_orphan_candidates
+    from vigie.analyse_texte.subsection_matching import (
+        OrphanCandidate,
+        _shortlist_orphan_candidates,
+    )
 
     shortlist = _shortlist_orphan_candidates(orphans_t1, orphans_t2)
 
@@ -5032,9 +5746,9 @@ def test_resolve_orphan_subsections_llm_arbitration_when_embedding_weak(monkeypa
         ]
         return enriched, {}
 
-    monkeypatch.setattr("vigilance.text_analysis.subsection_matching._attach_embedding_scores", fake_attach)
+    monkeypatch.setattr("vigie.analyse_texte.subsection_matching._attach_embedding_scores", fake_attach)
     monkeypatch.setattr(
-        "vigilance.text_analysis.subsection_matching._call_structured_completion_with_correction",
+        "vigie.analyse_texte.subsection_matching._call_structured_completion_with_correction",
         lambda *args, **kwargs: OrphanMatchLLMResponse(
             matches=[
                 {
@@ -5047,7 +5761,9 @@ def test_resolve_orphan_subsections_llm_arbitration_when_embedding_weak(monkeypa
         ),
     )
 
-    from vigilance.text_analysis.subsection_matching import _resolve_orphan_subsections as resolve_direct
+    from vigie.analyse_texte.subsection_matching import (
+        _resolve_orphan_subsections as resolve_direct,
+    )
 
     matches = resolve_direct(
         client=object(),
@@ -5057,23 +5773,36 @@ def test_resolve_orphan_subsections_llm_arbitration_when_embedding_weak(monkeypa
         orphans_t2=orphans_t2,
     )
     assert len(matches) == 1
-    assert matches[0]["match_source"] in {"deterministic_heading", "llm_embedding_confirmed"}
+    assert matches[0]["match_source"] in {
+        "deterministic_heading",
+        "llm_embedding_confirmed",
+    }
     if matches[0]["match_source"] == "llm_embedding_confirmed":
         assert matches[0]["llm_confidence"] == "high"
 
 
-def test_compare_section_texts_orphan_match_avoids_duplicate_synthetics(monkeypatch) -> None:
+def test_compare_section_texts_orphan_match_avoids_duplicate_synthetics(
+    monkeypatch,
+) -> None:
     shared_body = (
         "Le groupe GRCF, anciennement le groupe Lutte mondiale contre le blanchiment d'argent, "
         "est responsable de la gouvernance des risques liés aux crimes financiers."
     )
 
     monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline._compare_texts_single_call",
+        "vigie.analyse_texte.comparaison_sections.execution_llm._compare_texts_single_call",
         lambda **kwargs: [],
     )
 
-    def fake_resolve_orphans(*, client, model, section_key, orphans_t1, orphans_t2, embedding_model="text-embedding-3-small"):
+    def fake_resolve_orphans(
+        *,
+        client,
+        model,
+        section_key,
+        orphans_t1,
+        orphans_t2,
+        embedding_model="text-embedding-3-small",
+    ):
         return [
             {
                 "heading_t1": "Crimes financiers, Gestion des risques (CFGR)",
@@ -5084,13 +5813,12 @@ def test_compare_section_texts_orphan_match_avoids_duplicate_synthetics(monkeypa
             }
         ]
 
-    monkeypatch.setattr("vigilance.text_analysis_pipeline._resolve_orphan_subsections", fake_resolve_orphans)
-
-    md_t1 = (
-        "### Risque de marché\n\nCorps T1.\n\n"
-        "### Crimes financiers, Gestion des risques (CFGR)\n\n"
-        f"{shared_body}\n"
+    monkeypatch.setattr(
+        "vigie.analyse_texte.comparaison_sections.comparaison_section._resolve_orphan_subsections",
+        fake_resolve_orphans,
     )
+
+    md_t1 = f"### Risque de marché\n\nCorps T1.\n\n### Crimes financiers, Gestion des risques (CFGR)\n\n{shared_body}\n"
     md_t2 = (
         "### Risque de marché\n\nCorps T2.\n\n"
         "### Gestion des risques liés aux crimes financiers (GRCF)\n\n"
@@ -5106,17 +5834,23 @@ def test_compare_section_texts_orphan_match_avoids_duplicate_synthetics(monkeypa
     )
 
     synthetic_added = [
-        change for change in changes if change["diff_type"] == "added" and change["change_summary"].startswith("Sous-section")
+        change
+        for change in changes
+        if change["diff_type"] == "added" and change["change_summary"].startswith("Sous-section")
     ]
     synthetic_removed = [
-        change for change in changes if change["diff_type"] == "removed" and change["change_summary"].startswith("Sous-section")
+        change
+        for change in changes
+        if change["diff_type"] == "removed" and change["change_summary"].startswith("Sous-section")
     ]
     assert synthetic_added == []
     assert synthetic_removed == []
     assert any(change["diff_type"] == "renamed" for change in changes)
 
 
-def test_compare_section_texts_td_renamed_orphans_avoid_duplicate_synthetics(monkeypatch) -> None:
+def test_compare_section_texts_td_renamed_orphans_avoid_duplicate_synthetics(
+    monkeypatch,
+) -> None:
     regulatory_body = (
         "La Banque et ses entreprises sont assujetties à une réglementation considérable "
         "et à une surveillance étendue exercée par différents organismes de réglementation. "
@@ -5129,11 +5863,19 @@ def test_compare_section_texts_td_renamed_orphans_avoid_duplicate_synthetics(mon
     )
 
     monkeypatch.setattr(
-        "vigilance.text_analysis_pipeline._compare_texts_single_call",
+        "vigie.analyse_texte.comparaison_sections.execution_llm._compare_texts_single_call",
         lambda **kwargs: [],
     )
 
-    def fake_resolve_orphans(*, client, model, section_key, orphans_t1, orphans_t2, embedding_model="text-embedding-3-small"):
+    def fake_resolve_orphans(
+        *,
+        client,
+        model,
+        section_key,
+        orphans_t1,
+        orphans_t2,
+        embedding_model="text-embedding-3-small",
+    ):
         return [
             {
                 "heading_t1": "Surveillance réglementaire et conformité",
@@ -5159,7 +5901,10 @@ def test_compare_section_texts_td_renamed_orphans_avoid_duplicate_synthetics(mon
             },
         ]
 
-    monkeypatch.setattr("vigilance.text_analysis_pipeline._resolve_orphan_subsections", fake_resolve_orphans)
+    monkeypatch.setattr(
+        "vigie.analyse_texte.comparaison_sections.comparaison_section._resolve_orphan_subsections",
+        fake_resolve_orphans,
+    )
 
     md_t1 = (
         "### Surveillance réglementaire et conformité\n\n"
@@ -5185,11 +5930,13 @@ def test_compare_section_texts_td_renamed_orphans_avoid_duplicate_synthetics(mon
     synthetic_added_or_removed = [
         change
         for change in changes
-        if change["diff_type"] in {"added", "removed"}
-        and change["change_summary"].startswith("Sous-section")
+        if change["diff_type"] in {"added", "removed"} and change["change_summary"].startswith("Sous-section")
     ]
     renamed_headings = {
-        (change.get("previous_subsection_heading"), change.get("current_subsection_heading"))
+        (
+            change.get("previous_subsection_heading"),
+            change.get("current_subsection_heading"),
+        )
         for change in changes
         if change["diff_type"] == "renamed"
     }
@@ -5205,7 +5952,7 @@ def test_compare_section_texts_td_renamed_orphans_avoid_duplicate_synthetics(mon
 
 
 def test_deterministic_confirm_orphan_matches_td_frauduleuses() -> None:
-    from vigilance.text_analysis.subsection_matching import (
+    from vigie.analyse_texte.subsection_matching import (
         OrphanCandidate,
         _deterministic_confirm_orphan_matches,
     )
@@ -5224,7 +5971,9 @@ def test_deterministic_confirm_orphan_matches_td_frauduleuses() -> None:
     assert matches[0]["match_source"] == "deterministic_heading"
 
 
-def test_resolve_orphan_subsections_gpt_failure_keeps_deterministic_matches(monkeypatch) -> None:
+def test_resolve_orphan_subsections_gpt_failure_keeps_deterministic_matches(
+    monkeypatch,
+) -> None:
     body_shared = (
         "La Banque surveille les activités frauduleuses internes et externes dans l'ensemble "
         "de ses opérations bancaires et de détail."
@@ -5232,7 +5981,10 @@ def test_resolve_orphan_subsections_gpt_failure_keeps_deterministic_matches(monk
     orphans_t1 = [OrphanSubsection(heading="Activités frauduleuses", body=body_shared)]
     orphans_t2 = [OrphanSubsection(heading="Activités frauduleuses externes", body=body_shared)]
 
-    from vigilance.text_analysis.subsection_matching import OrphanCandidate, _shortlist_orphan_candidates
+    from vigie.analyse_texte.subsection_matching import (
+        OrphanCandidate,
+        _shortlist_orphan_candidates,
+    )
 
     shortlist = _shortlist_orphan_candidates(orphans_t1, orphans_t2)
 
@@ -5253,13 +6005,15 @@ def test_resolve_orphan_subsections_gpt_failure_keeps_deterministic_matches(monk
     def fake_gpt_failure(**kwargs):
         raise RuntimeError("gpt down")
 
-    monkeypatch.setattr("vigilance.text_analysis.subsection_matching._attach_embedding_scores", fake_attach)
+    monkeypatch.setattr("vigie.analyse_texte.subsection_matching._attach_embedding_scores", fake_attach)
     monkeypatch.setattr(
-        "vigilance.text_analysis.subsection_matching._gpt_arbitrate_orphan_subsections",
+        "vigie.analyse_texte.subsection_matching._gpt_arbitrate_orphan_subsections",
         fake_gpt_failure,
     )
 
-    from vigilance.text_analysis.subsection_matching import _resolve_orphan_subsections as resolve_direct
+    from vigie.analyse_texte.subsection_matching import (
+        _resolve_orphan_subsections as resolve_direct,
+    )
 
     matches = resolve_direct(
         client=object(),
@@ -5294,7 +6048,10 @@ def test_resolve_orphan_subsections_ambiguous_still_calls_gpt(monkeypatch) -> No
         )
     ]
 
-    from vigilance.text_analysis.subsection_matching import OrphanCandidate, _shortlist_orphan_candidates
+    from vigie.analyse_texte.subsection_matching import (
+        OrphanCandidate,
+        _shortlist_orphan_candidates,
+    )
 
     shortlist = _shortlist_orphan_candidates(orphans_t1, orphans_t2)
     gpt_called = {"value": False}
@@ -5329,10 +6086,15 @@ def test_resolve_orphan_subsections_ambiguous_still_calls_gpt(monkeypatch) -> No
             }
         ]
 
-    monkeypatch.setattr("vigilance.text_analysis.subsection_matching._attach_embedding_scores", fake_attach)
-    monkeypatch.setattr("vigilance.text_analysis.subsection_matching._gpt_arbitrate_orphan_subsections", fake_gpt)
+    monkeypatch.setattr("vigie.analyse_texte.subsection_matching._attach_embedding_scores", fake_attach)
+    monkeypatch.setattr(
+        "vigie.analyse_texte.subsection_matching._gpt_arbitrate_orphan_subsections",
+        fake_gpt,
+    )
 
-    from vigilance.text_analysis.subsection_matching import _resolve_orphan_subsections as resolve_direct
+    from vigie.analyse_texte.subsection_matching import (
+        _resolve_orphan_subsections as resolve_direct,
+    )
 
     matches = resolve_direct(
         client=object(),
@@ -5346,16 +6108,21 @@ def test_resolve_orphan_subsections_ambiguous_still_calls_gpt(monkeypatch) -> No
     assert matches[0]["match_source"] == "llm_embedding_confirmed"
 
 
-def test_resolve_orphan_subsections_embedding_failure_falls_back_to_llm(monkeypatch) -> None:
+def test_resolve_orphan_subsections_embedding_failure_falls_back_to_llm(
+    monkeypatch,
+) -> None:
     orphans_t1 = [OrphanSubsection(heading="Ancien titre", body="Corps substantiel " * 20)]
     orphans_t2 = [OrphanSubsection(heading="Nouveau titre", body="Corps substantiel " * 20)]
 
     def exploding_attach(**kwargs):
         raise RuntimeError("embedding down")
 
-    monkeypatch.setattr("vigilance.text_analysis.subsection_matching._attach_embedding_scores", exploding_attach)
     monkeypatch.setattr(
-        "vigilance.text_analysis.subsection_matching._call_structured_completion_with_correction",
+        "vigie.analyse_texte.subsection_matching._attach_embedding_scores",
+        exploding_attach,
+    )
+    monkeypatch.setattr(
+        "vigie.analyse_texte.subsection_matching._call_structured_completion_with_correction",
         lambda *args, **kwargs: OrphanMatchLLMResponse(
             matches=[
                 {
@@ -5368,7 +6135,9 @@ def test_resolve_orphan_subsections_embedding_failure_falls_back_to_llm(monkeypa
         ),
     )
 
-    from vigilance.text_analysis.subsection_matching import _resolve_orphan_subsections as resolve_direct
+    from vigie.analyse_texte.subsection_matching import (
+        _resolve_orphan_subsections as resolve_direct,
+    )
 
     matches = resolve_direct(
         client=object(),
@@ -5378,15 +6147,20 @@ def test_resolve_orphan_subsections_embedding_failure_falls_back_to_llm(monkeypa
         orphans_t2=orphans_t2,
     )
     assert len(matches) == 1
-    assert matches[0]["match_source"] in {"deterministic_hybrid", "llm_embedding_confirmed"}
+    assert matches[0]["match_source"] in {
+        "deterministic_hybrid",
+        "llm_embedding_confirmed",
+    }
 
 
-def test_resolve_orphan_subsections_short_body_uses_title_only_fallback(monkeypatch) -> None:
+def test_resolve_orphan_subsections_short_body_uses_title_only_fallback(
+    monkeypatch,
+) -> None:
     orphans_t1 = [OrphanSubsection(heading="Objectif", body="Capital disponible.")]
     orphans_t2 = [OrphanSubsection(heading="Objectif de capital", body="Capital disponible.")]
 
     monkeypatch.setattr(
-        "vigilance.text_analysis.subsection_matching._call_structured_completion_with_correction",
+        "vigie.analyse_texte.subsection_matching._call_structured_completion_with_correction",
         lambda *args, **kwargs: OrphanMatchLLMResponse(
             matches=[
                 {
@@ -5399,7 +6173,9 @@ def test_resolve_orphan_subsections_short_body_uses_title_only_fallback(monkeypa
         ),
     )
 
-    from vigilance.text_analysis.subsection_matching import _resolve_orphan_subsections as resolve_direct
+    from vigie.analyse_texte.subsection_matching import (
+        _resolve_orphan_subsections as resolve_direct,
+    )
 
     matches = resolve_direct(
         client=object(),
@@ -5420,7 +6196,7 @@ def test_bmo_risque_de_strategie_2024_t4_chunks_into_six(monkeypatch) -> None:
         pytest.skip("Artefact local BMO 2024 T4 absent.")
 
     monkeypatch.setattr(
-        "vigilance.text_analysis.chunking._requires_semantic_partition",
+        "vigie.analyse_texte.chunking._requires_semantic_partition",
         lambda text: False,
     )
 
@@ -5454,7 +6230,7 @@ def test_bmo_risque_de_strategie_tfidf_alignment_stays_local(monkeypatch) -> Non
         pytest.skip("Artefacts locaux BMO T4 absents.")
 
     monkeypatch.setattr(
-        "vigilance.text_analysis.chunking._requires_semantic_partition",
+        "vigie.analyse_texte.chunking._requires_semantic_partition",
         lambda text: False,
     )
 
@@ -5498,12 +6274,8 @@ def test_bnc_accord_bale_requires_semantic_services_without_legacy_fallback() ->
     if not previous_path.exists() or not current_path.exists():
         pytest.skip("Artefacts locaux BNC T4 absents.")
 
-    previous_section = _extract_section_text_from_markdown(
-        previous_path.read_text(encoding="utf-8"), "gestion_capital"
-    )
-    current_section = _extract_section_text_from_markdown(
-        current_path.read_text(encoding="utf-8"), "gestion_capital"
-    )
+    previous_section = _extract_section_text_from_markdown(previous_path.read_text(encoding="utf-8"), "gestion_capital")
+    current_section = _extract_section_text_from_markdown(current_path.read_text(encoding="utf-8"), "gestion_capital")
     previous_body = dict(_parse_subsections(previous_section))["Accord de Bâle"]
     current_body = dict(_parse_subsections(current_section))["Accord de Bâle"]
     with pytest.raises(SemanticChunkingError, match="aucun fallback"):
@@ -5535,23 +6307,20 @@ def test_td_future_capital_disclosures_are_not_merged_only_for_similar_boilerpla
 
 from pydantic import ValidationError as _PydValidationError
 
-from vigilance.amf_taxonomy import (
+from vigie.comparaison.triage.amf_taxonomy import (
     TriageAMFCompactLLMBatch,
     TriageAMFCompactLLMResultWithIndex,
     TriageAMFBatch,
-    TriageAMFLLMBatch,
-    TriageAMFLLMResultWithIndex,
     TriageAMFResult,
     TriageAMFResultWithIndex,
     TriageValidationError,
-    count_complete_sentences,
 )
-from vigilance.text_analysis_pipeline import (
+from vigie.analyse_texte.openai_client import (
     _call_structured_completion,
     _call_structured_completion_with_correction,
-    _triage_section_changes,
 )
-from vigilance.text_analysis.triage import _deterministic_cosmetic_exclusion
+from vigie.analyse_texte.triage_parts import _triage_section_changes
+from vigie.analyse_texte.triage_parts import _deterministic_cosmetic_exclusion
 
 
 def _valid_explanation() -> str:
@@ -5618,35 +6387,23 @@ def _compact_secondary_reason() -> str:
 
 def _compact_relevant_fields() -> dict[str, str]:
     return {
-        "changement_constate": (
-            "BMO ajoute un exercice annuel de simulation de cyberattaque."
-        ),
-        "signification_metier": (
-            "Cette évolution rend explicite un mécanisme de préparation aux incidents."
-        ),
+        "changement_constate": ("BMO ajoute un exercice annuel de simulation de cyberattaque."),
+        "signification_metier": ("Cette évolution rend explicite un mécanisme de préparation aux incidents."),
         "comparaison_interbanques": (
-            "Elle permet de comparer la fréquence et le périmètre des exercices "
-            "entre les banques."
+            "Elle permet de comparer la fréquence et le périmètre des exercices entre les banques."
         ),
-        "limite_interpretation": (
-            "La divulgation ne précise toutefois ni les scénarios ni les "
-            "résultats obtenus."
-        ),
+        "limite_interpretation": ("La divulgation ne précise toutefois ni les scénarios ni les résultats obtenus."),
         "motif_non_pertinence": "",
     }
 
 
 def _compact_secondary_fields() -> dict[str, str]:
     return {
-        "changement_constate": (
-            "BMO met à jour une valeur propre à ses activités."
-        ),
+        "changement_constate": ("BMO met à jour une valeur propre à ses activités."),
         "signification_metier": "",
         "comparaison_interbanques": "",
         "limite_interpretation": "",
-        "motif_non_pertinence": (
-            "Cette variation n’apporte aucun nouveau point de comparaison prudentielle."
-        ),
+        "motif_non_pertinence": ("Cette variation n’apporte aucun nouveau point de comparaison prudentielle."),
     }
 
 
@@ -5655,10 +6412,7 @@ def _compact_secondary_fields() -> dict[str, str]:
 
 def test_compact_triage_accepts_separate_relevant_analyst_fields() -> None:
     fields = _compact_relevant_fields()
-    fields["signification_metier"] = (
-        "  Cette évolution rend   explicite un mécanisme de préparation "
-        "aux incidents.  "
-    )
+    fields["signification_metier"] = "  Cette évolution rend   explicite un mécanisme de préparation aux incidents.  "
     result = TriageAMFCompactLLMResultWithIndex(
         change_index=1,
         is_relevant=True,
@@ -5666,9 +6420,7 @@ def test_compact_triage_accepts_separate_relevant_analyst_fields() -> None:
         nouvelle_idee=True,
         **fields,
     )
-    assert result.signification_metier == (
-        "Cette évolution rend explicite un mécanisme de préparation aux incidents."
-    )
+    assert result.signification_metier == ("Cette évolution rend explicite un mécanisme de préparation aux incidents.")
     assert result.relevance_reason == " ".join(
         (
             result.changement_constate,
@@ -5714,9 +6466,7 @@ def test_compact_triage_does_not_count_sentences_inside_semantic_fields() -> Non
 
 def test_compact_triage_adds_terminal_period_to_lexical_field() -> None:
     fields = _compact_secondary_fields()
-    fields["motif_non_pertinence"] = (
-        "Cette mesure ne fournit aucun nouveau point de comparaison entre les banques"
-    )
+    fields["motif_non_pertinence"] = "Cette mesure ne fournit aucun nouveau point de comparaison entre les banques"
     result = TriageAMFCompactLLMResultWithIndex(
         change_index=1,
         is_relevant=False,
@@ -5743,12 +6493,8 @@ def test_compact_triage_rejects_field_without_lexical_content() -> None:
 
 def test_compact_triage_accepts_field_ending_with_uppercase_label() -> None:
     fields = _compact_relevant_fields()
-    fields["changement_constate"] = (
-        "BMO retient désormais l’approche A."
-    )
-    fields["limite_interpretation"] = (
-        "La divulgation ne précise toutefois pas les paramètres de l’approche A."
-    )
+    fields["changement_constate"] = "BMO retient désormais l’approche A."
+    fields["limite_interpretation"] = "La divulgation ne précise toutefois pas les paramètres de l’approche A."
     result = TriageAMFCompactLLMResultWithIndex(
         change_index=1,
         is_relevant=True,
@@ -5761,10 +6507,7 @@ def test_compact_triage_accepts_field_ending_with_uppercase_label() -> None:
 
 def test_compact_triage_accepts_abbreviations_and_decimals_in_semantic_field() -> None:
     fields = _compact_relevant_fields()
-    fields["changement_constate"] = (
-        "BMO détaille le cadre de Bâle 3.1, présenté p. ex. à la p. 12 "
-        "par M. Dupont."
-    )
+    fields["changement_constate"] = "BMO détaille le cadre de Bâle 3.1, présenté p. ex. à la p. 12 par M. Dupont."
     result = TriageAMFCompactLLMResultWithIndex(
         change_index=1,
         is_relevant=True,
@@ -5779,8 +6522,7 @@ def test_compact_triage_accepts_abbreviations_and_decimals_in_semantic_field() -
 def test_compact_triage_accepts_common_french_abbreviations_inside_field() -> None:
     fields = _compact_relevant_fields()
     fields["changement_constate"] = (
-        "BMO détaille plusieurs mesures, etc. afin d’encadrer le contrôle, "
-        "c.-à-d. une revue annuelle documentée."
+        "BMO détaille plusieurs mesures, etc. afin d’encadrer le contrôle, c.-à-d. une revue annuelle documentée."
     )
     result = TriageAMFCompactLLMResultWithIndex(
         change_index=1,
@@ -5798,9 +6540,7 @@ def test_compact_triage_accepts_sans_objet_abbreviation(
     abbreviation: str,
 ) -> None:
     fields = _compact_secondary_fields()
-    fields["changement_constate"] = (
-        f"BMO remplace une valeur par la mention « {abbreviation} - sans objet »."
-    )
+    fields["changement_constate"] = f"BMO remplace une valeur par la mention « {abbreviation} - sans objet »."
     result = TriageAMFCompactLLMResultWithIndex(
         change_index=1,
         is_relevant=False,
@@ -5935,13 +6675,15 @@ def test_evaluated_posture_requires_justification_and_confidence() -> None:
     ("field", "value", "error"),
     [
         ("impact_it", "ELEVE", "impact_it=INDETERMINE"),
-        ("impact_it_justification", "Une justification qui ne devrait pas être présente.", "justification vide"),
+        (
+            "impact_it_justification",
+            "Une justification qui ne devrait pas être présente.",
+            "justification vide",
+        ),
         ("changement_posture", "RENFORCEMENT", "changement_posture=AUCUN"),
     ],
 )
-def test_irrelevant_change_rejects_it_and_posture_signals(
-    field: str, value: str, error: str
-) -> None:
+def test_irrelevant_change_rejects_it_and_posture_signals(field: str, value: str, error: str) -> None:
     payload = {
         "is_relevant": False,
         "exclusion_reason": "reformulation_mineure",
@@ -6141,9 +6883,7 @@ def _make_validation_error() -> _PydValidationError:
 
 
 def test_call_structured_completion_raises_runtime_error_on_refusal() -> None:
-    client = _FakeStructuredClient(
-        _make_parsed_response(None, refusal="Je refuse pour des raisons de sécurité.")
-    )
+    client = _FakeStructuredClient(_make_parsed_response(None, refusal="Je refuse pour des raisons de sécurité."))
 
     with pytest.raises(RuntimeError, match="refused"):
         _call_structured_completion(
@@ -6155,9 +6895,7 @@ def test_call_structured_completion_raises_runtime_error_on_refusal() -> None:
 
 
 def test_call_structured_completion_raises_runtime_error_on_truncation() -> None:
-    client = _FakeStructuredClient(
-        _make_parsed_response(None, finish_reason="length")
-    )
+    client = _FakeStructuredClient(_make_parsed_response(None, finish_reason="length"))
 
     with pytest.raises(RuntimeError, match="truncated"):
         _call_structured_completion(
@@ -6282,7 +7020,7 @@ def test_correction_retry_does_not_retry_runtime_errors() -> None:
 def test_correction_retry_retries_transient_timeout(monkeypatch) -> None:
     valid_batch = TriageAMFBatch(triages=[])
     state = {"calls": 0}
-    monkeypatch.setattr("vigilance.text_analysis_pipeline.time.sleep", lambda _seconds: None)
+    monkeypatch.setattr("time.sleep", lambda _seconds: None)
 
     def timeout_then_success(**kwargs):
         state["calls"] += 1
@@ -6306,7 +7044,7 @@ def test_correction_retry_retries_transient_timeout(monkeypatch) -> None:
 
 
 def test_correction_retry_exhausts_transient_timeout(monkeypatch) -> None:
-    monkeypatch.setattr("vigilance.text_analysis_pipeline.time.sleep", lambda _seconds: None)
+    monkeypatch.setattr("time.sleep", lambda _seconds: None)
 
     def always_timeout(**kwargs):
         raise TimeoutError("Request timed out.")
@@ -6356,7 +7094,9 @@ def test_correction_retry_retries_length_limit_once() -> None:
 # --- _triage_section_changes : ValidationError → TriageValidationError ---
 
 
-def test_triage_section_changes_converts_validation_error_to_triage_validation_error(monkeypatch) -> None:
+def test_triage_section_changes_converts_validation_error_to_triage_validation_error(
+    monkeypatch,
+) -> None:
     err = _make_validation_error()
 
     def always_fail(**kwargs):
@@ -6410,9 +7150,7 @@ def test_triage_section_changes_length_retry_repeats_structured_contract() -> No
     def length_then_success(**_kwargs):
         state["calls"] += 1
         if state["calls"] == 1:
-            raise RuntimeError(
-                "Could not parse response content as the length limit was reached"
-            )
+            raise RuntimeError("Could not parse response content as the length limit was reached")
         return _make_parsed_response(valid_batch)
 
     client = _FakeStructuredClient(length_then_success)
@@ -6442,9 +7180,7 @@ def test_triage_section_changes_length_retry_repeats_structured_contract() -> No
 
 def test_triage_section_changes_propagates_runtime_error_unwrapped() -> None:
     """Un refus modèle remonte en RuntimeError, PAS en TriageValidationError."""
-    client = _FakeStructuredClient(
-        _make_parsed_response(None, refusal="je refuse")
-    )
+    client = _FakeStructuredClient(_make_parsed_response(None, refusal="je refuse"))
 
     changes = [
         {
@@ -6507,21 +7243,14 @@ def test_triage_section_changes_processes_changes_one_by_one() -> None:
 
     assert len(enriched) == 2
     assert client.call_count == 2
-    user_prompts = [
-        call["messages"][1]["content"] for call in client._completions.calls
-    ]
+    user_prompts = [call["messages"][1]["content"] for call in client._completions.calls]
     assert all('"change_index": 1' in prompt for prompt in user_prompts)
     assert all('"change_index": 2' not in prompt for prompt in user_prompts)
-    assert all(
-        call["max_completion_tokens"] == 670
-        for call in client._completions.calls
-    )
+    assert all(call["max_completion_tokens"] == 670 for call in client._completions.calls)
 
 
 def test_triage_section_changes_requires_exactly_one_result_per_change() -> None:
-    client = _FakeStructuredClient(
-        _make_parsed_response(TriageAMFCompactLLMBatch(triages=[]))
-    )
+    client = _FakeStructuredClient(_make_parsed_response(TriageAMFCompactLLMBatch(triages=[])))
 
     with pytest.raises(TriageValidationError, match="exactement les change_index"):
         _triage_section_changes(
@@ -6590,7 +7319,7 @@ def test_triage_section_changes_batches_two_sides_of_one_semantic_distinct_decis
 
 
 def test_triage_section_changes_reads_long_sources_as_full_evidence_packets() -> None:
-    from vigilance.text_analysis.triage import (
+    from vigie.analyse_texte.triage_parts import (
         _EvidencePacketCoherenceCheck,
         _EvidencePacketObservation,
     )
@@ -6652,7 +7381,7 @@ def test_triage_section_changes_reads_long_sources_as_full_evidence_packets() ->
 
 
 def test_full_evidence_contract_rejects_a_collection_or_packet_index() -> None:
-    from vigilance.text_analysis.triage import _EvidencePacketObservation
+    from vigie.analyse_texte.triage_parts import _EvidencePacketObservation
 
     with pytest.raises(_PydValidationError):
         _EvidencePacketObservation.model_validate(
@@ -6676,7 +7405,7 @@ def test_full_evidence_contract_rejects_a_collection_or_packet_index() -> None:
 
 
 def test_full_evidence_invalid_response_is_corrected_then_pipeline_continues() -> None:
-    from vigilance.text_analysis.triage import (
+    from vigie.analyse_texte.triage_parts import (
         _EvidencePacketCoherenceCheck,
         _EvidencePacketObservation,
     )
@@ -6689,9 +7418,7 @@ def test_full_evidence_invalid_response_is_corrected_then_pipeline_continues() -
         if response_format is _EvidencePacketObservation:
             evidence_attempts += 1
             if evidence_attempts == 1:
-                _EvidencePacketObservation.model_validate(
-                    {"factual_change": "Trop court."}
-                )
+                _EvidencePacketObservation.model_validate({"factual_change": "Trop court."})
             return _make_parsed_response(
                 _EvidencePacketObservation(
                     factual_change="BMO précise un changement dans sa preuve complète.",
@@ -6741,14 +7468,12 @@ def test_full_evidence_invalid_response_is_corrected_then_pipeline_continues() -
 
 
 def test_full_evidence_persistent_failure_marks_only_change_for_review() -> None:
-    from vigilance.text_analysis.triage import _EvidencePacketObservation
+    from vigie.analyse_texte.triage_parts import _EvidencePacketObservation
 
     def response_with_invalid_evidence(**kwargs):
         response_format = kwargs["response_format"]
         if response_format is _EvidencePacketObservation:
-            _EvidencePacketObservation.model_validate(
-                {"factual_change": "Trop court."}
-            )
+            _EvidencePacketObservation.model_validate({"factual_change": "Trop court."})
         return _make_parsed_response(
             TriageAMFCompactLLMBatch(
                 triages=[
@@ -6814,13 +7539,8 @@ def test_triage_section_changes_attaches_deterministic_change_segments() -> None
         changes=changes,
     )
 
-    assert result[0]["genai_triage"]["change_segments"] == [
-        {"kind": "removed", "text_t1": ", au CRG", "text_t2": ""}
-    ]
-    prompt = "\n".join(
-        str(message.get("content", ""))
-        for message in client._completions.calls[0]["messages"]
-    )
+    assert result[0]["genai_triage"]["change_segments"] == [{"kind": "removed", "text_t1": ", au CRG", "text_t2": ""}]
+    prompt = "\n".join(str(message.get("content", "")) for message in client._completions.calls[0]["messages"])
     assert '"exact_change_segments"' in prompt
     assert ", au CRG" in prompt
     assert "impact_it_justification" not in prompt
@@ -6855,12 +7575,8 @@ def test_governance_new_idea_receives_major_priority() -> None:
         changes=[
             {
                 "diff_type": "modified",
-                "source_text_t1": (
-                    "Le comité de direction approuve l’appétit pour le risque."
-                ),
-                "source_text_t2": (
-                    "Le conseil d’administration approuve l’appétit pour le risque."
-                ),
+                "source_text_t1": ("Le comité de direction approuve l’appétit pour le risque."),
+                "source_text_t2": ("Le conseil d’administration approuve l’appétit pour le risque."),
             }
         ],
     )
@@ -6934,6 +7650,31 @@ def test_real_methodology_or_process_change_receives_major_priority(
     assert "Exemple 9 — modification réelle de processus" in prompt
 
 
+def test_derive_impact_from_compact_floors_relevant_to_modere() -> None:
+    from vigie.analyse_texte.triage_parts.results import _derive_impact_from_compact
+
+    assert _derive_impact_from_compact(
+        is_relevant=True,
+        nouvelle_idee=False,
+        high_priority=False,
+    ) == ("MODERE", "investigation")
+    assert _derive_impact_from_compact(
+        is_relevant=True,
+        nouvelle_idee=True,
+        high_priority=False,
+    ) == ("MODERE", "investigation")
+    assert _derive_impact_from_compact(
+        is_relevant=True,
+        nouvelle_idee=True,
+        high_priority=True,
+    ) == ("MAJEUR", "revue_prioritaire")
+    assert _derive_impact_from_compact(
+        is_relevant=False,
+        nouvelle_idee=False,
+        high_priority=True,
+    ) == ("MINEUR", "aucune")
+
+
 def test_committee_rename_stays_relevant_without_becoming_a_new_idea() -> None:
     previous = (
         "Le Comité de gestion des risques (CGR) supervise le cadre de gestion "
@@ -6980,12 +7721,14 @@ def test_committee_rename_stays_relevant_without_becoming_a_new_idea() -> None:
     assert client.call_count == 1
     assert triage["is_relevant"] is True
     assert triage["nouvelle_idee"] is False
-    assert triage["impact_level"] == "MINEUR"
-    assert triage["action_requise"] == "information"
+    assert triage["impact_level"] == "MODERE"
+    assert triage["action_requise"] == "investigation"
     prompt = client._completions.calls[0]["messages"][1]["content"]
     assert "reste pertinent même si son mandat demeure identique" in prompt
     assert "simple renommage sans effet sur le mandat ne l’est pas" in prompt
-    assert "Exemple 7 — comité renommé pertinent" in prompt
+    assert "Exemple 7 — comité renommé ciblé de gouvernance pertinent" in prompt
+    assert "périodicité de reporting ou de suivi prudentiel" in prompt
+    assert "Exemple 10 — périodicité de reporting" in prompt
 
 
 def test_triage_section_changes_holds_unresolved_alignment_for_analyst_review() -> None:
@@ -7044,8 +7787,7 @@ def test_triage_section_changes_accepts_gpt_confirmed_semantic_alignment() -> No
             "alignment_confidence": "high",
             "alignment_rationale": "Même limite prudentielle, actualisée dans le rapport courant.",
             "source_text_t1": (
-                "La banque surveille le risque de crédit selon une approche "
-                "interne fondée sur des revues périodiques."
+                "La banque surveille le risque de crédit selon une approche interne fondée sur des revues périodiques."
             ),
             "source_text_t2": (
                 "La banque surveille le risque de crédit selon une approche "
@@ -7096,10 +7838,7 @@ def test_triage_section_changes_does_not_request_posture_or_it_impact() -> None:
         changes=changes,
     )
 
-    prompt = "\n".join(
-        str(message.get("content", ""))
-        for message in client._completions.calls[0]["messages"]
-    )
+    prompt = "\n".join(str(message.get("content", "")) for message in client._completions.calls[0]["messages"])
     assert "justification_posture" not in prompt
     assert "impact_it_justification" not in prompt
     assert "Ne produis pas `relevance_reason`" in prompt
@@ -7119,23 +7858,20 @@ def test_triage_section_changes_does_not_request_posture_or_it_impact() -> None:
 
 
 def test_normalize_themes_amf_clamps_unknown_to_emergent() -> None:
-    from vigilance.text_analysis.triage import _normalize_themes_amf
+    from vigie.analyse_texte.triage_parts import _normalize_themes_amf
 
-    assert _normalize_themes_amf(["EXIGENCES_REGLEMENTAIRES"]) == [
-        "EXIGENCES_REGLEMENTAIRES"
+    assert _normalize_themes_amf(["EXIGENCES_REGLEMENTAIRES"]) == ["EXIGENCES_REGLEMENTAIRES"]
+    assert _normalize_themes_amf(["THEME_INEXISTANT_XYZ"]) == ["SUJET_EMERGENT_HORS_GRILLE"]
+    assert _normalize_themes_amf(["RISQUE_EMERGENT", "THEME_INEXISTANT_XYZ", "RISQUE_EMERGENT"]) == [
+        "RISQUE_EMERGENT",
+        "SUJET_EMERGENT_HORS_GRILLE",
     ]
-    assert _normalize_themes_amf(["THEME_INEXISTANT_XYZ"]) == [
-        "SUJET_EMERGENT_HORS_GRILLE"
-    ]
-    assert _normalize_themes_amf(
-        ["RISQUE_EMERGENT", "THEME_INEXISTANT_XYZ", "RISQUE_EMERGENT"]
-    ) == ["RISQUE_EMERGENT", "SUJET_EMERGENT_HORS_GRILLE"]
     assert _normalize_themes_amf([]) == []
 
 
 def test_triage_accepts_amf_theme_outside_candidate_shortlist(monkeypatch) -> None:
     """Un thème AMF valide hors shortlist ne fait plus planter le pipeline."""
-    from vigilance.text_analysis import triage as triage_mod
+    from vigie.analyse_texte.triage_parts import section_triage as triage_mod
 
     def _narrow_candidates(change, *, section_key, limit=6):
         return [

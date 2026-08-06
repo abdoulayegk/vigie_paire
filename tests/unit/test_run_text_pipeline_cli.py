@@ -1,29 +1,20 @@
 from __future__ import annotations
 
-import importlib.util
-import sys
-import types
 from pathlib import Path
 
 import pytest
 
-
-_MODULE_PATH = Path(__file__).resolve().parents[2] / "run_text_pipeline.py"
-_SPEC = importlib.util.spec_from_file_location("run_text_pipeline", _MODULE_PATH)
-assert _SPEC is not None
-assert _SPEC.loader is not None
-run_text_pipeline = importlib.util.module_from_spec(_SPEC)
-_SPEC.loader.exec_module(run_text_pipeline)
+from vigie.pipelines import texte as run_text_pipeline
 
 
 def test_build_parser_accepts_short_quarter_flag() -> None:
     parser = run_text_pipeline.build_parser()
 
-    args = parser.parse_args(["--bank", "BMO", "--year", "2025", "--T2"])
+    args = parser.parse_args(["--banque", "BMO", "--annee", "2025", "--T2"])
 
-    assert args.bank == "BMO"
-    assert args.year == 2025
-    assert args.quarter_flag == "T2"
+    assert args.banque == "BMO"
+    assert args.annee == 2025
+    assert args.trimestre == "T2"
 
 
 def test_build_parser_accepts_extraction_only_flags() -> None:
@@ -31,25 +22,25 @@ def test_build_parser_accepts_extraction_only_flags() -> None:
 
     args = parser.parse_args(
         [
-            "--bank",
+            "--banque",
             "BMO",
-            "--year",
+            "--annee",
             "2025",
             "--T4",
-            "--extract-only",
-            "--force-extraction",
+            "--extraction-seule",
+            "--forcer-extraction",
         ]
     )
 
-    assert args.extract_only is True
-    assert args.force_extraction is True
+    assert args.extraction_seule is True
+    assert args.forcer_extraction is True
 
 
 def test_build_parser_rejects_legacy_quarter_option() -> None:
     parser = run_text_pipeline.build_parser()
 
     with pytest.raises(SystemExit):
-        parser.parse_args(["--bank", "BMO", "--year", "2025", "--quarter", "T2"])
+        parser.parse_args(["--banque", "BMO", "--annee", "2025", "--quarter", "T2"])
 
 
 def test_skip_comparison_runs_extraction_only_with_force(
@@ -70,27 +61,28 @@ def test_skip_comparison_runs_extraction_only_with_force(
             "extraction_artifact_t2": str(tmp_path / "text_extraction_2025_t4.md"),
         }
 
-    fake_pipeline = types.ModuleType("vigilance.text_analysis_pipeline")
-    fake_pipeline.run_text_extraction_pipeline = fake_run_text_extraction_pipeline
-
     monkeypatch.setattr(run_text_pipeline, "find_pdf_pair", fake_find_pdf_pair)
-    monkeypatch.setitem(sys.modules, "vigilance.text_analysis_pipeline", fake_pipeline)
+    monkeypatch.setattr(
+        "vigie.analyse_texte.pipeline.run_text_extraction_pipeline",
+        fake_run_text_extraction_pipeline,
+    )
 
     rc = run_text_pipeline.main(
         [
-            "--bank",
+            "--banque",
             "BMO",
-            "--year",
+            "--annee",
             "2025",
             "--T4",
-            "--skip-comparison",
-            "--force-extraction",
-            "--out-root",
+            "--sans-comparaison",
+            "--forcer-extraction",
+            "--sortie",
             str(tmp_path / "outputs" / "resultats"),
         ]
     )
 
     assert rc == 0
     assert captured["bank_code"] == "bmo"
-    assert captured["quarter_current"] == "t4"
     assert captured["force_extraction"] is True
+    assert captured["pdf_previous"] == previous_pdf
+    assert captured["pdf_current"] == current_pdf

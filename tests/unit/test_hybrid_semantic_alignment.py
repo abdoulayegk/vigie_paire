@@ -4,20 +4,20 @@ from __future__ import annotations
 
 from typing import Any
 
-from vigilance.text_analysis.chunk_alignment import (
+from vigie.analyse_texte.chunk_alignment import (
     _align_chunks_hybrid,
     _align_chunks_tfidf,
 )
-from vigilance.text_analysis.chunking import _chunk_subsection_text
-from vigilance.text_analysis.global_reconciliation import (
+from vigie.analyse_texte.chunking import _chunk_subsection_text
+from vigie.analyse_texte.global_reconciliation import (
     _ReconciliationResponse,
     _components,
     _one_sided_nodes,
     _pair_retrieval_scores,
     reconcile_global_change_fragments,
 )
-from vigilance.text_analysis.summary import _build_semantic_quality_metrics
-from vigilance.text_analysis.triage import (
+from vigie.analyse_texte.summary import _build_semantic_quality_metrics
+from vigie.analyse_texte.triage_parts import (
     _deterministic_bank_specific_exclusion,
     _deterministic_cosmetic_exclusion,
     _group_semantic_triage_duplicates,
@@ -45,12 +45,7 @@ class _FakeEmbeddingsAPI:
         return type(
             "Response",
             (),
-            {
-                "data": [
-                    _FakeEmbeddingItem(index, vector)
-                    for index, vector in enumerate(batch)
-                ]
-            },
+            {"data": [_FakeEmbeddingItem(index, vector) for index, vector in enumerate(batch)]},
         )()
 
 
@@ -89,7 +84,7 @@ def test_hybrid_alignment_skips_non_reciprocal_pairs(monkeypatch) -> None:
     # Embeddings volontairement croisés pour créer une fausse meilleure paire non réciproque
     # si on consommait les slots trop tôt: T1-0↔T2-0 et T1-1↔T2-1 seraient mauvais.
     monkeypatch.setattr(
-        "vigilance.text_analysis.chunk_alignment._embed_texts",
+        "vigie.analyse_texte.chunk_alignment._embed_texts",
         lambda client, texts, model="text-embedding-3-small": [
             [1.0, 0.0, 0.0],  # T1-0
             [0.0, 1.0, 0.0],  # T1-1
@@ -125,16 +120,16 @@ def test_hybrid_alignment_recovers_strong_reformulation(monkeypatch) -> None:
     assert len(chunks_t1) == 1 and len(chunks_t2) == 1
 
     tfidf_only = _align_chunks_tfidf(chunks_t1, chunks_t2)
-    tfidf_matched = [
-        alignment
-        for alignment in tfidf_only
-        if alignment.chunk_t1 and alignment.chunk_t2
-    ]
+    tfidf_matched = [alignment for alignment in tfidf_only if alignment.chunk_t1 and alignment.chunk_t2]
     # Sans embeddings, la reformulation reste au mieux faible/ambiguë.
-    assert not tfidf_matched or tfidf_matched[0].alignment_type != "matched_strong" or tfidf_matched[0].similarity_score < 0.95
+    assert (
+        not tfidf_matched
+        or tfidf_matched[0].alignment_type != "matched_strong"
+        or tfidf_matched[0].similarity_score < 0.95
+    )
 
     monkeypatch.setattr(
-        "vigilance.text_analysis.chunk_alignment._embed_texts",
+        "vigie.analyse_texte.chunk_alignment._embed_texts",
         lambda client, texts, model="text-embedding-3-small": [
             [1.0, 0.0, 0.0],
             [0.98, 0.1, 0.0],
@@ -164,7 +159,7 @@ def test_hybrid_alignment_marks_boilerplate_as_ambiguous_for_gpt(monkeypatch) ->
     chunks_t2 = _chunk_subsection_text(current, subsection_heading="Financement")
 
     monkeypatch.setattr(
-        "vigilance.text_analysis.chunk_alignment._embed_texts",
+        "vigie.analyse_texte.chunk_alignment._embed_texts",
         lambda client, texts, model="text-embedding-3-small": [
             [1.0, 0.0, 0.0],
             [0.99, 0.05, 0.0],
@@ -211,7 +206,7 @@ def test_global_reconciliation_uses_embedding_scores_in_audit(monkeypatch) -> No
     ]
 
     monkeypatch.setattr(
-        "vigilance.text_analysis.global_reconciliation._embed_texts",
+        "vigie.analyse_texte.global_reconciliation._embed_texts",
         lambda client, texts, model="text-embedding-3-small": [
             [1.0, 0.0, 0.0],
             [0.95, 0.1, 0.0],
@@ -234,7 +229,7 @@ def test_global_reconciliation_uses_embedding_scores_in_audit(monkeypatch) -> No
         )
 
     monkeypatch.setattr(
-        "vigilance.text_analysis.global_reconciliation._call_structured_completion_with_correction",
+        "vigie.analyse_texte.global_reconciliation._call_structured_completion_with_correction",
         _fake_llm,
     )
 
@@ -337,15 +332,12 @@ def test_global_components_reject_weak_transitive_bridge(monkeypatch) -> None:
         },
     ]
     monkeypatch.setattr(
-        "vigilance.text_analysis.global_reconciliation._candidate_edges",
+        "vigie.analyse_texte.global_reconciliation._candidate_edges",
         lambda nodes, embeddings_by_id: [dict(edge) for edge in candidate_edges],
     )
 
     components, audited_edges = _components(_one_sided_nodes(changes))
-    component_ids = [
-        {str(node.change.get("change_id") or "") for node in component}
-        for component in components
-    ]
+    component_ids = [{str(node.change.get("change_id") or "") for node in component} for component in components]
 
     assert {"old_economy", "new_economy"} in component_ids
     assert {"old_cyber", "new_cyber"} in component_ids
@@ -407,17 +399,18 @@ def test_global_components_preserve_one_to_many_strong_split(monkeypatch) -> Non
         },
     ]
     monkeypatch.setattr(
-        "vigilance.text_analysis.global_reconciliation._candidate_edges",
+        "vigie.analyse_texte.global_reconciliation._candidate_edges",
         lambda nodes, embeddings_by_id: [dict(edge) for edge in candidate_edges],
     )
 
     components, audited_edges = _components(_one_sided_nodes(changes))
 
     assert len(components) == 1
-    assert {
-        str(node.change.get("change_id") or "")
-        for node in components[0]
-    } == {"old_combined", "new_part_a", "new_part_b"}
+    assert {str(node.change.get("change_id") or "") for node in components[0]} == {
+        "old_combined",
+        "new_part_a",
+        "new_part_b",
+    }
     assert all(edge["component_selected"] for edge in audited_edges)
 
 
@@ -447,14 +440,14 @@ def test_global_reconciliation_keeps_real_unilateral_when_embeddings_weak(monkey
         },
     ]
     monkeypatch.setattr(
-        "vigilance.text_analysis.global_reconciliation._embed_texts",
+        "vigie.analyse_texte.global_reconciliation._embed_texts",
         lambda client, texts, model="text-embedding-3-small": [
             [1.0, 0.0, 0.0],
             [0.0, 1.0, 0.0],
         ],
     )
     monkeypatch.setattr(
-        "vigilance.text_analysis.global_reconciliation._call_structured_completion_with_correction",
+        "vigie.analyse_texte.global_reconciliation._call_structured_completion_with_correction",
         lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("LLM should not be called")),
     )
     reconciled, audit = reconcile_global_change_fragments(
@@ -495,7 +488,7 @@ def test_global_reconciliation_does_not_mix_capital_and_risks(monkeypatch) -> No
         },
     ]
     monkeypatch.setattr(
-        "vigilance.text_analysis.global_reconciliation._embed_texts",
+        "vigie.analyse_texte.global_reconciliation._embed_texts",
         lambda client, texts, model="text-embedding-3-small": [
             [1.0, 0.0, 0.0],
             [0.99, 0.05, 0.0],
@@ -512,7 +505,7 @@ def test_global_reconciliation_does_not_mix_capital_and_risks(monkeypatch) -> No
     assert components == []
 
     monkeypatch.setattr(
-        "vigilance.text_analysis.global_reconciliation._call_structured_completion_with_correction",
+        "vigie.analyse_texte.global_reconciliation._call_structured_completion_with_correction",
         lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("LLM should not be called")),
     )
     reconciled, audit = reconcile_global_change_fragments(
@@ -538,10 +531,7 @@ def test_deterministic_cosmetic_prefilter_skips_near_identical_text() -> None:
         "source_text_t2": "Le seuil prudentiel CET1 minimal applicable est de 5,0 %.",
     }
     assert _deterministic_cosmetic_exclusion(material) is None
-    assert (
-        _deterministic_bank_specific_exclusion(material)
-        == "variation_numerique_propre_banque"
-    )
+    assert _deterministic_bank_specific_exclusion(material) == "variation_numerique_propre_banque"
 
 
 def test_deterministic_bank_specific_excludes_numeric_and_operations() -> None:
@@ -551,10 +541,7 @@ def test_deterministic_bank_specific_excludes_numeric_and_operations() -> None:
         "source_text_t1": "Le portefeuille hypothécaire s'établit à 287 G$.",
         "source_text_t2": "Le portefeuille hypothécaire s'établit à 294 G$.",
     }
-    assert (
-        _deterministic_bank_specific_exclusion(numeric)
-        == "variation_numerique_propre_banque"
-    )
+    assert _deterministic_bank_specific_exclusion(numeric) == "variation_numerique_propre_banque"
 
     calendar = {
         "diff_type": "modified",
@@ -575,22 +562,17 @@ def test_deterministic_bank_specific_excludes_numeric_and_operations() -> None:
         "change_summary": "Inclusion de CWB après l'acquisition.",
         "source_text_t1": "",
         "source_text_t2": (
-            "L'inclusion de CWB à la suite de l'acquisition augmente "
-            "l'actif pondéré en fonction des risques."
+            "L'inclusion de CWB à la suite de l'acquisition augmente l'actif pondéré en fonction des risques."
         ),
     }
-    assert (
-        _deterministic_bank_specific_exclusion(acquisition)
-        == "operation_interne_banque"
-    )
+    assert _deterministic_bank_specific_exclusion(acquisition) == "operation_interne_banque"
 
     cyber = {
         "diff_type": "added",
         "change_summary": "Ajout d'exercices annuels de simulation de cyberattaque.",
         "source_text_t1": "",
         "source_text_t2": (
-            "La banque réalise désormais des simulations annuelles de "
-            "cyberattaque avec ses unités d'affaires."
+            "La banque réalise désormais des simulations annuelles de cyberattaque avec ses unités d'affaires."
         ),
     }
     assert _deterministic_bank_specific_exclusion(cyber) is None
@@ -623,9 +605,7 @@ def test_deterministic_bank_specific_excludes_bnc_floor_reschedule() -> None:
             "à ce niveau pour une période indéterminée."
         ),
     }
-    assert (
-        _deterministic_bank_specific_exclusion(change) == "mise_a_jour_calendrier"
-    )
+    assert _deterministic_bank_specific_exclusion(change) == "mise_a_jour_calendrier"
     enriched = _prefilter_triage_result(change, "mise_a_jour_calendrier")
     reason = enriched["genai_triage"]["relevance_reason"]
     justification = enriched["genai_triage"]["nouvelle_idee_justification"]
@@ -657,10 +637,7 @@ def test_deterministic_bank_specific_excludes_cwb_appetite_and_aprf() -> None:
             "les impacts de l'acquisition récente de CWB."
         ),
     }
-    assert (
-        _deterministic_bank_specific_exclusion(appetite)
-        == "operation_interne_banque"
-    )
+    assert _deterministic_bank_specific_exclusion(appetite) == "operation_interne_banque"
     enriched = _prefilter_triage_result(
         appetite,
         "operation_interne_banque",
@@ -681,10 +658,7 @@ def test_deterministic_bank_specific_excludes_cwb_appetite_and_aprf() -> None:
             "pour un produit brut de 6,3 G$."
         ),
     }
-    assert (
-        _deterministic_bank_specific_exclusion(emission)
-        == "operation_interne_banque"
-    )
+    assert _deterministic_bank_specific_exclusion(emission) == "operation_interne_banque"
     emission_copy = _prefilter_triage_result(
         emission,
         "operation_interne_banque",
@@ -768,7 +742,7 @@ def test_triage_dedup_groups_compatible_near_duplicates(monkeypatch) -> None:
         },
     ]
     monkeypatch.setattr(
-        "vigilance.text_analysis.triage._embed_texts",
+        "vigie.analyse_texte.triage_parts.dedup._embed_texts",
         lambda client, texts, model="text-embedding-3-small": [
             [1.0, 0.0, 0.0],
             [0.99, 0.05, 0.0],
@@ -800,7 +774,7 @@ def test_triage_section_changes_applies_cosmetic_prefilter(monkeypatch) -> None:
         raise AssertionError("GPT triage should be skipped for cosmetic changes")
 
     monkeypatch.setattr(
-        "vigilance.text_analysis.triage._call_structured_completion_with_correction",
+        "vigie.analyse_texte.triage_parts.section_triage._call_structured_completion_with_correction",
         _fake_structured,
     )
     result = _triage_section_changes(

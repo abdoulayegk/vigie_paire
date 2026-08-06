@@ -5,8 +5,8 @@ from pathlib import Path
 
 import dash_bootstrap_components as dbc
 
-from vigilance.dash_app.callbacks import load_flow as load_mod
-from vigilance.dash_app.services.comparison_store import FileComparisonStore
+from vigie.interface.callbacks import load_flow as load_mod
+from vigie.interface.services.comparison_store import FileComparisonStore
 
 
 def _write_report_comparison(path: Path) -> None:
@@ -63,7 +63,7 @@ def test_on_load_comparison_falls_back_to_run_archived_pdfs(
     monkeypatch.setattr(load_mod, "INDICATOR_COMPARISON_DIR", tmp_path)
     monkeypatch.setattr(load_mod, "build_page_results", lambda: "results-page")
     monkeypatch.setattr(
-        "vigilance.dash_app.services.text_comparison_store.resolve_text_comparison_from_payload",
+        "vigie.interface.services.text_comparison_store.resolve_text_comparison_from_payload",
         lambda _payload: None,
     )
 
@@ -98,9 +98,7 @@ def test_file_store_falls_back_to_repo_inputs_for_cross_platform_paths(
 ) -> None:
     repo_root = tmp_path / "repo"
     result_root = repo_root / "outputs" / "resultats"
-    comparison_path = (
-        result_root / "rbc" / "2025_t2_vs_2025_t1" / "comparison.json"
-    )
+    comparison_path = result_root / "rbc" / "2025_t2_vs_2025_t1" / "comparison.json"
     comparison_path.parent.mkdir(parents=True)
     comparison_path.write_text(
         json.dumps(
@@ -111,18 +109,10 @@ def test_file_store_falls_back_to_repo_inputs_for_cross_platform_paths(
                 "quarter_previous": "t1",
                 "year_current": 2025,
                 "quarter_current": "t2",
-                "source_pdf_previous": (
-                    "/Users/producer/vigie_paire/Inputs/RBC/2025/RBC_2025_T1.pdf"
-                ),
-                "source_pdf_current": (
-                    "/Users/producer/vigie_paire/Inputs/RBC/2025/RBC_2025_T2.pdf"
-                ),
-                "archived_pdf_previous": (
-                    "/Users/producer/vigie_paire/outputs/previous_report.pdf"
-                ),
-                "archived_pdf_current": (
-                    "/Users/producer/vigie_paire/outputs/current_report.pdf"
-                ),
+                "source_pdf_previous": ("/Users/producer/vigie_paire/Inputs/RBC/2025/RBC_2025_T1.pdf"),
+                "source_pdf_current": ("/Users/producer/vigie_paire/Inputs/RBC/2025/RBC_2025_T2.pdf"),
+                "archived_pdf_previous": ("/Users/producer/vigie_paire/outputs/previous_report.pdf"),
+                "archived_pdf_current": ("/Users/producer/vigie_paire/outputs/current_report.pdf"),
                 "pair_comparisons": [],
                 "matching": {},
                 "summary": {},
@@ -154,9 +144,7 @@ def test_file_store_inputs_fallback_supports_nonstandard_pdf_name(
 ) -> None:
     repo_root = tmp_path / "repo"
     result_root = repo_root / "outputs" / "resultats"
-    comparison_path = (
-        result_root / "bmo" / "2025_t2_vs_2025_t1" / "comparison.json"
-    )
+    comparison_path = result_root / "bmo" / "2025_t2_vs_2025_t1" / "comparison.json"
     comparison_path.parent.mkdir(parents=True)
     comparison_path.write_text(
         json.dumps(

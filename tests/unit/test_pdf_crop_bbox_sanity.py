@@ -1,6 +1,6 @@
 """Tests des garde-fous geometriques appliques aux crops de tableaux."""
 
-from vigilance.utils.pdf_crop import bbox_sanity_profile, is_bbox_sane
+from vigie.support.utils.pdf_crop import bbox_sanity_profile, is_bbox_sane
 
 
 def test_wide_financial_table_is_not_rejected_as_full_page() -> None:

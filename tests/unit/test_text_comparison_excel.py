@@ -4,8 +4,8 @@ import io
 
 from openpyxl import load_workbook
 
-from vigilance.text_comparison.justification import build_text_triage_justification
-from vigilance.text_comparison.text_comparison_excel import generate_text_comparison_excel
+from vigie.analyse_texte.text_comparison.justification import build_text_triage_justification
+from vigie.analyse_texte.text_comparison.text_comparison_excel import generate_text_comparison_excel
 
 
 def _column(ws, header: str) -> int:
@@ -92,7 +92,7 @@ def test_generate_text_comparison_excel_creates_analysis_sheet() -> None:
                             "impact_level": "MODERE",
                             "action_requise": "information",
                             "nouvelle_idee": False,
-                            "nouvelle_idee_justification": "",
+                            "nouvelle_idee_justification": justification_non,
                         },
                     },
                     {
@@ -141,9 +141,7 @@ def test_generate_text_comparison_excel_creates_analysis_sheet() -> None:
     assert all(row["section"] == "Gestion des risques" for row in replacement_rows)
     assert all(row["current_page"] == "12" and row["previous_page"] == "10" for row in replacement_rows)
     assert any(
-        row["type"] == "Ajout"
-        and row["current"] == "Paragraphe exact ajouté"
-        and row["previous"] is None
+        row["type"] == "Ajout" and row["current"] == "Paragraphe exact ajouté" and row["previous"] is None
         for row in rows
     )
 
@@ -169,9 +167,7 @@ def test_generate_text_comparison_excel_keeps_minor_date_and_reformulation_chang
                             "action_requise": "aucune",
                             "nouvelle_idee": False,
                             "exclusion_reason": "variation_numerique_propre_banque",
-                            "nouvelle_idee_justification": (
-                                "NON - changement de date seulement."
-                            ),
+                            "nouvelle_idee_justification": ("NON - changement de date seulement."),
                         },
                     },
                     {
@@ -188,9 +184,7 @@ def test_generate_text_comparison_excel_keeps_minor_date_and_reformulation_chang
                             "action_requise": "aucune",
                             "nouvelle_idee": False,
                             "exclusion_reason": "reformulation_mineure",
-                            "nouvelle_idee_justification": (
-                                "NON - reformulation sans changement de sens."
-                            ),
+                            "nouvelle_idee_justification": ("NON - reformulation sans changement de sens."),
                         },
                     },
                 ],
@@ -204,12 +198,10 @@ def test_generate_text_comparison_excel_keeps_minor_date_and_reformulation_chang
 
     assert ws.max_row == 5
     previous_values = [
-        ws.cell(row, _column(ws, "Texte exact du trimestre précédent")).value
-        for row in range(2, ws.max_row + 1)
+        ws.cell(row, _column(ws, "Texte exact du trimestre précédent")).value for row in range(2, ws.max_row + 1)
     ]
     current_values = [
-        ws.cell(row, _column(ws, "Texte exact du trimestre courant")).value
-        for row in range(2, ws.max_row + 1)
+        ws.cell(row, _column(ws, "Texte exact du trimestre courant")).value for row in range(2, ws.max_row + 1)
     ]
     assert previous_values.count("Données au 31 janvier.") == 2
     assert current_values.count("Données au 30 avril.") == 2
@@ -387,10 +379,7 @@ def test_generate_text_comparison_excel_excludes_confirmed_moves() -> None:
 def test_text_justification_falls_back_for_legacy_b15_triage() -> None:
     change = {
         "diff_type": "added",
-        "change_summary": (
-            "Sous-section ajoutee: Faits nouveaux sur la reglementation en "
-            "matiere de durabilite"
-        ),
+        "change_summary": ("Sous-section ajoutee: Faits nouveaux sur la reglementation en matiere de durabilite"),
         "source_text_t1": "",
         "source_text_t2": (
             "En mars 2025, le BSIF a publie une mise a jour de la ligne "
@@ -581,13 +570,12 @@ def test_generate_text_comparison_excel_uses_french_analyst_labels() -> None:
 
 
 def test_what_changed_for_display_prefers_relevance_reason() -> None:
-    from vigilance.vigie_columns import what_changed_for_display
+    from vigie.support.vigie_columns import what_changed_for_display
 
     change = {
         "diff_type": "modified",
         "change_summary": (
-            "Les deux fragments traitent de la même divulgation "
-            "concernant le report du plancher par le BSIF."
+            "Les deux fragments traitent de la même divulgation concernant le report du plancher par le BSIF."
         ),
         "source_text_t1": "Calendrier jusqu'en 2027.",
         "source_text_t2": "Report jusqu'à nouvel ordre.",
@@ -617,9 +605,7 @@ def test_excel_uses_bank_subject_instead_of_period_aliases() -> None:
                     {
                         "diff_type": "modified",
                         "source_text_t1": "Les facteurs existants sont décrits.",
-                        "source_text_t2": (
-                            "L’incapacité à atteindre les cibles financières est ajoutée."
-                        ),
+                        "source_text_t2": ("L’incapacité à atteindre les cibles financières est ajoutée."),
                         "change_summary": (
                             "Le T2 ajoute l’incapacité à atteindre les cibles financières "
                             "parmi les facteurs pouvant créer un écart par rapport aux attentes "
@@ -646,10 +632,7 @@ def test_excel_uses_bank_subject_instead_of_period_aliases() -> None:
     raw = generate_text_comparison_excel(payload, output_path=None)
     workbook = load_workbook(io.BytesIO(raw))
     ws = workbook["Analyse complète"]
-    summaries = {
-        str(ws.cell(row, _column(ws, "Ce qui change")).value or "")
-        for row in range(2, ws.max_row + 1)
-    }
+    summaries = {str(ws.cell(row, _column(ws, "Ce qui change")).value or "") for row in range(2, ws.max_row + 1)}
     justifications = {
         str(ws.cell(row, _column(ws, "Justification de pertinence (IA)")).value or "")
         for row in range(2, ws.max_row + 1)
@@ -688,24 +671,15 @@ def test_excel_prefers_structured_units_and_does_not_duplicate_bmo_fact() -> Non
                             "impact_level": "MINEUR",
                             "nouvelle_idee": False,
                             "changement_constate": (
-                                "Le rapport courant remplace BMO Harris Bank N.A. "
-                                "par BMO Bank N.A."
+                                "Le rapport courant remplace BMO Harris Bank N.A. par BMO Bank N.A."
                             ),
-                            "signification_metier": (
-                                "Cette mise à jour clarifie la dénomination juridique "
-                                "utilisée."
-                            ),
+                            "signification_metier": ("Cette mise à jour clarifie la dénomination juridique utilisée."),
                             "comparaison_interbanques": (
-                                "Elle permet de comparer les entités juridiques visées "
-                                "par les banques."
+                                "Elle permet de comparer les entités juridiques visées par les banques."
                             ),
-                            "limite_interpretation": (
-                                "La divulgation ne démontre aucun changement de pratique."
-                            ),
+                            "limite_interpretation": ("La divulgation ne démontre aucun changement de pratique."),
                             "motif_non_pertinence": "",
-                            "relevance_reason": (
-                                "RAISON LEGACY qui ne doit jamais être exportée."
-                            ),
+                            "relevance_reason": ("RAISON LEGACY qui ne doit jamais être exportée."),
                         },
                     }
                 ],
@@ -716,10 +690,7 @@ def test_excel_prefers_structured_units_and_does_not_duplicate_bmo_fact() -> Non
     raw = generate_text_comparison_excel(payload, output_path=None)
     workbook = load_workbook(io.BytesIO(raw))
     ws = workbook["Analyse complète"]
-    what_values = {
-        str(ws.cell(row, _column(ws, "Ce qui change")).value or "")
-        for row in range(2, ws.max_row + 1)
-    }
+    what_values = {str(ws.cell(row, _column(ws, "Ce qui change")).value or "") for row in range(2, ws.max_row + 1)}
     relevance_values = {
         str(
             ws.cell(
@@ -753,19 +724,14 @@ def test_excel_exports_structured_non_relevance_reason_without_factual_copy() ->
                 "all_block_comparisons": [
                     {
                         "diff_type": "added",
-                        "source_text_t2": (
-                            "La dénomination BMO Bank N.A. est désormais utilisée."
-                        ),
+                        "source_text_t2": ("La dénomination BMO Bank N.A. est désormais utilisée."),
                         "genai_triage": {
                             "is_relevant": False,
                             "themes_amf": [],
                             "impact_level": "MINEUR",
                             "nouvelle_idee": False,
                             "exclusion_reason": "reformulation_mineure",
-                            "changement_constate": (
-                                "BMO actualise la dénomination BMO Bank N.A. "
-                                "dans sa divulgation."
-                            ),
+                            "changement_constate": ("BMO actualise la dénomination BMO Bank N.A. dans sa divulgation."),
                             "signification_metier": "",
                             "comparaison_interbanques": "",
                             "limite_interpretation": "",
@@ -773,9 +739,7 @@ def test_excel_exports_structured_non_relevance_reason_without_factual_copy() ->
                                 "Cette actualisation rédactionnelle ne révèle aucune "
                                 "nouvelle pratique de gestion des fonds propres."
                             ),
-                            "relevance_reason": (
-                                "RAISON LEGACY qui ne doit pas remplacer le motif."
-                            ),
+                            "relevance_reason": ("RAISON LEGACY qui ne doit pas remplacer le motif."),
                         },
                     }
                 ],
@@ -795,12 +759,9 @@ def test_excel_exports_structured_non_relevance_reason_without_factual_copy() ->
         or ""
     )
 
-    assert what == (
-        "BMO actualise la dénomination BMO Bank N.A. dans sa divulgation."
-    )
+    assert what == ("BMO actualise la dénomination BMO Bank N.A. dans sa divulgation.")
     assert justification == (
-        "Cette actualisation rédactionnelle ne révèle aucune nouvelle pratique "
-        "de gestion des fonds propres."
+        "Cette actualisation rédactionnelle ne révèle aucune nouvelle pratique de gestion des fonds propres."
     )
     assert what not in justification
     assert "LEGACY" not in justification

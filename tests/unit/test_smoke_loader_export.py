@@ -1,4 +1,4 @@
-"""Smoke tests for facade config loading and JSON export."""
+"""Smoke tests for config loading and JSON export."""
 
 from __future__ import annotations
 
@@ -7,10 +7,10 @@ from pathlib import Path
 
 import yaml
 
-from vigilance.config.loader import get_bank_cfg, load_config
-from vigilance.models.section_models import SectionRange, SectionRangesResult
-from vigilance.models.table_models import TableArtifact
-from vigilance.report.export_json import write_section_ranges, write_tables_docling
+from vigie.support.config.loader import get_bank_cfg, load_config
+from vigie.support.models.section_models import SectionRange, SectionRangesResult
+from vigie.support.models.table_models import TableArtifact
+from vigie.support.report.export_json import write_section_ranges, write_tables_docling
 
 
 def test_loader_and_export_smoke(tmp_path: Path) -> None:

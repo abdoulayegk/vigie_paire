@@ -5,7 +5,7 @@ Rule 3: footnotes MUST be returned in visual order (top to bottom), never sorted
 
 from __future__ import annotations
 
-from vigilance.extraction.vision_full_extractor import (
+from vigie.extraction.vision_full import (
     _parse_vision_result,
 )
 
@@ -29,15 +29,9 @@ def test_footnotes_preserve_insertion_order_not_sorted() -> None:
     assert len(footnotes) == 3, f"Expected 3 footnotes, got {len(footnotes)}"
 
     # Must preserve visual order (3, 1, 2) — NOT sorted (1, 2, 3)
-    assert footnotes[0]["id"] == "3", (
-        f"Expected '3' first, got {footnotes[0]['id']}"
-    )
-    assert footnotes[1]["id"] == "1", (
-        f"Expected '1' second, got {footnotes[1]['id']}"
-    )
-    assert footnotes[2]["id"] == "2", (
-        f"Expected '2' third, got {footnotes[2]['id']}"
-    )
+    assert footnotes[0]["id"] == "3", f"Expected '3' first, got {footnotes[0]['id']}"
+    assert footnotes[1]["id"] == "1", f"Expected '1' second, got {footnotes[1]['id']}"
+    assert footnotes[2]["id"] == "2", f"Expected '2' third, got {footnotes[2]['id']}"
 
 
 def test_footnotes_from_legacy_dict_preserve_insertion_order() -> None:

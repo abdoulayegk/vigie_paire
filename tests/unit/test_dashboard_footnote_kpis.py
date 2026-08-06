@@ -2,8 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from vigilance.dash_app.callbacks.dashboard_flow import render_results
-from vigilance.dash_app.callbacks.vigie_dashboard_flow import render_vigie_cockpit
+from vigie.interface.callbacks.dashboard_flow import render_results
 
 
 def _component_texts(node: Any) -> list[str]:
@@ -73,47 +72,3 @@ def test_results_dashboard_shows_split_indicator_kpis() -> None:
     assert "Indicateurs présents avant, absents maintenant" in text
     assert "Libellés rapprochés comme renommages" in text
     assert "Ajouts, suppressions et renommages d'indicateurs" not in text
-
-
-def test_vigie_cockpit_shows_split_footnote_kpis() -> None:
-    dashboard = render_vigie_cockpit(
-        indicator=_indicator_payload(),
-        comparison=None,
-        text_data=None,
-        review_items=[],
-        review_queue=[],
-        show_results=True,
-        dashboard_theme="dark",
-        indicator_meta={},
-    )
-
-    text = " ".join(_component_texts(dashboard))
-
-    assert "Notes ajoutées" in text
-    assert "Notes supprimées" in text
-    assert "Notes modifiées" in text
-    assert "Nouvelles notes" in text
-    assert "Retraits de notes" in text
-    assert "Contenu ou portée" in text
-
-
-def test_vigie_cockpit_shows_split_indicator_kpis() -> None:
-    dashboard = render_vigie_cockpit(
-        indicator=_indicator_payload(),
-        comparison=None,
-        text_data=None,
-        review_items=[],
-        review_queue=[],
-        show_results=True,
-        dashboard_theme="dark",
-        indicator_meta={},
-    )
-
-    text = " ".join(_component_texts(dashboard))
-
-    assert "Indicateurs ajoutés" in text
-    assert "Indicateurs supprimés" in text
-    assert "Indicateurs renommés" in text
-    assert "Ajouts identifiés" in text
-    assert "Suppressions identifiées" in text
-    assert "Renommages identifiés" in text

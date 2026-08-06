@@ -4,10 +4,8 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
-import pytest
 
-from vigilance.extraction.vision_t1_anchor import (
-    AnchorResult,
+from vigie.extraction.vision_t1_anchor import (
     anchor_against_previous,
 )
 

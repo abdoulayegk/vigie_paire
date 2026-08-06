@@ -7,7 +7,7 @@ import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from vigilance.report.vigie_extract_schema import (
+from vigie.support.report.vigie_extract_schema import (
     SLUG_TO_CANONICAL,
     SCHEMA_VERSION,
     build_vigie_extract,
@@ -163,15 +163,11 @@ class _FakeTable:
     unit_context: str | None = "En pourcentage"
     headers: list[str] = field(default_factory=lambda: ["", "T2 2025", "T1 2025"])
     rows: list[list[str]] = field(default_factory=list)
-    first_column_indicators: list[str] = field(
-        default_factory=lambda: ["ratio cet1", "ratio tier 1", "ratio total"]
-    )
+    first_column_indicators: list[str] = field(default_factory=lambda: ["ratio cet1", "ratio tier 1", "ratio total"])
     first_column_indicators_raw: list[str] = field(
         default_factory=lambda: ["Ratio CET1", "Ratio Tier 1 (1)", "Ratio total"]
     )
-    footnotes: list[str] = field(
-        default_factory=lambda: ["(1) Calculé selon Bâle III."]
-    )
+    footnotes: list[str] = field(default_factory=lambda: ["(1) Calculé selon Bâle III."])
     section: str = "capital_management"
     bbox: list[float] | None = field(default_factory=lambda: [0.1, 0.2, 0.9, 0.8])
     content_source: str = "vision_gpt4o"
@@ -280,8 +276,12 @@ def test_load_roundtrip() -> None:
     try:
         table = _FakeTable()
         section_ranges = [
-            {"section": "capital_management", "start": 25, "end": 30,
-             "evidence": {"title_found": "Gestion des fonds propres"}},
+            {
+                "section": "capital_management",
+                "start": 25,
+                "end": 30,
+                "evidence": {"title_found": "Gestion des fonds propres"},
+            },
         ]
         payload = build_vigie_extract(
             pdf_path=pdf_path,
@@ -349,10 +349,7 @@ def test_slug_to_canonical_roundtrip() -> None:
 def test_loaded_artifacts_default_to_ok_status_and_comparison_eligible() -> None:
     """Artifacts loaded from vigie_extract keep the simplified comparison gate."""
     indicators = ["CET1", "Tier 1", "Total Capital", "Leverage Ratio"]
-    first_col = [
-        {"row_idx": i, "text": t, "text_norm": t.lower(), "note_refs": []}
-        for i, t in enumerate(indicators)
-    ]
+    first_col = [{"row_idx": i, "text": t, "text_norm": t.lower(), "note_refs": []} for i, t in enumerate(indicators)]
     base_table = {
         "table_uid": "test_uid",
         "table_id": "tableau_0",
@@ -369,24 +366,34 @@ def test_loaded_artifacts_default_to_ok_status_and_comparison_eligible() -> None
 
     payload_t1: dict = {
         "schema_version": SCHEMA_VERSION,
-        "extraction_meta": {"bank_code": "rbc", "quarter": "t1-2025",
-                            "source_pdf": "t1.pdf", "extraction_method": "docling"},
+        "extraction_meta": {
+            "bank_code": "rbc",
+            "quarter": "t1-2025",
+            "source_pdf": "t1.pdf",
+            "extraction_method": "docling",
+        },
         "sections": {
             "gestion_capital_fonds_propres": {
                 "section_title_pdf": "Gestion des fonds propres",
-                "start_page": 25, "end_page": 30,
+                "start_page": 25,
+                "end_page": 30,
                 "tables": [base_table],
             }
         },
     }
     payload_t2: dict = {
         "schema_version": SCHEMA_VERSION,
-        "extraction_meta": {"bank_code": "rbc", "quarter": "t2-2025",
-                            "source_pdf": "t2.pdf", "extraction_method": "docling"},
+        "extraction_meta": {
+            "bank_code": "rbc",
+            "quarter": "t2-2025",
+            "source_pdf": "t2.pdf",
+            "extraction_method": "docling",
+        },
         "sections": {
             "gestion_capital_fonds_propres": {
                 "section_title_pdf": "Gestion des fonds propres",
-                "start_page": 25, "end_page": 30,
+                "start_page": 25,
+                "end_page": 30,
                 "tables": [base_table],
             }
         },

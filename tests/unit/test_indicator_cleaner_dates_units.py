@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from vigilance.utils.indicator_cleaner import (
+from vigie.support.utils.indicator_cleaner import (
     normalize_indicator_for_comparison,
     strip_dates_from_indicator_label,
     strip_units_currency_from_indicator_label,
@@ -116,6 +116,8 @@ def test_pension_asset_net_variant_unifies() -> None:
         "Variation de l’actif des régimes de retraite à prestations définies (déduction faite des passifs d’impôt)"
     )
     assert a == b
+
+
 def test_impot_impots_same_canonical_key() -> None:
     """d'impôt and d'impôts must produce the same key to avoid false add/remove."""
     a = normalize_indicator_for_comparison(
@@ -152,6 +154,8 @@ def test_plan_examples_same_key_across_variants() -> None:
     key2 = normalize_indicator_for_comparison(base2)
     assert key2
     assert normalize_indicator_for_comparison("Autres elements de fonds propres de categorie 1") == key2
-    base3 = "Variation de l'actif net des régimes de retraite à prestations définies (déduction faite des passifs d'impôt)"
+    base3 = (
+        "Variation de l'actif net des régimes de retraite à prestations définies (déduction faite des passifs d'impôt)"
+    )
     key3 = normalize_indicator_for_comparison(base3)
     assert key3 == key1

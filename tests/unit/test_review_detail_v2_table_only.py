@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dash.development.base_component import Component
 
-from vigilance.dash_app.components.review_detail_v2 import build_review_detail_v2
+from vigie.interface.components.review_detail_v2 import build_review_detail_v2
 
 
 def _flatten_text(node: object) -> str:

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from vigilance.text_analysis.comparison import _format_sub_items_breakdown
+from vigie.analyse_texte.comparaison_sections import _format_sub_items_breakdown
 
 
 def test_format_sub_items_breakdown_empty():

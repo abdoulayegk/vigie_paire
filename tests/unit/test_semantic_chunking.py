@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import pytest
 
-from vigilance.text_analysis.chunking import _chunk_subsection_text
-from vigilance.text_analysis.semantic_chunking import (
+from vigie.analyse_texte.chunking import _chunk_subsection_text
+from vigie.analyse_texte.semantic_chunking import (
     SemanticChunkingError,
     SemanticPartitionResponse,
     SemanticSentenceGroup,
@@ -27,7 +27,7 @@ def test_simple_paragraph_does_not_request_embeddings(monkeypatch: pytest.Monkey
     def fail_if_called(*args, **kwargs):
         raise AssertionError("Les embeddings ne doivent pas être appelés")
 
-    monkeypatch.setattr("vigilance.text_analysis.semantic_chunking._embed_texts", fail_if_called)
+    monkeypatch.setattr("vigie.analyse_texte.semantic_chunking._embed_texts", fail_if_called)
     text = "La Banque applique une politique de gestion du capital."
 
     chunks = _chunk_subsection_text(text, client=object())
@@ -41,7 +41,7 @@ def test_complex_paragraph_has_no_fallback_when_embeddings_fail(
     def fail_embeddings(*args, **kwargs):
         raise ConnectionError("service indisponible")
 
-    monkeypatch.setattr("vigilance.text_analysis.semantic_chunking._embed_texts", fail_embeddings)
+    monkeypatch.setattr("vigie.analyse_texte.semantic_chunking._embed_texts", fail_embeddings)
 
     with pytest.raises(SemanticChunkingError, match="Échec des embeddings sans fallback"):
         _chunk_subsection_text(_four_sentence_paragraph(), client=object())
@@ -51,11 +51,11 @@ def test_ambiguous_partition_has_no_fallback_when_llm_fails(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr(
-        "vigilance.text_analysis.semantic_chunking._embed_texts",
+        "vigie.analyse_texte.semantic_chunking._embed_texts",
         lambda client, texts, model: [[1.0, 0.0] for _ in texts],
     )
     monkeypatch.setattr(
-        "vigilance.text_analysis.semantic_chunking._continuity_scores",
+        "vigie.analyse_texte.semantic_chunking._continuity_scores",
         lambda sentences, normalized, embeddings: [0.78] * (len(sentences) - 1),
     )
 
@@ -63,7 +63,7 @@ def test_ambiguous_partition_has_no_fallback_when_llm_fails(
         raise TimeoutError("LLM indisponible")
 
     monkeypatch.setattr(
-        "vigilance.text_analysis.semantic_chunking._call_structured_completion_with_correction",
+        "vigie.analyse_texte.semantic_chunking._call_structured_completion_with_correction",
         fail_llm,
     )
 
@@ -75,18 +75,16 @@ def test_invalid_llm_partition_is_rejected_without_fallback(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr(
-        "vigilance.text_analysis.semantic_chunking._embed_texts",
+        "vigie.analyse_texte.semantic_chunking._embed_texts",
         lambda client, texts, model: [[1.0, 0.0] for _ in texts],
     )
     monkeypatch.setattr(
-        "vigilance.text_analysis.semantic_chunking._continuity_scores",
+        "vigie.analyse_texte.semantic_chunking._continuity_scores",
         lambda sentences, normalized, embeddings: [0.78] * (len(sentences) - 1),
     )
     monkeypatch.setattr(
-        "vigilance.text_analysis.semantic_chunking._call_structured_completion_with_correction",
-        lambda *args, **kwargs: SemanticPartitionResponse(
-            groups=[SemanticSentenceGroup(start=1, end=2)]
-        ),
+        "vigie.analyse_texte.semantic_chunking._call_structured_completion_with_correction",
+        lambda *args, **kwargs: SemanticPartitionResponse(groups=[SemanticSentenceGroup(start=1, end=2)]),
     )
 
     with pytest.raises(SemanticChunkingError, match="dernière phrase n'est pas couverte"):
@@ -102,9 +100,9 @@ def test_embeddings_are_batched_once_and_identical_sentences_are_deduplicated(
         calls.append(list(texts))
         return [[1.0, 0.0] for _ in texts]
 
-    monkeypatch.setattr("vigilance.text_analysis.semantic_chunking._embed_texts", record_embeddings)
+    monkeypatch.setattr("vigie.analyse_texte.semantic_chunking._embed_texts", record_embeddings)
     monkeypatch.setattr(
-        "vigilance.text_analysis.semantic_chunking._continuity_scores",
+        "vigie.analyse_texte.semantic_chunking._continuity_scores",
         lambda sentences, normalized, embeddings: [0.90] * (len(sentences) - 1),
     )
     paragraph = _four_sentence_paragraph()
@@ -120,11 +118,11 @@ def test_deterministic_single_sentence_partition_is_treated_as_ambiguous(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr(
-        "vigilance.text_analysis.semantic_chunking._embed_texts",
+        "vigie.analyse_texte.semantic_chunking._embed_texts",
         lambda client, texts, model: [[1.0, 0.0] for _ in texts],
     )
     monkeypatch.setattr(
-        "vigilance.text_analysis.semantic_chunking._continuity_scores",
+        "vigie.analyse_texte.semantic_chunking._continuity_scores",
         lambda sentences, normalized, embeddings: [0.50] * (len(sentences) - 1),
     )
     llm_calls: list[int] = []
@@ -134,7 +132,7 @@ def test_deterministic_single_sentence_partition_is_treated_as_ambiguous(
         return [(0, len(sentences))]
 
     monkeypatch.setattr(
-        "vigilance.text_analysis.semantic_chunking._partition_with_llm",
+        "vigie.analyse_texte.semantic_chunking._partition_with_llm",
         coherent_partition,
     )
 
@@ -151,9 +149,7 @@ def test_llm_overfragmentation_is_corrected_once(monkeypatch: pytest.MonkeyPatch
     sentences = [f"Phrase {index} sur le même cadre réglementaire." for index in range(1, 7)]
     responses = iter(
         [
-            SemanticPartitionResponse(
-                groups=[SemanticSentenceGroup(start=index, end=index) for index in range(1, 7)]
-            ),
+            SemanticPartitionResponse(groups=[SemanticSentenceGroup(start=index, end=index) for index in range(1, 7)]),
             SemanticPartitionResponse(
                 groups=[
                     SemanticSentenceGroup(start=1, end=3),
@@ -163,7 +159,7 @@ def test_llm_overfragmentation_is_corrected_once(monkeypatch: pytest.MonkeyPatch
         ]
     )
     monkeypatch.setattr(
-        "vigilance.text_analysis.semantic_chunking._call_structured_completion_with_correction",
+        "vigie.analyse_texte.semantic_chunking._call_structured_completion_with_correction",
         lambda *args, **kwargs: next(responses),
     )
 
@@ -185,7 +181,7 @@ def test_llm_repeated_overfragmentation_fails_without_fallback(
         groups=[SemanticSentenceGroup(start=index, end=index) for index in range(1, 7)]
     )
     monkeypatch.setattr(
-        "vigilance.text_analysis.semantic_chunking._call_structured_completion_with_correction",
+        "vigie.analyse_texte.semantic_chunking._call_structured_completion_with_correction",
         lambda *args, **kwargs: fragmented,
     )
 
@@ -207,9 +203,9 @@ def test_numbers_are_neutralized_for_similarity_but_preserved_in_chunk(
         embedded_texts.extend(texts)
         return [[1.0, 0.0] for _ in texts]
 
-    monkeypatch.setattr("vigilance.text_analysis.semantic_chunking._embed_texts", record_embeddings)
+    monkeypatch.setattr("vigie.analyse_texte.semantic_chunking._embed_texts", record_embeddings)
     monkeypatch.setattr(
-        "vigilance.text_analysis.semantic_chunking._continuity_scores",
+        "vigie.analyse_texte.semantic_chunking._continuity_scores",
         lambda sentences, normalized, embeddings: [0.90] * (len(sentences) - 1),
     )
     paragraph = (
@@ -243,11 +239,11 @@ def test_hard_word_limit_splits_at_sentence_boundaries(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr(
-        "vigilance.text_analysis.semantic_chunking._embed_texts",
+        "vigie.analyse_texte.semantic_chunking._embed_texts",
         lambda client, texts, model: [[1.0, 0.0] for _ in texts],
     )
     monkeypatch.setattr(
-        "vigilance.text_analysis.semantic_chunking._continuity_scores",
+        "vigie.analyse_texte.semantic_chunking._continuity_scores",
         lambda sentences, normalized, embeddings: [0.90] * (len(sentences) - 1),
     )
     sentence = "Contrôle " + " ".join(["continu"] * 99) + "."
@@ -263,11 +259,11 @@ def test_bnc_bale_partition_is_stable_when_reform_disclosure_disappears(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr(
-        "vigilance.text_analysis.semantic_chunking._embed_texts",
+        "vigie.analyse_texte.semantic_chunking._embed_texts",
         lambda client, texts, model: [[1.0, 0.0] for _ in texts],
     )
     monkeypatch.setattr(
-        "vigilance.text_analysis.semantic_chunking._continuity_scores",
+        "vigie.analyse_texte.semantic_chunking._continuity_scores",
         lambda sentences, normalized, embeddings: [0.78] * (len(sentences) - 1),
     )
 
@@ -276,7 +272,7 @@ def test_bnc_bale_partition_is_stable_when_reform_disclosure_disappears(
             return [(0, 1), (1, 2), (2, 6), (6, 10)]
         return [(0, 1), (1, 5), (5, 9)]
 
-    monkeypatch.setattr("vigilance.text_analysis.semantic_chunking._partition_with_llm", bnc_ranges)
+    monkeypatch.setattr("vigie.analyse_texte.semantic_chunking._partition_with_llm", bnc_ranges)
     common_a = "Comme l'exige l'Accord de Bâle, l'actif pondéré est calculé pour les risques de crédit, de marché et opérationnel."
     reform = "Certaines révisions apportées par le BSIF à ses règles de fonds propres ont pris effet en 2023."
     common_c = [

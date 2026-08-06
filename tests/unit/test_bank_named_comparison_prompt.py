@@ -2,9 +2,15 @@ from __future__ import annotations
 
 from typing import Any
 
-from vigilance.text_analysis import comparison
-from vigilance.text_analysis.chunk_alignment import ChunkAlignment
-from vigilance.text_analysis.chunking import TextChunk
+from vigie.analyse_texte.chunk_alignment import ChunkAlignment
+from vigie.analyse_texte.chunking import TextChunk
+from vigie.analyse_texte.comparaison_sections import (
+    ChunkComparisonLLMResponse,
+    _compare_section_texts,
+    _compare_texts_single_call,
+)
+from vigie.analyse_texte.comparaison_sections import comparaison_section
+from vigie.analyse_texte.comparaison_sections import execution_llm
 
 
 def test_single_call_names_bank_and_forbids_period_labels_as_subject(
@@ -23,7 +29,7 @@ def test_single_call_names_bank_and_forbids_period_labels_as_subject(
     ):
         captured["messages"] = messages
         captured["validation_retry_message"] = validation_retry_message
-        return comparison.ChunkComparisonLLMResponse(
+        return ChunkComparisonLLMResponse(
             changes=[
                 {
                     "alignment_id": "a00",
@@ -39,12 +45,12 @@ def test_single_call_names_bank_and_forbids_period_labels_as_subject(
         )
 
     monkeypatch.setattr(
-        comparison,
+        execution_llm,
         "_call_structured_completion_with_correction",
         fake_structured_completion,
     )
 
-    comparison._compare_texts_single_call(
+    _compare_texts_single_call(
         client=object(),
         model="gpt-4o",
         section_key="gestion_risques",
@@ -58,20 +64,16 @@ def test_single_call_names_bank_and_forbids_period_labels_as_subject(
 
     prompt = "\n".join(message["content"] for message in captured["messages"])
     assert "Banque analysée : CIBC" in prompt
+    assert ("Chaque change_summary doit commencer par « CIBC » suivi d'un verbe d'action direct") in prompt
     assert (
-        "Chaque change_summary doit commencer par « CIBC » suivi "
-        "d'un verbe d'action direct"
-    ) in prompt
-    assert (
-        "« rapport précédent » et « rapport courant » "
-        "peuvent seulement servir de contexte de comparaison"
+        "« rapport précédent » et « rapport courant » peuvent seulement servir de contexte de comparaison"
     ) in prompt
     assert "jamais être le sujet grammatical de change_summary" in prompt
     assert "N'inscris aucun trimestre" in prompt
     assert "T1, T2" in prompt
 
     retry_message = captured["validation_retry_message"]
-    assert 'commencer exactement par "CIBC " suivi d\'un verbe d\'action direct' in retry_message
+    assert "commencer exactement par \"CIBC \" suivi d'un verbe d'action direct" in retry_message
     assert "n'utilise jamais rapport courant, rapport précédent, T1, T2" in retry_message
 
 
@@ -119,14 +121,14 @@ def test_compare_section_texts_propagates_bank_code_through_internal_chain(
         return []
 
     monkeypatch.setattr(
-        comparison,
+        comparaison_section,
         "_chunk_subsection_bodies",
         fake_chunk_subsection_bodies,
     )
-    monkeypatch.setattr(comparison, "_align_chunks_hybrid", fake_align_chunks)
-    monkeypatch.setattr(comparison, "_compare_texts_single_call", fake_single_call)
+    monkeypatch.setattr(comparaison_section, "_align_chunks_hybrid", fake_align_chunks)
+    monkeypatch.setattr(execution_llm, "_compare_texts_single_call", fake_single_call)
 
-    result = comparison._compare_section_texts(
+    result = _compare_section_texts(
         client=object(),
         model="gpt-4o",
         section_key="gestion_risques",

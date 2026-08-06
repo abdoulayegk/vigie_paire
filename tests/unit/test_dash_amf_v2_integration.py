@@ -3,7 +3,7 @@
 Vérifie que :
 - ``review_queue_v2._build_genai_summary_row`` filtre les items non pertinents
 - ``review_detail_v2._build_themes_amf_chips`` rend correctement l'overflow ``+N``
-- ``page_text_analysis._build_change_card`` affiche les nouveaux champs AMF
+- ``text_analysis._build_change_card`` affiche les nouveaux champs AMF
   et garde les changements ``is_relevant=False`` visibles pour revue humaine
 """
 
@@ -13,13 +13,13 @@ import pytest
 from dash import html
 from dash.development.base_component import Component
 
-from vigilance.dash_app.components.review_detail_v2 import (
+from vigie.interface.components.review_detail_v2 import (
     _build_genai_section,
     _build_themes_amf_chips,
 )
-from vigilance.dash_app.components.review_queue_v2 import _build_genai_summary_row
-from vigilance.dash_app.layouts.page_changements_communs import _build_signal_card
-from vigilance.dash_app.layouts.page_text_analysis import _build_change_card
+from vigie.interface.components.review_queue_v2 import _build_genai_summary_row
+from vigie.interface.layouts.page_changements_communs import _build_signal_card
+from vigie.interface.layouts.text_analysis import _build_change_card
 
 
 def _flatten_text(node: object) -> str:
@@ -165,15 +165,13 @@ def test_themes_amf_chips_returns_empty_div_when_no_themes() -> None:
 
 
 def test_themes_amf_chips_render_data_and_third_party_cloud_labels() -> None:
-    chips_div = _build_themes_amf_chips(
-        ["RISQUE_DONNEES", "RISQUE_TIERS_CLOUD"]
-    )
+    chips_div = _build_themes_amf_chips(["RISQUE_DONNEES", "RISQUE_TIERS_CLOUD"])
     text = _flatten_text(chips_div)
     assert "Risque données" in text
     assert "Tiers / Cloud" in text
 
 
-# --- page_text_analysis affiche les nouveaux champs AMF ---
+# --- text_analysis affiche les nouveaux champs AMF ---
 
 
 def test_text_analysis_change_card_renders_amf_fields() -> None:
@@ -235,10 +233,7 @@ def test_text_analysis_change_card_renders_amf_fields() -> None:
     assert "Voir les détails de l’évaluation IA" in text
     assert "Changement constaté" in text
     assert "Pertinence métier" in text
-    assert (
-        "La modification peut changer la manière dont la banque applique le cadre "
-        "réglementaire."
-    ) in text
+    assert ("La modification peut changer la manière dont la banque applique le cadre réglementaire.") in text
     assert "Voir la preuve source" in text
     assert "Conséquence probable" in text
     assert "Limite de l’analyse" in text
@@ -260,19 +255,11 @@ def test_text_analysis_change_card_renders_amf_fields() -> None:
 
     card_body = getattr(card, "children")
     card_sections = [_flatten_text(child) for child in getattr(card_body, "children")]
-    proof_index = next(
-        index for index, value in enumerate(card_sections) if "Preuve de posture" in value
-    )
-    observed_index = next(
-        index for index, value in enumerate(card_sections) if "Changement constaté" in value
-    )
-    evidence_index = next(
-        index for index, value in enumerate(card_sections) if "Voir la preuve source" in value
-    )
+    proof_index = next(index for index, value in enumerate(card_sections) if "Preuve de posture" in value)
+    observed_index = next(index for index, value in enumerate(card_sections) if "Changement constaté" in value)
+    evidence_index = next(index for index, value in enumerate(card_sections) if "Voir la preuve source" in value)
     details_index = next(
-        index
-        for index, value in enumerate(card_sections)
-        if "Voir les détails de l’évaluation IA" in value
+        index for index, value in enumerate(card_sections) if "Voir les détails de l’évaluation IA" in value
     )
     assert observed_index < evidence_index < proof_index < details_index
 
@@ -452,26 +439,18 @@ def test_text_analysis_shows_observed_change_before_fold() -> None:
     card = _build_change_card(change, "Gestion des risques", bank_code="BNC")
     card_body = getattr(card, "children")
     card_sections = [_flatten_text(child) for child in getattr(card_body, "children")]
-    observed_index = next(
-        index for index, value in enumerate(card_sections) if "Changement constaté" in value
-    )
+    observed_index = next(index for index, value in enumerate(card_sections) if "Changement constaté" in value)
     details_index = next(
-        index
-        for index, value in enumerate(card_sections)
-        if "Voir les détails de l’évaluation IA" in value
+        index for index, value in enumerate(card_sections) if "Voir les détails de l’évaluation IA" in value
     )
 
     assert observed_index < details_index
-    assert "BNC retire la description du contexte géopolitique" in card_sections[
-        observed_index
-    ]
+    assert "BNC retire la description du contexte géopolitique" in card_sections[observed_index]
     assert "Changement constaté" in card_sections[observed_index]
     assert "…" not in card_sections[observed_index].split("Changement constaté", 1)[-1][:200]
     assert "Impact facteurs de risque — Majeur" in card_sections[observed_index]
     assert "Pertinence métier" in card_sections[observed_index]
-    assert "Le retrait modifie le niveau de détail fourni." in card_sections[
-        observed_index
-    ]
+    assert "Le retrait modifie le niveau de détail fourni." in card_sections[observed_index]
     assert "Pertinence métier" not in card_sections[details_index]
 
 
@@ -507,18 +486,12 @@ def test_text_analysis_hides_structured_non_relevance_reason_from_main_card() ->
             "impact_level": "MINEUR",
             "nouvelle_idee": False,
             "exclusion_reason": "reformulation_mineure",
-            "changement_constate": (
-                "BMO remplace BMO Harris Bank N.A. par BMO Bank N.A."
-            ),
+            "changement_constate": ("BMO remplace BMO Harris Bank N.A. par BMO Bank N.A."),
             "signification_metier": "",
             "comparaison_interbanques": "",
             "limite_interpretation": "",
-            "motif_non_pertinence": (
-                "Cette reformulation ne révèle aucune nouvelle pratique comparable."
-            ),
-            "relevance_reason": (
-                "RAISON LEGACY qui ne doit pas être utilisée par la carte."
-            ),
+            "motif_non_pertinence": ("Cette reformulation ne révèle aucune nouvelle pratique comparable."),
+            "relevance_reason": ("RAISON LEGACY qui ne doit pas être utilisée par la carte."),
         },
     }
 
@@ -534,7 +507,7 @@ def test_text_analysis_hides_structured_non_relevance_reason_from_main_card() ->
 # --- Side-by-side avec highlights AMF v2 ---
 
 
-from vigilance.dash_app.layouts.page_text_analysis import (
+from vigie.interface.layouts.text_analysis import (
     _HIGHLIGHT_ADDED_STYLE,
     _HIGHLIGHT_REMOVED_STYLE,
     _build_side_by_side,
@@ -663,10 +636,7 @@ def test_side_by_side_modified_highlights_diff_when_change_segments_do_not_match
             "Le risque de marché est le risque de pertes financières liées à la variation "
             f"des prix de marché. {removed_sentence}"
         ),
-        text_t2=(
-            "Le risque de marché est le risque de pertes financières liées à la variation "
-            "des prix de marché."
-        ),
+        text_t2=("Le risque de marché est le risque de pertes financières liées à la variation des prix de marché."),
         page_t1="30",
         page_t2="33",
         change_segments=[],
@@ -675,9 +645,7 @@ def test_side_by_side_modified_highlights_diff_when_change_segments_do_not_match
 
     styled = _styled_texts(sbs)
     removed_highlights = [
-        text
-        for text, style in styled
-        if style.get("backgroundColor") == "#fef3c7" and "contexte géopolitique" in text
+        text for text, style in styled if style.get("backgroundColor") == "#fef3c7" and "contexte géopolitique" in text
     ]
     assert removed_highlights
     assert any("affrontements entre Israël et le Hamas" in text for text in removed_highlights)
@@ -720,11 +688,7 @@ def test_side_by_side_ignores_over_fragmented_change_segments() -> None:
         diff_type="modified",
     )
 
-    added_highlights = [
-        text
-        for text, style in _styled_texts(sbs)
-        if style.get("backgroundColor") == "#dcfce7"
-    ]
+    added_highlights = [text for text, style in _styled_texts(sbs) if style.get("backgroundColor") == "#dcfce7"]
     assert "prév" not in added_highlights
     assert "it" not in added_highlights
     assert "veau p" not in added_highlights
@@ -735,7 +699,7 @@ def test_change_segment_pydantic_invariants() -> None:
     """Pydantic rejette les ChangeSegment incohérents."""
     from pydantic import ValidationError as _PydErr
 
-    from vigilance.amf_taxonomy import ChangeSegment
+    from vigie.comparaison.triage.amf_taxonomy import ChangeSegment
 
     # Valid added
     s = ChangeSegment(kind="added", text_t2="x")

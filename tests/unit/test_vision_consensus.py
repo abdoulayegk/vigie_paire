@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
-import pytest
 
-from vigilance.extraction.vision_full_extractor import (
+from vigie.extraction.vision_full import (
     VisionFullExtractor,
     VisionFullResult,
     _extract_native_text_indicators,
