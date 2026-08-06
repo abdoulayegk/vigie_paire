@@ -70,9 +70,7 @@ def validate_strict_openai_response_format(
     except Exception as exc:
         if isinstance(exc, error_cls):
             raise
-        raise error_cls(
-            f"schema malformed for Structured Outputs: {exc}"
-        ) from exc
+        raise error_cls(f"schema malformed for Structured Outputs: {exc}") from exc
 
     if not isinstance(properties, dict):
         raise error_cls("schema.properties must be a dict")
@@ -91,8 +89,7 @@ def validate_strict_openai_response_format(
             details.append(f"unknown_in_required={extra}")
         joined = ", ".join(details) if details else "required/properties mismatch"
         raise error_cls(
-            "Structured Outputs strict contract invalid: "
-            f"required must exactly match properties ({joined})"
+            f"Structured Outputs strict contract invalid: required must exactly match properties ({joined})"
         )
 
     _validate_no_map_like_objects(schema, path="$", error_cls=error_cls)
@@ -112,10 +109,7 @@ def _normalize_object_nodes_for_openai(
     if node_type == "object":
         additional_properties = node.get("additionalProperties")
         if additional_properties not in (None, False):
-            raise error_cls(
-                "Structured Outputs strict contract invalid: "
-                f"map-like object not allowed at {path}"
-            )
+            raise error_cls(f"Structured Outputs strict contract invalid: map-like object not allowed at {path}")
         node["additionalProperties"] = False
 
         properties = node.get("properties")
@@ -170,10 +164,7 @@ def _validate_no_map_like_objects(
     node_type = node.get("type")
     if node_type == "object":
         if node.get("additionalProperties") not in (False, None):
-            raise error_cls(
-                "Structured Outputs strict contract invalid: "
-                f"map-like object not allowed at {path}"
-            )
+            raise error_cls(f"Structured Outputs strict contract invalid: map-like object not allowed at {path}")
         properties = node.get("properties")
         if isinstance(properties, dict):
             for key, sub_schema in properties.items():

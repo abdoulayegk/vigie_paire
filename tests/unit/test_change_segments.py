@@ -8,10 +8,7 @@ def test_build_change_segments_detects_inline_removed_committee() -> None:
         "Des rapports sur le profil de risques sont soumis périodiquement "
         "et en temps opportun au CGRO, au CRG et au CGR."
     )
-    text_t2 = (
-        "Des rapports sur le profil de risques sont soumis périodiquement "
-        "et en temps opportun au CGRO et au CGR."
-    )
+    text_t2 = "Des rapports sur le profil de risques sont soumis périodiquement et en temps opportun au CGRO et au CGR."
 
     segments = build_change_segments_from_texts(text_t1, text_t2, diff_type="modified")
 

@@ -45,9 +45,7 @@ def test_visual_sanity_filters_indicator_and_footnote_rejections() -> None:
     )
 
     assert result["technical_diff"]["indicators_added"] == []
-    assert result["technical_diff"]["footnotes_added"] == [
-        {"id": "7", "text": "Nouvelle note", "reason": "new"}
-    ]
+    assert result["technical_diff"]["footnotes_added"] == [{"id": "7", "text": "Nouvelle note", "reason": "new"}]
     assert result["technical_diff"]["table_level_change"] == "modifie"
     assert result["visual_sanity_applied"] is True
     assert result["visual_sanity_rejected_count"] == 1

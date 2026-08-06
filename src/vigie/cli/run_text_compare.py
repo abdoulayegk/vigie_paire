@@ -21,31 +21,18 @@ DEFAULT_INPUTS_ROOT = "Inputs"
 
 def build_parser() -> argparse.ArgumentParser:
     """Construit le parser CLI pour la commande run_text_compare."""
-    parser = argparse.ArgumentParser(
-        description="Comparer les paragraphes texte entre deux trimestres (GPT-4o)."
-    )
+    parser = argparse.ArgumentParser(description="Comparer les paragraphes texte entre deux trimestres (GPT-4o).")
     parser.add_argument("--banque", required=True, help="Code banque (ex: bns, bnc, rbc)")
     parser.add_argument("--annee", required=True, type=int, help="Annee du rapport courant")
     trimestre = parser.add_mutually_exclusive_group(required=True)
-    trimestre.add_argument(
-        "--T1", dest="trimestre", action="store_const", const="T1", help="Trimestre courant T1"
-    )
-    trimestre.add_argument(
-        "--T2", dest="trimestre", action="store_const", const="T2", help="Trimestre courant T2"
-    )
-    trimestre.add_argument(
-        "--T3", dest="trimestre", action="store_const", const="T3", help="Trimestre courant T3"
-    )
-    trimestre.add_argument(
-        "--T4", dest="trimestre", action="store_const", const="T4", help="Trimestre courant T4"
-    )
+    trimestre.add_argument("--T1", dest="trimestre", action="store_const", const="T1", help="Trimestre courant T1")
+    trimestre.add_argument("--T2", dest="trimestre", action="store_const", const="T2", help="Trimestre courant T2")
+    trimestre.add_argument("--T3", dest="trimestre", action="store_const", const="T3", help="Trimestre courant T3")
+    trimestre.add_argument("--T4", dest="trimestre", action="store_const", const="T4", help="Trimestre courant T4")
     parser.add_argument(
         "--racine-extraction",
         default=DEFAULT_OUT_ROOT_EXTRACTIONS,
-        help=(
-            "Parametre conserve pour compatibilite CLI. "
-            "Le pipeline canonique n'ecrit plus d'extraction publique."
-        ),
+        help=("Parametre conserve pour compatibilite CLI. Le pipeline canonique n'ecrit plus d'extraction publique."),
     )
     parser.add_argument(
         "--entrees",
@@ -130,6 +117,7 @@ def main(argv: list[str] | None = None) -> int:
         return 1
 
     from vigie.analyse_texte.text_comparison import generate_text_comparison_excel
+
     try:
         allowed_section_keys = None
         if args.strict_sections:

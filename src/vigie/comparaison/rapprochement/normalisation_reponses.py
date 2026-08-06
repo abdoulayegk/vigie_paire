@@ -144,9 +144,7 @@ def _normalize_matching_response(
             item = item.model_dump(mode="python")
         if not isinstance(item, dict):
             raise _MatchingValidationError("current_table_decisions items must be objects")
-        current_table_id = _decode_current_alias(
-            _require_string(item.get("current_table_id"), "current_table_id")
-        )
+        current_table_id = _decode_current_alias(_require_string(item.get("current_table_id"), "current_table_id"))
         decision = _require_string(item.get("decision"), "decision").lower()
         if decision not in allowed_decisions:
             raise _MatchingValidationError(

@@ -31,11 +31,7 @@ from vigie.interface.ui_io import load_comparison_result
 
 def _text_only_ui_payload(text_payload: dict[str, Any], compare_path: Path) -> dict[str, Any]:
     """Construit un payload Dash minimal pour une analyse texte sans indicateurs."""
-    bank_code = str(
-        text_payload.get("bank_code")
-        or compare_path.parent.parent.name
-        or ""
-    ).lower()
+    bank_code = str(text_payload.get("bank_code") or compare_path.parent.parent.name or "").lower()
     current_period = str(text_payload.get("quarter_current") or "").strip()
     previous_period = str(text_payload.get("quarter_previous") or "").strip()
     if not current_period or not previous_period:
@@ -50,11 +46,7 @@ def _text_only_ui_payload(text_payload: dict[str, Any], compare_path: Path) -> d
 
     current = ctx.get("current") or {}
     previous = ctx.get("previous") or {}
-    created_at = str(
-        text_payload.get("created_at")
-        or text_payload.get("generated_at")
-        or ""
-    )
+    created_at = str(text_payload.get("created_at") or text_payload.get("generated_at") or "")
 
     payload = new_empty_ui_comparison_payload()
     payload["bank_code"] = bank_code
@@ -73,9 +65,7 @@ def _text_only_ui_payload(text_payload: dict[str, Any], compare_path: Path) -> d
             "quarter_context": ctx,
             "text_comparison_path": str(compare_path),
             "compare_path": str(compare_path),
-            "executive_summary": {
-                "content": "Analyse textuelle disponible; aucun résultat indicateurs dans ce run."
-            },
+            "executive_summary": {"content": "Analyse textuelle disponible; aucun résultat indicateurs dans ce run."},
         }
     )
     return payload
@@ -239,10 +229,7 @@ class FileComparisonStore:
             except ValueError:
                 relative_parent = compare_path.parent.as_posix()
             pretty_parent = relative_parent.replace("_", " ").replace("vs", " vs ")
-            label = (
-                f"{pdf_icon} {bank_short_name(bank_code)} - "
-                f"{pretty_parent} ({timestamp_label})"
-            )
+            label = f"{pdf_icon} {bank_short_name(bank_code)} - {pretty_parent} ({timestamp_label})"
             filtered_options.append({"label": label, "value": value})
 
         filtered_options.sort(key=lambda item: str(item["value"]), reverse=True)
@@ -294,9 +281,7 @@ class FileComparisonStore:
             indicator_meta["source"] = source
             indicator_meta["source_label"] = source_label
             indicator_meta["storage_backend"] = "fichier_local"
-            pdf_paths = _normalize_pdf_paths_store(
-                _pdf_paths_from_comparison_meta(indicator_meta, canonical)
-            )
+            pdf_paths = _normalize_pdf_paths_store(_pdf_paths_from_comparison_meta(indicator_meta, canonical))
             indicator_meta["pdf_paths"] = pdf_paths
             canonical["meta"]["pdf_paths"] = pdf_paths
             warning = _missing_pdf_warning(pdf_paths)

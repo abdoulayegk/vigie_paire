@@ -31,9 +31,7 @@ def test_modified_with_empty_text_t1_becomes_added() -> None:
                 "La priorité en matière de gestion du financement consiste à "
                 "atteindre l'équilibre optimal entre les dépôts."
             ),
-            change_summary=(
-                "BNC introduit une nouvelle priorité de gestion du financement."
-            ),
+            change_summary=("BNC introduit une nouvelle priorité de gestion du financement."),
             alignment_decision="distinct_disclosures",
         )
     )

@@ -152,11 +152,7 @@ _INDICATOR_THEME_RULES: list[tuple[str, tuple[str, ...]]] = [
 
 def _ascii_fold(text: str) -> str:
     """Supprime les accents et passe en minuscules via decomposition NFKD."""
-    return "".join(
-        c
-        for c in unicodedata.normalize("NFKD", str(text or ""))
-        if not unicodedata.combining(c)
-    ).lower()
+    return "".join(c for c in unicodedata.normalize("NFKD", str(text or "")) if not unicodedata.combining(c)).lower()
 
 
 def _theme_text(*parts: Any) -> str:
@@ -319,9 +315,7 @@ def build_analyst_assessment(
             if isinstance(item, dict)
         ],
     )
-    indicator_add_remove, renamed, footnote_add_remove = _technical_change_counts(
-        technical_diff
-    )
+    indicator_add_remove, renamed, footnote_add_remove = _technical_change_counts(technical_diff)
     total_changes = indicator_add_remove + renamed + footnote_add_remove
 
     if change_kind in {"ajoute", "supprime"}:
@@ -335,11 +329,7 @@ def build_analyst_assessment(
         significance, priority = "faible", "normale"
     elif theme in _HIGH_IMPACT_THEMES:
         significance = "eleve"
-        priority = (
-            "critique"
-            if indicator_add_remove + footnote_add_remove >= 2
-            else "prioritaire"
-        )
+        priority = "critique" if indicator_add_remove + footnote_add_remove >= 2 else "prioritaire"
     elif theme in _RISK_THEMES:
         significance = "moyen"
         priority = "prioritaire" if total_changes >= 2 else "normale"

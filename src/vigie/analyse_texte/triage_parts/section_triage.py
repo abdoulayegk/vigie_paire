@@ -90,10 +90,7 @@ def _triage_section_changes(
     """
     if not changes:
         return []
-    effective_bank_code = (
-        str(bank_code or "").strip().lower()
-        or str(changes[0].get("bank_code") or "").strip().lower()
-    )
+    effective_bank_code = str(bank_code or "").strip().lower() or str(changes[0].get("bank_code") or "").strip().lower()
     bank_subject = analyst_bank_subject(effective_bank_code)
 
     # The first GPT call arbitrates the semantic relationship.  Only an
@@ -132,10 +129,7 @@ def _triage_section_changes(
     pending: list[dict[str, Any]] = []
     prefiltered: list[dict[str, Any]] = []
     for change in changes:
-        exclusion = (
-            _deterministic_cosmetic_exclusion(change)
-            or _deterministic_bank_specific_exclusion(change)
-        )
+        exclusion = _deterministic_cosmetic_exclusion(change) or _deterministic_bank_specific_exclusion(change)
         if exclusion:
             prefiltered.append(
                 _prefilter_triage_result(
@@ -188,10 +182,7 @@ def _triage_section_changes(
         return [*prefiltered, *grouped_results]
 
     if len(pending) > _TRIAGE_BATCH_SIZE and not _is_single_semantic_alignment_group(pending):
-        chunks = [
-            pending[start : start + _TRIAGE_BATCH_SIZE]
-            for start in range(0, len(pending), _TRIAGE_BATCH_SIZE)
-        ]
+        chunks = [pending[start : start + _TRIAGE_BATCH_SIZE] for start in range(0, len(pending), _TRIAGE_BATCH_SIZE)]
         max_workers = min(_MAX_TRIAGE_LLM_WORKERS, len(chunks))
         results_by_index: dict[int, list[dict[str, Any]]] = {}
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
@@ -211,9 +202,7 @@ def _triage_section_changes(
                 try:
                     results_by_index[index] = future.result()
                 except Exception as exc:
-                    raise RuntimeError(
-                        f"Section triage failed for {section_key}/batch t{index:02d}: {exc}"
-                    ) from exc
+                    raise RuntimeError(f"Section triage failed for {section_key}/batch t{index:02d}: {exc}") from exc
 
         enriched_batches: list[dict[str, Any]] = []
         for index in range(len(chunks)):
@@ -245,8 +234,7 @@ def _triage_section_changes(
                 failure_reason = str(exc)
                 full_evidence_failures_by_index[idx] = failure_reason
                 logger.error(
-                    "full evidence read requires review section=%s "
-                    "change_index=%d error=%s",
+                    "full evidence read requires review section=%s change_index=%d error=%s",
                     section_key,
                     idx,
                     failure_reason,
@@ -273,15 +261,11 @@ def _triage_section_changes(
                 "change_index": idx,
                 "diff_type": change["diff_type"],
                 "source_snippet_t1": _truncate_prompt_text(
-                    change.get("source_text_t1")
-                    or change.get("semantic_text_t1")
-                    or "",
+                    change.get("source_text_t1") or change.get("semantic_text_t1") or "",
                     _TRIAGE_SOURCE_SNIPPET_LIMIT,
                 ),
                 "source_snippet_t2": _truncate_prompt_text(
-                    change.get("source_text_t2")
-                    or change.get("semantic_text_t2")
-                    or "",
+                    change.get("source_text_t2") or change.get("semantic_text_t2") or "",
                     _TRIAGE_SOURCE_SNIPPET_LIMIT,
                 ),
                 "exact_change_segments": exact_segments_for_prompt,
@@ -318,7 +302,6 @@ def _triage_section_changes(
         "pertinence : une modification très courte peut être substantielle si "
         "elle touche la gouvernance."
     )
-
 
     user_prompt = (
         f"Retourne exactement {len(changes)} entrée(s) dans `triages`, une par "
@@ -383,8 +366,7 @@ def _triage_section_changes(
     )
     compact_max_tokens = min(
         _COMPACT_COMPLETION_MAX_TOKENS,
-        _COMPACT_COMPLETION_BASE_TOKENS
-        + _COMPACT_COMPLETION_TOKENS_PER_CHANGE * len(changes),
+        _COMPACT_COMPLETION_BASE_TOKENS + _COMPACT_COMPLETION_TOKENS_PER_CHANGE * len(changes),
     )
 
     try:
@@ -440,8 +422,7 @@ def _triage_section_changes(
     received_indexes = [triage.change_index for triage in batch.triages]
     if len(received_indexes) != len(expected_indexes) or sorted(received_indexes) != expected_indexes:
         validation_error = ValueError(
-            "Le batch compact doit contenir exactement les change_index "
-            f"{expected_indexes}; reçu {received_indexes}"
+            f"Le batch compact doit contenir exactement les change_index {expected_indexes}; reçu {received_indexes}"
         )
         raise TriageValidationError(
             section_key=section_key,
@@ -452,10 +433,7 @@ def _triage_section_changes(
 
     for triage_obj in batch.triages:
         candidate_codes = {
-            candidate["code"]
-            for candidate in triage_inputs[triage_obj.change_index - 1][
-                "candidate_themes"
-            ]
+            candidate["code"] for candidate in triage_inputs[triage_obj.change_index - 1]["candidate_themes"]
         }
         raw_themes = list(triage_obj.themes_amf or [])
         outside_candidates = [
@@ -486,9 +464,7 @@ def _triage_section_changes(
             bank_code=effective_bank_code,
         )
         triage["change_segments"] = (
-            exact_segments_by_index.get(triage_obj.change_index, [])
-            if triage_obj.is_relevant
-            else []
+            exact_segments_by_index.get(triage_obj.change_index, []) if triage_obj.is_relevant else []
         )
         triage_map[triage_obj.change_index] = triage
         if triage_obj.is_relevant:
@@ -502,11 +478,7 @@ def _triage_section_changes(
             triage_obj.is_relevant,
             triage_obj.themes_amf,
             triage_obj.nouvelle_idee,
-            [
-                field_name
-                for field_name in _SEMANTIC_REASON_FIELDS
-                if getattr(triage_obj, field_name)
-            ],
+            [field_name for field_name in _SEMANTIC_REASON_FIELDS if getattr(triage_obj, field_name)],
         )
 
     logger.info(

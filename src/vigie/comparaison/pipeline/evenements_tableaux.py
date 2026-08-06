@@ -66,19 +66,15 @@ def construire_evenements_non_apparies(
     list[dict[str, Any]],
 ]:
     """Construire les ajouts/retraits metier et isoler les pages limitrophes."""
-    match_result["tables_added"], boundary_scope_exclusions_current = (
-        _exclure_candidats_bordure(
-            list(match_result.get("tables_added", []) or []),
-            current_snapshots,
-            side="current",
-        )
+    match_result["tables_added"], boundary_scope_exclusions_current = _exclure_candidats_bordure(
+        list(match_result.get("tables_added", []) or []),
+        current_snapshots,
+        side="current",
     )
-    match_result["tables_removed"], boundary_scope_exclusions_previous = (
-        _exclure_candidats_bordure(
-            list(match_result.get("tables_removed", []) or []),
-            previous_snapshots,
-            side="previous",
-        )
+    match_result["tables_removed"], boundary_scope_exclusions_previous = _exclure_candidats_bordure(
+        list(match_result.get("tables_removed", []) or []),
+        previous_snapshots,
+        side="previous",
     )
 
     tables_added: list[dict[str, Any]] = []
@@ -154,25 +150,13 @@ def appliquer_revue_avocat_diable(
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     """Faire une seconde revue des non-apparies et paires peu fiables."""
     low_confidence_pairs = [
-        pair
-        for pair in match_result.get("matched_pairs", [])
-        if float(pair.get("match_confidence", 1.0)) < 0.90
+        pair for pair in match_result.get("matched_pairs", []) if float(pair.get("match_confidence", 1.0)) < 0.90
     ]
-    added_ids = {
-        item.get("table_id") for item in match_result.get("tables_added", [])
-    }
-    removed_ids = {
-        item.get("table_id") for item in match_result.get("tables_removed", [])
-    }
-    da_added_cards = [
-        _table_card(entry)
-        for entry in current_business_tables
-        if entry.get("table_id") in added_ids
-    ]
+    added_ids = {item.get("table_id") for item in match_result.get("tables_added", [])}
+    removed_ids = {item.get("table_id") for item in match_result.get("tables_removed", [])}
+    da_added_cards = [_table_card(entry) for entry in current_business_tables if entry.get("table_id") in added_ids]
     da_removed_cards = [
-        _table_card(entry)
-        for entry in previous_business_tables
-        if entry.get("table_id") in removed_ids
+        _table_card(entry) for entry in previous_business_tables if entry.get("table_id") in removed_ids
     ]
 
     if hybrid_recovery_enabled:
@@ -209,9 +193,7 @@ def appliquer_revue_avocat_diable(
             }
         )
         tables_added = [item for item in tables_added if item.get("table_id") != cur_id]
-        tables_removed = [
-            item for item in tables_removed if item.get("table_id") != prev_id
-        ]
+        tables_removed = [item for item in tables_removed if item.get("table_id") != prev_id]
         logger.info(
             "Devil's Advocate promoted match: %s <-> %s (conf=%.2f)",
             prev_id,
@@ -248,14 +230,8 @@ def construire_etats_extraction(
     list[dict[str, Any]],
 ]:
     """Assembler les artefacts confirmes et les extractions suspectes."""
-    artifacts_confirmed_previous = [
-        {**item, **previous_snapshots[item["table_id"]]}
-        for item in previous_artifact_refs
-    ]
-    artifacts_confirmed_current = [
-        {**item, **current_snapshots[item["table_id"]]}
-        for item in current_artifact_refs
-    ]
+    artifacts_confirmed_previous = [{**item, **previous_snapshots[item["table_id"]]} for item in previous_artifact_refs]
+    artifacts_confirmed_current = [{**item, **current_snapshots[item["table_id"]]} for item in current_artifact_refs]
     extraction_suspects_previous = _merge_extraction_suspect_side(
         previous_tables,
         previous_suspect_refs,
@@ -390,17 +366,15 @@ def valider_evenements_visuellement(
         ("table_removed", tables_removed),
     ):
         for item in items:
-            previous_render, current_render, render_status, render_mode = (
-                _rendre_preuves_evenement(
-                    event_type=event_type,
-                    event_snapshot=item,
-                    match_result=match_result,
-                    previous_snapshots=previous_snapshots,
-                    current_snapshots=current_snapshots,
-                    source_pdf_previous=source_pdf_previous,
-                    source_pdf_current=source_pdf_current,
-                    renderer=renderer,
-                )
+            previous_render, current_render, render_status, render_mode = _rendre_preuves_evenement(
+                event_type=event_type,
+                event_snapshot=item,
+                match_result=match_result,
+                previous_snapshots=previous_snapshots,
+                current_snapshots=current_snapshots,
+                source_pdf_previous=source_pdf_previous,
+                source_pdf_current=source_pdf_current,
+                renderer=renderer,
             )
             if render_status != "ok":
                 item.update(

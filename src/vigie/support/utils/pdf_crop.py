@@ -82,9 +82,7 @@ def _validate_bbox(bbox_norm: list[float]) -> bool:
         )
     except (TypeError, ValueError):
         return False
-    if not (
-        0 <= l_norm <= 1 and 0 <= t_norm <= 1 and 0 <= r_norm <= 1 and 0 <= b_norm <= 1
-    ):
+    if not (0 <= l_norm <= 1 and 0 <= t_norm <= 1 and 0 <= r_norm <= 1 and 0 <= b_norm <= 1):
         return False
     if r_norm <= l_norm or b_norm <= t_norm:
         return False
@@ -132,9 +130,7 @@ def bbox_sanity_profile(bbox_norm: list[float]) -> dict:
     return profile
 
 
-def is_bbox_sane(
-    bbox_norm: list[float], cfg: dict | None = None
-) -> tuple[bool, str | None, dict]:
+def is_bbox_sane(bbox_norm: list[float], cfg: dict | None = None) -> tuple[bool, str | None, dict]:
     """Verifie si une bbox normalisee est exploitable pour la Vision.
 
     Args:
@@ -173,13 +169,7 @@ def is_bbox_sane(
     if area > max_area:
         profile["reject_reason"] = "bbox_area_too_large"
         return False, "bbox_area_too_large", profile
-    if (
-        area >= near_full_threshold
-        or (
-            w >= near_full_threshold
-            and h >= near_full_threshold
-        )
-    ):
+    if area >= near_full_threshold or (w >= near_full_threshold and h >= near_full_threshold):
         profile["reject_reason"] = "bbox_near_full_page"
         return False, "bbox_near_full_page", profile
     # Extreme aspect ratio inconsistent with tables (e.g. 20:1 or 1:20)
@@ -329,9 +319,7 @@ def render_page_with_bbox_highlight_to_bytes(
     try:
         import pymupdf
     except ImportError:
-        logger.debug(
-            "PyMuPDF not available for render_page_with_bbox_highlight_to_bytes"
-        )
+        logger.debug("PyMuPDF not available for render_page_with_bbox_highlight_to_bytes")
         full = render_pdf_page(pdf_path, page_number, scale=zoom, format="png")
         return full if full else b""
     configure_mupdf_runtime(pymupdf)

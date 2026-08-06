@@ -20,9 +20,7 @@ from vigie.comparaison.triage.genai_triage import (
 # ---------------------------------------------------------------------------
 
 
-def _make_pair(
-    *, added=None, removed=None, renamed=None, fn_added=None, status="modifie"
-):
+def _make_pair(*, added=None, removed=None, renamed=None, fn_added=None, status="modifie"):
     return {
         "previous_table_id": "tbl_001",
         "current_table_id": "tbl_002",

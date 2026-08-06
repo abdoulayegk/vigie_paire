@@ -53,9 +53,7 @@ def test_run_extract_report_writes_compact_artifacts(tmp_path: Path, monkeypatch
         assert bank_code == "bnc"
         assert quarter == "t1"
         assert year == 2025
-        assert section_ranges == [
-            {"section": "risk_management", "start": 12, "end": 14}
-        ]
+        assert section_ranges == [{"section": "risk_management", "start": 12, "end": 14}]
         return [
             SimpleNamespace(
                 table_id="tbl_p012_i01",
@@ -74,9 +72,7 @@ def test_run_extract_report_writes_compact_artifacts(tmp_path: Path, monkeypatch
         ]
 
     locator_module.locate_sections_in_pdf = fake_locate_sections_in_pdf
-    processor_module.extract_tables_docling_by_sections = (
-        fake_extract_tables_docling_by_sections
-    )
+    processor_module.extract_tables_docling_by_sections = fake_extract_tables_docling_by_sections
     monkeypatch.setitem(sys.modules, "vigie.extraction.localisation_sections.section_locator", locator_module)
     monkeypatch.setitem(sys.modules, "vigie.extraction.docling.processor", processor_module)
 
@@ -118,6 +114,4 @@ def test_run_extract_report_writes_compact_artifacts(tmp_path: Path, monkeypatch
     assert indicators_payload["tables"][0]["section"] == "risk_management"
     assert indicators_payload["tables"][0]["title"] == "Table risque"
     assert indicators_payload["tables"][0]["indicators"] == ["Pertes attendues"]
-    assert footnotes_payload["tables"][0]["footnotes"] == [
-        {"id": "1", "text": "Footnote de test"}
-    ]
+    assert footnotes_payload["tables"][0]["footnotes"] == [{"id": "1", "text": "Footnote de test"}]

@@ -128,6 +128,8 @@ def json_sanitize(obj: Any) -> Any:
     if isinstance(obj, tuple):
         return [json_sanitize(value) for value in obj]
     return obj
+
+
 # ---------------------------------------------------------------------------
 # Ghost-table detection
 # ---------------------------------------------------------------------------
@@ -161,11 +163,7 @@ def _is_boundary_inventory_candidate(entry: dict[str, Any]) -> bool:
         container = entry.get(container_name)
         if isinstance(container, dict):
             sources.append(container.get("bbox_source"))
-    return any(
-        str(source or "").strip()
-        == "page_context_inventory_boundary_candidate"
-        for source in sources
-    )
+    return any(str(source or "").strip() == "page_context_inventory_boundary_candidate" for source in sources)
 
 
 # ---------------------------------------------------------------------------
@@ -426,12 +424,8 @@ def _table_snapshot(entry: dict[str, Any]) -> TableSnapshot:
         bbox=entry.get("bbox"),
         bbox_source=str(bbox_provenance.get("bbox_source") or ""),
         bbox_confidence=bbox_provenance.get("bbox_confidence"),
-        page_context_title=str(
-            bbox_provenance.get("page_context_title") or ""
-        ),
-        page_context_continuation=bbox_provenance.get(
-            "page_context_continuation"
-        ),
+        page_context_title=str(bbox_provenance.get("page_context_title") or ""),
+        page_context_continuation=bbox_provenance.get("page_context_continuation"),
         row_count=int(entry.get("row_count", len(indicators)) or 0),
         headers=[str(value).strip() for value in list(entry.get("headers", []) or []) if str(value).strip()],
         indicators=indicators,

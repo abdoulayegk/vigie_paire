@@ -38,9 +38,7 @@ def _indicator_change_total(comp: dict) -> int:
 def _footnote_change_total(comp: dict) -> int:
     """Compte le nombre total de changements de notes de bas de page."""
     footnotes = comp.get("footnotes_counts", {}) or {}
-    return sum(
-        int(footnotes.get(key, 0) or 0) for key in ("added", "removed", "modified")
-    )
+    return sum(int(footnotes.get(key, 0) or 0) for key in ("added", "removed", "modified"))
 
 
 def _comparison_change_total(comp: dict) -> int:
@@ -126,14 +124,10 @@ def _review_items_from_v2_queue(queue: list[dict]) -> list[ReviewItem]:
             return REVIEW_STATUS_PENDING
 
         has_table_added = any(
-            str(c.get("change_type", ""))
-            in (ChangeType.TABLE_ADDED.value, "table_added")
-            for c in changes
+            str(c.get("change_type", "")) in (ChangeType.TABLE_ADDED.value, "table_added") for c in changes
         )
         has_table_removed = any(
-            str(c.get("change_type", ""))
-            in (ChangeType.TABLE_REMOVED.value, "table_removed")
-            for c in changes
+            str(c.get("change_type", "")) in (ChangeType.TABLE_REMOVED.value, "table_removed") for c in changes
         )
         table_bucket = _table_decision_bucket(table)
         review_status = (
@@ -161,25 +155,15 @@ def _review_items_from_v2_queue(queue: list[dict]) -> list[ReviewItem]:
             if validated_by:
                 review_users.append(validated_by)
         if has_table_added or has_table_removed:
-            change_type = (
-                CHANGE_TYPE_TABLE_ADDED
-                if has_table_added
-                else CHANGE_TYPE_TABLE_REMOVED
-            )
-            event_type = (
-                EVENT_TYPE_TABLE_ADDED if has_table_added else EVENT_TYPE_TABLE_REMOVED
-            )
-            summary_indicator = (
-                "Tableau entier ajouté" if has_table_added else "Tableau entier retiré"
-            )
+            change_type = CHANGE_TYPE_TABLE_ADDED if has_table_added else CHANGE_TYPE_TABLE_REMOVED
+            event_type = EVENT_TYPE_TABLE_ADDED if has_table_added else EVENT_TYPE_TABLE_REMOVED
+            summary_indicator = "Tableau entier ajouté" if has_table_added else "Tableau entier retiré"
         else:
             n_added = n_removed = n_renamed = 0
             for change in changes:
                 ctype = str(change.get("change_type", ""))
                 payload = change.get("payload", {}) or {}
-                c_status = _export_status_label(
-                    change.get("validation_status", "pending")
-                )
+                c_status = _export_status_label(change.get("validation_status", "pending"))
                 if ctype in (ChangeType.INDICATOR_ADDED.value, "indicator_added"):
                     n_added += 1
                     indicators.append(
@@ -216,8 +200,7 @@ def _review_items_from_v2_queue(queue: list[dict]) -> list[ReviewItem]:
                     event_type = EVENT_TYPE_FOOTNOTE_ONLY
                     indicators.append(
                         {
-                            "name": str(payload.get("indicator_name", ""))
-                            or str(payload.get("new_text", "")),
+                            "name": str(payload.get("indicator_name", "")) or str(payload.get("new_text", "")),
                             "type": CHANGE_TYPE_MODIFIED,
                             "review_status": c_status,
                         }
@@ -271,9 +254,7 @@ def _review_items_from_v2_queue(queue: list[dict]) -> list[ReviewItem]:
     return items
 
 
-def _resolve_export_review_items(
-    review_items_data, review_queue_data, indicator_result, paths
-):
+def _resolve_export_review_items(review_items_data, review_queue_data, indicator_result, paths):
     """Resout les elements d'export depuis l'etat de revue courant avec priorite a la file.
 
     Args:
@@ -296,16 +277,8 @@ def _resolve_export_review_items(
             items = []
     if not items and ir:
         paths = paths or {}
-        path_t1 = (
-            paths.get("pdf_previous", "") or paths.get("pdf_t1", "")
-            if isinstance(paths, dict)
-            else ""
-        )
-        path_t2 = (
-            paths.get("pdf_current", "") or paths.get("pdf_t2", "")
-            if isinstance(paths, dict)
-            else ""
-        )
+        path_t1 = paths.get("pdf_previous", "") or paths.get("pdf_t1", "") if isinstance(paths, dict) else ""
+        path_t2 = paths.get("pdf_current", "") or paths.get("pdf_t2", "") if isinstance(paths, dict) else ""
         items = build_review_items_from_indicator_result(
             ir,
             bank_code=str(ir.get("bank_code", "")),

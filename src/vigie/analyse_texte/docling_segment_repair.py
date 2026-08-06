@@ -82,11 +82,7 @@ def _merge_docling_segments(previous: DoclingSegment, current: DoclingSegment) -
             max(previous.bbox_norm[2], current.bbox_norm[2]),
             max(previous.bbox_norm[3], current.bbox_norm[3]),
         ]
-    source_ids = [
-        value
-        for value in (previous.source_block_id, current.source_block_id)
-        if value
-    ]
+    source_ids = [value for value in (previous.source_block_id, current.source_block_id) if value]
     return replace(
         previous,
         text=f"{previous.text.rstrip()} {current.text.lstrip()}",
@@ -109,9 +105,7 @@ def _repair_docling_segment_boundaries(
             continue
         previous = repaired[-1]
         page_gap = (
-            abs(int(segment.page) - int(previous.page))
-            if segment.page is not None and previous.page is not None
-            else 0
+            abs(int(segment.page) - int(previous.page)) if segment.page is not None and previous.page is not None else 0
         )
         decision = classify_boundary(
             RepairableBlock(kind=previous.kind, text=previous.text),
@@ -123,17 +117,10 @@ def _repair_docling_segment_boundaries(
         )
         should_merge = decision.disposition is BoundaryDisposition.MERGE
         vision_payload: dict[str, Any] | None = None
-        if (
-            decision.disposition is BoundaryDisposition.AMBIGUOUS
-            and boundary_validator is not None
-        ):
+        if decision.disposition is BoundaryDisposition.AMBIGUOUS and boundary_validator is not None:
             try:
                 validation = boundary_validator.validate(previous, segment)
-                vision_payload = (
-                    validation.model_dump()
-                    if hasattr(validation, "model_dump")
-                    else dict(validation)
-                )
+                vision_payload = validation.model_dump() if hasattr(validation, "model_dump") else dict(validation)
                 should_merge = bool(vision_payload.get("apply_merge"))
             except Exception as exc:  # noqa: BLE001
                 vision_payload = {
@@ -148,11 +135,7 @@ def _repair_docling_segment_boundaries(
             if audit_events is not None:
                 event: dict[str, Any] = {
                     "action": "merge",
-                    "reason": (
-                        "vision_confirmed_same_sentence"
-                        if vision_payload is not None
-                        else decision.reason
-                    ),
+                    "reason": ("vision_confirmed_same_sentence" if vision_payload is not None else decision.reason),
                     "previous_text": previous.text,
                     "next_text": segment.text,
                     "result_text": merged.text,
@@ -197,11 +180,7 @@ def _repair_nonadjacent_dangling_boundaries(
     for previous_index, previous in enumerate(repaired):
         if previous_index in remove_indexes or previous.kind != "paragraph":
             continue
-        immediate_next = (
-            repaired[previous_index + 1]
-            if previous_index + 1 < len(repaired)
-            else None
-        )
+        immediate_next = repaired[previous_index + 1] if previous_index + 1 < len(repaired) else None
         if immediate_next is None or immediate_next.kind == "paragraph":
             continue
 
@@ -264,8 +243,4 @@ def _repair_nonadjacent_dangling_boundaries(
                 }
             )
 
-    return [
-        segment
-        for index, segment in enumerate(repaired)
-        if index not in remove_indexes
-    ]
+    return [segment for index, segment in enumerate(repaired) if index not in remove_indexes]

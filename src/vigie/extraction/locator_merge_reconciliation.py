@@ -74,14 +74,8 @@ def _locator_tables_are_semantic_duplicates(
     second: Any,
 ) -> bool:
     """Verifier si deux crops locator de meme region portent le meme tableau."""
-    first_indicators = _normalized_table_signals(
-        first.first_column_indicators_raw
-        or first.first_column_indicators
-    )
-    second_indicators = _normalized_table_signals(
-        second.first_column_indicators_raw
-        or second.first_column_indicators
-    )
+    first_indicators = _normalized_table_signals(first.first_column_indicators_raw or first.first_column_indicators)
+    second_indicators = _normalized_table_signals(second.first_column_indicators_raw or second.first_column_indicators)
     indicator_overlap = _signal_overlap(
         first_indicators,
         second_indicators,
@@ -112,23 +106,14 @@ def _locator_table_richness(table: Any) -> tuple[int, int, int, int]:
     """Classer deux extractions du meme crop en conservant la plus complete."""
     raw_indicators = [
         str(value or "").strip()
-        for value in list(
-            table.first_column_indicators_raw
-            or table.first_column_indicators
-            or []
-        )
+        for value in list(table.first_column_indicators_raw or table.first_column_indicators or [])
         if str(value or "").strip()
     ]
-    headers = [
-        str(value or "").strip()
-        for value in list(table.headers or [])
-        if str(value or "").strip()
-    ]
+    headers = [str(value or "").strip() for value in list(table.headers or []) if str(value or "").strip()]
     footnotes = [
         item
         for item in list(table.footnotes or [])
-        if isinstance(item, dict)
-        and any(str(value or "").strip() for value in item.values())
+        if isinstance(item, dict) and any(str(value or "").strip() for value in item.values())
     ]
     return (
         len(raw_indicators),
@@ -154,11 +139,7 @@ def _reconcile_on_demand_locator_merges(
     supported_sources = {"docling", "page_context_locator"}
     reconciled: list[Any] = []
     for table in tables:
-        metrics = (
-            table.debug_metrics
-            if isinstance(table.debug_metrics, dict)
-            else {}
-        )
+        metrics = table.debug_metrics if isinstance(table.debug_metrics, dict) else {}
         table_source = str(metrics.get("bbox_source") or "")
         if table_source not in supported_sources:
             reconciled.append(table)
@@ -176,22 +157,14 @@ def _reconcile_on_demand_locator_merges(
 
         duplicate_index: int | None = None
         for position, existing in enumerate(reconciled):
-            existing_metrics = (
-                existing.debug_metrics
-                if isinstance(existing.debug_metrics, dict)
-                else {}
-            )
+            existing_metrics = existing.debug_metrics if isinstance(existing.debug_metrics, dict) else {}
             existing_source = str(existing_metrics.get("bbox_source") or "")
             existing_original = existing_metrics.get("bbox_original")
-            existing_final = (
-                existing.bbox
-                or existing_metrics.get("bbox_final")
-            )
+            existing_final = existing.bbox or existing_metrics.get("bbox_final")
             if (
                 existing.page_number != table.page_number
                 or existing_source not in supported_sources
-                or "page_context_locator"
-                not in {existing_source, table_source}
+                or "page_context_locator" not in {existing_source, table_source}
                 or not isinstance(existing_original, (list, tuple))
                 or len(existing_original) != 4
                 or not isinstance(existing_final, (list, tuple))
@@ -220,12 +193,7 @@ def _reconcile_on_demand_locator_merges(
             key=_locator_table_richness,
         )
         existing_metrics = dict(existing.debug_metrics or {})
-        geometry_table = (
-            existing
-            if existing_metrics.get("bbox_source")
-            == "page_context_locator"
-            else table
-        )
+        geometry_table = existing if existing_metrics.get("bbox_source") == "page_context_locator" else table
         geometry_metrics = dict(geometry_table.debug_metrics or {})
         preferred_metrics = dict(preferred.debug_metrics or {})
         for geometry_key in (

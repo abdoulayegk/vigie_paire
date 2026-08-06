@@ -11,10 +11,7 @@ import tempfile
 from pathlib import Path
 
 
-
-def _make_tables_json(
-    bank_code: str, year: int, quarter: str, tables_json: list
-) -> Path:
+def _make_tables_json(bank_code: str, year: int, quarter: str, tables_json: list) -> Path:
     """Create a tables.json in a temp dir matching the extraction_storage directory layout."""
     base = Path(tempfile.mkdtemp())
     target = base / bank_code / str(year) / quarter
@@ -334,9 +331,7 @@ def test_save_extraction_writes_unified_json_and_txt_artifacts() -> None:
         assert indicators["tables"][0]["section"] == "capital"
         assert indicators["tables"][0]["title"] == "T1"
         assert indicators["tables"][0]["indicators"] == ["Ratio CET1"]
-        assert footnotes["tables"][0]["footnotes"] == [
-            {"id": "1", "text": "Note provisoire"}
-        ]
+        assert footnotes["tables"][0]["footnotes"] == [{"id": "1", "text": "Note provisoire"}]
         assert "title" not in footnotes["tables"][0]
         assert tables["tables"][0]["table_summary"] == "Capital réglementaire"
     finally:

@@ -221,10 +221,7 @@ class VisionFullExtractor(ConsensusMixin, QualityPassMixin):
                 cached = cache_get(cache_dir, cache_key)
                 if cached:
                     cached_result = _result_from_cache_payload(cached)
-                    if (
-                        cached_result is not None
-                        and _structural_indicator_count(cached_result) > 0
-                    ):
+                    if cached_result is not None and _structural_indicator_count(cached_result) > 0:
                         logger.info(
                             "VisionFull cache hit: %d indicators",
                             len(cached_result.indicators),
@@ -479,11 +476,7 @@ class VisionFullExtractor(ConsensusMixin, QualityPassMixin):
                                         completion_tokens=retry_completion_tokens,
                                         total_tokens=retry_total_tokens,
                                     )
-                                    if (
-                                        self._use_cache
-                                        and cache_key
-                                        and _structural_indicator_count(result) > 0
-                                    ):
+                                    if self._use_cache and cache_key and _structural_indicator_count(result) > 0:
                                         cache_dir = get_vision_cache_dir()
                                         cache_put(
                                             cache_dir,
@@ -560,11 +553,7 @@ class VisionFullExtractor(ConsensusMixin, QualityPassMixin):
                                         completion_tokens=retry_completion_tokens,
                                         total_tokens=retry_total_tokens,
                                     )
-                                    if (
-                                        self._use_cache
-                                        and cache_key
-                                        and _structural_indicator_count(result) > 0
-                                    ):
+                                    if self._use_cache and cache_key and _structural_indicator_count(result) > 0:
                                         cache_dir = get_vision_cache_dir()
                                         cache_put(
                                             cache_dir,
@@ -635,11 +624,7 @@ class VisionFullExtractor(ConsensusMixin, QualityPassMixin):
                 total_tokens=total_tokens,
             )
 
-            if (
-                self._use_cache
-                and cache_key
-                and _structural_indicator_count(result) > 0
-            ):
+            if self._use_cache and cache_key and _structural_indicator_count(result) > 0:
                 cache_dir = get_vision_cache_dir()
                 cache_put(
                     cache_dir,

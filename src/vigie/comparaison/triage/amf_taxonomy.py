@@ -418,6 +418,7 @@ class _TriageAMFResultBase(BaseModel):
     nouvelle_idee_justification: str = ""
     action_requise: ActionRequise = "aucune"
     exclusion_reason: ExclusionReason | None = None
+
     @field_validator("themes_amf")
     @classmethod
     def _dedupe_themes(cls, value: list[str]) -> list[str]:
@@ -447,9 +448,7 @@ class _TriageAMFResultBase(BaseModel):
         if justification and is_structured_text_triage_justification(justification):
             return normalized
 
-        normalized["nouvelle_idee_justification"] = synthesize_triage_justification_from_payload(
-            normalized
-        )
+        normalized["nouvelle_idee_justification"] = synthesize_triage_justification_from_payload(normalized)
         return normalized
 
     @model_validator(mode="before")
@@ -635,9 +634,7 @@ class TriageAMFLLMBatch(BaseModel):
 
 COMPACT_RELEVANT_REASON_SENTENCE_COUNT = 4
 COMPACT_SECONDARY_REASON_SENTENCE_COUNT = 2
-_COMPACT_SENTENCE_END_RE = re.compile(
-    r"(?P<mark>[.!?]+)(?P<closers>[\u00bb\u201d\"')\]]*)(?=\s+|$)"
-)
+_COMPACT_SENTENCE_END_RE = re.compile(r"(?P<mark>[.!?]+)(?P<closers>[\u00bb\u201d\"')\]]*)(?=\s+|$)")
 _COMPACT_NON_TERMINAL_ABBREVIATIONS = frozenset(
     {
         "art",
@@ -672,9 +669,7 @@ def _is_non_terminal_compact_period(value: str, match: re.Match[str]) -> bool:
     # ``s. o.`` / ``s.o.`` signifie « sans objet » dans les rapports
     # bancaires. Protéger les deux points afin qu'ils ne soient pas comptés
     # comme des fins de phrase.
-    if re.search(r"(?:^|[^\w])s$", folded_prefix) and re.match(
-        r"o\.(?:\s|$)", folded_suffix
-    ):
+    if re.search(r"(?:^|[^\w])s$", folded_prefix) and re.match(r"o\.(?:\s|$)", folded_suffix):
         return True
     if re.search(r"(?:^|[^\w])s\.\s*o$", folded_prefix):
         return True
@@ -688,11 +683,7 @@ def _is_non_terminal_compact_period(value: str, match: re.Match[str]) -> bool:
     # seulement lorsque la phrase continue ensuite. Une majuscule après
     # l'abréviation signale généralement une nouvelle phrase
     # (``BMO Bank N.A. Cette reformulation...``).
-    return bool(
-        re.search(r"(?:\b[A-ZÀ-ÖØ-Þ]\.)+[A-ZÀ-ÖØ-Þ]$", prefix)
-        and suffix
-        and suffix[0].islower()
-    )
+    return bool(re.search(r"(?:\b[A-ZÀ-ÖØ-Þ]\.)+[A-ZÀ-ÖØ-Þ]$", prefix) and suffix and suffix[0].islower())
 
 
 def _compact_complete_sentence_parts(value: str) -> list[str]:
@@ -710,11 +701,7 @@ def _compact_complete_sentence_parts(value: str) -> list[str]:
 
 def count_complete_sentences(value: str) -> int:
     """Compte les phrases terminées qui contiennent du contenu lexical."""
-    return sum(
-        1
-        for part in _compact_complete_sentence_parts(value)
-        if re.search(r"[0-9A-Za-zÀ-ÖØ-öø-ÿ]", part)
-    )
+    return sum(1 for part in _compact_complete_sentence_parts(value) if re.search(r"[0-9A-Za-zÀ-ÖØ-öø-ÿ]", part))
 
 
 def _has_complete_sentence_ending(value: str) -> bool:
@@ -742,10 +729,7 @@ class TriageAMFCompactLLMResultWithIndex(BaseModel):
         )
     )
     signification_metier: str = Field(
-        description=(
-            "Signification métier du changement pertinent; chaîne vide lorsque "
-            "is_relevant=false."
-        )
+        description=("Signification métier du changement pertinent; chaîne vide lorsque is_relevant=false.")
     )
     comparaison_interbanques: str = Field(
         description=(
@@ -760,10 +744,7 @@ class TriageAMFCompactLLMResultWithIndex(BaseModel):
         )
     )
     motif_non_pertinence: str = Field(
-        description=(
-            "Motif métier expliquant la non-pertinence; chaîne vide lorsque "
-            "is_relevant=true."
-        )
+        description=("Motif métier expliquant la non-pertinence; chaîne vide lorsque is_relevant=true.")
     )
 
     @field_validator("themes_amf")
@@ -805,9 +786,7 @@ class TriageAMFCompactLLMResultWithIndex(BaseModel):
                     "changement_constate": parts[0] if len(parts) >= 1 else "",
                     "signification_metier": parts[1] if len(parts) >= 2 else "",
                     "comparaison_interbanques": parts[2] if len(parts) >= 3 else "",
-                    "limite_interpretation": (
-                        " ".join(parts[3:]) if len(parts) >= 4 else ""
-                    ),
+                    "limite_interpretation": (" ".join(parts[3:]) if len(parts) >= 4 else ""),
                     "motif_non_pertinence": "",
                 }
             )
@@ -818,9 +797,7 @@ class TriageAMFCompactLLMResultWithIndex(BaseModel):
                     "signification_metier": "",
                     "comparaison_interbanques": "",
                     "limite_interpretation": "",
-                    "motif_non_pertinence": (
-                        " ".join(parts[1:]) if len(parts) >= 2 else ""
-                    ),
+                    "motif_non_pertinence": (" ".join(parts[1:]) if len(parts) >= 2 else ""),
                 }
             )
         return migrated
@@ -851,26 +828,17 @@ class TriageAMFCompactLLMResultWithIndex(BaseModel):
 
         if self.is_relevant:
             if not self.themes_amf:
-                raise ValueError(
-                    "is_relevant=True exige au moins un thème AMF dans themes_amf"
-                )
+                raise ValueError("is_relevant=True exige au moins un thème AMF dans themes_amf")
             required_fields = {
                 "signification_metier": self.signification_metier,
                 "comparaison_interbanques": self.comparaison_interbanques,
                 "limite_interpretation": self.limite_interpretation,
             }
-            missing_fields = [
-                field for field, value in required_fields.items() if not value
-            ]
+            missing_fields = [field for field, value in required_fields.items() if not value]
             if missing_fields:
-                raise ValueError(
-                    "is_relevant=True exige les champs non vides suivants : "
-                    + ", ".join(missing_fields)
-                )
+                raise ValueError("is_relevant=True exige les champs non vides suivants : " + ", ".join(missing_fields))
             if self.motif_non_pertinence:
-                raise ValueError(
-                    "is_relevant=True exige motif_non_pertinence vide"
-                )
+                raise ValueError("is_relevant=True exige motif_non_pertinence vide")
         else:
             if self.themes_amf:
                 raise ValueError("is_relevant=False interdit themes_amf non vide")
@@ -881,18 +849,11 @@ class TriageAMFCompactLLMResultWithIndex(BaseModel):
                 "comparaison_interbanques": self.comparaison_interbanques,
                 "limite_interpretation": self.limite_interpretation,
             }
-            populated_fields = [
-                field for field, value in forbidden_fields.items() if value
-            ]
+            populated_fields = [field for field, value in forbidden_fields.items() if value]
             if populated_fields:
-                raise ValueError(
-                    "is_relevant=False exige les champs vides suivants : "
-                    + ", ".join(populated_fields)
-                )
+                raise ValueError("is_relevant=False exige les champs vides suivants : " + ", ".join(populated_fields))
             if not self.motif_non_pertinence:
-                raise ValueError(
-                    "is_relevant=False exige motif_non_pertinence non vide"
-                )
+                raise ValueError("is_relevant=False exige motif_non_pertinence non vide")
         return self
 
     @property

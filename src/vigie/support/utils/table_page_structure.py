@@ -68,11 +68,7 @@ def derive_page_local_structure(
         if page is None:
             continue
         bbox = getattr(t, "bbox", None)
-        if (
-            bbox is None
-            or (isinstance(bbox, (list, tuple)) and len(bbox) < 4)
-            or (isinstance(bbox, dict) and not bbox)
-        ):
+        if bbox is None or (isinstance(bbox, (list, tuple)) and len(bbox) < 4) or (isinstance(bbox, dict) and not bbox):
             continue
         top, left = _bbox_top_left(t)
         key_to_page[(str(tid), page)] = page

@@ -98,11 +98,7 @@ def _section_window_for_page(
         and next_section.anchor_bbox_norm
     ):
         bottom = min(bottom, float(next_section.anchor_bbox_norm[1]))
-    elif (
-        page_number == section.end_page
-        and section.end_anchor_page == page_number
-        and section.end_anchor_bbox_norm
-    ):
+    elif page_number == section.end_page and section.end_anchor_page == page_number and section.end_anchor_bbox_norm:
         bottom = min(bottom, float(section.end_anchor_bbox_norm[1]))
     if bottom <= top:
         return top, 1.0

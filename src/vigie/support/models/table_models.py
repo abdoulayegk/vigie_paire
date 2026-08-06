@@ -46,9 +46,7 @@ def normalize_extraction_status(value: Any) -> str:
     return TABLE_EXTRACTION_STATUS_OK
 
 
-def infer_content_source(
-    extraction_method: str | None, explicit: str | None = None
-) -> str:
+def infer_content_source(extraction_method: str | None, explicit: str | None = None) -> str:
     """Inferer la source de contenu depuis la methode d'extraction ou une surcharge explicite.
 
     Args:
@@ -194,9 +192,7 @@ def get_extraction_confidence(table: Any) -> float:
     if v is None:
         content_source = getattr(table, "content_source", None)
         if content_source != VISION_CONTENT_SOURCE:
-            content_source = infer_content_source(
-                getattr(table, "extraction_method", None), None
-            )
+            content_source = infer_content_source(getattr(table, "extraction_method", None), None)
         if content_source == VISION_CONTENT_SOURCE and get_vision_raw_indicators(table):
             return max(EXTRACTION_CONFIDENCE_CERTIFIED_MIN, 0.7)
         return 0.0
@@ -237,9 +233,7 @@ def get_extraction_quality_flags(table: Any) -> dict[str, bool]:
     if applied is None or applied is False:
         content_source = getattr(table, "content_source", None)
         if content_source != VISION_CONTENT_SOURCE:
-            content_source = infer_content_source(
-                getattr(table, "extraction_method", None), None
-            )
+            content_source = infer_content_source(getattr(table, "extraction_method", None), None)
         if content_source == VISION_CONTENT_SOURCE and get_vision_raw_indicators(table):
             applied = True
     return {
@@ -249,8 +243,7 @@ def get_extraction_quality_flags(table: Any) -> dict[str, bool]:
         "vision_extraction_applied": bool(applied if applied is not None else False),
         "crop_rejected": bool(dm.get("crop_reject_reason")),
         "partial_result": vision_status == "partial",
-        "rows_missing_from_fallback": "vision_rows_missing_from_fallback"
-        in warning_codes,
+        "rows_missing_from_fallback": "vision_rows_missing_from_fallback" in warning_codes,
     }
 
 
@@ -302,9 +295,7 @@ class TableArtifact:
     rows: list[list[str]]
     first_column_indicators: list[str]
     extraction_method: str
-    title_clean: str | None = (
-        None  # Cleaned title (no amounts); use for display/pairing when set
-    )
+    title_clean: str | None = None  # Cleaned title (no amounts); use for display/pairing when set
     table_summary: str | None = None
     title_raw: str | None = None  # Original title for traceability
     row_count: int | None = None
@@ -340,9 +331,7 @@ class TableArtifact:
             self.title_clean = self.title
         if self.row_count is None:
             if self.first_column_indicators_raw:
-                self.row_count = len(
-                    [item for item in self.first_column_indicators_raw if str(item).strip()]
-                )
+                self.row_count = len([item for item in self.first_column_indicators_raw if str(item).strip()])
             else:
                 self.row_count = len(list(self.rows or []))
         # Always recompute blockers from canonical extraction_status.
@@ -360,20 +349,12 @@ class TableArtifact:
     @property
     def vision_raw_indicators(self) -> list[str]:
         """Retourner les libelles bruts Vision GPT-4o de la premiere colonne."""
-        return [
-            str(item)
-            for item in (self.first_column_indicators_raw or [])
-            if str(item).strip()
-        ]
+        return [str(item) for item in (self.first_column_indicators_raw or []) if str(item).strip()]
 
     @property
     def comparison_normalized_indicators(self) -> list[str]:
         """Retourner les libelles normalises de la premiere colonne pour la comparaison."""
-        return [
-            str(item)
-            for item in (self.first_column_indicators or [])
-            if str(item).strip()
-        ]
+        return [str(item) for item in (self.first_column_indicators or []) if str(item).strip()]
 
     @property
     def canonical_footnotes(self) -> FootnoteList:

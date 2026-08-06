@@ -23,9 +23,7 @@ def test_text_cli_rejects_legacy_quarter_option() -> None:
 
 def test_run_text_compare_accepts_strict_sections() -> None:
     parser = run_text_compare.build_parser()
-    args = parser.parse_args(
-        ["--banque", "BNS", "--annee", "2025", "--T2", "--strict-sections"]
-    )
+    args = parser.parse_args(["--banque", "BNS", "--annee", "2025", "--T2", "--strict-sections"])
     assert args.strict_sections is True
 
 
@@ -37,9 +35,7 @@ def test_complet_parser_rejects_english_bank_flag() -> None:
 
 def test_complet_parser_accepts_sans_extraction() -> None:
     parser = complet.build_parser()
-    args = parser.parse_args(
-        ["--banque", "BNC", "--annee", "2025", "--T2", "--sans-extraction"]
-    )
+    args = parser.parse_args(["--banque", "BNC", "--annee", "2025", "--T2", "--sans-extraction"])
     assert args.banque == "BNC"
     assert args.sans_extraction is True
     assert args.forcer_extraction is False

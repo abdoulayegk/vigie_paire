@@ -369,10 +369,7 @@ def test_quality_pass_recovers_date_labeled_horizontal_rows_from_page_context(
     assert result.extraction_status == "rescued"
     assert result.selected_candidate_name == "page_context_rescue"
     assert result.indicators == ["Au 31 janvier 2025", "Au 31 octobre 2024"]
-    assert any(
-        "dates or periods" in instruction.lower()
-        for instruction in rescue_instructions
-    )
+    assert any("dates or periods" in instruction.lower() for instruction in rescue_instructions)
 
 
 def test_quality_pass_preserves_three_generic_rows_without_summary(

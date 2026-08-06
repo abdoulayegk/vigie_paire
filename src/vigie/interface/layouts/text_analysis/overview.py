@@ -12,6 +12,7 @@ from dash import html
 
 from .labels import _badge, _plural_count
 
+
 def _build_executive_overview_text(
     global_summary: dict[str, Any],
     auditable_changes: int | None,
@@ -60,8 +61,6 @@ def _build_executive_overview_text(
         f"à prioriser pour revue experte : {major_label} et {moderate_label}. "
         f"{access_sentence}"
     )
-
-
 
 
 def _build_executive_banner(

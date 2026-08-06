@@ -16,9 +16,7 @@ from vigie.interface.review_models import (
 from vigie.interface.review_models_v2 import ChangeType
 
 
-def _build_kpi_card(
-    title: str, value: str | int, delta_icon: str | None = None, color: str = "light"
-) -> dbc.Card:
+def _build_kpi_card(title: str, value: str | int, delta_icon: str | None = None, color: str = "light") -> dbc.Card:
     """Construit une carte KPI individuelle pour le panneau analyste.
 
     Args:
@@ -71,16 +69,10 @@ def _table_matches_filters(table: dict, filters: dict | None) -> bool:
 
 def _visible_review_ids(queue: list[dict], filters: dict | None) -> list[str]:
     """Retourne les identifiants de revue visibles apres application des filtres."""
-    return [
-        _review_id(table)
-        for table in queue
-        if _review_id(table) and _table_matches_filters(table, filters)
-    ]
+    return [_review_id(table) for table in queue if _review_id(table) and _table_matches_filters(table, filters)]
 
 
-def _get_table_by_review_id(
-    queue: list[dict], review_id: str | None
-) -> tuple[int, dict | None]:
+def _get_table_by_review_id(queue: list[dict], review_id: str | None) -> tuple[int, dict | None]:
     """Recherche un tableau par son identifiant de revue dans la file."""
     if not queue:
         return -1, None
@@ -133,12 +125,8 @@ def _resolve_change_id(
     if preferred and any(str(c.get("change_id", "")) == preferred for c in changes):
         return preferred
 
-    remembered_change_id = _normalize_last_positions(last_positions).get(
-        _review_id(table), ""
-    )
-    if remembered_change_id and any(
-        str(c.get("change_id", "")) == remembered_change_id for c in changes
-    ):
+    remembered_change_id = _normalize_last_positions(last_positions).get(_review_id(table), "")
+    if remembered_change_id and any(str(c.get("change_id", "")) == remembered_change_id for c in changes):
         return remembered_change_id
 
     for change in changes:
@@ -177,9 +165,7 @@ def _resolve_selection(
     if not queue:
         return {"review_id": None, "change_id": None}, 0, 0
 
-    visible_ids = _visible_review_ids(queue, filters) or [
-        _review_id(t) for t in queue if _review_id(t)
-    ]
+    visible_ids = _visible_review_ids(queue, filters) or [_review_id(t) for t in queue if _review_id(t)]
     preferred_review_id = str((selection or {}).get("review_id") or "")
     if preferred_review_id not in visible_ids:
         preferred_review_id = visible_ids[0] if visible_ids else _review_id(queue[0])
@@ -267,11 +253,7 @@ def _table_to_proof_item(table: dict, selection: dict | None) -> dict:
     """Convertit un tableau de la file de revue en dictionnaire compatible avec le rendu de preuve."""
     changes = table.get("changes", []) or []
     selected_change = _selected_change_from_table(table, selection)
-    selected_change_type = (
-        selected_change.get("change_type", "")
-        if isinstance(selected_change, dict)
-        else ""
-    )
+    selected_change_type = selected_change.get("change_type", "") if isinstance(selected_change, dict) else ""
     primary_type = _display_label_from_v2(selected_change_type)
     added_indicators: list[str] = []
     removed_indicators: list[str] = []
@@ -279,25 +261,15 @@ def _table_to_proof_item(table: dict, selection: dict | None) -> dict:
         ctype = str(change.get("change_type", ""))
         payload = change.get("payload", {}) or {}
         indicator_name = str(payload.get("indicator_name", "")).strip()
-        if (
-            ctype in (ChangeType.INDICATOR_ADDED.value, "indicator_added")
-            and indicator_name
-        ):
+        if ctype in (ChangeType.INDICATOR_ADDED.value, "indicator_added") and indicator_name:
             added_indicators.append(indicator_name)
-        if (
-            ctype in (ChangeType.INDICATOR_REMOVED.value, "indicator_removed")
-            and indicator_name
-        ):
+        if ctype in (ChangeType.INDICATOR_REMOVED.value, "indicator_removed") and indicator_name:
             removed_indicators.append(indicator_name)
 
     return {
         "change_type": primary_type,
         "selected_change_type": selected_change_type,
-        "selected_change_payload": (
-            selected_change.get("payload", {})
-            if isinstance(selected_change, dict)
-            else {}
-        ),
+        "selected_change_payload": (selected_change.get("payload", {}) if isinstance(selected_change, dict) else {}),
         "table_name": table.get("table_name", ""),
         "table_title_raw": table.get("table_title", "") or table.get("table_name", ""),
         "table_number": table.get("table_number", ""),

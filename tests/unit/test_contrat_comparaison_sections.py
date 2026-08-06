@@ -24,9 +24,6 @@ def test_package_expose_les_composants_canoniques() -> None:
     """Les entrees publiques pointent vers les modules de responsabilite."""
     assert ComparisonBatch is ComparisonBatchModel
     assert _build_comparison_batches is preparation_lots._build_comparison_batches
-    assert (
-        _attach_alignment_metadata
-        is resolution_alignements._attach_alignment_metadata
-    )
+    assert _attach_alignment_metadata is resolution_alignements._attach_alignment_metadata
     assert _compare_texts_single_call is compare_single_impl
     assert _compare_section_texts is compare_section_impl

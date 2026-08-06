@@ -70,15 +70,12 @@ class VisionPassMixin:
         bbox_sanity_profile: dict[str, Any] | None = None
         vision_result: Any = None
         extraction_status = "ok"
-        page_context_observation: dict[str, Any] = dict(
-            shared.get("page_context_seed", {}).get(idx, {})
-        )
+        page_context_observation: dict[str, Any] = dict(shared.get("page_context_seed", {}).get(idx, {}))
         seeded_original_bbox = page_context_observation.get("bbox_original")
         if "bbox_original" in page_context_observation:
             original_table_bbox = (
                 list(seeded_original_bbox)
-                if isinstance(seeded_original_bbox, (list, tuple))
-                and len(seeded_original_bbox) == 4
+                if isinstance(seeded_original_bbox, (list, tuple)) and len(seeded_original_bbox) == 4
                 else None
             )
         else:
@@ -107,9 +104,7 @@ class VisionPassMixin:
                             extraction_status = "suspect_unresolved"
                             warnings_list.append(
                                 str(
-                                    page_context_observation.get(
-                                        "bbox_verification_reason"
-                                    )
+                                    page_context_observation.get("bbox_verification_reason")
                                     or "near_full_page_verification_unresolved"
                                 )
                             )
@@ -231,8 +226,7 @@ class VisionPassMixin:
                                 {
                                     "bbox_norm": list(plan.bbox_norm),
                                     "bbox_source": (
-                                        page_context_observation.get("bbox_source")
-                                        or "page_context_locator"
+                                        page_context_observation.get("bbox_source") or "page_context_locator"
                                     ),
                                     "confidence": plan.confidence,
                                     "title_text": plan.title_text,
@@ -297,14 +291,14 @@ class VisionPassMixin:
                                 )
                                 if isinstance(selected_bbox, list) and len(selected_bbox) == 4:
                                     final_table_bbox = [float(value) for value in selected_bbox]
-                                elif isinstance(
-                                    page_context_observation.get("bbox_norm"),
-                                    (list, tuple),
-                                ) and len(page_context_observation["bbox_norm"]) == 4:
-                                    final_table_bbox = [
-                                        float(value)
-                                        for value in page_context_observation["bbox_norm"]
-                                    ]
+                                elif (
+                                    isinstance(
+                                        page_context_observation.get("bbox_norm"),
+                                        (list, tuple),
+                                    )
+                                    and len(page_context_observation["bbox_norm"]) == 4
+                                ):
+                                    final_table_bbox = [float(value) for value in page_context_observation["bbox_norm"]]
                                 locator_title = str(
                                     getattr(
                                         vision_result,
@@ -342,14 +336,11 @@ class VisionPassMixin:
                                     or "ok"
                                 )
                                 warnings_list = list(vision_result.warnings or [])
-                                if (
-                                    extraction_status == "confirmed_no_table"
-                                    and page_context_observation.get("bbox_norm")
+                                if extraction_status == "confirmed_no_table" and page_context_observation.get(
+                                    "bbox_norm"
                                 ):
                                     extraction_status = "suspect_unresolved"
-                                    warnings_list.append(
-                                        "page_context_locator_confirms_table_region"
-                                    )
+                                    warnings_list.append("page_context_locator_confirms_table_region")
                             else:
                                 vision_status_str = "failed"
                                 warnings_list = ["VisionFullExtractor returned None"]
@@ -381,20 +372,14 @@ class VisionPassMixin:
             if isinstance(observed_bbox, (list, tuple)) and len(observed_bbox) == 4:
                 final_table_bbox = [float(value) for value in observed_bbox]
             if not title:
-                locator_title = str(
-                    page_context_observation.get("title_text") or ""
-                ).strip()
+                locator_title = str(page_context_observation.get("title_text") or "").strip()
                 if locator_title:
                     title = locator_title
-                    table_number, title_clean = self._extract_table_number(
-                        title
-                    )
+                    table_number, title_clean = self._extract_table_number(title)
                     title_raw = title
             if vision_result is None and extraction_status == "ok":
                 extraction_status = "suspect_unresolved"
-                warnings_list.append(
-                    "page_context_locator_confirms_table_region_without_extraction"
-                )
+                warnings_list.append("page_context_locator_confirms_table_region_without_extraction")
 
         requested_max_completion_tokens = int(vision_extraction_cfg.get("vision_max_completion_tokens", 65536))
         debug_metrics: dict[str, Any] = {
@@ -436,44 +421,27 @@ class VisionPassMixin:
                 {
                     "bbox_original": original_table_bbox,
                     "bbox_final": final_table_bbox,
-                    "bbox_source": str(
-                        page_context_observation.get("bbox_source")
-                        or "page_context_locator"
-                    ),
-                    "bbox_confidence": float(
-                        page_context_observation.get("confidence", 0.0) or 0.0
-                    ),
+                    "bbox_source": str(page_context_observation.get("bbox_source") or "page_context_locator"),
+                    "bbox_confidence": float(page_context_observation.get("confidence", 0.0) or 0.0),
                     "bbox_verified": True,
-                    "page_context_title": str(
-                        page_context_observation.get("title_text") or ""
-                    ),
-                    "page_context_continuation": page_context_observation.get(
-                        "continuation"
-                    ),
-                    "page_context_table_count": page_context_observation.get(
-                        "table_count"
-                    ),
+                    "page_context_title": str(page_context_observation.get("title_text") or ""),
+                    "page_context_continuation": page_context_observation.get("continuation"),
+                    "page_context_table_count": page_context_observation.get("table_count"),
                 }
             )
         else:
-            unresolved_source = str(
-                page_context_observation.get("bbox_source") or "docling"
-            )
+            unresolved_source = str(page_context_observation.get("bbox_source") or "docling")
             debug_metrics.update(
                 {
                     "bbox_original": original_table_bbox,
                     "bbox_final": final_table_bbox,
                     "bbox_source": unresolved_source,
                     "bbox_verified": False,
-                    "page_context_table_count": page_context_observation.get(
-                        "table_count"
-                    ),
+                    "page_context_table_count": page_context_observation.get("table_count"),
                 }
             )
         if page_context_observation.get("bbox_verification_reason"):
-            debug_metrics["bbox_verification_reason"] = str(
-                page_context_observation["bbox_verification_reason"]
-            )
+            debug_metrics["bbox_verification_reason"] = str(page_context_observation["bbox_verification_reason"])
         # Recrop and completeness (from vision result when available)
         if vision_result is not None:
             if hasattr(vision_result, "retry_reasons"):
@@ -532,11 +500,7 @@ class VisionPassMixin:
                 if page_context_observation.get("table_count") is not None
                 else None
             ),
-            bbox_top=(
-                float(final_table_bbox[1])
-                if final_table_bbox and len(final_table_bbox) == 4
-                else None
-            ),
+            bbox_top=(float(final_table_bbox[1]) if final_table_bbox and len(final_table_bbox) == 4 else None),
             table_number=table_number,
             title_clean=title_clean,
             table_summary=table_summary,

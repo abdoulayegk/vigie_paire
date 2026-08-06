@@ -233,13 +233,10 @@ def reconcile_boundary_roles(
             continue
 
         if start_match.page != role.start_page:
-            warnings.append(
-                f"{role.section_type}:vision_start_page_{role.start_page}_reconciled_to_{start_match.page}"
-            )
+            warnings.append(f"{role.section_type}:vision_start_page_{role.start_page}_reconciled_to_{start_match.page}")
         if successor_match.page != role.successor_page:
             warnings.append(
-                f"{role.section_type}:vision_successor_page_{role.successor_page}"
-                f"_reconciled_to_{successor_match.page}"
+                f"{role.section_type}:vision_successor_page_{role.successor_page}_reconciled_to_{successor_match.page}"
             )
         resolved.append(
             TOCBoundaryRole(
@@ -374,24 +371,13 @@ class AnnualSectionBoundaryValidator:
     ) -> list[tuple[int, float]]:
         """Classer les pages physiques plausibles à vérifier."""
         predicted = document_page + offset
-        page_numbers: set[int] = {
-            page
-            for page in range(predicted - 3, predicted + 4)
-            if page in text_by_page
-        }
+        page_numbers: set[int] = {page for page in range(predicted - 3, predicted + 4) if page in text_by_page}
         if existing_page and existing_page in text_by_page:
             page_numbers.add(existing_page)
 
-        global_scores = [
-            (page, _heading_similarity(text, title))
-            for page, text in text_by_page.items()
-            if page > 5
-        ]
+        global_scores = [(page, _heading_similarity(text, title)) for page, text in text_by_page.items() if page > 5]
         page_numbers.update(page for page, score in global_scores if score >= 0.82)
-        scored = [
-            (page, _heading_similarity(text_by_page.get(page, ""), title))
-            for page in page_numbers
-        ]
+        scored = [(page, _heading_similarity(text_by_page.get(page, ""), title)) for page in page_numbers]
         # La page prédite par l'offset multi-ancre est vérifiée en premier.
         # Les pages suivantes portent souvent un en-tête courant identique au
         # titre du chapitre et ne doivent pas supplanter sa vraie page d'ouverture.

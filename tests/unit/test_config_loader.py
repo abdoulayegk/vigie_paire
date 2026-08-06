@@ -60,22 +60,24 @@ def test_get_validation_config(tmp_path: Path) -> None:
 
     cfg = tmp_path / "bank_profiles.yaml"
     cfg.write_text(
-        yaml.dump({
-            "version": "1.0",
-            "validation": {
-                "vision_pair_validation": True,
-                "rename_validator_enabled": True,
-                "rename_validator_uncertain_score_band": [0.8, 0.93],
-            },
-            "banks": {
-                "td": {
-                    "validation": {
-                        "rename_validator_confidence_min": 0.9,
-                        "rename_validator_uncertain_score_band": [0.82, 0.9],
+        yaml.dump(
+            {
+                "version": "1.0",
+                "validation": {
+                    "vision_pair_validation": True,
+                    "rename_validator_enabled": True,
+                    "rename_validator_uncertain_score_band": [0.8, 0.93],
+                },
+                "banks": {
+                    "td": {
+                        "validation": {
+                            "rename_validator_confidence_min": 0.9,
+                            "rename_validator_uncertain_score_band": [0.82, 0.9],
+                        },
                     },
                 },
-            },
-        }),
+            }
+        ),
         encoding="utf-8",
     )
     val = get_validation_config(str(cfg), bank_code=None)

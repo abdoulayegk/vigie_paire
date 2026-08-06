@@ -18,9 +18,7 @@ def test_map_toc_title_to_concept_capital_and_risk() -> None:
     assert map_toc_title_to_concept("Risque de credit", "rbc") is None
     assert map_toc_title_to_concept("Situation financière", "rbc") is None
     assert map_toc_title_to_concept("SITUATION FINANCIÈRE DU GROUPE", "td") is None
-    assert map_toc_title_to_concept(
-        "PROGRAMME DE LCBA Situation des fonds propres", "td"
-    ) == "gestion_capital"
+    assert map_toc_title_to_concept("PROGRAMME DE LCBA Situation des fonds propres", "td") == "gestion_capital"
 
 
 def test_resolve_bounds_prefers_later_body_hit_for_duplicates() -> None:

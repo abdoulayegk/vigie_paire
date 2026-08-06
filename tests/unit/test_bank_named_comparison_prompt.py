@@ -64,20 +64,16 @@ def test_single_call_names_bank_and_forbids_period_labels_as_subject(
 
     prompt = "\n".join(message["content"] for message in captured["messages"])
     assert "Banque analysée : CIBC" in prompt
+    assert ("Chaque change_summary doit commencer par « CIBC » suivi d'un verbe d'action direct") in prompt
     assert (
-        "Chaque change_summary doit commencer par « CIBC » suivi "
-        "d'un verbe d'action direct"
-    ) in prompt
-    assert (
-        "« rapport précédent » et « rapport courant » "
-        "peuvent seulement servir de contexte de comparaison"
+        "« rapport précédent » et « rapport courant » peuvent seulement servir de contexte de comparaison"
     ) in prompt
     assert "jamais être le sujet grammatical de change_summary" in prompt
     assert "N'inscris aucun trimestre" in prompt
     assert "T1, T2" in prompt
 
     retry_message = captured["validation_retry_message"]
-    assert 'commencer exactement par "CIBC " suivi d\'un verbe d\'action direct' in retry_message
+    assert "commencer exactement par \"CIBC \" suivi d'un verbe d'action direct" in retry_message
     assert "n'utilise jamais rapport courant, rapport précédent, T1, T2" in retry_message
 
 

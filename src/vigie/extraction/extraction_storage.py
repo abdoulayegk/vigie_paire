@@ -22,6 +22,7 @@ TABLES_FILENAME = "tables.json"
 REPORT_INDICATORS_FILENAME = "indicators.json"
 REPORT_FOOTNOTES_FILENAME = "footnotes.json"
 
+
 def _normalize_storage_quarter(quarter: str) -> str:
     """Normaliser les libelles de trimestre en ``t1``..``t4`` pour le stockage."""
     value = str(quarter or "").strip().lower()
@@ -86,15 +87,9 @@ def table_artifact_from_dict(d: dict[str, Any]) -> TableArtifact:
         extraction_method,
         d.get("content_source"),
     )
-    indicators_source = (
-        d.get("indicators")
-        if d.get("indicators") is not None
-        else d.get("first_column_indicators_raw")
-    )
+    indicators_source = d.get("indicators") if d.get("indicators") is not None else d.get("first_column_indicators_raw")
     first_column_indicators_raw = [
-        str(ind or "").strip()
-        for ind in list(indicators_source or [])
-        if str(ind or "").strip()
+        str(ind or "").strip() for ind in list(indicators_source or []) if str(ind or "").strip()
     ]
     first_column_indicators: list[str] = []
     for ind in first_column_indicators_raw:
@@ -289,8 +284,7 @@ def load_extraction(
             return None
         _backfill_page_local_structure(tables)
         meta: dict[str, Any] = {
-            key: payload.get(key)
-            for key in ("bank_code", "year", "quarter", "created_at", "schema_version")
+            key: payload.get(key) for key in ("bank_code", "year", "quarter", "created_at", "schema_version")
         }
         _ensure_projection_artifacts(target_dir)
         return (tables, meta)

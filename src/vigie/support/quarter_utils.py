@@ -85,9 +85,7 @@ class QuarterRef:
         return format_quarter_display_label(self)
 
 
-def parse_quarter_ref(
-    value: str | None, *, year: int | str | None = None
-) -> QuarterRef:
+def parse_quarter_ref(value: str | None, *, year: int | str | None = None) -> QuarterRef:
     """Parser une reference de trimestre depuis des formats comme ``T2 2025``, ``Q2-2025`` ou ``T2``."""
     text = str(value or "").strip()
     if not text:
@@ -106,9 +104,7 @@ def parse_quarter_ref(
 
     quarter_num = int(match.group(2))
     parsed_year = match.group(3)
-    effective_year = (
-        int(parsed_year) if parsed_year else int(year) if year is not None else None
-    )
+    effective_year = int(parsed_year) if parsed_year else int(year) if year is not None else None
     if effective_year is None:
         raise ValueError(f"Quarter year is required for {text!r}")
     return QuarterRef(quarter=quarter_num, year=int(effective_year))
@@ -167,11 +163,7 @@ def get_payload_quarter_context(payload: dict[str, Any] | None) -> dict[str, Any
     meta = data.get("meta") if isinstance(data, dict) else {}
     if isinstance(meta, dict):
         ctx = meta.get("quarter_context")
-        if (
-            isinstance(ctx, dict)
-            and isinstance(ctx.get("current"), dict)
-            and isinstance(ctx.get("previous"), dict)
-        ):
+        if isinstance(ctx, dict) and isinstance(ctx.get("current"), dict) and isinstance(ctx.get("previous"), dict):
             current_ctx = ctx.get("current") or {}
             previous_ctx = ctx.get("previous") or {}
 
@@ -212,14 +204,10 @@ def get_payload_quarter_context(payload: dict[str, Any] | None) -> dict[str, Any
             return ctx
 
     current_label = str(
-        data.get("current_quarter", "")
-        or data.get("quarter_current", "")
-        or data.get("quarter_to", "")
+        data.get("current_quarter", "") or data.get("quarter_current", "") or data.get("quarter_to", "")
     ).strip()
     previous_label = str(
-        data.get("previous_quarter", "")
-        or data.get("quarter_previous", "")
-        or data.get("quarter_from", "")
+        data.get("previous_quarter", "") or data.get("quarter_previous", "") or data.get("quarter_from", "")
     ).strip()
     fallback_year = data.get("year") or data.get("year_current")
     previous_year = data.get("year_previous")

@@ -26,6 +26,7 @@ OPENAI_VISION_QA_TIMEOUT_SECONDS = 120.0
 # Schemas
 # ---------------------------------------------------------------------------
 
+
 class QAResult(BaseModel):
     """Resultat d'une inspection QA approfondie sur un tableau extrait."""
 
@@ -48,6 +49,7 @@ class QAResult(BaseModel):
 # ---------------------------------------------------------------------------
 # Inspector
 # ---------------------------------------------------------------------------
+
 
 class VisionTableInspector:
     """Inspecteur QA intransigeant pour les extractions GPT-4o Vision."""
@@ -109,6 +111,7 @@ Respond STRICTLY using the required JSON schema format."""
         system_prompt = self._build_qa_prompt(json_str)
 
         import base64
+
         base64_img = base64.b64encode(image_bytes).decode("utf-8")
 
         messages = [

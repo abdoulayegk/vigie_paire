@@ -22,9 +22,7 @@ def test_platform_config_base_uses_windows_appdata(monkeypatch, tmp_path: Path) 
 
 def test_platform_config_base_uses_macos_convention() -> None:
     """Utiliser Application Support automatiquement sous macOS."""
-    assert validator._platform_config_base("darwin") == (
-        Path.home() / "Library" / "Application Support"
-    )
+    assert validator._platform_config_base("darwin") == (Path.home() / "Library" / "Application Support")
 
 
 def test_platform_config_base_uses_xdg_on_linux(monkeypatch, tmp_path: Path) -> None:
@@ -46,9 +44,7 @@ def test_resultats_cli_has_priority_over_environment(monkeypatch, tmp_path: Path
     assert validator._resolve_resultats_dir(str(cli_dir)) == cli_dir.resolve()
 
 
-def test_invalid_explicit_resultats_directory_is_rejected(
-    monkeypatch, tmp_path: Path
-) -> None:
+def test_invalid_explicit_resultats_directory_is_rejected(monkeypatch, tmp_path: Path) -> None:
     """Refuser clairement un chemin explicite inexistant."""
     monkeypatch.delenv("VIGIE_RESULTATS_DIR", raising=False)
 
@@ -72,9 +68,7 @@ def test_validator_mode_uses_sanitized_analyst_sidecar_name() -> None:
 def test_validator_requirements_exclude_llm_and_extraction_dependencies() -> None:
     """Garder le profil validateur independant de Docling et OpenAI."""
     project_root = Path(__file__).resolve().parents[2]
-    requirements = (project_root / "requirements-validateur.txt").read_text(
-        encoding="utf-8"
-    )
+    requirements = (project_root / "requirements-validateur.txt").read_text(encoding="utf-8")
     normalized = requirements.casefold()
 
     assert "openai" not in normalized

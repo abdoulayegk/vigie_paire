@@ -203,15 +203,11 @@ def normalize_review_queue(
     return result
 
 
-def _build_change_payload(
-    ind: dict[str, Any], item_type: str, ind_type: str
-) -> dict[str, Any]:
+def _build_change_payload(ind: dict[str, Any], item_type: str, ind_type: str) -> dict[str, Any]:
     """Construit le dictionnaire payload d'un ChangeItem selon son type."""
     payload: dict[str, Any] = {
         "indicator_name": ind.get("name", ""),
-        "indicator_name_clean": (
-            ind.get("name_clean", ind.get("name", "")).lower().strip()
-        ),
+        "indicator_name_clean": (ind.get("name_clean", ind.get("name", "")).lower().strip()),
     }
 
     if ind_type == "renamed":
@@ -290,15 +286,13 @@ def _change_exists(changes: list[ChangeItem], new_change: ChangeItem) -> bool:
             "indicator_added",
             "indicator_removed",
         ):
-            if c.payload.get("indicator_name_clean") == new_change.payload.get(
-                "indicator_name_clean"
-            ):
+            if c.payload.get("indicator_name_clean") == new_change.payload.get("indicator_name_clean"):
                 return True
 
         elif c.change_type in (ChangeType.INDICATOR_RENAMED.value, "indicator_renamed"):
-            if c.payload.get("from_clean") == new_change.payload.get(
-                "from_clean"
-            ) and c.payload.get("to_clean") == new_change.payload.get("to_clean"):
+            if c.payload.get("from_clean") == new_change.payload.get("from_clean") and c.payload.get(
+                "to_clean"
+            ) == new_change.payload.get("to_clean"):
                 return True
 
         elif c.change_type in (
@@ -434,12 +428,8 @@ def build_normalized_review_queue(
     # ``risk_level`` legacy → ``impact_level`` AMF (MAJEUR/MODERE/MINEUR)
     for table in tables:
         if table.genai_analysis:
-            table.relevance = str(
-                table.genai_analysis.get("category", "") or ""
-            ).upper()
-            table.risk_level = str(
-                table.genai_analysis.get("impact_level", "") or ""
-            ).upper()
+            table.relevance = str(table.genai_analysis.get("category", "") or "").upper()
+            table.risk_level = str(table.genai_analysis.get("impact_level", "") or "").upper()
 
     # Sort by priority
     tables = sort_review_tables_by_priority(tables)

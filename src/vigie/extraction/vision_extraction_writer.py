@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 
 COMPACT_REPORT_SCHEMA_VERSION = 7
 
+
 def _compact_table_section(table: Any) -> str:
     """Retourner la valeur de section canonique compacte avec fallback defensif."""
     raw = str(getattr(table, "section", "") or "").strip()
@@ -33,6 +34,7 @@ def _compact_table_section(table: Any) -> str:
     except Exception:
         normalized = raw
     return str(normalized or "unknown_section").strip() or "unknown_section"
+
 
 def _table_page(table: Any) -> int:
     """Retourner le numero de page PDF pour un objet de type tableau."""
@@ -51,9 +53,7 @@ def _compact_created_at(meta: dict[str, Any] | None = None) -> str:
     """Retourner le timestamp de creation depuis les metadonnees ou l'horodatage courant."""
     metadata = dict(meta or {})
     return str(
-        metadata.get("created_at")
-        or metadata.get("extracted_at")
-        or datetime.now().isoformat(timespec="seconds")
+        metadata.get("created_at") or metadata.get("extracted_at") or datetime.now().isoformat(timespec="seconds")
     )
 
 
@@ -167,12 +167,7 @@ def _compact_table_bbox(table: Any) -> list[float] | None:
         return None
 
     l_, top, r, bottom = normalized
-    if not (
-        0.0 <= l_ <= 1.0
-        and 0.0 <= top <= 1.0
-        and 0.0 <= r <= 1.0
-        and 0.0 <= bottom <= 1.0
-    ):
+    if not (0.0 <= l_ <= 1.0 and 0.0 <= top <= 1.0 and 0.0 <= r <= 1.0 and 0.0 <= bottom <= 1.0):
         return None
     if r <= l_ or bottom <= top:
         return None
@@ -193,12 +188,8 @@ def _compact_table_common_entry(table: Any) -> dict[str, Any]:
 def _compact_table_entry(table: Any) -> dict[str, Any]:
     """Construire l'entree complete d'un tableau pour ``tables.json``."""
     entry = _compact_table_common_entry(table)
-    entry["extraction_status"] = str(
-        getattr(table, "extraction_status", "") or "ok"
-    ).strip() or "ok"
-    entry["headers"] = [
-        str(value) for value in list(getattr(table, "headers", []) or [])
-    ]
+    entry["extraction_status"] = str(getattr(table, "extraction_status", "") or "ok").strip() or "ok"
+    entry["headers"] = [str(value) for value in list(getattr(table, "headers", []) or [])]
     indicators = _compact_indicator_rows(table)
     entry["table_summary"] = str(getattr(table, "table_summary", "") or "")
     entry["row_count"] = len(indicators)
@@ -238,9 +229,7 @@ def _compact_indicator_entry(table_entry: dict[str, Any]) -> dict[str, Any]:
         "section": str(table_entry.get("section", "") or "unknown_section"),
         "title": str(table_entry.get("title", "") or ""),
         "indicators": [
-            str(value).strip()
-            for value in list(table_entry.get("indicators", []) or [])
-            if str(value).strip()
+            str(value).strip() for value in list(table_entry.get("indicators", []) or []) if str(value).strip()
         ],
     }
 
@@ -258,10 +247,7 @@ def _compact_footnote_entry(table_entry: dict[str, Any]) -> dict[str, Any]:
             }
             for item in list(table_entry.get("footnotes", []) or [])
             if isinstance(item, dict)
-            and (
-                str(item.get("id", "") or "").strip()
-                or str(item.get("text", "") or "").strip()
-            )
+            and (str(item.get("id", "") or "").strip() or str(item.get("text", "") or "").strip())
         ],
     }
 
@@ -276,6 +262,7 @@ def _atomic_write_json(out_path: Path, payload: dict[str, Any]) -> Path:
     )
     tmp_path.replace(out_path)
     return out_path
+
 
 def _table_entry_indicators(
     table: Any,
@@ -294,9 +281,7 @@ def _table_entry_indicators(
         sections.append(
             {
                 "section": title or "Indicateurs",
-                "indicators": [
-                    str(x).strip() for x in indicators_raw if str(x).strip()
-                ],
+                "indicators": [str(x).strip() for x in indicators_raw if str(x).strip()],
             }
         )
 
@@ -367,9 +352,7 @@ def write_footnotes_json(
 
     tables_total = len(entries)
     tables_with_footnotes = sum(1 for e in entries if bool(e.get("has_footnotes")))
-    footnote_entries_total = sum(
-        len(e.get("footnotes_content", {}) or {}) for e in entries
-    )
+    footnote_entries_total = sum(len(e.get("footnotes_content", {}) or {}) for e in entries)
     repr_suspect_count = sum(int(e.get("_repr_suspect_count", 0) or 0) for e in entries)
 
     for entry in entries:
@@ -463,7 +446,9 @@ def _projection_top_level_from_tables(payload: dict[str, Any]) -> dict[str, Any]
         "year": int(payload.get("year", 0) or 0),
         "quarter": str(payload.get("quarter", "") or ""),
         "created_at": str(payload.get("created_at", "") or ""),
-        "schema_version": int(payload.get("schema_version", COMPACT_REPORT_SCHEMA_VERSION) or COMPACT_REPORT_SCHEMA_VERSION),
+        "schema_version": int(
+            payload.get("schema_version", COMPACT_REPORT_SCHEMA_VERSION) or COMPACT_REPORT_SCHEMA_VERSION
+        ),
     }
 
 
@@ -547,9 +532,7 @@ def write_compact_report_artifacts(
     """
     metadata = dict(meta or {})
     metadata["created_at"] = _compact_created_at(metadata)
-    tables_path = write_compact_tables_json(
-        tables, out_dir, bank_code, year, quarter, meta=metadata
-    )
+    tables_path = write_compact_tables_json(tables, out_dir, bank_code, year, quarter, meta=metadata)
     return {
         "tables": tables_path,
         "indicators": write_compact_indicators_json(tables_path, out_dir),

@@ -24,6 +24,7 @@ from .quality_heuristics import (
 )
 from .result import VisionFullResult
 
+
 def _grade_extraction_quality(result: VisionFullResult | None) -> list[str]:
     """Evalue la qualite de l'extraction et retourne une liste de critiques."""
     if result is None:
@@ -87,11 +88,7 @@ def _collect_incompleteness_reasons(
     structural_count = _structural_indicator_count(result)
     if structural_count == 0:
         reasons.append("no_viable_indicators")
-        headers = [
-            str(value or "").strip()
-            for value in list(result.headers or [])
-            if str(value or "").strip()
-        ]
+        headers = [str(value or "").strip() for value in list(result.headers or []) if str(value or "").strip()]
         if len(headers) >= 2 and (title or summary):
             reasons.append("missing_body_row_labels")
     if not summary:

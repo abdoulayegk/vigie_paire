@@ -344,16 +344,11 @@ def _attach_embedding_scores(
     unique_t1 = {orphan.heading: orphan.body for orphan in orphans_t1}
     unique_t2 = {orphan.heading: orphan.body for orphan in orphans_t2}
     ordered_headings = list(unique_t1) + list(unique_t2)
-    ordered_bodies = [
-        _truncate_for_embedding(unique_t1[heading]) for heading in unique_t1
-    ] + [
+    ordered_bodies = [_truncate_for_embedding(unique_t1[heading]) for heading in unique_t1] + [
         _truncate_for_embedding(unique_t2[heading]) for heading in unique_t2
     ]
     embeddings = _embed_texts(client, ordered_bodies, model=embedding_model)
-    embedding_by_heading = {
-        heading: embeddings[index]
-        for index, heading in enumerate(ordered_headings)
-    }
+    embedding_by_heading = {heading: embeddings[index] for index, heading in enumerate(ordered_headings)}
 
     pair_scores: dict[tuple[str, str], float] = {}
     enriched: list[OrphanCandidate] = []
@@ -379,9 +374,7 @@ def _attach_embedding_scores(
 
 def _format_orphan_candidate_for_prompt(candidate: OrphanCandidate) -> str:
     strength = (
-        "candidate_strong"
-        if candidate.embedding_score >= _EMBEDDING_STRONG_CANDIDATE_THRESHOLD
-        else "candidate_review"
+        "candidate_strong" if candidate.embedding_score >= _EMBEDDING_STRONG_CANDIDATE_THRESHOLD else "candidate_review"
     )
     return (
         f"- T1: {candidate.heading_t1}\n"

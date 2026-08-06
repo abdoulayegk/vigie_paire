@@ -19,6 +19,7 @@ from .results import _default_triage
 
 logger = logging.getLogger("vigie.analyse_texte.triage")
 
+
 def _triage_retrieval_text(change: dict[str, Any]) -> str:
     parts = [
         str(change.get("diff_type") or ""),
@@ -113,9 +114,7 @@ def _propagate_triage_to_group(
     group_id: str,
     bank_code: str = "",
 ) -> list[dict[str, Any]]:
-    triage = dict(
-        representative.get("genai_triage") or _default_triage(bank_code)
-    )
+    triage = dict(representative.get("genai_triage") or _default_triage(bank_code))
     member_ids = [str(change.get("change_id") or "") for change in members]
     propagated: list[dict[str, Any]] = []
     for change in members:
@@ -123,9 +122,7 @@ def _propagate_triage_to_group(
         member_triage = dict(triage)
         member_triage["triage_group_id"] = group_id
         member_triage["triage_group_member_ids"] = member_ids
-        member_triage["triage_group_representative_id"] = str(
-            representative.get("change_id") or ""
-        )
+        member_triage["triage_group_representative_id"] = str(representative.get("change_id") or "")
         if str(change.get("change_id") or "") != str(representative.get("change_id") or ""):
             member_triage["source"] = f"{triage.get('source') or 'gpt'}_propagated"
         enriched["genai_triage"] = member_triage
@@ -133,8 +130,7 @@ def _propagate_triage_to_group(
             "group_id": group_id,
             "representative_change_id": str(representative.get("change_id") or ""),
             "member_change_ids": member_ids,
-            "propagated": str(change.get("change_id") or "")
-            != str(representative.get("change_id") or ""),
+            "propagated": str(change.get("change_id") or "") != str(representative.get("change_id") or ""),
         }
         propagated.append(enriched)
     return propagated

@@ -111,28 +111,20 @@ def build_parser() -> argparse.ArgumentParser:
     --language:
         Code de langue pour le fichier ``vigie_extract_v1`` (défaut : ``fr``).
     """
-    parser = argparse.ArgumentParser(
-        description="Extraire les tableaux sur des plages de pages selectionnees."
-    )
+    parser = argparse.ArgumentParser(description="Extraire les tableaux sur des plages de pages selectionnees.")
     parser.add_argument("--banque", required=True, help="Code banque (ex: rbc)")
     parser.add_argument("--pdf", required=True, help="Chemin du PDF d'entree")
     parser.add_argument("--trimestre", required=True, help="Libelle trimestre (ex: t1-2025)")
     parser.add_argument("--config", default=DEFAULT_CONFIG, help="Chemin YAML de configuration")
-    parser.add_argument(
-        "--ranges_json", required=True, help="Chemin vers section_ranges.json"
-    )
-    parser.add_argument(
-        "--sortie", default=DEFAULT_OUT_ROOT, help="Racine des sorties"
-    )
+    parser.add_argument("--ranges_json", required=True, help="Chemin vers section_ranges.json")
+    parser.add_argument("--sortie", default=DEFAULT_OUT_ROOT, help="Racine des sorties")
     parser.add_argument(
         "--vigie_extract",
         action="store_true",
         default=False,
         help="Also produce a single vigie_extract_v1 JSON per PDF",
     )
-    parser.add_argument(
-        "--language", default="fr", help="Language code for vigie_extract (default: fr)"
-    )
+    parser.add_argument("--language", default="fr", help="Language code for vigie_extract (default: fr)")
     parser.add_argument(
         "--save-extraction",
         action="store_true",
@@ -219,9 +211,7 @@ def _load_section_ranges(path: str | Path) -> list[dict[str, Any]]:
         for section_name, item in data["sections"].items():
             if not isinstance(item, dict):
                 continue
-            section = _canonicalize_section(
-                str(item.get("section", section_name)).strip()
-            )
+            section = _canonicalize_section(str(item.get("section", section_name)).strip())
             start = int(item.get("start_page", 0) or 0)
             end = int(item.get("end_page", start) or start)
             if section and start > 0 and end >= start:
@@ -235,9 +225,7 @@ def _load_section_ranges(path: str | Path) -> list[dict[str, Any]]:
     return section_ranges
 
 
-def _to_artifacts(
-    raw_tables: list[Any], bank: str, quarter: str, pdf_path: str
-) -> list[TableArtifact]:
+def _to_artifacts(raw_tables: list[Any], bank: str, quarter: str, pdf_path: str) -> list[TableArtifact]:
     """Convertir les tables extraites (Docling) en ``TableArtifact`` canoniques d'export.
 
     Pour chaque table brute, cette fonction :
@@ -268,11 +256,7 @@ def _to_artifacts(
             getattr(table, "content_source", None),
         )
         raw_values = getattr(table, "first_column_indicators_raw", None)
-        vision_raw_indicators = (
-            [str(x).strip() for x in raw_values if str(x).strip()]
-            if raw_values is not None
-            else []
-        )
+        vision_raw_indicators = [str(x).strip() for x in raw_values if str(x).strip()] if raw_values is not None else []
         if content_source != VISION_CONTENT_SOURCE:
             vision_raw_indicators = []
         rows = [list(row) for row in (getattr(table, "rows", []) or [])]
@@ -284,18 +268,12 @@ def _to_artifacts(
                 raw_indicators=vision_raw_indicators,
             )
             first_column_groups = list(rbc_signals.groups_raw)
-            hierarchical_indicator_signature = list(
-                rbc_signals.hierarchical_indicator_signature
-            )
+            hierarchical_indicator_signature = list(rbc_signals.hierarchical_indicator_signature)
 
-        vision_raw_indicators, _, _ = dedupe_indicators(
-            merge_line_split_indicators(vision_raw_indicators)[0]
-        )
+        vision_raw_indicators, _, _ = dedupe_indicators(merge_line_split_indicators(vision_raw_indicators)[0])
         comparison_normalized_indicators: list[str] = []
         for item in vision_raw_indicators:
-            normalized, _, _ = post_normalize_indicator(
-                normalize_indicator_for_comparison(item)
-            )
+            normalized, _, _ = post_normalize_indicator(normalize_indicator_for_comparison(item))
             if normalized:
                 comparison_normalized_indicators.append(normalized)
 
@@ -306,9 +284,7 @@ def _to_artifacts(
         else:
             canonical_footnotes = normalize_footnotes_to_canonical(footnotes_raw)
 
-        section = (
-            _canonicalize_section(getattr(table, "section", None)) or "unknown_section"
-        )
+        section = _canonicalize_section(getattr(table, "section", None)) or "unknown_section"
         artifacts.append(
             TableArtifact(
                 bank_code=bank,
@@ -336,16 +312,13 @@ def _to_artifacts(
                 title_raw=getattr(table, "title_raw", None),
                 row_count=len(vision_raw_indicators) or len(rows),
                 title_reliability=classify_rbc_title_reliability(
-                    getattr(table, "title_clean", None)
-                    or getattr(table, "title", None),
+                    getattr(table, "title_clean", None) or getattr(table, "title", None),
                     bank_code=bank,
                 ),
                 footnotes=canonical_footnotes,
                 debug_metrics=dict(getattr(table, "debug_metrics", {}) or {}),
                 content_source=content_source,
-                extraction_status=str(
-                    getattr(table, "extraction_status", "ok") or "ok"
-                ),
+                extraction_status=str(getattr(table, "extraction_status", "ok") or "ok"),
             )
         )
     return artifacts
@@ -402,9 +375,7 @@ def main(argv: list[str] | None = None) -> None:
         year=year,
         section_ranges=section_ranges,
     )
-    artifacts = _to_artifacts(
-        raw_tables, bank=args.banque, quarter=args.trimestre, pdf_path=args.pdf
-    )
+    artifacts = _to_artifacts(raw_tables, bank=args.banque, quarter=args.trimestre, pdf_path=args.pdf)
     out_dir = Path(args.sortie) / args.trimestre / args.banque
     out_path = write_tables_docling(out_dir=out_dir, tables=artifacts)
     print(out_path)
@@ -453,9 +424,7 @@ def main(argv: list[str] | None = None) -> None:
             meta=meta,
             base_dir=extraction_root,
         )
-        paths = get_extraction_artifact_paths(
-            args.banque, year, args.trimestre, extraction_root
-        )
+        paths = get_extraction_artifact_paths(args.banque, year, args.trimestre, extraction_root)
         print(paths["indicators"])
         print(paths["footnotes"])
 

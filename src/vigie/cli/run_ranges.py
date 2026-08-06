@@ -98,15 +98,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--pdf", required=True, help="Chemin du PDF d'entree")
     parser.add_argument("--trimestre", required=True, help="Libelle trimestre (ex: t1-2025)")
     parser.add_argument("--config", default=DEFAULT_CONFIG, help="Chemin YAML de configuration")
-    parser.add_argument(
-        "--sortie", default=DEFAULT_OUT_ROOT, help="Racine des sorties"
-    )
+    parser.add_argument("--sortie", default=DEFAULT_OUT_ROOT, help="Racine des sorties")
     return parser
 
 
-def _to_result(
-    mapping: Any, bank_code: str, quarter: str, pdf_path: str
-) -> SectionRangesResult:
+def _to_result(mapping: Any, bank_code: str, quarter: str, pdf_path: str) -> SectionRangesResult:
     """Transformer la sortie brute du locator en ``SectionRangesResult`` exportable.
 
     Parcourt les sections détectées par ``locate_sections_in_pdf``, filtre les
@@ -138,18 +134,14 @@ def _to_result(
         end_page = int(getattr(located, "end_page", start_page) or start_page)
         ranges.append(
             SectionRange(
-                section=_canonicalize_section(
-                    str(getattr(located, "section_type", ""))
-                ),
+                section=_canonicalize_section(str(getattr(located, "section_type", ""))),
                 start_page_pdf=start_page,
                 end_page_pdf=end_page,
                 method=str(getattr(located, "detection_method", "")),
                 confidence=float(getattr(located, "confidence", 0.0) or 0.0),
                 evidence={
                     "title_found": getattr(located, "title_found", ""),
-                    "end_detection_method": getattr(
-                        located, "end_detection_method", ""
-                    ),
+                    "end_detection_method": getattr(located, "end_detection_method", ""),
                     "detected_span": getattr(located, "detected_span", None),
                     "final_span": getattr(located, "final_span", None),
                     "constraint_applied": getattr(located, "constraint_applied", False),
@@ -160,9 +152,7 @@ def _to_result(
     if _is_t4(quarter):
         ranges = _filter_t4_target_ranges(ranges)
 
-    return SectionRangesResult(
-        bank_code=bank_code, quarter=quarter, pdf_path=pdf_path, ranges=ranges
-    )
+    return SectionRangesResult(bank_code=bank_code, quarter=quarter, pdf_path=pdf_path, ranges=ranges)
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -196,12 +186,8 @@ def main(argv: list[str] | None = None) -> None:
             "Section detection backend from extraction/ is not importable in this environment."
         ) from exc
 
-    mapping = locate_sections_in_pdf(
-        args.pdf, bank_code=args.banque, quarter=args.trimestre
-    )
-    result = _to_result(
-        mapping, bank_code=args.banque, quarter=args.trimestre, pdf_path=args.pdf
-    )
+    mapping = locate_sections_in_pdf(args.pdf, bank_code=args.banque, quarter=args.trimestre)
+    result = _to_result(mapping, bank_code=args.banque, quarter=args.trimestre, pdf_path=args.pdf)
     out_dir = Path(args.sortie) / args.trimestre / args.banque
     out_path = write_section_ranges(out_dir=out_dir, result=result)
     print(out_path)

@@ -22,6 +22,7 @@ from vigie.comparaison.canonical import (
     is_canonical_comparison,
     to_canonical_payload,
 )
+
 # Import paresseux de ``comparison_runner`` plus bas, dans le callback qui le
 # declenche, afin de ne charger le pipeline lourd qu'au moment necessaire.
 from vigie.interface.components.pdf_preview import pdf_images_from_base64
@@ -710,6 +711,7 @@ def on_analyze(
 
     try:
         from vigie.comparaison.runner import run_comparison_with_sections
+
         result = run_comparison_with_sections(
             pdf_path_previous=path_t1,
             pdf_path_current=path_t2,

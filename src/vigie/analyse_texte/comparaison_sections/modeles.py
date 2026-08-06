@@ -53,9 +53,7 @@ class ChunkComparisonLLMChange(BaseModel):
     # Kept optional for compatibility with existing cached responses.  The
     # prompt requires all three fields; missing values are handled
     # conservatively from the deterministic alignment type below.
-    alignment_decision: Literal[
-        "same_disclosure", "distinct_disclosures", "moved_text", "uncertain", ""
-    ] = ""
+    alignment_decision: Literal["same_disclosure", "distinct_disclosures", "moved_text", "uncertain", ""] = ""
     alignment_confidence: Literal["high", "medium", "low", ""] = ""
     alignment_rationale: str = ""
 

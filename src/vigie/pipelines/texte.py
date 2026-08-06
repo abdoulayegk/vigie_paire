@@ -44,6 +44,7 @@ DEFAULT_COMPARISON_ROOT = "outputs/resultats"
 # CLI
 # ---------------------------------------------------------------------------
 
+
 def build_parser() -> argparse.ArgumentParser:
     """Construit le parseur CLI du pipeline texte."""
     p = argparse.ArgumentParser(
@@ -97,6 +98,7 @@ def build_parser() -> argparse.ArgumentParser:
 # Pipeline steps
 # ---------------------------------------------------------------------------
 
+
 def _step_compare_text(
     bank: str,
     year_current: int,
@@ -123,9 +125,7 @@ def _step_compare_text(
     )
     generate_text_comparison_excel(payload, out_path.with_suffix(".xlsx"))
     if not out_path.exists():
-        raise FileNotFoundError(
-            f"Analyse texte terminée mais text_comparison.json introuvable: {out_path}"
-        )
+        raise FileNotFoundError(f"Analyse texte terminée mais text_comparison.json introuvable: {out_path}")
     return out_path
 
 
@@ -155,6 +155,7 @@ def _step_extract_text(
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
+
 
 def main(argv: list[str] | None = None) -> int:
     """Point d'entrée du pipeline texte batch."""
@@ -193,8 +194,7 @@ def main(argv: list[str] | None = None) -> int:
     except FileNotFoundError as exc:
         print(f"\n  ERREUR : {exc}")
         print(
-            "\n  Placer les PDFs dans Inputs/{BANK}/{YEAR}/{BANK}_{YEAR}_{Q}.pdf\n"
-            "  Ex: Inputs/BNS/2025/BNS_2025_T2.pdf"
+            "\n  Placer les PDFs dans Inputs/{BANK}/{YEAR}/{BANK}_{YEAR}_{Q}.pdf\n  Ex: Inputs/BNS/2025/BNS_2025_T2.pdf"
         )
         return 1
 
@@ -226,7 +226,9 @@ def main(argv: list[str] | None = None) -> int:
             print(f"\n  ERREUR extraction : {exc}")
             return 1
     else:
-        print(f"\n🔍 Analyse texte canonique ({q_current.upper()}-{year_current} vs {q_previous.upper()}-{year_previous})...")
+        print(
+            f"\n🔍 Analyse texte canonique ({q_current.upper()}-{year_current} vs {q_previous.upper()}-{year_previous})..."
+        )
         t0 = time.time()
         try:
             comparison_path = _step_compare_text(

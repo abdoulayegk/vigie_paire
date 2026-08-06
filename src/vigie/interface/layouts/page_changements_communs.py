@@ -24,10 +24,7 @@ def build_changements_communs_tab(
     report_path: str | None = None,
 ) -> html.Div:
     """Build the common cross-bank changes dashboard tab."""
-    effective_period = (
-        str((report or {}).get("period") or selected_period or "").strip()
-        or "Periode non selectionnee"
-    )
+    effective_period = str((report or {}).get("period") or selected_period or "").strip() or "Periode non selectionnee"
     return html.Div(
         [
             dbc.Row(
@@ -95,11 +92,9 @@ def build_changements_communs_report_view(
     if not report:
         period_text = str(selected_period or "").strip()
         expected_path = (
-            "outputs/resultats/changements_communs_banques/"
-            f"{period_text}/changements_communs_banques.json"
+            f"outputs/resultats/changements_communs_banques/{period_text}/changements_communs_banques.json"
             if period_text
-            else "outputs/resultats/changements_communs_banques/<periode>/"
-            "changements_communs_banques.json"
+            else "outputs/resultats/changements_communs_banques/<periode>/changements_communs_banques.json"
         )
         return html.Div(
             dbc.Alert(
@@ -127,16 +122,8 @@ def build_changements_communs_report_view(
             )
         )
 
-    consensus = [
-        signal
-        for signal in signals
-        if isinstance(signal, dict) and bool(signal.get("min_banks_met"))
-    ]
-    minor = [
-        signal
-        for signal in signals
-        if isinstance(signal, dict) and not bool(signal.get("min_banks_met"))
-    ]
+    consensus = [signal for signal in signals if isinstance(signal, dict) and bool(signal.get("min_banks_met"))]
+    minor = [signal for signal in signals if isinstance(signal, dict) and not bool(signal.get("min_banks_met"))]
     return html.Div(
         [
             _build_report_summary(report, report_path=report_path),
@@ -335,10 +322,7 @@ def _build_evidence_accordion(evidence: list[dict[str, Any]]) -> html.Div:
         )
     items = []
     for idx, item in enumerate(evidence, start=1):
-        title = (
-            f"{str(item.get('bank_code') or '').upper()} - "
-            f"{item.get('section') or 'Section inconnue'}"
-        )
+        title = f"{str(item.get('bank_code') or '').upper()} - {item.get('section') or 'Section inconnue'}"
         items.append(
             dbc.AccordionItem(
                 _build_evidence_body(item),
@@ -379,9 +363,7 @@ def _build_evidence_body(item: dict[str, Any]) -> html.Div:
                 "Confiance de la posture",
                 item.get("confiance_posture"),
             ),
-            html.Blockquote(quote, className="small border-start ps-3 text-muted")
-            if quote
-            else html.Div(),
+            html.Blockquote(quote, className="small border-start ps-3 text-muted") if quote else html.Div(),
             _text_box("Avant", before),
             _text_box("Apres", after),
             html.Div(

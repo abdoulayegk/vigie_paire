@@ -99,9 +99,7 @@ class OpenAITextBoundaryValidator:
                 "text": str(_segment_value(current, "text", "")),
             },
         }
-        digest = hashlib.sha256(
-            json.dumps(payload, ensure_ascii=False, sort_keys=True).encode("utf-8")
-        ).hexdigest()
+        digest = hashlib.sha256(json.dumps(payload, ensure_ascii=False, sort_keys=True).encode("utf-8")).hexdigest()
         return self.cache_dir / f"{digest}.json"
 
     def _read_cache(self, path: Path) -> VisionBoundaryDecision | None:

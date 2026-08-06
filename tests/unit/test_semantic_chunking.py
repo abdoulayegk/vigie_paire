@@ -84,9 +84,7 @@ def test_invalid_llm_partition_is_rejected_without_fallback(
     )
     monkeypatch.setattr(
         "vigie.analyse_texte.semantic_chunking._call_structured_completion_with_correction",
-        lambda *args, **kwargs: SemanticPartitionResponse(
-            groups=[SemanticSentenceGroup(start=1, end=2)]
-        ),
+        lambda *args, **kwargs: SemanticPartitionResponse(groups=[SemanticSentenceGroup(start=1, end=2)]),
     )
 
     with pytest.raises(SemanticChunkingError, match="dernière phrase n'est pas couverte"):
@@ -151,9 +149,7 @@ def test_llm_overfragmentation_is_corrected_once(monkeypatch: pytest.MonkeyPatch
     sentences = [f"Phrase {index} sur le même cadre réglementaire." for index in range(1, 7)]
     responses = iter(
         [
-            SemanticPartitionResponse(
-                groups=[SemanticSentenceGroup(start=index, end=index) for index in range(1, 7)]
-            ),
+            SemanticPartitionResponse(groups=[SemanticSentenceGroup(start=index, end=index) for index in range(1, 7)]),
             SemanticPartitionResponse(
                 groups=[
                     SemanticSentenceGroup(start=1, end=3),

@@ -413,8 +413,7 @@ def _call_structured_completion_with_correction(
             )
             if (
                 previous_validation_payload_fingerprint is not None
-                and validation_payload_fingerprint
-                == previous_validation_payload_fingerprint
+                and validation_payload_fingerprint == previous_validation_payload_fingerprint
             ):
                 logger.error(
                     "Triage validation returned an identical invalid payload; "
@@ -424,9 +423,7 @@ def _call_structured_completion_with_correction(
                 raise
             if validation_attempt >= max_retries:
                 raise
-            previous_validation_payload_fingerprint = (
-                validation_payload_fingerprint
-            )
+            previous_validation_payload_fingerprint = validation_payload_fingerprint
             validation_attempt += 1
             logger.warning(
                 "Triage validation failed on attempt %d/%d, retrying with correction. Details: %s",

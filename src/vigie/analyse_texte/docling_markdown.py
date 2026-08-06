@@ -126,9 +126,7 @@ def _is_bare_numeric_table_footnote(text: str, *, follows_table: bool) -> bool:
         return False
     if _DATED_NARRATIVE_RE.search(value) and not _has_table_footnote_cue(value):
         return False
-    return _has_table_footnote_cue(value) or (
-        follows_table and not _DATED_NARRATIVE_RE.search(value)
-    )
+    return _has_table_footnote_cue(value) or (follows_table and not _DATED_NARRATIVE_RE.search(value))
 
 
 def _parse_docling_markdown(md_content: str) -> list[DoclingSegment]:
@@ -211,10 +209,7 @@ def _parse_docling_markdown(md_content: str) -> list[DoclingSegment]:
             continue
         is_visual_note = bool(
             visual_note_context
-            and (
-                _EXPLICIT_FOOTNOTE_MARKER_RE.match(text)
-                or _is_bare_numeric_table_footnote(text, follows_table=True)
-            )
+            and (_EXPLICIT_FOOTNOTE_MARKER_RE.match(text) or _is_bare_numeric_table_footnote(text, follows_table=True))
         )
         segments.append(
             DoclingSegment(
@@ -307,10 +302,7 @@ def _is_confirmed_table_segment(
     # titre « Ratio de liquidité à long terme » peut aussi apparaître comme
     # libellé de ligne à l'intérieur du tableau NSFR de la page suivante.
     for audit in audits:
-        if any(
-            _normalized_block_text(block.text) == segment_norm
-            for block in audit.included_blocks
-        ):
+        if any(_normalized_block_text(block.text) == segment_norm for block in audit.included_blocks):
             return False
 
     for audit in audits:
@@ -364,10 +356,7 @@ def _is_table_footnote_segment(segment: DoclingSegment) -> bool:
         return False
     if segment.kind == "list_item" and re.fullmatch(r"\d{1,3}[.)]", str(segment.list_marker or "")):
         return True
-    return bool(
-        _EXPLICIT_FOOTNOTE_MARKER_RE.match(text)
-        or _is_bare_numeric_table_footnote(text, follows_table=True)
-    )
+    return bool(_EXPLICIT_FOOTNOTE_MARKER_RE.match(text) or _is_bare_numeric_table_footnote(text, follows_table=True))
 
 
 def _should_keep_docling_segment(segment: DoclingSegment, audits: list[SectionAudit] | None = None) -> bool:
@@ -420,11 +409,7 @@ def _is_audited_structural_heading(block: PDFBlock) -> bool:
     """Distingue un vrai titre audité d'un paragraphe Docling mal étiqueté."""
     if _is_structural_markdown_heading(block):
         return True
-    return bool(
-        _is_docling_heading_block(block)
-        and block.heading_level is not None
-        and int(block.heading_level) > 0
-    )
+    return bool(_is_docling_heading_block(block) and block.heading_level is not None and int(block.heading_level) > 0)
 
 
 def _missing_audited_blocks(
@@ -477,10 +462,7 @@ def _warn_on_missing_audited_narrative_blocks(
         logger.warning(
             "Markdown narratif incomplet: %d bloc(s) audité(s) absent(s): %s",
             len(missing),
-            ", ".join(
-                f"{block.block_id}:pdf.{block.page}"
-                for block in missing
-            ),
+            ", ".join(f"{block.block_id}:pdf.{block.page}" for block in missing),
         )
     return missing
 
@@ -808,8 +790,7 @@ def _merge_missing_audited_segments(
         for block in audit.included_blocks
         if not _is_audited_structural_heading(block)
         if not _looks_like_table_caption_title(block.text)
-        if _normalized_block_text(block.text)
-        and _normalized_block_text(block.text) not in rendered_norm
+        if _normalized_block_text(block.text) and _normalized_block_text(block.text) not in rendered_norm
     ]
     if not missing:
         return list(segments)

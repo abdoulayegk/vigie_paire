@@ -40,9 +40,7 @@ _COMPOSITE_GRID_CAPTION_RE = re.compile(
     r"\br[eé]partition\s+des?\s+risques?\s+par\s+secteur",
     flags=re.IGNORECASE,
 )
-_COMPOSITE_GRID_NUMERIC_CELL_RE = re.compile(
-    r"^\s*\(?\s*-?\d[\d\s.,]*\s*\)?\s*%?\s*$"
-)
+_COMPOSITE_GRID_NUMERIC_CELL_RE = re.compile(r"^\s*\(?\s*-?\d[\d\s.,]*\s*\)?\s*%?\s*$")
 
 
 def _docling_bbox_to_norm(docling_doc: Any, prov: Any) -> list[float] | None:
@@ -192,9 +190,7 @@ def _augment_table_regions_with_composite_grids(
     ``section_header`` produits par Docling.
     """
     for page, blocks in page_blocks.items():
-        label_blocks_by_text: dict[str, list[PDFBlock]] = {
-            label: [] for label in _COMPOSITE_GRID_ROW_LABELS
-        }
+        label_blocks_by_text: dict[str, list[PDFBlock]] = {label: [] for label in _COMPOSITE_GRID_ROW_LABELS}
         for block in blocks:
             normalized = _normalized_block_text(block.text)
             if normalized in label_blocks_by_text:
@@ -232,12 +228,14 @@ def _augment_table_regions_with_composite_grids(
         overlapping_detected_tables = [
             bbox
             for bbox in table_bboxes_by_page.get(page, [])
-            if len(bbox) == 4
-            and float(bbox[1]) <= label_bottom + 0.05
-            and float(bbox[3]) >= label_top - 0.05
+            if len(bbox) == 4 and float(bbox[1]) <= label_bottom + 0.05 and float(bbox[3]) >= label_top - 0.05
         ]
         region_bottom = max(
-            [label_bottom, *(block.y1 for block in numeric_cells), *(float(bbox[3]) for bbox in overlapping_detected_tables)]
+            [
+                label_bottom,
+                *(block.y1 for block in numeric_cells),
+                *(float(bbox[3]) for bbox in overlapping_detected_tables),
+            ]
         )
         composite_bbox = [0.0, max(0.0, caption.y0), 1.0, min(1.0, region_bottom + 0.005)]
         table_bboxes_by_page.setdefault(page, []).append(composite_bbox)
@@ -347,7 +345,9 @@ def _extract_docling_page_blocks(
                     continue
                 label = str(getattr(item, "label", "") or "").lower()
                 item_provs = [
-                    prov for prov in list(getattr(item, "prov", []) or []) if int(getattr(prov, "page_no", 0) or 0) == page
+                    prov
+                    for prov in list(getattr(item, "prov", []) or [])
+                    if int(getattr(prov, "page_no", 0) or 0) == page
                 ]
                 if not item_provs:
                     continue

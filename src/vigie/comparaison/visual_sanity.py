@@ -82,6 +82,7 @@ def _default_meta(
         "visual_sanity_render_status": render_status,
     }
 
+
 def render_visual_sanity_proof(
     pdf_path: str | None,
     *,
@@ -363,14 +364,12 @@ def visual_sanity_check(
     filtered_added = [
         entry
         for entry in list(technical_diff.get("indicators_added", []) or [])
-        if _build_item_id("indicator_added", str(entry.get("value", "") or "").strip())
-        not in rejected
+        if _build_item_id("indicator_added", str(entry.get("value", "") or "").strip()) not in rejected
     ]
     filtered_removed = [
         entry
         for entry in list(technical_diff.get("indicators_removed", []) or [])
-        if _build_item_id("indicator_removed", str(entry.get("value", "") or "").strip())
-        not in rejected
+        if _build_item_id("indicator_removed", str(entry.get("value", "") or "").strip()) not in rejected
     ]
     filtered_renamed = [
         entry
@@ -426,14 +425,18 @@ def visual_sanity_check(
     }
     updated_diff["table_level_change"] = recompute_table_level_change(updated_diff)
 
-    rejected_count = max(0, len(items) - (
-        len(filtered_added)
-        + len(filtered_removed)
-        + len(filtered_renamed)
-        + len(filtered_fn_added)
-        + len(filtered_fn_removed)
-        + len(filtered_fn_renamed)
-    ))
+    rejected_count = max(
+        0,
+        len(items)
+        - (
+            len(filtered_added)
+            + len(filtered_removed)
+            + len(filtered_renamed)
+            + len(filtered_fn_added)
+            + len(filtered_fn_removed)
+            + len(filtered_fn_renamed)
+        ),
+    )
     if rejected_count:
         logger.info(
             "Visual sanity check: rejected %d false-positive change(s).",

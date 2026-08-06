@@ -102,10 +102,13 @@ def _run_pipeline_indicateurs(
     from vigie.pipelines.indicateurs import main as indicateurs_main
 
     argv = [
-        "--banque", banque,
-        "--annee", str(annee),
+        "--banque",
+        banque,
+        "--annee",
+        str(annee),
         f"--{trimestre}",
-        "--sortie", out_root,
+        "--sortie",
+        out_root,
     ]
     if sans_extraction:
         argv.append("--sans-extraction")
@@ -127,10 +130,13 @@ def _run_pipeline_texte(
     from vigie.pipelines.texte import main as texte_main
 
     argv = [
-        "--banque", banque,
-        "--annee", str(annee),
+        "--banque",
+        banque,
+        "--annee",
+        str(annee),
         f"--{trimestre}",
-        "--sortie", out_root,
+        "--sortie",
+        out_root,
     ]
     if sans_comparaison:
         argv.append("--sans-comparaison")
@@ -226,10 +232,7 @@ def main(argv: list[str] | None = None) -> int:
     print(f"  Resultats    : {out_root}/")
     print("=" * 70)
 
-    has_failure = any(
-        s.startswith("ECHEC") or s.startswith("ERREUR")
-        for s in resultats.values()
-    )
+    has_failure = any(s.startswith("ECHEC") or s.startswith("ERREUR") for s in resultats.values())
     return 1 if has_failure else 0
 
 

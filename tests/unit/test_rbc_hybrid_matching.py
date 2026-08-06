@@ -248,11 +248,19 @@ def test_clean_title_for_bank_rbc_only() -> None:
     from vigie.comparaison.io import _clean_title_for_bank
 
     # For RBC: strips "Tableau XX" suffixes
-    assert _clean_title_for_bank("Charges grevant les actifs Tableau 54", bank_code="RBC") == "Charges grevant les actifs"
+    assert (
+        _clean_title_for_bank("Charges grevant les actifs Tableau 54", bank_code="RBC") == "Charges grevant les actifs"
+    )
     assert _clean_title_for_bank("Notations Tableau 58", bank_code="rbc") == "Notations"
     assert _clean_title_for_bank("Échéances contractuelles Tableau 62", bank_code="RBC") == "Échéances contractuelles"
 
     # For other banks (BMO, TD, BNC, BNS, CIBC): preserves exact title
-    assert _clean_title_for_bank("Charges grevant les actifs Tableau 54", bank_code="BMO") == "Charges grevant les actifs Tableau 54"
+    assert (
+        _clean_title_for_bank("Charges grevant les actifs Tableau 54", bank_code="BMO")
+        == "Charges grevant les actifs Tableau 54"
+    )
     assert _clean_title_for_bank("Notations Tableau 58", bank_code="TD") == "Notations Tableau 58"
-    assert _clean_title_for_bank("Échéances contractuelles Tableau 62", bank_code="BNC") == "Échéances contractuelles Tableau 62"
+    assert (
+        _clean_title_for_bank("Échéances contractuelles Tableau 62", bank_code="BNC")
+        == "Échéances contractuelles Tableau 62"
+    )

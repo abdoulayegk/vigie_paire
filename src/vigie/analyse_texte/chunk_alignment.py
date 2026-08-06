@@ -158,17 +158,12 @@ def _tfidf_similarity_matrix_from_texts(texts: list[str]) -> list[list[float]]:
             raise
         return [[0.0 for _ in texts] for _ in texts]
     similarities = cosine_similarity(vectors)
-    return [
-        [_clamp_similarity_score(score) for score in row]
-        for row in similarities.tolist()
-    ]
+    return [[_clamp_similarity_score(score) for score in row] for row in similarities.tolist()]
 
 
 def _tfidf_similarity_matrix(chunks: list[TextChunk]) -> list[list[float]]:
     """Calcule une matrice cosine TF-IDF locale pour des chunks."""
-    return _tfidf_similarity_matrix_from_texts(
-        [atomic_similarity_text(chunk) for chunk in chunks]
-    )
+    return _tfidf_similarity_matrix_from_texts([atomic_similarity_text(chunk) for chunk in chunks])
 
 
 def _candidate_lookup(
@@ -241,10 +236,7 @@ def _embedding_similarity_matrix(
         return []
     embeddings = _embed_texts(
         client,
-        [
-            _truncate_for_embedding(atomic_similarity_text(chunk))
-            for chunk in chunks
-        ],
+        [_truncate_for_embedding(atomic_similarity_text(chunk)) for chunk in chunks],
         model=embedding_model,
     )
     matrix: list[list[float]] = []
@@ -345,10 +337,7 @@ def _signals_agree_on_best(
         return True
     if best_forward.tfidf_score >= _STRONG_THRESHOLD and best_forward.embedding_score <= 0.0:
         return True
-    if (
-        best_forward.tfidf_score >= _WEAK_THRESHOLD
-        and best_forward.embedding_score >= _EMBEDDING_STRONG_THRESHOLD
-    ):
+    if best_forward.tfidf_score >= _WEAK_THRESHOLD and best_forward.embedding_score >= _EMBEDDING_STRONG_THRESHOLD:
         return True
     return best_forward.tfidf_score >= _STRONG_THRESHOLD or best_forward.embedding_score >= _EMBEDDING_STRONG_THRESHOLD
 
@@ -372,9 +361,7 @@ def _hybrid_alignment_type(
     strong_embedding = embedding_score >= _EMBEDDING_STRONG_THRESHOLD
     strong_tfidf = tfidf_score >= _STRONG_THRESHOLD
     # Boilerplate proche avec faits chiffrés distincts: laisser GPT trancher.
-    if _numeric_fact_tokens(atomic_similarity_text(chunk_t1)) != _numeric_fact_tokens(
-        atomic_similarity_text(chunk_t2)
-    ):
+    if _numeric_fact_tokens(atomic_similarity_text(chunk_t1)) != _numeric_fact_tokens(atomic_similarity_text(chunk_t2)):
         if hybrid_score >= _WEAK_THRESHOLD:
             return "ambiguous"
     if (
@@ -431,16 +418,10 @@ def _group_adjacent_chunks(chunks: list[TextChunk]) -> TextChunk:
         subsection_heading=first.subsection_heading,
         hierarchy_path=first.hierarchy_path,
         order=first.order,
-        comparison_text=" ".join(
-            atomic_similarity_text(chunk)
-            for chunk in ordered
-            if atomic_similarity_text(chunk)
-        ),
+        comparison_text=" ".join(atomic_similarity_text(chunk) for chunk in ordered if atomic_similarity_text(chunk)),
         unit_role="grouped",
         parent_chunk_id=(
-            first.parent_chunk_id
-            if all(chunk.parent_chunk_id == first.parent_chunk_id for chunk in ordered)
-            else None
+            first.parent_chunk_id if all(chunk.parent_chunk_id == first.parent_chunk_id for chunk in ordered) else None
         ),
         parent_context=first.parent_context,
     )
@@ -655,7 +636,9 @@ def _align_chunks_tfidf(
     alignments = _reassemble_adjacent_one_to_many(alignments)
     alignments.sort(
         key=lambda alignment: (
-            alignment.chunk_t2.order if alignment.chunk_t2 else 10_000 + (alignment.chunk_t1.order if alignment.chunk_t1 else 0),
+            alignment.chunk_t2.order
+            if alignment.chunk_t2
+            else 10_000 + (alignment.chunk_t1.order if alignment.chunk_t1 else 0),
             alignment.chunk_t1.order if alignment.chunk_t1 else 10_000,
         )
     )
@@ -732,9 +715,7 @@ def _align_chunks_hybrid(
     candidates_t2_to_t1 = _merge_candidate_lookups(tfidf_t2_to_t1, embedding_t2_to_t1, top_k=top_k)
     candidates_t1_to_t2 = _merge_candidate_lookups(tfidf_t1_to_t2, embedding_t1_to_t2, top_k=top_k)
 
-    scored_pairs: list[
-        tuple[float, float, float, bool, int, TextChunk, TextChunk]
-    ] = []
+    scored_pairs: list[tuple[float, float, float, bool, int, TextChunk, TextChunk]] = []
     for index_t1, chunk_t1 in enumerate(chunks_t1):
         for index_t2, chunk_t2 in enumerate(chunks_t2):
             if not atomic_roles_compatible(chunk_t1, chunk_t2):
@@ -872,7 +853,9 @@ def _align_chunks_hybrid(
     alignments = _reassemble_adjacent_one_to_many(alignments)
     alignments.sort(
         key=lambda alignment: (
-            alignment.chunk_t2.order if alignment.chunk_t2 else 10_000 + (alignment.chunk_t1.order if alignment.chunk_t1 else 0),
+            alignment.chunk_t2.order
+            if alignment.chunk_t2
+            else 10_000 + (alignment.chunk_t1.order if alignment.chunk_t1 else 0),
             alignment.chunk_t1.order if alignment.chunk_t1 else 10_000,
         )
     )
@@ -903,7 +886,7 @@ def _format_candidate_lines(
     for index, candidate in enumerate(candidates[:limit]):
         is_full = index < full_limit
         path = f" | {candidate.target_chunk.hierarchy_path}" if candidate.target_chunk.hierarchy_path else ""
-        mode = "complet" if is_full else f"extrait { _CANDIDATE_EXCERPT_CHARS } caractères"
+        mode = "complet" if is_full else f"extrait {_CANDIDATE_EXCERPT_CHARS} caractères"
         lines.append(
             "\n".join(
                 [

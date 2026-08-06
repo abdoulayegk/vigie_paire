@@ -81,9 +81,7 @@ def _devil_advocate_review(
         et ``contested_pairs``.
     """
     if not tables_added_cards and not tables_removed_cards and not low_confidence_pairs:
-        logger.info(
-            "Devil's Advocate: nothing to review (all matched with high confidence)"
-        )
+        logger.info("Devil's Advocate: nothing to review (all matched with high confidence)")
         return {
             "new_matches": [],
             "confirmed_low_confidence": [],

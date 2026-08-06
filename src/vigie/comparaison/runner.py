@@ -74,16 +74,12 @@ def _extract_metrics_from_tables(
         if dm.get("vision_max_completion_tokens_rescue_used"):
             metrics["vision_rescue_total"] += 1
         metrics["prompt_tokens_total"] += _coerce_int(dm.get("vision_prompt_tokens"))
-        metrics["completion_tokens_total"] += _coerce_int(
-            dm.get("vision_completion_tokens")
-        )
+        metrics["completion_tokens_total"] += _coerce_int(dm.get("vision_completion_tokens"))
         metrics["total_tokens_total"] += _coerce_int(dm.get("vision_total_tokens"))
         if not model_name:
             model_name = str(dm.get("vision_model", "") or "").strip()
     if metrics["total_tokens_total"] == 0:
-        metrics["total_tokens_total"] = (
-            metrics["prompt_tokens_total"] + metrics["completion_tokens_total"]
-        )
+        metrics["total_tokens_total"] = metrics["prompt_tokens_total"] + metrics["completion_tokens_total"]
     metrics["estimated_cost_usd"] = estimate_openai_cost_usd(
         model_name,
         prompt_tokens=metrics["prompt_tokens_total"],
@@ -131,9 +127,7 @@ def _build_section_ranges(sections: Any, quarter: str = "") -> list[dict[str, An
         end = int(entry.get("end_page", start) or start)
         if start <= 0 or end < start:
             continue
-        section = str(
-            entry.get("section") or entry.get("type") or entry.get("section_key") or ""
-        ).strip()
+        section = str(entry.get("section") or entry.get("type") or entry.get("section_key") or "").strip()
         section = canonicalize_section(section) or "unknown_section"
         ranges.append({"section": section, "start": start, "end": end})
     if _is_t4(quarter):
@@ -162,12 +156,8 @@ def _resolve_pdf_input_path(value: Any, *, label: str) -> str:
     """Valider et resoudre un chemin PDF fourni par l'utilisateur."""
     raw = str(value or "").strip()
     if not raw:
-        logger.warning(
-            "[run_comparison_with_sections] missing_pdf_path label=%s", label
-        )
-        raise ValueError(
-            f"{label} introuvable. Veuillez recharger le PDF avant l'analyse."
-        )
+        logger.warning("[run_comparison_with_sections] missing_pdf_path label=%s", label)
+        raise ValueError(f"{label} introuvable. Veuillez recharger le PDF avant l'analyse.")
     path = Path(raw)
     if not path.exists() or not path.is_file():
         logger.warning(
@@ -211,9 +201,7 @@ def _extract_tables(
             tables = list(payload.get("tables", []) or [])
             mode = "stored"
             extraction_metrics = _empty_extraction_metrics(mode=mode)
-            extraction_metrics["runtime_sec"] = round(
-                max(0.0, time.monotonic() - extraction_started_at), 3
-            )
+            extraction_metrics["runtime_sec"] = round(max(0.0, time.monotonic() - extraction_started_at), 3)
             extraction_metrics["tables_total"] = len(tables)
         else:
             logger.info(
@@ -252,9 +240,7 @@ def _extract_tables(
         extraction_metrics = _empty_extraction_metrics(mode=mode)
     if mode == "stored" and "extraction_metrics" not in locals():
         extraction_metrics = _empty_extraction_metrics(mode=mode)
-        extraction_metrics["runtime_sec"] = round(
-            max(0.0, time.monotonic() - extraction_started_at), 3
-        )
+        extraction_metrics["runtime_sec"] = round(max(0.0, time.monotonic() - extraction_started_at), 3)
         extraction_metrics["tables_total"] = len(tables)
 
     provenance = {
@@ -298,9 +284,7 @@ def _empty_result(
     payload["meta"]["extraction_sources"] = {
         "previous": {
             "mode": "unknown",
-            "quarter": str(
-                (quarter_context or {}).get("previous", {}).get("code") or ""
-            ),
+            "quarter": str((quarter_context or {}).get("previous", {}).get("code") or ""),
             "artifacts_present": {
                 "tables": False,
                 "indicators": False,
@@ -309,9 +293,7 @@ def _empty_result(
         },
         "current": {
             "mode": "unknown",
-            "quarter": str(
-                (quarter_context or {}).get("current", {}).get("code") or ""
-            ),
+            "quarter": str((quarter_context or {}).get("current", {}).get("code") or ""),
             "artifacts_present": {
                 "tables": False,
                 "indicators": False,
@@ -398,23 +380,17 @@ def run_comparison_with_sections(
     if api_key:
         os.environ["OPENAI_API_KEY"] = str(api_key).strip()
     if use_genai and not get_openai_api_key():
-        raise RuntimeError(
-            "OPENAI_API_KEY absente. Ajouter la clé dans .env avant de lancer l'analyse."
-        )
+        raise RuntimeError("OPENAI_API_KEY absente. Ajouter la clé dans .env avant de lancer l'analyse.")
 
     current_quarter_value = current_quarter or "T2"
-    current_year_value = int(
-        current_year or _extract_year(current_quarter_value) or datetime.now().year
-    )
+    current_year_value = int(current_year or _extract_year(current_quarter_value) or datetime.now().year)
     current_quarter_code = normalize_quarter(current_quarter_value)
     resolved_previous_year, resolved_previous_quarter_code = resolve_reference_period(
         current_year_value,
         current_quarter_code,
     )
     previous_year_value = int(previous_year or resolved_previous_year)
-    previous_quarter_code = normalize_quarter(
-        previous_quarter or resolved_previous_quarter_code
-    )
+    previous_quarter_code = normalize_quarter(previous_quarter or resolved_previous_quarter_code)
 
     if previous_year is None or previous_quarter is None:
         previous_year_value = resolved_previous_year
@@ -437,12 +413,8 @@ def run_comparison_with_sections(
         "comparison_label": f"{current_label} vs {previous_label}",
     }
 
-    previous_sections_value = (
-        sections_previous if sections_previous is not None else sections_t1
-    )
-    current_sections_value = (
-        sections_current if sections_current is not None else sections_t2
-    )
+    previous_sections_value = sections_previous if sections_previous is not None else sections_t1
+    current_sections_value = sections_current if sections_current is not None else sections_t2
     if not previous_sections_value or not current_sections_value:
         return _empty_result(
             bank_code,
@@ -472,9 +444,7 @@ def run_comparison_with_sections(
         use_stored_extraction_if_available=use_stored_extraction_if_available,
         return_provenance=True,
     )
-    extraction_runtime_sec = round(
-        max(0.0, time.monotonic() - extraction_started_at), 3
-    )
+    extraction_runtime_sec = round(max(0.0, time.monotonic() - extraction_started_at), 3)
 
     comparison_path = compare_reports_gpt4o(
         previous_dir=Path(previous_provenance["artifact_dir"]),

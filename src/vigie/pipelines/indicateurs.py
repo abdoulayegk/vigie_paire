@@ -232,9 +232,7 @@ def main(argv: list[str] | None = None) -> int:
 
     comparison_root = project_root / args.sortie
     comparison_dir = (
-        comparison_root
-        / bank.lower()
-        / f"{year_current}_{q_current.lower()}_vs_{year_previous}_{q_previous.lower()}"
+        comparison_root / bank.lower() / f"{year_current}_{q_current.lower()}_vs_{year_previous}_{q_previous.lower()}"
     )
 
     cur_extraction_dir = extraction_root / bank.lower() / str(year_current) / q_current

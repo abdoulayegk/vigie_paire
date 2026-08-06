@@ -76,17 +76,13 @@ def render_results(comparison, indicator, show_results):
     data = indicator if indicator else comparison
     if comparison:
         bank = comparison.get("bank_code", "N/A")
-        title = comparison.get(
-            "comparison", comparison.get("comparison_date", "Comparaison")
-        )
+        title = comparison.get("comparison", comparison.get("comparison_date", "Comparaison"))
     elif indicator:
         bank = indicator.get("bank_code", "N/A")
         title = "Indicateurs"
     previous_label = quarter_label_from_payload(data if isinstance(data, dict) else {}, "previous")
     current_label = quarter_label_from_payload(data if isinstance(data, dict) else {}, "current")
-    header = html.H5(
-        f"{str(bank).upper()} - {title} - {current_label} vs {previous_label}"
-    )
+    header = html.H5(f"{str(bank).upper()} - {title} - {current_label} vs {previous_label}")
 
     executive_summary = html.Div()
 
@@ -98,26 +94,14 @@ def render_results(comparison, indicator, show_results):
         tables_added = indicator.get("tables_added", []) or []
 
         notes_added = sum(_footnote_change_counts(comp)["added"] for comp in comparisons)
-        notes_removed = sum(
-            _footnote_change_counts(comp)["removed"] for comp in comparisons
-        )
-        notes_modified = sum(
-            _footnote_change_counts(comp)["modified"] for comp in comparisons
-        )
+        notes_removed = sum(_footnote_change_counts(comp)["removed"] for comp in comparisons)
+        notes_modified = sum(_footnote_change_counts(comp)["modified"] for comp in comparisons)
         notes_total = notes_added + notes_removed + notes_modified
         high_priority_tables = sum(
-            1
-            for comp in comparisons
-            if _comparison_has_changes(comp) and _is_high_priority_item(comp)
-        ) + sum(
-            1
-            for table in [*tables_added, *tables_removed]
-            if _is_high_priority_item(table)
-        )
+            1 for comp in comparisons if _comparison_has_changes(comp) and _is_high_priority_item(comp)
+        ) + sum(1 for table in [*tables_added, *tables_removed] if _is_high_priority_item(table))
         low_confidence_tables = sum(
-            1
-            for comp in comparisons
-            if _comparison_has_changes(comp) and _is_low_confidence_comparison(comp)
+            1 for comp in comparisons if _comparison_has_changes(comp) and _is_low_confidence_comparison(comp)
         )
 
         top_kpi_cards = [
@@ -329,21 +313,15 @@ def render_secondary_kpis(indicator_result, validation_duration_sec):
 
     # Sum indicators
     total_added = sum(len(c.get("added_indicators", [])) for c in tables_with_changes)
-    total_removed = sum(
-        len(c.get("removed_indicators", [])) for c in tables_with_changes
-    )
+    total_removed = sum(len(c.get("removed_indicators", [])) for c in tables_with_changes)
 
-    header_text = (
-        f"Differences d'indicateurs ({n_tables} {t('tables')} avec changements)"
-    )
+    header_text = f"Differences d'indicateurs ({n_tables} {t('tables')} avec changements)"
 
     return (
         header_text,
         _build_kpi_card(t("kpi_removed"), total_removed, delta_icon=None),
         _build_kpi_card(t("kpi_added"), total_added, delta_icon=None),
-        _build_kpi_card(
-            t("validation_time"), _format_duration(validation_duration_sec)
-        ),
+        _build_kpi_card(t("validation_time"), _format_duration(validation_duration_sec)),
     )
 
 
@@ -425,9 +403,7 @@ def render_sections_tab(indicator_result, show_results):
     return dbc.Accordion(
         accordion_items,
         id="sections-accordion",
-        active_item=active_items[:3]
-        if active_items
-        else None,  # Expand first 3 with changes
+        active_item=active_items[:3] if active_items else None,  # Expand first 3 with changes
         always_open=True,
     )
 
@@ -457,12 +433,8 @@ def init_review_items(indicator_result, paths, indicator_meta):
     for key, value in meta_paths.items():
         if value:
             effective_paths[key] = value
-    path_t1 = effective_paths.get("pdf_previous", "") or effective_paths.get(
-        "pdf_t1", ""
-    )
-    path_t2 = effective_paths.get("pdf_current", "") or effective_paths.get(
-        "pdf_t2", ""
-    )
+    path_t1 = effective_paths.get("pdf_previous", "") or effective_paths.get("pdf_t1", "")
+    path_t2 = effective_paths.get("pdf_current", "") or effective_paths.get("pdf_t2", "")
     bank_code = str(indicator_result.get("bank_code", ""))
     quarter_from = quarter_label_from_payload(indicator_result, "previous")
     quarter_to = quarter_label_from_payload(indicator_result, "current")
@@ -509,11 +481,7 @@ def init_review_items(indicator_result, paths, indicator_meta):
     total = len(serialized)
     total_v2 = len(serialized_v2)
     dedup_merged = max(0, total - total_v2)
-    persisted_selection = (
-        persisted_state.get("review_selection")
-        if isinstance(persisted_state, dict)
-        else None
-    )
+    persisted_selection = persisted_state.get("review_selection") if isinstance(persisted_state, dict) else None
     resolved_selection, sel_table_idx, sel_change_idx = _resolve_selection(
         serialized_v2, persisted_selection or {"review_id": None, "change_id": None}
     )
@@ -567,9 +535,7 @@ def render_table_tab(indicator_result, comparison_result, show_results):
             return html.Div("Aucun changement a afficher.", className="text-muted")
         headers = list(rows[0].keys()) if rows else []
         header_row = html.Tr([html.Th(h) for h in headers])
-        body_rows = [
-            html.Tr([html.Td(str(row.get(h, ""))) for h in headers]) for row in rows
-        ]
+        body_rows = [html.Tr([html.Td(str(row.get(h, ""))) for h in headers]) for row in rows]
         return html.Div(
             [
                 html.P(f"{len(rows)} changement(s) detecte(s)", className="mb-2"),
@@ -592,9 +558,7 @@ def render_table_tab(indicator_result, comparison_result, show_results):
             return html.Div("Aucun changement a afficher.", className="text-muted")
         headers = list(rows[0].keys()) if rows else []
         header_row = html.Tr([html.Th(h) for h in headers])
-        body_rows = [
-            html.Tr([html.Td(str(row.get(h, ""))) for h in headers]) for row in rows
-        ]
+        body_rows = [html.Tr([html.Td(str(row.get(h, ""))) for h in headers]) for row in rows]
         return html.Div(
             [
                 html.P(f"{len(rows)} changement(s) detecte(s)", className="mb-2"),
@@ -610,9 +574,7 @@ def render_table_tab(indicator_result, comparison_result, show_results):
     if comparison_result:
         changes = comparison_result.get("changes", [])
         if not changes:
-            return html.Div(
-                "Aucun changement structurel detecte.", className="text-muted"
-            )
+            return html.Div("Aucun changement structurel detecte.", className="text-muted")
         flat = []
         for c in changes:
             for ind in c.get("rows_added", []):
@@ -644,9 +606,7 @@ def render_table_tab(indicator_result, comparison_result, show_results):
             ]
         headers = list(flat[0].keys()) if flat else []
         header_row = html.Tr([html.Th(h) for h in headers])
-        body_rows = [
-            html.Tr([html.Td(str(r.get(h, ""))) for h in headers]) for r in flat
-        ]
+        body_rows = [html.Tr([html.Td(str(r.get(h, ""))) for h in headers]) for r in flat]
         return html.Div(
             [
                 html.P(f"{len(changes)} changement(s) structurel(s)", className="mb-2"),

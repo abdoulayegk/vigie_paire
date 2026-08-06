@@ -93,7 +93,7 @@ def test_call_vision_structured_soft_fails_on_truncation() -> None:
 
 def test_call_vision_structured_soft_fails_on_invalid_json_exception() -> None:
     detector = GenAITOCDetector(api_key="test-key")
-    parse = MagicMock(side_effect=ValueError('Expecting property name enclosed in double quotes'))
+    parse = MagicMock(side_effect=ValueError("Expecting property name enclosed in double quotes"))
     detector._client = SimpleNamespace(
         beta=SimpleNamespace(chat=SimpleNamespace(completions=SimpleNamespace(parse=parse)))
     )

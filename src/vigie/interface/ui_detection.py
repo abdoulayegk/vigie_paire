@@ -67,9 +67,7 @@ def _fallback_sections(total_pages: int) -> list[dict[str, Any]]:
     ]
 
 
-def _detect_sections_core(
-    pdf_path: str | Path, bank_code: str | None = None
-) -> dict[str, Any]:
+def _detect_sections_core(pdf_path: str | Path, bank_code: str | None = None) -> dict[str, Any]:
     """Detecte les sections cles d'un PDF et retourne des plages adaptees a l'UI."""
     path = str(pdf_path or "").strip()
     if not path:
@@ -83,9 +81,7 @@ def _detect_sections_core(
         mapping = locate_sections_in_pdf(path, bank_code=bank_code, quarter="dash")
         sections: list[dict[str, Any]] = []
         for item in getattr(mapping, "sections", []) or []:
-            section_type = _normalize_section_type(
-                str(getattr(item, "section_type", ""))
-            )
+            section_type = _normalize_section_type(str(getattr(item, "section_type", "")))
             start = int(getattr(item, "start_page", 1) or 1)
             end = int(getattr(item, "end_page", start) or start)
             if end < start:
@@ -104,17 +100,13 @@ def _detect_sections_core(
         sections.sort(key=lambda s: int(s.get("start_page", 0)))
         return {
             "sections": sections,
-            "total_pages": int(
-                getattr(mapping, "total_pages", total_pages) or total_pages
-            ),
+            "total_pages": int(getattr(mapping, "total_pages", total_pages) or total_pages),
         }
     except Exception:
         return {"sections": _fallback_sections(total_pages), "total_pages": total_pages}
 
 
-def get_pdf_preview(
-    pdf_path: str | Path, page: int, scale: float = 1.5
-) -> bytes | None:
+def get_pdf_preview(pdf_path: str | Path, page: int, scale: float = 1.5) -> bytes | None:
     """Rend une page PDF sous forme de bytes pour affichage en ligne.
 
     Args:

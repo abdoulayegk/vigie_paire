@@ -31,9 +31,7 @@ def test_write_text_comparison_normalizes_legacy_justification_and_segments(
                             "impact_level": "MAJEUR",
                             "nouvelle_idee": True,
                             "action_requise": "revue_prioritaire",
-                            "nouvelle_idee_justification": (
-                                "OUI - retrait important à suivre par l'analyste."
-                            ),
+                            "nouvelle_idee_justification": ("OUI - retrait important à suivre par l'analyste."),
                         },
                     }
                 ],
@@ -87,12 +85,8 @@ def test_write_text_comparison_clears_non_relevant_segments(tmp_path: Path) -> N
                             "impact_level": "MINEUR",
                             "nouvelle_idee": False,
                             "action_requise": "aucune",
-                            "nouvelle_idee_justification": (
-                                "NON - mise à jour quantitative seulement."
-                            ),
-                            "change_segments": [
-                                {"kind": "modified", "text_t1": "100 %", "text_t2": "101 %"}
-                            ],
+                            "nouvelle_idee_justification": ("NON - mise à jour quantitative seulement."),
+                            "change_segments": [{"kind": "modified", "text_t1": "100 %", "text_t2": "101 %"}],
                         },
                     }
                 ],

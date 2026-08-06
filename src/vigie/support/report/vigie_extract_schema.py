@@ -204,14 +204,7 @@ def _extract_note_refs(label: str) -> tuple[str, list[str]]:
 
     for m in _NOTE_REF_RE.finditer(cleaned):
         # Find which group matched (groups 1-6)
-        ref = (
-            m.group(1)
-            or m.group(2)
-            or m.group(3)
-            or m.group(4)
-            or m.group(5)
-            or m.group(6)
-        )
+        ref = m.group(1) or m.group(2) or m.group(3) or m.group(4) or m.group(5) or m.group(6)
         if ref:
             # Normalize superscript digits to regular digits
             if m.group(2):  # superscript group
@@ -326,10 +319,13 @@ def compute_features(first_column: list[FirstColumnEntry]) -> TableFeatures:
     """
     norms = sorted(entry["text_norm"] for entry in first_column if entry["text_norm"])
     hash_input = "|".join(norms)
-    indicator_hash = "sha1:" + hashlib.sha1(
-        hash_input.encode("utf-8"),
-        usedforsecurity=False,
-    ).hexdigest()
+    indicator_hash = (
+        "sha1:"
+        + hashlib.sha1(
+            hash_input.encode("utf-8"),
+            usedforsecurity=False,
+        ).hexdigest()
+    )
     return TableFeatures(
         n_indicators=len(first_column),
         indicator_set_hash=indicator_hash,
@@ -576,9 +572,7 @@ def load_artifacts_from_vigie_extract(
     for slug, section_data in sections.items():
         canonical = _slug_to_canonical(slug)
         for table in section_data.get("tables", []):
-            indicators = [
-                entry.get("text", "") for entry in table.get("first_column", [])
-            ]
+            indicators = [entry.get("text", "") for entry in table.get("first_column", [])]
             artifacts.append(
                 TableArtifact(
                     bank_code=bank_code,
@@ -603,16 +597,9 @@ def load_artifacts_from_vigie_extract(
                         for item in table.get("footnotes", [])
                         if str(item.get("text", "") or "").strip()
                     ],
-                    content_source=str(
-                        table.get("content_source") or VISION_CONTENT_SOURCE
-                    ),
-                    extraction_status=(
-                        str(table.get("extraction_status") or "").strip()
-                        or TABLE_EXTRACTION_STATUS_OK
-                    ),
-                    comparison_eligible=bool(
-                        table.get("comparison_eligible", bool(indicators))
-                    ),
+                    content_source=str(table.get("content_source") or VISION_CONTENT_SOURCE),
+                    extraction_status=(str(table.get("extraction_status") or "").strip() or TABLE_EXTRACTION_STATUS_OK),
+                    comparison_eligible=bool(table.get("comparison_eligible", bool(indicators))),
                     comparison_blockers=list(table.get("comparison_blockers") or []),
                 )
             )

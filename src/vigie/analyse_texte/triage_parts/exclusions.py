@@ -30,6 +30,7 @@ from .themes import _normalize_for_cosmetic
 def _is_semantic_text_move(change: dict[str, Any]) -> bool:
     return str(change.get("alignment_decision") or "").strip().lower() == "moved_text"
 
+
 def _sequence_ratio(left: str, right: str) -> float:
     left_norm = _normalize_for_cosmetic(left)
     right_norm = _normalize_for_cosmetic(right)
@@ -163,19 +164,14 @@ def _deterministic_bank_specific_exclusion(change: dict[str, Any]) -> str | None
     # Keep true methodology changes for analyst review — but only when no
     # bank operation already matched above.
     if text_t1.strip() and text_t2.strip():
-        if _has_methodology_signal(text_t1, text_t2) and not _BANK_OPERATION_RE.search(
-            combined
-        ):
+        if _has_methodology_signal(text_t1, text_t2) and not _BANK_OPERATION_RE.search(combined):
             return None
         if _has_new_regulatory_substance(text_t1, text_t2):
             masked_ratio = _sequence_ratio(
                 _mask_volatile_tokens(text_t1),
                 _mask_volatile_tokens(text_t2),
             )
-            if (
-                masked_ratio < _BANK_NOISE_SEQUENCE_THRESHOLD
-                and not _BANK_OPERATION_RE.search(combined)
-            ):
+            if masked_ratio < _BANK_NOISE_SEQUENCE_THRESHOLD and not _BANK_OPERATION_RE.search(combined):
                 return None
 
     if diff_type not in {"modified", "unchanged"}:

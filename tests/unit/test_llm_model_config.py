@@ -25,24 +25,18 @@ def test_llm_model_config_defaults_when_config_path_is_none() -> None:
 def test_resolve_openai_model_uses_yaml_when_present(tmp_path) -> None:
     cfg_path = tmp_path / "bank_profiles.yaml"
     cfg_path.write_text(
-        "llm_models:\n"
-        "  extraction_primary: gpt-5.4-mini\n"
-        "  default_genai: gpt-4.1\n",
+        "llm_models:\n  extraction_primary: gpt-5.4-mini\n  default_genai: gpt-4.1\n",
         encoding="utf-8",
     )
 
-    assert (
-        resolve_openai_model("extraction_primary", config_path=cfg_path)
-        == "gpt-5.4-mini"
-    )
+    assert resolve_openai_model("extraction_primary", config_path=cfg_path) == "gpt-5.4-mini"
     assert resolve_openai_model("default_genai", config_path=cfg_path) == "gpt-4.1"
 
 
 def test_resolve_openai_model_env_override_wins(monkeypatch, tmp_path) -> None:
     cfg_path = tmp_path / "bank_profiles.yaml"
     cfg_path.write_text(
-        "llm_models:\n"
-        "  extraction_primary: gpt-5.4-mini\n",
+        "llm_models:\n  extraction_primary: gpt-5.4-mini\n",
         encoding="utf-8",
     )
     monkeypatch.setenv("OPENAI_MODEL_EXTRACTION_PRIMARY", "gpt-5.4")

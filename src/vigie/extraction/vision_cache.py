@@ -77,10 +77,7 @@ def make_cache_key(
     if not bbox_norm or len(bbox_norm) != 4:
         return ""
     rounded = [round(float(v), 4) for v in bbox_norm[:4]]
-    key = (
-        f"{_VISION_CACHE_VERSION}_{pdf_sha}_{page_number}_"
-        f"{rounded[0]}_{rounded[1]}_{rounded[2]}_{rounded[3]}"
-    )
+    key = f"{_VISION_CACHE_VERSION}_{pdf_sha}_{page_number}_{rounded[0]}_{rounded[1]}_{rounded[2]}_{rounded[3]}"
     if max_completion_tokens is not None:
         key += f"_mt{int(max_completion_tokens)}"
     return key
@@ -116,19 +113,11 @@ def cache_put(cache_dir: str, key: str, payload: dict) -> None:
         key: Cle de cache.
         payload: Dictionnaire a persister.
     """
-    if (
-        not key
-        or not isinstance(payload, dict)
-        or ".." in key
-        or "/" in key
-        or "\\" in key
-    ):
+    if not key or not isinstance(payload, dict) or ".." in key or "/" in key or "\\" in key:
         return
     path = Path(cache_dir) / f"{key}.json"
     path.parent.mkdir(parents=True, exist_ok=True)
     try:
-        path.write_text(
-            json.dumps(payload, ensure_ascii=False, indent=None), encoding="utf-8"
-        )
+        path.write_text(json.dumps(payload, ensure_ascii=False, indent=None), encoding="utf-8")
     except Exception as e:
         logger.debug("Vision cache put failed: %s", e)

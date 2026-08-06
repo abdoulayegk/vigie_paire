@@ -19,6 +19,7 @@ from .analyst_copy import _secondary_analyst_justification, _semantic_reason_pay
 from .constants import _FULL_EVIDENCE_FACT_MAX_TOKENS, _FULL_EVIDENCE_PACKET_LIMIT
 from .results import _default_triage
 
+
 class _EvidencePacketObservation(BaseModel):
     """Constat factuel unique pour le paquet T1/T2 fourni dans l'appel."""
 
@@ -155,10 +156,7 @@ def _collect_full_evidence_observations(
                 f"change_index={change_index if change_index is not None else 'inconnu'}",
                 f"packet_index={packet['packet_index']}",
             ]
-            raise RuntimeError(
-                "Lecture de preuve complète invalide "
-                f"[{', '.join(context_parts)}] : {exc}"
-            ) from exc
+            raise RuntimeError(f"Lecture de preuve complète invalide [{', '.join(context_parts)}] : {exc}") from exc
         observations.append(
             {
                 "packet_index": packet["packet_index"],
@@ -179,8 +177,7 @@ def _evidence_read_review_triage(
     analyst_copy = _semantic_reason_payload(
         is_relevant=False,
         changement_constate=(
-            f"{bank_subject} présente un changement dont la preuve complète "
-            "n’a pas pu être validée automatiquement."
+            f"{bank_subject} présente un changement dont la preuve complète n’a pas pu être validée automatiquement."
         ),
         motif_non_pertinence=(
             "Le dossier est conservé avec ses textes sources et ses pages afin "
@@ -197,9 +194,7 @@ def _evidence_read_review_triage(
             "nouvelle_idee_justification": _secondary_analyst_justification(
                 subject_label="Preuve complète à confirmer",
                 analyst_copy=analyst_copy,
-                surveillance_note=(
-                    "Un analyste doit confirmer la lecture de la preuve avant diffusion."
-                ),
+                surveillance_note=("Un analyste doit confirmer la lecture de la preuve avant diffusion."),
             ),
             "change_segments": build_change_segments(change),
         }

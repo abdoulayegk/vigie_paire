@@ -41,9 +41,7 @@ def _coerce_text_to_chunk(text: str, chunk: TextChunk | None) -> str | None:
     return None
 
 
-_SEMANTIC_ALIGNMENT_DECISIONS = frozenset(
-    {"same_disclosure", "distinct_disclosures", "moved_text", "uncertain"}
-)
+_SEMANTIC_ALIGNMENT_DECISIONS = frozenset({"same_disclosure", "distinct_disclosures", "moved_text", "uncertain"})
 
 
 def _resolved_alignment_decision(change: dict[str, Any], alignment: ChunkAlignment) -> str:
@@ -107,9 +105,7 @@ def _attach_alignment_metadata(
                 "evidence_t1": {"pages": [], "snippet": text_t1[:400]},
                 "evidence_t2": {"pages": [], "snippet": text_t2[:400]},
                 "alignment_decision": alignment_decision,
-                "alignment_confidence": _resolved_alignment_confidence(
-                    scoped_change, alignment_decision
-                ),
+                "alignment_confidence": _resolved_alignment_confidence(scoped_change, alignment_decision),
                 "alignment_rationale": str(scoped_change.get("alignment_rationale") or "").strip(),
                 "alignment_reason": alignment.reason,
                 "tfidf_score": alignment.tfidf_score,
@@ -186,9 +182,7 @@ def _materialize_semantic_alignment_decisions(changes: list[dict[str, Any]]) -> 
                 "semantic_text_t2": "",
                 "evidence_t2": {"pages": [], "snippet": ""},
                 "alignment_rationale": rationale_rem,
-                "change_summary": (
-                    f"Divulgation distincte retirée. {rationale_rem or base_summary}".strip()
-                ),
+                "change_summary": (f"Divulgation distincte retirée. {rationale_rem or base_summary}".strip()),
             }
         )
         added = dict(change)
@@ -202,9 +196,7 @@ def _materialize_semantic_alignment_decisions(changes: list[dict[str, Any]]) -> 
                 "semantic_text_t1": "",
                 "evidence_t1": {"pages": [], "snippet": ""},
                 "alignment_rationale": rationale_add,
-                "change_summary": (
-                    f"Divulgation distincte ajoutée. {rationale_add or base_summary}".strip()
-                ),
+                "change_summary": (f"Divulgation distincte ajoutée. {rationale_add or base_summary}".strip()),
             }
         )
         materialized.extend([removed, added])
@@ -244,8 +236,7 @@ def _deduplicate_alignment_changes(changes: list[dict[str, Any]]) -> list[dict[s
             (
                 change
                 for change in group
-                if str(change.get("source_text_t1") or "").strip()
-                and str(change.get("source_text_t2") or "").strip()
+                if str(change.get("source_text_t1") or "").strip() and str(change.get("source_text_t2") or "").strip()
             ),
             group[0],
         )

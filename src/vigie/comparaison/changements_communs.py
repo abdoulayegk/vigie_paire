@@ -26,9 +26,7 @@ logger = logging.getLogger(__name__)
 
 CHANGEMENTS_COMMUNS_SCHEMA_VERSION = 2
 DEFAULT_CHANGEMENTS_COMMUNS_DIR = RESULTATS_DIR / "changements_communs_banques"
-DEFAULT_CHANGEMENTS_COMMUNS_PATH = (
-    DEFAULT_CHANGEMENTS_COMMUNS_DIR / "changements_communs_banques.json"
-)
+DEFAULT_CHANGEMENTS_COMMUNS_PATH = DEFAULT_CHANGEMENTS_COMMUNS_DIR / "changements_communs_banques.json"
 DEFAULT_EMBEDDING_MODEL = "text-embedding-3-small"
 DEFAULT_MAX_CANDIDATES = 160
 DEFAULT_CANDIDATES_PER_DISCOVERY_QUERY = 35
@@ -165,9 +163,7 @@ def collect_changements_communs_records(
     for path in sorted(root.glob("*/*/text_comparison.json")):
         if normalized_period and path.parent.name != normalized_period:
             continue
-        records.extend(
-            _records_from_text_comparison(path, include_unchanged=include_unchanged)
-        )
+        records.extend(_records_from_text_comparison(path, include_unchanged=include_unchanged))
     return records
 
 
@@ -197,11 +193,7 @@ def latest_changements_communs_report_path(
 ) -> Path | None:
     """Return the most recently modified period-scoped report path."""
     root = Path(base_dir) if base_dir else DEFAULT_CHANGEMENTS_COMMUNS_DIR
-    candidates = [
-        path
-        for path in root.glob("*/changements_communs_banques.json")
-        if path.is_file()
-    ]
+    candidates = [path for path in root.glob("*/changements_communs_banques.json") if path.is_file()]
     if not candidates:
         return None
     return max(candidates, key=lambda path: path.stat().st_mtime)
@@ -226,13 +218,9 @@ def build_changements_communs_source_stats(records: list[ChangementCommunRecord]
         posture = record.changement_posture or "INDETERMINE"
         posture_counts[posture] = posture_counts.get(posture, 0) + 1
         implementation = record.statut_mise_en_oeuvre or "INDETERMINE"
-        implementation_counts[implementation] = (
-            implementation_counts.get(implementation, 0) + 1
-        )
+        implementation_counts[implementation] = implementation_counts.get(implementation, 0) + 1
         posture_confidence = record.confiance_posture or "INDETERMINE"
-        posture_confidence_counts[posture_confidence] = (
-            posture_confidence_counts.get(posture_confidence, 0) + 1
-        )
+        posture_confidence_counts[posture_confidence] = posture_confidence_counts.get(posture_confidence, 0) + 1
 
     return {
         "total_changes": len(records),
@@ -245,9 +233,7 @@ def build_changements_communs_source_stats(records: list[ChangementCommunRecord]
         "impact_it_counts": dict(sorted(impact_it_counts.items())),
         "posture_counts": dict(sorted(posture_counts.items())),
         "implementation_counts": dict(sorted(implementation_counts.items())),
-        "posture_confidence_counts": dict(
-            sorted(posture_confidence_counts.items())
-        ),
+        "posture_confidence_counts": dict(sorted(posture_confidence_counts.items())),
     }
 
 
@@ -362,8 +348,7 @@ def generate_changements_communs_report(
         api_key = get_openai_api_key()
         if not api_key:
             raise RuntimeError(
-                "OPENAI_API_KEY absent: la generation LLM des changements "
-                "communs entre banques ne peut pas s'executer."
+                "OPENAI_API_KEY absent: la generation LLM des changements communs entre banques ne peut pas s'executer."
             )
         from openai import OpenAI
 
@@ -507,9 +492,7 @@ def write_changements_communs_report(
     period: str | None = None,
 ) -> Path:
     """Persist a generated common-changes artifact."""
-    report_path = Path(path) if path else changements_communs_output_path(
-        period or report.get("period")
-    )
+    report_path = Path(path) if path else changements_communs_output_path(period or report.get("period"))
     report_path.parent.mkdir(parents=True, exist_ok=True)
     report_path.write_text(
         json.dumps(report, ensure_ascii=False, indent=2),
@@ -569,23 +552,11 @@ def _record_from_block(
     block_t2 = block.get("block_t2") if isinstance(block.get("block_t2"), dict) else {}
 
     text_before = str(
-        block.get("source_text_t1")
-        or block.get("semantic_text_t1")
-        or block_t1.get("text")
-        or ""
+        block.get("source_text_t1") or block.get("semantic_text_t1") or block_t1.get("text") or ""
     ).strip()
-    text_after = str(
-        block.get("source_text_t2")
-        or block.get("semantic_text_t2")
-        or block_t2.get("text")
-        or ""
-    ).strip()
+    text_after = str(block.get("source_text_t2") or block.get("semantic_text_t2") or block_t2.get("text") or "").strip()
     triage = block.get("genai_triage") if isinstance(block.get("genai_triage"), dict) else {}
-    raw_change_summary = str(
-        triage.get("changement_constate")
-        or block.get("change_summary")
-        or ""
-    ).strip()
+    raw_change_summary = str(triage.get("changement_constate") or block.get("change_summary") or "").strip()
     if not any([text_before, text_after, raw_change_summary]):
         return None
     change_summary = build_change_presentation(
@@ -597,21 +568,11 @@ def _record_from_block(
     themes = tuple(str(theme) for theme in triage.get("themes_amf", []) or [])
     impact_level = str(triage.get("impact_level") or block.get("impact_level") or "").strip()
     impact_it = str(triage.get("impact_it") or "INDETERMINE").strip()
-    impact_it_justification = str(
-        triage.get("impact_it_justification") or ""
-    ).strip()
-    changement_posture = str(
-        triage.get("changement_posture") or "INDETERMINE"
-    ).strip()
-    justification_posture = str(
-        triage.get("justification_posture") or ""
-    ).strip()
-    statut_mise_en_oeuvre = str(
-        triage.get("statut_mise_en_oeuvre") or "INDETERMINE"
-    ).strip()
-    confiance_posture = str(
-        triage.get("confiance_posture") or "INDETERMINE"
-    ).strip()
+    impact_it_justification = str(triage.get("impact_it_justification") or "").strip()
+    changement_posture = str(triage.get("changement_posture") or "INDETERMINE").strip()
+    justification_posture = str(triage.get("justification_posture") or "").strip()
+    statut_mise_en_oeuvre = str(triage.get("statut_mise_en_oeuvre") or "INDETERMINE").strip()
+    confiance_posture = str(triage.get("confiance_posture") or "INDETERMINE").strip()
     pages_before = _page_tuple(block.get("pages_t1") or block_t1.get("page"))
     pages_after = _page_tuple(block.get("pages_t2") or block_t2.get("page"))
     subsection = str(block.get("subsection_heading") or "").strip() or "Non classee"
@@ -691,15 +652,9 @@ def _normalize_llm_report(
                 "min_banks_met": min_banks_met,
                 "impact": str(raw_signal.get("impact") or "").strip(),
                 "impact_it": str(raw_signal.get("impact_it") or "").strip(),
-                "posture_summary": str(
-                    raw_signal.get("posture_summary") or ""
-                ).strip(),
-                "mise_en_oeuvre_summary": str(
-                    raw_signal.get("mise_en_oeuvre_summary") or ""
-                ).strip(),
-                "confiance_posture": str(
-                    raw_signal.get("confiance_posture") or ""
-                ).strip(),
+                "posture_summary": str(raw_signal.get("posture_summary") or "").strip(),
+                "mise_en_oeuvre_summary": str(raw_signal.get("mise_en_oeuvre_summary") or "").strip(),
+                "confiance_posture": str(raw_signal.get("confiance_posture") or "").strip(),
                 "action": str(raw_signal.get("action") or "").strip(),
                 "rationale": str(raw_signal.get("rationale") or "").strip(),
                 "differences": str(raw_signal.get("differences") or "").strip(),

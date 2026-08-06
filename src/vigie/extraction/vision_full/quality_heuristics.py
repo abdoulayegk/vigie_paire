@@ -79,6 +79,7 @@ _SUPERSCRIPT_FOOTNOTE_TRANSLATION = str.maketrans(
     "0123456789",
 )
 
+
 def _extract_native_text_indicators(reference_text: str) -> list[str]:
     """Extrait les candidats indicateurs du texte natif (Docling).
 
@@ -245,11 +246,7 @@ def _structural_indicator_count(result: VisionFullResult | None) -> int:
         if _looks_narrative_indicator(text):
             continue
         count += 1
-    headers = [
-        str(value or "").strip()
-        for value in list(result.headers or [])
-        if str(value or "").strip()
-    ]
+    headers = [str(value or "").strip() for value in list(result.headers or []) if str(value or "").strip()]
     if period_count >= 2 and len(headers) >= 2:
         count += period_count
     return count

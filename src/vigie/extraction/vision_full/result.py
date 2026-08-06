@@ -122,18 +122,12 @@ def _result_from_cache_payload(payload: dict[str, Any]) -> VisionFullResult | No
                 "text": str(item.get("text") or "").strip(),
             }
             for item in footnotes_raw
-            if isinstance(item, dict)
-            and (item.get("id") or item.get("marker"))
-            and item.get("text")
+            if isinstance(item, dict) and (item.get("id") or item.get("marker")) and item.get("text")
         ]
     else:
         footnotes = []
 
-    values = {
-        key: value
-        for key, value in payload.items()
-        if key in {item.name for item in fields(VisionFullResult)}
-    }
+    values = {key: value for key, value in payload.items() if key in {item.name for item in fields(VisionFullResult)}}
     values.update(
         {
             "table_title": str(payload.get("table_title") or ""),

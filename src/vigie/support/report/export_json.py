@@ -45,9 +45,7 @@ def write_section_ranges(out_dir: str | Path, result: SectionRangesResult) -> Pa
         "ranges": [item.to_dict() for item in result.ranges],
         "skipped_pages": result.skipped_pages,
     }
-    out_path.write_text(
-        json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8"
-    )
+    out_path.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
     return out_path
 
 
@@ -73,7 +71,5 @@ def write_tables_docling(out_dir: str | Path, tables: list[TableArtifact]) -> Pa
         },
         "tables": [table.to_dict() for table in tables],
     }
-    out_path.write_text(
-        json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8"
-    )
+    out_path.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
     return out_path

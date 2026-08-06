@@ -27,9 +27,7 @@ PROOF_HIGHLIGHT_COLOR_T2: tuple[float, float, float] = (0.20, 0.72, 0.36)
 
 def _filter_noise(items: list[str]) -> list[str]:
     """Filtre les lignes de bruit (dates, unites, notes) via la normalisation d'indicateurs."""
-    return [
-        x for x in items if x and normalize_indicator_for_comparison(str(x).strip())
-    ]
+    return [x for x in items if x and normalize_indicator_for_comparison(str(x).strip())]
 
 
 def _cached_render_or_crop(
@@ -102,9 +100,7 @@ def _normalize_proof_bbox(bbox: Any) -> list[float] | None:
     return _shared_normalize_proof_bbox(bbox)
 
 
-def _proof_render_result(
-    image_b64: str | None, status: str, mode_effective: str
-) -> dict[str, str | None]:
+def _proof_render_result(image_b64: str | None, status: str, mode_effective: str) -> dict[str, str | None]:
     """Construit le dictionnaire de resultat de rendu de preuve."""
     return {
         "image_b64": image_b64,
@@ -145,19 +141,13 @@ def _get_proof_render_result_for_item(
 
     ref = item_dict.get("source_ref_t1" if side == "t1" else "source_ref_t2", "")
     normalized_paths = _normalize_pdf_paths_store(paths)
-    pdf_path = (
-        normalized_paths.get("pdf_t1", "")
-        if side == "t1"
-        else normalized_paths.get("pdf_t2", "")
-    )
+    pdf_path = normalized_paths.get("pdf_t1", "") if side == "t1" else normalized_paths.get("pdf_t2", "")
     if not pdf_path:
         pdf_path = ref
     if not pdf_path:
         return _proof_render_result(None, "render_failed", display_mode)
 
-    bbox = _normalize_proof_bbox(
-        item_dict.get("bbox_t1") if side == "t1" else item_dict.get("bbox_t2")
-    )
+    bbox = _normalize_proof_bbox(item_dict.get("bbox_t1") if side == "t1" else item_dict.get("bbox_t2"))
     if display_mode in {"crop", "footnote"} and bbox is None:
         return _proof_render_result(None, "bbox_missing", display_mode)
 
@@ -205,9 +195,7 @@ def _get_proof_image_b64_for_item(
     notes de bas de page.
     """
     display_mode = (proof_display_mode or "crop").strip().lower()
-    highlight_color = (
-        PROOF_HIGHLIGHT_COLOR_T1 if side == "t1" else PROOF_HIGHLIGHT_COLOR_T2
-    )
+    highlight_color = PROOF_HIGHLIGHT_COLOR_T1 if side == "t1" else PROOF_HIGHLIGHT_COLOR_T2
 
     table_status = (item_dict.get("table_status") or "").strip().lower()
     if table_status == "stable" and display_mode == "crop":
@@ -225,9 +213,7 @@ def _get_proof_image_b64_for_item(
     pdf_path = path_t1 if side == "t1" else path_t2
     if not pdf_path:
         pdf_path = ref
-    bbox = _normalize_proof_bbox(
-        item_dict.get("bbox_t1") if side == "t1" else item_dict.get("bbox_t2")
-    )
+    bbox = _normalize_proof_bbox(item_dict.get("bbox_t1") if side == "t1" else item_dict.get("bbox_t2"))
 
     # For "footnote" or "full" modes, always render from PDF (ignore pre-existing images)
     if display_mode in ("footnote", "full"):
@@ -311,9 +297,7 @@ def _get_proof_image_b64_for_item(
                 secondary_highlight_rects=secondary_highlight_rects,
                 highlight_color=highlight_color,
             )
-            base_img_b64 = (
-                base64.b64encode(raw_bytes).decode("ascii") if raw_bytes else None
-            )
+            base_img_b64 = base64.b64encode(raw_bytes).decode("ascii") if raw_bytes else None
         except Exception as e:
             logger.warning("Render/crop failed: %s", e)
             base_img_b64 = None
@@ -376,11 +360,7 @@ def _get_proof_image_b64(item_dict: dict, side: str, paths: dict) -> str | None:
     if not pdf_path:
         pdf_path = ref
 
-    if (
-        ref
-        and Path(ref).exists()
-        and Path(ref).suffix.lower() in {".png", ".jpg", ".jpeg"}
-    ):
+    if ref and Path(ref).exists() and Path(ref).suffix.lower() in {".png", ".jpg", ".jpeg"}:
         try:
             with open(ref, "rb") as f:
                 raw = f.read()
@@ -390,9 +370,7 @@ def _get_proof_image_b64(item_dict: dict, side: str, paths: dict) -> str | None:
 
     if pdf_path and page is not None:
         page_effective = max(1, int(page))
-        raw = get_pdf_preview(
-            pdf_path, page_effective, scale=PROOF_RENDER_DPI / 72.0
-        )
+        raw = get_pdf_preview(pdf_path, page_effective, scale=PROOF_RENDER_DPI / 72.0)
         if raw:
             return _base64.b64encode(raw).decode("ascii")
     return None

@@ -218,18 +218,13 @@ class DoclingPassMixin:
                             )
                     except Exception as exc:
                         logger.warning(
-                            "Near-full-page bbox verification failed page=%s "
-                            "(non-fatal): %s",
+                            "Near-full-page bbox verification failed page=%s (non-fatal): %s",
                             near_full_page,
                             exc,
                         )
 
                     reliable_region_count = (
-                        sum(
-                            region.confidence
-                            >= page_table_locator.min_confidence
-                            for region in layout.tables
-                        )
+                        sum(region.confidence >= page_table_locator.min_confidence for region in layout.tables)
                         if layout is not None
                         else 0
                     )
@@ -243,19 +238,15 @@ class DoclingPassMixin:
                     )
                     plan_reject_reason = None
                     if plan is not None:
-                        plan_sane, plan_reject_reason, _plan_profile = (
-                            is_bbox_sane(
-                                list(plan.bbox_norm),
-                                vision_extraction_cfg,
-                            )
+                        plan_sane, plan_reject_reason, _plan_profile = is_bbox_sane(
+                            list(plan.bbox_norm),
+                            vision_extraction_cfg,
                         )
                         if not plan_sane:
                             plan = None
 
                     for position in positions:
-                        item_idx, item_page, item_bbox, item_id, item_reference = (
-                            vision_items[position]
-                        )
+                        item_idx, item_page, item_bbox, item_id, item_reference = vision_items[position]
                         if plan is not None:
                             corrected_bbox = list(plan.bbox_norm)
                             page_context_seed[item_idx] = {
@@ -266,9 +257,7 @@ class DoclingPassMixin:
                                 "title_text": plan.title_text,
                                 "continuation": plan.continuation,
                                 "table_count": plan.table_count,
-                                "bbox_verification_reason": (
-                                    "near_full_page_single_region_confirmed"
-                                ),
+                                "bbox_verification_reason": ("near_full_page_single_region_confirmed"),
                             }
                             vision_items[position] = (
                                 item_idx,
@@ -280,41 +269,28 @@ class DoclingPassMixin:
                             continue
 
                         if len(positions) > 1:
-                            verification_reason = (
-                                "near_full_page_multiple_docling_candidates"
-                            )
+                            verification_reason = "near_full_page_multiple_docling_candidates"
                         elif layout is None:
-                            verification_reason = (
-                                "near_full_page_locator_unavailable"
-                            )
+                            verification_reason = "near_full_page_locator_unavailable"
                         elif reliable_region_count == 0:
-                            verification_reason = (
-                                "near_full_page_no_reliable_region"
-                            )
+                            verification_reason = "near_full_page_no_reliable_region"
                         elif plan_reject_reason:
-                            verification_reason = (
-                                "near_full_page_locator_bbox_unsafe"
-                            )
+                            verification_reason = "near_full_page_locator_bbox_unsafe"
                         else:
                             verification_reason = "near_full_page_multiple_regions"
                         page_context_seed[item_idx] = {
                             "bbox_original": list(item_bbox or []),
                             "bbox_source": "near_full_page_unresolved",
-                            "table_count": (
-                                len(layout.tables) if layout is not None else 0
-                            ),
+                            "table_count": (len(layout.tables) if layout is not None else 0),
                             "bbox_verification_reason": verification_reason,
                         }
 
             # Inventaire pleine page optionnel : il corrige les boites Docling
             # existantes et cree les candidats que Docling n'a pas vus du tout.
-            if (
-                page_table_locator is not None
-                and bool(
-                    vision_extraction_cfg.get(
-                        "page_context_inventory_enabled",
-                        False,
-                    )
+            if page_table_locator is not None and bool(
+                vision_extraction_cfg.get(
+                    "page_context_inventory_enabled",
+                    False,
                 )
             ):
                 from vigie.extraction.page_table_locator import build_page_table_crop_plan
@@ -378,9 +354,7 @@ class DoclingPassMixin:
                 ]
                 corrected_count = 0
                 added_count = 0
-                next_synthetic_idx = (
-                    max((item[0] for item in vision_items), default=-1) + 1
-                )
+                next_synthetic_idx = max((item[0] for item in vision_items), default=-1) + 1
 
                 for inventory_page in page_numbers:
                     try:
@@ -410,21 +384,14 @@ class DoclingPassMixin:
                         continue
 
                     page_item_positions = [
-                        position
-                        for position, item in enumerate(vision_items)
-                        if item[1] == inventory_page
+                        position for position, item in enumerate(vision_items) if item[1] == inventory_page
                     ]
                     planned_positions: list[tuple[int, list[float], Any]] = []
                     for position in page_item_positions:
                         _item_idx, _item_page, item_bbox, _item_id, _item_reference = vision_items[position]
                         if not item_bbox:
                             continue
-                        if str(
-                            page_context_seed.get(_item_idx, {}).get(
-                                "bbox_source"
-                            )
-                            or ""
-                        ) in {
+                        if str(page_context_seed.get(_item_idx, {}).get("bbox_source") or "") in {
                             "page_context_near_full_page",
                             "near_full_page_unresolved",
                         }:
@@ -436,14 +403,10 @@ class DoclingPassMixin:
                         )
                         if plan is None:
                             continue
-                        planned_positions.append(
-                            (position, list(item_bbox), plan)
-                        )
+                        planned_positions.append((position, list(item_bbox), plan))
 
                     merge_conflict_positions: set[int] = set()
-                    for plan_index, first_planned in enumerate(
-                        planned_positions
-                    ):
+                    for plan_index, first_planned in enumerate(planned_positions):
                         first_position, first_original, first_plan = first_planned
                         for second_planned in planned_positions[plan_index + 1 :]:
                             (
@@ -457,21 +420,15 @@ class DoclingPassMixin:
                                 list(first_plan.bbox_norm),
                                 list(second_plan.bbox_norm),
                             ):
-                                merge_conflict_positions.update(
-                                    {first_position, second_position}
-                                )
+                                merge_conflict_positions.update({first_position, second_position})
 
                     for position, item_bbox, plan in planned_positions:
-                        item_idx, item_page, _bbox, item_id, item_reference = (
-                            vision_items[position]
-                        )
+                        item_idx, item_page, _bbox, item_id, item_reference = vision_items[position]
                         corrected_bbox = list(plan.bbox_norm)
                         bbox_source = "page_context_inventory"
                         if position in merge_conflict_positions:
                             corrected_bbox = list(item_bbox)
-                            bbox_source = (
-                                "page_context_inventory_conflict_preserved_docling"
-                            )
+                            bbox_source = "page_context_inventory_conflict_preserved_docling"
                         page_context_seed[item_idx] = {
                             "bbox_original": list(item_bbox),
                             "bbox_norm": corrected_bbox,
@@ -488,31 +445,20 @@ class DoclingPassMixin:
                             item_id,
                             item_reference,
                         )
-                        if (
-                            position not in merge_conflict_positions
-                            and corrected_bbox != list(item_bbox)
-                        ):
+                        if position not in merge_conflict_positions and corrected_bbox != list(item_bbox):
                             corrected_count += 1
 
                     current_page_boxes = [
-                        list(item[2])
-                        for item in vision_items
-                        if item[1] == inventory_page and item[2]
+                        list(item[2]) for item in vision_items if item[1] == inventory_page and item[2]
                     ]
                     for region_index, region in enumerate(layout.tables, start=1):
                         region_bbox = list(region.table_bbox)
                         if region.confidence < new_table_min_confidence:
                             continue
-                        normalized_region_title = str(
-                            region.title_text or ""
-                        ).casefold()
-                        if any(
-                            pattern in normalized_region_title
-                            for pattern in excluded_new_table_titles
-                        ):
+                        normalized_region_title = str(region.title_text or "").casefold()
+                        if any(pattern in normalized_region_title for pattern in excluded_new_table_titles):
                             logger.info(
-                                "Vision page inventory ignored configured "
-                                "non-table region page=%s title=%s",
+                                "Vision page inventory ignored configured non-table region page=%s title=%s",
                                 inventory_page,
                                 region.title_text,
                             )
@@ -524,9 +470,7 @@ class DoclingPassMixin:
                             continue
                         synthetic_idx = next_synthetic_idx
                         next_synthetic_idx += 1
-                        synthetic_id = (
-                            f"tableau_page_context_p{inventory_page}_{region_index}"
-                        )
+                        synthetic_id = f"tableau_page_context_p{inventory_page}_{region_index}"
                         vision_items.append(
                             (
                                 synthetic_idx,
@@ -688,15 +632,12 @@ class DoclingPassMixin:
             collapsed_locator_tables = raw_table_count - len(all_tables)
             if collapsed_locator_tables:
                 logger.info(
-                    "Vision page-context: %d duplicate(s) semantique(s) "
-                    "du locator a la demande consolide(s)",
+                    "Vision page-context: %d duplicate(s) semantique(s) du locator a la demande consolide(s)",
                     collapsed_locator_tables,
                 )
                 tables_by_page = {}
                 for table in all_tables:
-                    tables_by_page[table.page_number] = (
-                        tables_by_page.get(table.page_number, 0) + 1
-                    )
+                    tables_by_page[table.page_number] = tables_by_page.get(table.page_number, 0) + 1
 
             if tables_by_page:
                 counts_str = ", ".join(f"p{k}:{v}" for k, v in sorted(tables_by_page.items()))

@@ -198,9 +198,7 @@ class ReviewTableItem:
     match_metadata: dict[str, Any] = field(default_factory=dict)
 
     # Priority signals (from GenAI or rules)
-    relevance: str = (
-        ""  # REGLEMENTAIRE, NOUVELLE_DIVULGATION, STRUCTUREL, NON_SIGNIFICATIF
-    )
+    relevance: str = ""  # REGLEMENTAIRE, NOUVELLE_DIVULGATION, STRUCTUREL, NON_SIGNIFICATIF
     risk_level: str = ""  # ELEVE, MODERE, FAIBLE
 
     def compute_summary(self) -> dict[str, int]:

@@ -180,9 +180,7 @@ def _build_change_full_detail(
             blocks.append(_build_detail_block(previous_label, "", muted=True))
         elif change_type in ("footnote_removed", ChangeType.FOOTNOTE_REMOVED.value):
             blocks.append(_build_detail_block(current_label, "", muted=True))
-            blocks.append(
-                _build_detail_block(f"{previous_label} - note supprimée", old_text)
-            )
+            blocks.append(_build_detail_block(f"{previous_label} - note supprimée", old_text))
         else:
             blocks.append(
                 _build_detail_block(
@@ -350,9 +348,7 @@ def _build_non_relevant_card(exclusion_reason: str | None) -> html.Div:
 
     Affiche la raison d'exclusion AMF (sans le « Activez GPT » fallback ancien).
     """
-    reason_label = _EXCLUSION_REASON_DISPLAY.get(
-        str(exclusion_reason or ""), "Non pertinent"
-    )
+    reason_label = _EXCLUSION_REASON_DISPLAY.get(str(exclusion_reason or ""), "Non pertinent")
     return html.Div(
         [
             html.H6("Explication IA générative", className="mb-2"),
@@ -405,27 +401,15 @@ def _build_genai_section(table: dict) -> html.Div:
         return _build_non_relevant_card(ga.get("exclusion_reason"))
 
     nouvelle_idee = bool(ga.get("nouvelle_idee", False))
-    nouvelle_idee_justification = str(
-        ga.get("nouvelle_idee_justification", "") or ""
-    ).strip()
+    nouvelle_idee_justification = str(ga.get("nouvelle_idee_justification", "") or "").strip()
     themes_amf = list(ga.get("themes_amf") or [])
     impact_level = str(ga.get("impact_level", "") or "").upper()
     impact_it = str(ga.get("impact_it", "") or "").upper()
-    impact_it_justification = str(
-        ga.get("impact_it_justification", "") or ""
-    ).strip()
-    changement_posture = str(
-        ga.get("changement_posture", "") or ""
-    ).upper()
-    justification_posture = str(
-        ga.get("justification_posture", "") or ""
-    ).strip()
-    statut_mise_en_oeuvre = str(
-        ga.get("statut_mise_en_oeuvre", "") or ""
-    ).upper()
-    confiance_posture = str(
-        ga.get("confiance_posture", "") or ""
-    ).upper()
+    impact_it_justification = str(ga.get("impact_it_justification", "") or "").strip()
+    changement_posture = str(ga.get("changement_posture", "") or "").upper()
+    justification_posture = str(ga.get("justification_posture", "") or "").strip()
+    statut_mise_en_oeuvre = str(ga.get("statut_mise_en_oeuvre", "") or "").upper()
+    confiance_posture = str(ga.get("confiance_posture", "") or "").upper()
     action_requise = str(ga.get("action_requise", "") or "").lower()
 
     # Bandeau principal : nouvelle idée + impact (deux signaux les plus
@@ -460,9 +444,7 @@ def _build_genai_section(table: dict) -> html.Div:
             dbc.Badge(
                 _IMPACT_IT_DISPLAY[impact_it],
                 color=_IMPACT_LEVEL_COLORS.get(
-                    {"ELEVE": "MAJEUR", "MOYEN": "MODERE", "FAIBLE": "MINEUR"}[
-                        impact_it
-                    ],
+                    {"ELEVE": "MAJEUR", "MOYEN": "MODERE", "FAIBLE": "MINEUR"}[impact_it],
                     "secondary",
                 ),
                 className="me-2",
@@ -513,8 +495,7 @@ def _build_genai_section(table: dict) -> html.Div:
         html.Div(header_badges, className="mb-2"),
         _build_themes_amf_chips(themes_amf),
         html.P(
-            justification
-            or "Justification AMF non disponible — relancer la pipeline pour obtenir le triage.",
+            justification or "Justification AMF non disponible — relancer la pipeline pour obtenir le triage.",
             className="mb-0 small",
             style={"whiteSpace": "pre-wrap"},
         ),
@@ -607,16 +588,10 @@ def build_change_list_v2(
         # Required indicator
         required_badge = None
         if not is_required:
-            required_badge = dbc.Badge(
-                "Optionnel", color="light", text_color="dark", className="ms-2"
-            )
+            required_badge = dbc.Badge("Optionnel", color="light", text_color="dark", className="ms-2")
 
         # Current item highlight
-        current_class = (
-            "bg-primary bg-opacity-10 border-start border-3 border-primary"
-            if is_current
-            else ""
-        )
+        current_class = "bg-primary bg-opacity-10 border-start border-3 border-primary" if is_current else ""
 
         row = dbc.ListGroupItem(
             [
@@ -949,9 +924,7 @@ def build_review_detail_v2(
                                     className="mb-2",
                                 ),
                                 html.Img(
-                                    src=f"data:image/png;base64,{proof_image_t2_b64}"
-                                    if proof_image_t2_b64
-                                    else "",
+                                    src=f"data:image/png;base64,{proof_image_t2_b64}" if proof_image_t2_b64 else "",
                                     className="img-fluid border rounded",
                                     style={
                                         "maxHeight": "400px",
@@ -977,9 +950,7 @@ def build_review_detail_v2(
                                     className="mb-2",
                                 ),
                                 html.Img(
-                                    src=f"data:image/png;base64,{proof_image_t1_b64}"
-                                    if proof_image_t1_b64
-                                    else "",
+                                    src=f"data:image/png;base64,{proof_image_t1_b64}" if proof_image_t1_b64 else "",
                                     className="img-fluid border rounded",
                                     style={
                                         "maxHeight": "400px",
@@ -1019,11 +990,7 @@ def build_review_detail_v2(
             html.H6(
                 [
                     html.I(className="bi bi-list-check me-2"),
-                    (
-                        "Validation au niveau tableau"
-                        if table_only_change
-                        else f"Changements ({len(changes)})"
-                    ),
+                    ("Validation au niveau tableau" if table_only_change else f"Changements ({len(changes)})"),
                 ],
                 className="mb-2",
             ),

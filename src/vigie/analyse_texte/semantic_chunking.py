@@ -144,9 +144,7 @@ def _validate_groups(groups: list[SemanticSentenceGroup], sentence_count: int) -
         validated.append((group.start - 1, group.end))
         expected_start = group.end + 1
     if expected_start != sentence_count + 1:
-        raise SemanticChunkingError(
-            "Partition LLM invalide: la dernière phrase n'est pas couverte."
-        )
+        raise SemanticChunkingError("Partition LLM invalide: la dernière phrase n'est pas couverte.")
     return validated
 
 
@@ -159,9 +157,7 @@ def _ranges_are_overfragmented(
         return False
     range_count = len(ranges)
     singleton_count = sum(end - start == 1 for start, end in ranges)
-    short_count = sum(
-        _word_count(" ".join(sentences[start:end])) < 50 for start, end in ranges
-    )
+    short_count = sum(_word_count(" ".join(sentences[start:end])) < 50 for start, end in ranges)
     return (
         range_count / len(sentences) >= 0.75
         and singleton_count / range_count >= 0.65
@@ -177,9 +173,7 @@ def _partition_with_llm(
     scores: list[float],
 ) -> list[tuple[int, int]]:
     numbered = "\n".join(f"{index}. {sentence}" for index, sentence in enumerate(sentences, start=1))
-    boundary_scores = ", ".join(
-        f"{index + 1}|{index + 2}={score:.3f}" for index, score in enumerate(scores)
-    )
+    boundary_scores = ", ".join(f"{index + 1}|{index + 2}={score:.3f}" for index, score in enumerate(scores))
     messages = [
         {
             "role": "system",
@@ -207,6 +201,7 @@ def _partition_with_llm(
             ),
         },
     ]
+
     def request_partition(request_messages: list[dict[str, str]]) -> SemanticPartitionResponse:
         return _call_structured_completion_with_correction(
             client,
@@ -294,8 +289,7 @@ def _semantic_partition_paragraphs(
     """
     sentence_groups = [_split_sentences(paragraph) for paragraph in paragraphs]
     normalized_groups = [
-        [_normalize_sentence_for_similarity(sentence) for sentence in sentences]
-        for sentences in sentence_groups
+        [_normalize_sentence_for_similarity(sentence) for sentence in sentences] for sentences in sentence_groups
     ]
     unique_texts = list(dict.fromkeys(text for group in normalized_groups for text in group))
     try:

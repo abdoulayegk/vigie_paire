@@ -30,10 +30,7 @@ class PageRangeMixin:
         if not normalized:
             return None
         safe_padding = max(0, int(padding))
-        return [
-            (max(1, start - safe_padding), end + safe_padding)
-            for start, end in normalized
-        ]
+        return [(max(1, start - safe_padding), end + safe_padding) for start, end in normalized]
 
     def _normalize_page_ranges(self, page_ranges: list[tuple[int, int]] | None) -> list[tuple[int, int]]:
         """Normaliser les plages pour garantir start >= 1 et end >= start."""

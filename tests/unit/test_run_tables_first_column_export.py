@@ -104,9 +104,7 @@ def test_run_tables_exports_first_column_indicators_region_table(tmp_path: Path,
         ]
     )
 
-    payload = json.loads(
-        (out_root / "t1-2025" / "rbc" / "tables_docling.json").read_text(encoding="utf-8")
-    )
+    payload = json.loads((out_root / "t1-2025" / "rbc" / "tables_docling.json").read_text(encoding="utf-8"))
     table = payload["tables"][0]
     assert table["first_column_indicators_raw"] == [
         "Atlantique",

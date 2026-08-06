@@ -24,6 +24,7 @@ from .exclusions import _deterministic_bank_specific_exclusion
 
 logger = logging.getLogger("vigie.analyse_texte.triage")
 
+
 def _default_triage(bank_code: str = "") -> dict[str, Any]:
     """Retourne un triage par défaut conservateur (non pertinent).
 
@@ -36,10 +37,7 @@ def _default_triage(bank_code: str = "") -> dict[str, Any]:
     bank_subject = analyst_bank_subject(bank_code)
     analyst_copy = _semantic_reason_payload(
         is_relevant=False,
-        changement_constate=(
-            f"{bank_subject} ne dispose pas d’une qualification AMF exploitable "
-            "pour ce changement."
-        ),
+        changement_constate=(f"{bank_subject} ne dispose pas d’une qualification AMF exploitable pour ce changement."),
         motif_non_pertinence=(
             "L’élément est conservé dans la file de revue sans être présenté "
             "comme une nouvelle idée, afin d’éviter une conclusion automatique "
@@ -62,9 +60,7 @@ def _default_triage(bank_code: str = "") -> dict[str, Any]:
             "nouvelle_idee_justification": _secondary_analyst_justification(
                 subject_label="Élément non classifié",
                 analyst_copy=analyst_copy,
-                surveillance_note=(
-                    "Une revue des preuves est requise avant toute conclusion."
-                ),
+                surveillance_note=("Une revue des preuves est requise avant toute conclusion."),
             ),
             "signals": {
                 "regulatory_reference_added": False,
@@ -260,9 +256,7 @@ def _persisted_triage_from_compact(
             bank_subject,
         ),
         signification_metier=str(compact.get("signification_metier") or ""),
-        comparaison_interbanques=str(
-            compact.get("comparaison_interbanques") or ""
-        ),
+        comparaison_interbanques=str(compact.get("comparaison_interbanques") or ""),
         limite_interpretation=str(compact.get("limite_interpretation") or ""),
         motif_non_pertinence=str(compact.get("motif_non_pertinence") or ""),
     )
@@ -270,9 +264,7 @@ def _persisted_triage_from_compact(
 
     # Recalculate exclusion on change + GPT reason (catches CWB framed as methodology).
     bank_exclusion = _deterministic_bank_specific_exclusion(change) or (
-        _deterministic_bank_specific_exclusion(
-            {**change, "change_summary": relevance_reason}
-        )
+        _deterministic_bank_specific_exclusion({**change, "change_summary": relevance_reason})
         if relevance_reason
         else None
     )
@@ -310,13 +302,9 @@ def _persisted_triage_from_compact(
         )
     )
     substantive_process_change = (
-        nouvelle_idee
-        and "CONTROLE_CONFORMITE" in themes
-        and bool(_PROCESS_SIGNAL_RE.search(change_corpus))
+        nouvelle_idee and "CONTROLE_CONFORMITE" in themes and bool(_PROCESS_SIGNAL_RE.search(change_corpus))
     )
-    high_priority = bool(set(themes) & _COMPACT_HIGH_PRIORITY_THEMES) or (
-        substantive_process_change
-    )
+    high_priority = bool(set(themes) & _COMPACT_HIGH_PRIORITY_THEMES) or (substantive_process_change)
 
     impact_level, action_requise = _derive_impact_from_compact(
         is_relevant=is_relevant,
@@ -332,11 +320,7 @@ def _persisted_triage_from_compact(
         "themes_amf": themes,
         "nouvelle_idee": nouvelle_idee,
         **analyst_copy,
-        "exclusion_reason": (
-            None
-            if is_relevant
-            else (bank_exclusion or "non_pertinent_autre")
-        ),
+        "exclusion_reason": (None if is_relevant else (bank_exclusion or "non_pertinent_autre")),
         "impact_level": impact_level,
         "action_requise": action_requise,
         "impact_it": "INDETERMINE",

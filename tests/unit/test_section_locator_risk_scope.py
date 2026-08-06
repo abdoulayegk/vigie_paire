@@ -14,8 +14,7 @@ from vigie.extraction.localisation_sections import (
 
 def _matches_risk_pattern(title: str) -> bool:
     return any(
-        re.search(pattern, title, flags=re.IGNORECASE)
-        for pattern in SECTION_PATTERNS["gestion_risques"]["patterns"]
+        re.search(pattern, title, flags=re.IGNORECASE) for pattern in SECTION_PATTERNS["gestion_risques"]["patterns"]
     )
 
 
@@ -97,9 +96,7 @@ def test_historical_risk_vocabulary_keeps_validation_threshold() -> None:
 def test_risk_subsection_fallback_is_accent_insensitive() -> None:
     locator = SectionLocator()
 
-    section = locator._find_first_risk_subsection(
-        {12: "RISQUE LIE AUX DONNEES\nContenu de la section"}
-    )
+    section = locator._find_first_risk_subsection({12: "RISQUE LIE AUX DONNEES\nContenu de la section"})
 
     assert section is not None
     assert section.section_type == "gestion_risques"
@@ -245,14 +242,10 @@ def test_annual_t4_risk_boundary_uses_physical_successor_not_flat_toc() -> None:
     réellement à p.119.
     """
     locator = SectionLocator(bank_code="bnc", quarter="t4", year=2025)
-    text_by_page = {
-        page: "Gestion des risques\nRisque opérationnel et conformité"
-        for page in range(72, 119)
-    }
+    text_by_page = {page: "Gestion des risques\nRisque opérationnel et conformité" for page in range(72, 119)}
     text_by_page[83] = "Propriété intellectuelle\nLe risque est suivi par la Banque."
     text_by_page[119] = (
-        "Méthodes comptables significatives et estimations comptables\n"
-        "Les états financiers consolidés suivent."
+        "Méthodes comptables significatives et estimations comptables\nLes états financiers consolidés suivent."
     )
 
     section = LocatedSection(

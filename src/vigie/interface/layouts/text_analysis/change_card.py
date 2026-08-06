@@ -48,6 +48,7 @@ from .labels import (
     _badge,
 )
 
+
 def _ai_detail_item(label: str, value: str) -> html.Div:
     """Affiche une rubrique courte dans le volet de détails IA."""
     if not value:
@@ -174,9 +175,7 @@ def _build_ai_details(
         )
 
     detail_sections: list = []
-    surveillance = sanitize_analyst_french(
-        justification_sections.get("Point de surveillance", "")
-    )
+    surveillance = sanitize_analyst_french(justification_sections.get("Point de surveillance", ""))
     subject = sanitize_analyst_french(justification_sections.get("Sujet détecté", ""))
     if surveillance or subject or impact_sections:
         impact_label = _IMPACT_BADGE.get(
@@ -194,15 +193,11 @@ def _build_ai_details(
                     _ai_detail_item("Point de surveillance", surveillance),
                     _ai_detail_item(
                         "Conséquence probable",
-                        sanitize_analyst_french(
-                            impact_sections.get("Conséquence probable", "")
-                        ),
+                        sanitize_analyst_french(impact_sections.get("Conséquence probable", "")),
                     ),
                     _ai_detail_item(
                         "Limite de l’analyse",
-                        sanitize_analyst_french(
-                            impact_sections.get("Limite de l'analyse", "")
-                        ),
+                        sanitize_analyst_french(impact_sections.get("Limite de l'analyse", "")),
                     ),
                 ],
                 className="mb-3",
@@ -282,9 +277,7 @@ def _build_side_by_side(
     précédent. Pour un ajout ou une suppression, le côté absent présente
     explicitement la nature du changement.
     """
-    usable_change_segments = (
-        change_segments if _change_segments_are_usable(change_segments) else []
-    )
+    usable_change_segments = change_segments if _change_segments_are_usable(change_segments) else []
     highlights_t1 = [
         seg.get("text_t1", "")
         for seg in usable_change_segments
@@ -355,16 +348,8 @@ def _build_side_by_side(
         and previous_label != "Trimestre précédent"
     )
     if has_period_labels:
-        label_t1 = (
-            f"Précédent - {previous_label} (p.{page_t1})"
-            if page_t1
-            else f"Précédent - {previous_label}"
-        )
-        label_t2 = (
-            f"Courant - {current_label} (p.{page_t2})"
-            if page_t2
-            else f"Courant - {current_label}"
-        )
+        label_t1 = f"Précédent - {previous_label} (p.{page_t1})" if page_t1 else f"Précédent - {previous_label}"
+        label_t2 = f"Courant - {current_label} (p.{page_t2})" if page_t2 else f"Courant - {current_label}"
     else:
         label_t1 = f"Précédent (p.{page_t1})" if page_t1 else "Précédent"
         label_t2 = f"Courant (p.{page_t2})" if page_t2 else "Courant"
@@ -444,21 +429,11 @@ def _build_change_card(
     )
     is_relevant = bool(triage.get("is_relevant", False))
     impact_level = (triage.get("impact_level") or "MINEUR").upper()
-    impact_it_justification = str(
-        triage.get("impact_it_justification") or ""
-    ).strip()
-    changement_posture = (
-        triage.get("changement_posture") or "INDETERMINE"
-    ).upper()
-    justification_posture = str(
-        triage.get("justification_posture") or ""
-    ).strip()
-    statut_mise_en_oeuvre = (
-        triage.get("statut_mise_en_oeuvre") or "INDETERMINE"
-    ).upper()
-    confiance_posture = (
-        triage.get("confiance_posture") or "INDETERMINE"
-    ).upper()
+    impact_it_justification = str(triage.get("impact_it_justification") or "").strip()
+    changement_posture = (triage.get("changement_posture") or "INDETERMINE").upper()
+    justification_posture = str(triage.get("justification_posture") or "").strip()
+    statut_mise_en_oeuvre = (triage.get("statut_mise_en_oeuvre") or "INDETERMINE").upper()
+    confiance_posture = (triage.get("confiance_posture") or "INDETERMINE").upper()
     action = (triage.get("action_requise") or "aucune").lower()
     nouvelle_idee = bool(triage.get("nouvelle_idee", False))
     nouvelle_idee_justification = canonicalize_analyst_narrative(
@@ -479,11 +454,7 @@ def _build_change_card(
         _TRIAGE_DETAIL_LABELS,
     )
     impact_domain = _impact_domain(themes_amf, section_title)
-    business_relevance = (
-        analyst_narrative.pertinence_metier
-        if presentation.scope == "qualitative"
-        else ""
-    )
+    business_relevance = analyst_narrative.pertinence_metier if presentation.scope == "qualitative" else ""
 
     evidence_t1 = change.get("evidence_t1") or {}
     evidence_t2 = change.get("evidence_t2") or {}

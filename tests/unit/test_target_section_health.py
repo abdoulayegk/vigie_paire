@@ -24,9 +24,7 @@ def _section(section_type: str, confidence: float) -> LocatedSection:
 
 
 def test_two_target_sections_with_solid_confidence_are_complete() -> None:
-    health = assess_target_section_health(
-        [_section("gestion_capital", 0.95), _section("gestion_risques", 0.9)]
-    )
+    health = assess_target_section_health([_section("gestion_capital", 0.95), _section("gestion_risques", 0.9)])
 
     assert health["status"] == "complete"
     assert health["missing"] == []
@@ -38,9 +36,7 @@ def test_regulatory_section_does_not_hide_a_missing_target() -> None:
 
     L'ancien critère ``len(sections) < 2`` ne se déclenchait pas ici.
     """
-    health = assess_target_section_health(
-        [_section("gestion_reglementation", 0.95), _section("gestion_capital", 0.95)]
-    )
+    health = assess_target_section_health([_section("gestion_reglementation", 0.95), _section("gestion_capital", 0.95)])
 
     assert health["status"] == "missing_target_section"
     assert health["missing"] == ["risk_management"]
@@ -53,9 +49,7 @@ def test_strong_section_does_not_mask_a_weak_one() -> None:
     L'ancienne moyenne valait 0.75 et ne déclenchait rien; le minimum expose
     la section faible.
     """
-    health = assess_target_section_health(
-        [_section("gestion_capital", 1.0), _section("gestion_risques", 0.5)]
-    )
+    health = assess_target_section_health([_section("gestion_capital", 1.0), _section("gestion_risques", 0.5)])
 
     assert health["status"] == "low_confidence"
     assert health["min_confidence"] == 0.5

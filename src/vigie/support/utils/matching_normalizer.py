@@ -14,9 +14,7 @@ _TEMPORAL_PATTERNS_BASE = [
     re.compile(r"\b(?:trimestre|quarter)\s*(?:[1-4]|i{1,3}|iv)\b", re.IGNORECASE),
     re.compile(r"\b(?:t|q)\s*[1-4]\b", re.IGNORECASE),
     re.compile(r"\b(?:s|h)\s*[12]\b", re.IGNORECASE),
-    re.compile(
-        r"\b(?:1er|premier|deuxieme|troisieme|quatrieme)\s+trimestre\b", re.IGNORECASE
-    ),
+    re.compile(r"\b(?:1er|premier|deuxieme|troisieme|quatrieme)\s+trimestre\b", re.IGNORECASE),
 ]
 
 _TEMPORAL_PATTERNS_AGGRESSIVE = [
@@ -64,9 +62,7 @@ def normalize_label(text: str) -> str:
     return normalize_for_matching(text, target="indicator")
 
 
-def strip_temporal_expressions(
-    text: str, target: str = "title", aggressive: bool = True
-) -> str:
+def strip_temporal_expressions(text: str, target: str = "title", aggressive: bool = True) -> str:
     """Supprime les fragments de date/trimestre pour conserver le contenu semantique du titre de tableau.
 
     Args:
@@ -99,9 +95,7 @@ _DATE_ONLY_PATTERNS = [
     re.compile(r"^pour\s+la\s+periode(?:\s+.*)?$", re.IGNORECASE),
     re.compile(r"^pour\s+l[' ]exercice(?:\s+.*)?$", re.IGNORECASE),
     # Dates precises : "Au 31 octobre", "Au 30 avril 2025", "Au30avril2025 (...)"
-    re.compile(
-        r"^au\s*\d{1,2}\s*[a-z\u00e0-\u00ff]+(\s*\d{4})?\s*(\(.*\))?\s*$", re.IGNORECASE
-    ),
+    re.compile(r"^au\s*\d{1,2}\s*[a-z\u00e0-\u00ff]+(\s*\d{4})?\s*(\(.*\))?\s*$", re.IGNORECASE),
     # Dates sans prefixe : "31 octobre", "30 avril 2025"
     re.compile(r"^\d{1,2}\s+[a-z\u00e0-\u00ff]+(\s+\d{4})?$", re.IGNORECASE),
     # Dates numeriques seules : "31/01/2025", "2025-01-31"
@@ -110,9 +104,7 @@ _DATE_ONLY_PATTERNS = [
     # Fin de trimestre : "Trimestre termine le ...", "Trimestre clos le ..."
     re.compile(r"^trimestre\s+termin[eé](?:\s+le)?(?:\s+.*)?$", re.IGNORECASE),
     re.compile(r"^trimestre\s+clos\s+le(?:\s+.*)?$", re.IGNORECASE),
-    re.compile(
-        r"^pour\s+le\s+trimestre\s+termin[eé](?:\s+le)?(?:\s+.*)?$", re.IGNORECASE
-    ),
+    re.compile(r"^pour\s+le\s+trimestre\s+termin[eé](?:\s+le)?(?:\s+.*)?$", re.IGNORECASE),
     re.compile(r"^pour\s+le\s+trimestre\s+clos(?:\s+le)?(?:\s+.*)?$", re.IGNORECASE),
     # Annees seules : "2024", "2025"
     re.compile(r"^20\d{2}$"),
@@ -207,9 +199,7 @@ _TOTAL_PASSIF_CAPITAUX_RE = re.compile(
     r"^\s*total\s+du\s+passif\s+et\s+des\s+capitaux?\s+propres\s*$",
     re.IGNORECASE,
 )
-_TOTAL_ELEMENTS_HORS_BILAN_RE = re.compile(
-    r"^\s*total\s+des\s+elements?\s+hors\s+bilan\s*$", re.IGNORECASE
-)
+_TOTAL_ELEMENTS_HORS_BILAN_RE = re.compile(r"^\s*total\s+des\s+elements?\s+hors\s+bilan\s*$", re.IGNORECASE)
 
 # ---------------------------------------------------------------------------
 # Section header detection: labels ending with ':' after footnote stripping
@@ -383,11 +373,7 @@ def _is_section_header_line(text: str) -> bool:
     # or contain "dont"/"including"/"of which" (breakdown indicators, not headers)
     if len(label.split()) <= 8 and not _SECTION_HEADER_ALLOWLIST_RE.match(label):
         label_lower = label.lower()
-        if (
-            "dont" in label_lower
-            or "including" in label_lower
-            or "of which" in label_lower
-        ):
+        if "dont" in label_lower or "including" in label_lower or "of which" in label_lower:
             return False
         return True
     return False
@@ -509,9 +495,7 @@ def infer_header_schema(headers: list[str] | tuple[str, ...] | None) -> list[str
     return [infer_header_schema_type(str(item)) for item in headers]
 
 
-def is_generic_title(
-    title: str, generic_titles: set[str] | frozenset[str] | None = None
-) -> bool:
+def is_generic_title(title: str, generic_titles: set[str] | frozenset[str] | None = None) -> bool:
     """Retourne True lorsque le titre est trop generique pour etre un identifiant fiable.
 
     Args:
@@ -526,9 +510,7 @@ def is_generic_title(
         return True
 
     if generic_titles:
-        normalized_set = {
-            normalize_for_matching(item, target="title") for item in generic_titles
-        }
+        normalized_set = {normalize_for_matching(item, target="title") for item in generic_titles}
         if value in normalized_set:
             return True
 

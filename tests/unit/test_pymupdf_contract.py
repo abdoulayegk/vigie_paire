@@ -81,30 +81,20 @@ def test_crop_render_and_highlight_contract(sample_pdf: Path, tmp_path: Path) ->
     )
     _assert_png(cropped)
 
-    full = render_page_with_bbox_highlight_to_bytes(
-        str(sample_pdf), 1, table_bbox, scale=1.0
-    )
+    full = render_page_with_bbox_highlight_to_bytes(str(sample_pdf), 1, table_bbox, scale=1.0)
     _assert_png(full)
 
-    footnote = crop_footnote_region_to_bytes(
-        str(sample_pdf), 1, footnote_bbox, scale=1.0
-    )
+    footnote = crop_footnote_region_to_bytes(str(sample_pdf), 1, footnote_bbox, scale=1.0)
     _assert_png(footnote)
 
-    region = crop_page_region_bytes(
-        str(sample_pdf), 1, bbox_norm=table_bbox, dpi=72
-    )
+    region = crop_page_region_bytes(str(sample_pdf), 1, bbox_norm=table_bbox, dpi=72)
     _assert_png(region)
 
     output_path = tmp_path / "crop.png"
-    assert crop_table_image(
-        str(sample_pdf), 1, table_bbox, str(output_path), dpi=72
-    )
+    assert crop_table_image(str(sample_pdf), 1, table_bbox, str(output_path), dpi=72)
     _assert_png(output_path.read_bytes())
 
-    matches = find_text_bboxes_in_region(
-        str(sample_pdf), 1, "Operating income 125", [0.0, 0.0, 1.0, 1.0]
-    )
+    matches = find_text_bboxes_in_region(str(sample_pdf), 1, "Operating income 125", [0.0, 0.0, 1.0, 1.0])
     assert len(matches) == 1
     assert all(0.0 <= coordinate <= 1.0 for coordinate in matches[0])
 
@@ -115,7 +105,6 @@ def test_fallback_blocks_contract(sample_pdf: Path) -> None:
     assert blocks_by_page[2] == []
     assert any("Revenue 2026" in block.text for block in blocks_by_page[1])
     assert all(
-        block.source_label == "pymupdf_fallback"
-        and all(0.0 <= coordinate <= 1.0 for coordinate in block.bbox_norm)
+        block.source_label == "pymupdf_fallback" and all(0.0 <= coordinate <= 1.0 for coordinate in block.bbox_norm)
         for block in blocks_by_page[1]
     )

@@ -19,9 +19,7 @@ def build_sidebar() -> dbc.Col:
     Returns:
         Composant ``dbc.Col`` representant la barre laterale complete.
     """
-    bank_options = [
-        {"label": bank_option_label(k), "value": k} for k in AVAILABLE_BANKS
-    ]
+    bank_options = [{"label": bank_option_label(k), "value": k} for k in AVAILABLE_BANKS]
 
     # Generate years from the current year through 2050.
     current_year = 2025
@@ -82,9 +80,7 @@ def build_sidebar() -> dbc.Col:
                                     dcc.Dropdown(
                                         id="bank-code",
                                         options=bank_options,
-                                        value=bank_options[0]["value"]
-                                        if bank_options
-                                        else "bnc",
+                                        value=bank_options[0]["value"] if bank_options else "bnc",
                                         clearable=False,
                                         className="small",
                                     ),
@@ -108,9 +104,7 @@ def build_sidebar() -> dbc.Col:
                         className="mb-3 g-2",
                     ),
                     # 3. Quarter Selection for Comparison (Global)
-                    html.Label(
-                        "Trimestre courant sélectionné", className="fw-bold small"
-                    ),
+                    html.Label("Trimestre courant sélectionné", className="fw-bold small"),
                     dcc.Dropdown(
                         id="current-quarter",
                         options=quarter_options,
@@ -118,9 +112,7 @@ def build_sidebar() -> dbc.Col:
                         clearable=False,
                         className="small mb-2",
                     ),
-                    html.Label(
-                        "Trimestre précédent comparé", className="fw-bold small"
-                    ),
+                    html.Label("Trimestre précédent comparé", className="fw-bold small"),
                     html.Div(
                         id="previous-quarter-display",
                         className="small border rounded bg-light px-2 py-2 mb-2 text-muted",
@@ -189,9 +181,7 @@ def build_sidebar() -> dbc.Col:
                                 children=html.Div(
                                     [
                                         html.I(className="bi bi-file-earmark-pdf me-2"),
-                                        html.Span(
-                                            "Glisser ou cliquer", className="small"
-                                        ),
+                                        html.Span("Glisser ou cliquer", className="small"),
                                     ],
                                     className="d-flex align-items-center justify-content-center",
                                 ),
@@ -220,9 +210,7 @@ def build_sidebar() -> dbc.Col:
                                 children=html.Div(
                                     [
                                         html.I(className="bi bi-file-earmark-pdf me-2"),
-                                        html.Span(
-                                            "Glisser ou cliquer", className="small"
-                                        ),
+                                        html.Span("Glisser ou cliquer", className="small"),
                                     ],
                                     className="d-flex align-items-center justify-content-center",
                                 ),

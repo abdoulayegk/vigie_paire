@@ -110,11 +110,7 @@ def _build_global_summary(
         by_impact[impact] = by_impact.get(impact, 0) + 1
         by_category[category] = by_category.get(category, 0) + 1
         by_action[action] = by_action.get(action, 0) + 1
-        summary = str(
-            triage.get("changement_constate")
-            or change.get("change_summary")
-            or ""
-        ).strip()
+        summary = str(triage.get("changement_constate") or change.get("change_summary") or "").strip()
         if summary and bank_code:
             summary = build_change_presentation(
                 change,
@@ -205,15 +201,11 @@ def _build_semantic_quality_metrics(
     return {
         "total_changes": total_changes,
         "alignment_type_counts": dict(sorted(alignment_types.items())),
-        "ambiguous_alignment_rate": (
-            round(ambiguous_count / total_changes, 4) if total_changes else 0.0
-        ),
+        "ambiguous_alignment_rate": (round(ambiguous_count / total_changes, 4) if total_changes else 0.0),
         "ambiguous_alignment_count": ambiguous_count,
         "reconciliation_component_count": len(audit_rows),
         "reconciliation_applied_count": applied_reconciliations,
-        "reconciliation_applied_rate": (
-            round(applied_reconciliations / len(audit_rows), 4) if audit_rows else 0.0
-        ),
+        "reconciliation_applied_rate": (round(applied_reconciliations / len(audit_rows), 4) if audit_rows else 0.0),
         "triage_prefiltered_count": triage_prefiltered_count,
         "triage_sent_count": triage_sent_count,
         "triage_dedup_group_count": triage_dedup_groups,
@@ -227,7 +219,5 @@ def _build_semantic_quality_metrics(
             else 0.0
         ),
         "human_review_count": human_review_count,
-        "human_review_rate": (
-            round(human_review_count / total_changes, 4) if total_changes else 0.0
-        ),
+        "human_review_rate": (round(human_review_count / total_changes, 4) if total_changes else 0.0),
     }

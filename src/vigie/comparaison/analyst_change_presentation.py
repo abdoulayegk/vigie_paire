@@ -217,7 +217,7 @@ def _capitalize_sentence_start(value: str) -> str:
     if match is None:
         return value
     index = match.start()
-    return f"{value[:index]}{value[index].upper()}{value[index + 1:]}"
+    return f"{value[:index]}{value[index].upper()}{value[index + 1 :]}"
 
 
 def _clean_business_relevance_sentence(value: str) -> str:
@@ -243,9 +243,7 @@ def _duplicates_summary(sentence: str, summary: str) -> bool:
         return False
     if sentence_key == summary_key:
         return True
-    if min(len(sentence_key), len(summary_key)) >= 60 and (
-        sentence_key in summary_key or summary_key in sentence_key
-    ):
+    if min(len(sentence_key), len(summary_key)) >= 60 and (sentence_key in summary_key or summary_key in sentence_key):
         return True
     return SequenceMatcher(None, sentence_key, summary_key, autojunk=False).ratio() >= 0.88
 
@@ -268,12 +266,7 @@ def business_relevance_paragraph(
         for sentence in _sentence_parts(narrative):
             cleaned_sentence = _clean_business_relevance_sentence(sentence)
             key = _sentence_comparison_key(cleaned_sentence)
-            if (
-                not cleaned_sentence
-                or not key
-                or key in seen
-                or _duplicates_summary(cleaned_sentence, summary)
-            ):
+            if not cleaned_sentence or not key or key in seen or _duplicates_summary(cleaned_sentence, summary):
                 continue
             seen.add(key)
             relevant_sentences.append(cleaned_sentence)
@@ -291,10 +284,7 @@ def business_relevance_paragraph(
 def change_scope(change: dict[str, Any]) -> str:
     """Classe un changement comme qualitatif, secondaire ou masqué."""
     triage = change.get("genai_triage") or {}
-    if (
-        str(change.get("diff_type") or "").lower() == "unchanged"
-        or str(triage.get("source") or "").lower() == "skip"
-    ):
+    if str(change.get("diff_type") or "").lower() == "unchanged" or str(triage.get("source") or "").lower() == "skip":
         return "hidden"
 
     exclusion_reason = str(triage.get("exclusion_reason") or "").strip().lower()
@@ -505,8 +495,7 @@ def _clean_narrative_unit(value: Any, *, bank_code: str | None) -> str:
         )
     else:
         normalized = "\n".join(
-            sanitize_analyst_french(" ".join(line.split()).strip())
-            for line in str(value or "").strip().splitlines()
+            sanitize_analyst_french(" ".join(line.split()).strip()) for line in str(value or "").strip().splitlines()
         ).strip()
     normalized = _LEADING_ANALYSIS_LABEL_RE.sub("", normalized, count=1).strip()
     if normalized and normalized[-1] not in ".!?":
@@ -528,12 +517,7 @@ def _structured_business_paragraph(
         sentence = _clean_narrative_unit(value, bank_code=bank_code)
         sentence = _clean_business_relevance_sentence(sentence)
         key = _sentence_comparison_key(sentence)
-        if (
-            not sentence
-            or not key
-            or key in seen
-            or _duplicates_summary(sentence, summary)
-        ):
+        if not sentence or not key or key in seen or _duplicates_summary(sentence, summary):
             continue
         if sentence[-1] not in ".!?":
             sentence += "."
@@ -560,11 +544,7 @@ def _legacy_change_candidate(change: dict[str, Any], triage: dict[str, Any]) -> 
     compact_reason = " ".join(str(triage.get("relevance_reason") or "").split())
     if compact_reason:
         return _first_complete_sentence(compact_reason)
-    return str(
-        change.get("what_changed")
-        or change.get("change_summary")
-        or ""
-    ).strip()
+    return str(change.get("what_changed") or change.get("change_summary") or "").strip()
 
 
 def build_analyst_narrative(
@@ -584,10 +564,7 @@ def build_analyst_narrative(
     """
     triage_value = change.get("genai_triage") or {}
     triage = triage_value if isinstance(triage_value, dict) else {}
-    has_structured_fields = any(
-        str(triage.get(field) or "").strip()
-        for field in _STRUCTURED_TRIAGE_FIELDS
-    )
+    has_structured_fields = any(str(triage.get(field) or "").strip() for field in _STRUCTURED_TRIAGE_FIELDS)
 
     if has_structured_fields:
         factual_candidate = str(
@@ -599,10 +576,7 @@ def build_analyst_narrative(
         ).strip()
         source = "structured"
     else:
-        factual_candidate = (
-            str(candidate_summary or "").strip()
-            or _legacy_change_candidate(change, triage)
-        )
+        factual_candidate = str(candidate_summary or "").strip() or _legacy_change_candidate(change, triage)
         source = "legacy"
 
     if not factual_candidate:
@@ -633,8 +607,7 @@ def build_analyst_narrative(
             pertinence_metier = _structured_business_paragraph(
                 (
                     triage.get("signification_metier"),
-                    triage.get("comparaison_interbanques")
-                    or triage.get("comparaison_interbancaire"),
+                    triage.get("comparaison_interbanques") or triage.get("comparaison_interbancaire"),
                     triage.get("limite_interpretation"),
                 ),
                 summary=changement_constate,

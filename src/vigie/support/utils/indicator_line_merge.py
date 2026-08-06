@@ -129,9 +129,7 @@ def _looks_like_continuation_word_list(text: str) -> bool:
     return all(t in _CONTINUATION_WORDS for t in tokens)
 
 
-def _can_merge(
-    previous: str, current: str, *, config: IndicatorLineMergeConfig
-) -> bool:
+def _can_merge(previous: str, current: str, *, config: IndicatorLineMergeConfig) -> bool:
     """Determine si la ligne courante peut etre fusionnee avec la precedente."""
     prev = _normalize_spaces(previous)
     cur = _normalize_spaces(current)
@@ -142,9 +140,7 @@ def _can_merge(
     if _STRONG_PUNCTUATION_END_RE.search(prev):
         return False
 
-    starts_like_continuation = _starts_with_lowercase(
-        cur
-    ) or _is_mostly_markers_or_superscripts(
+    starts_like_continuation = _starts_with_lowercase(cur) or _is_mostly_markers_or_superscripts(
         cur,
         ratio_threshold=config.marker_ratio_threshold,
     )

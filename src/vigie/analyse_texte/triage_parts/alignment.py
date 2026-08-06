@@ -19,6 +19,7 @@ from .constants import _FULL_EVIDENCE_VERIFICATION_MAX_TOKENS, _SEMANTIC_ALIGNME
 from .evidence import _EvidencePacketCoherenceCheck
 from .results import _default_triage
 
+
 def _requires_alignment_review(change: dict[str, Any]) -> bool:
     """True only when the first GPT call explicitly cannot decide the relation."""
     decision = str(change.get("alignment_decision") or "").strip().lower()
@@ -29,14 +30,9 @@ def _requires_alignment_review(change: dict[str, Any]) -> bool:
     return str(change.get("alignment_type") or "").strip().lower() == "ambiguous"
 
 
-
-
 def _is_single_semantic_alignment_group(changes: list[dict[str, Any]]) -> bool:
     """Keeps the added/removed sides of one GPT decision in one triage call."""
-    group_ids = {
-        str(change.get("semantic_alignment_group_id") or "").strip()
-        for change in changes
-    }
+    group_ids = {str(change.get("semantic_alignment_group_id") or "").strip() for change in changes}
     return len(changes) >= 2 and len(group_ids) == 1 and bool(next(iter(group_ids), ""))
 
 
@@ -55,8 +51,7 @@ def _alignment_review_result(
             "conclure automatiquement."
         ),
         motif_non_pertinence=(
-            "L’élément reste visible avec ses extraits sources et nécessite une "
-            "revue avant toute qualification AMF."
+            "L’élément reste visible avec ses extraits sources et nécessite une revue avant toute qualification AMF."
         ),
     )
     triage = _default_triage(bank_code)
@@ -73,9 +68,7 @@ def _alignment_review_result(
             "nouvelle_idee_justification": _secondary_analyst_justification(
                 subject_label="Alignement à confirmer",
                 analyst_copy=analyst_copy,
-                surveillance_note=(
-                    "Lire les extraits sources avant toute décision."
-                ),
+                surveillance_note=("Lire les extraits sources avant toute décision."),
             ),
             # The analyst still sees the deterministic, verbatim difference;
             # no LLM-generated highlight is used for this unresolved pairing.
@@ -101,10 +94,7 @@ def _semantic_move_result(
             "substantiellement son sens, son niveau de détail ou son "
             "rattachement métier."
         ),
-        motif_non_pertinence=(
-            "Ce déplacement ne crée aucun nouvel élément à comparer entre les "
-            "banques."
-        ),
+        motif_non_pertinence=("Ce déplacement ne crée aucun nouvel élément à comparer entre les banques."),
     )
     triage = _default_triage(bank_code)
     triage.update(
@@ -118,9 +108,7 @@ def _semantic_move_result(
             "nouvelle_idee_justification": _secondary_analyst_justification(
                 subject_label="Texte déplacé",
                 analyst_copy=analyst_copy,
-                surveillance_note=(
-                    "Aucun suivi prioritaire n’est requis pour ce déplacement."
-                ),
+                surveillance_note=("Aucun suivi prioritaire n’est requis pour ce déplacement."),
             ),
             "change_segments": [],
         }
@@ -161,9 +149,7 @@ def _coherence_review_triage(
             "nouvelle_idee_justification": _secondary_analyst_justification(
                 subject_label="Cohérence à confirmer",
                 analyst_copy=analyst_copy,
-                surveillance_note=(
-                    "Un analyste doit confirmer la qualification avant diffusion."
-                ),
+                surveillance_note=("Un analyste doit confirmer la qualification avant diffusion."),
             ),
             "change_segments": build_change_segments(change),
         }
@@ -210,10 +196,7 @@ def _verify_triage_coherence(
                                 "is_relevant": triage.get("is_relevant"),
                                 "themes_amf": triage.get("themes_amf"),
                                 "nouvelle_idee": triage.get("nouvelle_idee"),
-                                **{
-                                    field_name: triage.get(field_name, "")
-                                    for field_name in _SEMANTIC_REASON_FIELDS
-                                },
+                                **{field_name: triage.get(field_name, "") for field_name in _SEMANTIC_REASON_FIELDS},
                                 "relevance_reason": triage.get("relevance_reason"),
                             },
                         }

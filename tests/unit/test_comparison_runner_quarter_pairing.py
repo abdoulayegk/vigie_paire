@@ -87,13 +87,7 @@ def test_run_comparison_uses_current_vs_previous_quarter_context(
         return []
 
     def _fake_compare_reports_gpt4o(*, out_root, reference_resolution, **_kwargs):
-        out_path = (
-            Path(out_root)
-            / "bnc"
-            / "2026_t1_vs_2025_t3"
-            / "20260325_120000"
-            / "comparison.json"
-        )
+        out_path = Path(out_root) / "bnc" / "2026_t1_vs_2025_t3" / "20260325_120000" / "comparison.json"
         _write_report_comparison(out_path, reference_resolution=reference_resolution)
         return out_path
 
@@ -157,13 +151,7 @@ def test_run_comparison_includes_extraction_source_provenance(
         return []
 
     def _fake_compare_reports_gpt4o(*, out_root, reference_resolution, **_kwargs):
-        out_path = (
-            Path(out_root)
-            / "bnc"
-            / "2026_t1_vs_2025_t3"
-            / "20260325_120000"
-            / "comparison.json"
-        )
+        out_path = Path(out_root) / "bnc" / "2026_t1_vs_2025_t3" / "20260325_120000" / "comparison.json"
         _write_report_comparison(
             out_path,
             reference_resolution=reference_resolution,
@@ -196,9 +184,7 @@ def test_run_comparison_includes_extraction_source_provenance(
     assert curr["mode"] == "fresh"
     assert prev["tables_path"].endswith("/t3/tables.json")
     assert curr["indicators_path"].endswith("/t1/indicators.json")
-    assert result["meta"]["compare_path"].endswith(
-        "2026_t1_vs_2025_t3/20260325_120000/comparison.json"
-    )
+    assert result["meta"]["compare_path"].endswith("2026_t1_vs_2025_t3/20260325_120000/comparison.json")
     assert result["meta"]["run_metrics"]["comparison_calls_total"] == 2
 
 

@@ -39,7 +39,7 @@ def test_qa_prompt_limits_indicator_audit_to_leftmost_column() -> None:
 
     prompt = inspector._build_qa_prompt('{"indicators":["Programme A"]}')
 
-    assert 'FIRST / LEFTMOST COLUMN' in prompt
+    assert "FIRST / LEFTMOST COLUMN" in prompt
     assert 'Text appearing under "États-Unis", "Europe"' in prompt
     assert "must NEVER be reported as a missing indicator" in prompt
 
@@ -137,9 +137,7 @@ def test_qa_inspector_uses_openai_compatible_strict_schema(monkeypatch) -> None:
     class FakeOpenAI:
         def __init__(self, **kwargs) -> None:
             captured["client_kwargs"] = kwargs
-            self.beta = SimpleNamespace(
-                chat=SimpleNamespace(completions=FakeParseCompletions())
-            )
+            self.beta = SimpleNamespace(chat=SimpleNamespace(completions=FakeParseCompletions()))
 
     monkeypatch.setenv("OPENAI_API_KEY", "test-key")
     monkeypatch.setattr("openai.OpenAI", FakeOpenAI)

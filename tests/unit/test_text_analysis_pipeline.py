@@ -220,9 +220,7 @@ def test_allowed_target_sections_match_bank_matrix() -> None:
     }
 
 
-def test_resolve_sections_ignores_regulatory_for_bnc(
-    monkeypatch, tmp_path: Path
-) -> None:
+def test_resolve_sections_ignores_regulatory_for_bnc(monkeypatch, tmp_path: Path) -> None:
     class _FakeItem:
         def __init__(self, section_type: str, start_page: int, end_page: int):
             self.section_type = section_type
@@ -249,9 +247,7 @@ def test_resolve_sections_ignores_regulatory_for_bnc(
     assert set(resolved) == {"gestion_capital", "gestion_risques"}
 
 
-def test_resolve_sections_passes_t4_context_and_filters_regulatory(
-    monkeypatch, tmp_path: Path
-) -> None:
+def test_resolve_sections_passes_t4_context_and_filters_regulatory(monkeypatch, tmp_path: Path) -> None:
     captured: dict[str, object] = {}
 
     class _FakeItem:
@@ -364,9 +360,7 @@ def test_default_triage_includes_amf_v2_and_legacy_fields() -> None:
     assert triage["comparaison_interbanques"] == ""
     assert triage["limite_interpretation"] == ""
     assert triage["motif_non_pertinence"]
-    assert triage["relevance_reason"] == (
-        f"{triage['changement_constate']} {triage['motif_non_pertinence']}"
-    )
+    assert triage["relevance_reason"] == (f"{triage['changement_constate']} {triage['motif_non_pertinence']}")
 
 
 def test_triage_few_shots_request_structured_analyst_fields() -> None:
@@ -403,10 +397,7 @@ def test_triage_few_shots_request_structured_analyst_fields() -> None:
             assert validated.comparaison_interbanques == ""
             assert validated.limite_interpretation == ""
             assert validated.motif_non_pertinence
-        assert (
-            "Ce changement est pertinent pour la vigie AMF"
-            not in validated.relevance_reason
-        )
+        assert "Ce changement est pertinent pour la vigie AMF" not in validated.relevance_reason
         assert "Ce changement n’est pas pertinent" not in validated.relevance_reason
 
 
@@ -450,9 +441,7 @@ def test_derive_legacy_fields_maps_data_and_cloud_to_risque_category() -> None:
     assert legacy["category"] == "RISQUE"
 
 
-def test_derive_legacy_fields_maps_montant_reglementaire_to_quantitative_signal() -> (
-    None
-):
+def test_derive_legacy_fields_maps_montant_reglementaire_to_quantitative_signal() -> None:
     """MONTANT_REGLEMENTAIRE active signals.quantitative_changed."""
     legacy = _derive_legacy_fields(
         {
@@ -480,9 +469,7 @@ def test_is_non_cosmetic_change_keeps_relevant_with_themes() -> None:
     assert _is_non_cosmetic_change(triage) is True
 
 
-def test_call_json_completion_retries_with_larger_token_budget_after_truncation() -> (
-    None
-):
+def test_call_json_completion_retries_with_larger_token_budget_after_truncation() -> None:
     client = _FakeClient(
         responses=[
             _FakeResponse(
@@ -527,9 +514,7 @@ def test_compare_section_texts_surfaces_section_key_on_json_failure(
 ) -> None:
     monkeypatch.setattr(
         "vigie.analyse_texte.comparaison_sections.execution_llm._call_structured_completion_with_correction",
-        lambda *args, **kwargs: (_ for _ in ()).throw(
-            RuntimeError("invalid structured output from model")
-        ),
+        lambda *args, **kwargs: (_ for _ in ()).throw(RuntimeError("invalid structured output from model")),
     )
 
     with pytest.raises(RuntimeError, match="gestion_risques"):
@@ -542,9 +527,7 @@ def test_compare_section_texts_surfaces_section_key_on_json_failure(
         )
 
 
-def test_pipeline_retains_non_cosmetic_changes_and_discards_cosmetic(
-    monkeypatch, tmp_path: Path
-) -> None:
+def test_pipeline_retains_non_cosmetic_changes_and_discards_cosmetic(monkeypatch, tmp_path: Path) -> None:
     pdf_previous = tmp_path / "prev.pdf"
     pdf_current = tmp_path / "curr.pdf"
     pdf_previous.write_bytes(b"%PDF-1.4 prev")
@@ -604,22 +587,14 @@ def test_pipeline_retains_non_cosmetic_changes_and_discards_cosmetic(
         excluded_blocks=[],
     )
 
-    monkeypatch.setattr(
-        "vigie.analyse_texte.pipeline._build_openai_client", lambda: object()
-    )
+    monkeypatch.setattr("vigie.analyse_texte.pipeline._build_openai_client", lambda: object())
     monkeypatch.setattr(
         "vigie.analyse_texte.pipeline._resolve_sections",
-        lambda pdf_path, bank_code, quarter=None, year=None: {
-            "gestion_risques": section
-        },
+        lambda pdf_path, bank_code, quarter=None, year=None: {"gestion_risques": section},
     )
     monkeypatch.setattr(
         "vigie.analyse_texte.pipeline._extract_audits_for_pdf",
-        lambda **kwargs: (
-            ([audit_prev], "")
-            if "prev" in str(kwargs["pdf_path"])
-            else ([audit_curr], "")
-        ),
+        lambda **kwargs: ([audit_prev], "") if "prev" in str(kwargs["pdf_path"]) else ([audit_curr], ""),
     )
     monkeypatch.setattr(
         "vigie.analyse_texte.pipeline._compare_section_texts",
@@ -804,9 +779,7 @@ def test_build_global_summary_distinguishes_detected_and_relevant_changes() -> N
     assert summary["pertinence_globale"] == "MOYENNE"
 
 
-def test_section_window_starts_after_anchor_and_stops_before_next_anchor_same_page() -> (
-    None
-):
+def test_section_window_starts_after_anchor_and_stops_before_next_anchor_same_page() -> None:
     section = ResolvedSection(
         section_key="gestion_capital",
         title="Gestion du capital",
@@ -905,9 +878,7 @@ def test_assign_segments_stops_at_end_boundary_heading() -> None:
             text="Faits nouveaux et événements subséquents",
             heading_level=3,
         ),
-        DoclingSegment(
-            kind="heading", text="NORMES ET MÉTHODES COMPTABLES", heading_level=2
-        ),
+        DoclingSegment(kind="heading", text="NORMES ET MÉTHODES COMPTABLES", heading_level=2),
         DoclingSegment(kind="paragraph", text=accounting_paragraph),
     ]
 
@@ -916,23 +887,17 @@ def test_assign_segments_stops_at_end_boundary_heading() -> None:
 
     assert any(segment.text == risk_paragraph for segment in risk_segments)
     assert not any(segment.text == accounting_paragraph for segment in risk_segments)
-    assert not any(
-        "NORMES ET MÉTHODES COMPTABLES" in segment.text for segment in risk_segments
-    )
+    assert not any("NORMES ET MÉTHODES COMPTABLES" in segment.text for segment in risk_segments)
 
 
-def test_assign_segments_keeps_internal_accounting_heading_before_later_risk_content() -> (
-    None
-):
+def test_assign_segments_keeps_internal_accounting_heading_before_later_risk_content() -> None:
     introductory_paragraph = "La Banque surveille les facteurs susceptibles d'avoir une incidence sur ses activités."
-    internal_accounting_heading = (
-        "Conventions, méthodes et estimations comptables utilisées par la Banque"
+    internal_accounting_heading = "Conventions, méthodes et estimations comptables utilisées par la Banque"
+    internal_accounting_paragraph = (
+        "Les conventions utilisées par la Banque exigent des estimations portant sur des questions incertaines."
     )
-    internal_accounting_paragraph = "Les conventions utilisées par la Banque exigent des estimations portant sur des questions incertaines."
     credit_heading = "Risque de crédit"
-    credit_paragraph = (
-        "Le risque de crédit représente la possibilité de subir une perte financière."
-    )
+    credit_paragraph = "Le risque de crédit représente la possibilité de subir une perte financière."
     audit = SectionAudit(
         section_key="gestion_risques",
         section_title="Gestion des risques",
@@ -1002,9 +967,7 @@ def test_assign_segments_keeps_internal_accounting_heading_before_later_risk_con
     )
     segments = [
         DoclingSegment(kind="paragraph", text=introductory_paragraph),
-        DoclingSegment(
-            kind="heading", text=internal_accounting_heading, heading_level=2
-        ),
+        DoclingSegment(kind="heading", text=internal_accounting_heading, heading_level=2),
         DoclingSegment(kind="paragraph", text=internal_accounting_paragraph),
         DoclingSegment(kind="heading", text=credit_heading, heading_level=2),
         DoclingSegment(kind="paragraph", text=credit_paragraph),
@@ -1013,23 +976,15 @@ def test_assign_segments_keeps_internal_accounting_heading_before_later_risk_con
     assigned = _assign_segments_to_sections(segments, [audit])
     risk_segments = assigned["gestion_risques"]
 
-    assert any(
-        segment.text == internal_accounting_paragraph for segment in risk_segments
-    )
+    assert any(segment.text == internal_accounting_paragraph for segment in risk_segments)
     assert any(segment.text == credit_heading for segment in risk_segments)
     assert any(segment.text == credit_paragraph for segment in risk_segments)
 
 
-def test_assign_segments_stops_at_td_accounting_heading_before_declared_end_page() -> (
-    None
-):
-    risk_paragraph = (
-        "La Banque continue de surveiller les risques environnementaux et sociaux."
-    )
+def test_assign_segments_stops_at_td_accounting_heading_before_declared_end_page() -> None:
+    risk_paragraph = "La Banque continue de surveiller les risques environnementaux et sociaux."
     accounting_heading = "Normes et méthodes comptables"
-    accounting_paragraph = (
-        "La direction doit exercer son jugement pour évaluer les méthodes comptables."
-    )
+    accounting_paragraph = "La direction doit exercer son jugement pour évaluer les méthodes comptables."
     audit = SectionAudit(
         section_key="gestion_risques",
         section_title="Gestion des risques",
@@ -1124,9 +1079,7 @@ def test_should_keep_docling_segment_rejects_accounting_heading() -> None:
     assert _should_keep_docling_segment(segment, audits=None) is False
 
 
-def test_should_keep_docling_segment_keeps_audited_regulatory_paragraph_despite_ratios() -> (
-    None
-):
+def test_should_keep_docling_segment_keeps_audited_regulatory_paragraph_despite_ratios() -> None:
     """Les pourcentages et le mot « total » ne doivent pas annuler l'audit PDF."""
     paragraph = (
         "Le Bureau du surintendant des institutions financières Canada exige des institutions "
@@ -1196,9 +1149,7 @@ def test_should_keep_docling_segment_keeps_audited_regulatory_paragraph_despite_
         ),
     ],
 )
-def test_should_keep_audited_narrative_samples_from_every_bank(
-    bank: str, paragraph: str
-) -> None:
+def test_should_keep_audited_narrative_samples_from_every_bank(bank: str, paragraph: str) -> None:
     """Les paragraphes chiffrés observés dans les six banques restent comparables."""
     audit = SectionAudit(
         section_key="gestion_capital",
@@ -1394,9 +1345,7 @@ def test_build_docling_markdown_keeps_narrative_around_bns_d22_figure() -> None:
                 "narrative",
                 True,
             ),
-            PDFBlock(
-                "p058_d005", 58, [0.1, 0.85, 0.9, 0.92], leverage, 5, "narrative", True
-            ),
+            PDFBlock("p058_d005", 58, [0.1, 0.85, 0.9, 0.92], leverage, 5, "narrative", True),
         ],
         excluded_blocks=[
             PDFBlock(
@@ -1439,9 +1388,7 @@ def test_build_docling_markdown_keeps_narrative_around_bns_d22_figure() -> None:
         ]
     )
 
-    markdown = _build_text_extraction_markdown_from_docling(
-        [audit], raw_docling_markdown=raw_docling
-    )
+    markdown = _build_text_extraction_markdown_from_docling([audit], raw_docling_markdown=raw_docling)
 
     for paragraph in (
         before_figure,
@@ -1457,10 +1404,7 @@ def test_build_docling_markdown_keeps_narrative_around_bns_d22_figure() -> None:
 
 def test_text_extraction_cache_schema_invalidates_legacy_markdown() -> None:
     legacy = "## Gestion du capital\n\nTexte narratif.\n"
-    previous_schema = (
-        "<!-- vigilance-text-extraction-schema: 5 -->\n\n"
-        "## Gestion du capital\n\nTexte narratif.\n"
-    )
+    previous_schema = "<!-- vigilance-text-extraction-schema: 5 -->\n\n## Gestion du capital\n\nTexte narratif.\n"
 
     stamped = stamp_text_extraction_cache_schema(legacy)
 
@@ -1539,18 +1483,14 @@ def test_build_markdown_omits_accounting_headings_in_risk_section() -> None:
         ]
     )
 
-    markdown = _build_text_extraction_markdown_from_docling(
-        [audit], raw_docling_markdown=raw_docling
-    )
+    markdown = _build_text_extraction_markdown_from_docling([audit], raw_docling_markdown=raw_docling)
 
     assert "### CONSOLIDATION DES ENTITÉS STRUCTURÉES" not in markdown
     assert "### FACTEURS DE RISQUE ET GESTION DES RISQUES" not in markdown
     assert "La Banque juge qu'il est d'importance critique" in markdown
 
 
-def test_build_section_audit_excludes_blocks_outside_target_section_and_tables() -> (
-    None
-):
+def test_build_section_audit_excludes_blocks_outside_target_section_and_tables() -> None:
     section = ResolvedSection(
         section_key="gestion_capital",
         title="Gestion du capital",
@@ -1603,9 +1543,7 @@ def test_build_section_audit_keeps_every_in_scope_non_table_block() -> None:
     blocks = [
         PDFBlock("p005_b001", 5, [0.1, 0.20, 0.9, 0.24], short_label, 1),
         PDFBlock("p005_b002", 5, [0.1, 0.26, 0.9, 0.32], percentage, 2),
-        PDFBlock(
-            "p005_b003", 5, [0.1, 0.34, 0.9, 0.40], standalone_note, 3, "footnote"
-        ),
+        PDFBlock("p005_b003", 5, [0.1, 0.34, 0.9, 0.40], standalone_note, 3, "footnote"),
         PDFBlock("p005_b004", 5, [0.1, 0.42, 0.9, 0.48], "10 20 30 40", 4),
         PDFBlock("p005_b005", 5, [0.1, 0.50, 0.9, 0.54], "(2) Note sous tableau.", 5),
     ]
@@ -1653,9 +1591,9 @@ def test_build_section_audit_excludes_standalone_not_applicable_marker(
     )
 
     assert audit.included_blocks == []
-    assert [
-        (block.block_type, block.exclusion_reason) for block in audit.excluded_blocks
-    ] == [("not_applicable", "not_applicable")]
+    assert [(block.block_type, block.exclusion_reason) for block in audit.excluded_blocks] == [
+        ("not_applicable", "not_applicable")
+    ]
 
 
 def test_build_section_audit_excludes_running_chrome_and_table_unit_label() -> None:
@@ -1709,9 +1647,7 @@ def test_build_section_audit_excludes_running_chrome_and_table_unit_label() -> N
     )
 
     assert [block.block_id for block in audit.included_blocks] == ["p065_d003"]
-    assert [
-        (block.block_type, block.exclusion_reason) for block in audit.excluded_blocks
-    ] == [
+    assert [(block.block_type, block.exclusion_reason) for block in audit.excluded_blocks] == [
         ("header_footer", "running_header_footer"),
         ("table", "table_like_block"),
         ("header_footer", "running_header_footer"),
@@ -1744,10 +1680,7 @@ def test_running_report_chrome_recognizes_supported_bank_page_labels(text: str) 
             "1 Des détails sont présentés à la note 16 des états financiers consolidés "
             "audités du Rapport annuel de BMO pour 2025."
         ),
-        (
-            "2 La Banque Scotia explique dans son Rapport annuel 2025 que la gestion "
-            "des risques demeure une priorité."
-        ),
+        ("2 La Banque Scotia explique dans son Rapport annuel 2025 que la gestion des risques demeure une priorité."),
     ],
 )
 def test_running_report_chrome_preserves_numbered_narrative_and_incomplete_labels(
@@ -1840,9 +1773,7 @@ def test_composite_grid_region_excludes_cells_caption_and_table_note() -> None:
     table_regions = {66: [[0.79, 0.63, 0.93, 0.68]]}
 
     _augment_table_regions_with_composite_grids({66: blocks}, table_regions)
-    composite = [
-        bbox for bbox in table_regions[66] if bbox[0] == 0.0 and bbox[2] == 1.0
-    ]
+    composite = [bbox for bbox in table_regions[66] if bbox[0] == 0.0 and bbox[2] == 1.0]
     footnote_regions = _infer_table_footnote_bboxes(table_regions)
 
     assert len(composite) == 1
@@ -1850,34 +1781,16 @@ def test_composite_grid_region_excludes_cells_caption_and_table_note() -> None:
     assert all(block.block_type == "table" for block in blocks[2:-2])
     assert narrative.block_type == "other"
     assert following_narrative.block_type == "other"
-    assert (
-        _classify_block_type(note, {}, table_regions[66], footnote_regions[66])
-        == "table_footnote"
-    )
-    assert (
-        _classify_block_type(narrative, {}, table_regions[66], footnote_regions[66])
-        == "narrative"
-    )
+    assert _classify_block_type(note, {}, table_regions[66], footnote_regions[66]) == "table_footnote"
+    assert _classify_block_type(narrative, {}, table_regions[66], footnote_regions[66]) == "narrative"
 
 
 def test_raw_docling_markdown_path_uses_role_year_and_quarter(tmp_path: Path) -> None:
     assert get_raw_docling_markdown_path(tmp_path, "TD", 2025, "T4", "current") == (
-        tmp_path
-        / "outputs"
-        / "text_extractions"
-        / "td"
-        / "2025"
-        / "t4"
-        / "td_current_2025_t4.md"
+        tmp_path / "outputs" / "text_extractions" / "td" / "2025" / "t4" / "td_current_2025_t4.md"
     )
     assert get_raw_docling_markdown_path(tmp_path, "td", 2024, "t4", "previous") == (
-        tmp_path
-        / "outputs"
-        / "text_extractions"
-        / "td"
-        / "2024"
-        / "t4"
-        / "td_previous_2024_t4.md"
+        tmp_path / "outputs" / "text_extractions" / "td" / "2024" / "t4" / "td_previous_2024_t4.md"
     )
 
 
@@ -1922,15 +1835,7 @@ def test_extract_audits_for_pdf_writes_raw_docling_markdown_before_filtering(
         "vigie.analyse_texte.extraction._extract_docling_page_blocks",
         _fake_extract_docling_page_blocks,
     )
-    raw_path = (
-        tmp_path
-        / "outputs"
-        / "text_extractions"
-        / "td"
-        / "2025"
-        / "t4"
-        / "td_current_2025_t4.md"
-    )
+    raw_path = tmp_path / "outputs" / "text_extractions" / "td" / "2025" / "t4" / "td_current_2025_t4.md"
     section = ResolvedSection(
         section_key="gestion_risques",
         title="Gestion des risques",
@@ -2083,18 +1988,8 @@ def test_docling_filter_keeps_included_narrative_from_table_grid() -> None:
         excluded_blocks=[short_cell],
     )
 
-    assert (
-        _should_keep_docling_segment(
-            DoclingSegment(kind="paragraph", text=narrative), [audit]
-        )
-        is True
-    )
-    assert (
-        _should_keep_docling_segment(
-            DoclingSegment(kind="paragraph", text="Description"), [audit]
-        )
-        is False
-    )
+    assert _should_keep_docling_segment(DoclingSegment(kind="paragraph", text=narrative), [audit]) is True
+    assert _should_keep_docling_segment(DoclingSegment(kind="paragraph", text="Description"), [audit]) is False
 
 
 def test_classify_block_type_rejects_block_overlapping_table_footnote_bbox() -> None:
@@ -2106,10 +2001,7 @@ def test_classify_block_type_rejects_block_overlapping_table_footnote_bbox() -> 
         3,
     )
 
-    assert (
-        _classify_block_type(block, {}, [], [[0.0, 0.33, 1.0, 0.42]])
-        == "table_footnote"
-    )
+    assert _classify_block_type(block, {}, [], [[0.0, 0.33, 1.0, 0.42]]) == "table_footnote"
 
 
 def test_looks_like_footnote_accepts_bare_numeric_note_marker() -> None:
@@ -2133,15 +2025,10 @@ def test_classify_block_type_rejects_ns_table_note_marker() -> None:
         11,
     )
 
-    assert (
-        _classify_block_type(block, {}, [], [[0.0, 0.60, 1.0, 0.70]])
-        == "table_footnote"
-    )
+    assert _classify_block_type(block, {}, [], [[0.0, 0.60, 1.0, 0.70]]) == "table_footnote"
 
 
-def test_classify_block_type_rejects_long_explicit_footnote_before_narrative_rule() -> (
-    None
-):
+def test_classify_block_type_rejects_long_explicit_footnote_before_narrative_rule() -> None:
     block = PDFBlock(
         "p033_d007",
         33,
@@ -2203,9 +2090,7 @@ def test_build_section_audit_keeps_narrative_between_two_tables() -> None:
         anchor_bbox_norm=[0.1, 0.10, 0.8, 0.14],
     )
     blocks = [
-        PDFBlock(
-            "p006_b001", 6, [0.08, 0.20, 0.92, 0.30], "100 200 300 400 500 600", 1
-        ),
+        PDFBlock("p006_b001", 6, [0.08, 0.20, 0.92, 0.30], "100 200 300 400 500 600", 1),
         PDFBlock(
             "p006_b002",
             6,
@@ -2213,9 +2098,7 @@ def test_build_section_audit_keeps_narrative_between_two_tables() -> None:
             "La Banque maintient un niveau de fonds propres prudent afin de couvrir les risques inhérents à ses activités et protéger sa clientèle.",
             2,
         ),
-        PDFBlock(
-            "p006_b003", 6, [0.08, 0.55, 0.92, 0.66], "700 800 900 1000 1100 1200", 3
-        ),
+        PDFBlock("p006_b003", 6, [0.08, 0.55, 0.92, 0.66], "700 800 900 1000 1100 1200", 3),
     ]
 
     audit = _build_section_audit(
@@ -2349,11 +2232,7 @@ def test_build_text_extraction_markdown_keeps_headings_and_narrative_only() -> N
 
 
 def _section_h2_titles(markdown: str) -> list[str]:
-    return [
-        line
-        for line in markdown.splitlines()
-        if line.startswith("## ") and not line.startswith("### ")
-    ]
+    return [line for line in markdown.splitlines() if line.startswith("## ") and not line.startswith("### ")]
 
 
 def test_markdown_follows_pdf_order_when_risks_precede_capital() -> None:
@@ -2532,9 +2411,7 @@ def test_build_text_extraction_markdown_inline_pdf_page_on_headings_only() -> No
 
     assert markdown.startswith("## Gestion du capital [pdf.60]")
     assert "[pdf." not in markdown.split("La banque", 1)[1]
-    assert page_index["gestion_capital"] == [
-        (60, "La banque maintient un niveau prudent de fonds propres.")
-    ]
+    assert page_index["gestion_capital"] == [(60, "La banque maintient un niveau prudent de fonds propres.")]
     assert section_start_pages["gestion_capital"] == 60
 
 
@@ -2551,10 +2428,7 @@ def test_extract_section_text_from_markdown_strips_inline_pdf_page_marker() -> N
 
     capital = _extract_section_text_from_markdown(md, "gestion_capital")
 
-    assert (
-        capital
-        == "### Sous-section\n\nLa banque maintient un niveau prudent de fonds propres."
-    )
+    assert capital == "### Sous-section\n\nLa banque maintient un niveau prudent de fonds propres."
 
 
 def test_markdown_with_former_marker_format_is_invalidated_not_migrated() -> None:
@@ -2575,12 +2449,7 @@ def test_markdown_with_former_marker_format_is_invalidated_not_migrated() -> Non
 
 
 def test_parse_page_index_inherits_page_from_heading() -> None:
-    md = (
-        "## Gestion du capital [pdf.60]\n\n"
-        "### Objectifs [pdf.61]\n\n"
-        "Premier paragraphe.\n\n"
-        "Deuxieme paragraphe.\n"
-    )
+    md = "## Gestion du capital [pdf.60]\n\n### Objectifs [pdf.61]\n\nPremier paragraphe.\n\nDeuxieme paragraphe.\n"
     page_index, section_start_pages = _parse_page_index_from_markdown(md)
 
     assert section_start_pages["gestion_capital"] == 60
@@ -2758,19 +2627,14 @@ def test_docling_filter_handles_note_forms_without_table_context(
     expected: bool,
 ) -> None:
     assert (
-        _should_keep_docling_segment(
-            DoclingSegment(kind="paragraph", text=text, follows_table=follows_table)
-        )
+        _should_keep_docling_segment(DoclingSegment(kind="paragraph", text=text, follows_table=follows_table))
         is expected
     )
 
 
 @pytest.mark.parametrize("marker", ["s.o.", "S.O."])
 def test_docling_filter_excludes_standalone_not_applicable_marker(marker: str) -> None:
-    assert (
-        _should_keep_docling_segment(DoclingSegment(kind="paragraph", text=marker))
-        is False
-    )
+    assert _should_keep_docling_segment(DoclingSegment(kind="paragraph", text=marker)) is False
 
 
 @pytest.mark.parametrize(
@@ -2827,12 +2691,7 @@ def test_docling_filter_keeps_long_dated_numbered_narrative_disclosure() -> None
         "de gérer son capital et de respecter les exigences réglementaires."
     )
 
-    assert (
-        _should_keep_docling_segment(
-            DoclingSegment(kind="paragraph", text=text, follows_table=True)
-        )
-        is True
-    )
+    assert _should_keep_docling_segment(DoclingSegment(kind="paragraph", text=text, follows_table=True)) is True
 
 
 def test_docling_parser_keeps_inline_note_clause_with_the_narrative() -> None:
@@ -2915,12 +2774,8 @@ def test_build_docling_markdown_removes_explicit_table_footnote() -> None:
 
 def test_build_docling_markdown_keeps_all_non_table_content() -> None:
     short_label = "Crédit"
-    financial_paragraph = (
-        "Le ratio de fonds propres atteint 13,8 % et le portefeuille vaut 525 M$."
-    )
-    standalone_note = (
-        "(1) Cette exigence s'applique à toutes les filiales réglementées."
-    )
+    financial_paragraph = "Le ratio de fonds propres atteint 13,8 % et le portefeuille vaut 525 M$."
+    standalone_note = "(1) Cette exigence s'applique à toutes les filiales réglementées."
     table_note = "(2) Les montants sont exprimés en millions de dollars."
     raw_docling = (
         "## GESTION DU CAPITAL\n\n"
@@ -2941,9 +2796,7 @@ def test_build_docling_markdown_keeps_all_non_table_content() -> None:
         anchor_text="Gestion du capital",
         anchor_bbox_norm=[0.1, 0.1, 0.9, 0.2],
         included_blocks=[
-            PDFBlock(
-                "p030_d001", 30, [0.1, 0.25, 0.9, 0.29], short_label, 1, "other", True
-            ),
+            PDFBlock("p030_d001", 30, [0.1, 0.25, 0.9, 0.29], short_label, 1, "other", True),
             PDFBlock(
                 "p030_d002",
                 30,
@@ -2989,9 +2842,7 @@ def test_build_docling_markdown_keeps_all_non_table_content() -> None:
     assert table_note not in markdown
 
 
-def test_build_docling_markdown_falls_back_to_audited_blocks_when_raw_markdown_is_incomplete() -> (
-    None
-):
+def test_build_docling_markdown_falls_back_to_audited_blocks_when_raw_markdown_is_incomplete() -> None:
     visible = "Le ratio de fonds propres atteint 13,8 %."
     missing = "Le portefeuille réglementaire vaut 525 M$."
     audit = SectionAudit(
@@ -3003,9 +2854,7 @@ def test_build_docling_markdown_falls_back_to_audited_blocks_when_raw_markdown_i
         anchor_text="Gestion du capital",
         anchor_bbox_norm=[0.1, 0.1, 0.9, 0.2],
         included_blocks=[
-            PDFBlock(
-                "p030_d001", 30, [0.1, 0.25, 0.9, 0.31], visible, 1, "narrative", True
-            ),
+            PDFBlock("p030_d001", 30, [0.1, 0.25, 0.9, 0.31], visible, 1, "narrative", True),
             PDFBlock(
                 "p030_d002",
                 30,
@@ -3090,9 +2939,7 @@ def test_parse_docling_markdown_does_not_infer_lists_from_numbered_prose(
     assert segments[0].kind == "paragraph"
 
 
-def test_matchable_segments_drop_table_caption_chain_and_resume_parent_heading() -> (
-    None
-):
+def test_matchable_segments_drop_table_caption_chain_and_resume_parent_heading() -> None:
     segments = [
         DoclingSegment(kind="heading", text="Activités de négociation"),
         DoclingSegment(kind="paragraph", text="Le tableau suivant présente la VaR."),
@@ -3104,9 +2951,7 @@ def test_matchable_segments_drop_table_caption_chain_and_resume_parent_heading()
 
     selected = _matchable_section_segments(segments)
 
-    assert [segment.text for segment in selected if segment.kind == "heading"] == [
-        "Activités de négociation"
-    ]
+    assert [segment.text for segment in selected if segment.kind == "heading"] == ["Activités de négociation"]
     assert [segment.kind for segment in selected] == [
         "heading",
         "paragraph",
@@ -3115,9 +2960,7 @@ def test_matchable_segments_drop_table_caption_chain_and_resume_parent_heading()
     ]
 
 
-def test_docling_markdown_accepts_numbered_parent_heading_without_reinserting_it() -> (
-    None
-):
+def test_docling_markdown_accepts_numbered_parent_heading_without_reinserting_it() -> None:
     parent = "La gestion du capital en 2024"
     child = "Activités de gestion"
     paragraph = "La Banque poursuit ses activités de gestion du capital."
@@ -3177,13 +3020,9 @@ def test_docling_markdown_accepts_numbered_parent_heading_without_reinserting_it
     assert paragraph in markdown
 
 
-def test_docling_markdown_keeps_parent_across_table_and_inserts_missing_text_locally() -> (
-    None
-):
+def test_docling_markdown_keeps_parent_across_table_and_inserts_missing_text_locally() -> None:
     intro = "Le tableau suivant présente la VaR des portefeuilles de négociation."
-    missing = (
-        "Les montants sont présentés avant impôts selon un niveau de confiance de 99 %."
-    )
+    missing = "Les montants sont présentés avant impôts selon un niveau de confiance de 99 %."
     after = "La VaR totale de négociation moyenne a augmenté pendant l'exercice."
     audit = SectionAudit(
         section_key="gestion_risques",
@@ -3206,15 +3045,9 @@ def test_docling_markdown_keeps_parent_across_table_and_inserts_missing_text_loc
                 "section_header",
                 heading_level=1,
             ),
-            PDFBlock(
-                "p098_d002", 98, [0.04, 0.12, 0.90, 0.15], intro, 2, "narrative", True
-            ),
-            PDFBlock(
-                "p098_d005", 98, [0.04, 0.55, 0.90, 0.58], missing, 5, "narrative", True
-            ),
-            PDFBlock(
-                "p098_d006", 98, [0.04, 0.59, 0.90, 0.62], after, 6, "narrative", True
-            ),
+            PDFBlock("p098_d002", 98, [0.04, 0.12, 0.90, 0.15], intro, 2, "narrative", True),
+            PDFBlock("p098_d005", 98, [0.04, 0.55, 0.90, 0.58], missing, 5, "narrative", True),
+            PDFBlock("p098_d006", 98, [0.04, 0.59, 0.90, 0.62], after, 6, "narrative", True),
         ],
         excluded_blocks=[
             PDFBlock(
@@ -3281,8 +3114,7 @@ def test_docling_markdown_keeps_parent_across_table_and_inserts_missing_text_loc
 def test_docling_alignment_prefers_exact_heading_and_rejects_page_footer() -> None:
     heading = "Ratio de liquidité à long terme"
     paragraph = (
-        "Le CBCB a élaboré le ratio de liquidité à long terme afin de promouvoir "
-        "la résilience du secteur bancaire."
+        "Le CBCB a élaboré le ratio de liquidité à long terme afin de promouvoir la résilience du secteur bancaire."
     )
     audit = SectionAudit(
         section_key="gestion_risques",
@@ -3343,9 +3175,7 @@ def test_docling_alignment_prefers_exact_heading_and_rejects_page_footer() -> No
 
     markdown = _build_text_extraction_markdown_from_docling(
         [audit],
-        raw_docling_markdown=(
-            f"## Gestion des risques\n\n## {heading}\n\n{paragraph}\n\n106\n"
-        ),
+        raw_docling_markdown=(f"## Gestion des risques\n\n## {heading}\n\n{paragraph}\n\n106\n"),
     )
 
     assert f"### {heading} [pdf.106]" in markdown
@@ -3353,9 +3183,7 @@ def test_docling_alignment_prefers_exact_heading_and_rejects_page_footer() -> No
     assert "\n106\n" not in markdown
 
 
-def test_fallback_markdown_keeps_mislabeled_long_section_header_as_comparable_text() -> (
-    None
-):
+def test_fallback_markdown_keeps_mislabeled_long_section_header_as_comparable_text() -> None:
     paragraph = (
         "La Banque maintient un ratio CET1 de 13,8 % et renforce ses contrôles "
         "afin de préserver une base de fonds propres suffisante."
@@ -3503,14 +3331,10 @@ def test_build_text_extraction_markdown_from_docling_keeps_headings_and_order() 
         semantic_units=[],
     )
 
-    markdown = _build_text_extraction_markdown(
-        [audit], raw_docling_markdown=raw_docling
-    )
+    markdown = _build_text_extraction_markdown([audit], raw_docling_markdown=raw_docling)
 
     assert "## Gestion du capital" in markdown
-    assert (
-        "### OBJECTIFS DE LA BANQUE EN MATIÈRE DE GESTION DES FONDS PROPRES" in markdown
-    )
+    assert "### OBJECTIFS DE LA BANQUE EN MATIÈRE DE GESTION DES FONDS PROPRES" in markdown
     assert "### SOURCES DES FONDS PROPRES" in markdown
     assert "Les objectifs de la Banque" in markdown
     assert "Maintenir des fonds propres adéquats" in markdown
@@ -3518,12 +3342,8 @@ def test_build_text_extraction_markdown_from_docling_keeps_headings_and_order() 
     assert "Situation des fonds propres" not in markdown
     assert "SITUATION FINANCIÈRE DU GROUPE" not in markdown
     assert "Texte hors périmètre" not in markdown
-    assert markdown.index("### OBJECTIFS") < markdown.index(
-        "Les objectifs de la Banque"
-    )
-    assert markdown.index("Les objectifs de la Banque") < markdown.index(
-        "### SOURCES DES FONDS PROPRES"
-    )
+    assert markdown.index("### OBJECTIFS") < markdown.index("Les objectifs de la Banque")
+    assert markdown.index("Les objectifs de la Banque") < markdown.index("### SOURCES DES FONDS PROPRES")
 
 
 def test_docling_bns_list_survives_canonical_markdown_and_chunking() -> None:
@@ -3605,9 +3425,7 @@ def test_docling_bns_list_survives_canonical_markdown_and_chunking() -> None:
     )
 
     assert "\x81" not in markdown
-    assert [line for line in markdown.splitlines() if line.startswith("- ")] == [
-        f"- {item}" for item in list_items
-    ]
+    assert [line for line in markdown.splitlines() if line.startswith("- ")] == [f"- {item}" for item in list_items]
     assert [chunk.kind for chunk in chunks] == [
         "list_context",
         "list_item",
@@ -3677,9 +3495,7 @@ def test_docling_heading_does_not_match_words_inside_capital_paragraph() -> None
         semantic_units=[],
     )
 
-    markdown = _build_text_extraction_markdown_from_docling(
-        [audit], raw_docling_markdown=raw_docling
-    )
+    markdown = _build_text_extraction_markdown_from_docling([audit], raw_docling_markdown=raw_docling)
 
     assert "Contrôle des risques" not in markdown
     assert "Ce texte relève de la gestion des risques" not in markdown
@@ -3687,9 +3503,7 @@ def test_docling_heading_does_not_match_words_inside_capital_paragraph() -> None
     assert "La Banque maintient des fonds propres adéquats." in markdown
 
 
-def test_build_text_extraction_markdown_never_reintroduces_table_block_as_heading() -> (
-    None
-):
+def test_build_text_extraction_markdown_never_reintroduces_table_block_as_heading() -> None:
     audit = SectionAudit(
         section_key="gestion_capital",
         section_title="Gestion du capital",
@@ -3730,10 +3544,7 @@ def test_build_text_extraction_markdown_never_reintroduces_table_block_as_headin
 
     markdown = _build_text_extraction_markdown([audit])
 
-    assert (
-        "### OBJECTIFS DE LA BANQUE EN MATIÈRE DE GESTION DES FONDS PROPRES"
-        not in markdown
-    )
+    assert "### OBJECTIFS DE LA BANQUE EN MATIÈRE DE GESTION DES FONDS PROPRES" not in markdown
     assert "Les objectifs de la Banque" in markdown
 
 
@@ -3755,9 +3566,7 @@ def test_classify_block_type_preserves_docling_heading_over_table_overlap() -> N
     assert _classify_block_type(block, {}, table_bboxes=table_bboxes) == "other"
 
 
-def test_classify_block_type_rejects_table_column_header_labeled_as_section_header() -> (
-    None
-):
+def test_classify_block_type_rejects_table_column_header_labeled_as_section_header() -> None:
     block = PDFBlock(
         "p077_d010",
         77,
@@ -3910,14 +3719,8 @@ def test_compare_section_texts_sends_financial_paragraphs_to_comparison(
             client=object(),
             model="gpt-4o",
             section_key="gestion_capital",
-            text_t1=(
-                "### Ratio CET1\n\n"
-                "Le ratio CET1 atteint 13,8 % et les fonds propres totalisent 525 M$.\n"
-            ),
-            text_t2=(
-                "### Ratio CET1\n\n"
-                "Le ratio CET1 atteint 14,2 % et les fonds propres totalisent 540 M$.\n"
-            ),
+            text_t1=("### Ratio CET1\n\nLe ratio CET1 atteint 13,8 % et les fonds propres totalisent 525 M$.\n"),
+            text_t2=("### Ratio CET1\n\nLe ratio CET1 atteint 14,2 % et les fonds propres totalisent 540 M$.\n"),
         )
 
     assert "13,8 %" in captured["text_t1"]
@@ -3926,9 +3729,7 @@ def test_compare_section_texts_sends_financial_paragraphs_to_comparison(
     assert "540 M$" in captured["text_t2"]
 
 
-def test_run_text_analysis_pipeline_writes_md_as_source_of_truth(
-    monkeypatch, tmp_path: Path
-) -> None:
+def test_run_text_analysis_pipeline_writes_md_as_source_of_truth(monkeypatch, tmp_path: Path) -> None:
     pdf_previous = tmp_path / "prev.pdf"
     pdf_current = tmp_path / "curr.pdf"
     pdf_previous.write_bytes(b"prev-pdf")
@@ -3990,22 +3791,14 @@ def test_run_text_analysis_pipeline_writes_md_as_source_of_truth(
 
     compare_texts_kwargs: dict = {}
 
-    monkeypatch.setattr(
-        "vigie.analyse_texte.pipeline._build_openai_client", lambda: object()
-    )
+    monkeypatch.setattr("vigie.analyse_texte.pipeline._build_openai_client", lambda: object())
     monkeypatch.setattr(
         "vigie.analyse_texte.pipeline._resolve_sections",
-        lambda pdf_path, bank_code, quarter=None, year=None: {
-            "gestion_risques": section
-        },
+        lambda pdf_path, bank_code, quarter=None, year=None: {"gestion_risques": section},
     )
     monkeypatch.setattr(
         "vigie.analyse_texte.pipeline._extract_audits_for_pdf",
-        lambda **kwargs: (
-            ([audit_prev], "")
-            if "prev" in str(kwargs["pdf_path"])
-            else ([audit_curr], "")
-        ),
+        lambda **kwargs: ([audit_prev], "") if "prev" in str(kwargs["pdf_path"]) else ([audit_curr], ""),
     )
 
     def _fake_compare_section_texts(**kwargs):
@@ -4016,9 +3809,7 @@ def test_run_text_analysis_pipeline_writes_md_as_source_of_truth(
         "vigie.analyse_texte.pipeline._compare_section_texts",
         _fake_compare_section_texts,
     )
-    monkeypatch.setattr(
-        "vigie.analyse_texte.pipeline._triage_section_changes", lambda **kwargs: []
-    )
+    monkeypatch.setattr("vigie.analyse_texte.pipeline._triage_section_changes", lambda **kwargs: [])
 
     payload, out_path = run_text_analysis_pipeline(
         bank_code="td",
@@ -4099,9 +3890,7 @@ def test_parse_subsections_excludes_empty_headings_before_orphan_matching() -> N
         "La Banque maintient des fonds propres adéquats.\n"
     )
 
-    assert _parse_subsections(md) == [
-        ("OBJECTIFS DE LA BANQUE", "La Banque maintient des fonds propres adéquats.")
-    ]
+    assert _parse_subsections(md) == [("OBJECTIFS DE LA BANQUE", "La Banque maintient des fonds propres adéquats.")]
 
 
 def test_chunk_subsection_text_splits_long_paragraphs_into_chunks() -> None:
@@ -4162,9 +3951,7 @@ def test_chunk_subsection_text_splits_pdf_bullet_list_into_atomic_items() -> Non
         "‰ maintient la confiance des déposants, des investisseurs et des organismes de réglementation."
     )
 
-    chunks = _chunk_subsection_text(
-        text, subsection_heading="Objectif", section_title="Gestion du capital"
-    )
+    chunks = _chunk_subsection_text(text, subsection_heading="Objectif", section_title="Gestion du capital")
 
     assert len(chunks) == 3
     assert [chunk.kind for chunk in chunks] == ["list_item"] * 3
@@ -4180,9 +3967,7 @@ def test_chunk_subsection_text_splits_markdown_bullet_list_into_atomic_items() -
         "- troisième élément de liste qui décrit une exigence de communication."
     )
 
-    chunks = _chunk_subsection_text(
-        text, subsection_heading="Objectif", section_title="Gestion du capital"
-    )
+    chunks = _chunk_subsection_text(text, subsection_heading="Objectif", section_title="Gestion du capital")
 
     assert len(chunks) == 3
     assert [chunk.kind for chunk in chunks] == ["list_item"] * 3
@@ -4198,9 +3983,7 @@ def test_chunk_subsection_text_splits_checkbox_list_without_marker_noise() -> No
         "[] Les résultats sont transmis périodiquement au comité des risques."
     )
 
-    chunks = _chunk_subsection_text(
-        text, subsection_heading="Contrôles", section_title="Gestion des risques"
-    )
+    chunks = _chunk_subsection_text(text, subsection_heading="Contrôles", section_title="Gestion des risques")
 
     assert len(chunks) == 3
     assert [chunk.kind for chunk in chunks] == ["list_item"] * 3
@@ -4222,9 +4005,7 @@ def test_chunk_subsection_text_keeps_short_paragraph_independent() -> None:
         "suivi, les rapports périodiques et les indicateurs utilisés par la direction."
     )
 
-    chunks = _chunk_subsection_text(
-        "\n\n".join([first, short, second]), subsection_heading="Gouvernance"
-    )
+    chunks = _chunk_subsection_text("\n\n".join([first, short, second]), subsection_heading="Gouvernance")
 
     assert [chunk.text for chunk in chunks] == [first, short, second]
 
@@ -4236,9 +4017,7 @@ def test_chunk_subsection_text_merges_first_short_label_with_its_paragraph() -> 
         "un seul chunk utile pour la comparaison sémantique entre deux rapports trimestriels."
     )
 
-    chunks = _chunk_subsection_text(
-        "\n\n".join([first, second]), subsection_heading="Cadre"
-    )
+    chunks = _chunk_subsection_text("\n\n".join([first, second]), subsection_heading="Cadre")
 
     assert [chunk.text for chunk in chunks] == [f"{first}\n\n{second}"]
 
@@ -4286,21 +4065,12 @@ def test_chunk_subsection_text_keeps_short_complete_narrative_sentence() -> None
     assert [chunk.text for chunk in chunks] == [text]
 
 
-def test_chunk_subsection_text_requires_semantic_services_for_complex_paragraph() -> (
-    None
-):
-    first_idea = " ".join(
-        ["La Banque surveille les risques de crédit de façon continue."] * 35
-    )
+def test_chunk_subsection_text_requires_semantic_services_for_complex_paragraph() -> None:
+    first_idea = " ".join(["La Banque surveille les risques de crédit de façon continue."] * 35)
     second_idea = " ".join(
-        [
-            "Toutefois, le cadre prévoit des contrôles additionnels pour les portefeuilles sensibles."
-        ]
-        * 35
+        ["Toutefois, le cadre prévoit des contrôles additionnels pour les portefeuilles sensibles."] * 35
     )
-    third_idea = " ".join(
-        ["Par ailleurs, les résultats sont transmis aux comités de surveillance."] * 35
-    )
+    third_idea = " ".join(["Par ailleurs, les résultats sont transmis aux comités de surveillance."] * 35)
     paragraph = f"{first_idea} {second_idea} {third_idea}"
 
     with pytest.raises(SemanticChunkingError, match="aucun fallback"):
@@ -4313,9 +4083,7 @@ def test_chunk_subsection_text_excludes_markdown_headings() -> None:
         "pas inclure le titre markdown qui le précède dans le texte remis au modèle."
     )
 
-    chunks = _chunk_subsection_text(
-        f"### Titre à exclure\n\n{paragraph}", subsection_heading="Titre réel"
-    )
+    chunks = _chunk_subsection_text(f"### Titre à exclure\n\n{paragraph}", subsection_heading="Titre réel")
 
     assert len(chunks) == 1
     assert chunks[0].text == paragraph
@@ -4342,12 +4110,8 @@ def test_align_chunks_tfidf_matches_shifted_chunks_and_marks_added() -> None:
         ),
         previous[1],
     ]
-    chunks_t1 = _chunk_subsection_text(
-        "\n\n".join(previous), subsection_heading="Risque de stratégie"
-    )
-    chunks_t2 = _chunk_subsection_text(
-        "\n\n".join(current), subsection_heading="Risque de stratégie"
-    )
+    chunks_t1 = _chunk_subsection_text("\n\n".join(previous), subsection_heading="Risque de stratégie")
+    chunks_t2 = _chunk_subsection_text("\n\n".join(current), subsection_heading="Risque de stratégie")
 
     alignments = _align_chunks_tfidf(chunks_t1, chunks_t2)
     matched_pairs = {
@@ -4355,11 +4119,7 @@ def test_align_chunks_tfidf_matches_shifted_chunks_and_marks_added() -> None:
         for alignment in alignments
         if alignment.chunk_t1 and alignment.chunk_t2
     }
-    added = [
-        alignment
-        for alignment in alignments
-        if alignment.alignment_type == "possible_added"
-    ]
+    added = [alignment for alignment in alignments if alignment.alignment_type == "possible_added"]
 
     assert ("risque_de_stratégie_c00", "risque_de_stratégie_c00") in matched_pairs
     assert ("risque_de_stratégie_c01", "risque_de_stratégie_c02") in matched_pairs
@@ -4374,24 +4134,12 @@ def test_align_chunks_tfidf_enforces_one_to_one() -> None:
         "des simulations de crise et des rapports réguliers au conseil."
     )
     current = "\n\n".join([previous, previous])
-    chunks_t1 = _chunk_subsection_text(
-        previous, subsection_heading="Risque de stratégie"
-    )
-    chunks_t2 = _chunk_subsection_text(
-        current, subsection_heading="Risque de stratégie"
-    )
+    chunks_t1 = _chunk_subsection_text(previous, subsection_heading="Risque de stratégie")
+    chunks_t2 = _chunk_subsection_text(current, subsection_heading="Risque de stratégie")
 
     alignments = _align_chunks_tfidf(chunks_t1, chunks_t2)
-    matched = [
-        alignment
-        for alignment in alignments
-        if alignment.chunk_t1 and alignment.chunk_t2
-    ]
-    added = [
-        alignment
-        for alignment in alignments
-        if alignment.alignment_type == "possible_added"
-    ]
+    matched = [alignment for alignment in alignments if alignment.chunk_t1 and alignment.chunk_t2]
+    added = [alignment for alignment in alignments if alignment.alignment_type == "possible_added"]
 
     assert len(matched) == 1
     assert matched[0].chunk_t1.chunk_id == "risque_de_stratégie_c00"
@@ -4400,49 +4148,25 @@ def test_align_chunks_tfidf_enforces_one_to_one() -> None:
 
 
 def test_align_chunks_tfidf_handles_empty_sklearn_vocabulary() -> None:
-    chunks_t1 = _chunk_subsection_text(
-        "123 456 789", subsection_heading="Risque de stratégie", min_chars=0
-    )
-    chunks_t2 = _chunk_subsection_text(
-        "le la de et un une", subsection_heading="Risque de stratégie", min_chars=0
-    )
+    chunks_t1 = _chunk_subsection_text("123 456 789", subsection_heading="Risque de stratégie", min_chars=0)
+    chunks_t2 = _chunk_subsection_text("le la de et un une", subsection_heading="Risque de stratégie", min_chars=0)
 
     alignments = _align_chunks_tfidf(chunks_t1, chunks_t2)
-    matched = [
-        alignment
-        for alignment in alignments
-        if alignment.chunk_t1 and alignment.chunk_t2
-    ]
-    added = [
-        alignment
-        for alignment in alignments
-        if alignment.alignment_type == "possible_added"
-    ]
-    removed = [
-        alignment
-        for alignment in alignments
-        if alignment.alignment_type == "possible_removed"
-    ]
+    matched = [alignment for alignment in alignments if alignment.chunk_t1 and alignment.chunk_t2]
+    added = [alignment for alignment in alignments if alignment.alignment_type == "possible_added"]
+    removed = [alignment for alignment in alignments if alignment.alignment_type == "possible_removed"]
 
     assert matched == []
-    assert [alignment.chunk_t2.text for alignment in added if alignment.chunk_t2] == [
-        "le la de et un une"
-    ]
-    assert [alignment.chunk_t1.text for alignment in removed if alignment.chunk_t1] == [
-        "123 456 789"
-    ]
+    assert [alignment.chunk_t2.text for alignment in added if alignment.chunk_t2] == ["le la de et un une"]
+    assert [alignment.chunk_t1.text for alignment in removed if alignment.chunk_t1] == ["123 456 789"]
 
 
 def test_semantic_alignment_decision_confirms_ambiguous_pair_before_triage() -> None:
     previous = "La Banque applique une limite de risque de crédit pour ses portefeuilles commerciaux."
     current = "La Banque applique une limite de risque de crédit révisée pour ses portefeuilles commerciaux."
-    chunk_t1 = _chunk_subsection_text(previous, subsection_heading="Risque de crédit")[
-        0
-    ]
+    chunk_t1 = _chunk_subsection_text(previous, subsection_heading="Risque de crédit")[0]
     chunk_t2 = _chunk_subsection_text(current, subsection_heading="Risque de crédit")[0]
-    alignment = ChunkAlignment(
-        "a00", "ambiguous", chunk_t1, chunk_t2, 0.42, [], [], "test"
-    )
+    alignment = ChunkAlignment("a00", "ambiguous", chunk_t1, chunk_t2, 0.42, [], [], "test")
 
     scoped = _attach_alignment_metadata(
         [
@@ -4488,16 +4212,9 @@ def test_semantic_distinct_disclosures_are_materialized_as_added_and_removed() -
     assert [change["diff_type"] for change in materialized] == ["removed", "added"]
     assert materialized[0]["source_text_t2"] == ""
     assert materialized[1]["source_text_t1"] == ""
-    assert all(
-        change["alignment_type"] == "semantic_distinct" for change in materialized
-    )
-    assert all(
-        change["alignment_decision"] == "distinct_disclosures"
-        for change in materialized
-    )
-    assert all(
-        change["semantic_alignment_group_id"] == "a02" for change in materialized
-    )
+    assert all(change["alignment_type"] == "semantic_distinct" for change in materialized)
+    assert all(change["alignment_decision"] == "distinct_disclosures" for change in materialized)
+    assert all(change["semantic_alignment_group_id"] == "a02" for change in materialized)
 
 
 def test_global_reconciliation_removes_bnc_style_resegmented_fragments(
@@ -4595,9 +4312,7 @@ def test_global_reconciliation_keeps_a_genuine_unmatched_addition(monkeypatch) -
     ]
     monkeypatch.setattr(
         "vigie.analyse_texte.global_reconciliation._call_structured_completion_with_correction",
-        lambda *_args, **_kwargs: pytest.fail(
-            "Aucun candidat opposé : pas d'appel GPT de réconciliation."
-        ),
+        lambda *_args, **_kwargs: pytest.fail("Aucun candidat opposé : pas d'appel GPT de réconciliation."),
     )
 
     reconciled, audit = reconcile_global_change_fragments(
@@ -4622,9 +4337,7 @@ def test_bnc_t4_global_reconciliation_detects_the_split_third_party_block() -> N
         for section in payload.get("section_comparisons", [])
         for change in section.get("all_block_comparisons", [])
     ]
-    unique_rows = list(
-        {row.get("change_id"): row for row in rows if row.get("change_id")}.values()
-    )
+    unique_rows = list({row.get("change_id"): row for row in rows if row.get("change_id")}.values())
     expected_ids = {
         "gestion_risques_description_change_094",
         "gestion_risques_dépendance_envers_les_tiers_et_les_modèl_change_140",
@@ -4632,15 +4345,10 @@ def test_bnc_t4_global_reconciliation_detects_the_split_third_party_block() -> N
     }
     present_ids = {str(row.get("change_id") or "") for row in unique_rows}
     if not expected_ids.issubset(present_ids):
-        pytest.skip(
-            "Les change_id historiques du cas BNC T4 ne sont plus présents dans l'artefact local."
-        )
+        pytest.skip("Les change_id historiques du cas BNC T4 ne sont plus présents dans l'artefact local.")
 
     components, _edges = _components(_one_sided_nodes(unique_rows))
-    component_ids = [
-        {str(node.change.get("change_id") or "") for node in component}
-        for component in components
-    ]
+    component_ids = [{str(node.change.get("change_id") or "") for node in component} for component in components]
 
     assert expected_ids in component_ids
 
@@ -4657,15 +4365,9 @@ def test_alignment_prompt_limits_weak_candidate_context() -> None:
         "extrait utile pour vérifier rapidement qu'il ne s'agit pas d'un meilleur candidat local. "
         "Cette dernière phrase ne doit pas apparaître dans le prompt si l'extrait est bien tronqué."
     )
-    primary_t1 = _chunk_subsection_text(
-        primary_text, subsection_heading="Risque de stratégie"
-    )[0]
-    primary_t2 = _chunk_subsection_text(
-        primary_text, subsection_heading="Risque de stratégie"
-    )[0]
-    long_candidate = _chunk_subsection_text(
-        long_candidate_text, subsection_heading="Risque de stratégie"
-    )[0]
+    primary_t1 = _chunk_subsection_text(primary_text, subsection_heading="Risque de stratégie")[0]
+    primary_t2 = _chunk_subsection_text(primary_text, subsection_heading="Risque de stratégie")[0]
+    long_candidate = _chunk_subsection_text(long_candidate_text, subsection_heading="Risque de stratégie")[0]
     alignments = [
         ChunkAlignment(
             alignment_id="a00",
@@ -4721,15 +4423,9 @@ def test_build_comparison_batches_uses_type_specific_sizes() -> None:
     )
     alignments.extend(
         [
-            ChunkAlignment(
-                "x00", "ambiguous", base_chunk, base_chunk, 0.40, [], [], "test"
-            ),
-            ChunkAlignment(
-                "x01", "possible_added", None, base_chunk, 0.0, [], [], "test"
-            ),
-            ChunkAlignment(
-                "x02", "possible_removed", base_chunk, None, 0.0, [], [], "test"
-            ),
+            ChunkAlignment("x00", "ambiguous", base_chunk, base_chunk, 0.40, [], [], "test"),
+            ChunkAlignment("x01", "possible_added", None, base_chunk, 0.0, [], [], "test"),
+            ChunkAlignment("x02", "possible_removed", base_chunk, None, 0.0, [], [], "test"),
         ]
     )
 
@@ -4760,21 +4456,16 @@ def test_build_comparison_batches_uses_type_specific_sizes() -> None:
 
 
 def test_normalize_heading_strips_table_prefix_and_lowercases() -> None:
-    assert (
-        _normalize_heading("T22 Mesures du risque de marché")
-        == "mesures du risque de marché"
-    )
+    assert _normalize_heading("T22 Mesures du risque de marché") == "mesures du risque de marché"
     assert _normalize_heading("Risque de liquidité") == "risque de liquidité"
 
 
 def test_normalize_heading_strips_pdf_page_suffixes() -> None:
     assert (
-        _normalize_heading("Structure de la gouvernance du risque [pdf.62]")
-        == "structure de la gouvernance du risque"
+        _normalize_heading("Structure de la gouvernance du risque [pdf.62]") == "structure de la gouvernance du risque"
     )
     assert (
-        _normalize_heading("Structure de la gouvernance du risque [pdf.56]")
-        == "structure de la gouvernance du risque"
+        _normalize_heading("Structure de la gouvernance du risque [pdf.56]") == "structure de la gouvernance du risque"
     )
 
 
@@ -4951,10 +4642,7 @@ def test_compare_section_texts_sends_chunked_subsection_bodies(monkeypatch) -> N
         text_t2=f"### Risque de stratégie\n\n{paragraph_a}\n\n{paragraph_b_t2}",
     )
 
-    assert (
-        "[risque_de_stratégie_c01 | paragraph | Gestion des risques > Risque de stratégie]"
-        in captured["text_t1"]
-    )
+    assert "[risque_de_stratégie_c01 | paragraph | Gestion des risques > Risque de stratégie]" in captured["text_t1"]
     assert paragraph_b_t1 in captured["text_t1"]
     assert paragraph_b_t2 in captured["text_t2"]
 
@@ -4986,8 +4674,7 @@ def test_compare_section_texts_sends_tfidf_alignment_context(monkeypatch) -> Non
     matched = [
         change
         for change in changes
-        if previous in (change.get("source_text_t1") or "")
-        and previous in (change.get("source_text_t2") or "")
+        if previous in (change.get("source_text_t1") or "") and previous in (change.get("source_text_t2") or "")
     ]
     assert len(matched) == 1
     assert matched[0]["diff_type"] in {"unchanged", "modified"}
@@ -5154,9 +4841,7 @@ def test_compare_section_texts_splits_large_alignment_set_into_batches(
     )
     monkeypatch.setattr(
         "vigie.analyse_texte.chunk_alignment._embed_texts",
-        lambda client, texts, model="text-embedding-3-small": _paragraph_index_embedding(
-            texts
-        ),
+        lambda client, texts, model="text-embedding-3-small": _paragraph_index_embedding(texts),
     )
 
     paragraphs_t1 = [
@@ -5167,8 +4852,7 @@ def test_compare_section_texts_splits_large_alignment_set_into_batches(
         for index in range(6)
     ]
     paragraphs_t2 = [
-        paragraph + " La version courante ajoute une précision de suivi opérationnel."
-        for paragraph in paragraphs_t1
+        paragraph + " La version courante ajoute une précision de suivi opérationnel." for paragraph in paragraphs_t1
     ]
     body_t1 = "\n\n".join(paragraphs_t1)
     body_t2 = "\n\n".join(paragraphs_t2)
@@ -5182,12 +4866,8 @@ def test_compare_section_texts_splits_large_alignment_set_into_batches(
     )
 
     assert len(calls) == 2
-    first_batch = next(
-        call for call in calls if "[risque_de_stratégie_c00 |" in call["text_t1"]
-    )
-    second_batch = next(
-        call for call in calls if "[risque_de_stratégie_c05 |" in call["text_t1"]
-    )
+    first_batch = next(call for call in calls if "[risque_de_stratégie_c00 |" in call["text_t1"])
+    second_batch = next(call for call in calls if "[risque_de_stratégie_c05 |" in call["text_t1"])
     assert "[risque_de_stratégie_c04 |" in first_batch["text_t1"]
     assert "[risque_de_stratégie_c05 |" not in first_batch["text_t1"]
     assert "[risque_de_stratégie_c00 |" not in second_batch["text_t1"]
@@ -5204,8 +4884,7 @@ def test_compare_section_texts_merges_parallel_batch_results_in_source_order(
         for index in range(6)
     ]
     paragraphs_t2 = [
-        paragraph + " La version courante ajoute une précision de suivi opérationnel."
-        for paragraph in paragraphs_t1
+        paragraph + " La version courante ajoute une précision de suivi opérationnel." for paragraph in paragraphs_t1
     ]
 
     def fake_single_call(
@@ -5265,9 +4944,7 @@ def test_compare_section_texts_merges_parallel_batch_results_in_source_order(
     )
     monkeypatch.setattr(
         "vigie.analyse_texte.chunk_alignment._embed_texts",
-        lambda client, texts, model="text-embedding-3-small": _paragraph_index_embedding(
-            texts
-        ),
+        lambda client, texts, model="text-embedding-3-small": _paragraph_index_embedding(texts),
     )
 
     changes = _compare_section_texts(
@@ -5300,19 +4977,14 @@ def test_compare_section_texts_reports_batch_id_on_batch_failure(monkeypatch) ->
     )
     monkeypatch.setattr(
         "vigie.analyse_texte.chunk_alignment._embed_texts",
-        lambda client, texts, model="text-embedding-3-small": [
-            [1.0, 0.0] for _ in texts
-        ],
+        lambda client, texts, model="text-embedding-3-small": [[1.0, 0.0] for _ in texts],
     )
 
     paragraph_t1 = (
         "Le risque stratégique est surveillé par un cadre de gouvernance précis avec des contrôles internes "
         "et des rapports réguliers destinés au conseil afin de former un chunk autonome."
     )
-    paragraph_t2 = (
-        paragraph_t1
-        + " La version courante ajoute une précision sur le suivi trimestriel du comité."
-    )
+    paragraph_t2 = paragraph_t1 + " La version courante ajoute une précision sur le suivi trimestriel du comité."
 
     with pytest.raises(RuntimeError, match="b00"):
         _compare_section_texts(
@@ -5393,8 +5065,7 @@ def test_compare_section_texts_chunks_unmatched_long_subsection(monkeypatch) -> 
         model="gpt-4o",
         section_key="gestion_risques",
         text_t1="### Risque de marché\n\nCorps T1.",
-        text_t2="### Risque de marché\n\nCorps T2.\n\n### Nouveau cadre\n\n"
-        + "\n\n".join(paragraphs),
+        text_t2="### Risque de marché\n\nCorps T2.\n\n### Nouveau cadre\n\n" + "\n\n".join(paragraphs),
     )
 
     added = [change for change in changes if change["diff_type"] == "added"]
@@ -5459,9 +5130,7 @@ def test_reassemble_adjacent_ignores_cross_subsection_order_collision() -> None:
         "matched_strong",
         "possible_added",
     }
-    assert all(
-        alignment.reason != "adjacent_many_to_one_reassembled" for alignment in result
-    )
+    assert all(alignment.reason != "adjacent_many_to_one_reassembled" for alignment in result)
 
 
 def test_compare_section_texts_rescues_cross_subsection_move(monkeypatch) -> None:
@@ -5495,32 +5164,25 @@ def test_compare_section_texts_rescues_cross_subsection_move(monkeypatch) -> Non
         model="gpt-4o",
         section_key="gestion_risques",
         text_t1=(
-            f"### Surveillance du Conseil\n\n{filler_a}\n\n{moved}\n\n"
-            f"### Cadre d'appétit pour le risque\n\n{filler_b}"
+            f"### Surveillance du Conseil\n\n{filler_a}\n\n{moved}\n\n### Cadre d'appétit pour le risque\n\n{filler_b}"
         ),
         text_t2=(
-            f"### Surveillance du Conseil\n\n{filler_a}\n\n"
-            f"### Cadre d'appétit pour le risque\n\n{filler_b}\n\n{moved}"
+            f"### Surveillance du Conseil\n\n{filler_a}\n\n### Cadre d'appétit pour le risque\n\n{filler_b}\n\n{moved}"
         ),
     )
 
     moved_removed = [
         change
         for change in changes
-        if change["diff_type"] == "removed"
-        and moved in (change.get("source_text_t1") or "")
+        if change["diff_type"] == "removed" and moved in (change.get("source_text_t1") or "")
     ]
     moved_added = [
-        change
-        for change in changes
-        if change["diff_type"] == "added"
-        and moved in (change.get("source_text_t2") or "")
+        change for change in changes if change["diff_type"] == "added" and moved in (change.get("source_text_t2") or "")
     ]
     rescued = [
         change
         for change in changes
-        if moved in (change.get("source_text_t1") or "")
-        and moved in (change.get("source_text_t2") or "")
+        if moved in (change.get("source_text_t1") or "") and moved in (change.get("source_text_t2") or "")
     ]
 
     assert moved_removed == []
@@ -5787,9 +5449,7 @@ def test_gpt_match_orphan_headings_enforces_1_to_1(monkeypatch) -> None:
     """GPT tente d'associer le même T1 heading à deux T2 headings → seule la première paire est acceptée."""
     from vigie.analyse_texte import subsection_matching as sm
 
-    monkeypatch.setattr(
-        sm, "_deterministic_match_orphan_headings", lambda *_args, **_kwargs: []
-    )
+    monkeypatch.setattr(sm, "_deterministic_match_orphan_headings", lambda *_args, **_kwargs: [])
 
     def fake_call(client, *, model, messages, **kwargs):
         return OrphanMatchLLMResponse(
@@ -5872,9 +5532,7 @@ def test_compare_section_texts_resolves_renamed_subsection(monkeypatch) -> None:
         fake_resolve_orphans,
     )
 
-    md_t1 = (
-        "### Risque de marché\n\nCorps T1.\n\n### Incidence des tarifs\n\nTexte T1.\n"
-    )
+    md_t1 = "### Risque de marché\n\nCorps T1.\n\n### Incidence des tarifs\n\nTexte T1.\n"
     md_t2 = "### Risque de marché\n\nCorps T2.\n\n### Incidence des tarifs douaniers\n\nTexte T2.\n"
 
     changes = _compare_section_texts(
@@ -5912,14 +5570,8 @@ def test_tfidf_similarity_matrix_from_texts_matches_chunk_wrapper() -> None:
     chunks_b = _chunk_subsection_text(text_b, subsection_heading="B", min_chars=0)
     matrix_from_texts = _tfidf_similarity_matrix_from_texts([text_a, text_b])
     matrix_from_chunks = _align_chunks_tfidf(chunks_a, chunks_b)
-    matched = [
-        alignment
-        for alignment in matrix_from_chunks
-        if alignment.chunk_t1 and alignment.chunk_t2
-    ]
-    assert matrix_from_texts[0][1] == pytest.approx(
-        matched[0].similarity_score, rel=1e-6
-    )
+    matched = [alignment for alignment in matrix_from_chunks if alignment.chunk_t1 and alignment.chunk_t2]
+    assert matrix_from_texts[0][1] == pytest.approx(matched[0].similarity_score, rel=1e-6)
 
 
 def test_resolve_orphan_subsections_embedding_strong_matches_without_gpt(
@@ -5956,9 +5608,7 @@ def test_resolve_orphan_subsections_embedding_strong_matches_without_gpt(
         ]
         return enriched, {}
 
-    monkeypatch.setattr(
-        "vigie.analyse_texte.subsection_matching._attach_embedding_scores", fake_attach
-    )
+    monkeypatch.setattr("vigie.analyse_texte.subsection_matching._attach_embedding_scores", fake_attach)
     gpt_called = {"value": False}
 
     def fail_if_called(**kwargs):
@@ -6023,9 +5673,7 @@ def test_resolve_orphan_subsections_embedding_strong_match_when_llm_confirms(
         ]
         return enriched, {}
 
-    monkeypatch.setattr(
-        "vigie.analyse_texte.subsection_matching._attach_embedding_scores", fake_attach
-    )
+    monkeypatch.setattr("vigie.analyse_texte.subsection_matching._attach_embedding_scores", fake_attach)
     monkeypatch.setattr(
         "vigie.analyse_texte.subsection_matching._call_structured_completion_with_correction",
         lambda *args, **kwargs: OrphanMatchLLMResponse(
@@ -6068,11 +5716,7 @@ def test_resolve_orphan_subsections_llm_arbitration_when_embedding_weak(
         "La Banque et ses entreprises sont assujetties à une réglementation considérable "
         "et à une surveillance active des autorités de réglementation."
     )
-    orphans_t1 = [
-        OrphanSubsection(
-            heading="Surveillance réglementaire et conformité", body=body_shared
-        )
-    ]
+    orphans_t1 = [OrphanSubsection(heading="Surveillance réglementaire et conformité", body=body_shared)]
     orphans_t2 = [
         OrphanSubsection(
             heading="Surveillance réglementaire et risque de conformité",
@@ -6102,9 +5746,7 @@ def test_resolve_orphan_subsections_llm_arbitration_when_embedding_weak(
         ]
         return enriched, {}
 
-    monkeypatch.setattr(
-        "vigie.analyse_texte.subsection_matching._attach_embedding_scores", fake_attach
-    )
+    monkeypatch.setattr("vigie.analyse_texte.subsection_matching._attach_embedding_scores", fake_attach)
     monkeypatch.setattr(
         "vigie.analyse_texte.subsection_matching._call_structured_completion_with_correction",
         lambda *args, **kwargs: OrphanMatchLLMResponse(
@@ -6176,11 +5818,7 @@ def test_compare_section_texts_orphan_match_avoids_duplicate_synthetics(
         fake_resolve_orphans,
     )
 
-    md_t1 = (
-        "### Risque de marché\n\nCorps T1.\n\n"
-        "### Crimes financiers, Gestion des risques (CFGR)\n\n"
-        f"{shared_body}\n"
-    )
+    md_t1 = f"### Risque de marché\n\nCorps T1.\n\n### Crimes financiers, Gestion des risques (CFGR)\n\n{shared_body}\n"
     md_t2 = (
         "### Risque de marché\n\nCorps T2.\n\n"
         "### Gestion des risques liés aux crimes financiers (GRCF)\n\n"
@@ -6198,14 +5836,12 @@ def test_compare_section_texts_orphan_match_avoids_duplicate_synthetics(
     synthetic_added = [
         change
         for change in changes
-        if change["diff_type"] == "added"
-        and change["change_summary"].startswith("Sous-section")
+        if change["diff_type"] == "added" and change["change_summary"].startswith("Sous-section")
     ]
     synthetic_removed = [
         change
         for change in changes
-        if change["diff_type"] == "removed"
-        and change["change_summary"].startswith("Sous-section")
+        if change["diff_type"] == "removed" and change["change_summary"].startswith("Sous-section")
     ]
     assert synthetic_added == []
     assert synthetic_removed == []
@@ -6294,8 +5930,7 @@ def test_compare_section_texts_td_renamed_orphans_avoid_duplicate_synthetics(
     synthetic_added_or_removed = [
         change
         for change in changes
-        if change["diff_type"] in {"added", "removed"}
-        and change["change_summary"].startswith("Sous-section")
+        if change["diff_type"] in {"added", "removed"} and change["change_summary"].startswith("Sous-section")
     ]
     renamed_headings = {
         (
@@ -6344,9 +5979,7 @@ def test_resolve_orphan_subsections_gpt_failure_keeps_deterministic_matches(
         "de ses opérations bancaires et de détail."
     )
     orphans_t1 = [OrphanSubsection(heading="Activités frauduleuses", body=body_shared)]
-    orphans_t2 = [
-        OrphanSubsection(heading="Activités frauduleuses externes", body=body_shared)
-    ]
+    orphans_t2 = [OrphanSubsection(heading="Activités frauduleuses externes", body=body_shared)]
 
     from vigie.analyse_texte.subsection_matching import (
         OrphanCandidate,
@@ -6372,9 +6005,7 @@ def test_resolve_orphan_subsections_gpt_failure_keeps_deterministic_matches(
     def fake_gpt_failure(**kwargs):
         raise RuntimeError("gpt down")
 
-    monkeypatch.setattr(
-        "vigie.analyse_texte.subsection_matching._attach_embedding_scores", fake_attach
-    )
+    monkeypatch.setattr("vigie.analyse_texte.subsection_matching._attach_embedding_scores", fake_attach)
     monkeypatch.setattr(
         "vigie.analyse_texte.subsection_matching._gpt_arbitrate_orphan_subsections",
         fake_gpt_failure,
@@ -6455,9 +6086,7 @@ def test_resolve_orphan_subsections_ambiguous_still_calls_gpt(monkeypatch) -> No
             }
         ]
 
-    monkeypatch.setattr(
-        "vigie.analyse_texte.subsection_matching._attach_embedding_scores", fake_attach
-    )
+    monkeypatch.setattr("vigie.analyse_texte.subsection_matching._attach_embedding_scores", fake_attach)
     monkeypatch.setattr(
         "vigie.analyse_texte.subsection_matching._gpt_arbitrate_orphan_subsections",
         fake_gpt,
@@ -6482,12 +6111,8 @@ def test_resolve_orphan_subsections_ambiguous_still_calls_gpt(monkeypatch) -> No
 def test_resolve_orphan_subsections_embedding_failure_falls_back_to_llm(
     monkeypatch,
 ) -> None:
-    orphans_t1 = [
-        OrphanSubsection(heading="Ancien titre", body="Corps substantiel " * 20)
-    ]
-    orphans_t2 = [
-        OrphanSubsection(heading="Nouveau titre", body="Corps substantiel " * 20)
-    ]
+    orphans_t1 = [OrphanSubsection(heading="Ancien titre", body="Corps substantiel " * 20)]
+    orphans_t2 = [OrphanSubsection(heading="Nouveau titre", body="Corps substantiel " * 20)]
 
     def exploding_attach(**kwargs):
         raise RuntimeError("embedding down")
@@ -6532,9 +6157,7 @@ def test_resolve_orphan_subsections_short_body_uses_title_only_fallback(
     monkeypatch,
 ) -> None:
     orphans_t1 = [OrphanSubsection(heading="Objectif", body="Capital disponible.")]
-    orphans_t2 = [
-        OrphanSubsection(heading="Objectif de capital", body="Capital disponible.")
-    ]
+    orphans_t2 = [OrphanSubsection(heading="Objectif de capital", body="Capital disponible.")]
 
     monkeypatch.setattr(
         "vigie.analyse_texte.subsection_matching._call_structured_completion_with_correction",
@@ -6568,9 +6191,7 @@ def test_resolve_orphan_subsections_short_body_uses_title_only_fallback(
 
 
 def test_bmo_risque_de_strategie_2024_t4_chunks_into_six(monkeypatch) -> None:
-    md_path = Path(
-        "outputs/resultats/bmo/2025_t4_vs_2024_t4/text_extraction_2024_t4.md"
-    )
+    md_path = Path("outputs/resultats/bmo/2025_t4_vs_2024_t4/text_extraction_2024_t4.md")
     if not md_path.exists():
         pytest.skip("Artefact local BMO 2024 T4 absent.")
 
@@ -6579,9 +6200,7 @@ def test_bmo_risque_de_strategie_2024_t4_chunks_into_six(monkeypatch) -> None:
         lambda text: False,
     )
 
-    section_text = _extract_section_text_from_markdown(
-        md_path.read_text(encoding="utf-8"), "gestion_risques"
-    )
+    section_text = _extract_section_text_from_markdown(md_path.read_text(encoding="utf-8"), "gestion_risques")
     subsections = dict(_parse_subsections(section_text))
     body = subsections["Risque de stratégie"]
 
@@ -6605,12 +6224,8 @@ def test_bmo_risque_de_strategie_2024_t4_chunks_into_six(monkeypatch) -> None:
 
 
 def test_bmo_risque_de_strategie_tfidf_alignment_stays_local(monkeypatch) -> None:
-    previous_path = Path(
-        "outputs/resultats/bmo/2025_t4_vs_2024_t4/text_extraction_2024_t4.md"
-    )
-    current_path = Path(
-        "outputs/resultats/bmo/2025_t4_vs_2024_t4/text_extraction_2025_t4.md"
-    )
+    previous_path = Path("outputs/resultats/bmo/2025_t4_vs_2024_t4/text_extraction_2024_t4.md")
+    current_path = Path("outputs/resultats/bmo/2025_t4_vs_2024_t4/text_extraction_2025_t4.md")
     if not previous_path.exists() or not current_path.exists():
         pytest.skip("Artefacts locaux BMO T4 absents.")
 
@@ -6619,12 +6234,8 @@ def test_bmo_risque_de_strategie_tfidf_alignment_stays_local(monkeypatch) -> Non
         lambda text: False,
     )
 
-    previous_section = _extract_section_text_from_markdown(
-        previous_path.read_text(encoding="utf-8"), "gestion_risques"
-    )
-    current_section = _extract_section_text_from_markdown(
-        current_path.read_text(encoding="utf-8"), "gestion_risques"
-    )
+    previous_section = _extract_section_text_from_markdown(previous_path.read_text(encoding="utf-8"), "gestion_risques")
+    current_section = _extract_section_text_from_markdown(current_path.read_text(encoding="utf-8"), "gestion_risques")
     previous_body = dict(_parse_subsections(previous_section))["Risque de stratégie"]
     current_body = dict(_parse_subsections(current_section))["Risque de stratégie"]
     chunks_t1 = _chunk_subsection_text(
@@ -6644,11 +6255,7 @@ def test_bmo_risque_de_strategie_tfidf_alignment_stays_local(monkeypatch) -> Non
         for alignment in alignments
         if alignment.chunk_t1 and alignment.chunk_t2
     }
-    removed = [
-        alignment
-        for alignment in alignments
-        if alignment.alignment_type == "possible_removed"
-    ]
+    removed = [alignment for alignment in alignments if alignment.alignment_type == "possible_removed"]
 
     assert len(chunks_t1) == 6
     assert len(chunks_t2) == 5
@@ -6657,10 +6264,7 @@ def test_bmo_risque_de_strategie_tfidf_alignment_stays_local(monkeypatch) -> Non
     assert matched_by_t2["risque_de_stratégie_c04"] == "risque_de_stratégie_c05"
     assert len(removed) == 1
     assert removed[0].chunk_t1.chunk_id == "risque_de_stratégie_c03"
-    assert all(
-        "Risque de stratégie" in chunk.hierarchy_path
-        for chunk in [*chunks_t1, *chunks_t2]
-    )
+    assert all("Risque de stratégie" in chunk.hierarchy_path for chunk in [*chunks_t1, *chunks_t2])
 
 
 def test_bnc_accord_bale_requires_semantic_services_without_legacy_fallback() -> None:
@@ -6670,12 +6274,8 @@ def test_bnc_accord_bale_requires_semantic_services_without_legacy_fallback() ->
     if not previous_path.exists() or not current_path.exists():
         pytest.skip("Artefacts locaux BNC T4 absents.")
 
-    previous_section = _extract_section_text_from_markdown(
-        previous_path.read_text(encoding="utf-8"), "gestion_capital"
-    )
-    current_section = _extract_section_text_from_markdown(
-        current_path.read_text(encoding="utf-8"), "gestion_capital"
-    )
+    previous_section = _extract_section_text_from_markdown(previous_path.read_text(encoding="utf-8"), "gestion_capital")
+    current_section = _extract_section_text_from_markdown(current_path.read_text(encoding="utf-8"), "gestion_capital")
     previous_body = dict(_parse_subsections(previous_section))["Accord de Bâle"]
     current_body = dict(_parse_subsections(current_section))["Accord de Bâle"]
     with pytest.raises(SemanticChunkingError, match="aucun fallback"):
@@ -6684,9 +6284,7 @@ def test_bnc_accord_bale_requires_semantic_services_without_legacy_fallback() ->
         _chunk_subsection_text(current_body, subsection_heading="Accord de Bâle")
 
 
-def test_td_future_capital_disclosures_are_not_merged_only_for_similar_boilerplate() -> (
-    None
-):
+def test_td_future_capital_disclosures_are_not_merged_only_for_similar_boilerplate() -> None:
     """Separate TD issuances remain separate despite their similar wording."""
     heading = "Évolution future des fonds propres réglementaires"
     first = (
@@ -6789,20 +6387,12 @@ def _compact_secondary_reason() -> str:
 
 def _compact_relevant_fields() -> dict[str, str]:
     return {
-        "changement_constate": (
-            "BMO ajoute un exercice annuel de simulation de cyberattaque."
-        ),
-        "signification_metier": (
-            "Cette évolution rend explicite un mécanisme de préparation aux incidents."
-        ),
+        "changement_constate": ("BMO ajoute un exercice annuel de simulation de cyberattaque."),
+        "signification_metier": ("Cette évolution rend explicite un mécanisme de préparation aux incidents."),
         "comparaison_interbanques": (
-            "Elle permet de comparer la fréquence et le périmètre des exercices "
-            "entre les banques."
+            "Elle permet de comparer la fréquence et le périmètre des exercices entre les banques."
         ),
-        "limite_interpretation": (
-            "La divulgation ne précise toutefois ni les scénarios ni les "
-            "résultats obtenus."
-        ),
+        "limite_interpretation": ("La divulgation ne précise toutefois ni les scénarios ni les résultats obtenus."),
         "motif_non_pertinence": "",
     }
 
@@ -6813,9 +6403,7 @@ def _compact_secondary_fields() -> dict[str, str]:
         "signification_metier": "",
         "comparaison_interbanques": "",
         "limite_interpretation": "",
-        "motif_non_pertinence": (
-            "Cette variation n’apporte aucun nouveau point de comparaison prudentielle."
-        ),
+        "motif_non_pertinence": ("Cette variation n’apporte aucun nouveau point de comparaison prudentielle."),
     }
 
 
@@ -6824,10 +6412,7 @@ def _compact_secondary_fields() -> dict[str, str]:
 
 def test_compact_triage_accepts_separate_relevant_analyst_fields() -> None:
     fields = _compact_relevant_fields()
-    fields["signification_metier"] = (
-        "  Cette évolution rend   explicite un mécanisme de préparation "
-        "aux incidents.  "
-    )
+    fields["signification_metier"] = "  Cette évolution rend   explicite un mécanisme de préparation aux incidents.  "
     result = TriageAMFCompactLLMResultWithIndex(
         change_index=1,
         is_relevant=True,
@@ -6835,9 +6420,7 @@ def test_compact_triage_accepts_separate_relevant_analyst_fields() -> None:
         nouvelle_idee=True,
         **fields,
     )
-    assert result.signification_metier == (
-        "Cette évolution rend explicite un mécanisme de préparation aux incidents."
-    )
+    assert result.signification_metier == ("Cette évolution rend explicite un mécanisme de préparation aux incidents.")
     assert result.relevance_reason == " ".join(
         (
             result.changement_constate,
@@ -6876,22 +6459,14 @@ def test_compact_triage_does_not_count_sentences_inside_semantic_fields() -> Non
         **fields,
     )
 
-    assert (
-        "Cette mesure renforce le dispositif déclaré par la banque"
-        in result.relevance_reason
-    )
+    assert "Cette mesure renforce le dispositif déclaré par la banque" in result.relevance_reason
     assert "Elle précise la fréquence du contrôle" in result.relevance_reason
-    assert (
-        "Elle ne fournit toutefois aucun nouveau point de comparaison"
-        in result.relevance_reason
-    )
+    assert "Elle ne fournit toutefois aucun nouveau point de comparaison" in result.relevance_reason
 
 
 def test_compact_triage_adds_terminal_period_to_lexical_field() -> None:
     fields = _compact_secondary_fields()
-    fields["motif_non_pertinence"] = (
-        "Cette mesure ne fournit aucun nouveau point de comparaison entre les banques"
-    )
+    fields["motif_non_pertinence"] = "Cette mesure ne fournit aucun nouveau point de comparaison entre les banques"
     result = TriageAMFCompactLLMResultWithIndex(
         change_index=1,
         is_relevant=False,
@@ -6919,9 +6494,7 @@ def test_compact_triage_rejects_field_without_lexical_content() -> None:
 def test_compact_triage_accepts_field_ending_with_uppercase_label() -> None:
     fields = _compact_relevant_fields()
     fields["changement_constate"] = "BMO retient désormais l’approche A."
-    fields["limite_interpretation"] = (
-        "La divulgation ne précise toutefois pas les paramètres de l’approche A."
-    )
+    fields["limite_interpretation"] = "La divulgation ne précise toutefois pas les paramètres de l’approche A."
     result = TriageAMFCompactLLMResultWithIndex(
         change_index=1,
         is_relevant=True,
@@ -6934,10 +6507,7 @@ def test_compact_triage_accepts_field_ending_with_uppercase_label() -> None:
 
 def test_compact_triage_accepts_abbreviations_and_decimals_in_semantic_field() -> None:
     fields = _compact_relevant_fields()
-    fields["changement_constate"] = (
-        "BMO détaille le cadre de Bâle 3.1, présenté p. ex. à la p. 12 "
-        "par M. Dupont."
-    )
+    fields["changement_constate"] = "BMO détaille le cadre de Bâle 3.1, présenté p. ex. à la p. 12 par M. Dupont."
     result = TriageAMFCompactLLMResultWithIndex(
         change_index=1,
         is_relevant=True,
@@ -6952,8 +6522,7 @@ def test_compact_triage_accepts_abbreviations_and_decimals_in_semantic_field() -
 def test_compact_triage_accepts_common_french_abbreviations_inside_field() -> None:
     fields = _compact_relevant_fields()
     fields["changement_constate"] = (
-        "BMO détaille plusieurs mesures, etc. afin d’encadrer le contrôle, "
-        "c.-à-d. une revue annuelle documentée."
+        "BMO détaille plusieurs mesures, etc. afin d’encadrer le contrôle, c.-à-d. une revue annuelle documentée."
     )
     result = TriageAMFCompactLLMResultWithIndex(
         change_index=1,
@@ -6971,9 +6540,7 @@ def test_compact_triage_accepts_sans_objet_abbreviation(
     abbreviation: str,
 ) -> None:
     fields = _compact_secondary_fields()
-    fields["changement_constate"] = (
-        f"BMO remplace une valeur par la mention « {abbreviation} - sans objet »."
-    )
+    fields["changement_constate"] = f"BMO remplace une valeur par la mention « {abbreviation} - sans objet »."
     result = TriageAMFCompactLLMResultWithIndex(
         change_index=1,
         is_relevant=False,
@@ -7116,9 +6683,7 @@ def test_evaluated_posture_requires_justification_and_confidence() -> None:
         ("changement_posture", "RENFORCEMENT", "changement_posture=AUCUN"),
     ],
 )
-def test_irrelevant_change_rejects_it_and_posture_signals(
-    field: str, value: str, error: str
-) -> None:
+def test_irrelevant_change_rejects_it_and_posture_signals(field: str, value: str, error: str) -> None:
     payload = {
         "is_relevant": False,
         "exclusion_reason": "reformulation_mineure",
@@ -7318,9 +6883,7 @@ def _make_validation_error() -> _PydValidationError:
 
 
 def test_call_structured_completion_raises_runtime_error_on_refusal() -> None:
-    client = _FakeStructuredClient(
-        _make_parsed_response(None, refusal="Je refuse pour des raisons de sécurité.")
-    )
+    client = _FakeStructuredClient(_make_parsed_response(None, refusal="Je refuse pour des raisons de sécurité."))
 
     with pytest.raises(RuntimeError, match="refused"):
         _call_structured_completion(
@@ -7508,9 +7071,7 @@ def test_correction_retry_retries_length_limit_once() -> None:
     def length_then_success(**kwargs):
         state["calls"] += 1
         if state["calls"] == 1:
-            raise RuntimeError(
-                "Could not parse response content as the length limit was reached"
-            )
+            raise RuntimeError("Could not parse response content as the length limit was reached")
         return _make_parsed_response(valid_batch)
 
     client = _FakeStructuredClient(length_then_success)
@@ -7589,9 +7150,7 @@ def test_triage_section_changes_length_retry_repeats_structured_contract() -> No
     def length_then_success(**_kwargs):
         state["calls"] += 1
         if state["calls"] == 1:
-            raise RuntimeError(
-                "Could not parse response content as the length limit was reached"
-            )
+            raise RuntimeError("Could not parse response content as the length limit was reached")
         return _make_parsed_response(valid_batch)
 
     client = _FakeStructuredClient(length_then_success)
@@ -7684,20 +7243,14 @@ def test_triage_section_changes_processes_changes_one_by_one() -> None:
 
     assert len(enriched) == 2
     assert client.call_count == 2
-    user_prompts = [
-        call["messages"][1]["content"] for call in client._completions.calls
-    ]
+    user_prompts = [call["messages"][1]["content"] for call in client._completions.calls]
     assert all('"change_index": 1' in prompt for prompt in user_prompts)
     assert all('"change_index": 2' not in prompt for prompt in user_prompts)
-    assert all(
-        call["max_completion_tokens"] == 670 for call in client._completions.calls
-    )
+    assert all(call["max_completion_tokens"] == 670 for call in client._completions.calls)
 
 
 def test_triage_section_changes_requires_exactly_one_result_per_change() -> None:
-    client = _FakeStructuredClient(
-        _make_parsed_response(TriageAMFCompactLLMBatch(triages=[]))
-    )
+    client = _FakeStructuredClient(_make_parsed_response(TriageAMFCompactLLMBatch(triages=[])))
 
     with pytest.raises(TriageValidationError, match="exactement les change_index"):
         _triage_section_changes(
@@ -7713,9 +7266,7 @@ def test_triage_section_changes_requires_exactly_one_result_per_change() -> None
         )
 
 
-def test_triage_section_changes_batches_two_sides_of_one_semantic_distinct_decision() -> (
-    None
-):
+def test_triage_section_changes_batches_two_sides_of_one_semantic_distinct_decision() -> None:
     """One semantic decision remains a two-call workflow: compare, then triage."""
     parsed = TriageAMFCompactLLMBatch(
         triages=[
@@ -7826,10 +7377,7 @@ def test_triage_section_changes_reads_long_sources_as_full_evidence_packets() ->
     assert evidence_call["response_format"] is _EvidencePacketObservation
     assert long_source in evidence_prompt
     assert "texte tronque pour le triage" not in evidence_prompt
-    assert (
-        client._completions.calls[-1]["response_format"]
-        is _EvidencePacketCoherenceCheck
-    )
+    assert client._completions.calls[-1]["response_format"] is _EvidencePacketCoherenceCheck
 
 
 def test_full_evidence_contract_rejects_a_collection_or_packet_index() -> None:
@@ -7870,9 +7418,7 @@ def test_full_evidence_invalid_response_is_corrected_then_pipeline_continues() -
         if response_format is _EvidencePacketObservation:
             evidence_attempts += 1
             if evidence_attempts == 1:
-                _EvidencePacketObservation.model_validate(
-                    {"factual_change": "Trop court."}
-                )
+                _EvidencePacketObservation.model_validate({"factual_change": "Trop court."})
             return _make_parsed_response(
                 _EvidencePacketObservation(
                     factual_change="BMO précise un changement dans sa preuve complète.",
@@ -7993,13 +7539,8 @@ def test_triage_section_changes_attaches_deterministic_change_segments() -> None
         changes=changes,
     )
 
-    assert result[0]["genai_triage"]["change_segments"] == [
-        {"kind": "removed", "text_t1": ", au CRG", "text_t2": ""}
-    ]
-    prompt = "\n".join(
-        str(message.get("content", ""))
-        for message in client._completions.calls[0]["messages"]
-    )
+    assert result[0]["genai_triage"]["change_segments"] == [{"kind": "removed", "text_t1": ", au CRG", "text_t2": ""}]
+    prompt = "\n".join(str(message.get("content", "")) for message in client._completions.calls[0]["messages"])
     assert '"exact_change_segments"' in prompt
     assert ", au CRG" in prompt
     assert "impact_it_justification" not in prompt
@@ -8034,12 +7575,8 @@ def test_governance_new_idea_receives_major_priority() -> None:
         changes=[
             {
                 "diff_type": "modified",
-                "source_text_t1": (
-                    "Le comité de direction approuve l’appétit pour le risque."
-                ),
-                "source_text_t2": (
-                    "Le conseil d’administration approuve l’appétit pour le risque."
-                ),
+                "source_text_t1": ("Le comité de direction approuve l’appétit pour le risque."),
+                "source_text_t2": ("Le conseil d’administration approuve l’appétit pour le risque."),
             }
         ],
     )
@@ -8197,9 +7734,7 @@ def test_committee_rename_stays_relevant_without_becoming_a_new_idea() -> None:
 def test_triage_section_changes_holds_unresolved_alignment_for_analyst_review() -> None:
     """An ambiguous pairing never receives an automatic AMF priority verdict."""
     client = _FakeStructuredClient(
-        lambda **_kwargs: pytest.fail(
-            "Un alignement ambigu ne doit pas atteindre le triage LLM."
-        )
+        lambda **_kwargs: pytest.fail("Un alignement ambigu ne doit pas atteindre le triage LLM.")
     )
     changes = [
         {
@@ -8227,10 +7762,7 @@ def test_triage_section_changes_holds_unresolved_alignment_for_analyst_review() 
     assert triage["is_relevant"] is False
     assert triage["nouvelle_idee"] is False
     assert triage["change_segments"]
-    assert all(
-        segment["kind"] in {"added", "removed", "modified"}
-        for segment in triage["change_segments"]
-    )
+    assert all(segment["kind"] in {"added", "removed", "modified"} for segment in triage["change_segments"])
 
 
 def test_triage_section_changes_accepts_gpt_confirmed_semantic_alignment() -> None:
@@ -8255,8 +7787,7 @@ def test_triage_section_changes_accepts_gpt_confirmed_semantic_alignment() -> No
             "alignment_confidence": "high",
             "alignment_rationale": "Même limite prudentielle, actualisée dans le rapport courant.",
             "source_text_t1": (
-                "La banque surveille le risque de crédit selon une approche "
-                "interne fondée sur des revues périodiques."
+                "La banque surveille le risque de crédit selon une approche interne fondée sur des revues périodiques."
             ),
             "source_text_t2": (
                 "La banque surveille le risque de crédit selon une approche "
@@ -8307,10 +7838,7 @@ def test_triage_section_changes_does_not_request_posture_or_it_impact() -> None:
         changes=changes,
     )
 
-    prompt = "\n".join(
-        str(message.get("content", ""))
-        for message in client._completions.calls[0]["messages"]
-    )
+    prompt = "\n".join(str(message.get("content", "")) for message in client._completions.calls[0]["messages"])
     assert "justification_posture" not in prompt
     assert "impact_it_justification" not in prompt
     assert "Ne produis pas `relevance_reason`" in prompt
@@ -8332,15 +7860,12 @@ def test_triage_section_changes_does_not_request_posture_or_it_impact() -> None:
 def test_normalize_themes_amf_clamps_unknown_to_emergent() -> None:
     from vigie.analyse_texte.triage_parts import _normalize_themes_amf
 
-    assert _normalize_themes_amf(["EXIGENCES_REGLEMENTAIRES"]) == [
-        "EXIGENCES_REGLEMENTAIRES"
+    assert _normalize_themes_amf(["EXIGENCES_REGLEMENTAIRES"]) == ["EXIGENCES_REGLEMENTAIRES"]
+    assert _normalize_themes_amf(["THEME_INEXISTANT_XYZ"]) == ["SUJET_EMERGENT_HORS_GRILLE"]
+    assert _normalize_themes_amf(["RISQUE_EMERGENT", "THEME_INEXISTANT_XYZ", "RISQUE_EMERGENT"]) == [
+        "RISQUE_EMERGENT",
+        "SUJET_EMERGENT_HORS_GRILLE",
     ]
-    assert _normalize_themes_amf(["THEME_INEXISTANT_XYZ"]) == [
-        "SUJET_EMERGENT_HORS_GRILLE"
-    ]
-    assert _normalize_themes_amf(
-        ["RISQUE_EMERGENT", "THEME_INEXISTANT_XYZ", "RISQUE_EMERGENT"]
-    ) == ["RISQUE_EMERGENT", "SUJET_EMERGENT_HORS_GRILLE"]
     assert _normalize_themes_amf([]) == []
 
 

@@ -70,16 +70,13 @@ def update_review_proofs(
         )
 
     resolved_selection, _, _ = _resolve_selection(review_queue_data, selection)
-    _, table = _get_table_by_review_id(
-        review_queue_data, resolved_selection.get("review_id")
-    )
+    _, table = _get_table_by_review_id(review_queue_data, resolved_selection.get("review_id"))
     if table is None:
         current_label = quarter_label_from_payload(indicator_result, "current")
         previous_label = quarter_label_from_payload(indicator_result, "previous")
         heading_label = (
             f"Preuves visuelles : {current_label} vs {previous_label}"
-            if current_label != "Trimestre courant"
-            and previous_label != "Trimestre précédent"
+            if current_label != "Trimestre courant" and previous_label != "Trimestre précédent"
             else "Preuves visuelles : courant vs précédent"
         )
         return html.Div(
@@ -160,43 +157,21 @@ def update_review_proofs(
             s_t1, s_t2 = _texts_for_change(change)
             is_fn = str(change.get("change_type", "") or "") in _FOOTNOTE_CHANGE_TYPES
 
-            if (
-                s_t1
-                and pdf_path_t1
-                and item.get("page_t1") is not None
-                and item.get("bbox_t1")
-            ):
+            if s_t1 and pdf_path_t1 and item.get("page_t1") is not None and item.get("bbox_t1"):
                 try:
                     bbox = _extended_bbox(item["bbox_t1"]) if is_fn else item["bbox_t1"]
-                    rects = find_text_bboxes_in_region(
-                        str(pdf_path_t1), max(1, int(item["page_t1"])), s_t1, bbox
-                    )
-                    (primary_rects_t1 if is_active else secondary_rects_t1).extend(
-                        rects
-                    )
+                    rects = find_text_bboxes_in_region(str(pdf_path_t1), max(1, int(item["page_t1"])), s_t1, bbox)
+                    (primary_rects_t1 if is_active else secondary_rects_t1).extend(rects)
                 except Exception as e:
-                    logger.warning(
-                        f"Highlight t1 failed for {change.get('change_id')}: {e}"
-                    )
+                    logger.warning(f"Highlight t1 failed for {change.get('change_id')}: {e}")
 
-            if (
-                s_t2
-                and pdf_path_t2
-                and item.get("page_t2") is not None
-                and item.get("bbox_t2")
-            ):
+            if s_t2 and pdf_path_t2 and item.get("page_t2") is not None and item.get("bbox_t2"):
                 try:
                     bbox = _extended_bbox(item["bbox_t2"]) if is_fn else item["bbox_t2"]
-                    rects = find_text_bboxes_in_region(
-                        str(pdf_path_t2), max(1, int(item["page_t2"])), s_t2, bbox
-                    )
-                    (primary_rects_t2 if is_active else secondary_rects_t2).extend(
-                        rects
-                    )
+                    rects = find_text_bboxes_in_region(str(pdf_path_t2), max(1, int(item["page_t2"])), s_t2, bbox)
+                    (primary_rects_t2 if is_active else secondary_rects_t2).extend(rects)
                 except Exception as e:
-                    logger.warning(
-                        f"Highlight t2 failed for {change.get('change_id')}: {e}"
-                    )
+                    logger.warning(f"Highlight t2 failed for {change.get('change_id')}: {e}")
 
     proof_t1 = _get_proof_render_result_for_item(
         item,
@@ -245,9 +220,7 @@ def update_review_meta(review_queue_data, selection, show_results, indicator_res
         )
 
     resolved_selection, _, change_idx = _resolve_selection(review_queue_data, selection)
-    _, table = _get_table_by_review_id(
-        review_queue_data, resolved_selection.get("review_id")
-    )
+    _, table = _get_table_by_review_id(review_queue_data, resolved_selection.get("review_id"))
     if table is None:
         return html.Div(
             "Aucun tableau sélectionné.",
@@ -280,9 +253,7 @@ def update_progress_banner(review_queue_data, show_results, indicator_meta):
         return html.Div()
 
     total_tables = len(review_queue_data)
-    completed_tables = sum(
-        1 for t in review_queue_data if t.get("table_status") == "completed"
-    )
+    completed_tables = sum(1 for t in review_queue_data if t.get("table_status") == "completed")
     total_changes = sum(len(t.get("changes", []) or []) for t in review_queue_data)
     validated_changes = sum(
         1
@@ -301,21 +272,15 @@ def update_progress_banner(review_queue_data, show_results, indicator_meta):
     year_previous = str(meta.get("year_previous", "") or "")
     period_label = ""
     if bank and q_current:
-        period_label = (
-            f"{bank} — {q_current} {year_current} vs {q_previous} {year_previous}"
-        )
+        period_label = f"{bank} — {q_current} {year_current} vs {q_previous} {year_previous}"
     source_label = str(meta.get("source_label", "") or "").strip()
 
     return html.Div(
         [
             html.Div(
                 [
-                    html.Span(period_label, className="fw-semibold me-3")
-                    if period_label
-                    else None,
-                    dbc.Badge(source_label, color="light", text_color="dark")
-                    if source_label
-                    else None,
+                    html.Span(period_label, className="fw-semibold me-3") if period_label else None,
+                    dbc.Badge(source_label, color="light", text_color="dark") if source_label else None,
                     html.Span(
                         f"{completed_tables}/{total_tables} tables complètes",
                         className="me-3 text-muted small",

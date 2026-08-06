@@ -11,9 +11,7 @@ from __future__ import annotations
 import re
 
 _MAX_TRIAGE_LLM_WORKERS = 6
-_SEMANTIC_ALIGNMENT_DECISIONS = frozenset(
-    {"same_disclosure", "distinct_disclosures", "moved_text", "uncertain"}
-)
+_SEMANTIC_ALIGNMENT_DECISIONS = frozenset({"same_disclosure", "distinct_disclosures", "moved_text", "uncertain"})
 _COSMETIC_SEQUENCE_THRESHOLD = 0.985
 _BANK_NOISE_SEQUENCE_THRESHOLD = 0.92
 _TRIAGE_DEDUP_EMBEDDING_THRESHOLD = 0.92
@@ -49,6 +47,7 @@ from vigie.analyse_texte.triage_formatting_rules import (  # noqa: F401 - re-exp
     _VOLATILE_TOKEN_RE,
     is_governance_protected_edit,
 )
+
 _CALENDAR_SUBJECT_RE = re.compile(
     r"(?:"
     r"coefficient\s+de\s+plancher|plancher\s+des?\s+fonds\s+propres|"

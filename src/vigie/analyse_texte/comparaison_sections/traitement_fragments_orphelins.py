@@ -162,8 +162,7 @@ def _changes_from_orphan_chunks(
                 "evidence_t1": {"pages": [], "snippet": text_t1[:400]},
                 "evidence_t2": {"pages": [], "snippet": text_t2[:400]},
                 "change_summary": (
-                    f"Passage de sous-section "
-                    f"{'ajouté' if diff_type == 'added' else 'supprimé'}: {heading}"
+                    f"Passage de sous-section {'ajouté' if diff_type == 'added' else 'supprimé'}: {heading}"
                 ),
                 **_atomic_unit_metadata(
                     chunk if diff_type == "removed" else None,

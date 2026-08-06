@@ -19,9 +19,7 @@ def _load_build_report():
 
 def test_build_report_detects_clean_payload(tmp_path: Path) -> None:
     build_report = _load_build_report()
-    payload = json.loads(
-        (Path("tests/fixtures/strict_intra_section_sample.json")).read_text(encoding="utf-8")
-    )
+    payload = json.loads((Path("tests/fixtures/strict_intra_section_sample.json")).read_text(encoding="utf-8"))
     report = build_report(payload)
     assert report["summary"]["cross_section_pairs"] == 0
     assert report["summary"]["unknown_matched_pairs"] == 0

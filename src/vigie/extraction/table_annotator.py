@@ -293,9 +293,7 @@ def annotate_table_image(
         draw_rectangle_border(draw, width, height, color)
     else:
         # Calculer positions des lignes (utilise row_bboxes si disponible)
-        positions = estimate_row_positions(
-            all_indicators, height, row_bboxes=row_bboxes
-        )
+        positions = estimate_row_positions(all_indicators, height, row_bboxes=row_bboxes)
 
         # Trouver les indicateurs a marquer
         for idx, (indicator, y_pos) in enumerate(positions):
@@ -312,11 +310,7 @@ def annotate_table_image(
 
             # Mode debug: afficher l'index de chaque ligne
             if debug_mode:
-                debug_color = (
-                    COLORS.get(color, COLORS["red"])
-                    if is_highlighted
-                    else (128, 128, 128)
-                )
+                debug_color = COLORS.get(color, COLORS["red"]) if is_highlighted else (128, 128, 128)
                 try:
                     # Dessiner l'index de ligne
                     draw.text((5, int(y_pos) - 8), str(idx), fill=debug_color)
@@ -372,9 +366,7 @@ def annotate_table_with_changes(
     if is_for_t1:
         # Pour T1: marquer en rouge ce qui a disparu
         if is_removed_table:
-            return annotate_table_image(
-                image_base64, [], [], color="red", is_entire_table=True
-            )
+            return annotate_table_image(image_base64, [], [], color="red", is_entire_table=True)
         else:
             return annotate_table_image(
                 image_base64,
@@ -388,9 +380,7 @@ def annotate_table_with_changes(
     else:
         # Pour T2: marquer en vert ce qui est nouveau
         if is_new_table:
-            return annotate_table_image(
-                image_base64, [], [], color="green", is_entire_table=True
-            )
+            return annotate_table_image(image_base64, [], [], color="green", is_entire_table=True)
         else:
             return annotate_table_image(
                 image_base64,

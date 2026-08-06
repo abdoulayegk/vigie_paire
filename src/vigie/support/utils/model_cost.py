@@ -38,7 +38,5 @@ def estimate_openai_cost_usd(
         completion = max(0, int(completion_tokens or 0))
     except (TypeError, ValueError):
         return 0.0
-    cost = (prompt / 1_000_000.0) * pricing["input"] + (
-        completion / 1_000_000.0
-    ) * pricing["output"]
+    cost = (prompt / 1_000_000.0) * pricing["input"] + (completion / 1_000_000.0) * pricing["output"]
     return round(cost, 6)

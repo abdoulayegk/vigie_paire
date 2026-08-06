@@ -139,15 +139,15 @@ def _aggregate_extraction_run_metrics(
     vision_calls_total = _coerce_int(previous.get("vision_calls_total")) + _coerce_int(
         current.get("vision_calls_total")
     )
-    vision_rescue_total = _coerce_int(
-        previous.get("vision_rescue_total")
-    ) + _coerce_int(current.get("vision_rescue_total"))
-    prompt_tokens_total = _coerce_int(
-        previous.get("prompt_tokens_total")
-    ) + _coerce_int(current.get("prompt_tokens_total"))
-    completion_tokens_total = _coerce_int(
-        previous.get("completion_tokens_total")
-    ) + _coerce_int(current.get("completion_tokens_total"))
+    vision_rescue_total = _coerce_int(previous.get("vision_rescue_total")) + _coerce_int(
+        current.get("vision_rescue_total")
+    )
+    prompt_tokens_total = _coerce_int(previous.get("prompt_tokens_total")) + _coerce_int(
+        current.get("prompt_tokens_total")
+    )
+    completion_tokens_total = _coerce_int(previous.get("completion_tokens_total")) + _coerce_int(
+        current.get("completion_tokens_total")
+    )
     total_tokens_total = _coerce_int(previous.get("total_tokens_total")) + _coerce_int(
         current.get("total_tokens_total")
     )
@@ -155,17 +155,14 @@ def _aggregate_extraction_run_metrics(
         current.get("estimated_cost_usd")
     )
     return {
-        "runtime_extraction_sec": round(
-            max(0.0, float(runtime_extraction_sec or 0.0)), 3
-        ),
+        "runtime_extraction_sec": round(max(0.0, float(runtime_extraction_sec or 0.0)), 3),
         "vision_calls_total": vision_calls_total,
         "vision_rescue_total": vision_rescue_total,
         "prompt_tokens_total": prompt_tokens_total,
         "completion_tokens_total": completion_tokens_total,
         "total_tokens_total": total_tokens_total,
         "estimated_cost_usd": round(estimated_cost, 6),
-        "cache_hits_total": int(bool(previous.get("cache_hit")))
-        + int(bool(current.get("cache_hit"))),
+        "cache_hits_total": int(bool(previous.get("cache_hit"))) + int(bool(current.get("cache_hit"))),
         "previous": previous,
         "current": current,
     }
@@ -257,20 +254,16 @@ def _build_run_metrics(
     for key in _MATCHING_METRIC_KEYS:
         run_metrics[key] = comparison_metrics[key]
     run_metrics["prompt_tokens_total"] = (
-        extraction_metrics["prompt_tokens_total"]
-        + comparison_metrics["prompt_tokens_total"]
+        extraction_metrics["prompt_tokens_total"] + comparison_metrics["prompt_tokens_total"]
     )
     run_metrics["completion_tokens_total"] = (
-        extraction_metrics["completion_tokens_total"]
-        + comparison_metrics["completion_tokens_total"]
+        extraction_metrics["completion_tokens_total"] + comparison_metrics["completion_tokens_total"]
     )
     run_metrics["total_tokens_total"] = (
-        extraction_metrics["total_tokens_total"]
-        + comparison_metrics["total_tokens_total"]
+        extraction_metrics["total_tokens_total"] + comparison_metrics["total_tokens_total"]
     )
     run_metrics["estimated_cost_usd"] = round(
-        float(extraction_metrics["estimated_cost_usd"] or 0.0)
-        + float(comparison_metrics["estimated_cost_usd"] or 0.0),
+        float(extraction_metrics["estimated_cost_usd"] or 0.0) + float(comparison_metrics["estimated_cost_usd"] or 0.0),
         6,
     )
     run_metrics["extraction"] = extraction_metrics

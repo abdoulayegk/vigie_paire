@@ -38,18 +38,10 @@ def _indicator_review_summary(changes: list[dict]) -> dict[str, int]:
     pending = max(0, len(changes) - finalized)
     return {
         "total_changes": len(changes),
-        "indicators_added": sum(
-            1 for c in changes if c.get("change_type") == "indicator_added"
-        ),
-        "indicators_removed": sum(
-            1 for c in changes if c.get("change_type") == "indicator_removed"
-        ),
-        "indicators_renamed": sum(
-            1 for c in changes if c.get("change_type") == "indicator_renamed"
-        ),
-        "footnotes_changed": sum(
-            1 for c in changes if "footnote" in c.get("change_type", "")
-        ),
+        "indicators_added": sum(1 for c in changes if c.get("change_type") == "indicator_added"),
+        "indicators_removed": sum(1 for c in changes if c.get("change_type") == "indicator_removed"),
+        "indicators_renamed": sum(1 for c in changes if c.get("change_type") == "indicator_renamed"),
+        "footnotes_changed": sum(1 for c in changes if "footnote" in c.get("change_type", "")),
         "validated": finalized,
         "pending": pending,
     }
@@ -156,9 +148,7 @@ def sync_review_selection(queue, filters, selection, last_positions):
     """Garder la selection stable lors du rafraichissement de la file ou du changement de filtres."""
     if queue is None:
         raise PreventUpdate
-    resolved_selection, _, change_idx = _resolve_selection(
-        queue or [], selection, filters, last_positions
-    )
+    resolved_selection, _, change_idx = _resolve_selection(queue or [], selection, filters, last_positions)
     if resolved_selection == (selection or {}):
         raise PreventUpdate
     return resolved_selection, change_idx
@@ -241,9 +231,7 @@ def on_validate_change_v2(
     if not decision:
         raise PreventUpdate
 
-    resolved_selection, table_idx, change_idx = _resolve_selection(
-        queue, selection, filters, last_positions
-    )
+    resolved_selection, table_idx, change_idx = _resolve_selection(queue, selection, filters, last_positions)
     if table_idx < 0:
         raise PreventUpdate
 
@@ -309,18 +297,13 @@ def on_validate_change_v2(
     State("store-indicator-meta", "data"),
     prevent_initial_call=True,
 )
-def on_reset_change_decision(
-    n_clicks, queue, selection, filters, last_positions, indicator_meta
-):
+def on_reset_change_decision(n_clicks, queue, selection, filters, last_positions, indicator_meta):
     """Reinitialiser un changement valide a l'etat en attente pour permettre a l'analyste de re-decider."""
     if not ctx.triggered_id or not queue:
         raise PreventUpdate
     if not any(nc for nc in (n_clicks or [])):
         raise PreventUpdate
-    if (
-        not isinstance(ctx.triggered_id, dict)
-        or ctx.triggered_id.get("type") != "btn-reset-change-v2"
-    ):
+    if not isinstance(ctx.triggered_id, dict) or ctx.triggered_id.get("type") != "btn-reset-change-v2":
         raise PreventUpdate
 
     change_id = str(ctx.triggered_id.get("change_id") or "")
@@ -354,9 +337,7 @@ def on_reset_change_decision(
                 new_selection = {"review_id": _review_id(table), "change_id": change_id}
                 break
 
-    new_selection, _, new_change_idx = _resolve_selection(
-        new_queue, new_selection, filters, last_positions
-    )
+    new_selection, _, new_change_idx = _resolve_selection(new_queue, new_selection, filters, last_positions)
 
     _persist_review_state(
         indicator_meta=indicator_meta,
@@ -389,9 +370,7 @@ def on_navigate_change_v2(prev, next_c, queue, selection, filters, last_position
     if not ctx.triggered_id or not queue:
         raise PreventUpdate
 
-    resolved_selection, table_idx, change_idx = _resolve_selection(
-        queue, selection, filters, last_positions
-    )
+    resolved_selection, table_idx, change_idx = _resolve_selection(queue, selection, filters, last_positions)
     if table_idx < 0:
         raise PreventUpdate
 
@@ -412,11 +391,7 @@ def on_navigate_change_v2(prev, next_c, queue, selection, filters, last_position
     else:
         raise PreventUpdate
 
-    new_change_id = (
-        str(changes[new_idx].get("change_id", ""))
-        if 0 <= new_idx < len(changes)
-        else None
-    )
+    new_change_id = str(changes[new_idx].get("change_id", "")) if 0 <= new_idx < len(changes) else None
     new_selection = {
         "review_id": resolved_selection.get("review_id"),
         "change_id": new_change_id,
@@ -457,10 +432,7 @@ def on_change_row_click(n_clicks, queue, selection, filters, last_positions):
     # Variable nommee 'table' et non 't' : 't' est la fonction de traduction i18n
     # importee en tete de module, que la boucle masquait dans cette fonction.
     for table in queue:
-        if any(
-            str(c.get("change_id", "")) == change_id
-            for c in (table.get("changes", []) or [])
-        ):
+        if any(str(c.get("change_id", "")) == change_id for c in (table.get("changes", []) or [])):
             owner_table = table
             break
     if owner_table is None:
@@ -491,9 +463,7 @@ def on_change_row_click(n_clicks, queue, selection, filters, last_positions):
     State("store-review-last-positions", "data"),
     prevent_initial_call=True,
 )
-def on_navigate_table_v2(
-    prev, next_t, clicks, queue, selection, filters, last_positions
-):
+def on_navigate_table_v2(prev, next_t, clicks, queue, selection, filters, last_positions):
     """Naviguer entre les tableaux ou sauter directement depuis la file de revue."""
     if not queue:
         raise PreventUpdate
@@ -504,9 +474,7 @@ def on_navigate_table_v2(
         filters,
         last_positions,
     )
-    visible_ids = _visible_review_ids(queue, filters) or [
-        _review_id(t) for t in queue if _review_id(t)
-    ]
+    visible_ids = _visible_review_ids(queue, filters) or [_review_id(t) for t in queue if _review_id(t)]
     if not visible_ids:
         raise PreventUpdate
 
@@ -520,10 +488,7 @@ def on_navigate_table_v2(
         target_review_id = visible_ids[max(0, pos - 1)]
     elif ctx.triggered_id == "btn-next-table-v2":
         target_review_id = visible_ids[min(len(visible_ids) - 1, pos + 1)]
-    elif (
-        isinstance(ctx.triggered_id, dict)
-        and ctx.triggered_id.get("type") == "queue-table-item-v2"
-    ):
+    elif isinstance(ctx.triggered_id, dict) and ctx.triggered_id.get("type") == "queue-table-item-v2":
         clicked_review_id = str(ctx.triggered_id.get("review_id") or "")
         if clicked_review_id:
             target_review_id = clicked_review_id
@@ -563,9 +528,7 @@ def block_table_navigation_v2(queue, selection, filters):
     if not queue:
         return True, True
 
-    visible_ids = _visible_review_ids(queue, filters) or [
-        _review_id(table) for table in queue if _review_id(table)
-    ]
+    visible_ids = _visible_review_ids(queue, filters) or [_review_id(table) for table in queue if _review_id(table)]
     if not visible_ids:
         return True, True
 

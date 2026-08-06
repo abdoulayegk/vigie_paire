@@ -30,6 +30,7 @@ _IMPACT_LEVEL_BADGE: dict[str, tuple[str, str]] = {
     "MINEUR": ("MINEUR", "info"),
 }
 
+
 def _format_section(section: str) -> str:
     """Formate le nom de section pour l'affichage."""
     return section_display_label(section)
@@ -46,10 +47,7 @@ def _queue_page_summary_v2(table: dict) -> str:
 
     if ChangeType.TABLE_ADDED.value in change_types or "table_added" in change_types:
         return f"p.{page_t2}" if page_t2 is not None else ""
-    if (
-        ChangeType.TABLE_REMOVED.value in change_types
-        or "table_removed" in change_types
-    ):
+    if ChangeType.TABLE_REMOVED.value in change_types or "table_removed" in change_types:
         return f"p.{page_t1}" if page_t1 is not None else ""
     if page_t1 is not None and page_t2 is not None:
         return f"Préc. p.{page_t1} / Cour. p.{page_t2}"
@@ -58,8 +56,6 @@ def _queue_page_summary_v2(table: dict) -> str:
     if page_t1 is not None:
         return f"p.{page_t1}"
     return ""
-
-
 
 
 def _build_genai_summary_row(table: dict) -> html.Div | None:
@@ -99,11 +95,7 @@ def _build_genai_summary_row(table: dict) -> html.Div | None:
     impact_info = _IMPACT_LEVEL_BADGE.get(impact_level)
     if impact_info:
         label, color = impact_info
-        chips.append(
-            dbc.Badge(
-                label, color=color, className="me-1", style={"fontSize": "0.65rem"}
-            )
-        )
+        chips.append(dbc.Badge(label, color=color, className="me-1", style={"fontSize": "0.65rem"}))
     action_info = _ACTION_DISPLAY.get(action)
     if action_info and action in {"revue_prioritaire", "investigation"}:
         a_label, a_color = action_info
@@ -143,17 +135,11 @@ def _build_table_metric_badges(summary: dict) -> list[html.Span]:
     n_footnotes = int(summary.get("footnotes_changed", 0) or 0)
 
     if n_added:
-        badges.append(
-            html.Span(f"+{n_added}", className="review-queue-stat-chip is-added")
-        )
+        badges.append(html.Span(f"+{n_added}", className="review-queue-stat-chip is-added"))
     if n_removed:
-        badges.append(
-            html.Span(f"-{n_removed}", className="review-queue-stat-chip is-removed")
-        )
+        badges.append(html.Span(f"-{n_removed}", className="review-queue-stat-chip is-removed"))
     if n_renamed:
-        badges.append(
-            html.Span(f"RN {n_renamed}", className="review-queue-stat-chip is-renamed")
-        )
+        badges.append(html.Span(f"RN {n_renamed}", className="review-queue-stat-chip is-renamed"))
     if n_footnotes:
         badges.append(
             html.Span(
@@ -165,9 +151,7 @@ def _build_table_metric_badges(summary: dict) -> list[html.Span]:
     return badges
 
 
-def _build_progress_pill(
-    validated: int, total: int, table_status: str, is_active: bool
-) -> html.Span | None:
+def _build_progress_pill(validated: int, total: int, table_status: str, is_active: bool) -> html.Span | None:
     """Construit la pastille de progression valides/total pour un tableau."""
     if total <= 0:
         return None
@@ -228,9 +212,7 @@ def build_review_queue_v2(
         return True
 
     # Filter tables
-    filtered_with_idx = [
-        (idx, table) for idx, table in enumerate(tables) if _matches_filters(table)
-    ]
+    filtered_with_idx = [(idx, table) for idx, table in enumerate(tables) if _matches_filters(table)]
     filtered_tables = [t for _, t in filtered_with_idx]
 
     # Compute stats
@@ -250,8 +232,7 @@ def build_review_queue_v2(
             color="light",
             size="sm",
             className=(
-                "review-queue-filter-button w-100 text-start mb-1"
-                + (" is-active" if active_section == "all" else "")
+                "review-queue-filter-button w-100 text-start mb-1" + (" is-active" if active_section == "all" else "")
             ),
         )
     ]
@@ -274,9 +255,7 @@ def build_review_queue_v2(
             )
         )
 
-    filter_bar = html.Div(
-        filter_buttons, className="review-queue-filter-bar mb-3 p-2 rounded border"
-    )
+    filter_bar = html.Div(filter_buttons, className="review-queue-filter-bar mb-3 p-2 rounded border")
 
     queue_items = []
     for _, table in filtered_with_idx:
@@ -373,9 +352,7 @@ def build_review_queue_v2(
                     html.Span(f"Total: {total}", className="me-3 fw-bold"),
                     html.Span(
                         [
-                            html.I(
-                                className="bi bi-check-circle-fill text-success me-1"
-                            ),
+                            html.I(className="bi bi-check-circle-fill text-success me-1"),
                             f"{completed}",
                         ],
                         className="me-3 small",

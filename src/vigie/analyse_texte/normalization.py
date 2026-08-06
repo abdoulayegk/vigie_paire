@@ -89,9 +89,7 @@ _BNC_MANAGEMENT_RUNNING_HEADER_RE = re.compile(
     r"(?:du\s+capital|des\s+risques))?\s*$",
     flags=re.IGNORECASE,
 )
-_CHART_AXIS_LABEL_ROW_RE = re.compile(
-    r"^\s*(?:\(?-?\d+(?:[,.]\d+)?\)?\s+){11,}\(?-?\d+(?:[,.]\d+)?\)?\s*$"
-)
+_CHART_AXIS_LABEL_ROW_RE = re.compile(r"^\s*(?:\(?-?\d+(?:[,.]\d+)?\)?\s+){11,}\(?-?\d+(?:[,.]\d+)?\)?\s*$")
 
 
 def _json_dumps(data: Any) -> str:

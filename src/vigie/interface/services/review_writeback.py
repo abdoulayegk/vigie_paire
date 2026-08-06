@@ -66,9 +66,7 @@ def _strip_previous_decisions(comparison: dict[str, Any]) -> None:
                 tbl.pop("_analyst_review", None)
 
 
-def _inject_into_pair(
-    pair: dict[str, Any], change: dict[str, Any], decision: dict[str, Any]
-) -> bool:
+def _inject_into_pair(pair: dict[str, Any], change: dict[str, Any], decision: dict[str, Any]) -> bool:
     """Localise l'item correspondant dans ``technical_diff`` et y attache la decision."""
     change_type = str(change.get("change_type", ""))
     payload = change.get("payload") or {}
@@ -77,14 +75,8 @@ def _inject_into_pair(
         return False
 
     if change_type in ("indicator_added", "indicator_removed"):
-        target_key = (
-            "indicators_added"
-            if change_type == "indicator_added"
-            else "indicators_removed"
-        )
-        name_clean = _clean(
-            payload.get("indicator_name_clean") or payload.get("indicator_name")
-        )
+        target_key = "indicators_added" if change_type == "indicator_added" else "indicators_removed"
+        name_clean = _clean(payload.get("indicator_name_clean") or payload.get("indicator_name"))
         for ind in diff.get(target_key) or []:
             if isinstance(ind, dict) and _clean(ind.get("value")) == name_clean:
                 _attach_review(ind, decision)
@@ -156,9 +148,7 @@ def _inject_into_matching(
     return False
 
 
-def _merge_decisions(
-    comparison: dict[str, Any], review_queue: list[dict[str, Any]]
-) -> dict[str, int]:
+def _merge_decisions(comparison: dict[str, Any], review_queue: list[dict[str, Any]]) -> dict[str, int]:
     """Fusionne les décisions de la file de revue dans le ``comparison.json`` en mémoire."""
     stats = {"matched": 0, "unmatched": 0, "pending": 0}
     pairs = comparison.get("pair_comparisons") or []

@@ -59,10 +59,7 @@ def build_review_items_from_indicator_result(
 
     def _source_ref(comp_or_table: dict[str, Any], side: str) -> str:
         """Resout la reference PDF source pour le cote t1 ou t2."""
-        embedded = str(
-            comp_or_table.get("source_pdf_t1" if side == "t1" else "source_pdf_t2", "")
-            or ""
-        ).strip()
+        embedded = str(comp_or_table.get("source_pdf_t1" if side == "t1" else "source_pdf_t2", "") or "").strip()
         if embedded:
             return embedded
         return pdf_path_t1 if side == "t1" else pdf_path_t2
@@ -81,9 +78,7 @@ def build_review_items_from_indicator_result(
 
         # Skip completely stable tables with zero changes
         footnotes_counts = comp.get("footnotes_counts") or {}
-        has_footnote_changes = (
-            any(footnotes_counts.values()) if footnotes_counts else False
-        )
+        has_footnote_changes = any(footnotes_counts.values()) if footnotes_counts else False
         if (
             table_status_raw in ("inchange", "stable", "")
             and not added
@@ -118,11 +113,7 @@ def build_review_items_from_indicator_result(
                 change_type = CHANGE_TYPE_MODIFIED
             section = str(comp.get("section", ""))
             table_name = str(
-                comp.get("title_t2")
-                or comp.get("title_t1")
-                or comp.get("table_id_t2")
-                or comp.get("table_id_t1")
-                or ""
+                comp.get("title_t2") or comp.get("title_t1") or comp.get("table_id_t2") or comp.get("table_id_t1") or ""
             )
             page_t1 = comp.get("page_t1")
             page_t2 = comp.get("page_t2")
@@ -166,11 +157,7 @@ def build_review_items_from_indicator_result(
 
         section = str(comp.get("section", ""))
         table_name = str(
-            comp.get("title_t2")
-            or comp.get("title_t1")
-            or comp.get("table_id_t2")
-            or comp.get("table_id_t1")
-            or ""
+            comp.get("title_t2") or comp.get("title_t1") or comp.get("table_id_t2") or comp.get("table_id_t1") or ""
         )
         table_title_raw_value = str(comp.get("table_title_raw") or table_name)
         page_t1 = comp.get("page_t1")
@@ -188,9 +175,7 @@ def build_review_items_from_indicator_result(
             if isinstance(added_raw, list) and idx < len(added_raw):
                 raw_item = added_raw[idx]
                 if isinstance(raw_item, dict):
-                    display_name = (
-                        str(raw_item.get("value", "")).strip() or display_name
-                    )
+                    display_name = str(raw_item.get("value", "")).strip() or display_name
                     assessment = dict(raw_item.get("analyst_assessment") or {})
                 else:
                     candidate = str(raw_item).strip()
@@ -212,9 +197,7 @@ def build_review_items_from_indicator_result(
             if isinstance(removed_raw, list) and idx < len(removed_raw):
                 raw_item = removed_raw[idx]
                 if isinstance(raw_item, dict):
-                    display_name = (
-                        str(raw_item.get("value", "")).strip() or display_name
-                    )
+                    display_name = str(raw_item.get("value", "")).strip() or display_name
                     assessment = dict(raw_item.get("analyst_assessment") or {})
                 else:
                     candidate = str(raw_item).strip()
@@ -231,16 +214,8 @@ def build_review_items_from_indicator_result(
             )
 
         for idx, ren in enumerate(renamed):
-            ren_raw = (
-                renamed_raw[idx]
-                if isinstance(renamed_raw, list) and idx < len(renamed_raw)
-                else {}
-            )
-            assessment = (
-                dict(ren_raw.get("analyst_assessment") or {})
-                if isinstance(ren_raw, dict)
-                else {}
-            )
+            ren_raw = renamed_raw[idx] if isinstance(renamed_raw, list) and idx < len(renamed_raw) else {}
+            assessment = dict(ren_raw.get("analyst_assessment") or {}) if isinstance(ren_raw, dict) else {}
             if isinstance(ren, dict):
                 old_clean = str(ren.get("from", ""))
                 new_clean = str(ren.get("to", ""))
@@ -343,21 +318,13 @@ def build_review_items_from_indicator_result(
         fn_diff = comp.get("footnotes_diff")
         if not fn_diff:
             continue
-        all_fn_changes = (
-            (fn_diff.get("added") or [])
-            + (fn_diff.get("removed") or [])
-            + (fn_diff.get("modified") or [])
-        )
+        all_fn_changes = (fn_diff.get("added") or []) + (fn_diff.get("removed") or []) + (fn_diff.get("modified") or [])
         if not all_fn_changes:
             continue
 
         section = str(comp.get("section", ""))
         table_name = str(
-            comp.get("title_t2")
-            or comp.get("title_t1")
-            or comp.get("table_id_t2")
-            or comp.get("table_id_t1")
-            or ""
+            comp.get("title_t2") or comp.get("title_t1") or comp.get("table_id_t2") or comp.get("table_id_t1") or ""
         )
         fn_counts = fn_diff.get("counts", {})
         n_fn_a = fn_counts.get("added", 0)
@@ -417,9 +384,7 @@ def build_review_items_from_indicator_result(
                 table_title_raw=table_name,
                 table_status=str(comp.get("table_status", "")),
                 indicators=fn_indicators,
-                match_method=str(
-                    comp.get("rescue_type") or comp.get("match_reason", "")
-                ),
+                match_method=str(comp.get("rescue_type") or comp.get("match_reason", "")),
                 bbox_t1=comp.get("bbox_t1"),
                 bbox_t2=comp.get("bbox_t2"),
                 item_type="footnote",

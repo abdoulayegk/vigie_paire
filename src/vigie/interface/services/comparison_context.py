@@ -22,19 +22,11 @@ def _comparison_period(
 ) -> tuple[int | None, int | None]:
     """Retourne l'annee et le trimestre precedent ou courant."""
     quarter_context = meta.get("quarter_context")
-    role_context = (
-        quarter_context.get(role, {})
-        if isinstance(quarter_context, dict)
-        else {}
-    )
+    role_context = quarter_context.get(role, {}) if isinstance(quarter_context, dict) else {}
     if not isinstance(role_context, dict):
         role_context = {}
 
-    year_raw = (
-        role_context.get("year")
-        or top_level.get(f"year_{role}")
-        or meta.get(f"year_{role}")
-    )
+    year_raw = role_context.get("year") or top_level.get(f"year_{role}") or meta.get(f"year_{role}")
     quarter_raw = (
         role_context.get("code")
         or role_context.get("quarter")
@@ -53,9 +45,7 @@ def _case_insensitive_child(directory: Path, name: str) -> Path | None:
     """Trouve un sous-repertoire sans dependre de la casse du systeme."""
     try:
         return next(
-            child
-            for child in directory.iterdir()
-            if child.is_dir() and child.name.casefold() == name.casefold()
+            child for child in directory.iterdir() if child.is_dir() and child.name.casefold() == name.casefold()
         )
     except (OSError, StopIteration):
         return None
@@ -102,11 +92,7 @@ def _find_input_pdf(
 
     try:
         pdfs = sorted(
-            (
-                path
-                for path in year_dir.iterdir()
-                if path.is_file() and path.suffix.casefold() == ".pdf"
-            ),
+            (path for path in year_dir.iterdir() if path.is_file() and path.suffix.casefold() == ".pdf"),
             key=lambda path: path.name.casefold(),
         )
     except OSError:
@@ -152,12 +138,8 @@ def _input_pdf_fallbacks(
     source_current: str,
 ) -> tuple[str, str]:
     """Resout les deux rapports depuis le dossier Inputs du depot."""
-    bank_code = str(
-        meta.get("bank_code") or top_level.get("bank_code") or ""
-    ).strip()
-    previous_year, previous_quarter = _comparison_period(
-        meta, top_level, "previous"
-    )
+    bank_code = str(meta.get("bank_code") or top_level.get("bank_code") or "").strip()
+    previous_year, previous_quarter = _comparison_period(meta, top_level, "previous")
     current_year, current_quarter = _comparison_period(meta, top_level, "current")
 
     previous = ""
@@ -184,9 +166,7 @@ def _input_pdf_fallbacks(
     return previous, current
 
 
-def _comparison_path_from_meta(
-    indicator_meta: dict | None, indicator_result: dict | None = None
-) -> str:
+def _comparison_path_from_meta(indicator_meta: dict | None, indicator_result: dict | None = None) -> str:
     """Retourne le chemin de comparaison persiste a partir de l'etat Dash disponible."""
     meta = indicator_meta if isinstance(indicator_meta, dict) else {}
     compare_path = str(meta.get("compare_path") or "").strip()
@@ -236,25 +216,13 @@ def _pdf_paths_from_comparison_meta(
         meta.update(indicator_meta)
 
     raw_paths = meta.get("pdf_paths") if isinstance(meta.get("pdf_paths"), dict) else {}
-    store_previous = str(
-        raw_paths.get("pdf_previous") or raw_paths.get("pdf_t1") or ""
-    ).strip()
-    store_current = str(
-        raw_paths.get("pdf_current") or raw_paths.get("pdf_t2") or ""
-    ).strip()
+    store_previous = str(raw_paths.get("pdf_previous") or raw_paths.get("pdf_t1") or "").strip()
+    store_current = str(raw_paths.get("pdf_current") or raw_paths.get("pdf_t2") or "").strip()
 
-    archived_previous = str(
-        meta.get("archived_pdf_previous") or top_level.get("archived_pdf_previous") or ""
-    ).strip()
-    archived_current = str(
-        meta.get("archived_pdf_current") or top_level.get("archived_pdf_current") or ""
-    ).strip()
-    source_previous = str(
-        meta.get("source_pdf_previous") or top_level.get("source_pdf_previous") or ""
-    ).strip()
-    source_current = str(
-        meta.get("source_pdf_current") or top_level.get("source_pdf_current") or ""
-    ).strip()
+    archived_previous = str(meta.get("archived_pdf_previous") or top_level.get("archived_pdf_previous") or "").strip()
+    archived_current = str(meta.get("archived_pdf_current") or top_level.get("archived_pdf_current") or "").strip()
+    source_previous = str(meta.get("source_pdf_previous") or top_level.get("source_pdf_previous") or "").strip()
+    source_current = str(meta.get("source_pdf_current") or top_level.get("source_pdf_current") or "").strip()
 
     sibling_previous = ""
     sibling_current = ""
@@ -262,9 +230,7 @@ def _pdf_paths_from_comparison_meta(
     manifest_current = ""
     input_previous = ""
     input_current = ""
-    compare_path_raw = str(
-        meta.get("compare_path") or top_level.get("compare_path") or ""
-    ).strip()
+    compare_path_raw = str(meta.get("compare_path") or top_level.get("compare_path") or "").strip()
     if compare_path_raw:
         compare_path = Path(compare_path_raw)
         run_dir = compare_path.parent if compare_path.suffix else compare_path
@@ -278,12 +244,8 @@ def _pdf_paths_from_comparison_meta(
         if manifest_path.exists():
             try:
                 manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-                manifest_previous = str(
-                    (manifest.get("previous") or {}).get("pdf_path") or ""
-                ).strip()
-                manifest_current = str(
-                    (manifest.get("current") or {}).get("pdf_path") or ""
-                ).strip()
+                manifest_previous = str((manifest.get("previous") or {}).get("pdf_path") or "").strip()
+                manifest_current = str((manifest.get("current") or {}).get("pdf_path") or "").strip()
             except (OSError, ValueError):
                 pass
 
@@ -346,9 +308,7 @@ def _normalize_pdf_paths_store(paths: dict | None) -> dict[str, str]:
 def _missing_pdf_warning(paths: dict[str, str] | None) -> str:
     """Retourne un message d'avertissement si des PDF de preuve sont introuvables."""
     if not isinstance(paths, dict):
-        return (
-            "Comparaison chargée, mais les PDF archivés de preuve sont indisponibles."
-        )
+        return "Comparaison chargée, mais les PDF archivés de preuve sont indisponibles."
     missing: list[str] = []
     previous = str(paths.get("pdf_previous") or paths.get("pdf_t1") or "").strip()
     current = str(paths.get("pdf_current") or paths.get("pdf_t2") or "").strip()
@@ -359,7 +319,4 @@ def _missing_pdf_warning(paths: dict[str, str] | None) -> str:
     if not missing:
         return ""
     joined = " et ".join(missing)
-    return (
-        "Comparaison chargée, mais la preuve PDF archivée est indisponible pour le "
-        f"{joined}."
-    )
+    return f"Comparaison chargée, mais la preuve PDF archivée est indisponible pour le {joined}."

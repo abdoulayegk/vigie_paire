@@ -224,9 +224,7 @@ def test_report_comparison_bbox_survives_review_queue_normalization() -> None:
         "/tmp/curr.pdf",
     )
 
-    matched_table = next(
-        table for table in queue if table.table_id_t1 == "prev_1" and table.table_id_t2 == "curr_1"
-    )
+    matched_table = next(table for table in queue if table.table_id_t1 == "prev_1" and table.table_id_t2 == "curr_1")
     assert matched_table.bbox_t1 == [0.1, 0.2, 0.8, 0.7]
     assert matched_table.bbox_t2 == [0.2, 0.2, 0.85, 0.72]
 

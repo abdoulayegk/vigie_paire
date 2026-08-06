@@ -16,16 +16,10 @@ DEFAULT_OUT_ROOT = "outputs/resultats"
 
 def build_parser() -> argparse.ArgumentParser:
     """Construire le parseur d'arguments pour la comparaison GPT-4o."""
-    parser = argparse.ArgumentParser(
-        description="Comparer deux rapports extraits avec GPT-4o (artefacts tables.json)."
-    )
+    parser = argparse.ArgumentParser(description="Comparer deux rapports extraits avec GPT-4o (artefacts tables.json).")
     parser.add_argument("--banque", required=True, help="Code banque (ex: bnc)")
-    parser.add_argument(
-        "--annee-courante", required=True, type=int, help="Annee du rapport courant"
-    )
-    parser.add_argument(
-        "--trimestre-courant", required=True, help="Trimestre courant (ex: t2)"
-    )
+    parser.add_argument("--annee-courante", required=True, type=int, help="Annee du rapport courant")
+    parser.add_argument("--trimestre-courant", required=True, help="Trimestre courant (ex: t2)")
     parser.add_argument("--config", default=DEFAULT_CONFIG, help="Chemin YAML de configuration")
     parser.add_argument(
         "--racine-extraction",
@@ -61,9 +55,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     current_quarter = normalize_quarter(args.trimestre_courant)
-    year_previous, previous_quarter = resolve_reference_period(
-        args.annee_courante, current_quarter
-    )
+    year_previous, previous_quarter = resolve_reference_period(args.annee_courante, current_quarter)
     extraction_root = Path(args.racine_extraction)
     previous_dir = extraction_root / args.banque / str(year_previous) / previous_quarter
     current_dir = extraction_root / args.banque / str(args.annee_courante) / current_quarter

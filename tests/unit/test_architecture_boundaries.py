@@ -47,6 +47,4 @@ def test_domain_packages_do_not_import_entry_layer() -> None:
             for name in _forbidden_imports(path):
                 rel = path.relative_to(_VIGIE_ROOT.parent.parent)
                 violations.append(f"{rel}: {name}")
-    assert not violations, (
-        "Imports interdits domaine -> cli/pipelines:\n" + "\n".join(violations)
-    )
+    assert not violations, "Imports interdits domaine -> cli/pipelines:\n" + "\n".join(violations)

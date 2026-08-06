@@ -64,8 +64,7 @@ def load_config(path: str | Path) -> dict[str, Any]:
         raise ValueError(f"Config file is empty: {config_path}")
     if not isinstance(data, dict):
         raise ValueError(
-            f"Invalid config format in '{config_path}': expected mapping at root, "
-            f"got {type(data).__name__}"
+            f"Invalid config format in '{config_path}': expected mapping at root, got {type(data).__name__}"
         )
     return data
 
@@ -93,13 +92,9 @@ def get_bank_cfg(cfg: dict[str, Any], bank_code: str) -> dict[str, Any]:
         raise ValueError("Bank code must be a non-empty string")
     if bank_code not in banks:
         available = ", ".join(sorted(banks.keys()))
-        raise ValueError(
-            f"Bank '{bank_code}' not found in config. Available banks: [{available}]"
-        )
+        raise ValueError(f"Bank '{bank_code}' not found in config. Available banks: [{available}]")
 
     bank_cfg = banks[bank_code]
     if not isinstance(bank_cfg, dict):
-        raise ValueError(
-            f"Invalid config for bank '{bank_code}': expected dict, got {type(bank_cfg).__name__}"
-        )
+        raise ValueError(f"Invalid config for bank '{bank_code}': expected dict, got {type(bank_cfg).__name__}")
     return bank_cfg

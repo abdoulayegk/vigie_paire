@@ -85,11 +85,7 @@ def _best_text_similarity(left: list[str], right: list[str]) -> float:
     """Retourner la meilleure similarite textuelle entre deux petits ensembles."""
     if not left or not right:
         return 0.0
-    return max(
-        SequenceMatcher(None, first, second).ratio()
-        for first in left
-        for second in right
-    )
+    return max(SequenceMatcher(None, first, second).ratio() for first in left for second in right)
 
 
 def _jaccard_anchor_values(left: list[str], right: list[str]) -> float:
@@ -142,9 +138,7 @@ def _resolve_visual_table_anchor(
     for candidate in opposite_snapshots.values():
         if not _snapshot_has_visual_render_anchor(candidate):
             continue
-        candidate_section = _normalize_table_anchor_section(
-            candidate.get("section")
-        )
+        candidate_section = _normalize_table_anchor_section(candidate.get("section"))
         if event_section and candidate_section != event_section:
             continue
 
@@ -201,11 +195,7 @@ def _resolve_visual_table_anchor(
         )
         if indicator_overlap >= 0.20:
             score += 4.0 * indicator_overlap
-        if (
-            event_indicators
-            and candidate_indicators
-            and event_indicators[0] == candidate_indicators[0]
-        ):
+        if event_indicators and candidate_indicators and event_indicators[0] == candidate_indicators[0]:
             score += 1.0
 
         header_overlap = _jaccard_anchor_values(
@@ -257,12 +247,8 @@ def _infer_opposite_page_from_matched_pairs(
     if event_page < 1 or event_side not in {"previous", "current"}:
         return None
 
-    event_id_key = (
-        "previous_table_id" if event_side == "previous" else "current_table_id"
-    )
-    opposite_id_key = (
-        "current_table_id" if event_side == "previous" else "previous_table_id"
-    )
+    event_id_key = "previous_table_id" if event_side == "previous" else "current_table_id"
+    opposite_id_key = "current_table_id" if event_side == "previous" else "previous_table_id"
     page_map: dict[int, list[int]] = {}
     for pair in matched_pairs:
         event_id = str(pair.get(event_id_key, "") or "").strip()
@@ -290,11 +276,7 @@ def _infer_opposite_page_from_matched_pairs(
         return None
 
     previous_anchor = next(
-        (
-            anchor
-            for anchor in reversed(anchors)
-            if anchor[0] <= event_page
-        ),
+        (anchor for anchor in reversed(anchors) if anchor[0] <= event_page),
         None,
     )
     next_anchor = next(
@@ -306,9 +288,7 @@ def _infer_opposite_page_from_matched_pairs(
         if source_span <= 0:
             return max(1, previous_anchor[1])
         progress = (event_page - previous_anchor[0]) / source_span
-        inferred = previous_anchor[1] + progress * (
-            next_anchor[1] - previous_anchor[1]
-        )
+        inferred = previous_anchor[1] + progress * (next_anchor[1] - previous_anchor[1])
         return max(1, round(inferred))
     if previous_anchor:
         return max(1, event_page + previous_anchor[1] - previous_anchor[0])

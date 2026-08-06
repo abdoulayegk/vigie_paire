@@ -171,7 +171,7 @@ def _compare_texts_single_call(
                         f"changement; commencer exactement par {subject} suivi d'un verbe "
                         "d'action direct; nommer le BSIF, les montants ou dates exacts lorsque "
                         "pertinent; interdire fragment/chunk/T1/T2, les trimestres et les "
-                        "formulations meta\","
+                        'formulations meta",'
                         '"alignment_decision":"same_disclosure|distinct_disclosures|moved_text|uncertain",'
                         '"alignment_confidence":"high|medium|low",'
                         '"alignment_rationale":"justification concise en français de la décision"}]}.\n'

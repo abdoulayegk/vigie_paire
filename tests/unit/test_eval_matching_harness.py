@@ -89,9 +89,7 @@ def test_extract_renames_from_sample() -> None:
     """extract_renames returns expected pairs from sample fixture."""
     import importlib.util
 
-    spec = importlib.util.spec_from_file_location(
-        "eval_harness", HARNESS_SCRIPT
-    )
+    spec = importlib.util.spec_from_file_location("eval_harness", HARNESS_SCRIPT)
     assert spec is not None
     assert spec.loader is not None
     mod = importlib.util.module_from_spec(spec)
@@ -111,9 +109,7 @@ def test_rename_metrics_with_gold() -> None:
     """rename_metrics computes precision when gold is provided."""
     import importlib.util
 
-    spec = importlib.util.spec_from_file_location(
-        "eval_harness", HARNESS_SCRIPT
-    )
+    spec = importlib.util.spec_from_file_location("eval_harness", HARNESS_SCRIPT)
     assert spec is not None
     assert spec.loader is not None
     mod = importlib.util.module_from_spec(spec)
@@ -133,9 +129,7 @@ def test_compare_payloads_reports_review_and_confirmed_counts() -> None:
     """compare_payloads exposes pending/confirmed/review counters."""
     import importlib.util
 
-    spec = importlib.util.spec_from_file_location(
-        "eval_harness", HARNESS_SCRIPT
-    )
+    spec = importlib.util.spec_from_file_location("eval_harness", HARNESS_SCRIPT)
     assert spec is not None
     assert spec.loader is not None
     mod = importlib.util.module_from_spec(spec)

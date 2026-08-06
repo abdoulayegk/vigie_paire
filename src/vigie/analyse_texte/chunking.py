@@ -18,9 +18,7 @@ from vigie.analyse_texte.semantic_chunking import (
 
 
 _HEADING_LINE_RE = re.compile(r"^\s*#{2,6}\s+")
-_MARKDOWN_TABLE_DIVIDER_RE = re.compile(
-    r"^\s*\|?\s*:?-{3,}:?\s*(?:\|\s*:?-{3,}:?\s*)+\|?\s*$"
-)
+_MARKDOWN_TABLE_DIVIDER_RE = re.compile(r"^\s*\|?\s*:?-{3,}:?\s*(?:\|\s*:?-{3,}:?\s*)+\|?\s*$")
 _MARKDOWN_TABLE_ROW_RE = re.compile(r"^\s*\|.+\|\s*$")
 
 
@@ -251,9 +249,7 @@ def _chunk_subsection_text(
         if atomic_candidates is None:
             # Une liste mono-item conserve le comportement historique. Les
             # marqueurs de présentation ne doivent pas influencer la similarité.
-            normalized_candidate = (
-                _strip_list_markers(candidate_text) if kind == "list" else candidate_text
-            )
+            normalized_candidate = _strip_list_markers(candidate_text) if kind == "list" else candidate_text
             atomic_candidates = [
                 AtomicCandidate(
                     kind=kind,
@@ -270,8 +266,7 @@ def _chunk_subsection_text(
     complex_indexes = [
         index
         for index, candidate in enumerate(filtered_candidates)
-        if candidate.kind == "paragraph"
-        and _requires_semantic_partition(candidate.comparison_text)
+        if candidate.kind == "paragraph" and _requires_semantic_partition(candidate.comparison_text)
     ]
     partitions_by_index: dict[int, list[str]] = {}
     if complex_indexes:
@@ -279,9 +274,7 @@ def _chunk_subsection_text(
             raise SemanticChunkingError(
                 "Un client OpenAI est requis pour découper les paragraphes complexes; aucun fallback n'est autorisé."
             )
-        complex_paragraphs = [
-            filtered_candidates[index].comparison_text for index in complex_indexes
-        ]
+        complex_paragraphs = [filtered_candidates[index].comparison_text for index in complex_indexes]
         partitions = _semantic_partition_paragraphs(
             complex_paragraphs,
             client=client,
@@ -317,10 +310,7 @@ def _chunk_subsection_text(
     # later merged for a section-wide rescue pass.
     id_prefix = _chunk_id_prefix(subsection)
 
-    chunk_ids = [
-        f"{id_prefix}c{index:02d}" if id_prefix else f"c{index:02d}"
-        for index in range(len(split_candidates))
-    ]
+    chunk_ids = [f"{id_prefix}c{index:02d}" if id_prefix else f"c{index:02d}" for index in range(len(split_candidates))]
     context_ids = {
         candidate.parent_key: chunk_ids[index]
         for index, candidate in enumerate(split_candidates)

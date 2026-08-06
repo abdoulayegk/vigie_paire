@@ -140,16 +140,10 @@ def traiter_paires(
                 ),
                 "reason": diff["reason"],
                 "visual_sanity_applied": bool(diff.get("visual_sanity_applied", False)),
-                "visual_sanity_rejected_count": _coerce_int(
-                    diff.get("visual_sanity_rejected_count")
-                ),
+                "visual_sanity_rejected_count": _coerce_int(diff.get("visual_sanity_rejected_count")),
                 "visual_sanity_scope": list(diff.get("visual_sanity_scope") or []),
-                "visual_sanity_render_mode": str(
-                    diff.get("visual_sanity_render_mode", "") or ""
-                ),
-                "visual_sanity_render_status": str(
-                    diff.get("visual_sanity_render_status", "") or ""
-                ),
+                "visual_sanity_render_mode": str(diff.get("visual_sanity_render_mode", "") or ""),
+                "visual_sanity_render_status": str(diff.get("visual_sanity_render_status", "") or ""),
             }
         )
     return pair_comparisons, diff_calls_total
@@ -177,15 +171,11 @@ def appliquer_ancrage_t1(pair_comparisons: list[dict[str, Any]]) -> None:
             prev_table = pair_comp.get("previous_table", {})
             curr_table = pair_comp.get("current_table", {})
             prev_indicators = [
-                str(item)
-                if isinstance(item, str)
-                else str(item.get("label", item.get("name", "")))
+                str(item) if isinstance(item, str) else str(item.get("label", item.get("name", "")))
                 for item in (prev_table.get("indicators") or [])
             ]
             curr_indicators = [
-                str(item)
-                if isinstance(item, str)
-                else str(item.get("label", item.get("name", "")))
+                str(item) if isinstance(item, str) else str(item.get("label", item.get("name", "")))
                 for item in (curr_table.get("indicators") or [])
             ]
             anchor_result = anchor_against_previous(
@@ -206,8 +196,7 @@ def appliquer_ancrage_t1(pair_comparisons: list[dict[str, Any]]) -> None:
             }
             if anchor_result.likely_extraction_error:
                 logger.warning(
-                    "T-1 anchor: table %s flagged as likely extraction error "
-                    "(prev=%d, curr=%d, diff=%.0f%%)",
+                    "T-1 anchor: table %s flagged as likely extraction error (prev=%d, curr=%d, diff=%.0f%%)",
                     anchor_result.table_id,
                     anchor_result.previous_count,
                     anchor_result.current_count,

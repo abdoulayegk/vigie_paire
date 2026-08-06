@@ -87,16 +87,10 @@ def test_normalize_quarter_and_reference_period() -> None:
 def test_boundary_inventory_candidate_supports_canonical_and_flattened_metadata() -> None:
     source = "page_context_inventory_boundary_candidate"
 
-    assert _is_boundary_inventory_candidate(
-        {"bbox_provenance": {"bbox_source": source}}
-    )
-    assert _is_boundary_inventory_candidate(
-        {"debug_metrics": {"bbox_source": source}}
-    )
+    assert _is_boundary_inventory_candidate({"bbox_provenance": {"bbox_source": source}})
+    assert _is_boundary_inventory_candidate({"debug_metrics": {"bbox_source": source}})
     assert _is_boundary_inventory_candidate({"bbox_source": source})
-    assert not _is_boundary_inventory_candidate(
-        {"bbox_source": "page_context_inventory_new_candidate"}
-    )
+    assert not _is_boundary_inventory_candidate({"bbox_source": "page_context_inventory_new_candidate"})
 
 
 def test_infer_opposite_page_interpolates_between_neighboring_matches() -> None:
@@ -165,9 +159,7 @@ def test_compare_excludes_unmatched_boundary_candidates_from_change_counts(
         headers=["Poste", "T1"],
         indicators=["Canada"],
     )
-    previous_boundary["bbox_provenance"] = {
-        "bbox_source": "page_context_inventory_boundary_candidate"
-    }
+    previous_boundary["bbox_provenance"] = {"bbox_source": "page_context_inventory_boundary_candidate"}
     current_real = _table(
         table_id="curr_real",
         page=30,
@@ -186,9 +178,7 @@ def test_compare_excludes_unmatched_boundary_candidates_from_change_counts(
         headers=["Poste", "T2"],
         indicators=["Autres"],
     )
-    current_boundary["debug_metrics"] = {
-        "bbox_source": "page_context_inventory_boundary_candidate"
-    }
+    current_boundary["debug_metrics"] = {"bbox_source": "page_context_inventory_boundary_candidate"}
     _write_tables_json(
         previous_dir / "tables.json",
         bank="bnc",
@@ -235,20 +225,10 @@ def test_compare_excludes_unmatched_boundary_candidates_from_change_counts(
     )
 
     payload = json.loads(comparison_path.read_text(encoding="utf-8"))
-    assert [item["table_id"] for item in payload["matching"]["tables_added"]] == [
-        "curr_real"
-    ]
-    assert [item["table_id"] for item in payload["matching"]["tables_removed"]] == [
-        "prev_real"
-    ]
-    assert [
-        item["table_id"]
-        for item in payload["matching"]["boundary_scope_exclusions_current"]
-    ] == ["curr_boundary"]
-    assert [
-        item["table_id"]
-        for item in payload["matching"]["boundary_scope_exclusions_previous"]
-    ] == ["prev_boundary"]
+    assert [item["table_id"] for item in payload["matching"]["tables_added"]] == ["curr_real"]
+    assert [item["table_id"] for item in payload["matching"]["tables_removed"]] == ["prev_real"]
+    assert [item["table_id"] for item in payload["matching"]["boundary_scope_exclusions_current"]] == ["curr_boundary"]
+    assert [item["table_id"] for item in payload["matching"]["boundary_scope_exclusions_previous"]] == ["prev_boundary"]
     assert payload["summary"]["tables_added_total"] == 1
     assert payload["summary"]["tables_removed_total"] == 1
     assert payload["summary"]["boundary_scope_exclusions_current_total"] == 1
@@ -340,18 +320,14 @@ def test_comparison_openai_clients_use_direct_120_second_timeout(monkeypatch) ->
                 )
             )
             self.embeddings = SimpleNamespace(
-                create=lambda **_kwargs: SimpleNamespace(
-                    data=[SimpleNamespace(index=0, embedding=[0.25, 0.75])]
-                )
+                create=lambda **_kwargs: SimpleNamespace(data=[SimpleNamespace(index=0, embedding=[0.25, 0.75])])
             )
 
     monkeypatch.setattr("vigie.comparaison.pipeline.client_openai.get_openai_api_key", lambda: "test-key")
     monkeypatch.setattr("openai.OpenAI", FakeOpenAI)
 
     assert _call_openai_json(model="gpt-test", messages=[]) == {}
-    assert _call_openai_embeddings(model="embedding-test", inputs=["table"]) == [
-        [0.25, 0.75]
-    ]
+    assert _call_openai_embeddings(model="embedding-test", inputs=["table"]) == [[0.25, 0.75]]
     assert [kwargs["timeout"] for kwargs in client_kwargs] == [
         OPENAI_COMPARISON_TIMEOUT_SECONDS,
         OPENAI_COMPARISON_TIMEOUT_SECONDS,

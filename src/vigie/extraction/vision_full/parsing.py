@@ -29,6 +29,7 @@ _FULL_RESPONSE_KEYS = frozenset(
 
 _FULL_REQUIRED_KEYS = frozenset({"table_summary", "indicators"})
 
+
 def _strip_markdown_fences(text: str) -> str:
     """Retire les balises markdown de la reponse GPT et localise les limites JSON."""
     stripped = text.strip()

@@ -112,12 +112,7 @@ def map_toc_title_to_concept(title: str, bank_code: str = "") -> str | None:
                 score = 90.0
             elif title_compact and proto_compact and len(title_compact) >= 14 and title_compact in proto_compact:
                 score = 86.0
-            elif (
-                title_compact
-                and proto_compact
-                and len(proto_compact) >= 18
-                and proto_compact in title_compact
-            ):
+            elif title_compact and proto_compact and len(proto_compact) >= 18 and proto_compact in title_compact:
                 if title_compact.endswith(proto_compact):
                     prefix_len = len(title_compact) - len(proto_compact)
                     # Prefixe court (« cadre de... ») = sous-section; long = mash colonnes.
@@ -265,7 +260,9 @@ def _bounds_from_hits(
             end_page=end_page,
             confidence=0.9,
             detection_method="annual_t4_toc_structure",
-            end_detection_method="annual_t4_toc_successor" if end_page is not None else "annual_t4_unresolved_no_successor",
+            end_detection_method="annual_t4_toc_successor"
+            if end_page is not None
+            else "annual_t4_unresolved_no_successor",
             anchor_page=start_page,
             anchor_text=entry.title,
             end_anchor_page=(end_page + 1) if end_page is not None else None,

@@ -243,15 +243,9 @@ def extended_summary_counts(payload: dict[str, Any]) -> dict[str, int]:
     counts.update(
         {
             "tables_added_confirmed": len(payload.get("tables_added_confirmed") or []),
-            "tables_removed_confirmed": len(
-                payload.get("tables_removed_confirmed") or []
-            ),
-            "tables_added_pending_review": len(
-                payload.get("tables_added_pending_review") or []
-            ),
-            "tables_removed_pending_review": len(
-                payload.get("tables_removed_pending_review") or []
-            ),
+            "tables_removed_confirmed": len(payload.get("tables_removed_confirmed") or []),
+            "tables_added_pending_review": len(payload.get("tables_added_pending_review") or []),
+            "tables_removed_pending_review": len(payload.get("tables_removed_pending_review") or []),
             "review_candidates": len(payload.get("review_candidates") or []),
         }
     )
@@ -335,18 +329,20 @@ def export_manual_review(payload: dict[str, Any], top_n: int, out_path: Path) ->
         n_removed = len(c.get("removed_indicators") or [])
         n_renamed = len(c.get("renamed_indicators") or [])
         impact = n_added + n_removed + (2 * n_renamed)
-        rows.append({
-            "section": c.get("section"),
-            "table_id_t1": c.get("table_id_t1"),
-            "table_id_t2": c.get("table_id_t2"),
-            "table_status": status,
-            "match_score": c.get("match_score"),
-            "added_count": n_added,
-            "removed_count": n_removed,
-            "renamed_count": n_renamed,
-            "impact_score": impact,
-            "manual_verdict": "",
-        })
+        rows.append(
+            {
+                "section": c.get("section"),
+                "table_id_t1": c.get("table_id_t1"),
+                "table_id_t2": c.get("table_id_t2"),
+                "table_status": status,
+                "match_score": c.get("match_score"),
+                "added_count": n_added,
+                "removed_count": n_removed,
+                "renamed_count": n_renamed,
+                "impact_score": impact,
+                "manual_verdict": "",
+            }
+        )
     rows.sort(key=lambda x: (-(x["impact_score"] or 0), x["section"] or "", x["table_id_t1"] or ""))
     to_export = rows[:top_n]
     if not to_export:

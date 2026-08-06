@@ -69,11 +69,7 @@ def clamp_variant_crop_to_neighbors(
 
     page_tables = page_table_map.get(page_num, [])
     current_pos = next(
-        (
-            position
-            for position, (idx, _bbox) in enumerate(page_tables)
-            if idx == table_idx
-        ),
+        (position for position, (idx, _bbox) in enumerate(page_tables) if idx == table_idx),
         None,
     )
     upper_boundary = 0.0

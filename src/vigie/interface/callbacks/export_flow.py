@@ -81,16 +81,12 @@ def render_export_tab(review_items_data, indicator_result, show_results):
     State("store-pdf-paths", "data"),
     prevent_initial_call=True,
 )
-def on_download_excel(
-    n_clicks, review_items_data, review_queue_data, indicator_result, paths
-):
+def on_download_excel(n_clicks, review_items_data, review_queue_data, indicator_result, paths):
     """Telecharger le fichier Excel de validation (.xlsx)."""
     if not n_clicks:
         raise PreventUpdate
     ir = indicator_result or {}
-    items = _resolve_export_review_items(
-        review_items_data, review_queue_data, indicator_result, paths
-    )
+    items = _resolve_export_review_items(review_items_data, review_queue_data, indicator_result, paths)
     bank = str(ir.get("bank_code", "bank")).upper()
     q_from = _filename_period(quarter_label_from_payload(ir, "previous"))
     q_to = _filename_period(quarter_label_from_payload(ir, "current"))

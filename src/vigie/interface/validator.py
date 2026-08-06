@@ -57,9 +57,7 @@ def _load_config() -> dict:
 
 def _save_config(payload: dict) -> None:
     """Sauvegarder la configuration utilisateur sans donnee sensible."""
-    _config_path().write_text(
-        json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8"
-    )
+    _config_path().write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
 def _ask_resultats_dir(initial: str | None = None) -> str | None:
@@ -112,10 +110,7 @@ def _resolve_resultats_dir(cli_path: str | None = None) -> Path:
 
     chosen = _ask_resultats_dir(initial=str(saved or "") or None)
     if not (resolved := _existing_directory(chosen)):
-        raise ValueError(
-            "Aucun dossier de resultats selectionne. Utilisez --resultats ou "
-            "VIGIE_RESULTATS_DIR."
-        )
+        raise ValueError("Aucun dossier de resultats selectionne. Utilisez --resultats ou VIGIE_RESULTATS_DIR.")
     config["resultats_dir"] = str(resolved)
     _save_config(config)
     return resolved
@@ -135,9 +130,7 @@ def _find_free_port(preferred: int = DEFAULT_PORT) -> int:
 
 def build_parser() -> argparse.ArgumentParser:
     """Construire les options du validateur multiplateforme."""
-    parser = argparse.ArgumentParser(
-        description="Consulter et valider des resultats Vigie sans appels LLM."
-    )
+    parser = argparse.ArgumentParser(description="Consulter et valider des resultats Vigie sans appels LLM.")
     parser.add_argument("--resultats", help="Dossier contenant les resultats existants")
     parser.add_argument("--analyste", help="Identifiant utilise pour les validations")
     parser.add_argument(

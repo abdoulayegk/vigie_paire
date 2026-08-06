@@ -35,9 +35,7 @@ def _parse_possible_mapping(value: Any) -> dict[str, Any] | None:
 
 def _normalize_id_text(mapping: dict[str, Any], index: int) -> tuple[str, str]:
     """Normalise le marqueur/texte avec regles de priorite et repli anti-corruption."""
-    key = str(
-        mapping.get("id") or mapping.get("ref") or mapping.get("marker") or index
-    ).strip()
+    key = str(mapping.get("id") or mapping.get("ref") or mapping.get("marker") or index).strip()
 
     text_value = mapping.get("text")
     if text_value is None or not str(text_value).strip():
@@ -72,10 +70,7 @@ def count_stringified_dict_suspects(items: list[Any] | None) -> int:
             text_value = item.get("text")
             if text_value is None:
                 text_value = item.get("value")
-            if (
-                isinstance(text_value, str)
-                and _parse_possible_mapping(text_value) is not None
-            ):
+            if isinstance(text_value, str) and _parse_possible_mapping(text_value) is not None:
                 suspects += 1
     return suspects
 

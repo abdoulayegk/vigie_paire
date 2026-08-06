@@ -8,9 +8,7 @@ from pathlib import Path
 from vigie.interface.ui_config import INDICATOR_COMPARISON_DIR
 
 
-def save_pdfs_to_temp(
-    pdf_bytes_t1: bytes, pdf_bytes_t2: bytes, *, temp_dir: Path
-) -> tuple[str, str]:
+def save_pdfs_to_temp(pdf_bytes_t1: bytes, pdf_bytes_t2: bytes, *, temp_dir: Path) -> tuple[str, str]:
     """Persiste les bytes PDF uploades dans un repertoire temporaire.
 
     Args:
@@ -27,9 +25,7 @@ def save_pdfs_to_temp(
     temp_dir.mkdir(parents=True, exist_ok=True)
 
     if not pdf_bytes_t1 or not pdf_bytes_t2:
-        raise ValueError(
-            "Les deux fichiers PDF (trimestre precedent et trimestre courant) sont requis."
-        )
+        raise ValueError("Les deux fichiers PDF (trimestre precedent et trimestre courant) sont requis.")
 
     path_t1 = temp_dir / "previous_upload.pdf"
     path_t2 = temp_dir / "current_upload.pdf"

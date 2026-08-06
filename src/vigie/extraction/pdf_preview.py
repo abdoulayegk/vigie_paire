@@ -56,9 +56,7 @@ class SectionPreview:
     confidence: float = 0.0
 
 
-def render_pdf_page(
-    pdf_path: str | Path, page_number: int, scale: float = 1.5, format: str = "png"
-) -> bytes | None:
+def render_pdf_page(pdf_path: str | Path, page_number: int, scale: float = 1.5, format: str = "png") -> bytes | None:
     """Rendre une page PDF en image.
 
     Args:
@@ -178,9 +176,7 @@ def render_pdf_pages(
     return previews
 
 
-def extract_text_from_pages(
-    pdf_path: str | Path, start_page: int, end_page: int
-) -> str:
+def extract_text_from_pages(pdf_path: str | Path, start_page: int, end_page: int) -> str:
     """Extraire le texte d'une plage de pages.
 
     Args:
@@ -285,9 +281,7 @@ def create_section_preview(
         SectionPreview avec images et texte
     """
     # Rendre les premieres pages
-    pages = render_pdf_pages(
-        pdf_path, start_page, end_page, scale=scale, max_pages=max_preview_pages
-    )
+    pages = render_pdf_pages(pdf_path, start_page, end_page, scale=scale, max_pages=max_preview_pages)
 
     # Extraire le texte complet
     total_text = extract_text_from_pages(pdf_path, start_page, end_page)
@@ -303,9 +297,7 @@ def create_section_preview(
     )
 
 
-def create_thumbnail(
-    pdf_path: str | Path, page_number: int, width: int = 200
-) -> bytes | None:
+def create_thumbnail(pdf_path: str | Path, page_number: int, width: int = 200) -> bytes | None:
     """Creer une vignette d'une page.
 
     Args:

@@ -32,9 +32,7 @@ _CHANGE_TYPES_WITH_VISUAL_FLAG = frozenset(
 _FOOTNOTE_ADDED_TYPES = frozenset({"footnote_added", "FOOTNOTE_ADDED"})
 _FOOTNOTE_REMOVED_TYPES = frozenset({"footnote_removed", "FOOTNOTE_REMOVED"})
 _FOOTNOTE_MODIFIED_TYPES = frozenset({"footnote_modified", "FOOTNOTE_MODIFIED"})
-_FOOTNOTE_CHANGE_TYPES = (
-    _FOOTNOTE_ADDED_TYPES | _FOOTNOTE_REMOVED_TYPES | _FOOTNOTE_MODIFIED_TYPES
-)
+_FOOTNOTE_CHANGE_TYPES = _FOOTNOTE_ADDED_TYPES | _FOOTNOTE_REMOVED_TYPES | _FOOTNOTE_MODIFIED_TYPES
 
 _SECTION_LABELS = {
     "gestion_capital": "Gestion du capital",
@@ -169,11 +167,7 @@ def compute_flag_state(
     indicators = item.get("indicators") or []
     added_count = len(added) if isinstance(added, list) else 0
     removed_count = len(removed) if isinstance(removed, list) else 0
-    renamed_count = sum(
-        1
-        for ind in indicators
-        if isinstance(ind, dict) and ind.get("type") == CHANGE_TYPE_RENAMED
-    )
+    renamed_count = sum(1 for ind in indicators if isinstance(ind, dict) and ind.get("type") == CHANGE_TYPE_RENAMED)
 
     if selected_change_type in _FOOTNOTE_ADDED_TYPES:
         return {
@@ -265,9 +259,7 @@ def _bbox_normalized_for_overlay(bbox: list | None) -> list[float] | None:
         )
     except (TypeError, ValueError):
         return None
-    if not (
-        0 <= left <= 1 and 0 <= top <= 1 and 0 <= right <= 1 and 0 <= bottom <= 1
-    ):
+    if not (0 <= left <= 1 and 0 <= top <= 1 and 0 <= right <= 1 and 0 <= bottom <= 1):
         return None
     if right <= left or bottom <= top:
         return None
@@ -302,10 +294,7 @@ def build_proofs_section(
     """
     current_label = str(current_quarter_label or "").strip() or "Trimestre courant"
     previous_label = str(previous_quarter_label or "").strip() or "Trimestre précédent"
-    has_period_labels = (
-        current_label != "Trimestre courant"
-        and previous_label != "Trimestre précédent"
-    )
+    has_period_labels = current_label != "Trimestre courant" and previous_label != "Trimestre précédent"
     heading_label = (
         f"Preuves visuelles : {current_label} vs {previous_label}"
         if has_period_labels
@@ -336,9 +325,7 @@ def build_proofs_section(
         page_label = f"Page {page}" if page is not None else "Page indisponible"
         return f"{base_label} · {page_label} · {_mode_label(mode_value)}"
 
-    def _proof_placeholder(
-        placeholder: str | None, render_result: dict | None, mode_value: str
-    ) -> str:
+    def _proof_placeholder(placeholder: str | None, render_result: dict | None, mode_value: str) -> str:
         """Retourne le message de substitution quand l'image n'est pas disponible."""
         if placeholder:
             return placeholder
@@ -439,12 +426,8 @@ def build_proofs_section(
     change_type = item.get("change_type", "")
     mode_t1 = str((proof_result_t1 or {}).get("mode_effective") or normalized_mode)
     mode_t2 = str((proof_result_t2 or {}).get("mode_effective") or normalized_mode)
-    bbox_t1_norm = (
-        _bbox_normalized_for_overlay(item.get("bbox_t1")) if mode_t1 == "full" else None
-    )
-    bbox_t2_norm = (
-        _bbox_normalized_for_overlay(item.get("bbox_t2")) if mode_t2 == "full" else None
-    )
+    bbox_t1_norm = _bbox_normalized_for_overlay(item.get("bbox_t1")) if mode_t1 == "full" else None
+    bbox_t2_norm = _bbox_normalized_for_overlay(item.get("bbox_t2")) if mode_t2 == "full" else None
 
     def _build_proof_cards(*, expanded: bool = False):
         """Construit les deux cartes de preuve pour la vue normale ou agrandie."""

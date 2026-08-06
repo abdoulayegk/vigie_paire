@@ -45,23 +45,15 @@ def test_inline_roman_enumeration_creates_parent_and_atomic_children() -> None:
         "iv)",
     ]
     assert chunks[0].parent_chunk_id is None
-    assert {
-        chunk.parent_chunk_id for chunk in _items(chunks)
-    } == {chunks[0].chunk_id}
+    assert {chunk.parent_chunk_id for chunk in _items(chunks)} == {chunks[0].chunk_id}
     assert chunks[0].text.endswith(":")
     assert _items(chunks)[0].text.startswith("i)")
     assert _items(chunks)[0].comparison_text.startswith("les résultats")
-    assert all(
-        not chunk.comparison_text.startswith(str(chunk.atomic_marker))
-        for chunk in _items(chunks)
-    )
+    assert all(not chunk.comparison_text.startswith(str(chunk.atomic_marker)) for chunk in _items(chunks))
 
 
 def test_nonsequential_markers_do_not_trigger_atomic_split() -> None:
-    text = (
-        "Le rapport renvoie à i) une première définition et "
-        "iii) une référence non consécutive."
-    )
+    text = "Le rapport renvoie à i) une première définition et iii) une référence non consécutive."
 
     chunks = _chunk_subsection_text(text)
 
@@ -71,9 +63,7 @@ def test_nonsequential_markers_do_not_trigger_atomic_split() -> None:
 
 
 def test_numeric_and_alphabetic_sequences_are_supported() -> None:
-    numeric = _chunk_subsection_text(
-        "Les mesures comprennent : 1) renforcer les contrôles; 2) revoir la gouvernance."
-    )
+    numeric = _chunk_subsection_text("Les mesures comprennent : 1) renforcer les contrôles; 2) revoir la gouvernance.")
     alphabetic = _chunk_subsection_text(
         "Les mesures comprennent : a) renforcer les contrôles; b) revoir la gouvernance."
     )
@@ -101,13 +91,10 @@ def test_td_style_roman_enumeration_supports_fifteen_factors() -> None:
         "xv)",
     ]
     factors = "; ".join(
-        f"{marker} le facteur de risque bancaire numéro {index}"
-        for index, marker in enumerate(markers, start=1)
+        f"{marker} le facteur de risque bancaire numéro {index}" for index, marker in enumerate(markers, start=1)
     )
 
-    chunks = _chunk_subsection_text(
-        f"Les facteurs suivants peuvent affecter les titres de la Banque : {factors}."
-    )
+    chunks = _chunk_subsection_text(f"Les facteurs suivants peuvent affecter les titres de la Banque : {factors}.")
 
     assert [chunk.atomic_marker for chunk in _items(chunks)] == markers
 
@@ -140,9 +127,7 @@ def test_bmo_appetite_markdown_list_creates_one_parent_and_five_units() -> None:
     assert chunks[0].kind == "list_context"
     assert chunks[0].unit_role == "context"
     assert [chunk.kind for chunk in chunks[1:]] == ["list_item"] * 5
-    assert {chunk.parent_chunk_id for chunk in chunks[1:]} == {
-        chunks[0].chunk_id
-    }
+    assert {chunk.parent_chunk_id for chunk in chunks[1:]} == {chunks[0].chunk_id}
     assert all(chunk.atomic_marker == "-" for chunk in chunks[1:])
     assert all(not chunk.comparison_text.startswith("- ") for chunk in chunks[1:])
 
@@ -169,15 +154,9 @@ def test_marker_is_only_a_tiebreaker_after_content_similarity() -> None:
     matched_markers = {
         (alignment.chunk_t1.atomic_marker, alignment.chunk_t2.atomic_marker)
         for alignment in alignments
-        if alignment.chunk_t1
-        and alignment.chunk_t2
-        and alignment.chunk_t1.unit_role == "item"
+        if alignment.chunk_t1 and alignment.chunk_t2 and alignment.chunk_t1.unit_role == "item"
     }
-    added = [
-        alignment
-        for alignment in alignments
-        if alignment.alignment_type == "possible_added"
-    ]
+    added = [alignment for alignment in alignments if alignment.alignment_type == "possible_added"]
 
     assert matched_markers == {("i)", "ii)"), ("ii)", "iii)"), ("iii)", "iv)")}
     assert len(added) == 1
@@ -204,9 +183,7 @@ def test_renumbered_identical_item_is_unchanged_in_exact_diff() -> None:
             _chunk_subsection_text(previous),
             _chunk_subsection_text(current),
         )
-        if alignment.chunk_t1
-        and alignment.chunk_t2
-        and alignment.chunk_t1.atomic_marker == "i)"
+        if alignment.chunk_t1 and alignment.chunk_t2 and alignment.chunk_t1.atomic_marker == "i)"
     )
 
     change = _exact_diff_change_for_strong_alignment(
@@ -242,9 +219,7 @@ def test_reordered_markdown_bullets_are_aligned_by_content() -> None:
     item_alignments = [
         alignment
         for alignment in alignments
-        if alignment.chunk_t1
-        and alignment.chunk_t2
-        and alignment.chunk_t1.unit_role == "item"
+        if alignment.chunk_t1 and alignment.chunk_t2 and alignment.chunk_t1.unit_role == "item"
     ]
 
     assert len(item_alignments) == 2
@@ -268,15 +243,9 @@ def test_reordered_markdown_bullets_are_aligned_by_content() -> None:
 
 
 def test_same_marker_with_distinct_content_is_not_forced_into_a_pair() -> None:
-    previous = (
-        "Les risques comprennent : "
-        "i) le risque de crédit commercial; "
-        "ii) le risque de liquidité structurelle."
-    )
+    previous = "Les risques comprennent : i) le risque de crédit commercial; ii) le risque de liquidité structurelle."
     current = (
-        "Les risques comprennent : "
-        "i) les attaques de cybersécurité externes; "
-        "ii) le risque de liquidité structurelle."
+        "Les risques comprennent : i) les attaques de cybersécurité externes; ii) le risque de liquidité structurelle."
     )
 
     alignments = _align_chunks_tfidf(
@@ -284,16 +253,8 @@ def test_same_marker_with_distinct_content_is_not_forced_into_a_pair() -> None:
         _chunk_subsection_text(current),
     )
 
-    removed = [
-        alignment
-        for alignment in alignments
-        if alignment.alignment_type == "possible_removed"
-    ]
-    added = [
-        alignment
-        for alignment in alignments
-        if alignment.alignment_type == "possible_added"
-    ]
+    removed = [alignment for alignment in alignments if alignment.alignment_type == "possible_removed"]
+    added = [alignment for alignment in alignments if alignment.alignment_type == "possible_added"]
     assert len(removed) == 1
     assert removed[0].chunk_t1 is not None
     assert removed[0].chunk_t1.atomic_marker == "i)"
@@ -304,9 +265,7 @@ def test_same_marker_with_distinct_content_is_not_forced_into_a_pair() -> None:
 
 def test_embedding_input_excludes_atomic_markers(monkeypatch) -> None:
     chunks = _chunk_subsection_text(
-        "Les risques suivants sont surveillés : "
-        "i) le risque de crédit commercial; "
-        "ii) le risque opérationnel interne."
+        "Les risques suivants sont surveillés : i) le risque de crédit commercial; ii) le risque opérationnel interne."
     )
     captured: list[str] = []
 
@@ -331,9 +290,7 @@ def test_embedding_input_excludes_atomic_markers(monkeypatch) -> None:
 
 def test_atomic_metadata_is_attached_to_each_comparison_change() -> None:
     previous_chunks = _chunk_subsection_text(
-        "Les risques suivants sont surveillés : "
-        "i) le risque de crédit commercial; "
-        "ii) le risque opérationnel interne."
+        "Les risques suivants sont surveillés : i) le risque de crédit commercial; ii) le risque opérationnel interne."
     )
     current_chunks = _chunk_subsection_text(
         "Les risques suivants sont surveillés : "
@@ -343,9 +300,7 @@ def test_atomic_metadata_is_attached_to_each_comparison_change() -> None:
     alignment = next(
         alignment
         for alignment in _align_chunks_tfidf(previous_chunks, current_chunks)
-        if alignment.chunk_t1
-        and alignment.chunk_t2
-        and alignment.chunk_t1.atomic_marker == "i)"
+        if alignment.chunk_t1 and alignment.chunk_t2 and alignment.chunk_t1.atomic_marker == "i)"
     )
 
     scoped = _attach_alignment_metadata(

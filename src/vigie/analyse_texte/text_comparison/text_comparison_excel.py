@@ -72,6 +72,7 @@ def _excel_safe(value: Any) -> Any:
 # Tri
 # ---------------------------------------------------------------------------
 
+
 def _row_sort_key(row: dict[str, Any]) -> tuple:
     """Cle de tri analyste : pertinence -> impact -> nouvelle idee."""
     return (
@@ -88,11 +89,11 @@ def _row_sort_key(row: dict[str, Any]) -> tuple:
 # Couleurs par niveau d'impact
 # ---------------------------------------------------------------------------
 
-_FILL_NOUVELLE_IDEE = "D6E4F0"   # bleu clair — nouvelle idée
-_FILL_MAJEUR        = "FADADD"   # rouge clair
-_FILL_MODERE        = "FDEBD0"   # orange clair
-_FILL_MINEUR_REL    = "FEF9E7"   # jaune très pâle — MINEUR mais pertinent
-_FILL_MINEUR        = "FFFFFF"   # blanc — non pertinent ou MINEUR standard
+_FILL_NOUVELLE_IDEE = "D6E4F0"  # bleu clair — nouvelle idée
+_FILL_MAJEUR = "FADADD"  # rouge clair
+_FILL_MODERE = "FDEBD0"  # orange clair
+_FILL_MINEUR_REL = "FEF9E7"  # jaune très pâle — MINEUR mais pertinent
+_FILL_MINEUR = "FFFFFF"  # blanc — non pertinent ou MINEUR standard
 
 
 def _row_fill_color(row: dict[str, Any]) -> str | None:
@@ -142,16 +143,14 @@ def _published_change_summary(change_type: str, display_summary: str) -> str:
 # Collecte des lignes
 # ---------------------------------------------------------------------------
 
+
 def _collect_rows(text_comparison: dict[str, Any]) -> list[dict[str, Any]]:
     """Extrait et aplatit toutes les lignes de changement depuis ``text_comparison.json``."""
     rows: list[dict[str, Any]] = []
     bank_code = str(text_comparison.get("bank_code") or "").strip()
     for section_comp in text_comparison.get("section_comparisons", []):
         section_key = section_comp.get("section_key", "")
-        section_title = (
-            section_comp.get("section_title")
-            or _SECTION_DISPLAY.get(section_key, section_key)
-        )
+        section_title = section_comp.get("section_title") or _SECTION_DISPLAY.get(section_key, section_key)
         for block_comp in section_comp.get("all_block_comparisons", []):
             if block_comp.get("diff_type") == "unchanged":
                 continue
@@ -197,9 +196,7 @@ def _collect_rows(text_comparison: dict[str, Any]) -> list[dict[str, Any]]:
                 "source_text_t2": str(block_comp.get("source_text_t2") or ""),
                 "impact_level": str(triage.get("impact_level") or "MINEUR").upper(),
                 "category": sanitize_analyst_french(str(display["category"] or "")),
-                "secondary_labels": sanitize_analyst_french(
-                    str(display["secondary_labels"] or "")
-                ),
+                "secondary_labels": sanitize_analyst_french(str(display["secondary_labels"] or "")),
                 "is_relevant": bool(triage.get("is_relevant", False)),
                 "nouvelle_idee_bool": nouvelle_idee == "Oui",
                 "nouvelle_idee": nouvelle_idee,
@@ -229,6 +226,7 @@ def _collect_rows(text_comparison: dict[str, Any]) -> list[dict[str, Any]]:
 # ---------------------------------------------------------------------------
 # Export principal
 # ---------------------------------------------------------------------------
+
 
 def generate_text_comparison_excel(
     text_comparison: dict[str, Any],
@@ -309,15 +307,15 @@ def generate_text_comparison_excel(
 
     # ---------- largeurs de colonnes ----------
     col_widths = {
-        1: 70,   # Texte exact courant
-        2: 70,   # Texte exact précédent
-        3: 38,   # Catégorie principale
-        4: 42,   # Étiquettes secondaires
-        5: 30,   # Section
-        6: 35,   # Sous-section
-        7: 18,   # Type d'élément
-        8: 18,   # Type de changement
-        9: 70,   # Ce qui change
+        1: 70,  # Texte exact courant
+        2: 70,  # Texte exact précédent
+        3: 38,  # Catégorie principale
+        4: 42,  # Étiquettes secondaires
+        5: 30,  # Section
+        6: 35,  # Sous-section
+        7: 18,  # Type d'élément
+        8: 18,  # Type de changement
+        9: 70,  # Ce qui change
         10: 20,  # Nouvelle idée
         11: 70,  # Justification
         12: 16,  # Impact

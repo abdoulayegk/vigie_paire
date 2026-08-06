@@ -5,6 +5,7 @@ Extrait de ``vision_full_extractor.py`` sans modification.
 
 from __future__ import annotations
 
+
 def _classify_openai_error(exc: Exception) -> str:
     """Classifie une erreur API OpenAI pour choisir un traitement deterministe."""
     msg = str(exc).lower()

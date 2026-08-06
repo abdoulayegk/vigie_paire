@@ -20,6 +20,7 @@ from .constants import (
 
 logger = logging.getLogger("vigie.analyse_texte.triage")
 
+
 def _normalize_for_cosmetic(text: str) -> str:
     normalized = unicodedata.normalize("NFKD", str(text or "").lower())
     normalized = "".join(char for char in normalized if not unicodedata.combining(char))
@@ -29,11 +30,7 @@ def _normalize_for_cosmetic(text: str) -> str:
 
 def _theme_tokens(value: str) -> set[str]:
     normalized = _normalize_for_cosmetic(value)
-    return {
-        token
-        for token in _THEME_TOKEN_RE.findall(normalized)
-        if len(token) >= 3 and token not in _THEME_STOPWORDS
-    }
+    return {token for token in _THEME_TOKEN_RE.findall(normalized) if len(token) >= 3 and token not in _THEME_STOPWORDS}
 
 
 def _candidate_themes_for_change(

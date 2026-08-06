@@ -113,13 +113,9 @@ class PageTableRegionSchema(BaseModel):
 
     table_bbox: list[float] = Field(description="Corps complet du tableau.")
     title_bbox: list[float] | None = Field(description="Bloc titre associe, ou null.")
-    footnotes_bbox: list[float] | None = Field(
-        description="Bloc des notes associees, ou null."
-    )
+    footnotes_bbox: list[float] | None = Field(description="Bloc des notes associees, ou null.")
     title_text: str = Field(description="Titre visible, sans contenu du tableau.")
-    continuation: bool = Field(
-        description="Tableau continue depuis la page precedente."
-    )
+    continuation: bool = Field(description="Tableau continue depuis la page precedente.")
     confidence: float = Field(ge=0.0, le=1.0, description="Confiance geometrique.")
 
     @field_validator("table_bbox", mode="before")
@@ -145,9 +141,7 @@ class PageTableLocatorResponseSchema(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    tables: list[PageTableRegionSchema] = Field(
-        description="Tableaux visibles, ordonnes du haut vers le bas."
-    )
+    tables: list[PageTableRegionSchema] = Field(description="Tableaux visibles, ordonnes du haut vers le bas.")
     table_count: int = Field(ge=0, le=_MAX_TABLES_PER_PAGE)
 
 
@@ -202,9 +196,7 @@ def _is_bbox_sane(
 
 
 def _area(bbox: tuple[float, float, float, float] | list[float]) -> float:
-    return max(0.0, float(bbox[2]) - float(bbox[0])) * max(
-        0.0, float(bbox[3]) - float(bbox[1])
-    )
+    return max(0.0, float(bbox[2]) - float(bbox[0])) * max(0.0, float(bbox[3]) - float(bbox[1]))
 
 
 def _intersection_area(
@@ -233,10 +225,7 @@ def _is_associated_title(
         return False
     assert title_bbox is not None
     gap = table_bbox[1] - title_bbox[3]
-    return bool(
-        -0.025 <= gap <= 0.15
-        and _horizontal_overlap_ratio(title_bbox, table_bbox) >= 0.15
-    )
+    return bool(-0.025 <= gap <= 0.15 and _horizontal_overlap_ratio(title_bbox, table_bbox) >= 0.15)
 
 
 def _is_associated_footnotes(
@@ -247,15 +236,10 @@ def _is_associated_footnotes(
         return False
     assert footnotes_bbox is not None
     gap = footnotes_bbox[1] - table_bbox[3]
-    return bool(
-        -0.035 <= gap <= 0.15
-        and _horizontal_overlap_ratio(footnotes_bbox, table_bbox) >= 0.15
-    )
+    return bool(-0.035 <= gap <= 0.15 and _horizontal_overlap_ratio(footnotes_bbox, table_bbox) >= 0.15)
 
 
-def _parse_page_layout(
-    raw: str | dict[str, Any], page_number: int
-) -> PageTableLayout | None:
+def _parse_page_layout(raw: str | dict[str, Any], page_number: int) -> PageTableLayout | None:
     """Valider le JSON du modele et eliminer les geometries dangereuses."""
     try:
         if isinstance(raw, str):
@@ -282,14 +266,10 @@ def _parse_page_layout(
     for item in response.tables[:_MAX_TABLES_PER_PAGE]:
         table_bbox = tuple(item.table_bbox)
         if not _is_bbox_sane(table_bbox, min_width=0.04, min_height=0.025):
-            logger.debug(
-                "Page table locator: rejected unsafe table bbox %s", table_bbox
-            )
+            logger.debug("Page table locator: rejected unsafe table bbox %s", table_bbox)
             continue
         title_bbox = tuple(item.title_bbox) if item.title_bbox is not None else None
-        footnotes_bbox = (
-            tuple(item.footnotes_bbox) if item.footnotes_bbox is not None else None
-        )
+        footnotes_bbox = tuple(item.footnotes_bbox) if item.footnotes_bbox is not None else None
         if not _is_associated_title(title_bbox, table_bbox):
             title_bbox = None
         if not _is_associated_footnotes(footnotes_bbox, table_bbox):
@@ -321,14 +301,8 @@ def _page_layout_cache_payload(layout: PageTableLayout) -> dict[str, Any]:
     tables = [
         {
             "table_bbox": list(region.table_bbox),
-            "title_bbox": (
-                list(region.title_bbox) if region.title_bbox is not None else None
-            ),
-            "footnotes_bbox": (
-                list(region.footnotes_bbox)
-                if region.footnotes_bbox is not None
-                else None
-            ),
+            "title_bbox": (list(region.title_bbox) if region.title_bbox is not None else None),
+            "footnotes_bbox": (list(region.footnotes_bbox) if region.footnotes_bbox is not None else None),
             "title_text": region.title_text,
             "continuation": region.continuation,
             "confidence": region.confidence,
@@ -372,9 +346,7 @@ def build_page_table_crop_plan(
             (region.table_bbox[1] + region.table_bbox[3]) / 2,
         )
         center_distance = math.dist(target_center, region_center)
-        if target_overlap < 0.20 and not (
-            horizontal_overlap >= 0.35 and center_distance <= 0.12
-        ):
+        if target_overlap < 0.20 and not (horizontal_overlap >= 0.35 and center_distance <= 0.12):
             continue
         score = (
             0.50 * target_overlap
@@ -409,10 +381,7 @@ def build_page_table_crop_plan(
     previous_bottom: float | None = None
     next_top: float | None = None
     for region in layout.tables:
-        if (
-            region is best
-            or _horizontal_overlap_ratio(region.table_bbox, table_bbox) < 0.20
-        ):
+        if region is best or _horizontal_overlap_ratio(region.table_bbox, table_bbox) < 0.20:
             continue
         if region.table_bbox[3] <= table_bbox[1]:
             previous_bottom = max(
@@ -469,11 +438,7 @@ def build_near_full_page_crop_plan(
     La bbox Docling initiale recouvre trop de contenu pour servir d'ancre.
     Le locator doit donc trouver exactement une region de tableau fiable.
     """
-    reliable_regions = [
-        region
-        for region in layout.tables
-        if region.confidence >= min_confidence
-    ]
+    reliable_regions = [region for region in layout.tables if region.confidence >= min_confidence]
     if len(reliable_regions) != 1:
         return None
     return build_page_table_crop_plan(
@@ -612,14 +577,8 @@ class PageTableLocator:
         try:
             persistent_key = ""
             if self._use_cache and pdf_sha:
-                raw_key = (
-                    f"{_PAGE_LOCATOR_CACHE_VERSION}|{self._model}|"
-                    f"{pdf_sha}|{page_number}"
-                )
-                persistent_key = (
-                    "page_locator_"
-                    + hashlib.sha256(raw_key.encode("utf-8")).hexdigest()
-                )
+                raw_key = f"{_PAGE_LOCATOR_CACHE_VERSION}|{self._model}|{pdf_sha}|{page_number}"
+                persistent_key = "page_locator_" + hashlib.sha256(raw_key.encode("utf-8")).hexdigest()
                 cached = cache_get(self._cache_dir, persistent_key)
                 if cached is not None:
                     result = _parse_page_layout(cached, page_number)

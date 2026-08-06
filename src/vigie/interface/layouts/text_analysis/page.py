@@ -380,15 +380,9 @@ def build_text_analysis_tab(
     else:
         selected_section = default_section
     selected_status = (
-        filter_status
-        if filter_status in {"remaining", "approved", "rejected", "skipped", "all"}
-        else "remaining"
+        filter_status if filter_status in {"remaining", "approved", "rejected", "skipped", "all"} else "remaining"
     )
-    selected_scope = (
-        filter_scope
-        if filter_scope in {"qualitative", "secondary", "all"}
-        else "qualitative"
-    )
+    selected_scope = filter_scope if filter_scope in {"qualitative", "secondary", "all"} else "qualitative"
     initial_cards, initial_count = build_filtered_text_cards(
         text_data,
         selected_section,

@@ -109,6 +109,7 @@ def anchor_against_previous(
 
         if api_key is None:
             from vigie.support.utils.genai import get_openai_api_key
+
             api_key = get_openai_api_key()
 
         from openai import OpenAI
@@ -121,7 +122,7 @@ def anchor_against_previous(
 
         prompt = (
             f"You are auditing a Canadian bank quarterly report table extraction.\n\n"
-            f"Table: \"{table_title}\"\n"
+            f'Table: "{table_title}"\n'
             f"Previous period had {previous_count} indicators, current period has {current_count}.\n"
             f"Difference: {abs(current_count - previous_count)} indicators "
             f"({'more' if current_count > previous_count else 'fewer'} in current).\n\n"

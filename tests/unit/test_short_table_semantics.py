@@ -49,9 +49,7 @@ def test_narrative_text_without_headers_remains_a_ghost_table() -> None:
             "table_id": "narrative",
             "title": "Rapport de gestion",
             "headers": [],
-            "indicators": [
-                "Le tableau présente les principales tendances observées au cours du trimestre."
-            ],
+            "indicators": ["Le tableau présente les principales tendances observées au cours du trimestre."],
         }
     )
 

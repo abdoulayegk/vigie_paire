@@ -76,11 +76,7 @@ def resolve_text_comparison_from_payload(
     if not isinstance(comparison_payload, dict):
         return None
 
-    bank_code = str(
-        comparison_payload.get("bank_code")
-        or comparison_payload.get("bank")
-        or ""
-    ).lower()
+    bank_code = str(comparison_payload.get("bank_code") or comparison_payload.get("bank") or "").lower()
     if not bank_code:
         return None
 
@@ -91,26 +87,10 @@ def resolve_text_comparison_from_payload(
     current_ctx = quarter_context.get("current") or {}
     previous_ctx = quarter_context.get("previous") or {}
 
-    year_cur = str(
-        comparison_payload.get("year_current")
-        or current_ctx.get("year")
-        or ""
-    ).strip()
-    year_prev = str(
-        comparison_payload.get("year_previous")
-        or previous_ctx.get("year")
-        or ""
-    ).strip()
-    q_cur = str(
-        comparison_payload.get("quarter_current")
-        or current_ctx.get("code")
-        or ""
-    ).lower().strip()
-    q_prev = str(
-        comparison_payload.get("quarter_previous")
-        or previous_ctx.get("code")
-        or ""
-    ).lower().strip()
+    year_cur = str(comparison_payload.get("year_current") or current_ctx.get("year") or "").strip()
+    year_prev = str(comparison_payload.get("year_previous") or previous_ctx.get("year") or "").strip()
+    q_cur = str(comparison_payload.get("quarter_current") or current_ctx.get("code") or "").lower().strip()
+    q_prev = str(comparison_payload.get("quarter_previous") or previous_ctx.get("code") or "").lower().strip()
 
     # Former "{year}_{quarter}" si year disponible
     if year_cur and q_cur:
@@ -126,7 +106,9 @@ def resolve_text_comparison_from_payload(
     if not period_cur or not period_prev:
         logger.debug(
             "Impossible de résoudre les périodes pour %s (cur=%r prev=%r)",
-            bank_code, period_cur, period_prev,
+            bank_code,
+            period_cur,
+            period_prev,
         )
         return None
 

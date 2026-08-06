@@ -171,9 +171,7 @@ def compare_reports_gpt4o(
         call_openai_json=_call_openai_json,
         usage_recorder=usage_records,
         hybrid_recovery_enabled=hybrid_recovery_enabled,
-        hybrid_embedding_model=str(
-            matching_settings.get("hybrid_embedding_model", "text-embedding-3-large")
-        ),
+        hybrid_embedding_model=str(matching_settings.get("hybrid_embedding_model", "text-embedding-3-large")),
         hybrid_top_k=max(1, int(matching_settings.get("hybrid_embedding_top_k", 5) or 5)),
         hybrid_min_confidence=float(matching_settings.get("hybrid_min_confidence", 0.75) or 0.75),
         call_openai_embeddings=_call_openai_embeddings,

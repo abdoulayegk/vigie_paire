@@ -176,10 +176,7 @@ def _pair_retrieval_scores(
 
 
 def _is_credible_pair(scores: dict[str, float]) -> bool:
-    return (
-        scores["token_overlap"] >= _MIN_TOKEN_OVERLAP
-        or scores["embedding_score"] >= _MIN_EMBEDDING_SCORE
-    )
+    return scores["token_overlap"] >= _MIN_TOKEN_OVERLAP or scores["embedding_score"] >= _MIN_EMBEDDING_SCORE
 
 
 def _one_sided_nodes(changes: list[dict[str, Any]]) -> list[_Node]:
@@ -290,8 +287,7 @@ def _mark_component_edges(edges: list[dict[str, Any]]) -> list[dict[str, Any]]:
         t1_node_id = str(edge.get("t1_node_id") or "")
         t2_node_id = str(edge.get("t2_node_id") or "")
         strong = (
-            token_overlap >= _COMPONENT_STRONG_TOKEN_OVERLAP
-            or embedding_score >= _COMPONENT_STRONG_EMBEDDING_SCORE
+            token_overlap >= _COMPONENT_STRONG_TOKEN_OVERLAP or embedding_score >= _COMPONENT_STRONG_EMBEDDING_SCORE
         )
         mutually_near_best = (
             score >= _COMPONENT_MUTUAL_MIN_SCORE
@@ -300,11 +296,7 @@ def _mark_component_edges(edges: list[dict[str, Any]]) -> list[dict[str, Any]]:
         )
         edge["component_selected"] = strong or mutually_near_best
         edge["component_edge_strength"] = (
-            "strong"
-            if strong
-            else "mutual_near_best"
-            if mutually_near_best
-            else "retrieval_only"
+            "strong" if strong else "mutual_near_best" if mutually_near_best else "retrieval_only"
         )
         marked.append(edge)
     return marked
@@ -348,9 +340,7 @@ def _components(
         members.pop(root_right, None)
         return True
 
-    edges = _mark_component_edges(
-        _candidate_edges(nodes, embeddings_by_id=embeddings_by_id)
-    )
+    edges = _mark_component_edges(_candidate_edges(nodes, embeddings_by_id=embeddings_by_id))
     for edge in edges:
         if not edge["component_selected"]:
             continue
@@ -379,11 +369,7 @@ def _components(
 
 def _edges_for_component(component: list[_Node], edges: list[dict[str, Any]]) -> list[dict[str, Any]]:
     node_ids = {node.node_id for node in component}
-    return [
-        edge
-        for edge in edges
-        if edge["t1_node_id"] in node_ids and edge["t2_node_id"] in node_ids
-    ]
+    return [edge for edge in edges if edge["t1_node_id"] in node_ids and edge["t2_node_id"] in node_ids]
 
 
 def _component_prompt(component: list[_Node], section_key: str) -> str:
@@ -460,7 +446,9 @@ def _residual_text(text: str, fragments: list[str]) -> str:
     return " ".join(piece.strip() for piece in pieces if piece.strip()).strip()
 
 
-def _update_one_sided_residual(change: dict[str, Any], side: Literal["t1", "t2"], residual: str) -> dict[str, Any] | None:
+def _update_one_sided_residual(
+    change: dict[str, Any], side: Literal["t1", "t2"], residual: str
+) -> dict[str, Any] | None:
     if not residual:
         return None
     updated = dict(change)
@@ -497,10 +485,7 @@ def _reconcile_component(
     for match in matches:
         matched_by_node[match.t1_node_id].append(match.text_t1)
         matched_by_node[match.t2_node_id].append(match.text_t2)
-    residuals = {
-        node.node_id: _residual_text(node.text, matched_by_node.get(node.node_id, []))
-        for node in component
-    }
+    residuals = {node.node_id: _residual_text(node.text, matched_by_node.get(node.node_id, [])) for node in component}
     fully_covered = bool(matches) and all(not residuals[node.node_id] for node in component)
     audit = {
         "component_change_ids": [str(node.change.get("change_id") or "") for node in component],
@@ -521,12 +506,8 @@ def _reconcile_component(
         return {node.node_id: None for node in component}, audit
 
     if response.decision == "same_disclosure_modified":
-        previous_with_residual = [
-            node for node in component if node.side == "t1" and residuals[node.node_id]
-        ]
-        current_with_residual = [
-            node for node in component if node.side == "t2" and residuals[node.node_id]
-        ]
+        previous_with_residual = [node for node in component if node.side == "t1" and residuals[node.node_id]]
+        current_with_residual = [node for node in component if node.side == "t2" and residuals[node.node_id]]
         if len(previous_with_residual) == 1 and len(current_with_residual) == 1:
             previous = previous_with_residual[0]
             current = current_with_residual[0]

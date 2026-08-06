@@ -59,9 +59,7 @@ def _count_substantive_sentences(text: str) -> int:
     if not text:
         return 0
     parts = _SENTENCE_BOUNDARY_RE.split(text)
-    return sum(
-        1 for part in parts if len(part.strip()) >= _JUSTIFICATION_MIN_SENTENCE_LENGTH
-    )
+    return sum(1 for part in parts if len(part.strip()) >= _JUSTIFICATION_MIN_SENTENCE_LENGTH)
 
 
 def _missing_justification_sections(text: str) -> list[str]:
@@ -122,7 +120,6 @@ async def _call_openai_json_async(
     except Exception as exc:
         logger.warning("GenAI triage call failed: %s", exc)
         return None
-
 
 
 def _empty_triage_skeleton(*, source: str = "heuristic") -> dict[str, Any]:
@@ -197,22 +194,13 @@ def _validate_amf_invariants(
             f"phrases complètes (≥ {_JUSTIFICATION_MIN_SENTENCE_LENGTH} chars chacune)"
         )
     if len(justification) < _JUSTIFICATION_MIN_TOTAL_LENGTH:
-        return (
-            f"nouvelle_idee_justification exige ≥ {_JUSTIFICATION_MIN_TOTAL_LENGTH} "
-            "caractères au total"
-        )
+        return f"nouvelle_idee_justification exige ≥ {_JUSTIFICATION_MIN_TOTAL_LENGTH} caractères au total"
     expected_prefix = "OUI" if nouvelle_idee else "NON"
     if not justification.upper().startswith(expected_prefix):
-        return (
-            f"nouvelle_idee_justification doit commencer par '{expected_prefix}' "
-            f"quand nouvelle_idee={nouvelle_idee}"
-        )
+        return f"nouvelle_idee_justification doit commencer par '{expected_prefix}' quand nouvelle_idee={nouvelle_idee}"
     missing_sections = _missing_justification_sections(justification)
     if missing_sections:
-        return (
-            "nouvelle_idee_justification doit contenir les rubriques "
-            f"obligatoires : {', '.join(missing_sections)}"
-        )
+        return f"nouvelle_idee_justification doit contenir les rubriques obligatoires : {', '.join(missing_sections)}"
 
     if is_relevant:
         if not themes_amf:

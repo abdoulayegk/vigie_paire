@@ -20,9 +20,7 @@ def get_display_indicators(item: dict) -> list[str]:
     Returns:
         Liste de libelles d'indicateurs pour affichage.
     """
-    raw = item.get("first_column_indicators_raw") or item.get(
-        "first_column_indicators_raw_list"
-    )
+    raw = item.get("first_column_indicators_raw") or item.get("first_column_indicators_raw_list")
     if isinstance(raw, list) and any(str(x).strip() for x in raw):
         return [str(x) for x in raw if str(x).strip()]
     clean = item.get("indicators") or item.get("first_column_indicators") or []
@@ -55,21 +53,13 @@ def build_indicator_change_rows(
 
         section = comp.get("section", "")
         table_name = (
-            comp.get("title_t2")
-            or comp.get("title_t1")
-            or comp.get("table_id_t2")
-            or comp.get("table_id_t1")
-            or ""
+            comp.get("title_t2") or comp.get("title_t1") or comp.get("table_id_t2") or comp.get("table_id_t1") or ""
         )
         page_t1 = comp.get("page_t1")
         page_t2 = comp.get("page_t2")
         status = comp.get("table_status", "")
 
-        added_display = (
-            comp.get("added_indicators_raw", [])
-            or comp.get("added_indicators", [])
-            or []
-        )
+        added_display = comp.get("added_indicators_raw", []) or comp.get("added_indicators", []) or []
         for indicator in added_display:
             row = {
                 "Type": t("indicator_add"),
@@ -84,11 +74,7 @@ def build_indicator_change_rows(
                 row["Review"] = comp.get("review_status", "")
             rows.append(row)
 
-        removed_display = (
-            comp.get("removed_indicators_raw", [])
-            or comp.get("removed_indicators", [])
-            or []
-        )
+        removed_display = comp.get("removed_indicators_raw", []) or comp.get("removed_indicators", []) or []
         for indicator in removed_display:
             row = {
                 "Type": t("indicator_removal"),
@@ -103,11 +89,7 @@ def build_indicator_change_rows(
                 row["Review"] = comp.get("review_status", "")
             rows.append(row)
 
-        renamed_display = (
-            comp.get("renamed_indicators_raw", [])
-            or comp.get("renamed_indicators", [])
-            or []
-        )
+        renamed_display = comp.get("renamed_indicators_raw", []) or comp.get("renamed_indicators", []) or []
         for renamed in renamed_display:
             if isinstance(renamed, dict):
                 label = f"{renamed.get('from', '')} -> {renamed.get('to', '')}"
@@ -127,19 +109,13 @@ def build_indicator_change_rows(
             rows.append(row)
 
     for table in payload.get("tables_added", []) or []:
-        display_indicators = [
-            n
-            for n in get_display_indicators(table)
-            if _classify_excluded_line(n) is None
-        ]
+        display_indicators = [n for n in get_display_indicators(table) if _classify_excluded_line(n) is None]
         rows.append(
             {
                 "Type": t("table_added"),
                 "Section": table.get("section", ""),
                 "Tableau": table.get("title") or table.get("table_id") or "",
-                "Indicateur": ", ".join(display_indicators)
-                if display_indicators
-                else "",
+                "Indicateur": ", ".join(display_indicators) if display_indicators else "",
                 "Page précédente": "",
                 "Page courante": table.get("page", ""),
                 "Statut": status_fr("ajoute"),
@@ -147,19 +123,13 @@ def build_indicator_change_rows(
         )
 
     for table in payload.get("tables_removed", []) or []:
-        display_indicators = [
-            n
-            for n in get_display_indicators(table)
-            if _classify_excluded_line(n) is None
-        ]
+        display_indicators = [n for n in get_display_indicators(table) if _classify_excluded_line(n) is None]
         rows.append(
             {
                 "Type": t("table_removed"),
                 "Section": table.get("section", ""),
                 "Tableau": table.get("title") or table.get("table_id") or "",
-                "Indicateur": ", ".join(display_indicators)
-                if display_indicators
-                else "",
+                "Indicateur": ", ".join(display_indicators) if display_indicators else "",
                 "Page précédente": table.get("page", ""),
                 "Page courante": "",
                 "Statut": status_fr("supprime"),

@@ -60,6 +60,7 @@ def _review_fields(item: dict[str, Any] | None) -> dict[str, str]:
         "at": str(review.get("at") or "").strip(),
     }
 
+
 _CHANGE_TYPE_FR: dict[str, str] = {
     "added": "Ajout",
     "removed": "Suppression",
@@ -89,9 +90,9 @@ _RELEVANCE_SORT: dict[int, int] = {1: 0, 2: 1, 3: 2}
 # Couleurs par niveau
 # ---------------------------------------------------------------------------
 
-_FILL_CRITIQUE = "FADADD"   # rouge clair
-_FILL_ELEVE = "FDEBD0"     # orange clair
-_FILL_FAIBLE = "FFFFFF"     # blanc
+_FILL_CRITIQUE = "FADADD"  # rouge clair
+_FILL_ELEVE = "FDEBD0"  # orange clair
+_FILL_FAIBLE = "FFFFFF"  # blanc
 
 
 def _row_fill_color(row: dict[str, Any]) -> str | None:
@@ -113,6 +114,7 @@ def _section_label(section: str) -> str:
 # Collecte des lignes depuis comparison.json
 # ---------------------------------------------------------------------------
 
+
 def _collect_rows(comparison: dict[str, Any]) -> list[dict[str, Any]]:
     """Extrait toutes les lignes de changement depuis comparison.json."""
     rows: list[dict[str, Any]] = []
@@ -121,9 +123,7 @@ def _collect_rows(comparison: dict[str, Any]) -> list[dict[str, Any]]:
     for pair in comparison.get("pair_comparisons", []):
         prev_table = pair.get("previous_table") or {}
         cur_table = pair.get("current_table") or {}
-        section = _section_label(
-            cur_table.get("section") or prev_table.get("section") or ""
-        )
+        section = _section_label(cur_table.get("section") or prev_table.get("section") or "")
         title = cur_table.get("title") or prev_table.get("title") or "(sans titre)"
         page_t1 = prev_table.get("page", "")
         page_t2 = cur_table.get("page", "")
@@ -140,20 +140,22 @@ def _collect_rows(comparison: dict[str, Any]) -> list[dict[str, Any]]:
             assessment = ind.get("analyst_assessment") or {}
             justification = _best_analyst_justification(assessment, table_justification)
             relevance_level = assessment.get("relevance_level")
-            rows.append({
-                "section": section,
-                "title": title,
-                "page_t1": str(page_t1) if page_t1 else "",
-                "page_t2": str(page_t2) if page_t2 else "",
-                "element_type": _ELEMENT_TYPE_FR["indicator"],
-                "change_type": _CHANGE_TYPE_FR["added"],
-                "label_t1": "",
-                "label_t2": str(ind.get("value") or ""),
-                "justification": justification,
-                "relevance_level_raw": relevance_level,
-                "nouvelle_idee": _is_nouvelle_idee_label(triage),
-                "review": _review_fields(ind),
-            })
+            rows.append(
+                {
+                    "section": section,
+                    "title": title,
+                    "page_t1": str(page_t1) if page_t1 else "",
+                    "page_t2": str(page_t2) if page_t2 else "",
+                    "element_type": _ELEMENT_TYPE_FR["indicator"],
+                    "change_type": _CHANGE_TYPE_FR["added"],
+                    "label_t1": "",
+                    "label_t2": str(ind.get("value") or ""),
+                    "justification": justification,
+                    "relevance_level_raw": relevance_level,
+                    "nouvelle_idee": _is_nouvelle_idee_label(triage),
+                    "review": _review_fields(ind),
+                }
+            )
 
         # Indicateurs supprimés
         for ind in diff.get("indicators_removed") or []:
@@ -162,20 +164,22 @@ def _collect_rows(comparison: dict[str, Any]) -> list[dict[str, Any]]:
             assessment = ind.get("analyst_assessment") or {}
             justification = _best_analyst_justification(assessment, table_justification)
             relevance_level = assessment.get("relevance_level")
-            rows.append({
-                "section": section,
-                "title": title,
-                "page_t1": str(page_t1) if page_t1 else "",
-                "page_t2": str(page_t2) if page_t2 else "",
-                "element_type": _ELEMENT_TYPE_FR["indicator"],
-                "change_type": _CHANGE_TYPE_FR["removed"],
-                "label_t1": str(ind.get("value") or ""),
-                "label_t2": "",
-                "justification": justification,
-                "relevance_level_raw": relevance_level,
-                "nouvelle_idee": _is_nouvelle_idee_label(triage),
-                "review": _review_fields(ind),
-            })
+            rows.append(
+                {
+                    "section": section,
+                    "title": title,
+                    "page_t1": str(page_t1) if page_t1 else "",
+                    "page_t2": str(page_t2) if page_t2 else "",
+                    "element_type": _ELEMENT_TYPE_FR["indicator"],
+                    "change_type": _CHANGE_TYPE_FR["removed"],
+                    "label_t1": str(ind.get("value") or ""),
+                    "label_t2": "",
+                    "justification": justification,
+                    "relevance_level_raw": relevance_level,
+                    "nouvelle_idee": _is_nouvelle_idee_label(triage),
+                    "review": _review_fields(ind),
+                }
+            )
 
         # Indicateurs renommés
         for ind in diff.get("indicators_renamed") or []:
@@ -184,20 +188,22 @@ def _collect_rows(comparison: dict[str, Any]) -> list[dict[str, Any]]:
             assessment = ind.get("analyst_assessment") or {}
             justification = _best_analyst_justification(assessment, table_justification)
             relevance_level = assessment.get("relevance_level")
-            rows.append({
-                "section": section,
-                "title": title,
-                "page_t1": str(page_t1) if page_t1 else "",
-                "page_t2": str(page_t2) if page_t2 else "",
-                "element_type": _ELEMENT_TYPE_FR["indicator"],
-                "change_type": _CHANGE_TYPE_FR["renamed"],
-                "label_t1": str(ind.get("previous") or ""),
-                "label_t2": str(ind.get("current") or ""),
-                "justification": justification,
-                "relevance_level_raw": relevance_level,
-                "nouvelle_idee": _is_nouvelle_idee_label(triage),
-                "review": _review_fields(ind),
-            })
+            rows.append(
+                {
+                    "section": section,
+                    "title": title,
+                    "page_t1": str(page_t1) if page_t1 else "",
+                    "page_t2": str(page_t2) if page_t2 else "",
+                    "element_type": _ELEMENT_TYPE_FR["indicator"],
+                    "change_type": _CHANGE_TYPE_FR["renamed"],
+                    "label_t1": str(ind.get("previous") or ""),
+                    "label_t2": str(ind.get("current") or ""),
+                    "justification": justification,
+                    "relevance_level_raw": relevance_level,
+                    "nouvelle_idee": _is_nouvelle_idee_label(triage),
+                    "review": _review_fields(ind),
+                }
+            )
 
         # Notes ajoutées
         for fn in diff.get("footnotes_added") or []:
@@ -206,20 +212,22 @@ def _collect_rows(comparison: dict[str, Any]) -> list[dict[str, Any]]:
             assessment = fn.get("analyst_assessment") or {}
             justification = _best_analyst_justification(assessment, table_justification)
             relevance_level = assessment.get("relevance_level")
-            rows.append({
-                "section": section,
-                "title": title,
-                "page_t1": str(page_t1) if page_t1 else "",
-                "page_t2": str(page_t2) if page_t2 else "",
-                "element_type": _ELEMENT_TYPE_FR["footnote"],
-                "change_type": _CHANGE_TYPE_FR["added"],
-                "label_t1": "",
-                "label_t2": str(fn.get("text") or ""),
-                "justification": justification,
-                "relevance_level_raw": relevance_level,
-                "nouvelle_idee": _is_nouvelle_idee_label(triage),
-                "review": _review_fields(fn),
-            })
+            rows.append(
+                {
+                    "section": section,
+                    "title": title,
+                    "page_t1": str(page_t1) if page_t1 else "",
+                    "page_t2": str(page_t2) if page_t2 else "",
+                    "element_type": _ELEMENT_TYPE_FR["footnote"],
+                    "change_type": _CHANGE_TYPE_FR["added"],
+                    "label_t1": "",
+                    "label_t2": str(fn.get("text") or ""),
+                    "justification": justification,
+                    "relevance_level_raw": relevance_level,
+                    "nouvelle_idee": _is_nouvelle_idee_label(triage),
+                    "review": _review_fields(fn),
+                }
+            )
 
         # Notes supprimées
         for fn in diff.get("footnotes_removed") or []:
@@ -228,20 +236,22 @@ def _collect_rows(comparison: dict[str, Any]) -> list[dict[str, Any]]:
             assessment = fn.get("analyst_assessment") or {}
             justification = _best_analyst_justification(assessment, table_justification)
             relevance_level = assessment.get("relevance_level")
-            rows.append({
-                "section": section,
-                "title": title,
-                "page_t1": str(page_t1) if page_t1 else "",
-                "page_t2": str(page_t2) if page_t2 else "",
-                "element_type": _ELEMENT_TYPE_FR["footnote"],
-                "change_type": _CHANGE_TYPE_FR["removed"],
-                "label_t1": str(fn.get("text") or ""),
-                "label_t2": "",
-                "justification": justification,
-                "relevance_level_raw": relevance_level,
-                "nouvelle_idee": _is_nouvelle_idee_label(triage),
-                "review": _review_fields(fn),
-            })
+            rows.append(
+                {
+                    "section": section,
+                    "title": title,
+                    "page_t1": str(page_t1) if page_t1 else "",
+                    "page_t2": str(page_t2) if page_t2 else "",
+                    "element_type": _ELEMENT_TYPE_FR["footnote"],
+                    "change_type": _CHANGE_TYPE_FR["removed"],
+                    "label_t1": str(fn.get("text") or ""),
+                    "label_t2": "",
+                    "justification": justification,
+                    "relevance_level_raw": relevance_level,
+                    "nouvelle_idee": _is_nouvelle_idee_label(triage),
+                    "review": _review_fields(fn),
+                }
+            )
 
         # Notes modifiées (renommées)
         for fn in diff.get("footnotes_renamed") or []:
@@ -250,20 +260,22 @@ def _collect_rows(comparison: dict[str, Any]) -> list[dict[str, Any]]:
             assessment = fn.get("analyst_assessment") or {}
             justification = _best_analyst_justification(assessment, table_justification)
             relevance_level = assessment.get("relevance_level")
-            rows.append({
-                "section": section,
-                "title": title,
-                "page_t1": str(page_t1) if page_t1 else "",
-                "page_t2": str(page_t2) if page_t2 else "",
-                "element_type": _ELEMENT_TYPE_FR["footnote"],
-                "change_type": _CHANGE_TYPE_FR.get("modified", "Modification"),
-                "label_t1": str(fn.get("previous_text") or ""),
-                "label_t2": str(fn.get("current_text") or ""),
-                "justification": justification,
-                "relevance_level_raw": relevance_level,
-                "nouvelle_idee": _is_nouvelle_idee_label(triage),
-                "review": _review_fields(fn),
-            })
+            rows.append(
+                {
+                    "section": section,
+                    "title": title,
+                    "page_t1": str(page_t1) if page_t1 else "",
+                    "page_t2": str(page_t2) if page_t2 else "",
+                    "element_type": _ELEMENT_TYPE_FR["footnote"],
+                    "change_type": _CHANGE_TYPE_FR.get("modified", "Modification"),
+                    "label_t1": str(fn.get("previous_text") or ""),
+                    "label_t2": str(fn.get("current_text") or ""),
+                    "justification": justification,
+                    "relevance_level_raw": relevance_level,
+                    "nouvelle_idee": _is_nouvelle_idee_label(triage),
+                    "review": _review_fields(fn),
+                }
+            )
 
     # --- Tableaux ajoutés ---
     matching = comparison.get("matching") or {}
@@ -271,54 +283,56 @@ def _collect_rows(comparison: dict[str, Any]) -> list[dict[str, Any]]:
         if not isinstance(tbl, dict):
             continue
         triage = tbl.get("genai_triage") or {}
-        justification = sanitize_analyst_french(
-            str(triage.get("nouvelle_idee_justification") or "").strip()
+        justification = sanitize_analyst_french(str(triage.get("nouvelle_idee_justification") or "").strip())
+        rows.append(
+            {
+                "section": _section_label(tbl.get("section") or ""),
+                "title": str(tbl.get("title") or "(sans titre)"),
+                "page_t1": "",
+                "page_t2": str(tbl.get("page") or ""),
+                "element_type": _ELEMENT_TYPE_FR["table"],
+                "change_type": _CHANGE_TYPE_FR["added"],
+                "label_t1": "",
+                "label_t2": str(tbl.get("title") or ""),
+                "justification": justification or "Nouveau tableau détecté dans le trimestre courant.",
+                "relevance_level_raw": None,
+                "nouvelle_idee": _is_nouvelle_idee_label(triage),
+                "review": _review_fields(tbl),
+            }
         )
-        rows.append({
-            "section": _section_label(tbl.get("section") or ""),
-            "title": str(tbl.get("title") or "(sans titre)"),
-            "page_t1": "",
-            "page_t2": str(tbl.get("page") or ""),
-            "element_type": _ELEMENT_TYPE_FR["table"],
-            "change_type": _CHANGE_TYPE_FR["added"],
-            "label_t1": "",
-            "label_t2": str(tbl.get("title") or ""),
-            "justification": justification or "Nouveau tableau détecté dans le trimestre courant.",
-            "relevance_level_raw": None,
-            "nouvelle_idee": _is_nouvelle_idee_label(triage),
-            "review": _review_fields(tbl),
-        })
 
     # --- Tableaux supprimés ---
     for tbl in matching.get("tables_removed") or []:
         if not isinstance(tbl, dict):
             continue
         triage = tbl.get("genai_triage") or {}
-        justification = sanitize_analyst_french(
-            str(triage.get("nouvelle_idee_justification") or "").strip()
+        justification = sanitize_analyst_french(str(triage.get("nouvelle_idee_justification") or "").strip())
+        rows.append(
+            {
+                "section": _section_label(tbl.get("section") or ""),
+                "title": str(tbl.get("title") or "(sans titre)"),
+                "page_t1": str(tbl.get("page") or ""),
+                "page_t2": "",
+                "element_type": _ELEMENT_TYPE_FR["table"],
+                "change_type": _CHANGE_TYPE_FR["removed"],
+                "label_t1": str(tbl.get("title") or ""),
+                "label_t2": "",
+                "justification": justification or "Tableau supprimé du trimestre courant.",
+                "relevance_level_raw": None,
+                "nouvelle_idee": _is_nouvelle_idee_label(triage),
+                "review": _review_fields(tbl),
+            }
         )
-        rows.append({
-            "section": _section_label(tbl.get("section") or ""),
-            "title": str(tbl.get("title") or "(sans titre)"),
-            "page_t1": str(tbl.get("page") or ""),
-            "page_t2": "",
-            "element_type": _ELEMENT_TYPE_FR["table"],
-            "change_type": _CHANGE_TYPE_FR["removed"],
-            "label_t1": str(tbl.get("title") or ""),
-            "label_t2": "",
-            "justification": justification or "Tableau supprimé du trimestre courant.",
-            "relevance_level_raw": None,
-            "nouvelle_idee": _is_nouvelle_idee_label(triage),
-            "review": _review_fields(tbl),
-        })
 
     # Tri : pertinence critique en premier, puis section, puis tableau
-    rows.sort(key=lambda r: (
-        _RELEVANCE_SORT.get(r.get("relevance_level_raw") or 99, 99),
-        r.get("section", ""),
-        r.get("title", ""),
-        r.get("change_type", ""),
-    ))
+    rows.sort(
+        key=lambda r: (
+            _RELEVANCE_SORT.get(r.get("relevance_level_raw") or 99, 99),
+            r.get("section", ""),
+            r.get("title", ""),
+            r.get("change_type", ""),
+        )
+    )
 
     return rows
 
@@ -342,6 +356,7 @@ def _best_analyst_justification(
 # ---------------------------------------------------------------------------
 # Export principal
 # ---------------------------------------------------------------------------
+
 
 def generate_comparison_excel(
     comparison: dict[str, Any],
@@ -417,15 +432,15 @@ def generate_comparison_excel(
 
     # ---------- largeurs de colonnes ----------
     col_widths = {
-        1: 30,   # Section
-        2: 45,   # Tableau
-        3: 10,   # Page (trimestre précédent)
-        4: 10,   # Page (trimestre courant)
-        5: 22,   # Type d'élément
-        6: 18,   # Type de changement
-        7: 50,   # Libellé (trimestre précédent)
-        8: 50,   # Libellé (trimestre courant)
-        9: 70,   # Justification IA
+        1: 30,  # Section
+        2: 45,  # Tableau
+        3: 10,  # Page (trimestre précédent)
+        4: 10,  # Page (trimestre courant)
+        5: 22,  # Type d'élément
+        6: 18,  # Type de changement
+        7: 50,  # Libellé (trimestre précédent)
+        8: 50,  # Libellé (trimestre courant)
+        9: 70,  # Justification IA
         10: 16,  # Nouvelle idée ?
         11: 30,  # Commentaire analyste
         12: 16,  # Statut validation

@@ -115,13 +115,7 @@ class QualityPassMixin:
             ),
         )
         quality_cache_key = ""
-        if (
-            self._use_cache
-            and pdf_sha
-            and page_number
-            and bbox_norm
-            and len(bbox_norm) == 4
-        ):
+        if self._use_cache and pdf_sha and page_number and bbox_norm and len(bbox_norm) == 4:
             bbox_with_context = list(bbox_norm)
             bbox_with_context[1] = max(
                 0.0,
@@ -138,10 +132,7 @@ class QualityPassMixin:
                 max_completion_tokens=base_max_completion_tokens,
             )
             if base_quality_key:
-                quality_cache_key = (
-                    f"quality_pass_{_QUALITY_PASS_CACHE_VERSION}_"
-                    f"{base_quality_key}"
-                )
+                quality_cache_key = f"quality_pass_{_QUALITY_PASS_CACHE_VERSION}_{base_quality_key}"
                 cached_quality = cache_get(
                     get_vision_cache_dir(),
                     quality_cache_key,
@@ -158,10 +149,7 @@ class QualityPassMixin:
         def _cache_quality_result(result: VisionFullResult) -> VisionFullResult:
             """Persister la decision finale, y compris les passes de sauvetage."""
             accepted_status = str(result.extraction_status or "").strip()
-            cacheable = (
-                accepted_status in {"ok", "rescued"}
-                and _structural_indicator_count(result) > 0
-            )
+            cacheable = accepted_status in {"ok", "rescued"} and _structural_indicator_count(result) > 0
             if self._use_cache and quality_cache_key and cacheable:
                 cache_put(
                     get_vision_cache_dir(),
@@ -565,10 +553,7 @@ class QualityPassMixin:
                     "Extract every first-column row label and every visible footnote; "
                     "do not include neighboring narrative text or another table."
                 )
-                if "missing_body_row_labels" in (
-                    set(initial_rejection_reasons)
-                    | set(primary_rescue_reasons)
-                ):
+                if "missing_body_row_labels" in (set(initial_rejection_reasons) | set(primary_rescue_reasons)):
                     locator_instruction += (
                         " Dates or periods in the leftmost cell MUST be extracted "
                         "when they label body data rows with values across the same "
@@ -586,9 +571,7 @@ class QualityPassMixin:
                         "bbox_norm": list(page_bbox or []),
                         "bbox_source": "page_context_locator",
                         "bbox_confidence": locator_confidence,
-                        "page_context_title": str(
-                            page_context.get("title_text") or ""
-                        ).strip(),
+                        "page_context_title": str(page_context.get("title_text") or "").strip(),
                         "page_context_continuation": (
                             bool(page_context.get("continuation"))
                             if page_context.get("continuation") is not None
@@ -704,15 +687,9 @@ class QualityPassMixin:
                 ),
                 bbox_source=str(best_geometry.get("bbox_source") or "docling"),
                 bbox_confidence=best_geometry.get("bbox_confidence"),
-                page_context_title=str(
-                    best_geometry.get("page_context_title") or ""
-                ),
-                page_context_continuation=best_geometry.get(
-                    "page_context_continuation"
-                ),
-                page_context_table_count=best_geometry.get(
-                    "page_context_table_count"
-                ),
+                page_context_title=str(best_geometry.get("page_context_title") or ""),
+                page_context_continuation=best_geometry.get("page_context_continuation"),
+                page_context_table_count=best_geometry.get("page_context_table_count"),
             )
             finalized = _finalize_selected_candidate(
                 selected,
@@ -755,11 +732,8 @@ class QualityPassMixin:
                         extraction_status=_override_status,
                     ),
                     acceptance_reason=_override_reason,
-                    rejection_reasons=initial_rejection_reasons
-                    or ["no_table_evidence"],
-                    selected_candidate_name=(
-                        "same_crop_rescue" if same_crop_rescue else "initial"
-                    ),
+                    rejection_reasons=initial_rejection_reasons or ["no_table_evidence"],
+                    selected_candidate_name=("same_crop_rescue" if same_crop_rescue else "initial"),
                     no_table_evidence_count=no_table_evidence,
                     bbox_norm=bbox_norm,
                     expected_footnote_ids=expected_set,
@@ -818,17 +792,14 @@ class QualityPassMixin:
             _build_result_debug_metadata(
                 replace(
                     fallback,
-                    no_table_detected=(
-                        _override_status_fb == "confirmed_no_table"
-                    ),
+                    no_table_detected=(_override_status_fb == "confirmed_no_table"),
                     recrop_attempted=len(candidates) > 1,
                     recrop_used=False,
                     recrop_failed_incomplete=True,
                     extraction_status=_override_status_fb,
                 ),
                 acceptance_reason=_override_reason_fb,
-                rejection_reasons=fallback_rejection_reasons
-                or ["rescue_exhausted"],
+                rejection_reasons=fallback_rejection_reasons or ["rescue_exhausted"],
                 selected_candidate_name=fallback_candidate_name,
                 no_table_evidence_count=no_table_evidence,
                 bbox_norm=bbox_norm,

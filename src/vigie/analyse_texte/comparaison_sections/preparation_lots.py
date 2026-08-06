@@ -201,9 +201,7 @@ def _split_exact_diff_alignments(
         # matched_strong may come from TF-IDF-only fallback (embedding_score=0)
         # or from embeddings; both deserve the local exact-diff fast path when
         # the sequences are near-identical.
-        strong_signal = (
-            alignment.embedding_score >= 0.85 or alignment.tfidf_score >= 0.85
-        )
+        strong_signal = alignment.embedding_score >= 0.85 or alignment.tfidf_score >= 0.85
         if (
             alignment.alignment_type == "matched_strong"
             and strong_signal

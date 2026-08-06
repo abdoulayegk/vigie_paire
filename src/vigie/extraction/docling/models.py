@@ -9,6 +9,7 @@ import json
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
+
 @dataclass
 class ExtractedTable:
     """Représente un tableau extrait d'un PDF avec toutes ses métadonnées.

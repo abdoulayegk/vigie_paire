@@ -34,12 +34,7 @@ def normalize_proof_bbox(bbox: Any) -> list[float] | None:
     except (TypeError, ValueError):
         return None
     left, top, right, bottom = normalized
-    if not (
-        0.0 <= left <= 1.0
-        and 0.0 <= top <= 1.0
-        and 0.0 <= right <= 1.0
-        and 0.0 <= bottom <= 1.0
-    ):
+    if not (0.0 <= left <= 1.0 and 0.0 <= top <= 1.0 and 0.0 <= right <= 1.0 and 0.0 <= bottom <= 1.0):
         return None
     if right <= left or bottom <= top:
         return None

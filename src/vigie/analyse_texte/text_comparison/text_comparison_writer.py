@@ -44,9 +44,7 @@ def _normalize_text_change(change: dict[str, Any]) -> None:
         return
 
     justification = build_text_triage_justification(change)
-    if justification and not is_structured_text_triage_justification(
-        triage.get("nouvelle_idee_justification")
-    ):
+    if justification and not is_structured_text_triage_justification(triage.get("nouvelle_idee_justification")):
         triage["nouvelle_idee_justification"] = justification
 
     if bool(triage.get("is_relevant", False)):
@@ -105,12 +103,8 @@ def deduplicate_and_group_section_changes(
         dt = str(change.get("diff_type") or "").strip().lower()
         summary = str(change.get("change_summary") or "").strip()
         term_pattern = extract_term_replacement_pattern(summary)
-        t1 = str(
-            change.get("source_text_t1") or change.get("semantic_text_t1") or ""
-        ).strip()
-        t2 = str(
-            change.get("source_text_t2") or change.get("semantic_text_t2") or ""
-        ).strip()
+        t1 = str(change.get("source_text_t1") or change.get("semantic_text_t1") or "").strip()
+        t2 = str(change.get("source_text_t2") or change.get("semantic_text_t2") or "").strip()
         sub = str(change.get("subsection_heading") or "").strip().lower()
 
         if term_pattern:
@@ -177,7 +171,6 @@ def _normalize_text_comparison_payload(payload: dict[str, Any]) -> None:
                     _normalize_text_change(change)
 
 
-
 def get_text_comparison_path(
     out_root: Path,
     bank_code: str,
@@ -217,10 +210,7 @@ def write_text_comparison(
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
 
-    total_changes = sum(
-        len(sc.get("block_comparisons", []))
-        for sc in payload.get("section_comparisons", [])
-    )
+    total_changes = sum(len(sc.get("block_comparisons", [])) for sc in payload.get("section_comparisons", []))
     logger.info(
         "text_comparison.json écrit : %s (%d sections, %d changements)",
         out_path,

@@ -186,9 +186,7 @@ def test_on_demand_locator_collapses_contained_docling_copy() -> None:
         bbox_source="docling",
     )
 
-    reconciled = _reconcile_on_demand_locator_merges(
-        [locator, contained_docling]
-    )
+    reconciled = _reconcile_on_demand_locator_merges([locator, contained_docling])
 
     assert len(reconciled) == 1
     assert reconciled[0].bbox == locator.bbox
@@ -313,9 +311,7 @@ def test_unresolved_near_full_page_bbox_is_preserved_as_suspect(
                     "bbox_original": original_bbox,
                     "bbox_source": "near_full_page_unresolved",
                     "table_count": 2,
-                    "bbox_verification_reason": (
-                        "near_full_page_multiple_regions"
-                    ),
+                    "bbox_verification_reason": ("near_full_page_multiple_regions"),
                 }
             },
         },
@@ -326,7 +322,4 @@ def test_unresolved_near_full_page_bbox_is_preserved_as_suspect(
     assert table.debug_metrics["bbox_source"] == "near_full_page_unresolved"
     assert table.debug_metrics["bbox_verified"] is False
     assert table.debug_metrics["page_context_table_count"] == 2
-    assert (
-        table.debug_metrics["bbox_verification_reason"]
-        == "near_full_page_multiple_regions"
-    )
+    assert table.debug_metrics["bbox_verification_reason"] == "near_full_page_multiple_regions"

@@ -45,12 +45,7 @@ class _FakeEmbeddingsAPI:
         return type(
             "Response",
             (),
-            {
-                "data": [
-                    _FakeEmbeddingItem(index, vector)
-                    for index, vector in enumerate(batch)
-                ]
-            },
+            {"data": [_FakeEmbeddingItem(index, vector) for index, vector in enumerate(batch)]},
         )()
 
 
@@ -125,13 +120,13 @@ def test_hybrid_alignment_recovers_strong_reformulation(monkeypatch) -> None:
     assert len(chunks_t1) == 1 and len(chunks_t2) == 1
 
     tfidf_only = _align_chunks_tfidf(chunks_t1, chunks_t2)
-    tfidf_matched = [
-        alignment
-        for alignment in tfidf_only
-        if alignment.chunk_t1 and alignment.chunk_t2
-    ]
+    tfidf_matched = [alignment for alignment in tfidf_only if alignment.chunk_t1 and alignment.chunk_t2]
     # Sans embeddings, la reformulation reste au mieux faible/ambiguë.
-    assert not tfidf_matched or tfidf_matched[0].alignment_type != "matched_strong" or tfidf_matched[0].similarity_score < 0.95
+    assert (
+        not tfidf_matched
+        or tfidf_matched[0].alignment_type != "matched_strong"
+        or tfidf_matched[0].similarity_score < 0.95
+    )
 
     monkeypatch.setattr(
         "vigie.analyse_texte.chunk_alignment._embed_texts",
@@ -342,10 +337,7 @@ def test_global_components_reject_weak_transitive_bridge(monkeypatch) -> None:
     )
 
     components, audited_edges = _components(_one_sided_nodes(changes))
-    component_ids = [
-        {str(node.change.get("change_id") or "") for node in component}
-        for component in components
-    ]
+    component_ids = [{str(node.change.get("change_id") or "") for node in component} for component in components]
 
     assert {"old_economy", "new_economy"} in component_ids
     assert {"old_cyber", "new_cyber"} in component_ids
@@ -414,10 +406,11 @@ def test_global_components_preserve_one_to_many_strong_split(monkeypatch) -> Non
     components, audited_edges = _components(_one_sided_nodes(changes))
 
     assert len(components) == 1
-    assert {
-        str(node.change.get("change_id") or "")
-        for node in components[0]
-    } == {"old_combined", "new_part_a", "new_part_b"}
+    assert {str(node.change.get("change_id") or "") for node in components[0]} == {
+        "old_combined",
+        "new_part_a",
+        "new_part_b",
+    }
     assert all(edge["component_selected"] for edge in audited_edges)
 
 
@@ -538,10 +531,7 @@ def test_deterministic_cosmetic_prefilter_skips_near_identical_text() -> None:
         "source_text_t2": "Le seuil prudentiel CET1 minimal applicable est de 5,0 %.",
     }
     assert _deterministic_cosmetic_exclusion(material) is None
-    assert (
-        _deterministic_bank_specific_exclusion(material)
-        == "variation_numerique_propre_banque"
-    )
+    assert _deterministic_bank_specific_exclusion(material) == "variation_numerique_propre_banque"
 
 
 def test_deterministic_bank_specific_excludes_numeric_and_operations() -> None:
@@ -551,10 +541,7 @@ def test_deterministic_bank_specific_excludes_numeric_and_operations() -> None:
         "source_text_t1": "Le portefeuille hypothécaire s'établit à 287 G$.",
         "source_text_t2": "Le portefeuille hypothécaire s'établit à 294 G$.",
     }
-    assert (
-        _deterministic_bank_specific_exclusion(numeric)
-        == "variation_numerique_propre_banque"
-    )
+    assert _deterministic_bank_specific_exclusion(numeric) == "variation_numerique_propre_banque"
 
     calendar = {
         "diff_type": "modified",
@@ -575,22 +562,17 @@ def test_deterministic_bank_specific_excludes_numeric_and_operations() -> None:
         "change_summary": "Inclusion de CWB après l'acquisition.",
         "source_text_t1": "",
         "source_text_t2": (
-            "L'inclusion de CWB à la suite de l'acquisition augmente "
-            "l'actif pondéré en fonction des risques."
+            "L'inclusion de CWB à la suite de l'acquisition augmente l'actif pondéré en fonction des risques."
         ),
     }
-    assert (
-        _deterministic_bank_specific_exclusion(acquisition)
-        == "operation_interne_banque"
-    )
+    assert _deterministic_bank_specific_exclusion(acquisition) == "operation_interne_banque"
 
     cyber = {
         "diff_type": "added",
         "change_summary": "Ajout d'exercices annuels de simulation de cyberattaque.",
         "source_text_t1": "",
         "source_text_t2": (
-            "La banque réalise désormais des simulations annuelles de "
-            "cyberattaque avec ses unités d'affaires."
+            "La banque réalise désormais des simulations annuelles de cyberattaque avec ses unités d'affaires."
         ),
     }
     assert _deterministic_bank_specific_exclusion(cyber) is None
@@ -623,9 +605,7 @@ def test_deterministic_bank_specific_excludes_bnc_floor_reschedule() -> None:
             "à ce niveau pour une période indéterminée."
         ),
     }
-    assert (
-        _deterministic_bank_specific_exclusion(change) == "mise_a_jour_calendrier"
-    )
+    assert _deterministic_bank_specific_exclusion(change) == "mise_a_jour_calendrier"
     enriched = _prefilter_triage_result(change, "mise_a_jour_calendrier")
     reason = enriched["genai_triage"]["relevance_reason"]
     justification = enriched["genai_triage"]["nouvelle_idee_justification"]
@@ -657,10 +637,7 @@ def test_deterministic_bank_specific_excludes_cwb_appetite_and_aprf() -> None:
             "les impacts de l'acquisition récente de CWB."
         ),
     }
-    assert (
-        _deterministic_bank_specific_exclusion(appetite)
-        == "operation_interne_banque"
-    )
+    assert _deterministic_bank_specific_exclusion(appetite) == "operation_interne_banque"
     enriched = _prefilter_triage_result(
         appetite,
         "operation_interne_banque",
@@ -681,10 +658,7 @@ def test_deterministic_bank_specific_excludes_cwb_appetite_and_aprf() -> None:
             "pour un produit brut de 6,3 G$."
         ),
     }
-    assert (
-        _deterministic_bank_specific_exclusion(emission)
-        == "operation_interne_banque"
-    )
+    assert _deterministic_bank_specific_exclusion(emission) == "operation_interne_banque"
     emission_copy = _prefilter_triage_result(
         emission,
         "operation_interne_banque",

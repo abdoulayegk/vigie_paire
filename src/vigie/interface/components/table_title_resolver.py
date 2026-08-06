@@ -39,7 +39,9 @@ def resolve_display_table_title(table: dict[str, Any]) -> str:
             sujet = sujet_match.group(1).strip().rstrip(".").strip()
             return f"[Tableau : {sujet}]"
 
-        changement_match = re.search(r"RBC (?:supprime|ajoute|modifie|a supprimé|a ajouté)\s+([^.\n]+)", changement, re.IGNORECASE)
+        changement_match = re.search(
+            r"RBC (?:supprime|ajoute|modifie|a supprimé|a ajouté)\s+([^.\n]+)", changement, re.IGNORECASE
+        )
         if changement_match:
             sujet = changement_match.group(1).strip().rstrip(".").strip()
             if len(sujet) > 45:

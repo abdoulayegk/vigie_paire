@@ -28,6 +28,7 @@ _HIGHLIGHT_ADDED_STYLE = {
     "fontWeight": "500",
 }
 
+
 def _merge_intervals(intervals: list[tuple[int, int]]) -> list[tuple[int, int]]:
     """Fusionne des intervalles de caractères chevauchants."""
     if not intervals:

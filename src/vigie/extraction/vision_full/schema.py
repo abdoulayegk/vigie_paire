@@ -12,6 +12,7 @@ from vigie.support.utils.openai_schema import (
     validate_strict_openai_response_format,
 )
 
+
 class VisionFootnoteItem(BaseModel):
     """Schema strict pour une entree de note de bas de page."""
 

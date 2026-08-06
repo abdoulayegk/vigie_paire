@@ -386,9 +386,12 @@ def resolve_printed_to_physical_offset(
         title_compact = _compact_norm(title_norm)
         if len(title_norm) < 10:
             continue
-        if preferred_compact and title_compact not in preferred_compact and not any(
-            title_compact == p or (len(title_compact) >= 14 and title_compact in p)
-            for p in preferred_compact
+        if (
+            preferred_compact
+            and title_compact not in preferred_compact
+            and not any(
+                title_compact == p or (len(title_compact) >= 14 and title_compact in p) for p in preferred_compact
+            )
         ):
             continue
         ranked.append(entry)
@@ -411,9 +414,7 @@ def resolve_printed_to_physical_offset(
                 line_compact = _compact_norm(line_norm)
                 # Exiger egalite (ou compact egal) sur une ligne courte de titre.
                 if line_norm == title_norm or (
-                    title_compact
-                    and line_compact == title_compact
-                    and len(line) <= max(80, len(entry.title) + 20)
+                    title_compact and line_compact == title_compact and len(line) <= max(80, len(entry.title) + 20)
                 ):
                     matched = True
                     break

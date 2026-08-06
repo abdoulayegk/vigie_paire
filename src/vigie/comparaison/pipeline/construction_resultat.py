@@ -63,9 +63,7 @@ def _archive_source_pdf(source: str | Path | None, target: Path) -> str:
         shutil.copy2(src_path, target)
         return str(target)
     except OSError as exc:
-        logger.warning(
-            "Echec de l'archivage du PDF %s -> %s: %s", src_path, target, exc
-        )
+        logger.warning("Echec de l'archivage du PDF %s -> %s: %s", src_path, target, exc)
         return raw
 
 
@@ -115,11 +113,7 @@ def ecrire_resultat_comparaison(
         runtime_extraction_sec=float(runtime_extraction_sec or 0.0),
     )
 
-    out_dir = (
-        out_root_path
-        / bank_code
-        / f"{year_current}_{quarter_current}_vs_{year_previous}_{quarter_previous}"
-    )
+    out_dir = out_root_path / bank_code / f"{year_current}_{quarter_current}_vs_{year_previous}_{quarter_previous}"
     out_dir.mkdir(parents=True, exist_ok=True)
     archived_pdf_previous = _archive_source_pdf(
         source_pdf_previous,
@@ -178,12 +172,8 @@ def ecrire_resultat_comparaison(
             artifacts_confirmed_current_total=len(artifacts_confirmed_current),
             extraction_suspects_previous_total=len(extraction_suspects_previous),
             extraction_suspects_current_total=len(extraction_suspects_current),
-            boundary_scope_exclusions_previous_total=len(
-                boundary_scope_exclusions_previous
-            ),
-            boundary_scope_exclusions_current_total=len(
-                boundary_scope_exclusions_current
-            ),
+            boundary_scope_exclusions_previous_total=len(boundary_scope_exclusions_previous),
+            boundary_scope_exclusions_current_total=len(boundary_scope_exclusions_current),
             indicator_changes_total=indicator_changes_total,
             footnote_changes_total=footnote_changes_total,
             high_priority_items_total=high_priority_items_total,

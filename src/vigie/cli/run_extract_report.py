@@ -66,14 +66,10 @@ def _build_section_ranges(mapping: Any, quarter: str = "") -> list[dict[str, Any
 
 def build_parser() -> argparse.ArgumentParser:
     """Construire le parseur d'arguments pour l'extraction de rapport."""
-    parser = argparse.ArgumentParser(
-        description="Extraire les artefacts tables/indicateurs/notes pour un rapport."
-    )
+    parser = argparse.ArgumentParser(description="Extraire les artefacts tables/indicateurs/notes pour un rapport.")
     parser.add_argument("--banque", required=True, help="Code banque (ex: bnc)")
     parser.add_argument("--pdf", required=True, help="Chemin du PDF d'entree")
-    parser.add_argument(
-        "--annee", required=True, type=int, help="Annee du rapport (ex: 2025)"
-    )
+    parser.add_argument("--annee", required=True, type=int, help="Annee du rapport (ex: 2025)")
     parser.add_argument("--trimestre", required=True, help="Libelle trimestre (ex: t1)")
     parser.add_argument("--config", default=DEFAULT_CONFIG, help="Chemin YAML de configuration")
     parser.add_argument(
@@ -96,9 +92,7 @@ def main(argv: list[str] | None = None) -> None:
         )
         from vigie.extraction.localisation_sections.section_locator import locate_sections_in_pdf
     except Exception as exc:
-        raise NotImplementedError(
-            "Extraction backends are not importable in this environment."
-        ) from exc
+        raise NotImplementedError("Extraction backends are not importable in this environment.") from exc
 
     quarter_norm = _normalize_storage_quarter(args.trimestre)
     mapping = locate_sections_in_pdf(
@@ -119,14 +113,10 @@ def main(argv: list[str] | None = None) -> None:
         section_ranges=section_ranges,
     )
 
-    out_dir = (
-        Path(args.sortie) / str(args.banque).lower() / str(args.annee) / quarter_norm
-    )
+    out_dir = Path(args.sortie) / str(args.banque).lower() / str(args.annee) / quarter_norm
     model_version = ""
     try:
-        model_version = resolve_openai_model(
-            "extraction_primary", config_path=args.config
-        )
+        model_version = resolve_openai_model("extraction_primary", config_path=args.config)
     except Exception:
         model_version = ""
 
@@ -143,9 +133,7 @@ def main(argv: list[str] | None = None) -> None:
     )
     missing = [name for name, path in paths.items() if not path.exists()]
     if missing:
-        raise RuntimeError(
-            f"Missing output artifacts after extraction: {', '.join(missing)}"
-        )
+        raise RuntimeError(f"Missing output artifacts after extraction: {', '.join(missing)}")
     print(out_dir)
 
 

@@ -55,14 +55,11 @@ def synthesize_triage_justification_from_payload(triage: dict[str, Any]) -> str:
             or "Le rapport courant présente une information nouvelle ou reformulée par rapport "
             "au rapport précédent sur ce sujet."
         )
-        pertinence = (
-            explanation
-            or (
-                "Ce changement met l'accent sur un sujet pertinent pour la vigie prudentielle. "
-                "Il modifie la lecture de l'exposition de la banque et de la transparence de ses divulgations, "
-                "tout en permettant d'évaluer l'évolution de sa résilience face aux risques externes "
-                "et la comparabilité de sa gestion des risques par rapport à ses pairs."
-            )
+        pertinence = explanation or (
+            "Ce changement met l'accent sur un sujet pertinent pour la vigie prudentielle. "
+            "Il modifie la lecture de l'exposition de la banque et de la transparence de ses divulgations, "
+            "tout en permettant d'évaluer l'évolution de sa résilience face aux risques externes "
+            "et la comparabilité de sa gestion des risques par rapport à ses pairs."
         )
     else:
         ce_qui_change = (
@@ -70,12 +67,9 @@ def synthesize_triage_justification_from_payload(triage: dict[str, Any]) -> str:
             or "Le texte diffère entre T1 et T2, mais le changement ne constitue pas un signal "
             "métier prioritaire pour la vigie."
         )
-        pertinence = (
-            explanation
-            or (
-                "Ce changement n'est pas retenu comme nouvelle idée, car il relève principalement de "
-                f"{exclusion_label or 'une variation ou reformulation sans impact réglementaire direct'}."
-            )
+        pertinence = explanation or (
+            "Ce changement n'est pas retenu comme nouvelle idée, car il relève principalement de "
+            f"{exclusion_label or 'une variation ou reformulation sans impact réglementaire direct'}."
         )
 
     surveillance_subject = subject.split(",")[0].strip() or "Ce point"
@@ -184,15 +178,13 @@ def _change_sentence(change: dict[str, Any]) -> str:
     if diff_type == "added" and source_t2:
         return _sentence(
             sanitize_analyst_french(
-                "Le rapport courant ajoute l'information suivante, absente "
-                f"du rapport précédent : {source_t2}"
+                f"Le rapport courant ajoute l'information suivante, absente du rapport précédent : {source_t2}"
             )
         )
     if diff_type == "removed" and source_t1:
         return _sentence(
             sanitize_analyst_french(
-                "Le rapport courant retire l'information suivante, présente "
-                f"au rapport précédent : {source_t1}"
+                f"Le rapport courant retire l'information suivante, présente au rapport précédent : {source_t1}"
             )
         )
     if diff_type == "modified" and source_t1 and source_t2:
@@ -205,10 +197,7 @@ def _change_sentence(change: dict[str, Any]) -> str:
         )
     if summary:
         return _sentence(sanitize_analyst_french(summary))
-    return (
-        "Le changement textuel modifie l'information communiquée entre "
-        "le rapport précédent et le rapport courant."
-    )
+    return "Le changement textuel modifie l'information communiquée entre le rapport précédent et le rapport courant."
 
 
 def _fallback_pertinence(change: dict[str, Any], triage: dict[str, Any]) -> str:
@@ -216,9 +205,7 @@ def _fallback_pertinence(change: dict[str, Any], triage: dict[str, Any]) -> str:
     if _is_climate_b15_change(change):
         return _climate_b15_pertinence()
 
-    legacy_justification = _clean(
-        _strip_decision_prefix(str(triage.get("nouvelle_idee_justification") or ""))
-    )
+    legacy_justification = _clean(_strip_decision_prefix(str(triage.get("nouvelle_idee_justification") or "")))
     explanation = _clean(triage.get("explanation"))
     impact_description = _clean(triage.get("impact_description"))
     return (
@@ -252,11 +239,7 @@ def _replace_pertinence(justification: str, pertinence: str) -> str:
     end = _surveillance_marker_index(justification, start)
     if start == -1 or end == -1:
         return justification
-    return (
-        justification[:start]
-        + f"{marker} {_sentence(pertinence)}"
-        + justification[end:]
-    )
+    return justification[:start] + f"{marker} {_sentence(pertinence)}" + justification[end:]
 
 
 def _replace_surveillance_point(justification: str, point: str) -> str:
@@ -322,17 +305,10 @@ def build_compact_triage_justification(
     nouvelle_idee = bool(triage.get("nouvelle_idee", False))
     prefix = "OUI" if nouvelle_idee else "NON"
     yes_no = "Oui" if nouvelle_idee else "Non"
-    subjects = [
-        THEMES_AMF_ANALYST_SUBJECTS.get(str(theme), str(theme))
-        for theme in triage.get("themes_amf") or []
-    ]
+    subjects = [THEMES_AMF_ANALYST_SUBJECTS.get(str(theme), str(theme)) for theme in triage.get("themes_amf") or []]
     subject = ", ".join(dict.fromkeys(subjects)) or "Changement non retenu"
     change_with_triage = {**change, "genai_triage": triage}
-    bank_code = str(
-        change.get("bank_code")
-        or triage.get("bank_code")
-        or ""
-    ).strip()
+    bank_code = str(change.get("bank_code") or triage.get("bank_code") or "").strip()
     narrative = build_analyst_narrative(
         change_with_triage,
         bank_code=bank_code or None,

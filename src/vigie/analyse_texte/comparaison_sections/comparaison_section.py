@@ -63,22 +63,16 @@ def _compare_section_texts(
     has_subsections_t2 = any(heading != "__intro__" for heading, _body in subs_t2)
 
     if not has_subsections_t1 and not has_subsections_t2:
-        raise TextAnalysisQualityError(
-            f"Section non vide sans sous-sections ###: {section_key}"
-        )
+        raise TextAnalysisQualityError(f"Section non vide sans sous-sections ###: {section_key}")
 
     pairs = _pair_subsections(subs_t1, subs_t2)
 
     # Heading-level orphan rename resolution (unchanged).
     orphans_t1 = [
-        OrphanSubsection(heading=h1, body=body1)
-        for h1, body1, h2, _body2 in pairs
-        if h2 is None and h1 is not None
+        OrphanSubsection(heading=h1, body=body1) for h1, body1, h2, _body2 in pairs if h2 is None and h1 is not None
     ]
     orphans_t2 = [
-        OrphanSubsection(heading=h2, body=body2)
-        for h1, _body1, h2, body2 in pairs
-        if h1 is None and h2 is not None
+        OrphanSubsection(heading=h2, body=body2) for h1, _body1, h2, body2 in pairs if h1 is None and h2 is not None
     ]
     rename_matches = _resolve_orphan_subsections(
         client=client,

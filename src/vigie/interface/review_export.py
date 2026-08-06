@@ -562,18 +562,18 @@ def _style_expert_workbook(wb: Any) -> None:
             cell.border = thin_border
 
     widths = {
-        "A": 30,   # Section
-        "B": 48,   # Tableau
-        "C": 22,   # Type d'element
-        "D": 18,   # Type de changement
-        "E": 10,   # Page precedente
-        "F": 10,   # Page courante
-        "G": 50,   # Libelle
-        "H": 70,   # Justifications
-        "I": 22,   # Nouvelle idee ?
-        "J": 18,   # Validation expert
-        "K": 40,   # Commentaire expert
-        "L": 18,   # Date de validation
+        "A": 30,  # Section
+        "B": 48,  # Tableau
+        "C": 22,  # Type d'element
+        "D": 18,  # Type de changement
+        "E": 10,  # Page precedente
+        "F": 10,  # Page courante
+        "G": 50,  # Libelle
+        "H": 70,  # Justifications
+        "I": 22,  # Nouvelle idee ?
+        "J": 18,  # Validation expert
+        "K": 40,  # Commentaire expert
+        "L": 18,  # Date de validation
     }
     for col, width in widths.items():
         review_ws.column_dimensions[col].width = width

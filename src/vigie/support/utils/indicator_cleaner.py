@@ -38,9 +38,7 @@ _TRAILING_NOTE_CLUSTER_RE = re.compile(
 _TRAILING_NUM_RE = re.compile(r"\s+\d{1,4}(?:[.,]\d+)?\s*$")
 # Digits attached to last word (no space): "Total des actifs1" -> "Total des actifs", "Revenue2024" -> "Revenue"
 _TRAILING_WORD_DIGITS_RE = re.compile(r"([^\d\s]+)(\d+)$")
-_DATE_IN_TITLE_RE = re.compile(
-    r"\b(?:au|as at|for the quarter ended|trimestre termine le)\b.*$", re.IGNORECASE
-)
+_DATE_IN_TITLE_RE = re.compile(r"\b(?:au|as at|for the quarter ended|trimestre termine le)\b.*$", re.IGNORECASE)
 # CIBC-style dates at start or end: "31 janvier 2025", "30 avril 2025 1, 2"
 _DATE_STANDALONE_RE = re.compile(
     r"^\s*\d{1,2}\s+(?:janvier|fevrier|mars|avril|mai|juin|juillet|aout|"
@@ -64,9 +62,7 @@ _HEADER_FOOTER_RBC_RE = re.compile(
     r"(?:Premier|Deuxieme|Deuxième|Troisieme|Troisième|Quatrieme|Quatrième)\s+trimestre",
     re.IGNORECASE,
 )
-_HEADER_FOOTER_PAGE_BANK_RE = re.compile(
-    r"^\s*\d+\s+[A-Za-z].*(?:trimestre|quarter)\b", re.IGNORECASE
-)
+_HEADER_FOOTER_PAGE_BANK_RE = re.compile(r"^\s*\d+\s+[A-Za-z].*(?:trimestre|quarter)\b", re.IGNORECASE)
 
 # --- Patterns pour strip_dates_from_indicator_label ---
 _MONTHS_FR = (
@@ -127,12 +123,8 @@ _UNITS_IN_INDICATOR_PAREN_RE = re.compile(
     re.IGNORECASE,
 )
 
-_REDUNDANT_PAREN_EXPANSION_RE = re.compile(
-    r"^\s*(?P<prefix>[^()]+?)\s*\(\s*(?P<inner>[^()]+?)\s*\)\s*([.])?\s*$"
-)
-_REDUNDANT_SEPARATOR_EXPANSION_RE = re.compile(
-    r"^\s*(?P<prefix>[^:;–—-]+?)\s*[:;–—-]\s*(?P<suffix>.+?)\s*$"
-)
+_REDUNDANT_PAREN_EXPANSION_RE = re.compile(r"^\s*(?P<prefix>[^()]+?)\s*\(\s*(?P<inner>[^()]+?)\s*\)\s*([.])?\s*$")
+_REDUNDANT_SEPARATOR_EXPANSION_RE = re.compile(r"^\s*(?P<prefix>[^:;–—-]+?)\s*[:;–—-]\s*(?P<suffix>.+?)\s*$")
 
 
 def _normalized_phrase_key(text: str) -> str:
@@ -399,12 +391,8 @@ def strip_note_refs_from_title(title: str) -> str:
     # Trailing (1), [2], 1), or bare digit 1, 2 when likely a ref
     value = re.sub(r"\s*[\(\[]\d+[\)\]]\s*$", "", value)
     value = re.sub(r"\s*\d+\)\s*$", "", value)
-    value = re.sub(
-        r"([a-zA-ZÀ-ÿ])\d+\s*$", r"\1", value
-    )  # CREDIT1 -> CREDIT, garde "Tableau 12"
-    value = re.sub(
-        r"\s+\d+\s*,\s*\d+(?:\s*,\s*\d+)*\s*$", "", value
-    )  # " 1, 2", " 1, 2, 3" (virgule requise)
+    value = re.sub(r"([a-zA-ZÀ-ÿ])\d+\s*$", r"\1", value)  # CREDIT1 -> CREDIT, garde "Tableau 12"
+    value = re.sub(r"\s+\d+\s*,\s*\d+(?:\s*,\s*\d+)*\s*$", "", value)  # " 1, 2", " 1, 2, 3" (virgule requise)
     return re.sub(r"\s+", " ", value).strip()
 
 
@@ -412,13 +400,9 @@ def strip_note_refs_from_title(title: str) -> str:
 # Token is "numeric" if it looks like a number (digits, optional commas/dots, e.g. 79, 772, 1,234.56)
 _NUMERIC_TOKEN_RE = re.compile(r"^[\d\s,.]*$")
 # Trailing run of 2+ numbers (so we don't strip "Tableau 28"): "79 772 76 163" or "79,772 76,163"
-_TRAILING_NUMERIC_RUN_RE = re.compile(
-    r"\s+\d+(?:[.,]\d+)?(?:\s*[,]?\s*\d+(?:[.,]\d+)?)+\s*$"
-)
+_TRAILING_NUMERIC_RUN_RE = re.compile(r"\s+\d+(?:[.,]\d+)?(?:\s*[,]?\s*\d+(?:[.,]\d+)?)+\s*$")
 # Leading run of 2+ numbers at start of title (rare but possible)
-_LEADING_NUMERIC_RUN_RE = re.compile(
-    r"^\s*\d+(?:[.,]\d+)?(?:\s*[,]?\s*\d+(?:[.,]\d+)?)+\s+"
-)
+_LEADING_NUMERIC_RUN_RE = re.compile(r"^\s*\d+(?:[.,]\d+)?(?:\s*[,]?\s*\d+(?:[.,]\d+)?)+\s+")
 # Minimum consecutive numeric tokens to consider a "long" run (amount column)
 _NUMERIC_RUN_MIN_LENGTH = 3
 # Max fraction of tokens that can be numeric before title is contaminated (0.4 = 40%)
@@ -478,11 +462,7 @@ def is_table_title_contaminated(
                 run = 0
 
     # > X% of tokens are numbers (and at least 2 numeric tokens to avoid "Tableau 28")
-    if (
-        numeric_count >= 2
-        and len(tokens) >= 2
-        and (numeric_count / len(tokens)) > numeric_ratio_threshold
-    ):
+    if numeric_count >= 2 and len(tokens) >= 2 and (numeric_count / len(tokens)) > numeric_ratio_threshold:
         return True
 
     # Ends with 2+ numeric tokens (column values captured)
@@ -668,9 +648,7 @@ def split_camel_case_concatenation(text: str) -> tuple[str, bool]:
 
 
 # --- PART B: space after change-tag prefix ---
-_CHANGE_TAG_PREFIX_RE = re.compile(
-    r"^(AJOUT|SUPPRESSION|RENOMMAGE)(?=[a-zA-ZÀ-ÿ])", re.UNICODE
-)
+_CHANGE_TAG_PREFIX_RE = re.compile(r"^(AJOUT|SUPPRESSION|RENOMMAGE)(?=[a-zA-ZÀ-ÿ])", re.UNICODE)
 
 
 def insert_space_after_change_tag(text: str) -> tuple[str, bool]:
@@ -871,11 +849,7 @@ def normalize_indicator_for_comparison(text: str) -> str:
     # Normalize rate formatting noise such as "4,800 %" vs "4,80 %".
     text = re.sub(
         r"\b(\d{1,3})[.,](\d{1,4})(?=\s*%)",
-        lambda m: (
-            m.group(1)
-            if not m.group(2).rstrip("0")
-            else f"{m.group(1)},{m.group(2).rstrip('0')}"
-        ),
+        lambda m: m.group(1) if not m.group(2).rstrip("0") else f"{m.group(1)},{m.group(2).rstrip('0')}",
         text,
     )
 
@@ -905,18 +879,10 @@ def normalize_indicator_for_comparison(text: str) -> str:
 
     # Canonicalize common wording drift found in debt tranche labels.
     text = re.sub(r"\b(?:avec|aux)\s+termes?\b", " terme ", text, flags=re.IGNORECASE)
-    text = re.sub(
-        r"\bpremier(?:e)?\s+tranche\b", "tranche 1", text, flags=re.IGNORECASE
-    )
-    text = re.sub(
-        r"\bdeuxiem(?:e)?\s+tranche\b", "tranche 2", text, flags=re.IGNORECASE
-    )
-    text = re.sub(
-        r"\btroisiem(?:e)?\s+tranche\b", "tranche 3", text, flags=re.IGNORECASE
-    )
-    text = re.sub(
-        r"\bquatriem(?:e)?\s+tranche\b", "tranche 4", text, flags=re.IGNORECASE
-    )
+    text = re.sub(r"\bpremier(?:e)?\s+tranche\b", "tranche 1", text, flags=re.IGNORECASE)
+    text = re.sub(r"\bdeuxiem(?:e)?\s+tranche\b", "tranche 2", text, flags=re.IGNORECASE)
+    text = re.sub(r"\btroisiem(?:e)?\s+tranche\b", "tranche 3", text, flags=re.IGNORECASE)
+    text = re.sub(r"\bquatriem(?:e)?\s+tranche\b", "tranche 4", text, flags=re.IGNORECASE)
 
     # References de notes: (1), (2), [1], [2], etc.
     text = re.sub(r"\s*[\(\[]\d+[\)\]]\s*", " ", text)
@@ -975,9 +941,7 @@ def normalize_indicator_for_comparison(text: str) -> str:
     # Strip generic "total des/du/de/d'" prefix so "total des fonds propre reglementaire"
     # and "fonds propre reglementaire" produce the same canonical key.
     # Only strip when at least 2 words remain to avoid collapsing meaningful content.
-    _total_prefix_match = re.match(
-        r"^total\s+(?:des?\s+|du\s+|d[' ]\s*)", text, flags=re.IGNORECASE
-    )
+    _total_prefix_match = re.match(r"^total\s+(?:des?\s+|du\s+|d[' ]\s*)", text, flags=re.IGNORECASE)
     if _total_prefix_match:
         rest = text[_total_prefix_match.end() :].strip()
         if len(rest.split()) >= 2:

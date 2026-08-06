@@ -71,8 +71,10 @@ def build_change_segments_from_texts(
     for tag, i1, i2, j1, j2 in matcher.get_opcodes():
         old_part = old_text[i1:i2]
         new_part = new_text[j1:j2]
-        if tag == "equal" and current is not None and not (
-            _has_substantive_text(old_part) or _has_substantive_text(new_part)
+        if (
+            tag == "equal"
+            and current is not None
+            and not (_has_substantive_text(old_part) or _has_substantive_text(new_part))
         ):
             pending_punctuation = (i1, i2, j1, j2)
             continue

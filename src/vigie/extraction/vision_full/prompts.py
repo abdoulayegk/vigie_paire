@@ -608,7 +608,6 @@ def _build_precision_prompt(
     return _PROMPT_BASE_PRECISION + (f"\n{suffix}\n" if suffix else "") + reference_section + _PROMPT_JSON_STRICT
 
 
-
 def _build_content(prompt: str, image_b64: str) -> list[Any]:
     """Construit le contenu multimodal (texte + image) pour l'appel API."""
     return [

@@ -17,8 +17,7 @@ def build_parser() -> argparse.ArgumentParser:
     """Build the command-line parser."""
     parser = argparse.ArgumentParser(
         description=(
-            "Genere l'artefact JSON des changements communs entre banques "
-            "apres les comparaisons banque par banque."
+            "Genere l'artefact JSON des changements communs entre banques apres les comparaisons banque par banque."
         )
     )
     parser.add_argument(

@@ -97,13 +97,7 @@ def test_run_comparison_with_sections_propagates_prompt_versions_to_dash_meta(
     monkeypatch.setattr(cr, "COMPARISON_ROOT", tmp_path / "outputs" / "resultats")
 
     def _fake_compare_reports_gpt4o(*, out_root, **_kwargs):
-        out_path = (
-            Path(out_root)
-            / "bnc"
-            / "2026_t1_vs_2025_t3"
-            / "20260325_143000"
-            / "comparison.json"
-        )
+        out_path = Path(out_root) / "bnc" / "2026_t1_vs_2025_t3" / "20260325_143000" / "comparison.json"
         _write_report_comparison(out_path)
         return out_path
 
@@ -139,13 +133,7 @@ def test_run_comparison_with_sections_propagates_compare_path_reference_and_run_
     monkeypatch.setattr(cr, "COMPARISON_ROOT", tmp_path / "outputs" / "resultats")
 
     def _fake_compare_reports_gpt4o(*, out_root, **_kwargs):
-        out_path = (
-            Path(out_root)
-            / "bnc"
-            / "2026_t1_vs_2025_t3"
-            / "20260325_143000"
-            / "comparison.json"
-        )
+        out_path = Path(out_root) / "bnc" / "2026_t1_vs_2025_t3" / "20260325_143000" / "comparison.json"
         _write_report_comparison(
             out_path,
             run_metrics={
@@ -175,9 +163,7 @@ def test_run_comparison_with_sections_propagates_compare_path_reference_and_run_
         api_key="test-key",
     )
 
-    assert result["meta"]["compare_path"].endswith(
-        "2026_t1_vs_2025_t3/20260325_143000/comparison.json"
-    )
+    assert result["meta"]["compare_path"].endswith("2026_t1_vs_2025_t3/20260325_143000/comparison.json")
     assert result["meta"]["reference_resolution"]["quarter_previous"] == "t3"
     assert result["meta"]["run_metrics"]["comparison_calls_total"] == 3
     assert result["meta"]["run_metrics"]["runtime_extraction_sec"] == 2.5

@@ -75,10 +75,7 @@ def canonicalize_surface_text(text: str) -> str:
 def is_quarterly_running_chrome(text: str) -> bool:
     """Détecte les pieds/en-têtes trimestriels, même sans le mot « rapport »."""
     value = canonicalize_surface_text(text)
-    return bool(
-        _BANK_QUARTERLY_CHROME_RE.fullmatch(value)
-        or _QUARTERLY_BANK_CHROME_RE.fullmatch(value)
-    )
+    return bool(_BANK_QUARTERLY_CHROME_RE.fullmatch(value) or _QUARTERLY_BANK_CHROME_RE.fullmatch(value))
 
 
 def is_standalone_table_marker_definition(text: str) -> bool:

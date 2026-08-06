@@ -19,9 +19,7 @@ from vigie.comparaison.triage.amf_taxonomy import (
 
 logger = logging.getLogger(__name__)
 
-VALID_CATEGORIES = frozenset(
-    {"REGLEMENTAIRE", "RISQUE", "CAPITAL", "STRUCTURE", "NON_PERTINENT", "INCONNU"}
-)
+VALID_CATEGORIES = frozenset({"REGLEMENTAIRE", "RISQUE", "CAPITAL", "STRUCTURE", "NON_PERTINENT", "INCONNU"})
 VALID_RELEVANCE = frozenset({"ELEVEE", "MOYENNE", "FAIBLE"})
 VALID_RISK_LEVELS = frozenset({"ELEVE", "MODERE", "FAIBLE"})
 VALID_IMPACT_TYPES = frozenset({"structurel", "contenu", "methodologique", "non_substantif"})
@@ -54,11 +52,7 @@ def _count_substantive_sentences(text: str) -> int:
     if not text:
         return 0
     raw_sentences = _SENTENCE_BOUNDARY_RE.split(text)
-    substantive = [
-        s.strip()
-        for s in raw_sentences
-        if len(s.strip()) >= _JUSTIFICATION_MIN_SENTENCE_LENGTH
-    ]
+    substantive = [s.strip() for s in raw_sentences if len(s.strip()) >= _JUSTIFICATION_MIN_SENTENCE_LENGTH]
     return len(substantive)
 
 
@@ -195,12 +189,9 @@ def _validate_triage_response(data: dict[str, Any] | None) -> dict[str, Any]:
     impact_it_justification = str(data.get("impact_it_justification") or "").strip()[:500]
     if impact_it == "INDETERMINE":
         impact_it_justification = ""
-    elif (
-        len(impact_it_justification) < 20
-        or missing_labeled_analysis_sections(
-            impact_it_justification,
-            IMPACT_IT_DETAIL_LABELS,
-        )
+    elif len(impact_it_justification) < 20 or missing_labeled_analysis_sections(
+        impact_it_justification,
+        IMPACT_IT_DETAIL_LABELS,
     ):
         impact_it = "INDETERMINE"
         impact_it_justification = ""

@@ -46,11 +46,7 @@ def atomic_parent_key(
 
 def atomic_parent_context(change: dict[str, Any]) -> str:
     """Retourne le contexte parent courant, puis précédent en repli."""
-    context = str(
-        change.get("parent_context_t2")
-        or change.get("parent_context_t1")
-        or ""
-    ).strip()
+    context = str(change.get("parent_context_t2") or change.get("parent_context_t1") or "").strip()
     context = " ".join(context.split())
     if len(context) <= 280:
         return context
@@ -83,9 +79,7 @@ def build_atomic_change_group(
                         header_children,
                         className="d-flex align-items-center flex-wrap mb-1",
                     ),
-                    html.P(parent_context, className="small text-muted mb-0")
-                    if parent_context
-                    else None,
+                    html.P(parent_context, className="small text-muted mb-0") if parent_context else None,
                 ],
                 className="px-3 py-2 border-bottom bg-light",
             ),

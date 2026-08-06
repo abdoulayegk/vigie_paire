@@ -55,9 +55,7 @@ def build_report(payload: dict[str, Any]) -> dict[str, Any]:
         ):
             cross_section_pairs += 1
 
-    unknown_unmatched = sum(
-        1 for item in [*unmatched_t1, *unmatched_t2] if _is_unknown(item.get("section"))
-    )
+    unknown_unmatched = sum(1 for item in [*unmatched_t1, *unmatched_t2] if _is_unknown(item.get("section")))
     potential_false_positive_signals = cross_section_pairs + unknown_matched_pairs
 
     return {

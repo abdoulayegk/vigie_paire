@@ -31,9 +31,7 @@ def find_text_bboxes_in_region(
         Retourne une liste vide si non trouve.
     """
     if pymupdf is None:
-        logger.warning(
-            "PyMuPDF is not installed. Text search for highlights will be disabled."
-        )
+        logger.warning("PyMuPDF is not installed. Text search for highlights will be disabled.")
         return []
 
     if not text_to_find or not text_to_find.strip():
@@ -70,9 +68,7 @@ def find_text_bboxes_in_region(
             nt = (match_rect.y0 - rect.y0) / rect.height
             nr = (match_rect.x1 - rect.x0) / rect.width
             nb = (match_rect.y1 - rect.y0) / rect.height
-            normalized_matches.append(
-                [max(0.0, nl), max(0.0, nt), min(1.0, nr), min(1.0, nb)]
-            )
+            normalized_matches.append([max(0.0, nl), max(0.0, nt), min(1.0, nr), min(1.0, nb)])
 
         return normalized_matches
 

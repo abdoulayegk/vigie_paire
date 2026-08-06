@@ -479,13 +479,9 @@ class TestChangeExists:
     def test_renamed_match(self):
         """Should detect duplicate renamed by from_clean and to_clean."""
         existing = [
-            ChangeItem(
-                "1", "indicator_renamed", {"from_clean": "old", "to_clean": "new"}
-            ),
+            ChangeItem("1", "indicator_renamed", {"from_clean": "old", "to_clean": "new"}),
         ]
-        new = ChangeItem(
-            "2", "indicator_renamed", {"from_clean": "old", "to_clean": "new"}
-        )
+        new = ChangeItem("2", "indicator_renamed", {"from_clean": "old", "to_clean": "new"})
 
         assert _change_exists(existing, new)
 

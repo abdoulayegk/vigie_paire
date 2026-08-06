@@ -12,6 +12,7 @@ from vigie.comparaison.analyst_change_presentation import bank_subject as analys
 
 from .constants import _ANALYST_FIELD_END_RE
 
+
 def _normalize_local_analyst_field(value: str, *, field_name: str) -> str:
     """Normalise et vérifie une unité sémantique produite localement."""
     normalized = " ".join(str(value or "").split())
@@ -39,7 +40,7 @@ def _ensure_bank_subject(value: str, bank_subject: str) -> str:
     )
     for legacy_subject in legacy_subjects:
         if normalized.casefold().startswith(legacy_subject.casefold()):
-            return f"{bank_subject}{normalized[len(legacy_subject):]}"
+            return f"{bank_subject}{normalized[len(legacy_subject) :]}"
 
     lowered_starts = {
         "Le ": "le ",
@@ -55,7 +56,7 @@ def _ensure_bank_subject(value: str, bank_subject: str) -> str:
     statement = normalized
     for prefix, replacement in lowered_starts.items():
         if statement.startswith(prefix):
-            statement = f"{replacement}{statement[len(prefix):]}"
+            statement = f"{replacement}{statement[len(prefix) :]}"
             break
     return f"{bank_subject} indique que {statement}"
 
@@ -106,9 +107,7 @@ def _semantic_reason_payload(
         if is_relevant
         else ("changement_constate", "motif_non_pertinence")
     )
-    normalized_fields["relevance_reason"] = " ".join(
-        normalized_fields[field_name] for field_name in reason_order
-    )
+    normalized_fields["relevance_reason"] = " ".join(normalized_fields[field_name] for field_name in reason_order)
     return normalized_fields
 
 
@@ -165,8 +164,7 @@ def _analyst_exclusion_copy(
     source_t2 = str(change.get("source_text_t2") or change.get("semantic_text_t2") or "")
     excerpt_t2 = _excerpt_for_analyst(source_t2)
     comparative = (
-        "Ce changement n'apporte pas d'élément nouveau à comparer entre les "
-        "banques pour la vigie prudentielle."
+        "Ce changement n'apporte pas d'élément nouveau à comparer entre les banques pour la vigie prudentielle."
     )
 
     if exclusion_reason == "operation_interne_banque":
@@ -198,8 +196,7 @@ def _analyst_exclusion_copy(
             )
         else:
             factual = (
-                f"{bank_subject} met uniquement à jour des chiffres, montants "
-                "ou pourcentages propres à ses activités."
+                f"{bank_subject} met uniquement à jour des chiffres, montants ou pourcentages propres à ses activités."
             )
         return factual, comparative, subject
 
@@ -214,21 +211,12 @@ def _analyst_exclusion_copy(
     # Cosmetic / generic exclusions
     subject = "Changement cosmétique"
     if exclusion_reason == "deplacement_texte":
-        factual = (
-            f"{bank_subject} déplace la même divulgation sans ajouter de "
-            "nouveau contenu."
-        )
+        factual = f"{bank_subject} déplace la même divulgation sans ajouter de nouveau contenu."
         subject = "Déplacement de texte"
     elif exclusion_reason == "formatage_visuel":
-        factual = (
-            f"{bank_subject} reformule le passage sans changement de fond "
-            "(ponctuation ou formatage uniquement)."
-        )
+        factual = f"{bank_subject} reformule le passage sans changement de fond (ponctuation ou formatage uniquement)."
     elif diff_type == "added":
-        factual = (
-            f"{bank_subject} introduit une formulation différente "
-            "sans changement de fond."
-        )
+        factual = f"{bank_subject} introduit une formulation différente sans changement de fond."
     else:
         factual = f"{bank_subject} reformule le passage sans changement de fond."
     return factual, comparative, subject

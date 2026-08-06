@@ -54,13 +54,18 @@ def on_load_comparison(n_clicks, filename):
     )
     if not loaded:
         return (
-            no_update, no_update, no_update, no_update, no_update,
+            no_update,
+            no_update,
+            no_update,
+            no_update,
+            no_update,
             no_update,
             dbc.Alert(
                 f"Impossible de charger l'analyse enregistrée {filename}",
                 color="danger",
             ),
-            no_update, no_update,
+            no_update,
+            no_update,
         )
 
     data = loaded["raw_data"]
@@ -73,12 +78,17 @@ def on_load_comparison(n_clicks, filename):
     from vigie.interface.services.text_comparison_store import (
         resolve_text_comparison_from_payload,
     )
+
     canonical_for_text = to_canonical_payload(data) if data else {}
     text_comparison_data = resolve_text_comparison_from_payload(canonical_for_text)
 
     if data.get("result_type") == "metier_tableaux":
         return (
-            None, data, indicator_meta, pdf_paths, True,
+            None,
+            data,
+            indicator_meta,
+            pdf_paths,
+            True,
             build_page_results(),
             dbc.Alert(
                 warning or f"Analyse enregistrée chargée: {filename}",
@@ -93,7 +103,11 @@ def on_load_comparison(n_clicks, filename):
         canonical = indicator_result
 
     return (
-        canonical, indicator_result, indicator_meta, pdf_paths, True,
+        canonical,
+        indicator_result,
+        indicator_meta,
+        pdf_paths,
+        True,
         build_page_results(),
         dbc.Alert(
             warning or f"Analyse enregistrée chargée: {filename}",

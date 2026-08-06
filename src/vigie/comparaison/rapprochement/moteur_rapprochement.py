@@ -183,9 +183,7 @@ def _run_matching_stage(
                 allowed_decisions=allowed_decisions,
                 validation_feedback="",
             )
-            stage_response_model = (
-                PrimaryMatchResponse if stage == "primary" else RecoveryMatchResponse
-            )
+            stage_response_model = PrimaryMatchResponse if stage == "primary" else RecoveryMatchResponse
             data = call_openai_json(
                 model=model,
                 messages=[
@@ -408,9 +406,7 @@ def _match_tables(
     ]
     remaining_previous_cards = [card for card in previous_cards if card["table_id"] not in used_previous_stage1]
     state.unresolved_current_ids = list(unresolved_ids)
-    state.remaining_previous_ids = [
-        str(card.get("table_id", "") or "") for card in remaining_previous_cards
-    ]
+    state.remaining_previous_ids = [str(card.get("table_id", "") or "") for card in remaining_previous_cards]
 
     stage2_decisions: list[dict[str, Any]] = []
     stage2_metrics = {
@@ -532,9 +528,7 @@ def _match_tables(
         hybrid_primary_pairs_released_total=len(released_primary_pairs),
         hybrid_candidate_pairs_total=_coerce_int(stage2_metrics.get("hybrid_candidate_pairs_total")),
         hybrid_judge_calls_total=_coerce_int(stage2_metrics.get("hybrid_judge_calls_total")),
-        hybrid_final_inspector_calls_total=_coerce_int(
-            stage2_metrics.get("hybrid_final_inspector_calls_total")
-        ),
+        hybrid_final_inspector_calls_total=_coerce_int(stage2_metrics.get("hybrid_final_inspector_calls_total")),
         hybrid_pairs_rejected_total=_coerce_int(stage2_metrics.get("hybrid_pairs_rejected_total")),
         hybrid_embedding_calls_total=_coerce_int(stage2_metrics.get("hybrid_embedding_calls_total")),
     )
@@ -604,9 +598,7 @@ def _run_table_matching(
             "inspector_passes_total": _coerce_int(result.inspector_passes_total),
             "audit_passes_total": 0,
             "matching_output_retries_total": _coerce_int(result.validation_retries_total),
-            "matching_validation_failures_total": _coerce_int(
-                result.matching_validation_failures_total
-            ),
+            "matching_validation_failures_total": _coerce_int(result.matching_validation_failures_total),
             "stage1_validation_retries_total": _coerce_int(result.stage1_validation_retries_total),
             "stage2_validation_retries_total": _coerce_int(result.stage2_validation_retries_total),
             "unresolved_after_stage1_total": _coerce_int(result.unresolved_after_stage1_total),
@@ -615,21 +607,15 @@ def _run_table_matching(
             "unmatched_current_table_ids": [item["table_id"] for item in tables_added],
             "unmatched_after_primary_total": _coerce_int(result.unmatched_after_primary_total),
             "unmatched_after_rescue_total": _coerce_int(result.unmatched_after_rescue_total),
-            "matching_pairs_llm_duplicates_total": _coerce_int(
-                result.matching_pairs_llm_duplicates_total
-            ),
+            "matching_pairs_llm_duplicates_total": _coerce_int(result.matching_pairs_llm_duplicates_total),
             "matching_pairs_llm_deduped_total": _coerce_int(result.matching_pairs_llm_deduped_total),
             "inspector_rejected_total": _coerce_int(result.inspector_rejected_total),
             "inspector_confirmed_total": _coerce_int(result.inspector_confirmed_total),
             "hybrid_recovery_executed": _coerce_int(result.hybrid_recovery_executed),
-            "hybrid_primary_pairs_released_total": _coerce_int(
-                result.hybrid_primary_pairs_released_total
-            ),
+            "hybrid_primary_pairs_released_total": _coerce_int(result.hybrid_primary_pairs_released_total),
             "hybrid_candidate_pairs_total": _coerce_int(result.hybrid_candidate_pairs_total),
             "hybrid_judge_calls_total": _coerce_int(result.hybrid_judge_calls_total),
-            "hybrid_final_inspector_calls_total": _coerce_int(
-                result.hybrid_final_inspector_calls_total
-            ),
+            "hybrid_final_inspector_calls_total": _coerce_int(result.hybrid_final_inspector_calls_total),
             "hybrid_pairs_rejected_total": _coerce_int(result.hybrid_pairs_rejected_total),
             "hybrid_embedding_calls_total": _coerce_int(result.hybrid_embedding_calls_total),
             "warnings": _normalize_matching_warnings(result.warnings),

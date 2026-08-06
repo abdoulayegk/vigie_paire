@@ -53,7 +53,9 @@ DIFF_TYPE_LABELS_FR: dict[str, str] = {
 def _normalize(value: Any) -> str:
     """Normalise legerement un texte pour les regles de classement."""
     text = str(value or "").lower()
-    replacements = str.maketrans({"é": "e", "è": "e", "ê": "e", "à": "a", "ç": "c", "ô": "o", "î": "i", "ï": "i", "û": "u", "ù": "u"})
+    replacements = str.maketrans(
+        {"é": "e", "è": "e", "ê": "e", "à": "a", "ç": "c", "ô": "o", "î": "i", "ï": "i", "û": "u", "ù": "u"}
+    )
     return re.sub(r"\s+", " ", text.translate(replacements)).strip()
 
 
@@ -84,43 +86,125 @@ def derive_vigie_category(
     # Themes et termes suffisamment specifiques pour etre prioritaires.
     if _has_any(corpus, "actifs ponderes", "actifs pondérés", " apr", "rwa", "risk-weighted"):
         return _CATEGORY_LABELS["apr"]
-    if _has_any(corpus, "risque de modele", "risque de modèle", "validation des modeles", "validation des modèles", "e-23"):
+    if _has_any(
+        corpus, "risque de modele", "risque de modèle", "validation des modeles", "validation des modèles", "e-23"
+    ):
         return _CATEGORY_LABELS["modele"]
     if _has_any(corpus, "intelligence artificielle", "ia generative", "ia générative", " ai "):
         return _CATEGORY_LABELS["ia"]
     if _has_any(corpus, "cyber", "ransomware", "hameconnage", "phishing", "attaque par deni"):
         return _CATEGORY_LABELS["cyber"]
-    if _has_any(corpus, "donnees", "données", "technologie", "infonuag", "cloud", "fournisseur critique", "tiers critique"):
+    if _has_any(
+        corpus, "donnees", "données", "technologie", "infonuag", "cloud", "fournisseur critique", "tiers critique"
+    ):
         return _CATEGORY_LABELS["donnees_technologie"]
     if "ESG_CLIMATIQUE" in themes or _has_any(corpus, "climat", "esg", "b-15", "durabilite", "durabilité", "nzba"):
         return _CATEGORY_LABELS["esg"]
-    if "RISQUE_MACRO_GEOPOLITIQUE" in themes or _has_any(corpus, "tarif douanier", "geopolit", "géopolit", "ukraine", "moyen-orient", "sanction", "guerre commerciale"):
+    if "RISQUE_MACRO_GEOPOLITIQUE" in themes or _has_any(
+        corpus, "tarif douanier", "geopolit", "géopolit", "ukraine", "moyen-orient", "sanction", "guerre commerciale"
+    ):
         return _CATEGORY_LABELS["geopolitique"]
-    if _has_any(corpus, "inflation", "recession", "récession", "chomage", "chômage", "croissance economique", "croissance économique"):
+    if _has_any(
+        corpus,
+        "inflation",
+        "recession",
+        "récession",
+        "chomage",
+        "chômage",
+        "croissance economique",
+        "croissance économique",
+    ):
         return _CATEGORY_LABELS["macro"]
-    if _has_any(corpus, "risque de credit", "risque de crédit", "hypothec", "hypothéc", "endettement des menages", "endettement des ménages", "garantie"):
+    if _has_any(
+        corpus,
+        "risque de credit",
+        "risque de crédit",
+        "hypothec",
+        "hypothéc",
+        "endettement des menages",
+        "endettement des ménages",
+        "garantie",
+    ):
         return _CATEGORY_LABELS["credit"]
-    if _has_any(corpus, "risque de marche", "risque de marché", "var", "rtipb", "risque de change", "risque actions", "sensibilite aux taux", "sensibilité aux taux"):
+    if _has_any(
+        corpus,
+        "risque de marche",
+        "risque de marché",
+        "var",
+        "rtipb",
+        "risque de change",
+        "risque actions",
+        "sensibilite aux taux",
+        "sensibilité aux taux",
+    ):
         return _CATEGORY_LABELS["marche"]
     if "LIQUIDITE" in themes or _has_any(corpus, "liquidite", "liquidité", " lcr", " nsfr", "financement"):
         return _CATEGORY_LABELS["liquidite"]
-    if _has_any(corpus, "risque operationnel", "risque opérationnel", "continuite des affaires", "continuité des affaires", "paiement", "fraude"):
+    if _has_any(
+        corpus,
+        "risque operationnel",
+        "risque opérationnel",
+        "continuite des affaires",
+        "continuité des affaires",
+        "paiement",
+        "fraude",
+    ):
         return _CATEGORY_LABELS["operationnel"]
-    if _has_any(corpus, "aml", "fat", "blanchiment", "protection des consommateurs", "vie privee", "vie privée", "confidentialite", "confidentialité", "loi fiscale") or "CONTROLE_CONFORMITE" in themes:
+    if (
+        _has_any(
+            corpus,
+            "aml",
+            "fat",
+            "blanchiment",
+            "protection des consommateurs",
+            "vie privee",
+            "vie privée",
+            "confidentialite",
+            "confidentialité",
+            "loi fiscale",
+        )
+        or "CONTROLE_CONFORMITE" in themes
+    ):
         return _CATEGORY_LABELS["conformite"]
-    if _has_any(corpus, "comite", "comité", "conseil d'administration", "audit interne", "trois lignes de defense", "trois lignes de défense") or "GOUVERNANCE_RISQUES" in themes:
+    if (
+        _has_any(
+            corpus,
+            "comite",
+            "comité",
+            "conseil d'administration",
+            "audit interne",
+            "trois lignes de defense",
+            "trois lignes de défense",
+        )
+        or "GOUVERNANCE_RISQUES" in themes
+    ):
         return _CATEGORY_LABELS["gouvernance"]
-    if _has_any(corpus, "appetit pour le risque", "appétit pour le risque", "cadre de gestion des risques", "taxonomie des risques", "simulation de crise", "controle interne", "contrôle interne"):
+    if _has_any(
+        corpus,
+        "appetit pour le risque",
+        "appétit pour le risque",
+        "cadre de gestion des risques",
+        "taxonomie des risques",
+        "simulation de crise",
+        "controle interne",
+        "contrôle interne",
+    ):
         return _CATEGORY_LABELS["cadre_risques"]
-    if _has_any(corpus, "cet1", "tier 1", "tier 2", "tlac", "fonds propres", "capital economique", "capital économique") or themes & {"CAPITAL_REGLEMENTAIRE", "FONDS_PROPRES_REGLEMENTAIRES", "RATIOS_REGLEMENTAIRES"}:
+    if _has_any(
+        corpus, "cet1", "tier 1", "tier 2", "tlac", "fonds propres", "capital economique", "capital économique"
+    ) or themes & {"CAPITAL_REGLEMENTAIRE", "FONDS_PROPRES_REGLEMENTAIRES", "RATIOS_REGLEMENTAIRES"}:
         return _CATEGORY_LABELS["fonds_propres"]
     if source_kind == "table" or _has_any(corpus, "tableau", "colonnes ajoutees", "colonnes ajoutées"):
         return _CATEGORY_LABELS["tableaux"]
     if _has_any(corpus, "renommage", "terminologie", "vocabulaire"):
         return _CATEGORY_LABELS["terminologie"]
-    if "STRUCTURE_RAPPORT" in themes or _has_any(corpus, "sous-section", "section ajoutee", "section ajoutée", "section retiree", "section retirée"):
+    if "STRUCTURE_RAPPORT" in themes or _has_any(
+        corpus, "sous-section", "section ajoutee", "section ajoutée", "section retiree", "section retirée"
+    ):
         return _CATEGORY_LABELS["structure"]
-    if themes & {"NOUVELLE_MENTION_REGLEMENTAIRE", "EXIGENCES_REGLEMENTAIRES", "MONTANT_REGLEMENTAIRE"} or _has_any(corpus, "bsif", "osfi", "bale", "bâle", "ligne directrice", "reglement", "réglement"):
+    if themes & {"NOUVELLE_MENTION_REGLEMENTAIRE", "EXIGENCES_REGLEMENTAIRES", "MONTANT_REGLEMENTAIRE"} or _has_any(
+        corpus, "bsif", "osfi", "bale", "bâle", "ligne directrice", "reglement", "réglement"
+    ):
         return _CATEGORY_LABELS["reglementation"]
     return _CATEGORY_LABELS["cadre_risques"]
 

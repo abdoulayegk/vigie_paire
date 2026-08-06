@@ -241,9 +241,7 @@ class SectionLocator(
                     bank_code=self.bank_code or "",
                     text_by_page=text_by_page,
                     total_pages=total_pages,
-                    find_start=lambda key: self._find_annual_t4_section_start(
-                        key, text_by_page, total_pages
-                    ),
+                    find_start=lambda key: self._find_annual_t4_section_start(key, text_by_page, total_pages),
                     find_end=lambda key, start: self._detect_annual_t4_section_end(
                         key, start, text_by_page, total_pages
                     ),

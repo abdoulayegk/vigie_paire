@@ -498,9 +498,7 @@ def test_v2_meta_and_proofs_resolve_same_review_selection(monkeypatch) -> None:
     monkeypatch.setattr(proof_mod, "build_proofs_section", _capture_proofs)
     monkeypatch.setattr(proof_mod, "build_review_detail_v2", _capture_meta)
 
-    assert (
-        proof_mod.update_review_proofs(queue, selection, {}, True, "crop") == "proofs"
-    )
+    assert proof_mod.update_review_proofs(queue, selection, {}, True, "crop") == "proofs"
     assert proof_mod.update_review_meta(queue, selection, True) == "meta"
     assert seen == {
         "proofs": "ACTIONS ET AUTRES TITRES¹",

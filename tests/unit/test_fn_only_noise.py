@@ -9,9 +9,7 @@ from vigie.interface.review_models import (
 )
 
 
-def _make_payload(
-    *, table_status: str, has_indicators: bool, has_footnotes: bool
-) -> dict:
+def _make_payload(*, table_status: str, has_indicators: bool, has_footnotes: bool) -> dict:
     comp: dict = {
         "table_id_t1": "tbl_p037_i01",
         "table_id_t2": "tbl_p031_i01",
@@ -37,9 +35,7 @@ def _make_payload(
     }
     if has_indicators:
         comp["added_indicators"] = ["Indicateur ajouté"]
-        comp["added_indicators_raw"] = [
-            {"value": "Indicateur ajouté", "reason": "test"}
-        ]
+        comp["added_indicators_raw"] = [{"value": "Indicateur ajouté", "reason": "test"}]
     if has_footnotes:
         comp["footnotes_counts"] = {"footnotes_renamed": 1}
         comp["footnotes_diff"] = {
@@ -68,9 +64,7 @@ def _make_payload(
 def test_fn_only_modifie_table_skips_table_level_modified_item():
     """A 'modifie' table with only footnote changes should NOT produce a
     redundant 'modified' ReviewItem — only footnote ReviewItems."""
-    payload = _make_payload(
-        table_status="modifie", has_indicators=False, has_footnotes=True
-    )
+    payload = _make_payload(table_status="modifie", has_indicators=False, has_footnotes=True)
     items = build_review_items_from_indicator_result(
         payload,
         bank_code="TD",
@@ -81,18 +75,14 @@ def test_fn_only_modifie_table_skips_table_level_modified_item():
     )
     modified_items = [i for i in items if i.change_type == CHANGE_TYPE_MODIFIED]
     footnote_items = [i for i in items if i.change_type == CHANGE_TYPE_FOOTNOTE]
-    assert len(modified_items) == 0, (
-        "Redundant 'modified' ReviewItem should not be created for FN-only tables"
-    )
+    assert len(modified_items) == 0, "Redundant 'modified' ReviewItem should not be created for FN-only tables"
     assert len(footnote_items) >= 1, "Footnote ReviewItem should exist"
 
 
 def test_modifie_table_without_footnotes_still_gets_table_level_item():
     """A 'modifie' table with no indicators AND no footnotes should still get
     a table-level ReviewItem (edge case: GPT says modifie but no details)."""
-    payload = _make_payload(
-        table_status="modifie", has_indicators=False, has_footnotes=False
-    )
+    payload = _make_payload(table_status="modifie", has_indicators=False, has_footnotes=False)
     items = build_review_items_from_indicator_result(
         payload,
         bank_code="TD",
@@ -102,17 +92,13 @@ def test_modifie_table_without_footnotes_still_gets_table_level_item():
         pdf_path_t2="/fake/t2.pdf",
     )
     modified_items = [i for i in items if i.change_type == CHANGE_TYPE_MODIFIED]
-    assert len(modified_items) == 1, (
-        "Table-level 'modified' item should exist when no footnotes either"
-    )
+    assert len(modified_items) == 1, "Table-level 'modified' item should exist when no footnotes either"
 
 
 def test_modifie_table_with_indicators_and_footnotes_keeps_both():
     """A 'modifie' table with BOTH indicators and footnotes should produce
     indicator ReviewItems AND footnote ReviewItems (no filtering)."""
-    payload = _make_payload(
-        table_status="modifie", has_indicators=True, has_footnotes=True
-    )
+    payload = _make_payload(table_status="modifie", has_indicators=True, has_footnotes=True)
     items = build_review_items_from_indicator_result(
         payload,
         bank_code="TD",

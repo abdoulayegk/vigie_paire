@@ -480,9 +480,7 @@ def run_text_analysis_pipeline(
         provisional_by_section[section_key] = changes
 
     provisional_changes = [
-        change
-        for section_key in section_keys
-        for change in provisional_by_section.get(section_key, [])
+        change for section_key in section_keys for change in provisional_by_section.get(section_key, [])
     ]
     reconciled_changes, reconciliation_audit = reconcile_global_change_fragments(
         client=client,

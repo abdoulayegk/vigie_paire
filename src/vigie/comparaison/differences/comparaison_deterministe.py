@@ -99,9 +99,7 @@ def _deterministic_footnote_diff(
             prev_matched[pi] = True
             curr_matched[match_idx] = True
 
-    det_added: list[dict[str, str]] = [
-        curr_footnotes[ci] for ci in range(len(curr_footnotes)) if not curr_matched[ci]
-    ]
+    det_added: list[dict[str, str]] = [curr_footnotes[ci] for ci in range(len(curr_footnotes)) if not curr_matched[ci]]
     det_removed: list[dict[str, str]] = [
         prev_footnotes[pi] for pi in range(len(prev_footnotes)) if not prev_matched[pi]
     ]
