@@ -459,8 +459,8 @@ def _section_page_range_from_index(
 ) -> tuple[int | None, int | None]:
     """Déduit ``(start_page, end_page)`` d'une section à partir de son index.
 
-    Si ``start_page_hint`` est fourni (ex: extrait du ``[p.N]`` précédant
-    le header ``## Title`` dans le .md), il prime sur le min des pages des
+    Si ``start_page_hint`` est fourni (ex: extrait du suffixe ``[pdf.N]`` du
+    header ``## Title`` dans le .md), il prime sur le min des pages des
     blocs pour rester cohérent avec ``ResolvedSection.start_page``.
     """
     if not page_index:

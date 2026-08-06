@@ -28,7 +28,6 @@ from .bank_config import (
 )
 from .banks_cibc import CibcRefinementMixin
 from .bounds import BoundsMixin
-from .genai_fallback import GenAIFallbackMixin
 from .models import (
     LocatedSection,
     SectionMapping,
@@ -37,7 +36,7 @@ from .models import (
 )
 from .title_scan import TitleScanMixin
 from .toc_parser import TocParserMixin
-from .validation import ValidationMixin
+from .validation import ValidationMixin, assess_target_section_health
 from .visual_layout import VisualLayoutMixin
 from vigie.extraction.section_taxonomy import canonicalize_section
 
@@ -60,7 +59,6 @@ class SectionLocator(
     BoundsMixin,
     ValidationMixin,
     CibcRefinementMixin,
-    GenAIFallbackMixin,
 ):
     """Localisateur de sections dans les rapports bancaires.
 
@@ -223,22 +221,6 @@ class SectionLocator(
                                 f"Section {visual_section.section_type}: detection visuelle "
                                 f"page {visual_section.start_page} (conf={visual_section.confidence:.2f})"
                             )
-
-        # ETAPE 2.5 (NOUVEAU): Fallback GenAI si confiance faible ou sections manquantes
-        if self._needs_genai_fallback(sections):
-            logger.info("Activation du fallback GenAI pour sections manquantes...")
-            genai_sections = self._detect_with_genai(pdf_path)
-            for genai_section in genai_sections:
-                if genai_section.section_type == "gestion_reglementation" and not self._bank_has_regulatory_section():
-                    continue
-                if genai_section.section_type not in found_types:
-                    if genai_section.start_page > 5:
-                        sections.append(genai_section)
-                        found_types.add(genai_section.section_type)
-                        logger.info(
-                            f"Section {genai_section.section_type}: GenAI fallback "
-                            f"page {genai_section.start_page} (conf={genai_section.confidence:.2f})"
-                        )
 
         # T4 annuel: TDM structurelle (Rapport de gestion) avant le rebase titres.
         # Les titres hardcodes restent un prior/repli si la TDM est incomplete.
@@ -432,6 +414,11 @@ class SectionLocator(
                 sections = self._resolve_section_anchors(sections, visual_elements)
             else:
                 sections = [replace(section, anchor_found=False) for section in sections]
+
+        # Constat de fiabilité des deux concepts cibles, joint au diagnostic.
+        # Il ne déclenche aucune action de repli : il rend visible une section
+        # cible absente ou faible, ce qu'aucune étape ne signalait auparavant.
+        boundary_validation["target_sections"] = assess_target_section_health(sections)
 
         # Creer le mapping
         mapping = SectionMapping(

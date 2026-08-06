@@ -92,7 +92,7 @@ def test_generate_text_comparison_excel_creates_analysis_sheet() -> None:
                             "impact_level": "MODERE",
                             "action_requise": "information",
                             "nouvelle_idee": False,
-                            "nouvelle_idee_justification": "",
+                            "nouvelle_idee_justification": justification_non,
                         },
                     },
                     {

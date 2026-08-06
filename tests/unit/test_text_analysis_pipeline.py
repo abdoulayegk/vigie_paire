@@ -32,7 +32,6 @@ from vigie.analyse_texte.models import (
     PDFBlock,
     ResolvedSection,
     SectionAudit,
-    SemanticUnit,
     TextAnalysisQualityError,
 )
 from vigie.analyse_texte.normalization import (
@@ -54,7 +53,6 @@ from vigie.analyse_texte.subsection_matching import (
     _normalize_heading,
     _pair_subsections,
     _parse_subsections,
-    _resolve_orphan_subsections,
 )
 from vigie.analyse_texte.summary import (
     _build_global_summary,
@@ -83,7 +81,6 @@ from vigie.analyse_texte.global_reconciliation import (
     _one_sided_nodes,
     reconcile_global_change_fragments,
 )
-from vigie.analyse_texte.text_comparison.change_segments import build_change_segments_from_texts
 from vigie.analyse_texte.subsection_matching import OrphanMatchLLMResponse, OrphanSubsection
 from vigie.analyse_texte.text_extraction.text_extraction_markdown_writer import (
     get_raw_docling_markdown_path,
@@ -1690,7 +1687,7 @@ def test_extract_audits_for_pdf_writes_raw_docling_markdown_before_filtering(
     )
 
     assert raw_path.read_text(encoding="utf-8") == raw_markdown
-    assert "[p." not in written_raw
+    assert _first_page_marker(written_raw) is None
     assert "bbox=" not in written_raw
     assert "block_id=" not in written_raw
     assert [block.block_id for block in audits[0].included_blocks] == ["p007_d001"]
@@ -4478,8 +4475,8 @@ def test_compare_section_texts_merges_parallel_batch_results_in_source_order(mon
         client=object(),
         model="gpt-4o",
         section_key="gestion_risques",
-        text_t1=f"### Risque de stratégie\n\n" + "\n\n".join(paragraphs_t1),
-        text_t2=f"### Risque de stratégie\n\n" + "\n\n".join(paragraphs_t2),
+        text_t1="### Risque de stratégie\n\n" + "\n\n".join(paragraphs_t1),
+        text_t2="### Risque de stratégie\n\n" + "\n\n".join(paragraphs_t2),
     )
 
     assert [change["source_text_t2"] for change in changes] == [paragraphs_t2[0], paragraphs_t2[5]]
@@ -5685,12 +5682,9 @@ from vigie.comparaison.triage.amf_taxonomy import (
     TriageAMFCompactLLMBatch,
     TriageAMFCompactLLMResultWithIndex,
     TriageAMFBatch,
-    TriageAMFLLMBatch,
-    TriageAMFLLMResultWithIndex,
     TriageAMFResult,
     TriageAMFResultWithIndex,
     TriageValidationError,
-    count_complete_sentences,
 )
 from vigie.analyse_texte.openai_client import (
     _call_structured_completion,
@@ -7080,6 +7074,31 @@ def test_real_methodology_or_process_change_receives_major_priority(
     assert "Exemple 9 — modification réelle de processus" in prompt
 
 
+def test_derive_impact_from_compact_floors_relevant_to_modere() -> None:
+    from vigie.analyse_texte.triage_parts.results import _derive_impact_from_compact
+
+    assert _derive_impact_from_compact(
+        is_relevant=True,
+        nouvelle_idee=False,
+        high_priority=False,
+    ) == ("MODERE", "investigation")
+    assert _derive_impact_from_compact(
+        is_relevant=True,
+        nouvelle_idee=True,
+        high_priority=False,
+    ) == ("MODERE", "investigation")
+    assert _derive_impact_from_compact(
+        is_relevant=True,
+        nouvelle_idee=True,
+        high_priority=True,
+    ) == ("MAJEUR", "revue_prioritaire")
+    assert _derive_impact_from_compact(
+        is_relevant=False,
+        nouvelle_idee=False,
+        high_priority=True,
+    ) == ("MINEUR", "aucune")
+
+
 def test_committee_rename_stays_relevant_without_becoming_a_new_idea() -> None:
     previous = (
         "Le Comité de gestion des risques (CGR) supervise le cadre de gestion "
@@ -7126,12 +7145,14 @@ def test_committee_rename_stays_relevant_without_becoming_a_new_idea() -> None:
     assert client.call_count == 1
     assert triage["is_relevant"] is True
     assert triage["nouvelle_idee"] is False
-    assert triage["impact_level"] == "MINEUR"
-    assert triage["action_requise"] == "information"
+    assert triage["impact_level"] == "MODERE"
+    assert triage["action_requise"] == "investigation"
     prompt = client._completions.calls[0]["messages"][1]["content"]
     assert "reste pertinent même si son mandat demeure identique" in prompt
     assert "simple renommage sans effet sur le mandat ne l’est pas" in prompt
     assert "Exemple 7 — comité renommé pertinent" in prompt
+    assert "périodicité de reporting ou de suivi prudentiel" in prompt
+    assert "Exemple 10 — périodicité de reporting" in prompt
 
 
 def test_triage_section_changes_holds_unresolved_alignment_for_analyst_review() -> None:

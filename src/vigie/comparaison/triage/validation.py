@@ -247,6 +247,8 @@ def _validate_triage_response(data: dict[str, Any] | None) -> dict[str, Any]:
         justification_posture = ""
         statut_mise_en_oeuvre = "INDETERMINE"
         confiance_posture = "INDETERMINE"
+        impact_level = "MINEUR"
+        risk_level = "FAIBLE"
 
     try:
         confidence = max(0.0, min(1.0, float(data.get("confidence", 0.5))))

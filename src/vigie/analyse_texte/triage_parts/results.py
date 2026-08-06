@@ -224,6 +224,24 @@ _COMPACT_HIGH_PRIORITY_THEMES = frozenset(
 )
 
 
+def _derive_impact_from_compact(
+    *,
+    is_relevant: bool,
+    nouvelle_idee: bool,
+    high_priority: bool,
+) -> tuple[str, str]:
+    """Derive impact_level and action_requise from compact triage flags.
+
+    Floor rule (all banks): every relevant change is at least MODERE.
+    ``nouvelle_idee`` only distinguishes MAJEUR vs MODERE, never demotes to MINEUR.
+    """
+    if not is_relevant:
+        return "MINEUR", "aucune"
+    if nouvelle_idee and high_priority:
+        return "MAJEUR", "revue_prioritaire"
+    return "MODERE", "investigation"
+
+
 def _persisted_triage_from_compact(
     compact: dict[str, Any],
     *,
@@ -300,18 +318,11 @@ def _persisted_triage_from_compact(
         substantive_process_change
     )
 
-    if not is_relevant:
-        impact_level = "MINEUR"
-        action_requise = "aucune"
-    elif nouvelle_idee and high_priority:
-        impact_level = "MAJEUR"
-        action_requise = "revue_prioritaire"
-    elif nouvelle_idee:
-        impact_level = "MODERE"
-        action_requise = "investigation"
-    else:
-        impact_level = "MINEUR"
-        action_requise = "information"
+    impact_level, action_requise = _derive_impact_from_compact(
+        is_relevant=is_relevant,
+        nouvelle_idee=nouvelle_idee,
+        high_priority=high_priority,
+    )
 
     triage: dict[str, Any] = {
         "compact_schema_version": "analyst_compact_v2",

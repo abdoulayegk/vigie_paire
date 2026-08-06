@@ -379,7 +379,7 @@ def run_text_analysis_pipeline(
 
     * Le .md canonique vit dans ``outputs/text_extractions/{bank}/{year}/{q}/text_extraction.md`` et sert d'artefact d'audit ET d'entrée réutilisable pour les runs suivants.
     * ``force_extraction=True`` ignore ce cache et force une ré-extraction Docling.
-    * Les marqueurs ``[p.N]`` présents dans le .md sont strippés avant tout appel GPT (gatekeeper unique : ``_extract_section_text_from_markdown``).
+    * Les marqueurs ``[pdf.N]`` présents dans le .md sont strippés avant tout appel GPT (gatekeeper unique : ``_extract_section_text_from_markdown``).
     * Les appels GPT du flux texte n'envoient pas de limite de complétion explicite par défaut, afin de privilégier l'arrêt naturel du modèle.
     """
     quarter_current = normalize_quarter(quarter_current)

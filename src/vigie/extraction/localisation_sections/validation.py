@@ -14,6 +14,60 @@ from .models import LocatedSection, TocEntry
 logger = logging.getLogger("vigie.extraction.section_locator")
 
 
+TARGET_SECTION_CONCEPTS = ("capital_management", "risk_management")
+TARGET_SECTION_MIN_CONFIDENCE = 0.7
+
+
+def assess_target_section_health(sections: list[LocatedSection]) -> dict:
+    """Constater si les deux concepts cibles sont localisés, et à quelle confiance.
+
+    Remplace l'ancien déclencheur du repli GenAI, qui comptait le nombre
+    d'entrées — donc une section réglementaire pouvait masquer une section
+    risques absente — et moyennait les confiances — donc un override manuel à
+    1.0 pouvait dissimuler un scan de titres au plancher.
+
+    Le constat porte ici sur les deux concepts cibles et sur le **minimum** des
+    confiances. Il ne déclenche aucune action : il est joint au mapping pour
+    remonter jusqu'au manifeste.
+    """
+    from vigie.extraction.section_taxonomy import canonicalize_section
+
+    by_concept: dict[str, float] = {}
+    for section in sections:
+        concept = canonicalize_section(section.section_type)
+        if concept not in TARGET_SECTION_CONCEPTS:
+            continue
+        confidence = float(section.confidence or 0.0)
+        by_concept[concept] = max(by_concept.get(concept, 0.0), confidence)
+
+    missing = [concept for concept in TARGET_SECTION_CONCEPTS if concept not in by_concept]
+    min_confidence = min(by_concept.values()) if by_concept else 0.0
+
+    if missing:
+        status = "missing_target_section"
+    elif min_confidence < TARGET_SECTION_MIN_CONFIDENCE:
+        status = "low_confidence"
+    else:
+        status = "complete"
+
+    health = {
+        "status": status,
+        "expected": list(TARGET_SECTION_CONCEPTS),
+        "located": sorted(by_concept),
+        "missing": missing,
+        "min_confidence": round(min_confidence, 2),
+        "confidence_by_concept": {key: round(value, 2) for key, value in sorted(by_concept.items())},
+    }
+    if status != "complete":
+        logger.warning(
+            "Localisation des sections cibles: %s (manquantes=%s, confiance min=%.2f)",
+            status,
+            missing or "aucune",
+            min_confidence,
+        )
+    return health
+
+
 class ValidationMixin:
     """Validation croisée des sections détectées et calcul de consensus entre stratégies."""
 

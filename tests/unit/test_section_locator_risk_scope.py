@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import re
 
-from vigie.extraction.genai_toc_detector import GenAITOCDetector
 from vigie.extraction.localisation_sections import (
     RISK_SUBSECTIONS,
     SECTION_PATTERNS,
@@ -44,15 +43,6 @@ def test_data_cloud_and_resilience_are_known_risk_subsections() -> None:
     }
 
     assert expected.issubset(set(RISK_SUBSECTIONS))
-
-
-def test_toc_prompt_explicitly_covers_extended_risk_scope() -> None:
-    prompt = " ".join(GenAITOCDetector.SECTION_DETECTION_PROMPT.split())
-
-    assert "données" in prompt
-    assert "services infonuagiques" in prompt
-    assert "fournisseurs et tiers" in prompt
-    assert "résilience opérationnelle" in prompt
 
 
 def test_data_only_risk_section_passes_context_validation() -> None:

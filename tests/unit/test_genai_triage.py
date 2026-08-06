@@ -215,6 +215,14 @@ class TestValidateTriageResponse:
         result = _validate_triage_response(payload)
         assert result["risk_level"] == "FAIBLE"
 
+    def test_irrelevant_forces_mineur_even_if_llm_returns_eleve(self):
+        payload = self._base_payload()
+        payload["risk_level"] = "ELEVE"
+        result = _validate_triage_response(payload)
+        assert result["is_relevant"] is False
+        assert result["impact_level"] == "MINEUR"
+        assert result["risk_level"] == "FAIBLE"
+
     def test_confidence_clamped(self):
         payload = self._base_payload()
         payload["confidence"] = 2.5

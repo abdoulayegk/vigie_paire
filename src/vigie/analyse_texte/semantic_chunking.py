@@ -17,7 +17,6 @@ from vigie.analyse_texte.openai_client import (
 
 
 _SENTENCE_BOUNDARY_RE = re.compile(r"(?<=[.!?])\s+(?=[A-ZÀ-ÖØ-Þ])")
-_PAGE_REFERENCE_RE = re.compile(r"\[(?:pdf\.|p\.)\d+\]", flags=re.IGNORECASE)
 _NUMBER_RE = re.compile(
     r"(?<!\w)(?:\(?[-+]?\d[\d\s.,]*(?:\s*(?:%|\$|€|£|M\$|G\$))?\)?)(?!\w)",
     flags=re.IGNORECASE,
@@ -81,9 +80,13 @@ def _requires_semantic_partition(text: str) -> bool:
 
 
 def _normalize_sentence_for_similarity(text: str) -> str:
-    """Neutralise le bruit numérique uniquement pour calculer les similarités."""
-    value = _PAGE_REFERENCE_RE.sub(" ", str(text or ""))
-    value = _NUMBER_RE.sub(" <nombre> ", value)
+    """Neutralise le bruit numérique uniquement pour calculer les similarités.
+
+    Aucun retrait de marqueur de page ici : le texte reçu est déjà strippé par
+    ``_extract_section_text_from_markdown``. Le motif local qui traînait
+    effaçait au passage une référence française du type « [p.45] ».
+    """
+    value = _NUMBER_RE.sub(" <nombre> ", str(text or ""))
     value = _WHITESPACE_RE.sub(" ", value).strip().lower()
     return value
 

@@ -178,7 +178,7 @@ class TestPostGPTGuard:
             call_kinds.append(call_kind)
             return responses.pop(0)
 
-        result = diff_table_pair_gpt(
+        diff_table_pair_gpt(
             _table(table_id="prev", indicators=["Série 1", "Série 5", "Série 9", "Total"]),
             _table(table_id="curr", indicators=["Série 1", "Série 5", "Total"]),
             model="gpt-4o-test",
