@@ -369,7 +369,7 @@ def test_triage_few_shots_request_structured_analyst_fields() -> None:
     assert "justification_posture" not in _FEW_SHOT_TRIAGE_AMF
     assert _FEW_SHOT_TRIAGE_AMF.count("Exemple ") == 10
     assert "transfert de responsabilité de gouvernance" in _FEW_SHOT_TRIAGE_AMF
-    assert "comité renommé pertinent" in _FEW_SHOT_TRIAGE_AMF
+    assert "comité renommé ciblé de gouvernance pertinent" in _FEW_SHOT_TRIAGE_AMF
     outputs = [
         json.loads(line.removeprefix("Output : "))
         for line in _FEW_SHOT_TRIAGE_AMF.splitlines()
@@ -7726,7 +7726,7 @@ def test_committee_rename_stays_relevant_without_becoming_a_new_idea() -> None:
     prompt = client._completions.calls[0]["messages"][1]["content"]
     assert "reste pertinent même si son mandat demeure identique" in prompt
     assert "simple renommage sans effet sur le mandat ne l’est pas" in prompt
-    assert "Exemple 7 — comité renommé pertinent" in prompt
+    assert "Exemple 7 — comité renommé ciblé de gouvernance pertinent" in prompt
     assert "périodicité de reporting ou de suivi prudentiel" in prompt
     assert "Exemple 10 — périodicité de reporting" in prompt
 
