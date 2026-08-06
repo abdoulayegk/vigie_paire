@@ -16,12 +16,19 @@ repos:
 
   - repo: local
     hooks:
-      - id: ruff-check-src
-        name: ruff check src
-        entry: ruff check src/
+      - id: ruff-check
+        name: ruff check src and tests
+        entry: ruff check --fix src tests
         language: system
         pass_filenames: false
-        files: ^src/.*\.py$
+        files: ^(src|tests)/.*\.py$
+
+      - id: ruff-format
+        name: ruff format src and tests
+        entry: ruff format src tests
+        language: system
+        pass_filenames: false
+        files: ^(src|tests)/.*\.py$
 
       - id: bandit-src
         name: bandit security scan src

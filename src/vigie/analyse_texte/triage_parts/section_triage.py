@@ -322,6 +322,10 @@ def _triage_section_changes(
         "pertinents. Exception : le changement explicite du nom d’un comité ou "
         "d’une instance de gouvernance reste pertinent même si son mandat demeure "
         "identique; utilise alors `GOUVERNANCE_RISQUES` et `nouvelle_idee=false`.\n"
+        "Un renommage ciblé d’un comité, d’un intitulé de section, d’une politique, ",
+        "d’un code de conduite ou d’une terminologie réglementaire reste pertinent ",
+        "lorsqu’il modifie le cadrage, la portée ou la comparabilité de la divulgation ; ",
+        "dans ce cas, considère `nouvelle_idee=true`."
         f"3. `nouvelle_idee=true` seulement si {bank_subject} ajoute, retire "
         "ou modifie substantiellement une information qui n’était pas divulguée "
         "auparavant sous cette forme. Pour la gouvernance, considère comme substantiel "
@@ -362,7 +366,7 @@ def _triage_section_changes(
         f"{_FEW_SHOT_TRIAGE_AMF}\n\n"
         f"Banque analysée : {bank_subject}\n"
         f"Section : {section_key}\n"
-        f"Changements :\n{_json_dumps(triage_inputs)}"
+        f"Changements :\n{_json_dumps(triage_inputs)}",
     )
     compact_max_tokens = min(
         _COMPACT_COMPLETION_MAX_TOKENS,

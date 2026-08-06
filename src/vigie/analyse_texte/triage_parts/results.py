@@ -6,12 +6,13 @@ Extrait de ``triage.py`` sans modification.
 from __future__ import annotations
 
 import logging
+import re
 from typing import Any
 
-from vigie.comparaison.triage.amf_taxonomy import TRIAGE_SOURCE_VERSION, empty_triage_skeleton
-from vigie.comparaison.analyst_change_presentation import bank_subject as analyst_bank_subject
 from vigie.analyse_texte.text_comparison.change_segments import build_change_segments
 from vigie.analyse_texte.text_comparison.justification import build_compact_triage_justification
+from vigie.comparaison.analyst_change_presentation import bank_subject as analyst_bank_subject
+from vigie.comparaison.triage.amf_taxonomy import TRIAGE_SOURCE_VERSION, empty_triage_skeleton
 
 from .analyst_copy import (
     _analyst_exclusion_copy,
@@ -219,6 +220,41 @@ _COMPACT_HIGH_PRIORITY_THEMES = frozenset(
     }
 )
 
+_REGULATORY_GOVERNANCE_RENAME_RE = re.compile(
+    r"\b(renomm(?:e|age|er)|retitr(?:e|age)|intitul[ée]|dénomination|code de conduite|code de déontologie|politique|section|titre)\b",
+    re.IGNORECASE,
+)
+
+_REGULATORY_GOVERNANCE_CONTEXT_RE = re.compile(
+    r"\b(comit[ée]|gouvernance|conformit[ée]|mandat|autorité|politique|section|titre|intitul[ée]|code de conduite|code de déontologie|règlementaire|BSIF|AMF|comité)\b",
+    re.IGNORECASE,
+)
+
+
+def _is_targeted_governance_rename(change: dict[str, Any]) -> bool:
+    text = " ".join(
+        str(change.get(field) or "")
+        for field in (
+            "change_summary",
+            "source_text_t1",
+            "source_text_t2",
+            "semantic_text_t1",
+            "semantic_text_t2",
+        )
+    )
+    if not text:
+        return False
+    if not _REGULATORY_GOVERNANCE_RENAME_RE.search(text):
+        return False
+    if not _REGULATORY_GOVERNANCE_CONTEXT_RE.search(text):
+        return False
+    diff = change.get("technical_diff") or {}
+    if diff.get("indicators_renamed") or diff.get("footnotes_renamed"):
+        return True
+    if change.get("diff_type") == "renamed":
+        return True
+    return False
+
 
 def _derive_impact_from_compact(
     *,
@@ -290,6 +326,13 @@ def _persisted_triage_from_compact(
             motif_non_pertinence=comparative,
         )
         relevance_reason = analyst_copy["relevance_reason"]
+
+    if is_relevant and not nouvelle_idee and _is_targeted_governance_rename(change):
+        logger.debug(
+            "post_llm_override targeted_governance_rename change_id=%s",
+            change.get("change_id"),
+        )
+        nouvelle_idee = True
 
     change_corpus = " ".join(
         str(change.get(field) or "")
