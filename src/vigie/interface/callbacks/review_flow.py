@@ -27,6 +27,22 @@ from vigie.support.i18n import t
 logger = logging.getLogger(__name__)
 
 
+def _is_real_click(n_clicks) -> bool:
+    """Retourne True si la valeur de ``n_clicks`` correspond a un vrai clic analyste.
+
+    Dash relance un callback des qu'un de ses Input se retrouve dans un bloc de
+    layout reconstruit par un autre callback (``prevent_initial_call`` ne couvre
+    pas ce cas). Ces declenchements fantomes arrivent avec ``n_clicks`` a 0 ou
+    None alors que ``ctx.triggered_id`` designe malgre tout un bouton : sans ce
+    controle, un simple rafraichissement de la file rejoue une validation ou une
+    navigation que l'analyste n'a jamais demandee.
+    """
+    try:
+        return int(n_clicks or 0) > 0
+    except (TypeError, ValueError):
+        return False
+
+
 def _has_final_indicator_decision(change: dict) -> bool:
     """Retourne True si le changement indicateur a une decision finale."""
     return str(change.get("validation_status", "pending")) in {"approved", "rejected"}
@@ -179,6 +195,9 @@ def on_filter_section(n_clicks, current_filters):
     if not ctx.triggered_id:
         raise PreventUpdate
 
+    if not any(_is_real_click(nc) for nc in (n_clicks or [])):
+        raise PreventUpdate
+
     section_value = ctx.triggered_id.get("value")
     new_filters = dict(current_filters or {})
     new_filters["section"] = section_value
@@ -223,12 +242,12 @@ def on_validate_change_v2(
         raise PreventUpdate
 
     action_map = {
-        "btn-approve-change-v2": "approved",
-        "btn-reject-change-v2": "rejected",
-        "btn-skip-change-v2": "skipped",
+        "btn-approve-change-v2": ("approved", approve),
+        "btn-reject-change-v2": ("rejected", reject),
+        "btn-skip-change-v2": ("skipped", skip),
     }
-    decision = action_map.get(ctx.triggered_id)
-    if not decision:
+    decision, triggered_clicks = action_map.get(ctx.triggered_id, ("", None))
+    if not decision or not _is_real_click(triggered_clicks):
         raise PreventUpdate
 
     resolved_selection, table_idx, change_idx = _resolve_selection(queue, selection, filters, last_positions)
@@ -384,9 +403,9 @@ def on_navigate_change_v2(prev, next_c, queue, selection, filters, last_position
                 change_idx = idx
                 break
 
-    if ctx.triggered_id == "btn-prev-change-v2":
+    if ctx.triggered_id == "btn-prev-change-v2" and _is_real_click(prev):
         new_idx = max(0, change_idx - 1)
-    elif ctx.triggered_id == "btn-next-change-v2":
+    elif ctx.triggered_id == "btn-next-change-v2" and _is_real_click(next_c):
         new_idx = min(n_changes - 1, change_idx + 1) if n_changes > 0 else 0
     else:
         raise PreventUpdate
@@ -484,11 +503,15 @@ def on_navigate_table_v2(prev, next_t, clicks, queue, selection, filters, last_p
     pos = visible_ids.index(current_review_id)
 
     target_review_id = current_review_id
-    if ctx.triggered_id == "btn-prev-table-v2":
+    if ctx.triggered_id == "btn-prev-table-v2" and _is_real_click(prev):
         target_review_id = visible_ids[max(0, pos - 1)]
-    elif ctx.triggered_id == "btn-next-table-v2":
+    elif ctx.triggered_id == "btn-next-table-v2" and _is_real_click(next_t):
         target_review_id = visible_ids[min(len(visible_ids) - 1, pos + 1)]
-    elif isinstance(ctx.triggered_id, dict) and ctx.triggered_id.get("type") == "queue-table-item-v2":
+    elif (
+        isinstance(ctx.triggered_id, dict)
+        and ctx.triggered_id.get("type") == "queue-table-item-v2"
+        and any(_is_real_click(nc) for nc in (clicks or []))
+    ):
         clicked_review_id = str(ctx.triggered_id.get("review_id") or "")
         if clicked_review_id:
             target_review_id = clicked_review_id
