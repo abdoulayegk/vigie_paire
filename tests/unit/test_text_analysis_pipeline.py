@@ -23,6 +23,7 @@ from vigie.analyse_texte.extraction import (
 )
 from vigie.analyse_texte.markdown import (
     _build_text_extraction_markdown,
+    _build_text_extraction_markdown_from_blocks,
     _extract_section_text_from_markdown,
     _first_page_marker,
     _format_page_suffix,
@@ -2031,6 +2032,159 @@ def test_build_text_extraction_markdown_keeps_headings_and_narrative_only() -> N
     assert "### Rachat d'actions ordinaires" in markdown
     assert "Le 12 décembre 2023" in markdown
     assert "TABLEAU 5" not in markdown
+
+
+def _section_h2_titles(markdown: str) -> list[str]:
+    return [
+        line
+        for line in markdown.splitlines()
+        if line.startswith("## ") and not line.startswith("### ")
+    ]
+
+
+def test_markdown_follows_pdf_order_when_risks_precede_capital() -> None:
+    """RBC-like: risques avant capital dans le PDF, même si les audits arrivent capital-first."""
+    capital = SectionAudit(
+        section_key="gestion_capital",
+        section_title="Gestion du capital",
+        start_page=127,
+        end_page=140,
+        anchor_page=127,
+        anchor_text="Gestion du capital",
+        anchor_bbox_norm=[0.1, 0.2, 0.8, 0.25],
+        included_blocks=[
+            PDFBlock(
+                "p127_d001",
+                127,
+                [0.1, 0.30, 0.9, 0.40],
+                "La banque maintient une position de capital solide.",
+                1,
+                "narrative",
+                True,
+                "",
+                "paragraph",
+            ),
+        ],
+        excluded_blocks=[],
+    )
+    risks = SectionAudit(
+        section_key="gestion_risques",
+        section_title="Gestion des risques",
+        start_page=76,
+        end_page=120,
+        anchor_page=76,
+        anchor_text="Gestion des risques",
+        anchor_bbox_norm=[0.1, 0.2, 0.8, 0.25],
+        included_blocks=[
+            PDFBlock(
+                "p076_d001",
+                76,
+                [0.1, 0.30, 0.9, 0.40],
+                "La gestion des risques est centrale aux activités.",
+                1,
+                "narrative",
+                True,
+                "",
+                "paragraph",
+            ),
+        ],
+        excluded_blocks=[],
+    )
+    # Ordre piège volontaire : capital avant risques dans la liste d'entrée.
+    audits = [capital, risks]
+    raw_docling = "\n\n".join(
+        [
+            "## Gestion des risques",
+            "La gestion des risques est centrale aux activités.",
+            "## Gestion du capital",
+            "La banque maintient une position de capital solide.",
+        ]
+    )
+
+    from_blocks = _build_text_extraction_markdown_from_blocks(audits)
+    from_docling = _build_text_extraction_markdown_from_docling(
+        audits,
+        raw_docling_markdown=raw_docling,
+    )
+
+    expected = [
+        "## Gestion des risques [pdf.76]",
+        "## Gestion du capital [pdf.127]",
+    ]
+    assert _section_h2_titles(from_blocks) == expected
+    assert _section_h2_titles(from_docling) == expected
+
+
+def test_markdown_follows_pdf_order_when_capital_precedes_risks() -> None:
+    """BNC-like: capital avant risques dans le PDF reste capital-first dans le .md."""
+    capital = SectionAudit(
+        section_key="gestion_capital",
+        section_title="Gestion du capital",
+        start_page=62,
+        end_page=71,
+        anchor_page=62,
+        anchor_text="Gestion du capital",
+        anchor_bbox_norm=[0.1, 0.2, 0.8, 0.25],
+        included_blocks=[
+            PDFBlock(
+                "p062_d001",
+                62,
+                [0.1, 0.30, 0.9, 0.40],
+                "Les fonds propres réglementaires sont suivis trimestriellement.",
+                1,
+                "narrative",
+                True,
+                "",
+                "paragraph",
+            ),
+        ],
+        excluded_blocks=[],
+    )
+    risks = SectionAudit(
+        section_key="gestion_risques",
+        section_title="Gestion des risques",
+        start_page=72,
+        end_page=118,
+        anchor_page=72,
+        anchor_text="Gestion des risques",
+        anchor_bbox_norm=[0.1, 0.2, 0.8, 0.25],
+        included_blocks=[
+            PDFBlock(
+                "p072_d001",
+                72,
+                [0.1, 0.30, 0.9, 0.40],
+                "Le cadre d'appétit pour le risque guide les décisions.",
+                1,
+                "narrative",
+                True,
+                "",
+                "paragraph",
+            ),
+        ],
+        excluded_blocks=[],
+    )
+    audits = [risks, capital]
+    raw_docling = "\n\n".join(
+        [
+            "## Gestion du capital",
+            "Les fonds propres réglementaires sont suivis trimestriellement.",
+            "## Gestion des risques",
+            "Le cadre d'appétit pour le risque guide les décisions.",
+        ]
+    )
+
+    from_blocks = _build_text_extraction_markdown_from_blocks(audits)
+    from_docling = _build_text_extraction_markdown_from_docling(
+        audits,
+        raw_docling_markdown=raw_docling,
+    )
+
+    expected = [
+        "## Gestion du capital [pdf.62]",
+        "## Gestion des risques [pdf.72]",
+    ]
+    assert _section_h2_titles(from_blocks) == expected
+    assert _section_h2_titles(from_docling) == expected
 
 
 def test_build_text_extraction_markdown_inline_pdf_page_on_headings_only() -> None:

@@ -13,7 +13,18 @@ from vigie.analyse_texte.constants import (
     _T4_TEXT_TARGET_SECTIONS,
     _TARGET_SECTIONS_BY_BANK,
 )
-from vigie.analyse_texte.models import ResolvedSection
+from vigie.analyse_texte.models import ResolvedSection, SectionAudit
+
+
+def _pdf_section_order_key(
+    *,
+    start_page: int,
+    anchor_bbox_norm: list[float] | None,
+    section_key: str,
+) -> tuple[int, float, str]:
+    """Clé d'ordre d'apparition dans le PDF (page, y ancre, clé stable)."""
+    y0 = float(anchor_bbox_norm[1]) if anchor_bbox_norm else 0.0
+    return (int(start_page), y0, section_key)
 
 
 def _sorted_sections(sections: dict[str, ResolvedSection]) -> list[ResolvedSection]:
@@ -24,10 +35,26 @@ def _sorted_sections(sections: dict[str, ResolvedSection]) -> list[ResolvedSecti
     """
     return sorted(
         sections.values(),
-        key=lambda sec: (
-            sec.start_page,
-            float(sec.anchor_bbox_norm[1]) if sec.anchor_bbox_norm else 0.0,
-            sec.section_key,
+        key=lambda sec: _pdf_section_order_key(
+            start_page=sec.start_page,
+            anchor_bbox_norm=sec.anchor_bbox_norm,
+            section_key=sec.section_key,
+        ),
+    )
+
+
+def _sorted_section_audits(audits: list[SectionAudit]) -> list[SectionAudit]:
+    """Retourne les audits triés par ordre d'apparition dans le PDF.
+
+    Même règle que ``_sorted_sections`` : page de début, y de l'ancre, puis clé.
+    Utilisé pour le rendu markdown source de vérité (Docling et fallback blocs).
+    """
+    return sorted(
+        audits,
+        key=lambda audit: _pdf_section_order_key(
+            start_page=audit.start_page,
+            anchor_bbox_norm=audit.anchor_bbox_norm,
+            section_key=audit.section_key,
         ),
     )
 

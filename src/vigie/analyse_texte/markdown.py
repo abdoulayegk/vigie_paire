@@ -16,6 +16,7 @@ from vigie.analyse_texte.normalization import (
     _looks_like_table_or_financial_grid,
     _normalized_block_text,
 )
+from vigie.analyse_texte.sections import _sorted_section_audits
 
 logger = logging.getLogger(__name__)
 
@@ -253,7 +254,7 @@ def _build_text_extraction_markdown_from_blocks(
     marqueur de page. Les suffixes sont strippés avant tout appel GPT.
     """
     lines: list[str] = []
-    for section in section_audits:
+    for section in _sorted_section_audits(section_audits):
         lines.append(_format_heading_line("##", section.section_title, section.start_page))
         lines.append("")
         seen_heading_norms: set[str] = set()

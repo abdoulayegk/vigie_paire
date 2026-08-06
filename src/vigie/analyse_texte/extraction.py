@@ -26,7 +26,11 @@ from vigie.analyse_texte.normalization import (
     _looks_like_table_or_financial_grid,
     _normalized_block_text,
 )
-from vigie.analyse_texte.sections import _next_section_by_key, _section_window_for_page
+from vigie.analyse_texte.sections import (
+    _next_section_by_key,
+    _section_window_for_page,
+    _sorted_sections,
+)
 
 _DOCLING_TEXT_PAGE_BATCH_SIZE = 2
 logger = logging.getLogger(__name__)
@@ -666,10 +670,10 @@ def _extract_audits_for_pdf(
         raw_docling_markdown_path.write_text(raw_docling_markdown, encoding="utf-8")
     repeated_counts = _repeated_text_counts(page_blocks)
     audits: list[SectionAudit] = []
-    for section_key, section in sections.items():
+    for section in _sorted_sections(sections):
         audit = _build_section_audit(
             section=section,
-            next_section=section_order.get(section_key),
+            next_section=section_order.get(section.section_key),
             page_blocks=page_blocks,
             repeated_text_counts=repeated_counts,
             table_bboxes_by_page=table_bboxes_by_page,

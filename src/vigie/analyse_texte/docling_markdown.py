@@ -33,14 +33,9 @@ from vigie.analyse_texte.normalization import (
     _looks_like_table_caption_title,
     _normalized_block_text,
 )
+from vigie.analyse_texte.sections import _sorted_section_audits
 
 logger = logging.getLogger(__name__)
-
-_SECTION_ORDER = {
-    "gestion_capital": 0,
-    "gestion_risques": 1,
-    "gestion_reglementation": 2,
-}
 
 _HEADING_LINE_RE = re.compile(r"^(#{1,6})\s+(.+)$")
 _TABLE_ROW_RE = re.compile(r"^\|.+\|$")
@@ -628,7 +623,7 @@ def _assign_segments_to_sections(
     if not audits:
         return assigned
 
-    audits_by_start = sorted(audits, key=lambda audit: (audit.start_page, _SECTION_ORDER.get(audit.section_key, 99)))
+    audits_by_start = _sorted_section_audits(audits)
     current_section: str | None = None
     stopped_sections: set[str] = set()
 
@@ -858,10 +853,7 @@ def _build_text_extraction_markdown_from_docling(
         section_audits,
         audit_events=audit_events,
     )
-    ordered_audits = sorted(
-        section_audits,
-        key=lambda audit: (_SECTION_ORDER.get(audit.section_key, 99), audit.start_page),
-    )
+    ordered_audits = _sorted_section_audits(section_audits)
 
     lines: list[str] = []
     seen_heading_norms: dict[str, set[str]] = {}
