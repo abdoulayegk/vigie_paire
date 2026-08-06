@@ -21,7 +21,7 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Recherche" href="../search.html" />
-    <link rel="next" title="Moteur applicatif" href="vigilance.html" />
+    <link rel="next" title="Moteur applicatif Vigie" href="vigie.html" />
     <link rel="prev" title="Référence technique" href="index.html" /> 
 </head>
 
@@ -48,7 +48,7 @@
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">Référence technique</a><ul class="current">
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Moteur applicatif</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html">Moteur applicatif</a></li>
+<li class="toctree-l3"><a class="reference internal" href="vigie.html">Moteur applicatif Vigie</a></li>
 </ul>
 </li>
 </ul>
@@ -83,509 +83,152 @@
 <h1>Moteur applicatif<a class="headerlink" href="#moteur-applicatif" title="Lien vers cette rubrique"></a></h1>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="vigilance.html">Moteur applicatif</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="vigilance.html#composants">Composants</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.cli.html">Commandes applicatives</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.cli.html#modules">Modules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.cli.html#module-vigilance.cli.output_builder">cli.output_builder</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.cli.html#module-vigilance.cli.quarter_logic">cli.quarter_logic</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.cli.html#module-vigilance.cli.run_compare_gpt4o">cli.run_compare_gpt4o</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.cli.html#module-vigilance.cli.run_extract_report">cli.run_extract_report</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.cli.html#module-vigilance.cli.run_ranges">cli.run_ranges</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.cli.html#module-vigilance.cli.run_tables">cli.run_tables</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vigie.html">Moteur applicatif Vigie</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="vigie.html#composants">Composants</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vigie.cli.html">Commandes applicatives</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="vigie.cli.html#modules">Modules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.cli.html#module-vigie.cli.output_builder">cli.output_builder</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.cli.html#module-vigie.cli.run_compare_gpt4o">cli.run_compare_gpt4o</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.cli.html#module-vigie.cli.run_extract_report">cli.run_extract_report</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.cli.html#module-vigie.cli.run_ranges">cli.run_ranges</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.cli.html#module-vigie.cli.run_tables">cli.run_tables</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.config.html">Configuration</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.config.html#modules">Modules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.config.html#module-vigilance.config.loader">config.loader</a></li>
+<li class="toctree-l3"><a class="reference internal" href="vigie.extraction.html">Extraction documentaire</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="vigie.extraction.html#modules">Modules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.extraction.html#module-vigie.extraction.docling_normalization">extraction.docling_normalization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.extraction.html#module-vigie.extraction.docling">extraction.docling</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.extraction.html#module-vigie.extraction.docling.processor">extraction.docling.processor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.extraction.html#module-vigie.extraction.extraction_debug_writer">extraction.extraction_debug_writer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.extraction.html#module-vigie.extraction.genai_toc_detector">extraction.genai_toc_detector</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.extraction.html#module-vigie.extraction.pdf_preview">extraction.pdf_preview</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.extraction.html#module-vigie.extraction.localisation_sections">extraction.localisation_sections</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.extraction.html#module-vigie.extraction.localisation_sections.section_locator">extraction.localisation_sections.section_locator</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.extraction.html#module-vigie.extraction.section_taxonomy">extraction.section_taxonomy</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.extraction.html#module-vigie.extraction.table_annotator">extraction.table_annotator</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.extraction.html#module-vigie.extraction.table_title_resolver">extraction.table_title_resolver</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.extraction.html#module-vigie.extraction.vision_cache">extraction.vision_cache</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.extraction.html#module-vigie.extraction.vision_extraction_writer">extraction.vision_extraction_writer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.extraction.html#module-vigie.extraction.vision_full">extraction.vision_full</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.extraction.html#module-vigie.extraction.vision_full.extractor">extraction.vision_full.extractor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.extraction.html#module-vigie.extraction.vision_image_preprocessor">extraction.vision_image_preprocessor</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.extraction.html#module-vigie.extraction.vision_qa_inspector">extraction.vision_qa_inspector</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.dash_app.html">Interface Dash</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.dash_app.html#composants">Composants</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.dash_app.html#modules">Modules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.dash_app.html#module-vigilance.dash_app.app">dash_app.app</a></li>
+<li class="toctree-l3"><a class="reference internal" href="vigie.interface.html">Interface Dash</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="vigie.interface.html#composants">Composants</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.interface.html#modules">Modules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.interface.html#module-vigie.interface.app">interface.app</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.extract.html">Extraction textuelle</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.extract.html#modules">Modules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.extract.html#extract-exclusions">extract.exclusions</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.extract.html#extract-pdf-text">extract.pdf_text</a></li>
+<li class="toctree-l3"><a class="reference internal" href="vigie.interface.callbacks.html">Rappels de l’interface</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="vigie.interface.callbacks.html#modules">Modules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.interface.callbacks.html#module-vigie.interface.callbacks.dashboard_flow">interface.callbacks.dashboard_flow</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.interface.callbacks.html#module-vigie.interface.callbacks.export_flow">interface.callbacks.export_flow</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.interface.callbacks.html#module-vigie.interface.callbacks.load_flow">interface.callbacks.load_flow</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.interface.callbacks.html#module-vigie.interface.callbacks.proof_flow">interface.callbacks.proof_flow</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.interface.callbacks.html#module-vigie.interface.callbacks.review_flow">interface.callbacks.review_flow</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.interface.callbacks.html#module-vigie.interface.callbacks.upload_flow">interface.callbacks.upload_flow</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.interface.callbacks.html#module-vigie.interface.callbacks.utility_flow">interface.callbacks.utility_flow</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.extraction.html">Extraction documentaire</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.extraction.html#modules">Modules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.extraction.html#module-vigilance.extraction.docling_normalization">extraction.docling_normalization</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.extraction.html#module-vigilance.extraction.docling_processor">extraction.docling_processor</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.extraction.html#module-vigilance.extraction.extraction_debug_writer">extraction.extraction_debug_writer</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.extraction.html#module-vigilance.extraction.genai_toc_detector">extraction.genai_toc_detector</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.extraction.html#module-vigilance.extraction.page_title_assistant">extraction.page_title_assistant</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.extraction.html#module-vigilance.extraction.pdf_preview">extraction.pdf_preview</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.extraction.html#module-vigilance.extraction.row_bbox_extractor">extraction.row_bbox_extractor</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.extraction.html#module-vigilance.extraction.section_locator">extraction.section_locator</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.extraction.html#module-vigilance.extraction.section_taxonomy">extraction.section_taxonomy</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.extraction.html#module-vigilance.extraction.table_annotator">extraction.table_annotator</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.extraction.html#module-vigilance.extraction.table_title_resolver">extraction.table_title_resolver</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.extraction.html#module-vigilance.extraction.vision_cache">extraction.vision_cache</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.extraction.html#module-vigilance.extraction.vision_extraction_writer">extraction.vision_extraction_writer</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.extraction.html#module-vigilance.extraction.vision_full_extractor">extraction.vision_full_extractor</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.extraction.html#module-vigilance.extraction.vision_image_preprocessor">extraction.vision_image_preprocessor</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.extraction.html#module-vigilance.extraction.vision_qa_inspector">extraction.vision_qa_inspector</a></li>
+<li class="toctree-l3"><a class="reference internal" href="vigie.interface.components.html">Composants de l’interface</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="vigie.interface.components.html#modules">Modules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.interface.components.html#module-vigie.interface.components.pdf_preview">interface.components.pdf_preview</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.interface.components.html#module-vigie.interface.components.review_detail_v2">interface.components.review_detail_v2</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.interface.components.html#module-vigie.interface.components.review_display_shared">interface.components.review_display_shared</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.interface.components.html#module-vigie.interface.components.review_queue_v2">interface.components.review_queue_v2</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.i18n.html">Internationalisation</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.i18n.html#modules">Modules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.i18n.html#module-vigilance.i18n.fr">i18n.fr</a></li>
+<li class="toctree-l3"><a class="reference internal" href="vigie.interface.layouts.html">Mises en page de l’interface</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="vigie.interface.layouts.html#modules">Modules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.interface.layouts.html#module-vigie.interface.layouts.page_load">interface.layouts.page_load</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.interface.layouts.html#module-vigie.interface.layouts.page_results">interface.layouts.page_results</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.interface.layouts.html#module-vigie.interface.layouts.page_upload">interface.layouts.page_upload</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.interface.layouts.html#module-vigie.interface.layouts.page_validation">interface.layouts.page_validation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.interface.layouts.html#module-vigie.interface.layouts.sidebar">interface.layouts.sidebar</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.models.html">Modèles de données</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.models.html#modules">Modules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.models.html#module-vigilance.models.comparison_models">models.comparison_models</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.models.html#module-vigilance.models.section_models">models.section_models</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.models.html#models-table-models">models.table_models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="vigie.interface.services.html">Services de l’interface</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="vigie.interface.services.html#modules">Modules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.interface.services.html#module-vigie.interface.services.comparison_context">interface.services.comparison_context</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.interface.services.html#module-vigie.interface.services.comparison_store">interface.services.comparison_store</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.interface.services.html#module-vigie.interface.services.export_helpers">interface.services.export_helpers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.interface.services.html#module-vigie.interface.services.pdf_rendering">interface.services.pdf_rendering</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.interface.services.html#module-vigie.interface.services.review_navigation">interface.services.review_navigation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.interface.services.html#module-vigie.interface.services.review_persistence">interface.services.review_persistence</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.quality.html">Qualité</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.quality.html#modules">Modules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.quality.html#module-vigilance.quality.quality_gate">quality.quality_gate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="vigie.config.html">Configuration (<code class="docutils literal notranslate"><span class="pre">vigie.support.config</span></code>)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="vigie.config.html#modules">Modules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.config.html#module-vigie.support.config.loader">config.loader</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.report.html">Rapports</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.report.html#modules">Modules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.report.html#module-vigilance.report.export_json">report.export_json</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.report.html#module-vigilance.report.vigie_extract_schema">report.vigie_extract_schema</a></li>
+<li class="toctree-l3"><a class="reference internal" href="vigie.models.html">Modeles de donnees (<code class="docutils literal notranslate"><span class="pre">vigie.support.models</span></code>)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="vigie.models.html#modules">Modules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.models.html#module-vigie.support.models.comparison_models">models.comparison_models</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.models.html#module-vigie.support.models.section_models">models.section_models</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.models.html#models-table-models">models.table_models</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.text_comparison.html">Comparaison texte</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.text_comparison.html#modules">Modules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.text_comparison.html#module-vigilance.text_comparison.justification">text_comparison.justification</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.text_comparison.html#module-vigilance.text_comparison.text_comparison_excel">text_comparison.text_comparison_excel</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.text_comparison.html#module-vigilance.text_comparison.text_comparison_writer">text_comparison.text_comparison_writer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="vigie.utils.html">Utilitaires (<code class="docutils literal notranslate"><span class="pre">vigie.support.utils</span></code>)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="vigie.utils.html#modules">Modules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.utils.html#module-vigie.support.utils.footnotes_utils">utils.footnotes_utils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.utils.html#module-vigie.support.utils.genai">utils.genai</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.utils.html#module-vigie.support.utils.indicator_cleaner">utils.indicator_cleaner</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.utils.html#module-vigie.support.utils.indicator_line_merge">utils.indicator_line_merge</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.utils.html#module-vigie.support.utils.matching_normalizer">utils.matching_normalizer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.utils.html#module-vigie.support.utils.model_cost">utils.model_cost</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.utils.html#module-vigie.support.utils.openai_schema">utils.openai_schema</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.utils.html#module-vigie.support.utils.page_layout_context">utils.page_layout_context</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.utils.html#module-vigie.support.utils.pattern_loader">utils.pattern_loader</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.utils.html#module-vigie.support.utils.pdf_crop">utils.pdf_crop</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.utils.html#module-vigie.support.utils.pdf_highlight">utils.pdf_highlight</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.utils.html#module-vigie.support.utils.proof_rendering">utils.proof_rendering</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.utils.html#module-vigie.support.utils.pymupdf_utils">utils.pymupdf_utils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.utils.html#module-vigie.support.utils.rbc_table_signals">utils.rbc_table_signals</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.utils.html#module-vigie.support.utils.table_page_structure">utils.table_page_structure</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.utils.html#module-vigie.support.utils.type_metier">utils.type_metier</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.text_extraction.html">Extraction texte</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.text_extraction.html#modules">Modules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.text_extraction.html#module-vigilance.text_extraction.text_extraction_audit_writer">text_extraction.text_extraction_audit_writer</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.text_extraction.html#module-vigilance.text_extraction.text_extraction_markdown_writer">text_extraction.text_extraction_markdown_writer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="vigie.i18n.html">Internationalisation (<code class="docutils literal notranslate"><span class="pre">vigie.support.i18n</span></code>)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="vigie.i18n.html#modules">Modules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.i18n.html#module-vigie.support.i18n.fr">i18n.fr</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.utils.html">Utilitaires</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.utils.html#modules">Modules</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.utils.html#module-vigilance.utils.feature_flags">utils.feature_flags</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.utils.html#module-vigilance.utils.footnotes_utils">utils.footnotes_utils</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.utils.html#module-vigilance.utils.genai">utils.genai</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.utils.html#module-vigilance.utils.indicator_cleaner">utils.indicator_cleaner</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.utils.html#module-vigilance.utils.indicator_line_merge">utils.indicator_line_merge</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.utils.html#module-vigilance.utils.indicator_normalizer">utils.indicator_normalizer</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.utils.html#module-vigilance.utils.matching_normalizer">utils.matching_normalizer</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.utils.html#module-vigilance.utils.model_cost">utils.model_cost</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.utils.html#module-vigilance.utils.openai_schema">utils.openai_schema</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.utils.html#module-vigilance.utils.page_layout_context">utils.page_layout_context</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.utils.html#module-vigilance.utils.pattern_loader">utils.pattern_loader</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.utils.html#module-vigilance.utils.pdf_crop">utils.pdf_crop</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.utils.html#module-vigilance.utils.pdf_highlight">utils.pdf_highlight</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.utils.html#module-vigilance.utils.pdf_image">utils.pdf_image</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.utils.html#module-vigilance.utils.proof_rendering">utils.proof_rendering</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.utils.html#module-vigilance.utils.pymupdf_utils">utils.pymupdf_utils</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.utils.html#module-vigilance.utils.rbc_table_signals">utils.rbc_table_signals</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.utils.html#module-vigilance.utils.table_page_structure">utils.table_page_structure</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.utils.html#module-vigilance.utils.text_normalize_base">utils.text_normalize_base</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.utils.html#module-vigilance.utils.text_normalizer">utils.text_normalizer</a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.utils.html#module-vigilance.utils.type_metier">utils.type_metier</a></li>
+<li class="toctree-l3"><a class="reference internal" href="vigie.report.html">Rapports (<code class="docutils literal notranslate"><span class="pre">vigie.support.report</span></code>)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="vigie.report.html#modules">Modules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.report.html#module-vigie.support.report.export_json">report.export_json</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.report.html#module-vigie.support.report.vigie_extract_schema">report.vigie_extract_schema</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="vigie.text_comparison.html">Comparaison texte</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="vigie.text_comparison.html#modules">Modules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.text_comparison.html#module-vigie.analyse_texte.text_comparison.justification">text_comparison.justification</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.text_comparison.html#module-vigie.analyse_texte.text_comparison.text_comparison_excel">text_comparison.text_comparison_excel</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.text_comparison.html#module-vigie.analyse_texte.text_comparison.text_comparison_writer">text_comparison.text_comparison_writer</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="vigilance.html#modules">Modules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="vigilance.html#module-vigilance.amf_taxonomy">amf_taxonomy</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.amf_taxonomy.ChangeSegment"><code class="docutils literal notranslate"><span class="pre">ChangeSegment</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.amf_taxonomy.ChangeSegment.kind"><code class="docutils literal notranslate"><span class="pre">ChangeSegment.kind</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.amf_taxonomy.ChangeSegment.model_config"><code class="docutils literal notranslate"><span class="pre">ChangeSegment.model_config</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.amf_taxonomy.ChangeSegment.text_t1"><code class="docutils literal notranslate"><span class="pre">ChangeSegment.text_t1</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.amf_taxonomy.ChangeSegment.text_t2"><code class="docutils literal notranslate"><span class="pre">ChangeSegment.text_t2</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.amf_taxonomy.TriageAMFBatch"><code class="docutils literal notranslate"><span class="pre">TriageAMFBatch</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.amf_taxonomy.TriageAMFBatch.model_config"><code class="docutils literal notranslate"><span class="pre">TriageAMFBatch.model_config</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.amf_taxonomy.TriageAMFBatch.triages"><code class="docutils literal notranslate"><span class="pre">TriageAMFBatch.triages</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.amf_taxonomy.TriageAMFCompactLLMBatch"><code class="docutils literal notranslate"><span class="pre">TriageAMFCompactLLMBatch</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.amf_taxonomy.TriageAMFCompactLLMBatch.model_config"><code class="docutils literal notranslate"><span class="pre">TriageAMFCompactLLMBatch.model_config</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.amf_taxonomy.TriageAMFCompactLLMBatch.triages"><code class="docutils literal notranslate"><span class="pre">TriageAMFCompactLLMBatch.triages</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.amf_taxonomy.TriageAMFCompactLLMResultWithIndex"><code class="docutils literal notranslate"><span class="pre">TriageAMFCompactLLMResultWithIndex</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.amf_taxonomy.TriageAMFCompactLLMResultWithIndex.change_index"><code class="docutils literal notranslate"><span class="pre">TriageAMFCompactLLMResultWithIndex.change_index</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.amf_taxonomy.TriageAMFCompactLLMResultWithIndex.changement_constate"><code class="docutils literal notranslate"><span class="pre">TriageAMFCompactLLMResultWithIndex.changement_constate</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.amf_taxonomy.TriageAMFCompactLLMResultWithIndex.comparaison_interbanques"><code class="docutils literal notranslate"><span class="pre">TriageAMFCompactLLMResultWithIndex.comparaison_interbanques</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.amf_taxonomy.TriageAMFCompactLLMResultWithIndex.is_relevant"><code class="docutils literal notranslate"><span class="pre">TriageAMFCompactLLMResultWithIndex.is_relevant</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.amf_taxonomy.TriageAMFCompactLLMResultWithIndex.limite_interpretation"><code class="docutils literal notranslate"><span class="pre">TriageAMFCompactLLMResultWithIndex.limite_interpretation</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.amf_taxonomy.TriageAMFCompactLLMResultWithIndex.model_config"><code class="docutils literal notranslate"><span class="pre">TriageAMFCompactLLMResultWithIndex.model_config</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.amf_taxonomy.TriageAMFCompactLLMResultWithIndex.motif_non_pertinence"><code class="docutils literal notranslate"><span class="pre">TriageAMFCompactLLMResultWithIndex.motif_non_pertinence</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.amf_taxonomy.TriageAMFCompactLLMResultWithIndex.nouvelle_idee"><code class="docutils literal notranslate"><span class="pre">TriageAMFCompactLLMResultWithIndex.nouvelle_idee</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.amf_taxonomy.TriageAMFCompactLLMResultWithIndex.relevance_reason"><code class="docutils literal notranslate"><span class="pre">TriageAMFCompactLLMResultWithIndex.relevance_reason</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.amf_taxonomy.TriageAMFCompactLLMResultWithIndex.signification_metier"><code class="docutils literal notranslate"><span class="pre">TriageAMFCompactLLMResultWithIndex.signification_metier</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.amf_taxonomy.TriageAMFCompactLLMResultWithIndex.themes_amf"><code class="docutils literal notranslate"><span class="pre">TriageAMFCompactLLMResultWithIndex.themes_amf</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.amf_taxonomy.TriageAMFLLMBatch"><code class="docutils literal notranslate"><span class="pre">TriageAMFLLMBatch</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.amf_taxonomy.TriageAMFLLMBatch.model_config"><code class="docutils literal notranslate"><span class="pre">TriageAMFLLMBatch.model_config</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.amf_taxonomy.TriageAMFLLMBatch.triages"><code class="docutils literal notranslate"><span class="pre">TriageAMFLLMBatch.triages</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.amf_taxonomy.TriageAMFLLMResultWithIndex"><code class="docutils literal notranslate"><span class="pre">TriageAMFLLMResultWithIndex</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.amf_taxonomy.TriageAMFLLMResultWithIndex.change_index"><code class="docutils literal notranslate"><span class="pre">TriageAMFLLMResultWithIndex.change_index</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.amf_taxonomy.TriageAMFLLMResultWithIndex.model_config"><code class="docutils literal notranslate"><span class="pre">TriageAMFLLMResultWithIndex.model_config</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.amf_taxonomy.TriageAMFResult"><code class="docutils literal notranslate"><span class="pre">TriageAMFResult</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.amf_taxonomy.TriageAMFResult.change_segments"><code class="docutils literal notranslate"><span class="pre">TriageAMFResult.change_segments</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.amf_taxonomy.TriageAMFResult.model_config"><code class="docutils literal notranslate"><span class="pre">TriageAMFResult.model_config</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.amf_taxonomy.TriageAMFResultWithIndex"><code class="docutils literal notranslate"><span class="pre">TriageAMFResultWithIndex</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.amf_taxonomy.TriageAMFResultWithIndex.change_index"><code class="docutils literal notranslate"><span class="pre">TriageAMFResultWithIndex.change_index</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.amf_taxonomy.TriageAMFResultWithIndex.model_config"><code class="docutils literal notranslate"><span class="pre">TriageAMFResultWithIndex.model_config</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.amf_taxonomy.TriageValidationError"><code class="docutils literal notranslate"><span class="pre">TriageValidationError</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.amf_taxonomy.count_complete_sentences"><code class="docutils literal notranslate"><span class="pre">count_complete_sentences()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.amf_taxonomy.empty_triage_skeleton"><code class="docutils literal notranslate"><span class="pre">empty_triage_skeleton()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.amf_taxonomy.extract_labeled_analysis"><code class="docutils literal notranslate"><span class="pre">extract_labeled_analysis()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.amf_taxonomy.format_exclusion_reasons_for_prompt"><code class="docutils literal notranslate"><span class="pre">format_exclusion_reasons_for_prompt()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.amf_taxonomy.format_theme_subjects_for_prompt"><code class="docutils literal notranslate"><span class="pre">format_theme_subjects_for_prompt()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.amf_taxonomy.format_themes_for_prompt"><code class="docutils literal notranslate"><span class="pre">format_themes_for_prompt()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.amf_taxonomy.missing_labeled_analysis_sections"><code class="docutils literal notranslate"><span class="pre">missing_labeled_analysis_sections()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="vigilance.html#module-vigilance.compare_gpt">compare_gpt</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.compare_gpt.compare_reports_gpt4o"><code class="docutils literal notranslate"><span class="pre">compare_reports_gpt4o()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_analyst">comparison_analyst</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.comparison_analyst.build_analyst_assessment"><code class="docutils literal notranslate"><span class="pre">build_analyst_assessment()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_canonical">comparison_canonical</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.comparison_canonical.compute_changed_tables_t1"><code class="docutils literal notranslate"><span class="pre">compute_changed_tables_t1()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.comparison_canonical.compute_changed_tables_t2"><code class="docutils literal notranslate"><span class="pre">compute_changed_tables_t2()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.comparison_canonical.get_meta_value"><code class="docutils literal notranslate"><span class="pre">get_meta_value()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.comparison_canonical.is_canonical_comparison"><code class="docutils literal notranslate"><span class="pre">is_canonical_comparison()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.comparison_canonical.is_ui_comparison_payload"><code class="docutils literal notranslate"><span class="pre">is_ui_comparison_payload()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.comparison_canonical.new_empty_ui_comparison_payload"><code class="docutils literal notranslate"><span class="pre">new_empty_ui_comparison_payload()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.comparison_canonical.to_canonical_payload"><code class="docutils literal notranslate"><span class="pre">to_canonical_payload()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.comparison_canonical.to_ui_comparison_payload"><code class="docutils literal notranslate"><span class="pre">to_ui_comparison_payload()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_excel">comparison_excel</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.comparison_excel.generate_comparison_excel"><code class="docutils literal notranslate"><span class="pre">generate_comparison_excel()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_devil_advocate">comparison_devil_advocate</a></li>
-<li class="toctree-l2"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_diff_gpt">comparison_diff_gpt</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.comparison_diff_gpt.diff_footnotes_pair_gpt"><code class="docutils literal notranslate"><span class="pre">diff_footnotes_pair_gpt()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.comparison_diff_gpt.diff_indicators_pair_gpt"><code class="docutils literal notranslate"><span class="pre">diff_indicators_pair_gpt()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.comparison_diff_gpt.diff_table_pair_gpt"><code class="docutils literal notranslate"><span class="pre">diff_table_pair_gpt()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_inspector">comparison_inspector</a></li>
-<li class="toctree-l2"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_io">comparison_io</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.comparison_io.TableCard"><code class="docutils literal notranslate"><span class="pre">TableCard</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.comparison_io.TableCard.first_indicator"><code class="docutils literal notranslate"><span class="pre">TableCard.first_indicator</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.comparison_io.TableCard.footnote_count"><code class="docutils literal notranslate"><span class="pre">TableCard.footnote_count</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.comparison_io.TableCard.footnotes"><code class="docutils literal notranslate"><span class="pre">TableCard.footnotes</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.comparison_io.TableCard.headers"><code class="docutils literal notranslate"><span class="pre">TableCard.headers</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.comparison_io.TableCard.indicators"><code class="docutils literal notranslate"><span class="pre">TableCard.indicators</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.comparison_io.TableCard.page"><code class="docutils literal notranslate"><span class="pre">TableCard.page</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.comparison_io.TableCard.row_count"><code class="docutils literal notranslate"><span class="pre">TableCard.row_count</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.comparison_io.TableCard.section"><code class="docutils literal notranslate"><span class="pre">TableCard.section</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.comparison_io.TableCard.table_id"><code class="docutils literal notranslate"><span class="pre">TableCard.table_id</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.comparison_io.TableCard.table_summary"><code class="docutils literal notranslate"><span class="pre">TableCard.table_summary</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.comparison_io.TableCard.title"><code class="docutils literal notranslate"><span class="pre">TableCard.title</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.comparison_io.TableSnapshot"><code class="docutils literal notranslate"><span class="pre">TableSnapshot</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.comparison_io.TableSnapshot.bbox"><code class="docutils literal notranslate"><span class="pre">TableSnapshot.bbox</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.comparison_io.TableSnapshot.bbox_confidence"><code class="docutils literal notranslate"><span class="pre">TableSnapshot.bbox_confidence</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.comparison_io.TableSnapshot.bbox_source"><code class="docutils literal notranslate"><span class="pre">TableSnapshot.bbox_source</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.comparison_io.TableSnapshot.extraction_status"><code class="docutils literal notranslate"><span class="pre">TableSnapshot.extraction_status</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.comparison_io.TableSnapshot.footnotes"><code class="docutils literal notranslate"><span class="pre">TableSnapshot.footnotes</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.comparison_io.TableSnapshot.headers"><code class="docutils literal notranslate"><span class="pre">TableSnapshot.headers</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.comparison_io.TableSnapshot.indicators"><code class="docutils literal notranslate"><span class="pre">TableSnapshot.indicators</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.comparison_io.TableSnapshot.page"><code class="docutils literal notranslate"><span class="pre">TableSnapshot.page</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.comparison_io.TableSnapshot.page_context_continuation"><code class="docutils literal notranslate"><span class="pre">TableSnapshot.page_context_continuation</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.comparison_io.TableSnapshot.page_context_title"><code class="docutils literal notranslate"><span class="pre">TableSnapshot.page_context_title</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.comparison_io.TableSnapshot.row_count"><code class="docutils literal notranslate"><span class="pre">TableSnapshot.row_count</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.comparison_io.TableSnapshot.section"><code class="docutils literal notranslate"><span class="pre">TableSnapshot.section</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.comparison_io.TableSnapshot.table_id"><code class="docutils literal notranslate"><span class="pre">TableSnapshot.table_id</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.comparison_io.TableSnapshot.table_summary"><code class="docutils literal notranslate"><span class="pre">TableSnapshot.table_summary</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.comparison_io.TableSnapshot.title"><code class="docutils literal notranslate"><span class="pre">TableSnapshot.title</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.comparison_io.normalize_quarter"><code class="docutils literal notranslate"><span class="pre">normalize_quarter()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.comparison_io.resolve_reference_period"><code class="docutils literal notranslate"><span class="pre">resolve_reference_period()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_matching">comparison_matching</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.comparison_matching.MatchedPair"><code class="docutils literal notranslate"><span class="pre">MatchedPair</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.comparison_matching.MatchedPair.current_table_id"><code class="docutils literal notranslate"><span class="pre">MatchedPair.current_table_id</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.comparison_matching.MatchedPair.match_confidence"><code class="docutils literal notranslate"><span class="pre">MatchedPair.match_confidence</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.comparison_matching.MatchedPair.previous_table_id"><code class="docutils literal notranslate"><span class="pre">MatchedPair.previous_table_id</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.comparison_matching.MatchedPair.reason"><code class="docutils literal notranslate"><span class="pre">MatchedPair.reason</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.comparison_matching.MatchingResult"><code class="docutils literal notranslate"><span class="pre">MatchingResult</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.comparison_matching.MatchingResult.executed"><code class="docutils literal notranslate"><span class="pre">MatchingResult.executed</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.comparison_matching.MatchingResult.matched_pairs"><code class="docutils literal notranslate"><span class="pre">MatchingResult.matched_pairs</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.comparison_matching.MatchingResult.matching_passes_total"><code class="docutils literal notranslate"><span class="pre">MatchingResult.matching_passes_total</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.comparison_matching.MatchingResult.tables_added"><code class="docutils literal notranslate"><span class="pre">MatchingResult.tables_added</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.comparison_matching.MatchingResult.tables_removed"><code class="docutils literal notranslate"><span class="pre">MatchingResult.tables_removed</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.comparison_matching.MatchingResult.warnings"><code class="docutils literal notranslate"><span class="pre">MatchingResult.warnings</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vigie.text_extraction.html">Extraction texte</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="vigie.text_extraction.html#modules">Modules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.text_extraction.html#module-vigie.analyse_texte.text_extraction.text_extraction_audit_writer">text_extraction.text_extraction_audit_writer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.text_extraction.html#module-vigie.analyse_texte.text_extraction.text_extraction_markdown_writer">text_extraction.text_extraction_markdown_writer</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_metrics">comparison_metrics</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.comparison_metrics.UsageMetrics"><code class="docutils literal notranslate"><span class="pre">UsageMetrics</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.comparison_metrics.UsageMetrics.comparison_calls_total"><code class="docutils literal notranslate"><span class="pre">UsageMetrics.comparison_calls_total</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.comparison_metrics.UsageMetrics.completion_tokens_total"><code class="docutils literal notranslate"><span class="pre">UsageMetrics.completion_tokens_total</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.comparison_metrics.UsageMetrics.prompt_tokens_total"><code class="docutils literal notranslate"><span class="pre">UsageMetrics.prompt_tokens_total</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.comparison_metrics.UsageMetrics.total_tokens_total"><code class="docutils literal notranslate"><span class="pre">UsageMetrics.total_tokens_total</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="vigie.html#module-vigie">Packages principaux</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vigie.html#vigie.extraction.DoclingProcessor"><code class="docutils literal notranslate"><span class="pre">DoclingProcessor</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vigie.html#vigie.extraction.SectionLocator"><code class="docutils literal notranslate"><span class="pre">SectionLocator</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="vigie.html#vigie.extraction.SectionLocator.locate_sections"><code class="docutils literal notranslate"><span class="pre">SectionLocator.locate_sections()</span></code></a></li>
 </ul>
 </li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_noise_filter">comparison_noise_filter</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.comparison_noise_filter.recompute_table_level_change"><code class="docutils literal notranslate"><span class="pre">recompute_table_level_change()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_runner">comparison_runner</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.comparison_runner.run_comparison_with_sections"><code class="docutils literal notranslate"><span class="pre">run_comparison_with_sections()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="vigilance.html#module-vigilance.comparison_visual_sanity">comparison_visual_sanity</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.comparison_visual_sanity.render_visual_sanity_proof"><code class="docutils literal notranslate"><span class="pre">render_visual_sanity_proof()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.comparison_visual_sanity.visual_sanity_check"><code class="docutils literal notranslate"><span class="pre">visual_sanity_check()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.comparison_visual_sanity.visual_sanity_check_table_event"><code class="docutils literal notranslate"><span class="pre">visual_sanity_check_table_event()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="vigilance.html#module-vigilance.extraction_storage">extraction_storage</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.extraction_storage.get_extraction_artifact_paths"><code class="docutils literal notranslate"><span class="pre">get_extraction_artifact_paths()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.extraction_storage.load_extraction"><code class="docutils literal notranslate"><span class="pre">load_extraction()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.extraction_storage.load_stored_extractions"><code class="docutils literal notranslate"><span class="pre">load_stored_extractions()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.extraction_storage.save_extraction"><code class="docutils literal notranslate"><span class="pre">save_extraction()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.extraction_storage.table_artifact_from_dict"><code class="docutils literal notranslate"><span class="pre">table_artifact_from_dict()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="vigilance.html#module-vigilance.genai_summary">genai_summary</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.genai_summary.enrich_result_with_genai"><code class="docutils literal notranslate"><span class="pre">enrich_result_with_genai()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.genai_summary.generate_genai_summary"><code class="docutils literal notranslate"><span class="pre">generate_genai_summary()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.genai_summary.is_genai_enabled"><code class="docutils literal notranslate"><span class="pre">is_genai_enabled()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="vigilance.html#module-vigilance.genai_triage">genai_triage</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.genai_triage.enrich_comparison_with_genai_triage"><code class="docutils literal notranslate"><span class="pre">enrich_comparison_with_genai_triage()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.genai_triage.inject_llm_resume_metier"><code class="docutils literal notranslate"><span class="pre">inject_llm_resume_metier()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="vigilance.html#module-vigilance.quarter_utils">quarter_utils</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.quarter_utils.QuarterRef"><code class="docutils literal notranslate"><span class="pre">QuarterRef</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.quarter_utils.QuarterRef.code"><code class="docutils literal notranslate"><span class="pre">QuarterRef.code</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.quarter_utils.QuarterRef.display_label"><code class="docutils literal notranslate"><span class="pre">QuarterRef.display_label</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.quarter_utils.QuarterRef.label"><code class="docutils literal notranslate"><span class="pre">QuarterRef.label</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.quarter_utils.QuarterRef.quarter"><code class="docutils literal notranslate"><span class="pre">QuarterRef.quarter</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.quarter_utils.QuarterRef.year"><code class="docutils literal notranslate"><span class="pre">QuarterRef.year</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.quarter_utils.build_quarter_context"><code class="docutils literal notranslate"><span class="pre">build_quarter_context()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.quarter_utils.format_quarter_display_label"><code class="docutils literal notranslate"><span class="pre">format_quarter_display_label()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.quarter_utils.format_quarter_label"><code class="docutils literal notranslate"><span class="pre">format_quarter_label()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.quarter_utils.get_payload_quarter_context"><code class="docutils literal notranslate"><span class="pre">get_payload_quarter_context()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.quarter_utils.parse_quarter_ref"><code class="docutils literal notranslate"><span class="pre">parse_quarter_ref()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.quarter_utils.previous_comparable_quarter"><code class="docutils literal notranslate"><span class="pre">previous_comparable_quarter()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.quarter_utils.quarter_label_from_payload"><code class="docutils literal notranslate"><span class="pre">quarter_label_from_payload()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="vigilance.html#module-vigilance.review_adapters">review_adapters</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.review_adapters.build_review_items_from_indicator_result"><code class="docutils literal notranslate"><span class="pre">build_review_items_from_indicator_result()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="vigilance.html#module-vigilance.review_export">review_export</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.review_export.build_export_metadata"><code class="docutils literal notranslate"><span class="pre">build_export_metadata()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.review_export.export_review_items_csv"><code class="docutils literal notranslate"><span class="pre">export_review_items_csv()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.review_export.export_review_items_json_fr"><code class="docutils literal notranslate"><span class="pre">export_review_items_json_fr()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.review_export.generate_validation_csv"><code class="docutils literal notranslate"><span class="pre">generate_validation_csv()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.review_export.generate_validation_excel"><code class="docutils literal notranslate"><span class="pre">generate_validation_excel()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.review_export.generate_validation_txt"><code class="docutils literal notranslate"><span class="pre">generate_validation_txt()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="vigilance.html#module-vigilance.review_models">review_models</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.review_models.ReviewItem"><code class="docutils literal notranslate"><span class="pre">ReviewItem</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models.ReviewItem.added_indicators"><code class="docutils literal notranslate"><span class="pre">ReviewItem.added_indicators</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models.ReviewItem.all_indicators_t1"><code class="docutils literal notranslate"><span class="pre">ReviewItem.all_indicators_t1</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models.ReviewItem.all_indicators_t2"><code class="docutils literal notranslate"><span class="pre">ReviewItem.all_indicators_t2</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models.ReviewItem.bbox_t1"><code class="docutils literal notranslate"><span class="pre">ReviewItem.bbox_t1</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models.ReviewItem.bbox_t2"><code class="docutils literal notranslate"><span class="pre">ReviewItem.bbox_t2</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models.ReviewItem.change_id"><code class="docutils literal notranslate"><span class="pre">ReviewItem.change_id</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models.ReviewItem.change_type"><code class="docutils literal notranslate"><span class="pre">ReviewItem.change_type</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models.ReviewItem.comment"><code class="docutils literal notranslate"><span class="pre">ReviewItem.comment</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models.ReviewItem.confidence"><code class="docutils literal notranslate"><span class="pre">ReviewItem.confidence</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models.ReviewItem.edited_value"><code class="docutils literal notranslate"><span class="pre">ReviewItem.edited_value</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models.ReviewItem.event_type"><code class="docutils literal notranslate"><span class="pre">ReviewItem.event_type</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models.ReviewItem.footnote_changes"><code class="docutils literal notranslate"><span class="pre">ReviewItem.footnote_changes</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models.ReviewItem.from_dict"><code class="docutils literal notranslate"><span class="pre">ReviewItem.from_dict()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models.ReviewItem.genai_analysis"><code class="docutils literal notranslate"><span class="pre">ReviewItem.genai_analysis</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models.ReviewItem.indicator"><code class="docutils literal notranslate"><span class="pre">ReviewItem.indicator</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models.ReviewItem.indicators"><code class="docutils literal notranslate"><span class="pre">ReviewItem.indicators</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models.ReviewItem.item_type"><code class="docutils literal notranslate"><span class="pre">ReviewItem.item_type</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models.ReviewItem.match_metadata"><code class="docutils literal notranslate"><span class="pre">ReviewItem.match_metadata</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models.ReviewItem.match_method"><code class="docutils literal notranslate"><span class="pre">ReviewItem.match_method</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models.ReviewItem.page_t1"><code class="docutils literal notranslate"><span class="pre">ReviewItem.page_t1</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models.ReviewItem.page_t2"><code class="docutils literal notranslate"><span class="pre">ReviewItem.page_t2</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models.ReviewItem.proof_image_path"><code class="docutils literal notranslate"><span class="pre">ReviewItem.proof_image_path</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models.ReviewItem.proof_mode"><code class="docutils literal notranslate"><span class="pre">ReviewItem.proof_mode</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models.ReviewItem.removed_indicators"><code class="docutils literal notranslate"><span class="pre">ReviewItem.removed_indicators</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models.ReviewItem.review_status"><code class="docutils literal notranslate"><span class="pre">ReviewItem.review_status</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models.ReviewItem.review_timestamp"><code class="docutils literal notranslate"><span class="pre">ReviewItem.review_timestamp</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models.ReviewItem.review_user"><code class="docutils literal notranslate"><span class="pre">ReviewItem.review_user</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models.ReviewItem.section"><code class="docutils literal notranslate"><span class="pre">ReviewItem.section</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models.ReviewItem.source_ref_t1"><code class="docutils literal notranslate"><span class="pre">ReviewItem.source_ref_t1</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models.ReviewItem.source_ref_t2"><code class="docutils literal notranslate"><span class="pre">ReviewItem.source_ref_t2</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models.ReviewItem.table_id_t1"><code class="docutils literal notranslate"><span class="pre">ReviewItem.table_id_t1</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models.ReviewItem.table_id_t2"><code class="docutils literal notranslate"><span class="pre">ReviewItem.table_id_t2</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models.ReviewItem.table_name"><code class="docutils literal notranslate"><span class="pre">ReviewItem.table_name</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models.ReviewItem.table_number"><code class="docutils literal notranslate"><span class="pre">ReviewItem.table_number</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models.ReviewItem.table_status"><code class="docutils literal notranslate"><span class="pre">ReviewItem.table_status</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models.ReviewItem.table_title_raw"><code class="docutils literal notranslate"><span class="pre">ReviewItem.table_title_raw</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models.ReviewItem.title_resolution_method_t1"><code class="docutils literal notranslate"><span class="pre">ReviewItem.title_resolution_method_t1</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models.ReviewItem.title_resolution_method_t2"><code class="docutils literal notranslate"><span class="pre">ReviewItem.title_resolution_method_t2</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models.ReviewItem.to_dict"><code class="docutils literal notranslate"><span class="pre">ReviewItem.to_dict()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models.ReviewItem.unit_context_t1"><code class="docutils literal notranslate"><span class="pre">ReviewItem.unit_context_t1</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models.ReviewItem.unit_context_t2"><code class="docutils literal notranslate"><span class="pre">ReviewItem.unit_context_t2</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="vigilance.html#module-vigilance.review_models_v2">review_models_v2</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.review_models_v2.ChangeItem"><code class="docutils literal notranslate"><span class="pre">ChangeItem</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models_v2.ChangeItem.change_id"><code class="docutils literal notranslate"><span class="pre">ChangeItem.change_id</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models_v2.ChangeItem.change_type"><code class="docutils literal notranslate"><span class="pre">ChangeItem.change_type</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models_v2.ChangeItem.from_dict"><code class="docutils literal notranslate"><span class="pre">ChangeItem.from_dict()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models_v2.ChangeItem.is_required"><code class="docutils literal notranslate"><span class="pre">ChangeItem.is_required</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models_v2.ChangeItem.is_validated"><code class="docutils literal notranslate"><span class="pre">ChangeItem.is_validated()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models_v2.ChangeItem.payload"><code class="docutils literal notranslate"><span class="pre">ChangeItem.payload</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models_v2.ChangeItem.to_dict"><code class="docutils literal notranslate"><span class="pre">ChangeItem.to_dict()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models_v2.ChangeItem.validated_at"><code class="docutils literal notranslate"><span class="pre">ChangeItem.validated_at</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models_v2.ChangeItem.validated_by"><code class="docutils literal notranslate"><span class="pre">ChangeItem.validated_by</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models_v2.ChangeItem.validation_decision"><code class="docutils literal notranslate"><span class="pre">ChangeItem.validation_decision</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models_v2.ChangeItem.validation_notes"><code class="docutils literal notranslate"><span class="pre">ChangeItem.validation_notes</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models_v2.ChangeItem.validation_status"><code class="docutils literal notranslate"><span class="pre">ChangeItem.validation_status</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.review_models_v2.ChangeType"><code class="docutils literal notranslate"><span class="pre">ChangeType</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models_v2.ChangeType.FOOTNOTE_ADDED"><code class="docutils literal notranslate"><span class="pre">ChangeType.FOOTNOTE_ADDED</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models_v2.ChangeType.FOOTNOTE_MODIFIED"><code class="docutils literal notranslate"><span class="pre">ChangeType.FOOTNOTE_MODIFIED</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models_v2.ChangeType.FOOTNOTE_REMOVED"><code class="docutils literal notranslate"><span class="pre">ChangeType.FOOTNOTE_REMOVED</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models_v2.ChangeType.INDICATOR_ADDED"><code class="docutils literal notranslate"><span class="pre">ChangeType.INDICATOR_ADDED</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models_v2.ChangeType.INDICATOR_REMOVED"><code class="docutils literal notranslate"><span class="pre">ChangeType.INDICATOR_REMOVED</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models_v2.ChangeType.INDICATOR_RENAMED"><code class="docutils literal notranslate"><span class="pre">ChangeType.INDICATOR_RENAMED</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models_v2.ChangeType.MODIFIED"><code class="docutils literal notranslate"><span class="pre">ChangeType.MODIFIED</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models_v2.ChangeType.PAGE_MOVED"><code class="docutils literal notranslate"><span class="pre">ChangeType.PAGE_MOVED</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models_v2.ChangeType.STRUCTURE_CHANGE"><code class="docutils literal notranslate"><span class="pre">ChangeType.STRUCTURE_CHANGE</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models_v2.ChangeType.TABLE_ADDED"><code class="docutils literal notranslate"><span class="pre">ChangeType.TABLE_ADDED</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models_v2.ChangeType.TABLE_REMOVED"><code class="docutils literal notranslate"><span class="pre">ChangeType.TABLE_REMOVED</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models_v2.ChangeType.TITLE_CHANGED"><code class="docutils literal notranslate"><span class="pre">ChangeType.TITLE_CHANGED</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models_v2.ChangeType.UNCERTAIN"><code class="docutils literal notranslate"><span class="pre">ChangeType.UNCERTAIN</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.review_models_v2.ReviewTableItem"><code class="docutils literal notranslate"><span class="pre">ReviewTableItem</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models_v2.ReviewTableItem.bbox_t1"><code class="docutils literal notranslate"><span class="pre">ReviewTableItem.bbox_t1</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models_v2.ReviewTableItem.bbox_t2"><code class="docutils literal notranslate"><span class="pre">ReviewTableItem.bbox_t2</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models_v2.ReviewTableItem.changes"><code class="docutils literal notranslate"><span class="pre">ReviewTableItem.changes</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models_v2.ReviewTableItem.compute_summary"><code class="docutils literal notranslate"><span class="pre">ReviewTableItem.compute_summary()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models_v2.ReviewTableItem.confidence"><code class="docutils literal notranslate"><span class="pre">ReviewTableItem.confidence</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models_v2.ReviewTableItem.from_dict"><code class="docutils literal notranslate"><span class="pre">ReviewTableItem.from_dict()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models_v2.ReviewTableItem.genai_analysis"><code class="docutils literal notranslate"><span class="pre">ReviewTableItem.genai_analysis</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models_v2.ReviewTableItem.is_complete"><code class="docutils literal notranslate"><span class="pre">ReviewTableItem.is_complete()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models_v2.ReviewTableItem.match_metadata"><code class="docutils literal notranslate"><span class="pre">ReviewTableItem.match_metadata</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models_v2.ReviewTableItem.match_method"><code class="docutils literal notranslate"><span class="pre">ReviewTableItem.match_method</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models_v2.ReviewTableItem.page_t1"><code class="docutils literal notranslate"><span class="pre">ReviewTableItem.page_t1</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models_v2.ReviewTableItem.page_t2"><code class="docutils literal notranslate"><span class="pre">ReviewTableItem.page_t2</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models_v2.ReviewTableItem.proof_image_combined"><code class="docutils literal notranslate"><span class="pre">ReviewTableItem.proof_image_combined</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models_v2.ReviewTableItem.proof_image_t1"><code class="docutils literal notranslate"><span class="pre">ReviewTableItem.proof_image_t1</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models_v2.ReviewTableItem.proof_image_t2"><code class="docutils literal notranslate"><span class="pre">ReviewTableItem.proof_image_t2</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models_v2.ReviewTableItem.relevance"><code class="docutils literal notranslate"><span class="pre">ReviewTableItem.relevance</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models_v2.ReviewTableItem.risk_level"><code class="docutils literal notranslate"><span class="pre">ReviewTableItem.risk_level</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models_v2.ReviewTableItem.section"><code class="docutils literal notranslate"><span class="pre">ReviewTableItem.section</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models_v2.ReviewTableItem.source_pdf_t1"><code class="docutils literal notranslate"><span class="pre">ReviewTableItem.source_pdf_t1</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models_v2.ReviewTableItem.source_pdf_t2"><code class="docutils literal notranslate"><span class="pre">ReviewTableItem.source_pdf_t2</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models_v2.ReviewTableItem.table_id_t1"><code class="docutils literal notranslate"><span class="pre">ReviewTableItem.table_id_t1</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models_v2.ReviewTableItem.table_id_t2"><code class="docutils literal notranslate"><span class="pre">ReviewTableItem.table_id_t2</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models_v2.ReviewTableItem.table_key"><code class="docutils literal notranslate"><span class="pre">ReviewTableItem.table_key</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models_v2.ReviewTableItem.table_name"><code class="docutils literal notranslate"><span class="pre">ReviewTableItem.table_name</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models_v2.ReviewTableItem.table_number"><code class="docutils literal notranslate"><span class="pre">ReviewTableItem.table_number</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models_v2.ReviewTableItem.table_status"><code class="docutils literal notranslate"><span class="pre">ReviewTableItem.table_status</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models_v2.ReviewTableItem.to_dict"><code class="docutils literal notranslate"><span class="pre">ReviewTableItem.to_dict()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models_v2.ReviewTableItem.update_status"><code class="docutils literal notranslate"><span class="pre">ReviewTableItem.update_status()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.review_models_v2.ValidationStatus"><code class="docutils literal notranslate"><span class="pre">ValidationStatus</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models_v2.ValidationStatus.APPROVED"><code class="docutils literal notranslate"><span class="pre">ValidationStatus.APPROVED</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models_v2.ValidationStatus.PENDING"><code class="docutils literal notranslate"><span class="pre">ValidationStatus.PENDING</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models_v2.ValidationStatus.REJECTED"><code class="docutils literal notranslate"><span class="pre">ValidationStatus.REJECTED</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="vigilance.html#vigilance.review_models_v2.ValidationStatus.SKIPPED"><code class="docutils literal notranslate"><span class="pre">ValidationStatus.SKIPPED</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.review_models_v2.compute_table_key"><code class="docutils literal notranslate"><span class="pre">compute_table_key()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.review_models_v2.legacy_change_type_to_new"><code class="docutils literal notranslate"><span class="pre">legacy_change_type_to_new()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="vigilance.html#module-vigilance.review_priority">review_priority</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.review_priority.get_priority_signals"><code class="docutils literal notranslate"><span class="pre">get_priority_signals()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.review_priority.sort_review_items_by_priority"><code class="docutils literal notranslate"><span class="pre">sort_review_items_by_priority()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="vigilance.html#module-vigilance.review_queue_normalizer">review_queue_normalizer</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.review_queue_normalizer.build_normalized_review_queue"><code class="docutils literal notranslate"><span class="pre">build_normalized_review_queue()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.review_queue_normalizer.normalize_review_queue"><code class="docutils literal notranslate"><span class="pre">normalize_review_queue()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.review_queue_normalizer.sort_review_tables_by_priority"><code class="docutils literal notranslate"><span class="pre">sort_review_tables_by_priority()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="vigilance.html#module-vigilance.review_state">review_state</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.review_state.set_review_status"><code class="docutils literal notranslate"><span class="pre">set_review_status()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="vigilance.html#module-vigilance.review_storage">review_storage</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.review_storage.build_review_items_signature"><code class="docutils literal notranslate"><span class="pre">build_review_items_signature()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.review_storage.get_review_state_path"><code class="docutils literal notranslate"><span class="pre">get_review_state_path()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.review_storage.is_review_state_compatible"><code class="docutils literal notranslate"><span class="pre">is_review_state_compatible()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.review_storage.is_review_state_stale"><code class="docutils literal notranslate"><span class="pre">is_review_state_stale()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.review_storage.load_review_state"><code class="docutils literal notranslate"><span class="pre">load_review_state()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.review_storage.save_review_state"><code class="docutils literal notranslate"><span class="pre">save_review_state()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="vigilance.html#module-vigilance.text_analysis_pipeline">text_analysis_pipeline</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.text_analysis_pipeline.run_text_analysis_pipeline"><code class="docutils literal notranslate"><span class="pre">run_text_analysis_pipeline()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.text_analysis_pipeline.run_text_extraction_pipeline"><code class="docutils literal notranslate"><span class="pre">run_text_extraction_pipeline()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="vigilance.html#module-vigilance.ui_config">ui_config</a></li>
-<li class="toctree-l2"><a class="reference internal" href="vigilance.html#module-vigilance.ui_detection">ui_detection</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.ui_detection.get_pdf_preview"><code class="docutils literal notranslate"><span class="pre">get_pdf_preview()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.ui_detection.get_section_preview_images"><code class="docutils literal notranslate"><span class="pre">get_section_preview_images()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="vigilance.html#module-vigilance.ui_indicators">ui_indicators</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.ui_indicators.build_indicator_change_rows"><code class="docutils literal notranslate"><span class="pre">build_indicator_change_rows()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.ui_indicators.get_display_indicators"><code class="docutils literal notranslate"><span class="pre">get_display_indicators()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.ui_indicators.run_indicator_auto_pipeline"><code class="docutils literal notranslate"><span class="pre">run_indicator_auto_pipeline()</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="vigilance.html#module-vigilance.ui_io">ui_io</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.ui_io.get_available_comparisons"><code class="docutils literal notranslate"><span class="pre">get_available_comparisons()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.ui_io.get_available_indicator_comparison_options"><code class="docutils literal notranslate"><span class="pre">get_available_indicator_comparison_options()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.ui_io.load_comparison_result"><code class="docutils literal notranslate"><span class="pre">load_comparison_result()</span></code></a></li>
-<li class="toctree-l3"><a class="reference internal" href="vigilance.html#vigilance.ui_io.save_pdfs_to_temp"><code class="docutils literal notranslate"><span class="pre">save_pdfs_to_temp()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vigie.html#vigie.extraction.extract_pdf"><code class="docutils literal notranslate"><span class="pre">extract_pdf()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vigie.html#vigie.extraction.extract_pdf_targeted"><code class="docutils literal notranslate"><span class="pre">extract_pdf_targeted()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vigie.html#vigie.extraction.extract_section_content"><code class="docutils literal notranslate"><span class="pre">extract_section_content()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vigie.html#vigie.extraction.extract_tables_docling_by_sections"><code class="docutils literal notranslate"><span class="pre">extract_tables_docling_by_sections()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vigie.html#vigie.extraction.extract_tables_docling_priority"><code class="docutils literal notranslate"><span class="pre">extract_tables_docling_priority()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vigie.html#vigie.extraction.locate_sections_in_pdf"><code class="docutils literal notranslate"><span class="pre">locate_sections_in_pdf()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -599,7 +242,7 @@
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Pied de page">
         <a href="index.html" class="btn btn-neutral float-left" title="Référence technique" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Précédent</a>
-        <a href="vigilance.html" class="btn btn-neutral float-right" title="Moteur applicatif" accesskey="n" rel="next">Suivant <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="vigie.html" class="btn btn-neutral float-right" title="Moteur applicatif Vigie" accesskey="n" rel="next">Suivant <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

@@ -1,0 +1,348 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="fr" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Composants de l’interface &mdash; Vigie de paire - documentation technique</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+    <link rel="canonical" href="https://abdoulayegk.github.io/vigie_paire/api/vigie.interface.components.html" />
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=d1a510d7"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="../_static/translations.js?v=e6b791cb"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Recherche" href="../search.html" />
+    <link rel="next" title="Mises en page de l’interface" href="vigie.interface.layouts.html" />
+    <link rel="prev" title="Rappels de l’interface" href="vigie.interface.callbacks.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Vigie de paire
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Rechercher docs" aria-label="Rechercher docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Référence technique</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Référence technique</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="modules.html">Moteur applicatif</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="vigie.html">Moteur applicatif Vigie</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="vigie.html#composants">Composants</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.html#module-vigie">Packages principaux</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Vigie de paire</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Référence technique</a></li>
+          <li class="breadcrumb-item"><a href="modules.html">Moteur applicatif</a></li>
+          <li class="breadcrumb-item"><a href="vigie.html">Moteur applicatif Vigie</a></li>
+          <li class="breadcrumb-item"><a href="vigie.interface.html">Interface Dash</a></li>
+      <li class="breadcrumb-item active">Composants de l’interface</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="composants-de-l-interface">
+<h1>Composants de l’interface<a class="headerlink" href="#composants-de-l-interface" title="Lien vers cette rubrique"></a></h1>
+<section id="modules">
+<h2>Modules<a class="headerlink" href="#modules" title="Lien vers cette rubrique"></a></h2>
+</section>
+<section id="module-vigie.interface.components.pdf_preview">
+<span id="interface-components-pdf-preview"></span><h2>interface.components.pdf_preview<a class="headerlink" href="#module-vigie.interface.components.pdf_preview" title="Lien vers cette rubrique"></a></h2>
+<p>UI only: affichage base64 Dash. Rendu pages PDF dans <code class="docutils literal notranslate"><span class="pre">vigie.extraction.pdf_preview</span></code>.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="vigie.interface.components.pdf_preview.pdf_images_from_base64">
+<span class="sig-name descname"><span class="pre">pdf_images_from_base64</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">images</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">captions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigie.interface.components.pdf_preview.pdf_images_from_base64" title="Lien vers cette définition"></a></dt>
+<dd><p>Affiche des images PDF encodees en base64 dans une grille verticale.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>images</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]</span>) – Liste de chaines base64 representant des images PNG.</p></li>
+<li><p><strong>captions</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>] | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Legendes optionnelles pour chaque image. Si absent,
+des legendes <code class="docutils literal notranslate"><span class="pre">Page</span> <span class="pre">1</span></code>, <code class="docutils literal notranslate"><span class="pre">Page</span> <span class="pre">2</span></code>, … sont generees.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Div</span></code></span></p>
+</dd>
+<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Un <code class="docutils literal notranslate"><span class="pre">Div</span></code> contenant les images avec leurs legendes, ou un
+message de repli si <em>images</em> est vide.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-vigie.interface.components.review_detail_v2">
+<span id="interface-components-review-detail-v2"></span><h2>interface.components.review_detail_v2<a class="headerlink" href="#module-vigie.interface.components.review_detail_v2" title="Lien vers cette rubrique"></a></h2>
+<p>Composant de detail de revue V2 – interface de validation par changement.</p>
+<p>Ce composant genere le panneau droit de l’interface de revue et affiche :
+- Les images de preuve (T1 et T2)
+- La liste des changements pour le tableau courant
+- Les boutons de validation par changement
+- Les controles de navigation</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="vigie.interface.components.review_detail_v2.build_change_list_v2">
+<span class="sig-name descname"><span class="pre">build_change_list_v2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">changes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_change_idx</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Séparateur de paramètres par mot-clé uniquement (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_quarter_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">previous_quarter_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigie.interface.components.review_detail_v2.build_change_list_v2" title="Lien vers cette définition"></a></dt>
+<dd><p>Construit la liste des changements pour un tableau.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>changes</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>]</span>) – Liste de dictionnaires <code class="docutils literal notranslate"><span class="pre">ChangeItem</span></code>.</p></li>
+<li><p><strong>current_change_idx</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – Index du changement actuellement selectionne.</p></li>
+<li><p><strong>current_quarter_label</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Libelle du trimestre courant, si disponible.</p></li>
+<li><p><strong>previous_quarter_label</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Libelle du trimestre precedent, si disponible.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">ListGroup</span></code></span></p>
+</dd>
+<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Un <code class="docutils literal notranslate"><span class="pre">Div</span></code> contenant la liste des changements.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigie.interface.components.review_detail_v2.build_review_detail_v2">
+<span class="sig-name descname"><span class="pre">build_review_detail_v2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">table</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_change_idx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">proof_image_t1_b64</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">proof_image_t2_b64</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_proofs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_quarter_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">previous_quarter_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigie.interface.components.review_detail_v2.build_review_detail_v2" title="Lien vers cette définition"></a></dt>
+<dd><p>Construit le panneau complet de detail de revue V2.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>table</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Dictionnaire <code class="docutils literal notranslate"><span class="pre">ReviewTableItem</span></code> courant.</p></li>
+<li><p><strong>current_change_idx</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – Index du changement courant.</p></li>
+<li><p><strong>proof_image_t1_b64</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Image de preuve T1 encodee en base64.</p></li>
+<li><p><strong>proof_image_t2_b64</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Image de preuve T2 encodee en base64.</p></li>
+<li><p><strong>show_proofs</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – Si <code class="docutils literal notranslate"><span class="pre">True</span></code>, affiche la section des preuves visuelles.</p></li>
+<li><p><strong>current_quarter_label</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Libelle du trimestre courant, si disponible.</p></li>
+<li><p><strong>previous_quarter_label</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Libelle du trimestre precedent, si disponible.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Div</span></code></span></p>
+</dd>
+<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Le panneau de detail de revue complet.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigie.interface.components.review_detail_v2.build_validation_panel_v2">
+<span class="sig-name descname"><span class="pre">build_validation_panel_v2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">table</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_change_idx</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigie.interface.components.review_detail_v2.build_validation_panel_v2" title="Lien vers cette définition"></a></dt>
+<dd><p>Construit les boutons de validation et le champ de notes pour le changement courant.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>table</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span>) – Dictionnaire <code class="docutils literal notranslate"><span class="pre">ReviewTableItem</span></code> courant.</p></li>
+<li><p><strong>current_change_idx</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – Index du changement courant dans le tableau.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Div</span></code></span></p>
+</dd>
+<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Un <code class="docutils literal notranslate"><span class="pre">Div</span></code> contenant les controles de validation.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-vigie.interface.components.review_display_shared">
+<span id="interface-components-review-display-shared"></span><h2>interface.components.review_display_shared<a class="headerlink" href="#module-vigie.interface.components.review_display_shared" title="Lien vers cette rubrique"></a></h2>
+<p>Fonctions d’affichage partagees pour l’interface de revue Dash V2.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="vigie.interface.components.review_display_shared.build_proofs_section">
+<span class="sig-name descname"><span class="pre">build_proofs_section</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">item</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">img_t1_b64</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">img_t2_b64</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">proof_display_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'crop'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">proof_result_t1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">proof_result_t2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_quarter_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">previous_quarter_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigie.interface.components.review_display_shared.build_proofs_section" title="Lien vers cette définition"></a></dt>
+<dd><p>Construit le panneau de preuves visuelles partage par la vue de detail V2.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>item</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span>) – Dictionnaire du changement contenant les metadonnees du tableau.</p></li>
+<li><p><strong>img_t1_b64</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Image base64 de la preuve T1 (trimestre precedent).</p></li>
+<li><p><strong>img_t2_b64</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Image base64 de la preuve T2 (trimestre courant).</p></li>
+<li><p><strong>proof_display_mode</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Mode d’affichage (<code class="docutils literal notranslate"><span class="pre">&quot;crop&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;full&quot;</span></code>,
+<code class="docutils literal notranslate"><span class="pre">&quot;footnote&quot;</span></code> ou <code class="docutils literal notranslate"><span class="pre">&quot;full_without_bbox&quot;</span></code>).</p></li>
+<li><p><strong>proof_result_t1</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Resultat de rendu pour la preuve T1.</p></li>
+<li><p><strong>proof_result_t2</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Resultat de rendu pour la preuve T2.</p></li>
+<li><p><strong>current_quarter_label</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Libelle du trimestre courant, si disponible.</p></li>
+<li><p><strong>previous_quarter_label</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Libelle du trimestre precedent, si disponible.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Div</span></code></span></p>
+</dd>
+<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Un <code class="docutils literal notranslate"><span class="pre">Div</span></code> contenant les cartes de preuve T1/T2 et le selecteur de mode.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigie.interface.components.review_display_shared.compute_flag_state">
+<span class="sig-name descname"><span class="pre">compute_flag_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">item</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Séparateur de paramètres par mot-clé uniquement (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_quarter_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">previous_quarter_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigie.interface.components.review_display_shared.compute_flag_state" title="Lien vers cette définition"></a></dt>
+<dd><p>Calcule les indicateurs visuels des cartes de preuve a partir du payload de changement.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>item</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span>) – Dictionnaire du changement contenant <code class="docutils literal notranslate"><span class="pre">change_type</span></code>,
+<code class="docutils literal notranslate"><span class="pre">added_indicators</span></code>, <code class="docutils literal notranslate"><span class="pre">removed_indicators</span></code> et <code class="docutils literal notranslate"><span class="pre">indicators</span></code>.</p></li>
+<li><p><strong>current_quarter_label</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Libelle du trimestre courant, si disponible.</p></li>
+<li><p><strong>previous_quarter_label</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Libelle du trimestre precedent, si disponible.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span></p>
+</dd>
+<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dictionnaire avec les classes CSS et libelles de badges pour T1/T2.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigie.interface.components.review_display_shared.section_display_label">
+<span class="sig-name descname"><span class="pre">section_display_label</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">section</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigie.interface.components.review_display_shared.section_display_label" title="Lien vers cette définition"></a></dt>
+<dd><p>Convertit un identifiant de section en libelle lisible pour l’affichage.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>section</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Identifiant brut de la section (peut etre <code class="docutils literal notranslate"><span class="pre">None</span></code>).</p>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+</dd>
+<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Libelle francise de la section, ou <code class="docutils literal notranslate"><span class="pre">&quot;Autre</span> <span class="pre">section&quot;</span></code> par defaut.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigie.interface.components.review_display_shared.table_display_label">
+<span class="sig-name descname"><span class="pre">table_display_label</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">item</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigie.interface.components.review_display_shared.table_display_label" title="Lien vers cette définition"></a></dt>
+<dd><p>Formate un libelle de tableau de type rapport pour l’affichage.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>item</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span>) – Dictionnaire contenant les metadonnees du tableau
+(<code class="docutils literal notranslate"><span class="pre">table_name</span></code>, <code class="docutils literal notranslate"><span class="pre">table_number</span></code>, <code class="docutils literal notranslate"><span class="pre">page_t1</span></code>/<code class="docutils literal notranslate"><span class="pre">page_t2</span></code>,
+<code class="docutils literal notranslate"><span class="pre">section</span></code>, <code class="docutils literal notranslate"><span class="pre">change_type</span></code>).</p>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+</dd>
+<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Libelle formate du tableau.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-vigie.interface.components.review_queue_v2">
+<span id="interface-components-review-queue-v2"></span><h2>interface.components.review_queue_v2<a class="headerlink" href="#module-vigie.interface.components.review_queue_v2" title="Lien vers cette rubrique"></a></h2>
+<p>Composant de file de revue V2 – tableaux groupes et dedupliques.</p>
+<p>Ce composant genere le panneau gauche de l’interface de revue, affichant
+un element par tableau (et non par changement) avec indicateurs de
+progression.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="vigie.interface.components.review_queue_v2.build_review_queue_v2">
+<span class="sig-name descname"><span class="pre">build_review_queue_v2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tables</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_review_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_change_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">active_filters</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigie.interface.components.review_queue_v2.build_review_queue_v2" title="Lien vers cette définition"></a></dt>
+<dd><p>Construit le panneau de file de revue V2 avec tableaux groupes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tables</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>]</span>) – Liste de dictionnaires <code class="docutils literal notranslate"><span class="pre">ReviewTableItem</span></code>
+(provenant de <code class="docutils literal notranslate"><span class="pre">store-review-queue</span></code>).</p></li>
+<li><p><strong>current_review_id</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Identifiant du tableau actuellement selectionne.</p></li>
+<li><p><strong>current_change_id</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Identifiant du changement actuellement selectionne.</p></li>
+<li><p><strong>active_filters</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Filtres optionnels (section, statut).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">Div</span></code></span></p>
+</dd>
+<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Un <code class="docutils literal notranslate"><span class="pre">Div</span></code> contenant le panneau complet de la file de revue.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Pied de page">
+        <a href="vigie.interface.callbacks.html" class="btn btn-neutral float-left" title="Rappels de l’interface" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Précédent</a>
+        <a href="vigie.interface.layouts.html" class="btn btn-neutral float-right" title="Mises en page de l’interface" accesskey="n" rel="next">Suivant <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Droits d'auteur 2026.</p>
+  </div>
+
+  Compilé avec <a href="https://www.sphinx-doc.org/">Sphinx</a> en utilisant un
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">thème</a>
+    fourni par <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

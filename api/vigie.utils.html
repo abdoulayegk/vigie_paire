@@ -1,0 +1,1418 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="fr" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Utilitaires (vigie.support.utils) &mdash; Vigie de paire - documentation technique</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+    <link rel="canonical" href="https://abdoulayegk.github.io/vigie_paire/api/vigie.utils.html" />
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=d1a510d7"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="../_static/translations.js?v=e6b791cb"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Recherche" href="../search.html" />
+    <link rel="next" title="Internationalisation (vigie.support.i18n)" href="vigie.i18n.html" />
+    <link rel="prev" title="Modeles de donnees (vigie.support.models)" href="vigie.models.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Vigie de paire
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Rechercher docs" aria-label="Rechercher docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Référence technique</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Référence technique</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="modules.html">Moteur applicatif</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="vigie.html">Moteur applicatif Vigie</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="vigie.html#composants">Composants</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vigie.html#module-vigie">Packages principaux</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Vigie de paire</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Référence technique</a></li>
+          <li class="breadcrumb-item"><a href="modules.html">Moteur applicatif</a></li>
+          <li class="breadcrumb-item"><a href="vigie.html">Moteur applicatif Vigie</a></li>
+      <li class="breadcrumb-item active">Utilitaires (<code class="docutils literal notranslate"><span class="pre">vigie.support.utils</span></code>)</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="utilitaires-vigie-support-utils">
+<h1>Utilitaires (<code class="docutils literal notranslate"><span class="pre">vigie.support.utils</span></code>)<a class="headerlink" href="#utilitaires-vigie-support-utils" title="Lien vers cette rubrique"></a></h1>
+<section id="modules">
+<h2>Modules<a class="headerlink" href="#modules" title="Lien vers cette rubrique"></a></h2>
+</section>
+<section id="module-vigie.support.utils.footnotes_utils">
+<span id="utils-footnotes-utils"></span><h2>utils.footnotes_utils<a class="headerlink" href="#module-vigie.support.utils.footnotes_utils" title="Lien vers cette rubrique"></a></h2>
+<p>Utilitaires de conversion des notes de bas de page.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="vigie.support.utils.footnotes_utils.count_stringified_dict_suspects">
+<span class="sig-name descname"><span class="pre">count_stringified_dict_suspects</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">items</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigie.support.utils.footnotes_utils.count_stringified_dict_suspects" title="Lien vers cette définition"></a></dt>
+<dd><p>Compte les entrees qui ressemblent a des payloads dict sous forme de chaine (metrique d’audit).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>items</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>] | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Liste d’elements a analyser, ou None.</p>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span></p>
+</dd>
+<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Nombre d’entrees suspectes detectees.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigie.support.utils.footnotes_utils.footnotes_list_to_dict">
+<span class="sig-name descname"><span class="pre">footnotes_list_to_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">items</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigie.support.utils.footnotes_utils.footnotes_list_to_dict" title="Lien vers cette définition"></a></dt>
+<dd><p>Convertit un payload de notes sous forme de liste en un dict stable.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>items</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]</span>) – Liste brute de notes de bas de page.</p>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]</span></p>
+</dd>
+<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dictionnaire <code class="docutils literal notranslate"><span class="pre">{id:</span> <span class="pre">text}</span></code> pour chaque note valide.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigie.support.utils.footnotes_utils.normalize_footnotes_to_canonical">
+<span class="sig-name descname"><span class="pre">normalize_footnotes_to_canonical</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">items</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigie.support.utils.footnotes_utils.normalize_footnotes_to_canonical" title="Lien vers cette définition"></a></dt>
+<dd><p>Convertit les notes de bas de page de divers formats vers une liste canonique de dicts avec id et text.</p>
+<p>Gere :
+- None ou vide -&gt; []
+- list[str] (Docling legacy) -&gt; [{« id »: « 1 », « text »: s}, …] en preservant l’ordre
+- list[dict] (extraction Vision) -&gt; preserve id/marker et text ; pas de chaines repr
+- types mixtes -&gt; normalise chaque element de facon securitaire</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>items</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>] | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Liste brute de notes (divers formats) ou None.</p>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]]</span></p>
+</dd>
+<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Liste canonique de dicts <code class="docutils literal notranslate"><span class="pre">{&quot;id&quot;:</span> <span class="pre">...,</span> <span class="pre">&quot;text&quot;:</span> <span class="pre">...}</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-vigie.support.utils.genai">
+<span id="utils-genai"></span><h2>utils.genai<a class="headerlink" href="#module-vigie.support.utils.genai" title="Lien vers cette rubrique"></a></h2>
+<p>Utilitaires d’environnement pour l’IA generative.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="vigie.support.utils.genai.get_openai_api_key">
+<span class="sig-name descname"><span class="pre">get_openai_api_key</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#vigie.support.utils.genai.get_openai_api_key" title="Lien vers cette définition"></a></dt>
+<dd><p>Lit la cle API OpenAI depuis l’environnement (.env charge a l’import si dotenv est disponible).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+<dt class="field-even">Renvoie<span class="colon">:</span></dt>
+<dd class="field-even"><p>La cle API nettoyee, ou None si absente.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-vigie.support.utils.indicator_cleaner">
+<span id="utils-indicator-cleaner"></span><h2>utils.indicator_cleaner<a class="headerlink" href="#module-vigie.support.utils.indicator_cleaner" title="Lien vers cette rubrique"></a></h2>
+<p>Utilitaires de nettoyage des libelles d’indicateurs et titres de tableaux.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="vigie.support.utils.indicator_cleaner.clean_spaced_out_text">
+<span class="sig-name descname"><span class="pre">clean_spaced_out_text</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigie.support.utils.indicator_cleaner.clean_spaced_out_text" title="Lien vers cette définition"></a></dt>
+<dd><p>Recombine les lettres isolees issues de l’OCR : <code class="docutils literal notranslate"><span class="pre">T</span> <span class="pre">o</span> <span class="pre">t</span> <span class="pre">a</span> <span class="pre">l</span></code> -&gt; <code class="docutils literal notranslate"><span class="pre">Total</span></code>, <code class="docutils literal notranslate"><span class="pre">A</span> <span class="pre">s</span> <span class="pre">s</span> <span class="pre">e</span> <span class="pre">t</span> <span class="pre">s</span></code> -&gt; <code class="docutils literal notranslate"><span class="pre">Assets</span></code>.</p>
+<p>Gere les artefacts OCR ou les lettres sont incorrectement separees par des espaces.
+Fusionne uniquement les jetons alphabetiques mono-caractere consecutifs (preserve <code class="docutils literal notranslate"><span class="pre">A</span></code>
+dans <code class="docutils literal notranslate"><span class="pre">Section</span> <span class="pre">A</span></code>, etc., quand il est suivi d’un jeton multi-caractere).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>text</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Texte potentiellement contamine par un espacement lettre a lettre.</p>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+</dd>
+<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Texte avec les lettres isolees recombinees en mots.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigie.support.utils.indicator_cleaner.clean_table_title_contamination">
+<span class="sig-name descname"><span class="pre">clean_table_title_contamination</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">title</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigie.support.utils.indicator_cleaner.clean_table_title_contamination" title="Lien vers cette définition"></a></dt>
+<dd><p>Supprime la contamination par montants/valeurs de colonnes d’un titre de tableau.</p>
+<ul class="simple">
+<li><p>Retire les suites numeriques en fin (nombres multiples, ex. <code class="docutils literal notranslate"><span class="pre">79</span> <span class="pre">772</span> <span class="pre">76</span> <span class="pre">163</span></code>).</p></li>
+<li><p>Retire les suites numeriques en debut si presentes.</p></li>
+<li><p>Preserve les vrais marqueurs de note : <code class="docutils literal notranslate"><span class="pre">(1)</span></code>, <code class="docutils literal notranslate"><span class="pre">(2)</span></code> en fin sont conserves
+(geres par l’appelant ou <code class="docutils literal notranslate"><span class="pre">strip_note_refs</span></code>).</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>title</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Titre de tableau brut.</p>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+</dd>
+<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Titre nettoye sans contamination numerique.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigie.support.utils.indicator_cleaner.collapse_redundant_parenthetical_expansion">
+<span class="sig-name descname"><span class="pre">collapse_redundant_parenthetical_expansion</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigie.support.utils.indicator_cleaner.collapse_redundant_parenthetical_expansion" title="Lien vers cette définition"></a></dt>
+<dd><p>Reduit <code class="docutils literal notranslate"><span class="pre">X</span> <span class="pre">(X</span> <span class="pre">...)</span></code> en la forme developpee <code class="docutils literal notranslate"><span class="pre">X</span> <span class="pre">...</span></code>.</p>
+<p>Exemple:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Fonds</span> <span class="n">propres</span> <span class="n">de</span> <span class="n">categorie</span> <span class="mi">1</span> <span class="p">(</span><span class="n">fonds</span> <span class="n">propres</span> <span class="n">de</span> <span class="n">categorie</span> <span class="mi">1</span> <span class="n">sous</span> <span class="n">forme</span> <span class="o">...</span><span class="p">)</span>
+<span class="o">-&gt;</span> <span class="n">fonds</span> <span class="n">propres</span> <span class="n">de</span> <span class="n">categorie</span> <span class="mi">1</span> <span class="n">sous</span> <span class="n">forme</span> <span class="o">...</span>
+</pre></div>
+</div>
+<p>Neutralise les parenthetiques explicatives qui repetent le meme prefixe
+semantique et gonfleraient sinon les scores de renommage flou.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>text</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Texte potentiellement contenant une expansion parenthetique redondante.</p>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+</dd>
+<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Texte reduit si une redondance est detectee, sinon le texte original.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigie.support.utils.indicator_cleaner.collapse_redundant_separator_expansion">
+<span class="sig-name descname"><span class="pre">collapse_redundant_separator_expansion</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigie.support.utils.indicator_cleaner.collapse_redundant_separator_expansion" title="Lien vers cette définition"></a></dt>
+<dd><p>Reduit <code class="docutils literal notranslate"><span class="pre">X</span> <span class="pre">:</span> <span class="pre">X</span> <span class="pre">...</span></code> ou <code class="docutils literal notranslate"><span class="pre">X</span> <span class="pre">-</span> <span class="pre">X</span> <span class="pre">...</span></code> en le suffixe developpe.</p>
+<p>L’extraction OCR/layout produit parfois un titre court suivi d’un segment
+explicatif repete, separe par <code class="docutils literal notranslate"><span class="pre">:</span></code>, <code class="docutils literal notranslate"><span class="pre">-</span></code> ou un tiret cadratin.
+On conserve la forme developpee quand le suffixe reexprime clairement le meme prefixe.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>text</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Texte potentiellement contenant une expansion separee par un separateur.</p>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+</dd>
+<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Texte reduit si une redondance est detectee, sinon le texte original.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigie.support.utils.indicator_cleaner.dedupe_indicators">
+<span class="sig-name descname"><span class="pre">dedupe_indicators</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">indicators</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Séparateur de paramètres par mot-clé uniquement (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">duplicate_ratio_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.15</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigie.support.utils.indicator_cleaner.dedupe_indicators" title="Lien vers cette définition"></a></dt>
+<dd><p>Supprime les doublons exacts en preservant l’ordre. Normalise les espaces pour la comparaison.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>indicators</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]</span>) – Liste de libelles d’indicateurs bruts.</p></li>
+<li><p><strong>duplicate_ratio_threshold</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – Seuil de ratio de doublons pour appliquer la deduplication.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>]</span></p>
+</dd>
+<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tuple <code class="docutils literal notranslate"><span class="pre">(liste_dedoublonnee,</span> <span class="pre">ratio_doublons,</span> <span class="pre">nombre_supprimes)</span></code>.
+<code class="docutils literal notranslate"><span class="pre">ratio_doublons</span> <span class="pre">=</span> <span class="pre">1</span> <span class="pre">-</span> <span class="pre">unique/total</span></code>. La deduplication n’est appliquee que si
+le ratio &gt;= seuil.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigie.support.utils.indicator_cleaner.insert_space_after_change_tag">
+<span class="sig-name descname"><span class="pre">insert_space_after_change_tag</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigie.support.utils.indicator_cleaner.insert_space_after_change_tag" title="Lien vers cette définition"></a></dt>
+<dd><p>Insere un espace apres AJOUT/SUPPRESSION/RENOMMAGE si directement suivi d’une lettre.</p>
+<p>Gere les indicateurs comme <code class="docutils literal notranslate"><span class="pre">AJOUTactions</span> <span class="pre">ordinaires</span></code> -&gt; <code class="docutils literal notranslate"><span class="pre">AJOUT</span> <span class="pre">actions</span> <span class="pre">ordinaires</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>text</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Texte potentiellement contenant un tag de changement colle.</p>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>]</span></p>
+</dd>
+<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tuple <code class="docutils literal notranslate"><span class="pre">(texte_nettoye,</span> <span class="pre">True</span> <span class="pre">si</span> <span class="pre">une</span> <span class="pre">correction</span> <span class="pre">a</span> <span class="pre">ete</span> <span class="pre">appliquee)</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigie.support.utils.indicator_cleaner.is_header_footer_table_title">
+<span class="sig-name descname"><span class="pre">is_header_footer_table_title</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">title</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bank_code</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigie.support.utils.indicator_cleaner.is_header_footer_table_title" title="Lien vers cette définition"></a></dt>
+<dd><p>Retourne True si le titre est un en-tete/pied de page (num page + banque + trimestre), non semantique.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>title</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Titre de tableau a verifier.</p></li>
+<li><p><strong>bank_code</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Code de la banque (ex. <code class="docutils literal notranslate"><span class="pre">rbc</span></code>) pour les heuristiques specifiques.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span></p>
+</dd>
+<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
+<dd class="field-odd"><p>True si le titre est un artefact d’en-tete/pied de page.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigie.support.utils.indicator_cleaner.is_table_title_contaminated">
+<span class="sig-name descname"><span class="pre">is_table_title_contaminated</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">title</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Séparateur de paramètres par mot-clé uniquement (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">numeric_ratio_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trailing_numbers_min</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">long_run_min</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigie.support.utils.indicator_cleaner.is_table_title_contaminated" title="Lien vers cette définition"></a></dt>
+<dd><p>Retourne True si le titre de tableau semble contamine par des valeurs numeriques (montants/colonnes).</p>
+<p>Contamination : longue suite numerique (3+ nombres), ou &gt;40 % des jetons sont des nombres,
+ou se termine par 2+ nombres.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>title</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Titre de tableau a verifier.</p></li>
+<li><p><strong>numeric_ratio_threshold</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – Ratio maximal de jetons numeriques avant contamination.</p></li>
+<li><p><strong>trailing_numbers_min</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – Nombre minimal de jetons numeriques en fin de titre.</p></li>
+<li><p><strong>long_run_min</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – Longueur minimale d’une suite consecutive de jetons numeriques.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span></p>
+</dd>
+<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
+<dd class="field-odd"><p>True si le titre est considere comme contamine.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigie.support.utils.indicator_cleaner.is_trailing_number_semantic">
+<span class="sig-name descname"><span class="pre">is_trailing_number_semantic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigie.support.utils.indicator_cleaner.is_trailing_number_semantic" title="Lien vers cette définition"></a></dt>
+<dd><p>Detecte les cas ou les nombres en fin de chaine sont semantiquement pertinents.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>text</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Libelle d’indicateur a analyser.</p>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span></p>
+</dd>
+<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
+<dd class="field-odd"><p>True si les nombres finaux font partie du sens (ex. <code class="docutils literal notranslate"><span class="pre">Pilier</span> <span class="pre">1</span></code>, <code class="docutils literal notranslate"><span class="pre">CET1</span></code>).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigie.support.utils.indicator_cleaner.merge_line_split_indicators">
+<span class="sig-name descname"><span class="pre">merge_line_split_indicators</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">indicators</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Séparateur de paramètres par mot-clé uniquement (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_combined_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">120</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigie.support.utils.indicator_cleaner.merge_line_split_indicators" title="Lien vers cette définition"></a></dt>
+<dd><p>Fusionne les lignes d’indicateurs lorsque la ligne suivante est probablement une continuation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>indicators</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]</span>) – Liste de libelles d’indicateurs potentiellement fragmentes.</p></li>
+<li><p><strong>max_combined_length</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – Longueur maximale du libelle fusionne.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>]</span></p>
+</dd>
+<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tuple <code class="docutils literal notranslate"><span class="pre">(liste_fusionnee,</span> <span class="pre">nombre_fusions)</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigie.support.utils.indicator_cleaner.normalize_indicator_for_comparison">
+<span class="sig-name descname"><span class="pre">normalize_indicator_for_comparison</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigie.support.utils.indicator_cleaner.normalize_indicator_for_comparison" title="Lien vers cette définition"></a></dt>
+<dd><p>Cle canonique unique pour la comparaison d’indicateurs (premiere colonne).</p>
+<p>Utilisee par <code class="docutils literal notranslate"><span class="pre">comparison_runner</span></code> et <code class="docutils literal notranslate"><span class="pre">structural_comparator</span></code> pour que le meme
+libelle semantique (ex. <code class="docutils literal notranslate"><span class="pre">Metaux</span> <span class="pre">precieux</span></code> vs <code class="docutils literal notranslate"><span class="pre">Metaux</span> <span class="pre">precieux</span> <span class="pre">:</span></code>) produise
+une seule cle et evite les faux ajouts/suppressions dans le detail des changements.</p>
+<ul class="simple">
+<li><p>Unicode NFD et normalisation de tous les espaces (y compris U+00A0) en espace simple</p></li>
+<li><p>Suppression des dates et unites/devises du libelle (ex. <code class="docutils literal notranslate"><span class="pre">au</span> <span class="pre">30</span> <span class="pre">avril</span> <span class="pre">2025</span></code>, <code class="docutils literal notranslate"><span class="pre">(M$)</span></code>)</p></li>
+<li><p>Variantes (CET-1, Tier-1, notes de fin)</p></li>
+<li><p>Suppression des accents, refs de notes <code class="docutils literal notranslate"><span class="pre">(1)</span></code> <code class="docutils literal notranslate"><span class="pre">[2]</span></code> <code class="docutils literal notranslate"><span class="pre">a)</span></code> <code class="docutils literal notranslate"><span class="pre">*</span></code>, exposants</p></li>
+<li><p>Normalisation de la ponctuation et des espaces, mise en minuscules</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>text</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Libelle d’indicateur brut a normaliser.</p>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+</dd>
+<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Cle canonique en minuscules, sans accents, prete pour la comparaison.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigie.support.utils.indicator_cleaner.normalize_indicator_variants">
+<span class="sig-name descname"><span class="pre">normalize_indicator_variants</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigie.support.utils.indicator_cleaner.normalize_indicator_variants" title="Lien vers cette définition"></a></dt>
+<dd><p>Normalise les variantes d’indicateur en une chaine canonique.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>text</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Libelle d’indicateur brut.</p>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+</dd>
+<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Libelle canonique apres suppression des marqueurs de notes et normalisation.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigie.support.utils.indicator_cleaner.post_normalize_indicator">
+<span class="sig-name descname"><span class="pre">post_normalize_indicator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigie.support.utils.indicator_cleaner.post_normalize_indicator" title="Lien vers cette définition"></a></dt>
+<dd><p>Applique le decoupage camelCase et la correction d’espace de tag apres normalisation canonique.</p>
+<p>Doit etre appele sur la valeur d’indicateur <em>nettoyee</em>, pas brute.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>text</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Libelle d’indicateur deja normalise.</p>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>]</span></p>
+</dd>
+<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tuple <code class="docutils literal notranslate"><span class="pre">(texte,</span> <span class="pre">camel_split_declenche,</span> <span class="pre">tag_space_declenche)</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigie.support.utils.indicator_cleaner.singularize_words">
+<span class="sig-name descname"><span class="pre">singularize_words</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigie.support.utils.indicator_cleaner.singularize_words" title="Lien vers cette définition"></a></dt>
+<dd><p>Retire le “s” final des mots pour neutraliser les variations pluriel/singulier.</p>
+<p>Gere : <code class="docutils literal notranslate"><span class="pre">actions</span></code> -&gt; <code class="docutils literal notranslate"><span class="pre">action</span></code>, <code class="docutils literal notranslate"><span class="pre">actifs</span></code> -&gt; <code class="docutils literal notranslate"><span class="pre">actif</span></code>, <code class="docutils literal notranslate"><span class="pre">garantis</span></code> -&gt; <code class="docutils literal notranslate"><span class="pre">garanti</span></code>.
+Preserve les mots ou le “s” final est inherent (frais, cours, mois, fonds, etc.).
+N’opere que sur les mots de plus de 3 caracteres pour eviter de casser les mots courts.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>text</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Texte a singulariser.</p>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+</dd>
+<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Texte avec les pluriels neutralises.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigie.support.utils.indicator_cleaner.split_camel_case_concatenation">
+<span class="sig-name descname"><span class="pre">split_camel_case_concatenation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigie.support.utils.indicator_cleaner.split_camel_case_concatenation" title="Lien vers cette définition"></a></dt>
+<dd><p>Insere un espace aux frontieres minuscule-majuscule.</p>
+<p>Gere les jetons concatenes comme <code class="docutils literal notranslate"><span class="pre">impotAJOUTactions</span></code> ou <code class="docutils literal notranslate"><span class="pre">fondsPropresTier1</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>text</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Texte potentiellement en camelCase.</p>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>]</span></p>
+</dd>
+<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tuple <code class="docutils literal notranslate"><span class="pre">(texte_nettoye,</span> <span class="pre">True</span> <span class="pre">si</span> <span class="pre">un</span> <span class="pre">decoupage</span> <span class="pre">a</span> <span class="pre">ete</span> <span class="pre">applique)</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigie.support.utils.indicator_cleaner.strip_dates_from_indicator_label">
+<span class="sig-name descname"><span class="pre">strip_dates_from_indicator_label</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigie.support.utils.indicator_cleaner.strip_dates_from_indicator_label" title="Lien vers cette définition"></a></dt>
+<dd><p>Supprime les fragments de date/temporels des libelles d’indicateurs (premiere colonne).</p>
+<p>Gere : dates autonomes (<code class="docutils literal notranslate"><span class="pre">Au</span> <span class="pre">30</span> <span class="pre">avril</span> <span class="pre">2025</span></code>), suffixes (<code class="docutils literal notranslate"><span class="pre">Prets</span> <span class="pre">garantis</span> <span class="pre">au</span> <span class="pre">30</span> <span class="pre">avril</span> <span class="pre">2025</span></code>),
+prefixes et formats multiples (FR, ISO, numerique, abreviations, periodes).
+Retourne une chaine vide si le libelle est purement une expression de date.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>text</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Libelle d’indicateur potentiellement contamine par des dates.</p>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+</dd>
+<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Libelle nettoye sans fragments temporels.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigie.support.utils.indicator_cleaner.strip_dates_from_table_title">
+<span class="sig-name descname"><span class="pre">strip_dates_from_table_title</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">title</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigie.support.utils.indicator_cleaner.strip_dates_from_table_title" title="Lien vers cette définition"></a></dt>
+<dd><p>Supprime les fragments de type date des titres de tableaux (CIBC, RBC).</p>
+<p>Gere : <code class="docutils literal notranslate"><span class="pre">au</span> <span class="pre">31</span> <span class="pre">octobre...</span></code>, <code class="docutils literal notranslate"><span class="pre">31</span> <span class="pre">janvier</span> <span class="pre">2025</span></code>, <code class="docutils literal notranslate"><span class="pre">30</span> <span class="pre">avril</span> <span class="pre">2025</span></code> en debut/fin.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>title</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Titre de tableau brut.</p>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+</dd>
+<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Titre nettoye sans fragments de date.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigie.support.utils.indicator_cleaner.strip_note_refs_from_title">
+<span class="sig-name descname"><span class="pre">strip_note_refs_from_title</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">title</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigie.support.utils.indicator_cleaner.strip_note_refs_from_title" title="Lien vers cette définition"></a></dt>
+<dd><p>Supprime les references de notes en fin de titre de tableau (ex. <code class="docutils literal notranslate"><span class="pre">NOTATIONS</span> <span class="pre">DE</span> <span class="pre">CREDIT1</span></code>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>title</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Titre de tableau brut.</p>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+</dd>
+<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Titre nettoye sans references de notes.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigie.support.utils.indicator_cleaner.strip_trailing_note_or_column_value">
+<span class="sig-name descname"><span class="pre">strip_trailing_note_or_column_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigie.support.utils.indicator_cleaner.strip_trailing_note_or_column_value" title="Lien vers cette définition"></a></dt>
+<dd><p>Supprime les marqueurs de note en fin de chaine et les residus de colonnes numeriques.</p>
+<p>Inclut la suppression (style Jad) des chiffres colles au dernier mot (sans espace) :
+ex. <code class="docutils literal notranslate"><span class="pre">Total</span> <span class="pre">des</span> <span class="pre">actifs1</span></code> -&gt; <code class="docutils literal notranslate"><span class="pre">Total</span> <span class="pre">des</span> <span class="pre">actifs</span></code>, <code class="docutils literal notranslate"><span class="pre">Revenue2024</span></code> -&gt; <code class="docutils literal notranslate"><span class="pre">Revenue</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>text</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Libelle d’indicateur brut.</p>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+</dd>
+<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Libelle nettoye sans marqueurs de note ni residus numeriques.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigie.support.utils.indicator_cleaner.strip_units_currency_from_indicator_label">
+<span class="sig-name descname"><span class="pre">strip_units_currency_from_indicator_label</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigie.support.utils.indicator_cleaner.strip_units_currency_from_indicator_label" title="Lien vers cette définition"></a></dt>
+<dd><p>Supprime les mentions d’unite/devise des libelles d’indicateurs (premiere colonne).</p>
+<p>Retire : <code class="docutils literal notranslate"><span class="pre">en</span> <span class="pre">millions</span> <span class="pre">de</span> <span class="pre">dollars</span></code>, <code class="docutils literal notranslate"><span class="pre">(M$)</span></code>, <code class="docutils literal notranslate"><span class="pre">(CAD)</span></code>, <code class="docutils literal notranslate"><span class="pre">(%)</span></code>, <code class="docutils literal notranslate"><span class="pre">en</span> <span class="pre">milliers</span></code>,
+<code class="docutils literal notranslate"><span class="pre">points</span> <span class="pre">de</span> <span class="pre">base</span></code>, etc. Preserve le noyau semantique (ex. <code class="docutils literal notranslate"><span class="pre">Ratio</span> <span class="pre">CET1</span></code> de <code class="docutils literal notranslate"><span class="pre">Ratio</span> <span class="pre">CET1</span> <span class="pre">(%)</span></code>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>text</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Libelle d’indicateur potentiellement contamine par des unites.</p>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+</dd>
+<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Libelle nettoye sans mentions d’unite ou de devise.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigie.support.utils.indicator_cleaner.strip_units_from_table_title">
+<span class="sig-name descname"><span class="pre">strip_units_from_table_title</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">title</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bank_code</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigie.support.utils.indicator_cleaner.strip_units_from_table_title" title="Lien vers cette définition"></a></dt>
+<dd><p>Supprime les mentions d’unite des titres de tableaux pour la comparaison semantique (ex. RBC).</p>
+<p>Retire les fragments en debut/fin comme <code class="docutils literal notranslate"><span class="pre">(en</span> <span class="pre">millions)</span></code>, <code class="docutils literal notranslate"><span class="pre">en</span> <span class="pre">$</span></code>, <code class="docutils literal notranslate"><span class="pre">(en</span> <span class="pre">millions</span> <span class="pre">de</span> <span class="pre">dollars)</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>title</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Titre de tableau brut.</p></li>
+<li><p><strong>bank_code</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Code de la banque pour les heuristiques specifiques (ex. <code class="docutils literal notranslate"><span class="pre">rbc</span></code>).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+</dd>
+<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Titre nettoye sans mentions d’unite.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-vigie.support.utils.indicator_line_merge">
+<span id="utils-indicator-line-merge"></span><h2>utils.indicator_line_merge<a class="headerlink" href="#module-vigie.support.utils.indicator_line_merge" title="Lien vers cette rubrique"></a></h2>
+<p>Fusion deterministe de lignes d’indicateurs fragmentees (heuristiques OCR/Docling securitaires).</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="vigie.support.utils.indicator_line_merge.IndicatorLineMergeConfig">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">IndicatorLineMergeConfig</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_next_tokens</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_combined_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">120</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uppercase_long_tokens_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uppercase_long_char_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">marker_ratio_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.7</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigie.support.utils.indicator_line_merge.IndicatorLineMergeConfig" title="Lien vers cette définition"></a></dt>
+<dd><p>Bases : <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Configuration pour la fusion deterministe de lignes.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="vigie.support.utils.indicator_line_merge.IndicatorLineMergeConfig.marker_ratio_threshold">
+<span class="sig-name descname"><span class="pre">marker_ratio_threshold</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.7</span></span><a class="headerlink" href="#vigie.support.utils.indicator_line_merge.IndicatorLineMergeConfig.marker_ratio_threshold" title="Lien vers cette définition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="vigie.support.utils.indicator_line_merge.IndicatorLineMergeConfig.max_combined_length">
+<span class="sig-name descname"><span class="pre">max_combined_length</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">120</span></span><a class="headerlink" href="#vigie.support.utils.indicator_line_merge.IndicatorLineMergeConfig.max_combined_length" title="Lien vers cette définition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="vigie.support.utils.indicator_line_merge.IndicatorLineMergeConfig.max_next_tokens">
+<span class="sig-name descname"><span class="pre">max_next_tokens</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">6</span></span><a class="headerlink" href="#vigie.support.utils.indicator_line_merge.IndicatorLineMergeConfig.max_next_tokens" title="Lien vers cette définition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="vigie.support.utils.indicator_line_merge.IndicatorLineMergeConfig.uppercase_long_char_threshold">
+<span class="sig-name descname"><span class="pre">uppercase_long_char_threshold</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">20</span></span><a class="headerlink" href="#vigie.support.utils.indicator_line_merge.IndicatorLineMergeConfig.uppercase_long_char_threshold" title="Lien vers cette définition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="vigie.support.utils.indicator_line_merge.IndicatorLineMergeConfig.uppercase_long_tokens_threshold">
+<span class="sig-name descname"><span class="pre">uppercase_long_tokens_threshold</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">4</span></span><a class="headerlink" href="#vigie.support.utils.indicator_line_merge.IndicatorLineMergeConfig.uppercase_long_tokens_threshold" title="Lien vers cette définition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigie.support.utils.indicator_line_merge.merge_indicator_lines">
+<span class="sig-name descname"><span class="pre">merge_indicator_lines</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">indicators</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Séparateur de paramètres par mot-clé uniquement (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigie.support.utils.indicator_line_merge.merge_indicator_lines" title="Lien vers cette définition"></a></dt>
+<dd><p>Fusionne les lignes d’indicateurs fragmentees avec des regles deterministes et conservatrices.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>indicators</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]</span>) – Liste de libelles d’indicateurs potentiellement fragmentes.</p></li>
+<li><p><strong>config</strong> (<span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#vigie.support.utils.indicator_line_merge.IndicatorLineMergeConfig" title="vigie.support.utils.indicator_line_merge.IndicatorLineMergeConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">IndicatorLineMergeConfig</span></code></a> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Configuration de fusion ; utilise les valeurs par defaut si None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>]</span></p>
+</dd>
+<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tuple <code class="docutils literal notranslate"><span class="pre">(liste_fusionnee,</span> <span class="pre">nombre_fusions)</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-vigie.support.utils.matching_normalizer">
+<span id="utils-matching-normalizer"></span><h2>utils.matching_normalizer<a class="headerlink" href="#module-vigie.support.utils.matching_normalizer" title="Lien vers cette rubrique"></a></h2>
+<p>Utilitaires de normalisation de texte pour l’appariement de tableaux.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="vigie.support.utils.matching_normalizer.infer_header_schema">
+<span class="sig-name descname"><span class="pre">infer_header_schema</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">headers</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigie.support.utils.matching_normalizer.infer_header_schema" title="Lien vers cette définition"></a></dt>
+<dd><p>Mappe une ligne d’en-tete vers des types semantiques grossiers pour un appariement robuste.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>headers</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>] | <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">...</span></code>] | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Liste ou tuple de valeurs d’en-tete, ou None.</p>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]</span></p>
+</dd>
+<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Liste de types semantiques (un par cellule).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigie.support.utils.matching_normalizer.infer_header_schema_type">
+<span class="sig-name descname"><span class="pre">infer_header_schema_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigie.support.utils.matching_normalizer.infer_header_schema_type" title="Lien vers cette définition"></a></dt>
+<dd><p>Infere un type semantique grossier pour une cellule d’en-tete.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>value</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Contenu textuel de la cellule d’en-tete.</p>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+</dd>
+<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Type parmi <code class="docutils literal notranslate"><span class="pre">EMPTY</span></code>, <code class="docutils literal notranslate"><span class="pre">PERCENT</span></code>, <code class="docutils literal notranslate"><span class="pre">CURRENCY</span></code>, <code class="docutils literal notranslate"><span class="pre">DATE</span></code>, <code class="docutils literal notranslate"><span class="pre">YEAR</span></code>, <code class="docutils literal notranslate"><span class="pre">NUMBER</span></code>, <code class="docutils literal notranslate"><span class="pre">TEXT</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigie.support.utils.matching_normalizer.is_date_only_line">
+<span class="sig-name descname"><span class="pre">is_date_only_line</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigie.support.utils.matching_normalizer.is_date_only_line" title="Lien vers cette définition"></a></dt>
+<dd><p>Detecter si une ligne est purement temporelle, unitaire ou une note.</p>
+<p>Couvre les lignes de date seules, les en-tetes de periode, les en-tetes d’unite monetaire
+comme <code class="docutils literal notranslate"><span class="pre">(en</span> <span class="pre">millions</span> <span class="pre">de</span> <span class="pre">dollars</span> <span class="pre">canadiens)</span> <span class="pre">Au</span> <span class="pre">31</span> <span class="pre">janvier</span> <span class="pre">2025</span></code>, et les lignes de definition
+de notes comme <code class="docutils literal notranslate"><span class="pre">(1)</span> <span class="pre">Definition</span></code> ou <code class="docutils literal notranslate"><span class="pre">[2]</span> <span class="pre">Note</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>text</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Ligne a analyser.</p>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span></p>
+</dd>
+<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
+<dd class="field-odd"><p>True si la ligne est purement temporelle, unitaire ou une note.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigie.support.utils.matching_normalizer.is_generic_title">
+<span class="sig-name descname"><span class="pre">is_generic_title</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">title</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">generic_titles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigie.support.utils.matching_normalizer.is_generic_title" title="Lien vers cette définition"></a></dt>
+<dd><p>Retourne True lorsque le titre est trop generique pour etre un identifiant fiable.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>title</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Titre de tableau a evaluer.</p></li>
+<li><p><strong>generic_titles</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">set</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>] | <code class="xref py py-class docutils literal notranslate"><span class="pre">frozenset</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>] | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Ensemble optionnel de titres generiques supplementaires.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span></p>
+</dd>
+<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
+<dd class="field-odd"><p>True si le titre est considere comme generique.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigie.support.utils.matching_normalizer.is_non_indicator_line">
+<span class="sig-name descname"><span class="pre">is_non_indicator_line</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigie.support.utils.matching_normalizer.is_non_indicator_line" title="Lien vers cette définition"></a></dt>
+<dd><p>Retourne True quand la ligne ne doit pas etre traitee comme un indicateur (totaux, unites, nombres).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>text</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Ligne a analyser.</p>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span></p>
+</dd>
+<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
+<dd class="field-odd"><p>True si la ligne est exclue de l’analyse des indicateurs.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigie.support.utils.matching_normalizer.normalize_for_matching">
+<span class="sig-name descname"><span class="pre">normalize_for_matching</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'generic'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigie.support.utils.matching_normalizer.normalize_for_matching" title="Lien vers cette définition"></a></dt>
+<dd><p>Normalise le texte en une representation stable adaptee a la comparaison.</p>
+<p>Utilisee par <code class="docutils literal notranslate"><span class="pre">normalize_indicator_variants</span></code> dans <code class="docutils literal notranslate"><span class="pre">indicator_cleaner</span></code>. La cle canonique
+pour le diff d’indicateurs est <code class="docutils literal notranslate"><span class="pre">normalize_indicator_for_comparison</span></code> (elision, impot/impots,
+guillemets sont appliques avant/apres cette etape).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>text</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Texte brut a normaliser.</p></li>
+<li><p><strong>target</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Contexte cible (<code class="docutils literal notranslate"><span class="pre">generic</span></code>, <code class="docutils literal notranslate"><span class="pre">indicator</span></code>, <code class="docutils literal notranslate"><span class="pre">header</span></code>, <code class="docutils literal notranslate"><span class="pre">title</span></code>).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+</dd>
+<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Texte normalise en minuscules, sans accents, avec ponctuation nettoyee.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigie.support.utils.matching_normalizer.normalize_label">
+<span class="sig-name descname"><span class="pre">normalize_label</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigie.support.utils.matching_normalizer.normalize_label" title="Lien vers cette définition"></a></dt>
+<dd><p>Alias utilise par le code de comparaison historique.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigie.support.utils.matching_normalizer.strip_temporal_expressions">
+<span class="sig-name descname"><span class="pre">strip_temporal_expressions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'title'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aggressive</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigie.support.utils.matching_normalizer.strip_temporal_expressions" title="Lien vers cette définition"></a></dt>
+<dd><p>Supprime les fragments de date/trimestre pour conserver le contenu semantique du titre de tableau.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>text</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Texte contenant potentiellement des expressions temporelles.</p></li>
+<li><p><strong>target</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Contexte cible (<code class="docutils literal notranslate"><span class="pre">title</span></code>, <code class="docutils literal notranslate"><span class="pre">header</span></code>).</p></li>
+<li><p><strong>aggressive</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – Si True, supprime aussi les annees et mois isoles.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+</dd>
+<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Texte nettoye sans expressions temporelles.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-vigie.support.utils.model_cost">
+<span id="utils-model-cost"></span><h2>utils.model_cost<a class="headerlink" href="#module-vigie.support.utils.model_cost" title="Lien vers cette rubrique"></a></h2>
+<p>Utilitaires d’estimation des couts de tokens OpenAI pour les modeles connus.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="vigie.support.utils.model_cost.estimate_openai_cost_usd">
+<span class="sig-name descname"><span class="pre">estimate_openai_cost_usd</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Séparateur de paramètres par mot-clé uniquement (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">prompt_tokens</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">completion_tokens</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigie.support.utils.model_cost.estimate_openai_cost_usd" title="Lien vers cette définition"></a></dt>
+<dd><p>Estime le cout API pour les noms de modeles connus.</p>
+<p>Les modeles inconnus retournent <code class="docutils literal notranslate"><span class="pre">0.0</span></code> afin que l’observabilite reste
+sure meme lorsque le modele actif n’est pas encore tarifie localement.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Nom du modele OpenAI (ex. <code class="docutils literal notranslate"><span class="pre">&quot;gpt-4o&quot;</span></code>).</p></li>
+<li><p><strong>prompt_tokens</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></span>) – Nombre de tokens en entree.</p></li>
+<li><p><strong>completion_tokens</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></span>) – Nombre de tokens en sortie.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span></p>
+</dd>
+<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Cout estime en USD, arrondi a 6 decimales.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-vigie.support.utils.openai_schema">
+<span id="utils-openai-schema"></span><h2>utils.openai_schema<a class="headerlink" href="#module-vigie.support.utils.openai_schema" title="Lien vers cette rubrique"></a></h2>
+<p>Utilitaires de normalisation du JSON Schema Pydantic pour les Structured Outputs OpenAI.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="vigie.support.utils.openai_schema.build_strict_openai_response_format">
+<span class="sig-name descname"><span class="pre">build_strict_openai_response_format</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">error_cls</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;class</span> <span class="pre">'RuntimeError'&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigie.support.utils.openai_schema.build_strict_openai_response_format" title="Lien vers cette définition"></a></dt>
+<dd><p>Construit un payload <code class="docutils literal notranslate"><span class="pre">response_format</span></code> OpenAI a partir d’un modele Pydantic.</p>
+<p>Le mode strict des Structured Outputs OpenAI exige que chaque noeud objet :
+- declare <code class="docutils literal notranslate"><span class="pre">additionalProperties:</span> <span class="pre">false</span></code>
+- liste chaque propriete dans <code class="docutils literal notranslate"><span class="pre">required</span></code> meme si Pydantic les marque optionnelles</p>
+<p>La sortie brute de <code class="docutils literal notranslate"><span class="pre">model_json_schema()</span></code> de Pydantic ne satisfait pas toujours
+ce contrat ; on normalise donc ici une seule fois et on reutilise la meme logique partout.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">type</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code>]</span>) – Classe Pydantic a convertir en schema JSON.</p></li>
+<li><p><strong>name</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Nom du schema pour le payload OpenAI.</p></li>
+<li><p><strong>error_cls</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">type</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code>]</span>) – Classe d’exception a lever en cas d’erreur de validation.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]</span></p>
+</dd>
+<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dictionnaire <code class="docutils literal notranslate"><span class="pre">response_format</span></code> pret a etre envoye a l’API OpenAI.</p>
+</dd>
+<dt class="field-even">Lève<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>error_cls</strong> – Si le schema contient des objets map-like interdits en mode strict.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigie.support.utils.openai_schema.validate_strict_openai_response_format">
+<span class="sig-name descname"><span class="pre">validate_strict_openai_response_format</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">response_format</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">error_cls</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;class</span> <span class="pre">'RuntimeError'&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigie.support.utils.openai_schema.validate_strict_openai_response_format" title="Lien vers cette définition"></a></dt>
+<dd><p>Valide un payload <code class="docutils literal notranslate"><span class="pre">response_format</span></code> OpenAI strict avant les appels API.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>response_format</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]</span>) – Payload <code class="docutils literal notranslate"><span class="pre">response_format</span></code> a valider.</p></li>
+<li><p><strong>error_cls</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">type</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code>]</span>) – Classe d’exception a lever en cas d’erreur.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Lève<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>error_cls</strong> – Si le schema est malformed ou si required/properties ne correspondent pas.</p>
+</dd>
+<dt class="field-odd">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-vigie.support.utils.page_layout_context">
+<span id="utils-page-layout-context"></span><h2>utils.page_layout_context<a class="headerlink" href="#module-vigie.support.utils.page_layout_context" title="Lien vers cette rubrique"></a></h2>
+<p>Contexte de mise en page pour les extensions dynamiques de recadrage.</p>
+<p>Utilise les bounding boxes de tableaux detectes par Docling pour calculer les
+extensions optimales haut/bas de chaque recadrage, en evitant les collisions
+avec les tableaux voisins tout en capturant titres et notes de bas de page.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="vigie.support.utils.page_layout_context.build_page_table_map">
+<span class="sig-name descname"><span class="pre">build_page_table_map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vision_items</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigie.support.utils.page_layout_context.build_page_table_map" title="Lien vers cette définition"></a></dt>
+<dd><p>Regroupe les bboxes de tableaux par page, tries de haut en bas.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>vision_items</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>] | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>]]</span>) – Liste de (idx, page_num, bbox_norm, table_id, ref_text).</p>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]]]]</span></p>
+</dd>
+<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">{page_num:</span> <span class="pre">[(idx,</span> <span class="pre">[l,</span> <span class="pre">t,</span> <span class="pre">r,</span> <span class="pre">b]),</span> <span class="pre">...]}</span></code> trie par <code class="docutils literal notranslate"><span class="pre">t</span></code> (haut).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigie.support.utils.page_layout_context.clamp_variant_crop_to_neighbors">
+<span class="sig-name descname"><span class="pre">clamp_variant_crop_to_neighbors</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">table_idx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_num</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">table_bbox</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_table_map</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Séparateur de paramètres par mot-clé uniquement (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">bbox_override</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bottom_extension</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">top_extension</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">safety_margin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.005</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigie.support.utils.page_layout_context.clamp_variant_crop_to_neighbors" title="Lien vers cette définition"></a></dt>
+<dd><p>Limiter un recadrage de secours aux tableaux voisins de la page.</p>
+<p>Les variantes peuvent agrandir la bbox ou ses extensions, mais ne doivent
+jamais traverser la marge de securite precedant le tableau suivant ou
+suivant le tableau precedent.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>], <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]</span></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigie.support.utils.page_layout_context.compute_dynamic_extensions">
+<span class="sig-name descname"><span class="pre">compute_dynamic_extensions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">table_idx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_num</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">table_bbox</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_table_map</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Séparateur de paramètres par mot-clé uniquement (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_bottom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.12</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_top</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.03</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_bottom_margin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title_proximity_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.08</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_gap_for_footnotes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.02</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigie.support.utils.page_layout_context.compute_dynamic_extensions" title="Lien vers cette définition"></a></dt>
+<dd><p>Calcule les extensions dynamiques haut et bas pour un recadrage de tableau.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>table_idx</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – Index du tableau courant dans la liste vision_items.</p></li>
+<li><p><strong>page_num</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – Numero de page du tableau courant.</p></li>
+<li><p><strong>table_bbox</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]</span>) – Bbox normalisee [l, t, r, b] du tableau courant.</p></li>
+<li><p><strong>page_table_map</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]]]]</span>) – Sortie de <a class="reference internal" href="#vigie.support.utils.page_layout_context.build_page_table_map" title="vigie.support.utils.page_layout_context.build_page_table_map"><code class="xref py py-func docutils literal notranslate"><span class="pre">build_page_table_map()</span></code></a>.</p></li>
+<li><p><strong>default_bottom</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – Extension bas par defaut (config).</p></li>
+<li><p><strong>default_top</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – Extension haut par defaut (config).</p></li>
+<li><p><strong>page_bottom_margin</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – Marge de securite depuis le bas de la page (normalisee).</p></li>
+<li><p><strong>title_proximity_threshold</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – Ecart maximal au-dessus du tableau pour chercher un titre.</p></li>
+<li><p><strong>min_gap_for_footnotes</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – Ecart minimal a laisser entre les tableaux.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]</span></p>
+</dd>
+<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">(top_extension,</span> <span class="pre">bottom_extension)</span></code> en unites de page normalisees.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-vigie.support.utils.pattern_loader">
+<span id="utils-pattern-loader"></span><h2>utils.pattern_loader<a class="headerlink" href="#module-vigie.support.utils.pattern_loader" title="Lien vers cette rubrique"></a></h2>
+<p>Chargeur optionnel de patterns d’extraction configurables par banque.</p>
+<p>Si aucun fichier de config ou module externe n’est fourni, get_patterns()
+retourne None; les appelants font alors sans patterns (comportement par defaut).</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="vigie.support.utils.pattern_loader.get_patterns">
+<span class="sig-name descname"><span class="pre">get_patterns</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bank_code</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigie.support.utils.pattern_loader.get_patterns" title="Lien vers cette définition"></a></dt>
+<dd><p>Retourne les patterns d’extraction pour la banque donnee, ou None si non configures.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>bank_code</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Code banque optionnel pour des patterns specifiques.</p>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>] | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dictionnaire de patterns ou None si aucun pattern n’est configure.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-vigie.support.utils.pdf_crop">
+<span id="utils-pdf-crop"></span><h2>utils.pdf_crop<a class="headerlink" href="#module-vigie.support.utils.pdf_crop" title="Lien vers cette rubrique"></a></h2>
+<p>Utilitaire de recadrage de tableaux PDF via PyMuPDF. Rend une region recadree en PNG.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="vigie.support.utils.pdf_crop.bbox_sanity_profile">
+<span class="sig-name descname"><span class="pre">bbox_sanity_profile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bbox_norm</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigie.support.utils.pdf_crop.bbox_sanity_profile" title="Lien vers cette définition"></a></dt>
+<dd><p>Calcule un profil de coherence pour une bbox normalisee [l, t, r, b].</p>
+<p>Utilise pour filtrer la Vision : rejette les bbox trop petites, quasi pleine page
+ou avec un ratio d’aspect extreme.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>bbox_norm</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]</span>) – Bounding box normalisee [l, t, r, b] dans 0..1.</p>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></span></p>
+</dd>
+<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dictionnaire contenant les dimensions, l’aire, le ratio d’aspect et
+eventuellement la raison de rejet.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigie.support.utils.pdf_crop.crop_footnote_region_to_bytes">
+<span class="sig-name descname"><span class="pre">crop_footnote_region_to_bytes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pdf_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_number</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">table_bbox_norm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">footnote_height</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dpi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">highlight_rects</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">secondary_highlight_rects</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">highlight_color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(1,</span> <span class="pre">0,</span> <span class="pre">1)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">secondary_highlight_color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigie.support.utils.pdf_crop.crop_footnote_region_to_bytes" title="Lien vers cette définition"></a></dt>
+<dd><p>Recadre uniquement la region de notes de bas de page sous un tableau.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pdf_path</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Chemin du fichier PDF.</p></li>
+<li><p><strong>page_number</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – Numero de page (base 1).</p></li>
+<li><p><strong>table_bbox_norm</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]</span>) – Bounding box normalisee du tableau [l, t, r, b] dans 0..1.</p></li>
+<li><p><strong>scale</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – Echelle de rendu quand dpi n’est pas defini.</p></li>
+<li><p><strong>footnote_height</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – Hauteur de la region de notes en fraction de page (defaut 0.25 = 25 %).</p></li>
+<li><p><strong>dpi</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Si defini, rendu a cette resolution ; ecrase scale.</p></li>
+<li><p><strong>highlight_rects</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]] | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Surlignages primaires.</p></li>
+<li><p><strong>secondary_highlight_rects</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]] | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Surlignages secondaires.</p></li>
+<li><p><strong>highlight_color</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]</span>) – Couleur RGB normalisee du surlignage primaire.</p></li>
+<li><p><strong>secondary_highlight_color</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>] | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Couleur RGB normalisee du surlignage secondaire.
+Si absent, utilise la meme couleur que <code class="docutils literal notranslate"><span class="pre">highlight_color</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code></span></p>
+</dd>
+<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Octets PNG de la region de notes sous le tableau.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigie.support.utils.pdf_crop.crop_page_region_bytes">
+<span class="sig-name descname"><span class="pre">crop_page_region_bytes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pdf_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_number</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bbox_norm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dpi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">200</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigie.support.utils.pdf_crop.crop_page_region_bytes" title="Lien vers cette définition"></a></dt>
+<dd><p>Rend la zone spécifiée (ou toute la page) d’un PDF sous forme de bytes PNG.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pdf_path</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Chemin du fichier PDF.</p></li>
+<li><p><strong>page_number</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – Numéro de page (base 1).</p></li>
+<li><p><strong>bbox_norm</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>] | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Bounding box normalisée [l, t, r, b] ou None pour la page entière.</p></li>
+<li><p><strong>dpi</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – Résolution de rendu.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code></span></p>
+</dd>
+<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Bytes PNG de l’image.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigie.support.utils.pdf_crop.crop_table_image">
+<span class="sig-name descname"><span class="pre">crop_table_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pdf_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_number</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bbox_norm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dpi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">300</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bottom_extension</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigie.support.utils.pdf_crop.crop_table_image" title="Lien vers cette définition"></a></dt>
+<dd><p>Recadre une region de tableau d’une page PDF et sauvegarde en PNG.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pdf_path</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Chemin du fichier PDF.</p></li>
+<li><p><strong>page_number</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – Numero de page (base 1).</p></li>
+<li><p><strong>bbox_norm</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]</span>) – Bounding box normalisee [l, t, r, b] dans 0..1 (gauche, haut, droite, bas).</p></li>
+<li><p><strong>out_path</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Chemin de sortie pour le fichier PNG.</p></li>
+<li><p><strong>dpi</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – Resolution de rendu (defaut 300).</p></li>
+<li><p><strong>bottom_extension</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – Extension supplementaire sous la bbox (normalisee 0..1).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span></p>
+</dd>
+<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">True</span></code> en cas de succes, <code class="docutils literal notranslate"><span class="pre">False</span></code> en cas d’echec. Ne leve pas d’exception.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigie.support.utils.pdf_crop.crop_table_region_to_bytes">
+<span class="sig-name descname"><span class="pre">crop_table_region_to_bytes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pdf_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_number</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bbox_norm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bottom_extension</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">top_extension</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">horizontal_padding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dpi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">highlight_rects</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">secondary_highlight_rects</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">highlight_color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(1,</span> <span class="pre">0,</span> <span class="pre">1)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">secondary_highlight_color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigie.support.utils.pdf_crop.crop_table_region_to_bytes" title="Lien vers cette définition"></a></dt>
+<dd><p>Recadre une region de tableau d’une page PDF et retourne les octets PNG.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pdf_path</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Chemin du fichier PDF.</p></li>
+<li><p><strong>page_number</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – Numero de page (base 1, meme convention que render_pdf_page).</p></li>
+<li><p><strong>bbox_norm</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]</span>) – Bounding box normalisee [l, t, r, b] dans 0..1.</p></li>
+<li><p><strong>scale</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – Echelle de rendu quand dpi n’est pas defini (defaut 1.5, comme les previsualisations).</p></li>
+<li><p><strong>bottom_extension</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – Hauteur supplementaire sous la bbox (ex. notes de bas de page), normalisee 0..1.</p></li>
+<li><p><strong>top_extension</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – Hauteur supplementaire au-dessus de la bbox (ex. titre ou lignes manquees), normalisee 0..1.</p></li>
+<li><p><strong>horizontal_padding</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – Padding horizontal symetrique (normalise 0..1), borne a la page.</p></li>
+<li><p><strong>dpi</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Si defini, rendu a cette resolution (72 * zoom) ; ecrase scale. Utiliser 300 pour Vision/OCR.</p></li>
+<li><p><strong>highlight_rects</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]] | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Surlignages primaires – le changement actif en cours de validation.</p></li>
+<li><p><strong>secondary_highlight_rects</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]] | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Surlignages secondaires – autres changements du tableau
+(contexte seulement, plus discrets pour que le changement actif reste visuellement dominant).</p></li>
+<li><p><strong>highlight_color</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]</span>) – Couleur RGB normalisee du surlignage primaire.</p></li>
+<li><p><strong>secondary_highlight_color</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>] | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Couleur RGB normalisee du surlignage secondaire.
+Si absent, utilise la meme couleur que <code class="docutils literal notranslate"><span class="pre">highlight_color</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code></span></p>
+</dd>
+<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Octets PNG de la region recadree. Retourne <code class="docutils literal notranslate"><span class="pre">b&quot;&quot;</span></code> si bbox invalide, page hors limites,
+import echoue ou toute exception de recadrage (pas de repli pleine page).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigie.support.utils.pdf_crop.is_bbox_sane">
+<span class="sig-name descname"><span class="pre">is_bbox_sane</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bbox_norm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigie.support.utils.pdf_crop.is_bbox_sane" title="Lien vers cette définition"></a></dt>
+<dd><p>Verifie si une bbox normalisee est exploitable pour la Vision.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>bbox_norm</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]</span>) – Bounding box normalisee [l, t, r, b] dans 0..1.</p></li>
+<li><p><strong>cfg</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Configuration optionnelle (<code class="docutils literal notranslate"><span class="pre">bbox_min_width</span></code>, <code class="docutils literal notranslate"><span class="pre">bbox_min_height</span></code>,
+<code class="docutils literal notranslate"><span class="pre">bbox_min_area</span></code>, <code class="docutils literal notranslate"><span class="pre">bbox_max_area</span></code>, <code class="docutils literal notranslate"><span class="pre">bbox_near_full_page_threshold</span></code>).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code>]</span></p>
+</dd>
+<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tuple <code class="docutils literal notranslate"><span class="pre">(sane,</span> <span class="pre">reject_reason,</span> <span class="pre">profile)</span></code>. Si <code class="docutils literal notranslate"><span class="pre">sane</span></code> est <code class="docutils literal notranslate"><span class="pre">False</span></code>,
+<code class="docutils literal notranslate"><span class="pre">reject_reason</span></code> indique la cause du rejet.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigie.support.utils.pdf_crop.render_page_with_bbox_highlight_to_bytes">
+<span class="sig-name descname"><span class="pre">render_page_with_bbox_highlight_to_bytes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pdf_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_number</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bbox_norm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bottom_extension</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dpi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigie.support.utils.pdf_crop.render_page_with_bbox_highlight_to_bytes" title="Lien vers cette définition"></a></dt>
+<dd><p>Rend une page PDF complete en PNG avec un rectangle rouge autour du tableau.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pdf_path</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Chemin du fichier PDF.</p></li>
+<li><p><strong>page_number</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – Numero de page (base 1).</p></li>
+<li><p><strong>bbox_norm</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]</span>) – Bounding box normalisee [l, t, r, b] dans 0..1.</p></li>
+<li><p><strong>scale</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – Echelle de rendu quand dpi n’est pas defini.</p></li>
+<li><p><strong>bottom_extension</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – Hauteur supplementaire incluse dans le rectangle rouge (normalisee 0..1).</p></li>
+<li><p><strong>dpi</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Si defini, rendu a cette resolution (72 * zoom) ; ecrase scale. Utiliser 300 pour Vision/OCR.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bytes</span></code></span></p>
+</dd>
+<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Octets PNG de la page complete avec un rectangle rouge, ou page normale si bbox invalide.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-vigie.support.utils.pdf_highlight">
+<span id="utils-pdf-highlight"></span><h2>utils.pdf_highlight<a class="headerlink" href="#module-vigie.support.utils.pdf_highlight" title="Lien vers cette rubrique"></a></h2>
+<p>Recherche de texte et surlignage dans une region d’une page PDF via PyMuPDF.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="vigie.support.utils.pdf_highlight.find_text_bboxes_in_region">
+<span class="sig-name descname"><span class="pre">find_text_bboxes_in_region</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pdf_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_number</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text_to_find</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">region_bbox_norm</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigie.support.utils.pdf_highlight.find_text_bboxes_in_region" title="Lien vers cette définition"></a></dt>
+<dd><p>Recherche un texte dans une region contrainte d’une page PDF et retourne les bboxes normalisees.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pdf_path</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Chemin du fichier PDF.</p></li>
+<li><p><strong>page_number</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></span>) – Numero de page (base 1).</p></li>
+<li><p><strong>text_to_find</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span>) – Chaine exacte a localiser (ou partie de celle-ci).</p></li>
+<li><p><strong>region_bbox_norm</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]</span>) – Bbox normalisee [l, t, r, b] de la region de recherche.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>]]</span></p>
+</dd>
+<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Liste de bounding boxes normalisees [l, t, r, b] ou le texte a ete trouve.
+Retourne une liste vide si non trouve.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-vigie.support.utils.proof_rendering">
+<span id="utils-proof-rendering"></span><h2>utils.proof_rendering<a class="headerlink" href="#module-vigie.support.utils.proof_rendering" title="Lien vers cette rubrique"></a></h2>
+<p>Utilitaires partages de rendu de preuves utilises par Dash et les pipelines de comparaison.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="vigie.support.utils.proof_rendering.normalize_proof_bbox">
+<span class="sig-name descname"><span class="pre">normalize_proof_bbox</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bbox</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigie.support.utils.proof_rendering.normalize_proof_bbox" title="Lien vers cette définition"></a></dt>
+<dd><p>Retourne [l, t, r, b] dans 0..1 si exploitable pour le rendu de preuve.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>bbox</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></span>) – Bounding box brute (liste, tuple ou autre).</p>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>] | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Liste normalisee <code class="docutils literal notranslate"><span class="pre">[l,</span> <span class="pre">t,</span> <span class="pre">r,</span> <span class="pre">b]</span></code> ou <code class="docutils literal notranslate"><span class="pre">None</span></code> si invalide.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigie.support.utils.proof_rendering.render_full_proof_bytes">
+<span class="sig-name descname"><span class="pre">render_full_proof_bytes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pdf_path</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Séparateur de paramètres par mot-clé uniquement (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">page</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bbox</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dpi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">200</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_full_page_fallback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigie.support.utils.proof_rendering.render_full_proof_bytes" title="Lien vers cette définition"></a></dt>
+<dd><p>Rend une image de preuve pleine page avec surlignage de bbox si disponible.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pdf_path</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-class docutils literal notranslate"><span class="pre">Path</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Chemin du fichier PDF source.</p></li>
+<li><p><strong>page</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></span>) – Numero de page (base 1).</p></li>
+<li><p><strong>bbox</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></span>) – Bounding box brute pour le surlignage.</p></li>
+<li><p><strong>scale</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></span>) – Echelle PyMuPDF (72 pt) si <code class="docutils literal notranslate"><span class="pre">dpi</span></code> est <code class="docutils literal notranslate"><span class="pre">None</span></code> (defaut 1.5).</p></li>
+<li><p><strong>dpi</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Resolution de rendu ; si defini (defaut <code class="xref py py-data docutils literal notranslate"><span class="pre">PROOF_RENDER_DPI</span></code>), prime sur
+<code class="docutils literal notranslate"><span class="pre">scale</span></code>. Passer <code class="docutils literal notranslate"><span class="pre">None</span></code> pour n’utiliser que <code class="docutils literal notranslate"><span class="pre">scale</span></code>.</p></li>
+<li><p><strong>allow_full_page_fallback</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span>) – Si <code class="docutils literal notranslate"><span class="pre">True</span></code>, rend la page sans bbox en cas d’absence.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Renvoie<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">ok</span></code>, <code class="docutils literal notranslate"><span class="pre">pdf_missing</span></code>, <code class="docutils literal notranslate"><span class="pre">page_missing</span></code>, <code class="docutils literal notranslate"><span class="pre">bbox_missing</span></code> ou <code class="docutils literal notranslate"><span class="pre">render_failed</span></code>.
+<code class="docutils literal notranslate"><span class="pre">mode_effective</span></code> vaut <code class="docutils literal notranslate"><span class="pre">full</span></code> ou <code class="docutils literal notranslate"><span class="pre">full_without_bbox</span></code> quand un repli
+page seule est utilise car la bbox n’est pas disponible.</p>
+</dd>
+<dt class="field-odd">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tuple <code class="docutils literal notranslate"><span class="pre">(image_bytes,</span> <span class="pre">status,</span> <span class="pre">mode_effective)</span></code> ou status est l’un de</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-vigie.support.utils.pymupdf_utils">
+<span id="utils-pymupdf-utils"></span><h2>utils.pymupdf_utils<a class="headerlink" href="#module-vigie.support.utils.pymupdf_utils" title="Lien vers cette rubrique"></a></h2>
+<p>Utilitaires de configuration du comportement global de PyMuPDF / MuPDF.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="vigie.support.utils.pymupdf_utils.configure_mupdf_runtime">
+<span class="sig-name descname"><span class="pre">configure_mupdf_runtime</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pymupdf_module</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigie.support.utils.pymupdf_utils.configure_mupdf_runtime" title="Lien vers cette définition"></a></dt>
+<dd><p>Reduit les avertissements stderr bruyants de MuPDF tout en preservant les exceptions Python.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>pymupdf_module</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code></span>) – Module <code class="docutils literal notranslate"><span class="pre">pymupdf</span></code> importe par l’appelant.</p>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-vigie.support.utils.rbc_table_signals">
+<span id="utils-rbc-table-signals"></span><h2>utils.rbc_table_signals<a class="headerlink" href="#module-vigie.support.utils.rbc_table_signals" title="Lien vers cette rubrique"></a></h2>
+<p>Utilitaires specifiques RBC pour la fiabilite des titres et la structure de la premiere colonne.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="vigie.support.utils.rbc_table_signals.RbcFirstColumnSignals">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">RbcFirstColumnSignals</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">indicators_raw</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indicators_clean</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">groups_raw</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">groups_clean</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hierarchical_indicator_signature</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigie.support.utils.rbc_table_signals.RbcFirstColumnSignals" title="Lien vers cette définition"></a></dt>
+<dd><p>Bases : <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Signaux extraits de la premiere colonne d’un tableau RBC.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="vigie.support.utils.rbc_table_signals.RbcFirstColumnSignals.groups_clean">
+<span class="sig-name descname"><span class="pre">groups_clean</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#vigie.support.utils.rbc_table_signals.RbcFirstColumnSignals.groups_clean" title="Lien vers cette définition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="vigie.support.utils.rbc_table_signals.RbcFirstColumnSignals.groups_raw">
+<span class="sig-name descname"><span class="pre">groups_raw</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#vigie.support.utils.rbc_table_signals.RbcFirstColumnSignals.groups_raw" title="Lien vers cette définition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="vigie.support.utils.rbc_table_signals.RbcFirstColumnSignals.hierarchical_indicator_signature">
+<span class="sig-name descname"><span class="pre">hierarchical_indicator_signature</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#vigie.support.utils.rbc_table_signals.RbcFirstColumnSignals.hierarchical_indicator_signature" title="Lien vers cette définition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="vigie.support.utils.rbc_table_signals.RbcFirstColumnSignals.indicators_clean">
+<span class="sig-name descname"><span class="pre">indicators_clean</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#vigie.support.utils.rbc_table_signals.RbcFirstColumnSignals.indicators_clean" title="Lien vers cette définition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="vigie.support.utils.rbc_table_signals.RbcFirstColumnSignals.indicators_raw">
+<span class="sig-name descname"><span class="pre">indicators_raw</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#vigie.support.utils.rbc_table_signals.RbcFirstColumnSignals.indicators_raw" title="Lien vers cette définition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigie.support.utils.rbc_table_signals.build_rbc_first_column_signals">
+<span class="sig-name descname"><span class="pre">build_rbc_first_column_signals</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Séparateur de paramètres par mot-clé uniquement (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">rows</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">raw_indicators</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigie.support.utils.rbc_table_signals.build_rbc_first_column_signals" title="Lien vers cette définition"></a></dt>
+<dd><p>Separe le contenu de la premiere colonne RBC en indicateurs et groupes structurels.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>rows</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>]] | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Lignes du tableau sous forme de listes de chaines.</p></li>
+<li><p><strong>raw_indicators</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>] | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Indicateurs bruts extraits du modele (repli si rows insuffisants).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><a class="reference internal" href="#vigie.support.utils.rbc_table_signals.RbcFirstColumnSignals" title="vigie.support.utils.rbc_table_signals.RbcFirstColumnSignals"><code class="xref py py-class docutils literal notranslate"><span class="pre">RbcFirstColumnSignals</span></code></a></span></p>
+</dd>
+<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Instance de <a class="reference internal" href="#vigie.support.utils.rbc_table_signals.RbcFirstColumnSignals" title="vigie.support.utils.rbc_table_signals.RbcFirstColumnSignals"><code class="xref py py-class docutils literal notranslate"><span class="pre">RbcFirstColumnSignals</span></code></a> avec les indicateurs nettoyes,
+les groupes et la signature hierarchique.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigie.support.utils.rbc_table_signals.classify_rbc_title_reliability">
+<span class="sig-name descname"><span class="pre">classify_rbc_title_reliability</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">title</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Séparateur de paramètres par mot-clé uniquement (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">bank_code</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigie.support.utils.rbc_table_signals.classify_rbc_title_reliability" title="Lien vers cette définition"></a></dt>
+<dd><p>Classifie la fiabilite d’un titre RBC.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>title</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Titre du tableau a evaluer.</p></li>
+<li><p><strong>bank_code</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Code banque (ex. <code class="docutils literal notranslate"><span class="pre">&quot;rbc&quot;</span></code>).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-even"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></span></p>
+</dd>
+<dt class="field-odd">Renvoie<span class="colon">:</span></dt>
+<dd class="field-odd"><p><code class="docutils literal notranslate"><span class="pre">missing</span></code>, <code class="docutils literal notranslate"><span class="pre">unreliable</span></code> ou <code class="docutils literal notranslate"><span class="pre">reliable</span></code>.
+Les appelants non-RBC recoivent une reponse permissive afin que
+l’utilitaire reste sur comme repli.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vigie.support.utils.rbc_table_signals.is_rbc_bank">
+<span class="sig-name descname"><span class="pre">is_rbc_bank</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bank_code</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigie.support.utils.rbc_table_signals.is_rbc_bank" title="Lien vers cette définition"></a></dt>
+<dd><p>Verifie si le code banque correspond a RBC.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-odd"><p><span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></span></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-vigie.support.utils.table_page_structure">
+<span id="utils-table-page-structure"></span><h2>utils.table_page_structure<a class="headerlink" href="#module-vigie.support.utils.table_page_structure" title="Lien vers cette rubrique"></a></h2>
+<p>Metadonnees de structure locale par page pour les tableaux (ordre vertical, role) pour l’appariement intra-page.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="vigie.support.utils.table_page_structure.derive_page_local_structure">
+<span class="sig-name descname"><span class="pre">derive_page_local_structure</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tables</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigie.support.utils.table_page_structure.derive_page_local_structure" title="Lien vers cette définition"></a></dt>
+<dd><p>Calcule la structure locale par page pour chaque tableau : index, compteur, bbox_top, role.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>tables</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>[<code class="xref py py-data docutils literal notranslate"><span class="pre">Any</span></code>]</span>) – Liste d’objets table-like avec <code class="docutils literal notranslate"><span class="pre">table_id</span></code>, <code class="docutils literal notranslate"><span class="pre">page</span></code>
+(<code class="docutils literal notranslate"><span class="pre">page_pdf</span></code> ou <code class="docutils literal notranslate"><span class="pre">page_number</span></code>) et <code class="docutils literal notranslate"><span class="pre">bbox</span></code>.</p>
+</dd>
+<dt class="field-even">Renvoie<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">table_index_on_page</span></code> : ordre vertical (base 1)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tables_on_page</span></code> : nombre de tableaux sur la page</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">bbox_top</span></code> : coordonnee y haute normalisee (depuis bbox)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">page_local_role</span></code> : <code class="docutils literal notranslate"><span class="pre">&quot;single&quot;</span></code> | <code class="docutils literal notranslate"><span class="pre">&quot;first&quot;</span></code> | <code class="docutils literal notranslate"><span class="pre">&quot;middle&quot;</span></code> | <code class="docutils literal notranslate"><span class="pre">&quot;last&quot;</span></code></p></li>
+</ul>
+<p>Tri intra-page : bbox_top croissant, puis bbox_left, puis ordre d’entree.</p>
+</p>
+</dd>
+<dt class="field-odd">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Pour chaque <code class="docutils literal notranslate"><span class="pre">(table_id,</span> <span class="pre">page)</span></code>, un dictionnaire avec</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-vigie.support.utils.type_metier">
+<span id="utils-type-metier"></span><h2>utils.type_metier<a class="headerlink" href="#module-vigie.support.utils.type_metier" title="Lien vers cette rubrique"></a></h2>
+<p>Utilitaires de correspondance entre sections et types metier.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="vigie.support.utils.type_metier.compute_type_metier">
+<span class="sig-name descname"><span class="pre">compute_type_metier</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">section</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">change_type</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#vigie.support.utils.type_metier.compute_type_metier" title="Lien vers cette définition"></a></dt>
+<dd><p>Associe une section ou un type de changement a un code de famille metier.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Paramètres<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>section</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Nom de section brut (ex. <code class="docutils literal notranslate"><span class="pre">&quot;regulatory_updates&quot;</span></code>).</p></li>
+<li><p><strong>change_type</strong> (<span class="sphinx_autodoc_typehints-type"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code> | <code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></span>) – Type de changement brut (ex. <code class="docutils literal notranslate"><span class="pre">&quot;reg_update&quot;</span></code>).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Renvoie<span class="colon">:</span></dt>
+<dd class="field-even"><p><code class="docutils literal notranslate"><span class="pre">&quot;IFC&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;RG&quot;</span></code> ou <code class="docutils literal notranslate"><span class="pre">&quot;PB&quot;</span></code>.</p>
+</dd>
+<dt class="field-odd">Type renvoyé<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Code famille metier</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Pied de page">
+        <a href="vigie.models.html" class="btn btn-neutral float-left" title="Modeles de donnees (vigie.support.models)" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Précédent</a>
+        <a href="vigie.i18n.html" class="btn btn-neutral float-right" title="Internationalisation (vigie.support.i18n)" accesskey="n" rel="next">Suivant <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Droits d'auteur 2026.</p>
+  </div>
+
+  Compilé avec <a href="https://www.sphinx-doc.org/">Sphinx</a> en utilisant un
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">thème</a>
+    fourni par <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
