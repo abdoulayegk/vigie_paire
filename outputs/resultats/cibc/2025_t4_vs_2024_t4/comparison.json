@@ -626,12 +626,6 @@
         },
         "genai_analysis": {
           "resume_metier": "CIBC a ajouté un nouveau tableau dans la section de gestion du capital, incluant des indicateurs clés sur la gouvernance et la gestion des risques. Ce changement améliore la transparence et la surveillance des risques, répondant ainsi aux attentes prudentielles.\n\nL'ajout de ces indicateurs permet une meilleure compréhension des processus de gestion des risques et des risques émergents, ce qui est crucial pour renforcer la comparabilité entre pairs.\n\nSurveiller comment CIBC intègre ces nouveaux indicateurs dans sa stratégie globale de gestion des risques et l'impact potentiel sur sa posture de risque."
-        },
-        "_analyst_review": {
-          "status": "approved",
-          "notes": "",
-          "at": "2026-07-28T11:29:04.210442+00:00",
-          "by": "analyst"
         }
       },
       {
@@ -717,12 +711,6 @@
         },
         "genai_analysis": {
           "resume_metier": "CIBC a introduit un nouveau tableau intitulé 'Risque lié aux actions' dans sa section de gestion des risques. Ce tableau inclut des indicateurs clés tels que 'Titres de participation désignés à la JVAERG' et 'Placements dans des entreprises associées comptabilisées selon la méthode de la'.\n\nCe changement met en évidence l'importance accrue que CIBC accorde à la gestion des risques liés aux actions, ce qui est crucial pour la stabilité financière et la gestion des investissements. L'ajout de ce tableau reflète une volonté de transparence accrue et une meilleure gestion des risques associés aux titres de participation.\n\nIl est important de surveiller comment CIBC intègre ces nouveaux indicateurs dans sa stratégie globale de gestion des risques et l'impact potentiel sur ses décisions d'investissement."
-        },
-        "_analyst_review": {
-          "status": "approved",
-          "notes": "",
-          "at": "2026-07-28T11:29:10.846621+00:00",
-          "by": "analyst"
         }
       }
     ],
@@ -2893,12 +2881,6 @@
             "analyst_assessment": {
               "relevance_level": 3,
               "justification": "L'indicateur \"En millions de dollars, au 31 octobre 2025\" a été ajouté dans le tableau de répartition géographique des expositions. Cet ajout semble être une information contextuelle ou un en-tête de date, plutôt qu'un indicateur substantiel.\n\nL'impact métier de cet ajout est faible, car il ne modifie pas la nature des données présentées dans le tableau. Il s'agit probablement d'une clarification pour indiquer la période de référence des données, ce qui est une pratique courante dans les rapports financiers pour assurer la transparence temporelle.\n\nLe signal de vigie à retenir est que cet ajout ne constitue pas une modification significative des indicateurs de risque ou de gestion, mais plutôt une précision contextuelle. Il n'y a pas de changement dans les exigences réglementaires ou les méthodologies de calcul associées à cet ajout."
-            },
-            "_analyst_review": {
-              "status": "approved",
-              "notes": "",
-              "at": "2026-07-28T11:29:26.703728+00:00",
-              "by": "analyst"
             }
           }
         ],
@@ -3102,12 +3084,6 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "L'indicateur 'Qualité du crédit des portefeuilles de détail' a été retiré du tableau actuel des expositions par secteur d’activité des entreprises et gouvernements, alors qu'il était présent dans le tableau précédent.\n\nCe retrait peut avoir un impact structurel significatif, car cet indicateur est souvent utilisé pour évaluer la santé financière des portefeuilles de détail. Il est essentiel pour les analyses de risque de crédit et peut influencer les décisions de gestion des risques. Bien que cet indicateur ne soit pas directement lié à une exigence réglementaire spécifique, son absence pourrait réduire la granularité des informations disponibles pour l'évaluation des risques.\n\nLe signal de vigie à retenir est que la suppression de cet indicateur pourrait refléter un changement dans la manière dont la banque souhaite présenter ses données de risque, potentiellement en consolidant ces informations ailleurs ou en modifiant sa méthodologie de reporting."
-            },
-            "_analyst_review": {
-              "status": "approved",
-              "notes": "",
-              "at": "2026-07-28T11:28:34.503639+00:00",
-              "by": "analyst"
             }
           },
           {
@@ -3731,12 +3707,6 @@
             "analyst_assessment": {
               "relevance_level": 3,
               "justification": "La note de bas de page n°2 a subi une modification mineure dans le tableau des RPV moyens par région et portefeuille hypothécaire. Le pourcentage des RPV moyens pour les prêts hypothécaires à l’habitation non assurés de la région du Grand Toronto a été ajusté de 67 % à 66 % pour l'exercice en cours, avec une mise à jour de l'année de référence de 2023 à 2024.\n\nCe changement est principalement cosmétique et reflète une mise à jour des données annuelles sans impact significatif sur les méthodologies de calcul ou les exigences réglementaires. Les ajustements de pourcentages dans les RPV moyens sont courants et attendus dans le cadre de la gestion des risques et de la divulgation financière, et ne nécessitent pas de révision des pratiques de conformité ou de gestion des risques selon les normes Bâle III ou BSIF.\n\nLe signal de vigie à retenir est que la banque continue de mettre à jour ses données de performance financière de manière transparente, ce qui est essentiel pour maintenir la confiance des investisseurs et des régulateurs. Toutefois, cette modification spécifique n'indique pas de changement de stratégie ou de risque sous-jacent."
-            },
-            "_analyst_review": {
-              "status": "approved",
-              "notes": "",
-              "at": "2026-07-28T11:29:30.764766+00:00",
-              "by": "analyst"
             }
           },
           {
@@ -4252,12 +4222,6 @@
             "analyst_assessment": {
               "relevance_level": 3,
               "justification": "L'indicateur '31 octobre 2023⁶' a été retiré du tableau actuel. Cet indicateur était une référence temporelle pour les données du tableau précédent, indiquant la date de clôture des chiffres présentés.\n\nSon retrait n'a pas d'impact sur les obligations de divulgation ou les calculs de ratios, car il ne constitue pas un indicateur de performance ou de risque. Les dates de référence sont généralement intégrées dans les en-têtes ou les notes de bas de page pour contextualiser les données.\n\nLe signal de vigie à retenir est que la suppression de cet indicateur n'affecte pas la compréhension des données financières, car les dates pertinentes sont toujours disponibles ailleurs dans le rapport."
-            },
-            "_analyst_review": {
-              "status": "approved",
-              "notes": "",
-              "at": "2026-07-28T11:29:22.070860+00:00",
-              "by": "analyst"
             }
           }
         ],
@@ -4601,12 +4565,6 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "L'indicateur 'Total' a été ajouté dans le tableau actuel des actifs liquides non grevés par entité, alors qu'il était absent du tableau précédent. Ce nouvel indicateur semble fournir une vue d'ensemble consolidée des actifs liquides non grevés, ce qui peut être crucial pour l'analyse de la liquidité globale de l'institution.\n\nL'ajout de cet indicateur pourrait répondre à des exigences de divulgation plus strictes ou à une volonté de transparence accrue envers les parties prenantes. En effet, la consolidation des données par entité en un total global permet une meilleure compréhension de la situation de liquidité de la banque, ce qui est essentiel pour les évaluations de conformité réglementaire, notamment en lien avec les ratios de liquidité tels que le LCR (Liquidity Coverage Ratio) sous Bâle III.\n\nLe signal de vigie à retenir est que la banque cherche à améliorer la clarté et la transparence de ses rapports financiers en fournissant des informations consolidées qui facilitent l'évaluation de sa position de liquidité. Cela pourrait également indiquer une réponse proactive aux attentes des régulateurs ou des investisseurs."
-            },
-            "_analyst_review": {
-              "status": "approved",
-              "notes": "",
-              "at": "2026-07-28T11:28:52.366722+00:00",
-              "by": "analyst"
             }
           }
         ],
@@ -4797,12 +4755,6 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "L'indicateur 'Total' a été ajouté dans le tableau actuel à la position 5, ce qui n'était pas présent dans le tableau précédent.\n\nCet ajout peut refléter une nouvelle méthodologie de présentation des données, où un total intermédiaire est désormais calculé et affiché pour une meilleure lisibilité et compréhension des actifs grevés et non grevés. Cela peut être lié à des exigences de divulgation plus strictes ou à une volonté d'améliorer la transparence des rapports financiers.\n\nLe signal de vigie à retenir est que la banque cherche à fournir une vue d'ensemble plus claire de ses actifs, ce qui peut être crucial pour les analystes financiers et les régulateurs qui surveillent la santé financière de l'institution."
-            },
-            "_analyst_review": {
-              "status": "approved",
-              "notes": "",
-              "at": "2026-07-28T11:28:29.639813+00:00",
-              "by": "analyst"
             }
           }
         ],
@@ -5051,12 +5003,6 @@
             "analyst_assessment": {
               "relevance_level": 3,
               "justification": "La note de bas de page n°3 a été modifiée dans le tableau des échéances contractuelles des sources de financement de gros. Le texte précédent indiquait un montant de 500 M$ pour la titrisation de marges de crédit hypothécaires, avec une mention de néant pour l'année 2023. Le texte actuel précise que ce montant de 500 M$ était également présent en 2024.\n\nCette modification n'a pas d'impact significatif sur les ratios prudentiels ou les exigences de divulgation réglementaire, car elle ne change pas le montant actuel de la titrisation, mais clarifie simplement l'historique des montants titrisés. Il s'agit d'une mise à jour cosmétique qui n'affecte pas la méthodologie de calcul ou les obligations de conformité selon les normes IFRS 9 ou les recommandations du BSIF.\n\nLe signal de vigie à retenir est que la banque s'efforce de fournir une information plus précise et complète sur l'évolution de ses activités de titrisation. Bien que ce changement soit mineur, il démontre une attention aux détails qui peut être appréciée par les analystes et les investisseurs cherchant à comprendre les tendances historiques des actifs titrisés."
-            },
-            "_analyst_review": {
-              "status": "approved",
-              "notes": "",
-              "at": "2026-07-28T11:29:40.975304+00:00",
-              "by": "analyst"
             }
           }
         ],
@@ -6317,12 +6263,6 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "L'indicateur 'En fonction des paiements contractuels' a été retiré du tableau actuel, alors qu'il était présent dans le tableau précédent. Cet indicateur servait de titre ou de catégorie principale pour le tableau, indiquant que les données étaient organisées selon les paiements contractuels des prêts hypothécaires.\n\nLa suppression de cet indicateur pourrait refléter un changement dans la manière dont les données sont présentées ou catégorisées. Bien que cela n'affecte pas directement les calculs ou les ratios prudentiels, cela peut avoir un impact sur la compréhension et l'interprétation des données par les parties prenantes, notamment en termes de structure et de clarté de l'information.\n\nLe signal de vigie à retenir est que la banque a potentiellement modifié la structure de présentation de ses données, ce qui pourrait nécessiter une attention particulière pour s'assurer que les utilisateurs finaux comprennent toujours correctement les informations fournies."
-            },
-            "_analyst_review": {
-              "status": "approved",
-              "notes": "",
-              "at": "2026-07-28T11:27:46.095043+00:00",
-              "by": "analyst"
             }
           },
           {
@@ -6575,12 +6515,6 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "L'indicateur \"Total de l’actif\" a été ajouté dans le tableau de synthèse des soldes du bilan consolidé exposés au risque de marché au T2 2025, alors qu'il était absent au T1 2025.\n\nCet ajout est significatif car il fournit une vue d'ensemble consolidée de l'actif total de la banque, ce qui est crucial pour évaluer l'exposition globale au risque de marché. La présence de cet indicateur peut être liée à des exigences de divulgation accrues ou à une volonté de transparence accrue envers les parties prenantes, conformément aux lignes directrices de Bâle III et aux attentes du BSIF en matière de gestion des risques.\n\nLe signal de vigie à retenir est que la banque cherche à améliorer la transparence et la compréhension de sa position financière globale, ce qui peut être perçu positivement par les investisseurs et les régulateurs."
-            },
-            "_analyst_review": {
-              "status": "approved",
-              "notes": "",
-              "at": "2026-07-28T11:28:26.087747+00:00",
-              "by": "analyst"
             }
           },
           {
@@ -7150,7 +7084,7 @@
             "_analyst_review": {
               "status": "approved",
               "notes": "",
-              "at": "2026-07-28T11:29:46.745230+00:00",
+              "at": "2026-08-06T17:28:07.763102+00:00",
               "by": "analyst"
             }
           }
@@ -7386,12 +7320,6 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "La note de bas de page n°1 a été supprimée du tableau de mesure du ratio de financement stable net (NSFR) au T4 2025. Cette note expliquait les changements mis en œuvre au cours du premier trimestre de 2024 concernant le traitement des fonds négociés en bourse de comptes d’épargne à intérêt élevé, considérés comme des sources de financement de gros non garanti.\n\nLa suppression de cette note pourrait indiquer que les changements mentionnés ont été intégrés de manière permanente dans les pratiques de la banque, rendant la note obsolète. Cela pourrait également refléter une stabilisation des pratiques de financement de gros, en ligne avec les exigences de Bâle III, qui visent à renforcer la résilience des banques face aux chocs de liquidité.\n\nLe signal de vigie à retenir est que la banque semble avoir consolidé ses pratiques de financement de gros, ce qui pourrait indiquer une maturité accrue dans la gestion de ses sources de financement. Cela pourrait être perçu positivement par les régulateurs et les investisseurs, car cela suggère une gestion proactive et stable des risques de liquidité."
-            },
-            "_analyst_review": {
-              "status": "approved",
-              "notes": "",
-              "at": "2026-07-28T11:28:45.097647+00:00",
-              "by": "analyst"
             }
           }
         ],
@@ -7575,9 +7503,9 @@
     "total_relevant": 24
   },
   "review_decisions_summary": {
-    "matched": 13,
+    "matched": 1,
     "unmatched": 0,
-    "pending": 68,
-    "updated_at": "2026-07-28T11:29:46+00:00"
+    "pending": 80,
+    "updated_at": "2026-08-06T17:28:07+00:00"
   }
 }

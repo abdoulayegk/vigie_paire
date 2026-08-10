@@ -1382,6 +1382,12 @@
             "analyst_assessment": {
               "relevance_level": 3,
               "justification": "La suppression d'une ancienne note de bas de page sans contexte détaillé nécessite une vérification manuelle pour confirmer son impact."
+            },
+            "_analyst_review": {
+              "status": "approved",
+              "notes": "",
+              "at": "2026-08-04T19:50:50.302532+00:00",
+              "by": "analyst"
             }
           },
           {
@@ -4062,5 +4068,11 @@
     "indicator_changes_total": 1,
     "footnote_changes_total": 16,
     "high_priority_items_total": 12
+  },
+  "review_decisions_summary": {
+    "matched": 1,
+    "unmatched": 0,
+    "pending": 22,
+    "updated_at": "2026-08-04T19:50:50+00:00"
   }
 }

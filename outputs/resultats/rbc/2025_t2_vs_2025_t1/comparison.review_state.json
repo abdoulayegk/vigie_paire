@@ -1,16 +1,16 @@
 {
   "schema_version": "review_state_v1",
   "compare_path": "/Users/balde/Desktop/vigie_paire/outputs/resultats/rbc/2025_t2_vs_2025_t1/comparison.json",
-  "comparison_run_id": "20260410_012745",
-  "review_items_signature": "4a98aac8d179c0134bbc9596addac7fd90d61038b21407eb188a96f1c86b0f0a",
-  "saved_at": "2026-04-18T23:21:03+00:00",
+  "comparison_run_id": "20260418_195158",
+  "review_items_signature": "392d642374556864db3041cd7ba76f27c9c921d5b80dc6464684ec36cd5f3504",
+  "saved_at": "2026-08-04T19:50:50+00:00",
   "source": "on_validate_change_v2",
   "preferred_store": "review_queue",
   "review_selection": {
-    "review_id": "rbc::risk_management::|tbl_p038_i01",
-    "change_id": "chg_00018"
+    "review_id": "rbc::risk_management::tbl_p028_i01|tbl_p034_i01",
+    "change_id": "chg_00008"
   },
-  "review_current_idx": 14,
+  "review_current_idx": 0,
   "current_change_idx": 0,
   "current_indicator_idx": 0,
   "review_items": [
@@ -25,12 +25,12 @@
       "table_id_t2": "tbl_p034_i01",
       "page_t1": 28,
       "page_t2": 34,
-      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/RBC/2025/RBC_2025_T1.pdf",
-      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/RBC/2025/RBC_2025_T2.pdf",
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/rbc/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/rbc/2025_t2_vs_2025_t1/current_report.pdf",
       "review_status": "pending",
       "comment": "",
       "review_user": "analyst",
-      "review_timestamp": "2026-04-18T23:20:31.085868+00:00",
+      "review_timestamp": "2026-08-04T19:50:50.302532+00:00",
       "edited_value": "",
       "confidence": 0.98,
       "proof_image_path": "",
@@ -50,7 +50,7 @@
         {
           "name": "[2] Le risque spécifique de crédit tient compte de la volatilité de l’écart de taux lié à chaque émetteur.",
           "type": "modified",
-          "review_status": "approved"
+          "review_status": "pending"
         },
         {
           "name": "[3] La VAR des activités de négociation est inférieure à la somme des VAR individuelles par facteur de risque, en raison de ",
@@ -58,7 +58,7 @@
           "review_status": "pending"
         }
       ],
-      "match_method": "Indicators and headers match exactly; both tables have the same row count and footnote count.",
+      "match_method": "Indicators and headers match exactly; both tables have the same row count and similar footnote count.",
       "all_indicators_t1": [],
       "all_indicators_t2": [],
       "bbox_t1": [
@@ -103,12 +103,12 @@
       "table_id_t2": "tbl_p030_i01",
       "page_t1": 24,
       "page_t2": 30,
-      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/RBC/2025/RBC_2025_T1.pdf",
-      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/RBC/2025/RBC_2025_T2.pdf",
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/rbc/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/rbc/2025_t2_vs_2025_t1/current_report.pdf",
       "review_status": "pending",
       "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-04-18T23:20:38.352400+00:00",
+      "review_user": "",
+      "review_timestamp": "",
       "edited_value": "",
       "confidence": 0.98,
       "proof_image_path": "",
@@ -118,12 +118,12 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "tbl_p030_i01",
-      "table_status": "partial",
+      "table_status": "pending",
       "indicators": [
         {
           "name": "[4] (4) Secteur géographique selon l’emplacement du bien immobil -> (4) Les montants sont présentés selon l’emplacement géograph",
           "type": "modified",
-          "review_status": "approved"
+          "review_status": "pending"
         },
         {
           "name": "[5] (5) Le total du Canada comprend des prêts hypothécaires rési -> (5) Comprend les prêts hypothécaires résidentiels assurés ti",
@@ -131,7 +131,7 @@
           "review_status": "pending"
         }
       ],
-      "match_method": "Indicators and headers match exactly; both tables have the same row count and footnote count.",
+      "match_method": "Indicators and headers match exactly; both tables have the same row count and similar footnote count.",
       "all_indicators_t1": [],
       "all_indicators_t2": [],
       "bbox_t1": [
@@ -176,8 +176,8 @@
       "table_id_t2": "tbl_p030_i02",
       "page_t1": 24,
       "page_t2": 30,
-      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/RBC/2025/RBC_2025_T1.pdf",
-      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/RBC/2025/RBC_2025_T2.pdf",
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/rbc/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/rbc/2025_t2_vs_2025_t1/current_report.pdf",
       "review_status": "pending",
       "comment": "",
       "review_user": "",
@@ -204,7 +204,7 @@
           "review_status": "pending"
         }
       ],
-      "match_method": "Indicators and headers match exactly; both tables have the same row count and footnote count.",
+      "match_method": "Indicators and headers match exactly; both tables have the same row count and similar footnote count.",
       "all_indicators_t1": [],
       "all_indicators_t2": [],
       "bbox_t1": [
@@ -249,12 +249,12 @@
       "table_id_t2": "tbl_p031_i01",
       "page_t1": 25,
       "page_t2": 31,
-      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/RBC/2025/RBC_2025_T1.pdf",
-      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/RBC/2025/RBC_2025_T2.pdf",
-      "review_status": "approved",
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/rbc/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/rbc/2025_t2_vs_2025_t1/current_report.pdf",
+      "review_status": "pending",
       "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-04-18T23:20:43.462497+00:00",
+      "review_user": "",
+      "review_timestamp": "",
       "edited_value": "",
       "confidence": 0.98,
       "proof_image_path": "",
@@ -264,12 +264,12 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "tbl_p031_i01",
-      "table_status": "partial",
+      "table_status": "pending",
       "indicators": [
         {
           "name": "De 30 à 35 ans",
           "type": "removed",
-          "review_status": "approved"
+          "review_status": "pending"
         },
         {
           "name": "[2] Selon notre politique, les nouveaux prêts hypothécaires sont -> Selon notre politique, les nouveaux prêts hypothécaires sont",
@@ -277,7 +277,7 @@
           "review_status": "pending"
         }
       ],
-      "match_method": "Indicators and headers match exactly; both tables have the same row count and footnote count.",
+      "match_method": "Indicators and headers match exactly; both tables have the same row count and similar footnote count.",
       "all_indicators_t1": [],
       "all_indicators_t2": [],
       "bbox_t1": [
@@ -322,8 +322,8 @@
       "table_id_t2": "tbl_p039_i02",
       "page_t1": 33,
       "page_t2": 39,
-      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/RBC/2025/RBC_2025_T1.pdf",
-      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/RBC/2025/RBC_2025_T2.pdf",
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/rbc/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/rbc/2025_t2_vs_2025_t1/current_report.pdf",
       "review_status": "pending",
       "comment": "",
       "review_user": "",
@@ -340,17 +340,17 @@
       "table_status": "pending",
       "indicators": [
         {
-          "name": "[6] Le montant des actifs donnés en garantie représente les garanties en espèces et les dépôts de garantie obligatoires qui ",
+          "name": "[5] Avec prise d’effet au premier trimestre de 2025, les titres hypothécaires, les prêts hypothécaires et les autres prêts s",
           "type": "modified",
           "review_status": "pending"
         },
         {
-          "name": "[5] Avec prise d’effet au premier trimestre de 2025, les titres  -> Le montant des actifs donnés en garantie représente les gara",
+          "name": "[4] Inclut les actifs liquides détenus par la banque et les titr -> Inclut les actifs liquides détenus par la banque et les titr",
           "type": "modified",
           "review_status": "pending"
         }
       ],
-      "match_method": "Indicators and headers match exactly; both tables have the same row count and footnote count.",
+      "match_method": "Indicators and headers match exactly; both tables have the same row count and similar footnote count.",
       "all_indicators_t1": [],
       "all_indicators_t2": [],
       "bbox_t1": [
@@ -395,12 +395,12 @@
       "table_id_t2": "tbl_p041_i02",
       "page_t1": 35,
       "page_t2": 41,
-      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/RBC/2025/RBC_2025_T1.pdf",
-      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/RBC/2025/RBC_2025_T2.pdf",
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/rbc/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/rbc/2025_t2_vs_2025_t1/current_report.pdf",
       "review_status": "pending",
       "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-04-18T23:20:48.438626+00:00",
+      "review_user": "",
+      "review_timestamp": "",
       "edited_value": "",
       "confidence": 0.98,
       "proof_image_path": "",
@@ -410,12 +410,12 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "tbl_p041_i02",
-      "table_status": "partial",
+      "table_status": "pending",
       "indicators": [
         {
           "name": "[9] Avec prise d’effet au premier trimestre de 2025, nous avons révisé la portée des billets structurés non garantis de prem",
           "type": "modified",
-          "review_status": "approved"
+          "review_status": "pending"
         },
         {
           "name": "[8] Inclut les obligations encaissables par anticipation (garant -> Inclut les obligations encaissables par anticipation (garant",
@@ -423,7 +423,7 @@
           "review_status": "pending"
         }
       ],
-      "match_method": "Indicators and headers match exactly; both tables have the same row count and footnote count.",
+      "match_method": "Indicators and headers match exactly; both tables have the same row count and similar footnote count.",
       "all_indicators_t1": [],
       "all_indicators_t2": [],
       "bbox_t1": [
@@ -468,14 +468,14 @@
       "table_id_t2": "tbl_p049_i01",
       "page_t1": 43,
       "page_t2": 49,
-      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/RBC/2025/RBC_2025_T1.pdf",
-      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/RBC/2025/RBC_2025_T2.pdf",
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/rbc/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/rbc/2025_t2_vs_2025_t1/current_report.pdf",
       "review_status": "pending",
       "comment": "",
       "review_user": "",
       "review_timestamp": "",
       "edited_value": "",
-      "confidence": 0.98,
+      "confidence": 0.95,
       "proof_image_path": "",
       "proof_mode": "",
       "unit_context_t1": "",
@@ -491,7 +491,7 @@
           "review_status": "pending"
         }
       ],
-      "match_method": "Indicators and headers match exactly; both tables have the same row count and footnote count.",
+      "match_method": "Identical indicators and headers; both tables summarize regulatory capital, leverage, and TLAC ratios.",
       "all_indicators_t1": [],
       "all_indicators_t2": [],
       "bbox_t1": [
@@ -526,6 +526,74 @@
       }
     },
     {
+      "change_id": "rbc::risk_management::tbl_p037_i02|tbl_p043_i02",
+      "change_type": "removed",
+      "indicator": "",
+      "section": "risk_management",
+      "table_name": "tbl_p043_i02",
+      "table_number": "",
+      "table_id_t1": "tbl_p037_i02",
+      "table_id_t2": "tbl_p043_i02",
+      "page_t1": 37,
+      "page_t2": 43,
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/rbc/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/rbc/2025_t2_vs_2025_t1/current_report.pdf",
+      "review_status": "pending",
+      "comment": "",
+      "review_user": "",
+      "review_timestamp": "",
+      "edited_value": "",
+      "confidence": 0.95,
+      "proof_image_path": "",
+      "proof_mode": "",
+      "unit_context_t1": "",
+      "unit_context_t2": "",
+      "title_resolution_method_t1": "",
+      "title_resolution_method_t2": "",
+      "table_title_raw": "tbl_p043_i02",
+      "table_status": "pending",
+      "indicators": [
+        {
+          "name": "[1] Le ratio de liquidité à court terme est calculé conformément -> Le ratio de liquidité à court terme est calculé conformément",
+          "type": "modified",
+          "review_status": "pending"
+        }
+      ],
+      "match_method": "Identical indicators and footnotes; both tables summarize short-term liquidity ratio.",
+      "all_indicators_t1": [],
+      "all_indicators_t2": [],
+      "bbox_t1": [
+        0.04046636869262898,
+        0.6760280409382983,
+        0.9392022026909722,
+        0.7773664335638171
+      ],
+      "bbox_t2": [
+        0.04047009482312559,
+        0.550864617943307,
+        0.9393591936152571,
+        0.6508426203429318
+      ],
+      "added_indicators": [],
+      "removed_indicators": [],
+      "item_type": "footnote",
+      "event_type": "footnote_only",
+      "footnote_changes": [],
+      "genai_analysis": {
+        "theme": "liquidite",
+        "change_significance": "eleve",
+        "review_priority": "prioritaire",
+        "analyst_summary": "Changements semantiques detectes sur le theme liquidite: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "liquidite",
+        "review_priority": "prioritaire",
+        "change_significance": "eleve",
+        "analyst_summary": "Changements semantiques detectes sur le theme liquidite: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
+      }
+    },
+    {
       "change_id": "rbc::risk_management::tbl_p025_i02|tbl_p031_i02",
       "change_type": "removed",
       "indicator": "",
@@ -536,8 +604,8 @@
       "table_id_t2": "tbl_p031_i02",
       "page_t1": 25,
       "page_t2": 31,
-      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/RBC/2025/RBC_2025_T1.pdf",
-      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/RBC/2025/RBC_2025_T2.pdf",
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/rbc/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/rbc/2025_t2_vs_2025_t1/current_report.pdf",
       "review_status": "pending",
       "comment": "",
       "review_user": "",
@@ -559,7 +627,7 @@
           "review_status": "pending"
         }
       ],
-      "match_method": "Indicators and headers match exactly; both tables have the same row count and footnote count.",
+      "match_method": "Indicators and headers match exactly; both tables have the same row count and similar footnote count.",
       "all_indicators_t1": [],
       "all_indicators_t2": [],
       "bbox_t1": [
@@ -604,8 +672,8 @@
       "table_id_t2": "tbl_p045_i02",
       "page_t1": 39,
       "page_t2": 45,
-      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/RBC/2025/RBC_2025_T1.pdf",
-      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/RBC/2025/RBC_2025_T2.pdf",
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/rbc/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/rbc/2025_t2_vs_2025_t1/current_report.pdf",
       "review_status": "pending",
       "comment": "",
       "review_user": "",
@@ -627,7 +695,7 @@
           "review_status": "pending"
         }
       ],
-      "match_method": "Indicators and headers match exactly; both tables have the same row count and footnote count.",
+      "match_method": "Indicators and headers match exactly; both tables have the same row count and similar footnote count.",
       "all_indicators_t1": [],
       "all_indicators_t2": [],
       "bbox_t1": [
@@ -672,12 +740,12 @@
       "table_id_t2": "",
       "page_t1": 47,
       "page_t2": null,
-      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/RBC/2025/RBC_2025_T1.pdf",
-      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/RBC/2025/RBC_2025_T2.pdf",
-      "review_status": "approved",
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/rbc/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/rbc/2025_t2_vs_2025_t1/current_report.pdf",
+      "review_status": "pending",
       "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-04-18T23:20:54.525206+00:00",
+      "review_user": "",
+      "review_timestamp": "",
       "edited_value": "",
       "confidence": 1.0,
       "proof_image_path": "",
@@ -687,7 +755,7 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "Banques d’importance systémique mondiale selon 13 indicateurs d’évaluation (1)",
-      "table_status": "completed",
+      "table_status": "pending",
       "indicators": [],
       "match_method": "",
       "all_indicators_t1": [],
@@ -725,8 +793,8 @@
       "table_id_t2": "",
       "page_t1": 34,
       "page_t2": null,
-      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/RBC/2025/RBC_2025_T1.pdf",
-      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/RBC/2025/RBC_2025_T2.pdf",
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/rbc/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/rbc/2025_t2_vs_2025_t1/current_report.pdf",
       "review_status": "pending",
       "comment": "",
       "review_user": "",
@@ -778,12 +846,12 @@
       "table_id_t2": "tbl_p034_i02",
       "page_t1": null,
       "page_t2": 34,
-      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/RBC/2025/RBC_2025_T1.pdf",
-      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/RBC/2025/RBC_2025_T2.pdf",
-      "review_status": "approved",
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/rbc/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/rbc/2025_t2_vs_2025_t1/current_report.pdf",
+      "review_status": "pending",
       "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-04-18T23:20:56.657862+00:00",
+      "review_user": "",
+      "review_timestamp": "",
       "edited_value": "",
       "confidence": 1.0,
       "proof_image_path": "",
@@ -793,7 +861,7 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "tbl_p034_i02",
-      "table_status": "completed",
+      "table_status": "pending",
       "indicators": [],
       "match_method": "",
       "all_indicators_t1": [],
@@ -817,7 +885,7 @@
         "analyst_summary": "Nouveau tableau sur le theme risque_marche a revoir par l'analyste."
       },
       "match_metadata": {
-        "semantic_judge": "Indicators are unique; no remaining previous table has a sufficiently similar indicator structure, title, or business purpose."
+        "semantic_judge": "Indicators are unique; no previous table has a similar indicator structure or table summary related to VAR of trading activities."
       }
     },
     {
@@ -831,12 +899,12 @@
       "table_id_t2": "",
       "page_t1": 36,
       "page_t2": null,
-      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/RBC/2025/RBC_2025_T1.pdf",
-      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/RBC/2025/RBC_2025_T2.pdf",
-      "review_status": "approved",
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/rbc/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/rbc/2025_t2_vs_2025_t1/current_report.pdf",
+      "review_status": "pending",
       "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-04-18T23:20:59.604049+00:00",
+      "review_user": "",
+      "review_timestamp": "",
       "edited_value": "",
       "confidence": 1.0,
       "proof_image_path": "",
@@ -846,7 +914,7 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "tbl_p036_i02",
-      "table_status": "completed",
+      "table_status": "pending",
       "indicators": [],
       "match_method": "",
       "all_indicators_t1": [],
@@ -884,12 +952,12 @@
       "table_id_t2": "",
       "page_t1": 37,
       "page_t2": null,
-      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/RBC/2025/RBC_2025_T1.pdf",
-      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/RBC/2025/RBC_2025_T2.pdf",
-      "review_status": "approved",
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/rbc/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/rbc/2025_t2_vs_2025_t1/current_report.pdf",
+      "review_status": "pending",
       "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-04-18T23:21:03.752246+00:00",
+      "review_user": "",
+      "review_timestamp": "",
       "edited_value": "",
       "confidence": 1.0,
       "proof_image_path": "",
@@ -899,7 +967,7 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "Modèle commun de déclaration du ratio de liquidité à court terme (1)",
-      "table_status": "completed",
+      "table_status": "pending",
       "indicators": [],
       "match_method": "",
       "all_indicators_t1": [],
@@ -937,12 +1005,12 @@
       "table_id_t2": "tbl_p038_i01",
       "page_t1": null,
       "page_t2": 38,
-      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/RBC/2025/RBC_2025_T1.pdf",
-      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/RBC/2025/RBC_2025_T2.pdf",
-      "review_status": "approved",
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/rbc/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/rbc/2025_t2_vs_2025_t1/current_report.pdf",
+      "review_status": "pending",
       "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-04-18T23:21:01.521279+00:00",
+      "review_user": "",
+      "review_timestamp": "",
       "edited_value": "",
       "confidence": 1.0,
       "proof_image_path": "",
@@ -952,7 +1020,7 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "tbl_p038_i01",
-      "table_status": "completed",
+      "table_status": "pending",
       "indicators": [],
       "match_method": "",
       "all_indicators_t1": [],
@@ -976,7 +1044,7 @@
         "analyst_summary": "Nouveau tableau sur le theme financement a revoir par l'analyste."
       },
       "match_metadata": {
-        "semantic_judge": "The table summary 'Réserve de liquidités' and indicators do not match any previous table's structure or purpose."
+        "semantic_judge": "No previous table matches the liquidity reserve structure or indicators; unique focus on liquid assets held by the bank."
       }
     }
   ],
@@ -1008,8 +1076,8 @@
         0.959788561262697,
         0.286016530004041
       ],
-      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/RBC/2025/RBC_2025_T1.pdf",
-      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/Inputs/RBC/2025/RBC_2025_T2.pdf",
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/rbc/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/rbc/2025_t2_vs_2025_t1/current_report.pdf",
       "changes": [
         {
           "change_id": "chg_00008",
@@ -1025,7 +1093,7 @@
           "is_required": false,
           "validation_decision": "approved",
           "validation_notes": "",
-          "validated_at": "2026-04-18T23:20:30.924036+00:00",
+          "validated_at": "2026-08-04T19:50:50.302532+00:00",
           "validated_by": "analyst"
         },
         {
@@ -1038,12 +1106,12 @@
             "old_text": "Le risque spécifique de crédit tient compte de la volatilité de l’écart de taux lié à chaque émetteur.",
             "new_text": ""
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": false,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-18T23:20:31.085868+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         },
         {
           "change_id": "chg_00010",
@@ -1065,7 +1133,7 @@
       ],
       "table_status": "partial",
       "confidence": 0.98,
-      "match_method": "Indicators and headers match exactly; both tables have the same row count and footnote count.",
+      "match_method": "Indicators and headers match exactly; both tables have the same row count and similar footnote count.",
       "genai_analysis": {
         "theme": "risque_marche",
         "change_significance": "moyen",
@@ -1087,8 +1155,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 3,
-        "validated": 2,
-        "pending": 1
+        "validated": 1,
+        "pending": 2
       }
     },
     {
@@ -1118,8 +1186,8 @@
         0.8931804802484972,
         0.33837828264687103
       ],
-      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/RBC/2025/RBC_2025_T1.pdf",
-      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/Inputs/RBC/2025/RBC_2025_T2.pdf",
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/rbc/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/rbc/2025_t2_vs_2025_t1/current_report.pdf",
       "changes": [
         {
           "change_id": "chg_00002",
@@ -1131,12 +1199,12 @@
             "old_text": "(4) Secteur géographique selon l’emplacement du bien immobilier.",
             "new_text": "(4) Les montants sont présentés selon l’emplacement géographique du bien immobilier."
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": false,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-18T23:20:38.352400+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         },
         {
           "change_id": "chg_00003",
@@ -1156,9 +1224,9 @@
           "validated_by": ""
         }
       ],
-      "table_status": "partial",
+      "table_status": "pending",
       "confidence": 0.98,
-      "match_method": "Indicators and headers match exactly; both tables have the same row count and footnote count.",
+      "match_method": "Indicators and headers match exactly; both tables have the same row count and similar footnote count.",
       "genai_analysis": {
         "theme": "autre",
         "change_significance": "moyen",
@@ -1180,8 +1248,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 2,
-        "validated": 1,
-        "pending": 1
+        "validated": 0,
+        "pending": 2
       }
     },
     {
@@ -1211,8 +1279,8 @@
         0.8932202593801825,
         0.5861062236215877
       ],
-      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/RBC/2025/RBC_2025_T1.pdf",
-      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/Inputs/RBC/2025/RBC_2025_T2.pdf",
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/rbc/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/rbc/2025_t2_vs_2025_t1/current_report.pdf",
       "changes": [
         {
           "change_id": "chg_00004",
@@ -1251,7 +1319,7 @@
       ],
       "table_status": "pending",
       "confidence": 0.98,
-      "match_method": "Indicators and headers match exactly; both tables have the same row count and footnote count.",
+      "match_method": "Indicators and headers match exactly; both tables have the same row count and similar footnote count.",
       "genai_analysis": {
         "theme": "autre",
         "change_significance": "moyen",
@@ -1304,8 +1372,8 @@
         0.839694755389718,
         0.2403147613408465
       ],
-      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/RBC/2025/RBC_2025_T1.pdf",
-      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/Inputs/RBC/2025/RBC_2025_T2.pdf",
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/rbc/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/rbc/2025_t2_vs_2025_t1/current_report.pdf",
       "changes": [
         {
           "change_id": "chg_00001",
@@ -1315,15 +1383,15 @@
             "indicator_name_clean": "de 30 à 35 ans",
             "analyst_assessment": {
               "relevance_level": 2,
-              "justification": "La suppression de l'indicateur 'De 30 à 35 ans' modifie la granularité de l'analyse des périodes d'amortissement, ce qui peut affecter l'évaluation des risques associés aux prêts hypothécaires à plus long terme."
+              "justification": "L'indicateur 'De 30 à 35 ans' a été supprimé du tableau de répartition des prêts hypothécaires résidentiels par période d’amortissement dans le rapport actuel. Cet indicateur représentait une catégorie spécifique de prêts hypothécaires avec une période d'amortissement comprise entre 30 et 35 ans.\n\nLa suppression de cet indicateur peut avoir un impact sur la granularité des informations disponibles pour l'analyse des risques liés aux prêts hypothécaires. En effet, les périodes d'amortissement plus longues peuvent être associées à des risques différents en termes de remboursement et de gestion du crédit. La disparition de cette catégorie pourrait compliquer l'évaluation précise des risques et la conformité aux exigences de divulgation prudentielles.\n\nIl est recommandé que l'analyste vérifie si cette suppression est due à un changement méthodologique ou à une consolidation des catégories. Une investigation plus approfondie pourrait être nécessaire pour s'assurer que toutes les informations pertinentes sont toujours disponibles pour l'analyse des risques."
             }
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": true,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-18T23:20:43.462497+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         },
         {
           "change_id": "chg_00006",
@@ -1343,9 +1411,9 @@
           "validated_by": ""
         }
       ],
-      "table_status": "partial",
+      "table_status": "pending",
       "confidence": 0.98,
-      "match_method": "Indicators and headers match exactly; both tables have the same row count and footnote count.",
+      "match_method": "Indicators and headers match exactly; both tables have the same row count and similar footnote count.",
       "genai_analysis": {
         "theme": "risque_marche",
         "change_significance": "moyen",
@@ -1367,8 +1435,8 @@
         "indicators_removed": 1,
         "indicators_renamed": 0,
         "footnotes_changed": 1,
-        "validated": 1,
-        "pending": 1
+        "validated": 0,
+        "pending": 2
       }
     },
     {
@@ -1398,17 +1466,17 @@
         0.9392988669931592,
         0.7296822305535601
       ],
-      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/RBC/2025/RBC_2025_T1.pdf",
-      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/Inputs/RBC/2025/RBC_2025_T2.pdf",
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/rbc/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/rbc/2025_t2_vs_2025_t1/current_report.pdf",
       "changes": [
         {
           "change_id": "chg_00011",
           "change_type": "footnote_removed",
           "payload": {
-            "indicator_name": "[6] Le montant des actifs donnés en garantie représente les garanties en espèces et les dépôts de garantie obligatoires qui ",
-            "indicator_name_clean": "[6] le montant des actifs donnés en garantie représente les garanties en espèces et les dépôts de garantie obligatoires qui",
-            "footnote_ref": "6",
-            "old_text": "Le montant des actifs donnés en garantie représente les garanties en espèces et les dépôts de garantie obligatoires qui ont été fournis en lien avec des transactions visant des dérivés négociés hors cote et en Bourse.",
+            "indicator_name": "[5] Avec prise d’effet au premier trimestre de 2025, les titres hypothécaires, les prêts hypothécaires et les autres prêts s",
+            "indicator_name_clean": "[5] avec prise d’effet au premier trimestre de 2025, les titres hypothécaires, les prêts hypothécaires et les autres prêts s",
+            "footnote_ref": "5",
+            "old_text": "Avec prise d’effet au premier trimestre de 2025, les titres hypothécaires, les prêts hypothécaires et les autres prêts sont présentés déduction faite de la correction de valeur pour pertes sur prêts. Les montants correspondants ont été révisés par rapport à ceux présentés précédemment afin qu’ils soient conformes à la présentation adoptée pour la période considérée.",
             "new_text": ""
           },
           "validation_status": "pending",
@@ -1422,11 +1490,11 @@
           "change_id": "chg_00012",
           "change_type": "footnote_modified",
           "payload": {
-            "indicator_name": "[5] Avec prise d’effet au premier trimestre de 2025, les titres  -> Le montant des actifs donnés en garantie représente les gara",
-            "indicator_name_clean": "[5] avec prise d’effet au premier trimestre de 2025, les titres  -> le montant des actifs donnés en garantie représente les gara",
-            "footnote_ref": "5",
-            "old_text": "Avec prise d’effet au premier trimestre de 2025, les titres hypothécaires, les prêts hypothécaires et les autres prêts sont présentés déduction faite de la correction de valeur pour pertes sur prêts. Les montants correspondants ont été révisés par rapport à ceux présentés précédemment afin qu’ils soient conformes à la présentation adoptée pour la période considérée.",
-            "new_text": "Le montant des actifs donnés en garantie représente les garanties en espèces et les dépôts de garantie obligatoires qui ont été fournis en lien avec des transactions visant des dérivés négociés hors cote et en Bourse."
+            "indicator_name": "[4] Inclut les actifs liquides détenus par la banque et les titr -> Inclut les actifs liquides détenus par la banque et les titr",
+            "indicator_name_clean": "[4] inclut les actifs liquides détenus par la banque et les titr -> inclut les actifs liquides détenus par la banque et les titr",
+            "footnote_ref": "4",
+            "old_text": "Inclut les actifs liquides détenus par la banque et les titres reçus en garantie dans le cadre de financement de titres hors bilan, de transactions sur dérivés et de prêts sur marges. Comprend des garanties de 30 milliards de dollars (31 milliards au 31 octobre 2024) reçues dans le cadre d’opérations de revente qui ne peuvent pas être redonnées en garantie dans leur forme juridique actuelle.",
+            "new_text": "Inclut les actifs liquides détenus par la banque et les titres reçus en garantie dans le cadre de financement de titres hors bilan, de transactions sur dérivés et de prêts sur marges. Comprend des garanties de 31 milliards de dollars (30 milliards au 31 janvier 2025) reçues dans le cadre d’opérations de revente qui ne peuvent pas être redonnées en garantie dans leur forme juridique actuelle."
           },
           "validation_status": "pending",
           "is_required": false,
@@ -1438,7 +1506,7 @@
       ],
       "table_status": "pending",
       "confidence": 0.98,
-      "match_method": "Indicators and headers match exactly; both tables have the same row count and footnote count.",
+      "match_method": "Indicators and headers match exactly; both tables have the same row count and similar footnote count.",
       "genai_analysis": {
         "theme": "financement",
         "change_significance": "eleve",
@@ -1491,8 +1559,8 @@
         0.9388422673416771,
         0.6033489670637772
       ],
-      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/RBC/2025/RBC_2025_T1.pdf",
-      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/Inputs/RBC/2025/RBC_2025_T2.pdf",
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/rbc/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/rbc/2025_t2_vs_2025_t1/current_report.pdf",
       "changes": [
         {
           "change_id": "chg_00013",
@@ -1504,12 +1572,12 @@
             "old_text": "Avec prise d’effet au premier trimestre de 2025, nous avons révisé la portée des billets structurés non garantis de premier rang afin de refléter davantage le réseau de distribution utilisé pour l’émission de ces billets. Les montants correspondants ont été révisés par rapport à ceux présentés précédemment afin de les rendre conformes à l’approche que nous avons adoptée pour le trimestre considéré.",
             "new_text": ""
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": false,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-18T23:20:48.438626+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         },
         {
           "change_id": "chg_00014",
@@ -1529,9 +1597,9 @@
           "validated_by": ""
         }
       ],
-      "table_status": "partial",
+      "table_status": "pending",
       "confidence": 0.98,
-      "match_method": "Indicators and headers match exactly; both tables have the same row count and footnote count.",
+      "match_method": "Indicators and headers match exactly; both tables have the same row count and similar footnote count.",
       "genai_analysis": {
         "theme": "financement",
         "change_significance": "eleve",
@@ -1553,8 +1621,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 2,
-        "validated": 1,
-        "pending": 1
+        "validated": 0,
+        "pending": 2
       }
     },
     {
@@ -1584,11 +1652,11 @@
         0.9387416554920709,
         0.8489600482419382
       ],
-      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/RBC/2025/RBC_2025_T1.pdf",
-      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/Inputs/RBC/2025/RBC_2025_T2.pdf",
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/rbc/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/rbc/2025_t2_vs_2025_t1/current_report.pdf",
       "changes": [
         {
-          "change_id": "chg_00016",
+          "change_id": "chg_00017",
           "change_type": "footnote_modified",
           "payload": {
             "indicator_name": "[2] Les réserves de fonds propres comprennent la réserve de cons -> Les réserves de fonds propres comprennent la réserve de cons",
@@ -1606,8 +1674,8 @@
         }
       ],
       "table_status": "pending",
-      "confidence": 0.98,
-      "match_method": "Indicators and headers match exactly; both tables have the same row count and footnote count.",
+      "confidence": 0.95,
+      "match_method": "Identical indicators and headers; both tables summarize regulatory capital, leverage, and TLAC ratios.",
       "genai_analysis": {
         "theme": "capital",
         "change_significance": "eleve",
@@ -1620,6 +1688,82 @@
         "review_priority": "prioritaire",
         "change_significance": "eleve",
         "analyst_summary": "Changements semantiques detectes sur le theme capital: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
+      },
+      "relevance": "",
+      "risk_level": "",
+      "summary": {
+        "total_changes": 1,
+        "indicators_added": 0,
+        "indicators_removed": 0,
+        "indicators_renamed": 0,
+        "footnotes_changed": 1,
+        "validated": 0,
+        "pending": 1
+      }
+    },
+    {
+      "review_id": "rbc::risk_management::tbl_p037_i02|tbl_p043_i02",
+      "table_key": "rbc::risk_management::tbl_p037_i02|tbl_p043_i02",
+      "table_title": "tbl_p043_i02",
+      "view_mode": "change_list",
+      "section": "risk_management",
+      "table_name": "tbl_p043_i02",
+      "table_number": "",
+      "table_id_t1": "tbl_p037_i02",
+      "table_id_t2": "tbl_p043_i02",
+      "page_t1": 37,
+      "page_t2": 43,
+      "proof_image_t1": "",
+      "proof_image_t2": "",
+      "proof_image_combined": "",
+      "bbox_t1": [
+        0.04046636869262898,
+        0.6760280409382983,
+        0.9392022026909722,
+        0.7773664335638171
+      ],
+      "bbox_t2": [
+        0.04047009482312559,
+        0.550864617943307,
+        0.9393591936152571,
+        0.6508426203429318
+      ],
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/rbc/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/rbc/2025_t2_vs_2025_t1/current_report.pdf",
+      "changes": [
+        {
+          "change_id": "chg_00015",
+          "change_type": "footnote_modified",
+          "payload": {
+            "indicator_name": "[1] Le ratio de liquidité à court terme est calculé conformément -> Le ratio de liquidité à court terme est calculé conformément",
+            "indicator_name_clean": "[1] le ratio de liquidité à court terme est calculé conformément -> le ratio de liquidité à court terme est calculé conformément",
+            "footnote_ref": "1",
+            "old_text": "Le ratio de liquidité à court terme est calculé conformément à la ligne directrice sur les normes de liquidité du BSIF, laquelle reflète à son tour les normes de liquidité publiées par le CBCB. Le ratio de liquidité à court terme pour le trimestre clos le 31 janvier 2025 correspond à une moyenne de 62 positions quotidiennes.",
+            "new_text": "Le ratio de liquidité à court terme est calculé conformément à la ligne directrice sur les normes de liquidité du BSIF, laquelle reflète à son tour les normes de liquidité publiées par le CBCB. Le ratio de liquidité à court terme pour le trimestre clos le 30 avril 2025 correspond à une moyenne de 61 positions quotidiennes."
+          },
+          "validation_status": "pending",
+          "is_required": false,
+          "validation_decision": "",
+          "validation_notes": "",
+          "validated_at": "",
+          "validated_by": ""
+        }
+      ],
+      "table_status": "pending",
+      "confidence": 0.95,
+      "match_method": "Identical indicators and footnotes; both tables summarize short-term liquidity ratio.",
+      "genai_analysis": {
+        "theme": "liquidite",
+        "change_significance": "eleve",
+        "review_priority": "prioritaire",
+        "analyst_summary": "Changements semantiques detectes sur le theme liquidite: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "liquidite",
+        "review_priority": "prioritaire",
+        "change_significance": "eleve",
+        "analyst_summary": "Changements semantiques detectes sur le theme liquidite: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
       },
       "relevance": "",
       "risk_level": "",
@@ -1660,8 +1804,8 @@
         0.8976512295294362,
         0.7523964288743216
       ],
-      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/RBC/2025/RBC_2025_T1.pdf",
-      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/Inputs/RBC/2025/RBC_2025_T2.pdf",
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/rbc/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/rbc/2025_t2_vs_2025_t1/current_report.pdf",
       "changes": [
         {
           "change_id": "chg_00007",
@@ -1683,7 +1827,7 @@
       ],
       "table_status": "pending",
       "confidence": 0.98,
-      "match_method": "Indicators and headers match exactly; both tables have the same row count and footnote count.",
+      "match_method": "Indicators and headers match exactly; both tables have the same row count and similar footnote count.",
       "genai_analysis": {
         "theme": "autre",
         "change_significance": "faible",
@@ -1736,11 +1880,11 @@
         0.9395503966171745,
         0.8396679718680157
       ],
-      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/RBC/2025/RBC_2025_T1.pdf",
-      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/Inputs/RBC/2025/RBC_2025_T2.pdf",
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/rbc/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/rbc/2025_t2_vs_2025_t1/current_report.pdf",
       "changes": [
         {
-          "change_id": "chg_00015",
+          "change_id": "chg_00016",
           "change_type": "footnote_added",
           "payload": {
             "indicator_name": "[5] Les actifs et passifs interdépendants représentent le passif des titres hypothécaires garantis par la Loi nationale sur ",
@@ -1759,7 +1903,7 @@
       ],
       "table_status": "pending",
       "confidence": 0.98,
-      "match_method": "Indicators and headers match exactly; both tables have the same row count and footnote count.",
+      "match_method": "Indicators and headers match exactly; both tables have the same row count and similar footnote count.",
       "genai_analysis": {
         "theme": "liquidite",
         "change_significance": "eleve",
@@ -1807,25 +1951,25 @@
         0.40331505084859914
       ],
       "bbox_t2": null,
-      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/RBC/2025/RBC_2025_T1.pdf",
-      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/Inputs/RBC/2025/RBC_2025_T2.pdf",
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/rbc/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/rbc/2025_t2_vs_2025_t1/current_report.pdf",
       "changes": [
         {
-          "change_id": "chg_00022",
+          "change_id": "chg_00023",
           "change_type": "table_removed",
           "payload": {
             "description": "Tableau entier supprimé",
             "table_status": "supprime"
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": true,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-18T23:20:54.525206+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         }
       ],
-      "table_status": "completed",
+      "table_status": "pending",
       "confidence": 1,
       "match_method": "",
       "genai_analysis": {
@@ -1845,8 +1989,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 0,
-        "validated": 1,
-        "pending": 0
+        "validated": 0,
+        "pending": 1
       }
     },
     {
@@ -1871,11 +2015,11 @@
         0.6815332873114225
       ],
       "bbox_t2": null,
-      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/RBC/2025/RBC_2025_T1.pdf",
-      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/Inputs/RBC/2025/RBC_2025_T2.pdf",
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/rbc/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/rbc/2025_t2_vs_2025_t1/current_report.pdf",
       "changes": [
         {
-          "change_id": "chg_00019",
+          "change_id": "chg_00020",
           "change_type": "table_removed",
           "payload": {
             "description": "Tableau entier supprimé",
@@ -1935,25 +2079,25 @@
         0.7789394701298197,
         0.4590056944319724
       ],
-      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/RBC/2025/RBC_2025_T1.pdf",
-      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/Inputs/RBC/2025/RBC_2025_T2.pdf",
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/rbc/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/rbc/2025_t2_vs_2025_t1/current_report.pdf",
       "changes": [
         {
-          "change_id": "chg_00017",
+          "change_id": "chg_00018",
           "change_type": "table_added",
           "payload": {
             "description": "Tableau entier ajouté",
             "table_status": "ajoute"
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": true,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-18T23:20:56.657862+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         }
       ],
-      "table_status": "completed",
+      "table_status": "pending",
       "confidence": 1,
       "match_method": "",
       "genai_analysis": {
@@ -1963,7 +2107,7 @@
         "analyst_summary": "Nouveau tableau sur le theme risque_marche a revoir par l'analyste."
       },
       "match_metadata": {
-        "semantic_judge": "Indicators are unique; no remaining previous table has a sufficiently similar indicator structure, title, or business purpose."
+        "semantic_judge": "Indicators are unique; no previous table has a similar indicator structure or table summary related to VAR of trading activities."
       },
       "relevance": "",
       "risk_level": "",
@@ -1973,8 +2117,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 0,
-        "validated": 1,
-        "pending": 0
+        "validated": 0,
+        "pending": 1
       }
     },
     {
@@ -1999,25 +2143,25 @@
         0.666303183992856
       ],
       "bbox_t2": null,
-      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/RBC/2025/RBC_2025_T1.pdf",
-      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/Inputs/RBC/2025/RBC_2025_T2.pdf",
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/rbc/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/rbc/2025_t2_vs_2025_t1/current_report.pdf",
       "changes": [
         {
-          "change_id": "chg_00020",
+          "change_id": "chg_00021",
           "change_type": "table_removed",
           "payload": {
             "description": "Tableau entier supprimé",
             "table_status": "supprime"
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": true,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-18T23:20:59.604049+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         }
       ],
-      "table_status": "completed",
+      "table_status": "pending",
       "confidence": 1,
       "match_method": "",
       "genai_analysis": {
@@ -2037,8 +2181,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 0,
-        "validated": 1,
-        "pending": 0
+        "validated": 0,
+        "pending": 1
       }
     },
     {
@@ -2063,25 +2207,25 @@
         0.668182022270115
       ],
       "bbox_t2": null,
-      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/RBC/2025/RBC_2025_T1.pdf",
-      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/Inputs/RBC/2025/RBC_2025_T2.pdf",
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/rbc/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/rbc/2025_t2_vs_2025_t1/current_report.pdf",
       "changes": [
         {
-          "change_id": "chg_00021",
+          "change_id": "chg_00022",
           "change_type": "table_removed",
           "payload": {
             "description": "Tableau entier supprimé",
             "table_status": "supprime"
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": true,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-18T23:21:03.752246+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         }
       ],
-      "table_status": "completed",
+      "table_status": "pending",
       "confidence": 1,
       "match_method": "",
       "genai_analysis": {
@@ -2101,8 +2245,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 0,
-        "validated": 1,
-        "pending": 0
+        "validated": 0,
+        "pending": 1
       }
     },
     {
@@ -2127,25 +2271,25 @@
         0.9599486899810842,
         0.5203554584605484
       ],
-      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/RBC/2025/RBC_2025_T1.pdf",
-      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/Inputs/RBC/2025/RBC_2025_T2.pdf",
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/rbc/2025_t2_vs_2025_t1/previous_report.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/rbc/2025_t2_vs_2025_t1/current_report.pdf",
       "changes": [
         {
-          "change_id": "chg_00018",
+          "change_id": "chg_00019",
           "change_type": "table_added",
           "payload": {
             "description": "Tableau entier ajouté",
             "table_status": "ajoute"
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": true,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-18T23:21:01.521279+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         }
       ],
-      "table_status": "completed",
+      "table_status": "pending",
       "confidence": 1,
       "match_method": "",
       "genai_analysis": {
@@ -2155,7 +2299,7 @@
         "analyst_summary": "Nouveau tableau sur le theme financement a revoir par l'analyste."
       },
       "match_metadata": {
-        "semantic_judge": "The table summary 'Réserve de liquidités' and indicators do not match any previous table's structure or purpose."
+        "semantic_judge": "No previous table matches the liquidity reserve structure or indicators; unique focus on liquid assets held by the bank."
       },
       "relevance": "",
       "risk_level": "",
@@ -2165,8 +2309,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 0,
-        "validated": 1,
-        "pending": 0
+        "validated": 0,
+        "pending": 1
       }
     }
   ]

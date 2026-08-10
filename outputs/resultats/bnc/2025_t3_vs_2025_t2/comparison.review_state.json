@@ -1,13 +1,13 @@
 {
   "schema_version": "review_state_v1",
   "compare_path": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bnc/2025_t3_vs_2025_t2/comparison.json",
-  "comparison_run_id": "20260410_011915",
-  "review_items_signature": "3882ffd34df91f063ad10252464a59cda2203a34df671bfc34c756f785a721fc",
-  "saved_at": "2026-04-18T20:27:45+00:00",
-  "source": "on_validate_change_v2",
+  "comparison_run_id": "20260418_195118",
+  "review_items_signature": "954822fb399b448d350bc32628889b2ca87ed6616db2c595fd3c111e85758842",
+  "saved_at": "2026-08-07T03:38:29+00:00",
+  "source": "init_review_items",
   "preferred_store": "review_queue",
   "review_selection": {
-    "review_id": "bnc::capital_management::|tbl_p032_i01",
+    "review_id": "bnc::capital_management::tbl_p026_i01|tbl_p026_i01",
     "change_id": "chg_00001"
   },
   "review_current_idx": 0,
@@ -15,7 +15,173 @@
   "current_indicator_idx": 0,
   "review_items": [
     {
-      "change_id": "bnc::capital_management::|tbl_p032_i01",
+      "change_id": "fn_0001",
+      "change_type": "footnote",
+      "indicator": "-1 note(s)",
+      "section": "capital_management",
+      "table_name": "Exigences – Ratios des fonds propres (1), de levier (1) et TLAC (2) réglementaires",
+      "table_number": "",
+      "table_id_t1": "tbl_p026_i01",
+      "table_id_t2": "tbl_p026_i01",
+      "page_t1": 26,
+      "page_t2": 26,
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bnc/2025_t3_vs_2025_t2/previous_report.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bnc/2025_t3_vs_2025_t2/current_report.pdf",
+      "review_status": "pending",
+      "comment": "",
+      "review_user": "",
+      "review_timestamp": "",
+      "edited_value": "",
+      "confidence": 0.95,
+      "proof_image_path": "",
+      "proof_mode": "",
+      "unit_context_t1": "",
+      "unit_context_t2": "",
+      "title_resolution_method_t1": "",
+      "title_resolution_method_t2": "",
+      "table_title_raw": "Exigences – Ratios des fonds propres (1), de levier (1) et TLAC (2) réglementaires",
+      "table_status": "modifie",
+      "indicators": [
+        {
+          "name": "[s. o.] s.o. Sans objet",
+          "type": "removed",
+          "footnote_ref": "s. o.",
+          "old_text": "s.o. Sans objet",
+          "new_text": "",
+          "review_status": "pending"
+        }
+      ],
+      "match_method": "Title identical: 'Exigences – Ratios des fonds propres (1), de levier (1) et TLAC (2) réglementaires'; indicators: same 7 rows; row_count 7 vs 7; headers similar structure.",
+      "all_indicators_t1": [],
+      "all_indicators_t2": [],
+      "bbox_t1": [
+        0.056896028954998346,
+        0.2291044755415483,
+        0.9427597943474265,
+        0.3949099068689828
+      ],
+      "bbox_t2": [
+        0.05648556254268472,
+        0.635288700912938,
+        0.9428900425730188,
+        0.8010641541143861
+      ],
+      "added_indicators": [],
+      "removed_indicators": [],
+      "item_type": "footnote",
+      "event_type": "footnote_only",
+      "footnote_changes": [
+        {
+          "footnote_ref": "s. o.",
+          "old_text": "s.o. Sans objet",
+          "new_text": "",
+          "change_type": "removed",
+          "reason": "Footnote present in previous quarter but absent in current quarter.",
+          "analyst_assessment": {
+            "relevance_level": 3,
+            "justification": "La note de bas de page 's.o. Sans objet' a été retirée du tableau des exigences réglementaires des ratios de fonds propres, de levier et TLAC. Cette note indiquait simplement qu'une certaine information était sans objet, ce qui est souvent utilisé pour clarifier l'absence de données ou de pertinence pour un élément spécifique du tableau.\n\nL'impact de la suppression de cette note est principalement cosmétique, car elle ne modifie pas les informations financières ou réglementaires présentées dans le tableau. Elle n'affecte pas non plus les calculs des ratios ou les exigences de divulgation selon les normes de Bâle III ou les directives du BSIF. Par conséquent, cette suppression n'a pas de conséquences réglementaires ou méthodologiques directes.\n\nIl s'agit d'une mise à jour ordinaire visant probablement à simplifier la présentation du tableau. L'analyste peut confirmer que cette suppression n'entraîne pas de confusion ou de malentendu pour les utilisateurs du rapport, mais aucune action supplémentaire n'est nécessaire."
+          }
+        }
+      ],
+      "genai_analysis": {
+        "theme": "capital",
+        "change_significance": "eleve",
+        "review_priority": "prioritaire",
+        "analyst_summary": "Changements semantiques detectes sur le theme capital: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "capital",
+        "review_priority": "prioritaire",
+        "change_significance": "eleve",
+        "analyst_summary": "Changements semantiques detectes sur le theme capital: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
+      }
+    },
+    {
+      "change_id": "fn_0002",
+      "change_type": "footnote",
+      "indicator": "-1 note(s)",
+      "section": "risk_management",
+      "table_name": "Exigences de déclaration relatives au ratio de liquidité à court terme (1) (2)",
+      "table_number": "",
+      "table_id_t1": "tbl_p039_i01",
+      "table_id_t2": "tbl_p041_i01",
+      "page_t1": 39,
+      "page_t2": 41,
+      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bnc/2025_t3_vs_2025_t2/previous_report.pdf",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bnc/2025_t3_vs_2025_t2/current_report.pdf",
+      "review_status": "pending",
+      "comment": "",
+      "review_user": "",
+      "review_timestamp": "",
+      "edited_value": "",
+      "confidence": 0.98,
+      "proof_image_path": "",
+      "proof_mode": "",
+      "unit_context_t1": "",
+      "unit_context_t2": "",
+      "title_resolution_method_t1": "",
+      "title_resolution_method_t2": "",
+      "table_title_raw": "Exigences de déclaration relatives au ratio de liquidité à court terme (1) (2)",
+      "table_status": "modifie",
+      "indicators": [
+        {
+          "name": "[*] s.o. Sans objet",
+          "type": "removed",
+          "footnote_ref": "*",
+          "old_text": "s.o. Sans objet",
+          "new_text": "",
+          "review_status": "pending"
+        }
+      ],
+      "match_method": "Identical indicators and headers; both tables report on short-term liquidity ratio requirements.",
+      "all_indicators_t1": [],
+      "all_indicators_t2": [],
+      "bbox_t1": [
+        0.05442368750478707,
+        0.11399889473963266,
+        0.9403865041296466,
+        0.5448647316056069
+      ],
+      "bbox_t2": [
+        0.05433037701775046,
+        0.11390909522470803,
+        0.9404027602251839,
+        0.5374871456261837
+      ],
+      "added_indicators": [],
+      "removed_indicators": [],
+      "item_type": "footnote",
+      "event_type": "footnote_only",
+      "footnote_changes": [
+        {
+          "footnote_ref": "*",
+          "old_text": "s.o. Sans objet",
+          "new_text": "",
+          "change_type": "removed",
+          "reason": "Footnote present in previous quarter but absent in current quarter.",
+          "analyst_assessment": {
+            "relevance_level": 3,
+            "justification": "La note de bas de page marquée par un astérisque, indiquant 's.o. Sans objet', a été retirée du tableau des exigences de déclaration du ratio de liquidité à court terme au T3 2025. Cette note était présente dans le rapport précédent du T2 2025.\n\nL'impact de la suppression de cette note est principalement cosmétique, car elle indiquait simplement que certaines informations n'étaient pas applicables. Cela n'affecte pas directement les calculs ou les divulgations réglementaires, mais peut influencer la clarté de la présentation des données pour les utilisateurs du rapport.\n\nIl s'agit d'une mise à jour ordinaire qui n'a pas de conséquences significatives sur la conformité réglementaire ou la méthodologie de calcul. L'analyste peut confirmer cette suppression comme une simplification de la présentation sans nécessiter d'investigation supplémentaire."
+          }
+        }
+      ],
+      "genai_analysis": {
+        "theme": "liquidite",
+        "change_significance": "eleve",
+        "review_priority": "prioritaire",
+        "analyst_summary": "Changements semantiques detectes sur le theme liquidite: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "liquidite",
+        "review_priority": "prioritaire",
+        "change_significance": "eleve",
+        "analyst_summary": "Changements semantiques detectes sur le theme liquidite: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
+      }
+    },
+    {
+      "change_id": "tbl_add_0003",
       "change_type": "table_added",
       "indicator": "Tableau entier ajouté",
       "section": "capital_management",
@@ -25,12 +191,12 @@
       "table_id_t2": "tbl_p032_i01",
       "page_t1": null,
       "page_t2": 32,
-      "source_ref_t1": "/Users/balde/Desktop/vigie_paire/Inputs/BNC/2025/BNC_2025_T2.pdf",
-      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/Inputs/BNC/2025/BNC_2025_T3.pdf",
-      "review_status": "approved",
+      "source_ref_t1": "",
+      "source_ref_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bnc/2025_t3_vs_2025_t2/current_report.pdf",
+      "review_status": "pending",
       "comment": "",
-      "review_user": "analyst",
-      "review_timestamp": "2026-04-18T20:27:45.126530+00:00",
+      "review_user": "",
+      "review_timestamp": "",
       "edited_value": "",
       "confidence": 1.0,
       "proof_image_path": "",
@@ -40,11 +206,17 @@
       "title_resolution_method_t1": "",
       "title_resolution_method_t2": "",
       "table_title_raw": "Indicateurs – Banques d’importance systémique mondiale (BISM) (1)",
-      "table_status": "completed",
+      "table_status": "ajoute",
       "indicators": [],
       "match_method": "",
       "all_indicators_t1": [],
-      "all_indicators_t2": [],
+      "all_indicators_t2": [
+        "Activité transfrontière (2)",
+        "Taille (4)",
+        "Interdépendance (6)",
+        "Substituabilité/infrastructure financière (7)",
+        "Complexité (10)"
+      ],
       "bbox_t1": null,
       "bbox_t2": [
         0.05428361581041922,
@@ -64,11 +236,163 @@
         "analyst_summary": "Nouveau tableau sur le theme capital a revoir par l'analyste."
       },
       "match_metadata": {
-        "semantic_judge": "Indicators are unique to BISM; no previous table has a similar structure or purpose."
+        "semantic_judge": "Indicators are unique to BISM; no previous table shares similar indicators or structure."
       }
     }
   ],
   "review_queue": [
+    {
+      "review_id": "bnc::capital_management::tbl_p026_i01|tbl_p026_i01",
+      "table_key": "bnc::capital_management::tbl_p026_i01|tbl_p026_i01",
+      "table_title": "Exigences – Ratios des fonds propres (1), de levier (1) et TLAC (2) réglementaires",
+      "view_mode": "change_list",
+      "section": "capital_management",
+      "table_name": "Exigences – Ratios des fonds propres (1), de levier (1) et TLAC (2) réglementaires",
+      "table_number": "",
+      "table_id_t1": "tbl_p026_i01",
+      "table_id_t2": "tbl_p026_i01",
+      "page_t1": 26,
+      "page_t2": 26,
+      "proof_image_t1": "",
+      "proof_image_t2": "",
+      "proof_image_combined": "",
+      "bbox_t1": [
+        0.056896028954998346,
+        0.2291044755415483,
+        0.9427597943474265,
+        0.3949099068689828
+      ],
+      "bbox_t2": [
+        0.05648556254268472,
+        0.635288700912938,
+        0.9428900425730188,
+        0.8010641541143861
+      ],
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bnc/2025_t3_vs_2025_t2/previous_report.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bnc/2025_t3_vs_2025_t2/current_report.pdf",
+      "changes": [
+        {
+          "change_id": "chg_00001",
+          "change_type": "footnote_removed",
+          "payload": {
+            "indicator_name": "[s. o.] s.o. Sans objet",
+            "indicator_name_clean": "[s. o.] s.o. sans objet",
+            "footnote_ref": "s. o.",
+            "old_text": "s.o. Sans objet",
+            "new_text": ""
+          },
+          "validation_status": "pending",
+          "is_required": false,
+          "validation_decision": "",
+          "validation_notes": "",
+          "validated_at": "",
+          "validated_by": ""
+        }
+      ],
+      "table_status": "pending",
+      "confidence": 0.95,
+      "match_method": "Title identical: 'Exigences – Ratios des fonds propres (1), de levier (1) et TLAC (2) réglementaires'; indicators: same 7 rows; row_count 7 vs 7; headers similar structure.",
+      "genai_analysis": {
+        "theme": "capital",
+        "change_significance": "eleve",
+        "review_priority": "prioritaire",
+        "analyst_summary": "Changements semantiques detectes sur le theme capital: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "capital",
+        "review_priority": "prioritaire",
+        "change_significance": "eleve",
+        "analyst_summary": "Changements semantiques detectes sur le theme capital: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
+      },
+      "relevance": "",
+      "risk_level": "",
+      "summary": {
+        "total_changes": 1,
+        "indicators_added": 0,
+        "indicators_removed": 0,
+        "indicators_renamed": 0,
+        "footnotes_changed": 1,
+        "validated": 0,
+        "pending": 1
+      }
+    },
+    {
+      "review_id": "bnc::risk_management::tbl_p039_i01|tbl_p041_i01",
+      "table_key": "bnc::risk_management::tbl_p039_i01|tbl_p041_i01",
+      "table_title": "Exigences de déclaration relatives au ratio de liquidité à court terme (1) (2)",
+      "view_mode": "change_list",
+      "section": "risk_management",
+      "table_name": "Exigences de déclaration relatives au ratio de liquidité à court terme (1) (2)",
+      "table_number": "",
+      "table_id_t1": "tbl_p039_i01",
+      "table_id_t2": "tbl_p041_i01",
+      "page_t1": 39,
+      "page_t2": 41,
+      "proof_image_t1": "",
+      "proof_image_t2": "",
+      "proof_image_combined": "",
+      "bbox_t1": [
+        0.05442368750478707,
+        0.11399889473963266,
+        0.9403865041296466,
+        0.5448647316056069
+      ],
+      "bbox_t2": [
+        0.05433037701775046,
+        0.11390909522470803,
+        0.9404027602251839,
+        0.5374871456261837
+      ],
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bnc/2025_t3_vs_2025_t2/previous_report.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bnc/2025_t3_vs_2025_t2/current_report.pdf",
+      "changes": [
+        {
+          "change_id": "chg_00002",
+          "change_type": "footnote_removed",
+          "payload": {
+            "indicator_name": "[*] s.o. Sans objet",
+            "indicator_name_clean": "[*] s.o. sans objet",
+            "footnote_ref": "*",
+            "old_text": "s.o. Sans objet",
+            "new_text": ""
+          },
+          "validation_status": "pending",
+          "is_required": false,
+          "validation_decision": "",
+          "validation_notes": "",
+          "validated_at": "",
+          "validated_by": ""
+        }
+      ],
+      "table_status": "pending",
+      "confidence": 0.98,
+      "match_method": "Identical indicators and headers; both tables report on short-term liquidity ratio requirements.",
+      "genai_analysis": {
+        "theme": "liquidite",
+        "change_significance": "eleve",
+        "review_priority": "prioritaire",
+        "analyst_summary": "Changements semantiques detectes sur le theme liquidite: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
+      },
+      "match_metadata": {
+        "drastic_row_drop": false,
+        "theme": "liquidite",
+        "review_priority": "prioritaire",
+        "change_significance": "eleve",
+        "analyst_summary": "Changements semantiques detectes sur le theme liquidite: 0 changement(s) d'indicateur et 1 changement(s) de footnote."
+      },
+      "relevance": "",
+      "risk_level": "",
+      "summary": {
+        "total_changes": 1,
+        "indicators_added": 0,
+        "indicators_removed": 0,
+        "indicators_renamed": 0,
+        "footnotes_changed": 1,
+        "validated": 0,
+        "pending": 1
+      }
+    },
     {
       "review_id": "bnc::capital_management::|tbl_p032_i01",
       "table_key": "bnc::capital_management::|tbl_p032_i01",
@@ -91,26 +415,26 @@
         0.940853941674326,
         0.3318136195943813
       ],
-      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/Inputs/BNC/2025/BNC_2025_T2.pdf",
-      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/Inputs/BNC/2025/BNC_2025_T3.pdf",
+      "source_pdf_t1": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bnc/2025_t3_vs_2025_t2/previous_report.pdf",
+      "source_pdf_t2": "/Users/balde/Desktop/vigie_paire/outputs/resultats/bnc/2025_t3_vs_2025_t2/current_report.pdf",
       "changes": [
         {
-          "change_id": "chg_00001",
+          "change_id": "chg_00003",
           "change_type": "table_added",
           "payload": {
             "description": "Tableau entier ajouté",
-            "table_status": "completed"
+            "table_status": "ajoute"
           },
-          "validation_status": "approved",
+          "validation_status": "pending",
           "is_required": true,
-          "validation_decision": "approved",
+          "validation_decision": "",
           "validation_notes": "",
-          "validated_at": "2026-04-18T20:27:45.126530+00:00",
-          "validated_by": "analyst"
+          "validated_at": "",
+          "validated_by": ""
         }
       ],
-      "table_status": "completed",
-      "confidence": 1,
+      "table_status": "pending",
+      "confidence": 1.0,
       "match_method": "",
       "genai_analysis": {
         "theme": "capital",
@@ -119,7 +443,7 @@
         "analyst_summary": "Nouveau tableau sur le theme capital a revoir par l'analyste."
       },
       "match_metadata": {
-        "semantic_judge": "Indicators are unique to BISM; no previous table has a similar structure or purpose."
+        "semantic_judge": "Indicators are unique to BISM; no previous table shares similar indicators or structure."
       },
       "relevance": "",
       "risk_level": "",
@@ -129,8 +453,8 @@
         "indicators_removed": 0,
         "indicators_renamed": 0,
         "footnotes_changed": 0,
-        "validated": 1,
-        "pending": 0
+        "validated": 0,
+        "pending": 1
       }
     }
   ]
