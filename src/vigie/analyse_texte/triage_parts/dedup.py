@@ -66,7 +66,7 @@ def _group_semantic_triage_duplicates(
     client: Any,
     embedding_model: str = _DEFAULT_EMBEDDING_MODEL,
 ) -> list[list[int]]:
-    """Group near-duplicate changes; returns lists of indices into ``changes``."""
+    """Regroupe les quasi-doublons et retourne leurs indices dans ``changes``."""
     if len(changes) <= 1:
         return [[index] for index in range(len(changes))]
 
@@ -83,12 +83,14 @@ def _group_semantic_triage_duplicates(
     parents = list(range(len(changes)))
 
     def find(index: int) -> int:
+        """Retourne la racine d'un groupe avec compression de chemin."""
         while parents[index] != index:
             parents[index] = parents[parents[index]]
             index = parents[index]
         return index
 
     def union(left: int, right: int) -> None:
+        """Fusionne les groupes de deux changements jugés équivalents."""
         root_left, root_right = find(left), find(right)
         if root_left != root_right:
             parents[root_right] = root_left

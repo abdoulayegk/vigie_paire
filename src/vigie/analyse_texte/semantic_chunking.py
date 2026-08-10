@@ -172,6 +172,12 @@ def _partition_with_llm(
     sentences: list[str],
     scores: list[float],
 ) -> list[tuple[int, int]]:
+    """Demande une partition sémantique contiguë et valide strictement sa couverture.
+
+    Une réponse surfragmentée déclenche une seconde tentative guidée. Toute
+    réponse invalide ou tout échec du modèle remonte comme erreur de qualité,
+    car cette étape ne doit pas masquer le problème par un découpage arbitraire.
+    """
     numbered = "\n".join(f"{index}. {sentence}" for index, sentence in enumerate(sentences, start=1))
     boundary_scores = ", ".join(f"{index + 1}|{index + 2}={score:.3f}" for index, score in enumerate(scores))
     messages = [
@@ -203,6 +209,7 @@ def _partition_with_llm(
     ]
 
     def request_partition(request_messages: list[dict[str, str]]) -> SemanticPartitionResponse:
+        """Appelle le modèle et exige une réponse structurée corrigible une fois."""
         return _call_structured_completion_with_correction(
             client,
             model=model,

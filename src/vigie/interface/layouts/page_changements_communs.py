@@ -1,4 +1,4 @@
-"""Layout for the read-only common cross-bank changes tab."""
+"""Mise en page de l'onglet consultatif des changements communs interbanques."""
 
 from __future__ import annotations
 
@@ -23,7 +23,7 @@ def build_changements_communs_tab(
     selected_period: str | None = None,
     report_path: str | None = None,
 ) -> html.Div:
-    """Build the common cross-bank changes dashboard tab."""
+    """Construit l'onglet des changements communs entre banques."""
     effective_period = str((report or {}).get("period") or selected_period or "").strip() or "Periode non selectionnee"
     return html.Div(
         [
@@ -88,7 +88,7 @@ def build_changements_communs_report_view(
     selected_period: str | None = None,
     report_path: str | None = None,
 ) -> html.Div:
-    """Render a generated common-changes report."""
+    """Présente un rapport de changements communs déjà généré."""
     if not report:
         period_text = str(selected_period or "").strip()
         expected_path = (
@@ -170,6 +170,7 @@ def _metric_card(title: str, value: str | int) -> dbc.Card:
 
 
 def _build_report_summary(report: dict[str, Any], *, report_path: str | None = None) -> dbc.Card:
+    """Construit l'en-tête du rapport et ses compteurs de traçabilité."""
     topic = str(report.get("topic") or report.get("theme") or "").strip() or "Theme non precise"
     period = str(report.get("period") or "").strip() or "Periode non precisee"
     source_count = int(report.get("source_change_count", 0) or 0)
@@ -334,6 +335,7 @@ def _build_evidence_accordion(evidence: list[dict[str, Any]]) -> html.Div:
 
 
 def _build_evidence_body(item: dict[str, Any]) -> html.Div:
+    """Présente une preuve bancaire avec sa posture, ses textes et sa source."""
     quote = str(item.get("quote") or "").strip()
     before = str(item.get("text_before") or "").strip()
     after = str(item.get("text_after") or "").strip()

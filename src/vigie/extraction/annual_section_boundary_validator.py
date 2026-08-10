@@ -270,6 +270,7 @@ class AnnualSectionBoundaryValidator:
         detector: GenAITOCDetector | None = None,
         docling_reader: Callable[[Path, int, int], list[StructuredTOCEntry]] | None = None,
     ):
+        """Configure le contexte bancaire et les stratégies de lecture des bornes."""
         self.bank_code = str(bank_code or "").strip().lower()
         self.year = int(year)
         if detector is None:

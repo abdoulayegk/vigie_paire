@@ -26,7 +26,11 @@ from vigie.interface.layouts import build_page_upload
     prevent_initial_call=True,
 )
 def update_sidebar_collapsed_state(toggle_clicks, show_results, is_collapsed):
-    """Replier la barre laterale pour la revue par defaut tout en gardant le controle de basculement manuel."""
+    """Détermine l'état replié de la barre latérale de revue.
+
+    L'affichage des résultats applique le défaut de revue, tandis que le bouton
+    permet de l'inverser; la sortie alimente le store d'état de la barre.
+    """
     if ctx.triggered_id == "btn-toggle-sidebar":
         return not bool(is_collapsed)
     if ctx.triggered_id == "store-show-results-page" and bool(show_results):
@@ -43,7 +47,11 @@ def update_sidebar_collapsed_state(toggle_clicks, show_results, is_collapsed):
     Input("store-sidebar-collapsed", "data"),
 )
 def sync_sidebar_layout(is_collapsed):
-    """Synchroniser les classes CSS de la barre laterale et du contenu principal selon l'etat replie/deplie."""
+    """Synchronise la mise en page avec l'état de la barre latérale.
+
+    Le booléen stocké produit les classes CSS, l'icône et le libellé accessibles
+    du bouton de basculement.
+    """
     collapsed = bool(is_collapsed)
     sidebar_class = "analysis-sidebar bg-light border-end p-3"
     body_class = "analysis-sidebar-body"
@@ -67,7 +75,11 @@ def sync_sidebar_layout(is_collapsed):
     Input("proof-display-mode", "value"),
 )
 def on_proof_display_mode_change(value):
-    """Persister le mode d'affichage des preuves (recadrage vs page entiere + bbox)."""
+    """Persiste le mode d'affichage choisi pour les preuves PDF.
+
+    La valeur du contrôle produit le store utilisé pour choisir entre recadrage
+    et page entière annotée lors des prochains rendus.
+    """
     if value in ("crop", "full", "footnote"):
         return value
     return no_update
@@ -93,7 +105,11 @@ def on_proof_display_mode_change(value):
     prevent_initial_call=True,
 )
 def on_reset(n_clicks):
-    """Reinitialiser pour nouvelle analyse."""
+    """Réinitialise les stores et l'interface pour une nouvelle analyse.
+
+    Le clic retourne les valeurs initiales de la navigation, des résultats et
+    des panneaux; il ne supprime pas les artéfacts déjà enregistrés.
+    """
     if n_clicks:
         return (
             None,
@@ -119,7 +135,7 @@ def on_reset(n_clicks):
     prevent_initial_call=True,
 )
 def toggle_options(n, is_open):
-    """Basculer l'affichage du panneau d'options."""
+    """Inverse l'état ouvert du panneau d'options après un clic."""
     if n:
         return not is_open
     return is_open
@@ -132,7 +148,7 @@ def toggle_options(n, is_open):
     prevent_initial_call=True,
 )
 def toggle_stats(n, is_open):
-    """Basculer l'affichage du panneau de statistiques."""
+    """Inverse l'état ouvert du panneau de statistiques après un clic."""
     if n:
         return not is_open
     return is_open

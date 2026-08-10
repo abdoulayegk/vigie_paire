@@ -99,7 +99,7 @@ _STANDALONE_DATE_RE = re.compile(
 
 
 def _normalize_for_diff(name: str) -> str:
-    """Normalize an indicator name for matching: strip footnotes, superscripts, punctuation noise."""
+    """Normalise un indicateur pour l'appariement en retirant les marques parasites."""
     text = str(name or "").strip()
     # Strip trailing footnote markers: (1), [2], etc.
     text = _FOOTNOTE_PAREN_RE.sub("", text)

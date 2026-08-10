@@ -81,6 +81,7 @@ def _prefilter_triage_result(
     *,
     bank_code: str = "",
 ) -> dict[str, Any]:
+    """Produit un triage non pertinent traçable après une exclusion déterministe."""
     triage = _default_triage(bank_code)
     factual, comparative, subject = _analyst_exclusion_copy(
         change,

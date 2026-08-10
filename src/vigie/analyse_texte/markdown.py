@@ -1,4 +1,9 @@
-"""Composants modulaires du pipeline texte."""
+"""Construction et lecture du Markdown canonique du pipeline textuel.
+
+Ce format sérialise les audits de section avec leurs repères de pages, puis
+permet de retrouver les indices et plages utiles aux étapes suivantes. Il
+constitue le contrat persistant entre l'extraction et la comparaison.
+"""
 
 from __future__ import annotations
 

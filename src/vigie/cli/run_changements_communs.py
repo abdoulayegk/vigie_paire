@@ -14,7 +14,7 @@ from vigie.interface.ui_config import RESULTATS_DIR
 
 
 def build_parser() -> argparse.ArgumentParser:
-    """Build the command-line parser."""
+    """Construit l'analyseur des arguments de la commande."""
     parser = argparse.ArgumentParser(
         description=(
             "Genere l'artefact JSON des changements communs entre banques apres les comparaisons banque par banque."
@@ -81,7 +81,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None) -> int:
-    """Run the common-changes generation command."""
+    """Exécute la génération de l'artéfact des changements communs."""
     args = build_parser().parse_args(argv)
     report = generate_changements_communs_report(
         args.theme,

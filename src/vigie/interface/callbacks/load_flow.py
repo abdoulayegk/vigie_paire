@@ -22,7 +22,11 @@ from vigie.interface.ui_config import INDICATOR_COMPARISON_DIR
     Input("store-detection", "data"),
 )
 def populate_load_options(_detection):
-    """Remplir le menu des analyses enregistrées disponibles."""
+    """Rafraîchit la liste des analyses enregistrées après une détection.
+
+    L'événement Dash sert de déclencheur; la sortie contient les options et la
+    sélection initiale du menu de chargement.
+    """
     store = build_file_comparison_store(root_dir=INDICATOR_COMPARISON_DIR)
     return store.list_comparison_options()
 
@@ -42,7 +46,11 @@ def populate_load_options(_detection):
     prevent_initial_call=True,
 )
 def on_load_comparison(n_clicks, filename):
-    """Charger une analyse enregistrée (canonique ou métier)."""
+    """Recharge une analyse canonique ou métier choisie par l'utilisateur.
+
+    Le clic et le nom de fichier produisent les stores de résultats, les chemins
+    associés et le message d'état nécessaires pour reprendre la revue.
+    """
     if not n_clicks or not filename:
         raise PreventUpdate
 

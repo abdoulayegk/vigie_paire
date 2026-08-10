@@ -73,6 +73,7 @@ class OpenAITextBoundaryValidator:
         max_calls: int = 12,
         render_dpi: int = 200,
     ) -> None:
+        """Configure le document, le client, le cache et le budget d'arbitrage."""
         self.pdf_path = Path(pdf_path)
         self.cache_dir = Path(cache_dir)
         self.client = client
@@ -123,6 +124,7 @@ class OpenAITextBoundaryValidator:
             logger.warning("Impossible d'écrire le cache Vision des frontières: %s", exc)
 
     def _render_images(self, previous: Any, current: Any) -> list[dict[str, Any]]:
+        """Rend la preuve visuelle minimale couvrant les deux fragments voisins."""
         by_page: dict[int, list[list[float]]] = {}
         for segment in (previous, current):
             page = _segment_value(segment, "page")
@@ -164,6 +166,7 @@ class OpenAITextBoundaryValidator:
         return image_parts
 
     def _request_assessment(self, previous: Any, current: Any) -> VisionBoundaryAssessment:
+        """Soumet la preuve visuelle et retourne l'évaluation structurée du modèle."""
         image_parts = self._render_images(previous, current)
         if not image_parts:
             raise ValueError("aucune preuve visuelle exploitable")

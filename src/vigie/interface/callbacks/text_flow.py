@@ -29,7 +29,11 @@ def _filename_period(label: str) -> str:
     prevent_initial_call=True,
 )
 def render_text_analysis(text_data, show_results, text_filters=None):
-    """Reconstruit le layout du tab quand les données arrivent."""
+    """Reconstruit l'onglet textuel lorsque les données deviennent disponibles.
+
+    Le résultat textuel, la visibilité et les filtres mémorisés produisent les
+    cartes, compteurs et contrôles affichés à l'analyste.
+    """
     if not show_results:
         raise PreventUpdate
     filters = text_filters if isinstance(text_filters, dict) else {}
@@ -63,7 +67,11 @@ def filter_text_cards(
     filter_status=None,
     filter_scope="qualitative",
 ):
-    """Filtre et trie les cartes analytiques selon les dropdowns."""
+    """Filtre et trie les changements textuels selon les choix analystes.
+
+    Les listes de section, portée, impact, action et statut produisent les cartes
+    visibles et les compteurs de progression associés.
+    """
     if not text_data:
         raise PreventUpdate
     return build_filtered_text_cards(
@@ -86,7 +94,11 @@ def filter_text_cards(
     prevent_initial_call=True,
 )
 def remember_text_review_filters(section, scope, impact, action, status):
-    """Mémorise le contexte de travail pendant les décisions analystes."""
+    """Mémorise les filtres actifs de la revue textuelle.
+
+    Les valeurs des menus sont regroupées dans un store afin que les décisions
+    et les rafraîchissements conservent le même contexte de travail.
+    """
     return {
         "section": section,
         "scope": scope or "qualitative",
@@ -102,7 +114,11 @@ def remember_text_review_filters(section, scope, impact, action, status):
     prevent_initial_call=True,
 )
 def show_remaining_text_changes(n_clicks):
-    """Active la file à traiter depuis le compteur de progression."""
+    """Active le filtre des changements textuels restant à traiter.
+
+    Un clic sur le compteur produit la valeur de statut attendue par le menu de
+    filtrage; aucun changement métier n'est modifié.
+    """
     if not n_clicks:
         raise PreventUpdate
     return "remaining"
@@ -118,7 +134,11 @@ def show_remaining_text_changes(n_clicks):
     prevent_initial_call=True,
 )
 def review_text_change(action_clicks, action_ids, comments, comment_ids, text_data):
-    """Applique et persiste une decision analyste sur un changement texte."""
+    """Applique puis persiste la décision analyste sur un changement textuel.
+
+    Le bouton déclencheur, son identifiant et le commentaire mettent à jour le
+    résultat textuel retourné au store ainsi que le message de confirmation.
+    """
     if not text_data:
         raise PreventUpdate
     triggered = ctx.triggered_id
@@ -157,7 +177,11 @@ def review_text_change(action_clicks, action_ids, comments, comment_ids, text_da
     prevent_initial_call=True,
 )
 def download_text_excel(n_clicks, text_data):
-    """Génère et envoie le fichier Excel analyste."""
+    """Génère l'export Excel de la revue textuelle sur demande.
+
+    Le clic et le store textuel produisent la réponse de téléchargement Dash,
+    avec les décisions et commentaires analystes courants.
+    """
     if not n_clicks or not text_data:
         raise PreventUpdate
 

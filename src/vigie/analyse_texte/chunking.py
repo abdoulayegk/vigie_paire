@@ -98,6 +98,7 @@ def _split_repairable_blocks(text: str) -> list[RepairableBlock]:
     hard_boundary_before = False
 
     def flush_current() -> None:
+        """Ajoute le bloc courant et conserve sa frontière structurelle."""
         nonlocal hard_boundary_before
         if not current:
             return

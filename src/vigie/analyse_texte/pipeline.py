@@ -1,4 +1,9 @@
-"""Composants modulaires du pipeline texte."""
+"""Orchestration canonique du pipeline d'analyse textuelle.
+
+Le module enchaîne la résolution des sections, l'extraction ou la réutilisation
+du Markdown canonique, la comparaison, la réconciliation et la persistance des
+résultats. Il conserve le Markdown comme source de vérité intermédiaire.
+"""
 
 from __future__ import annotations
 

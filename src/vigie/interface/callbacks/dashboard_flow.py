@@ -65,7 +65,11 @@ def _footnote_change_counts(comp: dict) -> dict[str, int]:
     prevent_initial_call=True,
 )
 def render_results(comparison, indicator, show_results):
-    """Afficher les resultats."""
+    """Bascule l'interface de l'accueil vers le tableau de bord d'analyse.
+
+    Les stores de comparaison, d'indicateurs et de visibilité pilotent les
+    sections affichées ainsi que les messages d'état retournés à Dash.
+    """
     if not show_results:
         raise PreventUpdate
     if not comparison and not indicator:
@@ -256,7 +260,11 @@ def render_results(comparison, indicator, show_results):
     Input("store-indicator-result", "data"),
 )
 def render_main_kpis(indicator_result):
-    """Afficher les cartes KPI principales."""
+    """Calcule les KPI principaux depuis le résultat des indicateurs.
+
+    La sortie fournit les cartes de synthèse et leurs valeurs à l'en-tête du
+    tableau de bord sans modifier les données de revue.
+    """
     if not indicator_result:
         return (
             _build_kpi_card(t("kpi_matched"), 0),
@@ -288,7 +296,11 @@ def render_main_kpis(indicator_result):
     Input("store-validation-duration-sec", "data"),
 )
 def render_secondary_kpis(indicator_result, validation_duration_sec):
-    """Afficher la rangee de KPIs secondaires avec le temps de validation."""
+    """Construit les KPI secondaires, dont la durée de validation.
+
+    Le résultat d'indicateurs et le chronométrage Dash sont transformés en une
+    rangée de métriques complémentaires pour l'analyste.
+    """
     if not indicator_result:
         return (
             f"Differences d'indicateurs (0 {t('tables')} avec changements)",
@@ -332,7 +344,11 @@ def render_secondary_kpis(indicator_result, validation_duration_sec):
     prevent_initial_call=True,
 )
 def render_sections_tab(indicator_result, show_results):
-    """Afficher l'onglet des changements par section avec accordeon."""
+    """Présente les changements regroupés par section dans un accordéon.
+
+    Le store d'indicateurs et l'état d'affichage produisent le contenu complet
+    de l'onglet, ou son état vide tant que l'analyse n'est pas disponible.
+    """
     if not show_results:
         raise PreventUpdate
     from vigie.interface.layouts.page_results import build_section_accordion_item
@@ -420,9 +436,10 @@ def render_sections_tab(indicator_result, show_results):
     prevent_initial_call=True,
 )
 def init_review_items(indicator_result, paths, indicator_meta):
-    """Construire les ReviewItems depuis indicator_result pour la revue.
+    """Initialise les éléments et la file dédupliquée de revue analyste.
 
-    Construit egalement la file de revue V2 dedupliquee.
+    Les indicateurs, chemins d'artéfacts et métadonnées deviennent les stores
+    de revue V2; cette étape établit les identifiants stables de navigation.
     """
     if not indicator_result:
         raise PreventUpdate
@@ -520,7 +537,11 @@ def init_review_items(indicator_result, paths, indicator_meta):
     prevent_initial_call=True,
 )
 def render_table_tab(indicator_result, comparison_result, show_results):
-    """Rendre l'onglet Tableau Analyse avec les changements."""
+    """Construit l'onglet d'analyse des tableaux et de leurs changements.
+
+    Les deux résultats métier sont croisés lorsque l'affichage est actif; la
+    sortie remplace le contenu du panneau sans altérer les stores sources.
+    """
     if not show_results:
         raise PreventUpdate
     include_uncertain = False

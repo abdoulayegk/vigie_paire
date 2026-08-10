@@ -29,6 +29,8 @@ _CURRENT_PREFIX = "CQ::"
 
 
 class _CandidateAssessment(BaseModel):
+    """Décision structurée du modèle pour une table candidate précédente."""
+
     model_config = ConfigDict(extra="forbid")
 
     previous_table_id: str
@@ -38,12 +40,16 @@ class _CandidateAssessment(BaseModel):
 
 
 class _CandidateAssessmentResponse(BaseModel):
+    """Enveloppe des évaluations produites pour une table courante."""
+
     model_config = ConfigDict(extra="forbid")
 
     assessments: list[_CandidateAssessment]
 
 
 class _FinalInspectionResponse(BaseModel):
+    """Verdict structuré de la vérification finale d'une paire de tables."""
+
     model_config = ConfigDict(extra="forbid")
 
     verdict: Literal["confirmed", "rejected", "ambiguous"]
@@ -53,6 +59,8 @@ class _FinalInspectionResponse(BaseModel):
 
 @dataclass(frozen=True)
 class _Edge:
+    """Correspondance pondérée entre une table précédente et une table courante."""
+
     previous_table_id: str
     current_table_id: str
     confidence: float
@@ -367,6 +375,12 @@ def _judge_candidates(
     call_openai_json: Callable[..., dict[str, Any]],
     usage_recorder: list[dict[str, Any]] | None,
 ) -> list[_Edge]:
+    """Arbitre la présélection et ne conserve que les correspondances étayées.
+
+    Les identifiants sont temporairement qualifiés pour éviter toute confusion
+    entre périodes. Un verdict positif reste rejeté si sa confiance est sous le
+    seuil ou si les faits objectifs ne franchissent pas la barrière de preuve.
+    """
     current_id = str(current.get("table_id", ""))
     payload = {
         "current_table": {**current, "table_id": _alias_current(current_id)},

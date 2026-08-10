@@ -1,4 +1,9 @@
-"""Composants modulaires du pipeline texte."""
+"""Normalisation et classification déterministes des blocs textuels.
+
+Le module nettoie le texte et détecte notamment les tableaux, notes de bas de
+page, éléments répétitifs et chevauchements géométriques. Ces contrôles
+centralisés précèdent la production du Markdown et les appels sémantiques.
+"""
 
 from __future__ import annotations
 
