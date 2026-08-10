@@ -373,7 +373,7 @@ def _build_genai_section(table: dict) -> html.Div:
     """Génère le bloc d'explication IA aligné taxonomie AMF.
 
     Hiérarchie d'affichage (alignée avec la charge cognitive analyste) :
-    1. Bandeau du haut : ✨ Nouvelle idée + badge impact_level (couleur)
+    1. Bandeau du haut : Nouvelle idée + badge impact_level (couleur)
     2. Thèmes AMF en chips gris (max 4 + overflow)
     3. Justification IA (nouvelle_idee_justification — note d'analyste)
     4. Action suggérée (discrète, en bas)
@@ -418,7 +418,7 @@ def _build_genai_section(table: dict) -> html.Div:
     if nouvelle_idee:
         header_badges.append(
             dbc.Badge(
-                "✨ Nouvelle idée",
+                "Nouvelle idée",
                 color="primary",
                 className="me-2",
             )

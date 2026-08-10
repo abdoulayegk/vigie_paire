@@ -62,7 +62,7 @@ def _build_genai_summary_row(table: dict) -> html.Div | None:
     """Synthèse GenAI compacte affichée sur chaque carte de la file de revue.
 
     Aligné sur la taxonomie AMF unifiée :
-    - ✨ Nouvelle idée (si ``nouvelle_idee=True``)
+    - Nouvelle idée (si ``nouvelle_idee=True``)
     - Badge impact_level coloré (MAJEUR/MODÉRÉ/MINEUR)
     - Badge action_requise si revue prioritaire/investigation
     - Justification AMF tronquée (≤ 90 chars)
@@ -86,7 +86,7 @@ def _build_genai_summary_row(table: dict) -> html.Div | None:
     if nouvelle_idee:
         chips.append(
             dbc.Badge(
-                "✨ Nouvelle idée",
+                "Nouvelle idée",
                 color="primary",
                 className="me-1",
                 style={"fontSize": "0.65rem"},

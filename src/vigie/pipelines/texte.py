@@ -182,7 +182,7 @@ def main(argv: list[str] | None = None) -> int:
     print("=" * 70)
 
     # ── Locate PDFs ──────────────────────────────────────────────────────
-    print("\n📂 Recherche des PDFs...")
+    print("\nRecherche des PDFs...")
     try:
         previous_pdf, current_pdf = find_pdf_pair(
             bank=bank,
@@ -204,8 +204,7 @@ def main(argv: list[str] | None = None) -> int:
     extraction_only = bool(args.sans_comparaison or args.extraction_seule)
     if extraction_only:
         print(
-            f"\n🧾 Extraction texte seule "
-            f"({q_current.upper()}-{year_current} vs {q_previous.upper()}-{year_previous})..."
+            f"\nExtraction texte seule ({q_current.upper()}-{year_current} vs {q_previous.upper()}-{year_previous})..."
         )
         t0 = time.time()
         try:
@@ -219,7 +218,7 @@ def main(argv: list[str] | None = None) -> int:
                 force_extraction=args.forcer_extraction,
             )
             elapsed = time.time() - t0
-            print(f"  ✓ Extraction texte terminée ({elapsed:.1f}s)")
+            print(f"  Extraction texte terminée ({elapsed:.1f}s)")
             print(f"  Artefact précédent : {extraction_payload['extraction_artifact_t1']}")
             print(f"  Artefact courant   : {extraction_payload['extraction_artifact_t2']}")
         except Exception as exc:
@@ -227,7 +226,7 @@ def main(argv: list[str] | None = None) -> int:
             return 1
     else:
         print(
-            f"\n🔍 Analyse texte canonique ({q_current.upper()}-{year_current} vs {q_previous.upper()}-{year_previous})..."
+            f"\nAnalyse texte canonique ({q_current.upper()}-{year_current} vs {q_previous.upper()}-{year_previous})..."
         )
         t0 = time.time()
         try:
@@ -242,7 +241,7 @@ def main(argv: list[str] | None = None) -> int:
                 force_extraction=args.forcer_extraction,
             )
             elapsed = time.time() - t0
-            print(f"  ✓ Comparaison texte terminée ({elapsed:.1f}s) : {comparison_path}")
+            print(f"  Comparaison texte terminée ({elapsed:.1f}s) : {comparison_path}")
         except Exception as exc:
             print(f"\n  ERREUR comparaison : {exc}")
             return 1

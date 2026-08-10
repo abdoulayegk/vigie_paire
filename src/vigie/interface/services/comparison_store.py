@@ -223,13 +223,13 @@ class FileComparisonStore:
                 src_prev = str(pdf_paths.get("pdf_previous") or "").strip()
                 src_cur = str(pdf_paths.get("pdf_current") or "").strip()
                 has_pdfs = bool(src_prev and Path(src_prev).exists() and src_cur and Path(src_cur).exists())
-            pdf_icon = "✅" if has_pdfs else "⚠️"
+            pdf_status = "PDF disponible" if has_pdfs else "PDF indisponible"
             try:
                 relative_parent = compare_path.relative_to(self.root_dir).parent.as_posix()
             except ValueError:
                 relative_parent = compare_path.parent.as_posix()
             pretty_parent = relative_parent.replace("_", " ").replace("vs", " vs ")
-            label = f"{pdf_icon} {bank_short_name(bank_code)} - {pretty_parent} ({timestamp_label})"
+            label = f"{pdf_status} - {bank_short_name(bank_code)} - {pretty_parent} ({timestamp_label})"
             filtered_options.append({"label": label, "value": value})
 
         filtered_options.sort(key=lambda item: str(item["value"]), reverse=True)
