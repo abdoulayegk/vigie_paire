@@ -68,13 +68,17 @@ Set-ExecutionPolicy -Scope Process Bypass
 Pour utiliser les résultats inclus dans le dépôt :
 
 ```powershell
-python -m vigie.interface.app --revue --analyste "prenom.nom"
+python -m vigie.interface.app
 ```
+
+L'installation légère est détectée automatiquement. Le nom d'utilisateur
+Windows sert d'identifiant de revue ; aucune option supplémentaire n'est
+obligatoire.
 
 Pour utiliser un dossier de résultats partagé ou copié ailleurs :
 
 ```powershell
-python -m vigie.interface.app --revue --resultats "C:\Chemin\Vers\resultats" --analyste "prenom.nom"
+python -m vigie.interface.app --resultats "C:\Chemin\Vers\resultats"
 ```
 
 Ouvrir ensuite [http://127.0.0.1:8050](http://127.0.0.1:8050), sélectionner la
@@ -94,8 +98,9 @@ resultats\
 ```
 
 Les décisions sur les indicateurs sont enregistrées dans un fichier individuel
-associé au nom donné avec `--analyste`, sans modifier le fichier de comparaison
-d'origine.
+associé à l'utilisateur Windows, sans modifier le fichier de comparaison
+d'origine. Les options `--revue` et `--analyste` restent disponibles uniquement
+pour forcer le mode ou remplacer l'identifiant détecté automatiquement.
 
 ## Profil 2 — Développement complet
 
@@ -152,7 +157,7 @@ Fermer les anciens terminaux et processus Python, réactiver l'environnement du
 projet, puis relancer exactement :
 
 ```powershell
-python -m vigie.interface.app --revue --analyste "prenom.nom"
+python -m vigie.interface.app
 ```
 
 Ouvrir l'adresse et le port affichés par ce nouveau terminal. Si le poste avait
@@ -162,7 +167,7 @@ profil choisi.
 ### Le port 8050 est déjà utilisé
 
 ```powershell
-python -m vigie.interface.app --revue --analyste "prenom.nom" --port 8051
+python -m vigie.interface.app --port 8051
 ```
 
 Ouvrir alors [http://127.0.0.1:8051](http://127.0.0.1:8051).

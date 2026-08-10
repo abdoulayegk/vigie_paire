@@ -3,11 +3,33 @@
 from __future__ import annotations
 
 import os
+from argparse import Namespace
 from pathlib import Path
 import subprocess
 import sys
 
 from vigie.interface import review_runtime
+
+
+def test_minimal_installation_automatically_enables_review_mode(monkeypatch) -> None:
+    """Évite toute option obligatoire lorsque seules les dépendances d'interface sont présentes."""
+    from vigie.interface import app as app_module
+
+    original_mode = review_runtime.is_review_mode()
+    original_analyst = review_runtime._ANALYST
+    try:
+        monkeypatch.delenv("VIGIE_MODE_REVUE", raising=False)
+        monkeypatch.delenv("VIGIE_RESULTATS_DIR", raising=False)
+        monkeypatch.delenv("VIGIE_ANALYSTE", raising=False)
+        monkeypatch.setattr(app_module, "_pipeline_dependencies_available", lambda: False)
+        app_module._configure_startup(
+            Namespace(revue=False, resultats=None, analyste=None, port=8050),
+        )
+        assert review_runtime.is_review_mode() is True
+        assert review_runtime.current_analyst()
+    finally:
+        review_runtime.set_analyst(original_analyst)
+        review_runtime.set_review_mode(original_mode)
 
 
 def test_review_mode_uses_sanitized_analyst_sidecar_name() -> None:

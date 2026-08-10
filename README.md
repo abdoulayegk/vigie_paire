@@ -306,13 +306,14 @@ Installation et lancement, identiques sur les trois plateformes :
 python -m pip install --upgrade pip
 python -m pip install -r requirements-interface.txt
 python -m pip install -e . --no-deps
-python -m vigie.interface.app --revue --resultats /chemin/vers/resultats
+python -m vigie.interface.app
 ```
 
-Sous Windows, un chemin peut par exemple etre fourni ainsi :
+L'installation légère est détectée automatiquement et le nom d'utilisateur du
+poste sert d'identifiant de revue. Pour lire un autre dossier sous Windows :
 
 ```powershell
-python -m vigie.interface.app --revue --resultats "C:\Users\analyste\vigie_paire\outputs\resultats" --analyste "prenom.nom"
+python -m vigie.interface.app --resultats "C:\Users\analyste\vigie_paire\outputs\resultats"
 ```
 
 Le dossier peut aussi être défini avec `VIGIE_RESULTATS_DIR`. Sans argument ni
@@ -323,8 +324,8 @@ détectées.
 Options utiles :
 
 ```text
---revue              active la revue analyste sans pipeline
---analyste NOM       identifiant du fichier de revue individuel
+--revue              force la revue analyste sans pipeline
+--analyste NOM       remplace l'identifiant détecté automatiquement
 --resultats DOSSIER  racine des résultats existants
 --port PORT          port de l'interface
 ```

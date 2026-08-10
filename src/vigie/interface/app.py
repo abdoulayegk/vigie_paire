@@ -2,12 +2,13 @@
 
 Pour lancer:
     uv run python -m vigie.interface.app
-    python -m vigie.interface.app --revue --analyste NOM
+    python -m vigie.interface.app
 """
 
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import logging
 import os
 from pathlib import Path
@@ -18,6 +19,7 @@ logger = logging.getLogger(__name__)
 from vigie.interface import review_runtime
 
 DEFAULT_PORT = 8050
+PIPELINE_DEPENDENCIES = ("docling", "openai")
 
 
 class _FrenchArgumentParser(argparse.ArgumentParser):
@@ -53,7 +55,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--revue",
         action="store_true",
-        help="Activer la revue analyste sans extraction ni appel LLM",
+        help="Forcer la revue analyste sans extraction ni appel LLM",
     )
     parser.add_argument(
         "--resultats",
@@ -61,7 +63,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--analyste",
-        help="Identifiant utilisé pour le fichier individuel de revue",
+        help="Identifiant facultatif utilisé pour le fichier individuel de revue",
     )
     parser.add_argument(
         "--port",
@@ -70,6 +72,17 @@ def build_parser() -> argparse.ArgumentParser:
         help=f"Port de l'interface (défaut : {DEFAULT_PORT})",
     )
     return parser
+
+
+def _pipeline_dependencies_available() -> bool:
+    """Indique si les dépendances distinctives du profil complet sont installées."""
+    for package_name in PIPELINE_DEPENDENCIES:
+        try:
+            if importlib.util.find_spec(package_name) is None:
+                return False
+        except (ImportError, ModuleNotFoundError, ValueError):
+            return False
+    return True
 
 
 def _configure_startup(args: argparse.Namespace) -> None:
@@ -86,7 +99,11 @@ def _configure_startup(args: argparse.Namespace) -> None:
         os.environ["VIGIE_ANALYSTE"] = analyst
 
     raw_review_mode = os.environ.get("VIGIE_MODE_REVUE", "").strip().lower()
-    review_mode = bool(args.revue or args.resultats or analyst) or raw_review_mode in {"1", "true", "yes", "on"}
+    review_mode = (
+        bool(args.revue or args.resultats or analyst)
+        or raw_review_mode in {"1", "true", "yes", "on"}
+        or not _pipeline_dependencies_available()
+    )
     os.environ["VIGIE_MODE_REVUE"] = "1" if review_mode else "0"
     review_runtime.set_review_mode(review_mode)
     review_runtime.set_analyst(analyst or None)
