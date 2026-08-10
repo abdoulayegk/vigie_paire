@@ -1,9 +1,8 @@
 name: Publier la documentation GitHub Pages
 
-# Pousse le HTML Sphinx sur la branche `gh-pages`.
-# Sur GitHub : Settings -> Pages -> Source : Deploy from a branch
-# -> Branch : gh-pages -> Folder : / (root)
-# (Pas "GitHub Actions" pour ce mode ; la branche contient index.html.)
+# Construit et deploie le site Sphinx avec le mecanisme officiel GitHub Pages.
+# Activation initiale unique : Settings -> Pages -> Source : GitHub Actions.
+# Ensuite, chaque push/merge sur `main` redeploie automatiquement le site.
 
 on:
   push:
@@ -11,14 +10,16 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
+  pages: write
+  id-token: write
 
 concurrency:
   group: pages
   cancel-in-progress: false
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -33,17 +34,29 @@ jobs:
       - name: Installer les dépendances de documentation
         run: uv sync --group dev --group docs
 
+      - name: Configurer GitHub Pages
+        id: pages
+        uses: actions/configure-pages@v6
+
       - name: Construire le site Sphinx
         env:
-          SPHINX_HTML_BASEURL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
+          SPHINX_HTML_BASEURL: ${{ steps.pages.outputs.base_url }}/
         run: |
           uv run sphinx-build -b html docs docs/_build/html
-          touch docs/_build/html/.nojekyll
           test -f docs/_build/html/index.html
 
-      - name: Publier sur la branche gh-pages
-        uses: JamesIves/github-pages-deploy-action@v4
+      - name: Charger l'artefact GitHub Pages
+        uses: actions/upload-pages-artifact@v5
         with:
-          branch: gh-pages
-          folder: docs/_build/html
-          clean: true
+          path: docs/_build/html
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deployer GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
