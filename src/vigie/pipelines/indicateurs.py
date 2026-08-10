@@ -215,7 +215,7 @@ def main(argv: list[str] | None = None) -> int:
     print("=" * 70)
 
     # ── Locate PDFs ──────────────────────────────────────────────────────
-    print("\n📂 Recherche des PDFs…")
+    print("\nRecherche des PDFs…")
     previous_pdf, current_pdf = find_pdf_pair(
         bank=bank,
         year_current=year_current,
@@ -223,8 +223,8 @@ def main(argv: list[str] | None = None) -> int:
         inputs_root=inputs_root if inputs_root.is_dir() else None,
         legacy_data_root=legacy_data if legacy_data.is_dir() else None,
     )
-    print(f"   ✓ Courant:   {current_pdf}")
-    print(f"   ✓ Précédent: {previous_pdf}")
+    print(f"   Courant:   {current_pdf}")
+    print(f"   Précédent: {previous_pdf}")
 
     # ── Canonical output paths ───────────────────────────────────────────
     extraction_root = project_root / "outputs" / "extractions"
@@ -241,29 +241,29 @@ def main(argv: list[str] | None = None) -> int:
     # ── Step 1: Extraction ───────────────────────────────────────────────
     if not args.sans_extraction:
         print("\n" + "─" * 70)
-        print("⚗️  ÉTAPE 1 — Extraction des tableaux")
+        print("ÉTAPE 1 — Extraction des tableaux")
         print("─" * 70)
 
         t0 = time.time()
         print(f"\n   Extraction du rapport courant ({q_current.upper()}-{year_current})…")
         _step_extract(current_pdf, bank.lower(), year_current, q_current, config, extraction_root)
-        print(f"   ✓ tables.json → {cur_extraction_dir}")
+        print(f"   tables.json → {cur_extraction_dir}")
 
         print(f"\n   Extraction du rapport précédent ({q_previous.upper()}-{year_previous})…")
         _step_extract(previous_pdf, bank.lower(), year_previous, q_previous, config, extraction_root)
-        print(f"   ✓ tables.json → {prev_extraction_dir}")
+        print(f"   tables.json → {prev_extraction_dir}")
 
         elapsed = time.time() - t0
-        print(f"\n   ⏱  Extraction terminée en {elapsed:.1f}s")
+        print(f"\n   Extraction terminée en {elapsed:.1f}s")
     else:
-        print("\n⏩ Extraction ignoree (--sans-extraction)")
+        print("\nExtraction ignoree (--sans-extraction)")
 
     # ── Step 2: Comparison ───────────────────────────────────────────────
     comparison_path: Path | None = None
 
     if not args.sans_comparaison:
         print("\n" + "─" * 70)
-        print("🔍 ÉTAPE 2 — Comparaison sémantique (GPT-4o)")
+        print("ÉTAPE 2 — Comparaison sémantique (GPT-4o)")
         print("─" * 70)
 
         t0 = time.time()
@@ -280,15 +280,15 @@ def main(argv: list[str] | None = None) -> int:
             pdf_current=current_pdf,
         )
         elapsed = time.time() - t0
-        print(f"\n   ✓ comparison.json → {comparison_dir}")
-        print(f"   ⏱  Comparaison terminée en {elapsed:.1f}s")
+        print(f"\n   comparison.json → {comparison_dir}")
+        print(f"   Comparaison terminée en {elapsed:.1f}s")
     else:
-        print("\n⏩ Comparaison ignoree (--sans-comparaison)")
+        print("\nComparaison ignoree (--sans-comparaison)")
 
     # ── Step 2.5: GenAI Triage (Batch LLM Analysis) ────────────────────
     if comparison_path and comparison_path.exists():
         print("\n" + "─" * 70)
-        print("🧠 ÉTAPE 2.5 — Analyse GenAI (Triage de pertinence)")
+        print("ÉTAPE 2.5 — Analyse GenAI (Triage de pertinence)")
         print("─" * 70)
 
         from vigie.comparaison.triage.genai_triage import enrich_comparison_with_genai_triage, inject_llm_resume_metier
@@ -303,19 +303,19 @@ def main(argv: list[str] | None = None) -> int:
         comparison = inject_llm_resume_metier(comparison)
         comparison_path.write_text(json.dumps(comparison, ensure_ascii=False, indent=2), encoding="utf-8")
         elapsed = time.time() - t0
-        print("   ✓ comparison.json enrichi avec l'analyse GenAI et résumé métier LLM injecté")
-        print(f"   ⏱  Triage GenAI terminé en {elapsed:.1f}s")
+        print("   comparison.json enrichi avec l'analyse GenAI et résumé métier LLM injecté")
+        print(f"   Triage GenAI terminé en {elapsed:.1f}s")
 
         # Export Excel avec justifications IA à côté de comparison.json
         from vigie.comparaison.excel import generate_comparison_excel
 
         excel_path = comparison_path.with_suffix(".xlsx")
         generate_comparison_excel(comparison, excel_path)
-        print(f"   ✓ comparison.xlsx → {excel_path}")
+        print(f"   comparison.xlsx → {excel_path}")
 
     # ── Step 3: Manifest ─────────────────────────────────────────────────
     print("\n" + "─" * 70)
-    print("📋 ÉTAPE 3 — Génération du manifeste")
+    print("ÉTAPE 3 — Génération du manifeste")
     print("─" * 70)
 
     comparison_dir.mkdir(parents=True, exist_ok=True)
@@ -332,11 +332,11 @@ def main(argv: list[str] | None = None) -> int:
         pdf_path_current=current_pdf,
         pdf_path_previous=previous_pdf,
     )
-    print(f"   ✓ manifest.json → {comparison_dir / 'manifest.json'}")
+    print(f"   manifest.json → {comparison_dir / 'manifest.json'}")
 
     # ── Final Summary ────────────────────────────────────────────────────
     print("\n" + "=" * 70)
-    print("✅ PIPELINE TERMINÉ AVEC SUCCÈS")
+    print("PIPELINE TERMINÉ AVEC SUCCÈS")
     print(f"   Extractions:       {extraction_root}")
     if comparison_path:
         print(f"   Comparaison:       {comparison_dir}")

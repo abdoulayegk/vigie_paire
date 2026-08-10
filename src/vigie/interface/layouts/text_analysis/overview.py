@@ -103,7 +103,7 @@ def _build_executive_banner(
                     _badge(f"{n_mod} Modéré(s)", "warning") if n_mod else None,
                     _badge(f"{n_auditable} changement(s) textuel(s)", "primary") if n_auditable else None,
                     dbc.Button(
-                        "↓ Télécharger Excel",
+                        "Télécharger Excel",
                         id="btn-download-text-excel",
                         color="light",
                         size="sm",
