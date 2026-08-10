@@ -36,7 +36,7 @@ def _resolve_vision_extraction_enabled(bank_code: str, explicit: bool | None) ->
     if explicit is not None:
         return bool(explicit)
 
-    env_choice = _env_bool("VIGILANCE_VISION_EXTRACTION_ENABLED")
+    env_choice = _env_bool("VIGIE_VISION_EXTRACTION_ENABLED")
     if env_choice is not None:
         return env_choice
 
