@@ -3584,5 +3584,11 @@
     "indicator_changes_total": 0,
     "footnote_changes_total": 2,
     "high_priority_items_total": 3
+  },
+  "review_decisions_summary": {
+    "matched": 0,
+    "unmatched": 0,
+    "pending": 3,
+    "updated_at": "2026-08-07T03:38:29+00:00"
   }
 }

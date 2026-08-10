@@ -1687,6 +1687,12 @@
               "quantitative_changed": false
             },
             "source": "gpt4o_triage_amf_v2"
+          },
+          "_analyst_review": {
+            "status": "approved",
+            "comment": "",
+            "review_user": "analyste",
+            "reviewed_at": "2026-08-01T15:58:55.664005+00:00"
           }
         },
         {
@@ -1975,6 +1981,12 @@
               "quantitative_changed": false
             },
             "source": "gpt4o_triage_amf_v2"
+          },
+          "_analyst_review": {
+            "status": "approved",
+            "comment": "",
+            "review_user": "analyste",
+            "reviewed_at": "2026-08-01T15:58:55.664005+00:00"
           }
         },
         {

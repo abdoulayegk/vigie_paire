@@ -269,6 +269,12 @@
         },
         "genai_analysis": {
           "resume_metier": "Le retrait d'un tableau entier, surtout celui lié aux Banques d'importance systémique mondiale (BISM), est un changement significatif. Ces indicateurs sont essentiels pour comprendre l'impact systémique potentiel de la banque sur le système financier global.\n\nLa suppression de ces indicateurs peut affecter la transparence et la compréhension des risques systémiques par les parties prenantes. Cela pourrait également influencer la perception de la banque par les régulateurs et les investisseurs.\n\nCe changement nécessite une attention particulière pour comprendre les raisons de cette suppression et son impact potentiel sur la communication des risques de la banque."
+        },
+        "_analyst_review": {
+          "status": "approved",
+          "notes": "",
+          "at": "2026-08-07T05:53:34.016117+00:00",
+          "by": "analyst"
         }
       }
     ],
@@ -544,12 +550,6 @@
             "analyst_assessment": {
               "relevance_level": 2,
               "justification": "L'indicateur \"Série 47\" a été ajouté dans le tableau des actions privilégiées et autres instruments de capitaux propres au T2 2025, alors qu'il était absent au T1 2025.\n\nCet ajout pourrait indiquer l'émission d'une nouvelle série d'actions privilégiées, ce qui peut avoir un impact sur la structure du capital de la banque. Les actions privilégiées sont souvent utilisées pour renforcer les fonds propres de catégorie 1, conformément aux exigences de Bâle III et aux lignes directrices du BSIF.\n\nIl s'agit d'une mise à jour structurelle importante. L'analyste devrait confirmer l'émission de cette nouvelle série et évaluer son impact sur les ratios de fonds propres."
-            },
-            "_analyst_review": {
-              "status": "approved",
-              "notes": "",
-              "at": "2026-07-30T18:40:54.988811+00:00",
-              "by": "analyst"
             }
           },
           {
@@ -4219,6 +4219,6 @@
     "matched": 1,
     "unmatched": 0,
     "pending": 12,
-    "updated_at": "2026-07-30T18:40:54+00:00"
+    "updated_at": "2026-08-07T05:53:34+00:00"
   }
 }

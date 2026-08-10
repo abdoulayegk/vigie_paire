@@ -1,4 +1,4 @@
-<!-- vigilance-text-extraction-schema: 7 -->
+<!-- vigilance-text-extraction-schema: 8 -->
 
 ## Gestion du capital [pdf.62]
 
@@ -127,6 +127,14 @@ Le ratio de levier en date du 31 octobre 2025 s'établit à 4,5 %, comparativeme
 Au 31 octobre 2025, le ratio TLAC et le ratio de levier TLAC s'établissent, respectivement, à 29,7 % et à 8,8 %, comparativement à 31,2 % et à 8,6 %, respectivement, au 31 octobre 2024. L'augmentation du ratio de levier TLAC s'explique principalement par les émissions nettes d'instruments qui satisfont tous les critères d'admissibilité TLAC au cours de l'exercice. Cependant, la croissance de l'actif pondéré en fonction des risques, attribuable principalement à l'inclusion de CWB, a plus que compensé ces émissions, ce qui a entraîné une diminution du ratio TLAC.
 
 Au cours de l'exercice terminé le 31 octobre 2025, la Banque a respecté toutes les exigences réglementaires imposées par le BSIF en matière de capital, de levier et de TLAC.
+
+### Variation des fonds propres réglementaires (1) [pdf.69]
+
+Variations des autres éléments cumulés du résultat global Écarts de conversion 34 13 Titres de créance à la juste valeur par le biais des autres éléments du résultat global 69 9 Autres − −
+
+Variation du goodwill et des immobilisations incorporelles (déduction faite des passifs d’impôt) (1 860) 38 Autres, y compris les ajustements réglementaires Variation de l'actif des régimes de retraite à prestations définies (déduction faite des passifs d’impôt) 38 (92) Variation du montant excédant le seuil de 15 % Actifs d’impôt différé − − Participations significatives dans des actions ordinaires d'institutions financières − − Actifs d'impôt différé, sauf s'ils résultent de différences temporaires (déduction faite des passifs d'impôt) (22) (15) Autres déductions et ajustements réglementaires du CET1 instaurés par le BSIF − (1) Variation des autres ajustements réglementaires 8 (26) Solde à la fin 25 962 19 321 Autres éléments de fonds propres de catégorie 1 Solde au début 3 149 3 148 Nouvelles émissions d’instruments admissibles à titre de fonds propres de catégorie 1 250 − Rachats de fonds propres (2) (800) − Autres, y compris des ajustements réglementaires (2) 1 Solde à la fin 2 597 3 149
+
+Total des fonds propres de catégorie 1 28 559 22 470 Fonds propres de catégorie 2 Solde au début 1 531 988 Nouvelles émissions d’instruments admissibles à titre de fonds propres de catégorie 2 2 150 500 Rachat de fonds propres − − Fonds propres de catégorie 2 émis par des filiales et détenus par des tierces parties − − Variation de certaines provisions pour pertes de crédit 434 4 Autres, y compris des ajustements réglementaires (17) 39 Solde à la fin 4 098 1 531 Total des fonds propres réglementaires 32 657 24 001
 
 ### Actif pondéré en fonction des risques selon les principaux facteurs de risque [pdf.70]
 
@@ -572,6 +580,12 @@ Dans l'approche NI fondation, la Banque fournit ses propres estimations de la PD
 
 La méthodologie ainsi que les données et les périodes de ralentissement utilisées pour estimer la PCD selon l'approche NI avancée sont décrites dans le tableau suivant.
 
+Historique des données internes de la Banque au cours de la période de 2000 à 2023. Analyse comparative des résultats en utilisant :  les cours des obligations en défaut observés par Moody’s au cours de la période de 1983 à 2021;  l’historique de données de pertes et de recouvrement du Global Credit Data Consortium au cours de la période de 1998 à 2021.
+
+Basée sur une PCD implicite de marché calculée à partir des baisses du cours des obligations observées à la suite du défaut de l’émetteur.
+
+Institutions financières Historique de données de pertes et de recouvrement du Global Credit Data Consortium au cours de la période de 1991 à 2013 (2).
+
 ### Portefeuilles de crédit aux particuliers [pdf.86]
 
 Cette catégorie comprend les portefeuilles de prêts hypothécaires résidentiels, de prêts à la consommation ainsi que de prêts à certaines petites entreprises. Pour évaluer le risque de crédit, des modèles NI avancés sont en place pour les principaux portefeuilles, notamment les prêts hypothécaires, les marges de crédit hypothécaires, les cartes de crédit, les prêts budgétaires, les marges de crédit et les PME de détail. La gestion globale des portefeuilles de crédit aux particuliers s'appuie sur une analyse des risques des prêts par regroupements (lots) constitués sur la base de profils communs des débiteurs et des produits. Cette approche est éprouvée en matière d'évaluation des risques propres aux particuliers, notamment pour estimer les défauts et les pertes de crédit. Plusieurs facteurs sont pris en compte pour cette évaluation, particulièrement :
@@ -820,6 +834,8 @@ Les tableaux suivants présentent le total des actifs et des passifs au bilan co
 
 ### Conciliation du risque de marché avec les éléments du bilan consolidé * [pdf.96]
 
+Engagements afférents à des titres vendus à découvert 13 257 13 257 − − Engagements afférents à des valeurs mobilières vendues en vertu de conventions de rachat et valeurs mobilières prêtées 41 356 − 41 356 − Taux d'intérêt (3) (6) Instruments financiers dérivés 15 984 15 138 846 − Taux d'intérêt (7) et taux de change Passifs relatifs à des créances cédées 30 577 12 713 17 864 − Taux d'intérêt (3) Passif au titre des prestations définies 98 − 98 − Autres (8) Autres 10 443 − − 10 443 Taux d'intérêt (3) Dette subordonnée 3 432 − 3 432 − Taux d'intérêt (3) 543 150 81 006 451 701 10 443
+
 Positions liées aux activités de négociation pour lesquelles la mesure de risque est la VaR totale. Pour de plus amples renseignements, se reporter au tableau illustrant la distribution de la VaR des portefeuilles de négociation par catégorie de risque et leur effet de diversification présenté à la page suivante.
 
 Positions liées aux activités autres que de négociation pour lesquelles d'autres mesures de risque sont utilisées.
@@ -835,6 +851,10 @@ Ces instruments sont comptabilisés au coût amorti et assujettis au risque de c
 Pour de plus amples renseignements, se reporter aux notes 17 et 18 afférentes aux états financiers consolidés.
 
 Pour de plus amples renseignements, se reporter à la note 23 afférente aux états financiers consolidés.
+
+À la juste valeur par le biais des autres éléments du résultat global 14 622 − 14 622 − Taux d'intérêt (3) et actions (5) Au coût amorti 14 608 − 14 608 − Taux d'intérêt (3) Valeurs mobilières acquises en vertu de conventions de revente et valeurs mobilières empruntées 16 265 − 16 265 − Taux d'intérêt (3) (6) Prêts, déduction faite des provisions 243 032 14 572 228 460 − Taux d'intérêt (3) Instruments financiers dérivés 12 309 11 686 623 − Taux d'intérêt (7) et taux de change Actif au titre des prestations définies 487 − 487 − Autres (8) Autres 13 419 573 − 12 846 462 226 140 533 297 995 23 698 Passifs Dépôts 333 545 30 429 303 116 − Taux d'intérêt (3)
+
+Engagements afférents à des titres vendus à découvert 10 873 10 873 − − Engagements afférents à des valeurs mobilières vendues en vertu de conventions de rachat et valeurs mobilières prêtées 38 177 − 38 177 − Taux d'intérêt (3) (6) Instruments financiers dérivés 15 760 15 240 520 − Taux d'intérêt (7) et taux de change Passifs relatifs à des créances cédées 28 377 10 564 17 813 − Taux d'intérêt (3) Passif au titre des prestations définies 103 − 103 − Autres (8) Autres 8 583 − 49 8 534 Taux d'intérêt (3) Dette subordonnée 1 258 − 1 258 − Taux d'intérêt (3) 436 676 67 106 361 036 8 534
 
 ### Activités de négociation [pdf.98]
 
@@ -1014,9 +1034,25 @@ La Banque gère sa liquidité intrajournalière de façon à ce que le montant d
 
 Le CBCB a élaboré le ratio de liquidité à long terme ( Net Stable Funding Ratio ou NSFR) afin de promouvoir la résilience du secteur bancaire. Le NSFR exige que les institutions maintiennent un profil de financement stable par rapport à la composition de leurs actifs et de leurs activités hors bilan. Une structure de financement viable vise à réduire la probabilité que des difficultés qui perturberaient les sources de financement régulières d'une banque érodent sa position de liquidité au point d'accroître le risque d'une défaillance et, potentiellement, engendrent des tensions systémiques de plus grande envergure. Le NSFR se calcule en divisant le montant du financement stable disponible par le montant du financement stable exigé. Le BSIF exige que les banques canadiennes maintiennent un NSFR minimal de 100 %.
 
+Dépôts opérationnels (toutes contreparties) et dépôts dans les réseaux de banques coopératives 43 187 10 576 9 627 Dépôts non opérationnels (toutes contreparties) 88 687 58 488 56 945 Dettes non garanties 6 598 6 763 5 776 Financement institutionnel garanti s.o. 34 155 34 219 Exigences supplémentaires dont : 85 597 21 171 21 290 Sorties associées aux expositions sur dérivés et autres sûretés exigées 29 202 11 972 12 197 Sorties associées à une perte de financement sur titres de dette garantis 1 493 1 477 1 537 Facilités de garantie de liquidité et de rehaussement de crédit et engagements de crédit 54 902 7 722 7 556 Autres engagements de crédit contractuels 4 682 2 181 1 777 Autres engagements de crédit conditionnels 207 191 2 638 2 711 Total des sorties de trésorerie s.o. 143 821 140 060 Entrées de trésorerie Prêts garantis (par ex. prise en pension) 183 175 38 120 31 636 Entrées liées aux expositions pleinement productives 16 126 10 598 12 544 Autres entrées de trésorerie 31 132 30 876 32 211 Total des entrées de trésorerie 230 433 79 594 76 391
+
 Le tableau suivant présente les positions calibrées du NSFR calculées selon la stabilité des passifs et la liquidité des actifs conformément à la ligne directrice Normes de liquidité du BSIF. Le NSFR de la Banque au 31 octobre 2025 est de 124 %, bien au-delà de l'exigence réglementaire de 100 %, ce qui démontre que la position de liquidité à long terme de la Banque est solide.
 
 ### Exigences de déclaration relatives au ratio de liquidité à long terme (1) (2) * [pdf.107]
+
+Tous autres passifs ou fonds propres non couverts par les catégories ci-dessus 18 552 4 246 267 7 801 1 136 1 200 FSD total s.o. s.o. s.o. s.o. 315 561 316 679 Éléments de financement stable exigé (FSE) Total des actifs liquides de haute qualité (HQLA) du NSFR s.o. s.o. s.o. s.o. 9 028 10 575 Dépôts détenus auprès d'autres institutions financières à des fins opérationnelles − − − − − − Prêts et titres productifs : 76 680 141 065 45 334 119 413 206 535 203 859
+
+Prêts productifs à des institutions financières garantis par des HQLA autres que de niveau 1 et prêts productifs à des institutions financières non garantis 8 299 77 763 4 013 5 463 17 402 18 158
+
+Prêts productifs à des entreprises non financières, prêts aux particuliers et aux petites entreprises, et prêts à des entités souveraines, des banques centrales et des organismes publics, dont : 42 334 37 162 25 265 47 291 107 040 104 640
+
+Prêts présentant un risque pondéré inférieur ou égal à 35 % dans l'approche standardisée de Bâle II pour le risque de crédit 9 394 12 483 15 306 65 251 65 333 63 573
+
+Titres qui ne sont pas en défaut et qui ne remplissent pas les critères définissant les HQLA, y compris les actions négociées sur les marchés organisés 16 538 935 750 1 408 16 118 17 001 Actifs et leurs passifs interdépendants correspondants (4) − 4 002 2 425 24 150 − − Autres actifs (5) : 14 074 45 667 33 440 36 492 Produits de base physiques, y compris l'or 3 161 s.o. s.o. s.o. 2 867 2 912
+
+Actifs versés en tant que marge initiale dans le cadre de contrats dérivés et contributions à des fonds de garantie de contrepartie centrale (5) s.o. 15 498 13 174 11 439 Actifs d'instruments dérivés du NSFR (5) s.o. 5 411 − 5 340
+
+Passifs d'instruments dérivés du NSFR avant déduction de la marge de variation versée (5) s.o. 18 004 900 470 Tous autres actifs non couverts par les catégories ci-dessus 10 913 1 588 446 4 720 16 499 16 331 Éléments hors bilan (5) s.o. 147 932 5 660 5 511 FSE total s.o. s.o. s.o. s.o. 254 663 256 437 Ratio de liquidité à long terme (%) s.o. s.o. s.o. s.o. 124 % 123 %
 
 Le NSFR représente le montant du FSD par rapport à celui du FSE. Le montant du FSD désigne la part des fonds propres et des passifs censés être fiables dans un horizon temporel pris en compte aux fins du NSFR, à savoir jusqu'à un an. Le montant du FSE d'une institution est fonction des caractéristiques de liquidité et de la durée résiduelle des actifs qu'elle détient et de celles de ses positions hors bilan. Les montants du FSD et du FSE sont pondérés en fonction du degré de stabilité des passifs et de la liquidité des actifs. La Banque s'attend à ce que les NSFR présentés varient d'un trimestre à l'autre, sans que ces variations ne représentent nécessairement une tendance à long terme.
 
