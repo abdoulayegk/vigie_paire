@@ -93,6 +93,7 @@ session.log
 
 /logs/
 /Documentation/
+/documentation/
 /docs/_build/
 /data/
 /_lib/
