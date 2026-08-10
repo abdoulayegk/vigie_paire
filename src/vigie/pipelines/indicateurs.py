@@ -208,7 +208,7 @@ def main(argv: list[str] | None = None) -> int:
     legacy_data = project_root / DEFAULT_LEGACY_DATA_ROOT
 
     print("=" * 70)
-    print("  VIGILANCE — Pipeline Batch")
+    print("  VIGIE — Pipeline Batch")
     print(f"  Banque:              {bank}")
     print(f"  Trimestre courant:   {q_current.upper()}-{year_current}")
     print(f"  Trimestre précédent: {q_previous.upper()}-{year_previous}  (déduit automatiquement)")

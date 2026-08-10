@@ -2,11 +2,16 @@
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 CANONICAL_TEXT_EXTRACTIONS_DIR = "text_extractions"
 TEXT_EXTRACTION_CACHE_SCHEMA_VERSION = 8
-_CACHE_MARKER_PREFIX = "<!-- vigilance-text-extraction-schema:"
+_CACHE_MARKER_PREFIX = "<!-- vigie-text-extraction-schema:"
+_CACHE_MARKER_PATTERN = re.compile(
+    r"^<!-- [a-z][a-z0-9-]*-text-extraction-schema:\s*(\d+)\s*-->",
+    flags=re.IGNORECASE,
+)
 
 
 def _cache_marker() -> str:
@@ -16,14 +21,17 @@ def _cache_marker() -> str:
 
 def has_current_text_extraction_cache_schema(content: str) -> bool:
     """Vérifie que le Markdown canonique correspond au schéma courant."""
-    return str(content or "").lstrip().startswith(_cache_marker())
+    match = _CACHE_MARKER_PATTERN.match(str(content or "").lstrip())
+    return bool(match and int(match.group(1)) == TEXT_EXTRACTION_CACHE_SCHEMA_VERSION)
 
 
 def stamp_text_extraction_cache_schema(content: str) -> str:
     """Ajoute le marqueur de schéma au Markdown canonique réutilisable."""
     value = str(content or "").lstrip()
-    if has_current_text_extraction_cache_schema(value):
-        return value
+    match = _CACHE_MARKER_PATTERN.match(value)
+    if match and int(match.group(1)) == TEXT_EXTRACTION_CACHE_SCHEMA_VERSION:
+        body = value[match.end() :].lstrip("\r\n")
+        return f"{_cache_marker()}\n\n{body}"
     return f"{_cache_marker()}\n\n{value}"
 
 

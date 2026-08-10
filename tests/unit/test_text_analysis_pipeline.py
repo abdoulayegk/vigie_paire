@@ -20,6 +20,7 @@ from vigie.analyse_texte.extraction import (
     _build_section_audit,
     _classify_block_type,
     _extract_audits_for_pdf,
+    _text_docling_ocr_enabled,
 )
 from vigie.analyse_texte.markdown import (
     _build_text_extraction_markdown,
@@ -1404,14 +1405,25 @@ def test_build_docling_markdown_keeps_narrative_around_bns_d22_figure() -> None:
 
 def test_text_extraction_cache_schema_invalidates_legacy_markdown() -> None:
     legacy = "## Gestion du capital\n\nTexte narratif.\n"
-    previous_schema = "<!-- vigilance-text-extraction-schema: 5 -->\n\n## Gestion du capital\n\nTexte narratif.\n"
+    previous_schema = "<!-- vigie-text-extraction-schema: 5 -->\n\n## Gestion du capital\n\nTexte narratif.\n"
+    compatible_brand_schema = "<!-- archived-text-extraction-schema: 8 -->\n\n" + legacy
 
     stamped = stamp_text_extraction_cache_schema(legacy)
+    normalized = stamp_text_extraction_cache_schema(compatible_brand_schema)
 
     assert has_current_text_extraction_cache_schema(legacy) is False
     assert has_current_text_extraction_cache_schema(previous_schema) is False
+    assert has_current_text_extraction_cache_schema(compatible_brand_schema) is True
     assert has_current_text_extraction_cache_schema(stamped) is True
+    assert normalized.startswith("<!-- vigie-text-extraction-schema: 8 -->")
+    assert "archived-text-extraction-schema" not in normalized
     assert stamped.endswith(legacy)
+
+
+def test_text_ocr_uses_vigie_environment_name(monkeypatch) -> None:
+    monkeypatch.setenv("VIGIE_TEXT_OCR_ENABLED", "1")
+
+    assert _text_docling_ocr_enabled() is True
 
 
 def test_docling_page_batches_bound_memory_and_preserve_page_order() -> None:
@@ -2484,7 +2496,7 @@ def test_page_marker_detection_catches_real_leaks() -> None:
 def test_extract_section_text_leaves_no_marker_on_french_grid_prose() -> None:
     """Chaîne complète: le texte de section prêt pour GPT est exempt de marqueur."""
     md = (
-        "<!-- vigilance-text-extraction-schema: 8 -->\n\n"
+        "<!-- vigie-text-extraction-schema: 8 -->\n\n"
         "## Gestion des risques [pdf.76]\n\n"
         "### Risques connus et risques émergents [pdf.81]\n\n"
         "Nous continuons d'adopter de nouvelles technologies [p. ex., l'infonuagique, "

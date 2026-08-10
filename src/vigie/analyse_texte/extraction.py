@@ -80,7 +80,7 @@ def _export_docling_markdown(docling_doc: Any) -> str:
 
 def _text_docling_ocr_enabled() -> bool:
     """Indique si l'OCR Docling est actif pour l'extraction narrative."""
-    raw = os.environ.get("VIGILANCE_TEXT_OCR_ENABLED")
+    raw = os.environ.get("VIGIE_TEXT_OCR_ENABLED")
     if raw is None:
         return False
     return str(raw).strip().lower() in {"1", "true", "yes", "on"}
@@ -288,7 +288,7 @@ def _extract_docling_page_blocks(
     """Extrait tous les blocs de texte d'un PDF via Docling pour les pages demandées.
 
     Lance Docling par plages bornées de pages contiguës, avec OCR narratif
-    opt-in via ``VIGILANCE_TEXT_OCR_ENABLED=1``, puis filtre les blocs par page.
+    opt-in via ``VIGIE_TEXT_OCR_ENABLED=1``, puis filtre les blocs par page.
     Ce découpage évite l'épuisement de mémoire sur les sections annuelles très
     longues, sans inclure de pages hors périmètre.
     Retourne quatre valeurs :

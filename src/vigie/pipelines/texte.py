@@ -174,7 +174,7 @@ def main(argv: list[str] | None = None) -> int:
     out_root = project_root / args.sortie
 
     print("=" * 70)
-    print("  VIGILANCE — Pipeline Texte Batch")
+    print("  VIGIE — Pipeline Texte Batch")
     print(f"  Banque:              {bank}")
     print(f"  Trimestre courant:   {q_current.upper()}-{year_current}")
     print(f"  Trimestre précédent: {q_previous.upper()}-{year_previous}  (déduit automatiquement)")

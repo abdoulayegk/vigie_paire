@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Orchestrateur unifie des pipelines Vigilance (indicateurs + texte).
+"""Orchestrateur unifié des pipelines Vigie (indicateurs + texte).
 
 Usage::
 
@@ -37,7 +37,7 @@ except ValueError:
 def build_parser() -> argparse.ArgumentParser:
     """Construit le parseur CLI du pipeline complet."""
     p = argparse.ArgumentParser(
-        description="Vigilance -- Pipeline complet (indicateurs + texte).",
+        description="Vigie -- Pipeline complet (indicateurs + texte).",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=(
             "Exemples:\n"
@@ -156,7 +156,7 @@ def main(argv: list[str] | None = None) -> int:
     out_root = args.sortie
 
     print("=" * 70)
-    print("  VIGILANCE -- Pipeline complet")
+    print("  VIGIE -- Pipeline complet")
     print(f"  Banque:    {banque}")
     print(f"  Periode:   {trimestre}-{annee}")
     print(f"  Sortie:    {out_root}/")
