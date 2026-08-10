@@ -163,6 +163,7 @@ def _build_comparison_batches(
     current: list[ChunkAlignment] = []
 
     def flush_current() -> None:
+        """Finalise le lot homogène courant avec un identifiant stable."""
         nonlocal current, current_type
         if not current:
             return

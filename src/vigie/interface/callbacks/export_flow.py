@@ -26,7 +26,11 @@ def _filename_period(label: str) -> str:
     prevent_initial_call=True,
 )
 def render_export_tab(review_items_data, indicator_result, show_results):
-    """Rendre le panneau compact d'export Excel."""
+    """Prépare le panneau d'export à partir de l'état courant de la revue.
+
+    Les décisions analystes et les indicateurs déterminent le résumé et la
+    disponibilité du téléchargement retournés dans l'onglet Excel.
+    """
     if not show_results:
         raise PreventUpdate
     if not review_items_data and not indicator_result:
@@ -82,7 +86,11 @@ def render_export_tab(review_items_data, indicator_result, show_results):
     prevent_initial_call=True,
 )
 def on_download_excel(n_clicks, review_items_data, review_queue_data, indicator_result, paths):
-    """Telecharger le fichier Excel de validation (.xlsx)."""
+    """Génère le classeur de validation après une demande de téléchargement.
+
+    Le clic et les stores de revue, d'indicateurs et de chemins alimentent
+    l'export; la sortie Dash déclenche l'envoi du fichier ``.xlsx``.
+    """
     if not n_clicks:
         raise PreventUpdate
     ir = indicator_result or {}

@@ -69,6 +69,8 @@ _STOPWORDS = {
 
 @dataclass(slots=True)
 class _Node:
+    """Fragment ajouté ou retiré participant au graphe de réconciliation."""
+
     node_id: str
     order: int
     change: dict[str, Any]
@@ -77,6 +79,8 @@ class _Node:
 
 
 class _ReconciliationMatch(BaseModel):
+    """Paire d'extraits exacts déclarés communs entre les deux périodes."""
+
     model_config = ConfigDict(extra="forbid")
 
     t1_node_id: str
@@ -91,6 +95,8 @@ class _ReconciliationMatch(BaseModel):
 
 
 class _ReconciliationResponse(BaseModel):
+    """Décision structurée appliquée à un composant du graphe."""
+
     model_config = ConfigDict(extra="forbid")
 
     decision: Literal[
@@ -139,6 +145,7 @@ def _candidate_score(text_t1: str, text_t2: str) -> float:
 
 
 def _cosine_similarity(left: list[float], right: list[float]) -> float:
+    """Calcule une similarité cosinus bornée entre zéro et un."""
     if not left or not right:
         return 0.0
     dot = sum(a * b for a, b in zip(left, right, strict=False))
@@ -150,6 +157,7 @@ def _cosine_similarity(left: list[float], right: list[float]) -> float:
 
 
 def _truncate_for_embedding(text: str) -> str:
+    """Limite un texte à la taille admise par la récupération sémantique."""
     value = str(text or "").strip()
     if len(value) <= _EMBEDDING_TRUNCATE_CHARS:
         return value
@@ -176,10 +184,12 @@ def _pair_retrieval_scores(
 
 
 def _is_credible_pair(scores: dict[str, float]) -> bool:
+    """Vérifie qu'au moins un signal de récupération franchit son seuil."""
     return scores["token_overlap"] >= _MIN_TOKEN_OVERLAP or scores["embedding_score"] >= _MIN_EMBEDDING_SCORE
 
 
 def _one_sided_nodes(changes: list[dict[str, Any]]) -> list[_Node]:
+    """Transforme les ajouts et retraits assez longs en nœuds ordonnés."""
     nodes: list[_Node] = []
     for order, change in enumerate(changes):
         diff_type = str(change.get("diff_type") or "").lower()
@@ -203,6 +213,7 @@ def _build_node_embeddings(
     client: Any | None,
     embedding_model: str,
 ) -> dict[str, list[float]]:
+    """Calcule les embeddings des nœuds ou désactive proprement ce signal."""
     if client is None or not nodes:
         return {}
     try:
@@ -262,12 +273,12 @@ def _candidate_edges(
 
 
 def _mark_component_edges(edges: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """Selects coherent graph edges without losing weaker retrieval evidence.
+    """Sélectionne les arêtes cohérentes sans perdre les preuves plus faibles.
 
-    All credible edges remain in the audit.  Only strong edges, or edges that
-    are mutually near the best candidate on both sides, may construct a
-    component.  This prevents a chain of weak similarities from merging
-    unrelated themes while preserving strong 1→N and N→1 stars.
+    Toutes les arêtes crédibles restent dans l'audit. Seules les arêtes fortes,
+    ou mutuellement proches du meilleur candidat de chaque côté, construisent
+    un composant. Cette règle empêche une chaîne faible de fusionner des thèmes
+    distincts tout en conservant les relations fortes 1→N et N→1.
     """
     best_by_t1: dict[str, float] = {}
     best_by_t2: dict[str, float] = {}
@@ -307,22 +318,25 @@ def _components(
     *,
     embeddings_by_id: dict[str, list[float]] | None = None,
 ) -> tuple[list[list[_Node]], list[dict[str, Any]]]:
-    """Builds within-section candidate components from provisional changes.
+    """Construit les composants candidats depuis les changements provisoires.
 
-    Subsections of the same section are mixed (e.g. all of ``gestion_risques``).
-    Different top-level sections stay isolated (capital never reconciles with risks).
+    Les sous-sections d'une même section sont rapprochées, par exemple toutes
+    celles de ``gestion_risques``. Les sections de premier niveau différentes
+    restent isolées : le capital n'est jamais réconcilié avec les risques.
     """
     embeddings_by_id = embeddings_by_id or {}
     parents = {node.node_id: node.node_id for node in nodes}
     members = {node.node_id: {node.node_id} for node in nodes}
 
     def find(node_id: str) -> str:
+        """Retourne la racine du composant avec compression de chemin."""
         while parents[node_id] != node_id:
             parents[node_id] = parents[parents[node_id]]
             node_id = parents[node_id]
         return node_id
 
     def union(left: str, right: str, *, strong: bool) -> bool:
+        """Fusionne deux composants si leurs contraintes de cohérence le permettent."""
         root_left, root_right = find(left), find(right)
         if root_left == root_right:
             return True
@@ -368,11 +382,13 @@ def _components(
 
 
 def _edges_for_component(component: list[_Node], edges: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Retourne les arêtes internes à un composant de réconciliation."""
     node_ids = {node.node_id for node in component}
     return [edge for edge in edges if edge["t1_node_id"] in node_ids and edge["t2_node_id"] in node_ids]
 
 
 def _component_prompt(component: list[_Node], section_key: str) -> str:
+    """Construit la demande d'arbitrage d'un composant limité à une section."""
     records = [
         {
             "node_id": node.node_id,
@@ -406,6 +422,7 @@ def _component_prompt(component: list[_Node], section_key: str) -> str:
 
 
 def _valid_matches(response: _ReconciliationResponse, nodes_by_id: dict[str, _Node]) -> list[_ReconciliationMatch]:
+    """Écarte les correspondances mal orientées ou non verbatim du modèle."""
     valid: list[_ReconciliationMatch] = []
     for match in response.matches:
         previous = nodes_by_id.get(match.t1_node_id)
@@ -421,6 +438,7 @@ def _valid_matches(response: _ReconciliationResponse, nodes_by_id: dict[str, _No
 
 
 def _residual_text(text: str, fragments: list[str]) -> str:
+    """Retire les fragments réconciliés et retourne le résidu non couvert."""
     intervals: list[tuple[int, int]] = []
     for fragment in fragments:
         start = text.find(fragment)
@@ -449,6 +467,7 @@ def _residual_text(text: str, fragments: list[str]) -> str:
 def _update_one_sided_residual(
     change: dict[str, Any], side: Literal["t1", "t2"], residual: str
 ) -> dict[str, Any] | None:
+    """Reconstruit un ajout ou retrait avec uniquement son résidu significatif."""
     if not residual:
         return None
     updated = dict(change)
@@ -478,7 +497,7 @@ def _reconcile_component(
     component: list[_Node],
     response: _ReconciliationResponse,
 ) -> tuple[dict[str, dict[str, Any] | None], dict[str, Any]]:
-    """Returns node replacements plus an auditable reconciliation outcome."""
+    """Retourne les nœuds remplacés et un résultat de réconciliation auditable."""
     nodes_by_id = {node.node_id: node for node in component}
     matches = _valid_matches(response, nodes_by_id)
     matched_by_node: dict[str, list[str]] = {node.node_id: [] for node in component}

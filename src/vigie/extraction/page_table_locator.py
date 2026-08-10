@@ -475,6 +475,7 @@ class PageTableLocator:
         use_cache: bool = False,
         cache_dir: str | None = None,
     ) -> None:
+        """Configure le modèle, le seuil et les caches partagés par page."""
         self._api_key = api_key
         self._model = model
         self._min_confidence = min_confidence
@@ -492,6 +493,7 @@ class PageTableLocator:
         return self._min_confidence
 
     def _ensure_client(self) -> Any:
+        """Crée paresseusement un client OpenAI unique de manière thread-safe."""
         if self._client is not None:
             return self._client
         with self._client_lock:
@@ -509,6 +511,12 @@ class PageTableLocator:
         page_image_bytes: bytes,
         page_number: int,
     ) -> PageTableLayout | None:
+        """Localise les régions d'une page sans consulter les caches du service.
+
+        L'appel Vision est non bloquant pour le pipeline au sens métier : toute
+        erreur est journalisée et convertie en absence de résultat, afin que les
+        stratégies d'extraction de repli puissent prendre le relais.
+        """
         if not page_image_bytes:
             return None
         try:

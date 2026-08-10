@@ -1,4 +1,9 @@
-"""Composants modulaires du pipeline texte."""
+"""Filtrage final, tri et métriques du pipeline d'analyse textuelle.
+
+Ce module applique les règles de pertinence et d'impact, puis construit les
+synthèses globales et les indicateurs de qualité destinés aux consommateurs.
+Il n'effectue ni extraction ni comparaison de contenu.
+"""
 
 from __future__ import annotations
 

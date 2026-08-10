@@ -33,7 +33,11 @@ logger = logging.getLogger(__name__)
     prevent_initial_call=True,
 )
 def toggle_proof_zoom_modal(open_clicks, close_clicks, is_open):
-    """Ouvrir ou fermer la vue agrandie des deux preuves visuelles."""
+    """Ouvre ou ferme la vue agrandie des preuves visuelles.
+
+    Les clics d'ouverture et de fermeture inversent l'état de la fenêtre modale
+    retourné à Dash, sans recalculer les preuves.
+    """
     trigger = ctx.triggered_id
     if trigger == "btn-proof-zoom-open" and open_clicks:
         return True
@@ -60,7 +64,12 @@ def update_review_proofs(
     proof_display_mode,
     indicator_result=None,
 ):
-    """Mettre a jour la section des preuves visuelles (portee tableau ; stable lors de la navigation entre indicateurs)."""
+    """Met à jour les preuves visuelles du tableau sélectionné.
+
+    La file, la sélection, les filtres, les chemins et le mode d'affichage
+    produisent les vues avant/après; elles restent stables entre indicateurs du
+    même tableau afin d'éviter des rendus inutiles.
+    """
     if not show_results:
         raise PreventUpdate
     if not review_queue_data:
@@ -210,7 +219,11 @@ def update_review_proofs(
     prevent_initial_call=True,
 )
 def update_review_meta(review_queue_data, selection, show_results, indicator_result=None):
-    """Mettre a jour les metadonnees V2 et la section de validation par changement."""
+    """Affiche les métadonnées et les contrôles du changement sélectionné.
+
+    L'état de la file, la sélection et les résultats déterminent les libellés,
+    valeurs et actions retournés au panneau de validation V2.
+    """
     if not show_results:
         raise PreventUpdate
     if not review_queue_data:
@@ -246,7 +259,11 @@ def update_review_meta(review_queue_data, selection, show_results, indicator_res
     prevent_initial_call=True,
 )
 def update_progress_banner(review_queue_data, show_results, indicator_meta):
-    """Afficher la banniere de progression globale au-dessus des preuves visuelles."""
+    """Calcule la progression globale de la revue des indicateurs.
+
+    La file et ses métadonnées alimentent la bannière, son style et sa
+    visibilité au-dessus des preuves lorsque les résultats sont affichés.
+    """
     if not show_results:
         return html.Div()
     if not review_queue_data:

@@ -28,7 +28,11 @@ from vigie.support.quarter_utils import get_payload_quarter_context
     prevent_initial_call=True,
 )
 def render_changements_communs_tab(show_results, indicator_result, comparison_result):
-    """Render the saved common-changes report when results are displayed."""
+    """Affiche le rapport interbanques associé à l'analyse terminée.
+
+    Les stores de visibilité et de résultats déterminent le rapport à charger;
+    la sortie remplace le contenu de l'onglet des changements communs.
+    """
     if not show_results:
         raise PreventUpdate
 

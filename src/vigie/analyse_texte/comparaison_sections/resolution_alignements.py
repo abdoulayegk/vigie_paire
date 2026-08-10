@@ -45,7 +45,7 @@ _SEMANTIC_ALIGNMENT_DECISIONS = frozenset({"same_disclosure", "distinct_disclosu
 
 
 def _resolved_alignment_decision(change: dict[str, Any], alignment: ChunkAlignment) -> str:
-    """Normalizes the first GPT call's semantic decision conservatively."""
+    """Normalise prudemment la décision sémantique du premier appel GPT."""
     decision = str(change.get("alignment_decision") or "").strip().lower()
     if decision in _SEMANTIC_ALIGNMENT_DECISIONS:
         return decision

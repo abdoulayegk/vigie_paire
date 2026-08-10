@@ -1,4 +1,9 @@
-"""Composants modulaires du pipeline texte."""
+"""Adaptateur OpenAI utilisé par le pipeline d'analyse textuelle.
+
+Ce module centralise la création du client, les embeddings, les réponses
+structurées et la gestion des reprises et limites. Les consignes métier
+propres à chaque analyse restent définies dans les modules appelants.
+"""
 
 from __future__ import annotations
 

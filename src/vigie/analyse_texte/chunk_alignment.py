@@ -176,6 +176,12 @@ def _candidate_lookup(
     top_k: int,
     score_kind: str = "tfidf",
 ) -> dict[str, list[ChunkCandidate]]:
+    """Classe les cibles compatibles de chaque chunk selon une matrice de similarité.
+
+    Les décalages relient les listes locales aux indices de la matrice globale.
+    Le résultat conserve au plus ``top_k`` candidats par source, sauf si cette
+    limite vaut zéro, et départage les scores égaux avec les marqueurs et l'ordre.
+    """
     lookup: dict[str, list[ChunkCandidate]] = {}
     limit = max(0, int(top_k))
     for source_index, source in enumerate(source_chunks):
@@ -401,11 +407,11 @@ def _alignment_type_for_score(
 
 
 def _group_adjacent_chunks(chunks: list[TextChunk]) -> TextChunk:
-    """Creates one synthetic chunk from contiguous source chunks.
+    """Crée un chunk synthétique à partir de chunks sources contigus.
 
-    The synthetic identifier remains traceable in the artifact (for example
-    ``c01+c02``), while its text is exactly the source text presented to the
-    downstream comparison and highlight stages.
+    L'identifiant synthétique reste traçable dans l'artéfact, par exemple
+    ``c01+c02``, tandis que son texte reprend exactement les sources présentées
+    aux étapes de comparaison et de surlignage.
     """
     if not chunks:
         raise ValueError("At least one chunk is required to build a group")
@@ -428,7 +434,7 @@ def _group_adjacent_chunks(chunks: list[TextChunk]) -> TextChunk:
 
 
 def _sequence_similarity(text_t1: str, text_t2: str) -> float:
-    """Returns a conservative verbatim similarity for adjacent-group rescue."""
+    """Retourne une similarité verbatim prudente pour les groupes adjacents."""
     normalized_t1 = re.sub(r"\s+", " ", str(text_t1 or "")).strip()
     normalized_t2 = re.sub(r"\s+", " ", str(text_t2 or "")).strip()
     if not normalized_t1 or not normalized_t2:

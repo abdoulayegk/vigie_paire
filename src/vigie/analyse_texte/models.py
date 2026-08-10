@@ -1,4 +1,9 @@
-"""Composants modulaires du pipeline texte."""
+"""Modèles de données internes du pipeline d'analyse textuelle.
+
+Les structures décrivent les sections résolues, les blocs PDF, les audits et
+les unités sémantiques échangés entre les étapes. Elles restent indépendantes
+des entrées-sorties et des fournisseurs de modèles de langage.
+"""
 
 from __future__ import annotations
 
@@ -7,7 +12,7 @@ from typing import Any
 
 
 class TextAnalysisQualityError(RuntimeError):
-    """Raised when a targeted text section cannot yield analyzable semantic units."""
+    """Signale qu'une section ciblée ne produit aucune unité sémantique exploitable."""
 
 
 @dataclass(slots=True)

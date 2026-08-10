@@ -1,4 +1,9 @@
-"""Composants modulaires du pipeline texte."""
+"""Constantes et contrats partagés du pipeline d'analyse textuelle.
+
+Ce module centralise la version du schéma, la taxonomie des sections, les
+cibles propres aux banques ainsi que les expressions et seuils communs. Il ne
+réalise aucune orchestration ni entrée-sortie.
+"""
 
 from __future__ import annotations
 

@@ -69,7 +69,7 @@ class ChangementCommunRecord:
     confiance_posture: str
 
     def retrieval_text(self, max_chars: int = 1800) -> str:
-        """Return compact semantic text for embedding retrieval."""
+        """Retourne le texte sémantique compact destiné à la recherche vectorielle."""
         parts = [
             f"Banque: {self.bank_code.upper()}",
             f"Periode: {self.period}",
@@ -90,7 +90,7 @@ class ChangementCommunRecord:
         return _truncate(_clean_text(" | ".join(parts)), max_chars)
 
     def prompt_dict(self, max_text_chars: int = 900) -> dict[str, Any]:
-        """Return the compact representation passed to the LLM judge."""
+        """Retourne la représentation compacte transmise à l'arbitre LLM."""
         return {
             "record_id": self.record_id,
             "bank_code": self.bank_code,
@@ -112,7 +112,7 @@ class ChangementCommunRecord:
         }
 
     def evidence_dict(self) -> dict[str, Any]:
-        """Return full evidence metadata for dashboard rendering."""
+        """Retourne les métadonnées de preuve complètes destinées au tableau de bord."""
         return {
             "record_id": self.record_id,
             "bank_code": self.bank_code,
@@ -144,18 +144,18 @@ def collect_changements_communs_records(
     period: str | None = None,
     include_unchanged: bool = False,
 ) -> list[ChangementCommunRecord]:
-    """Collect atomic text changes from available result folders.
+    """Collecte les changements textuels atomiques dans les résultats disponibles.
 
     Args:
-        root_dir: Optional root directory containing ``<bank>/<period>`` result
-            folders. Defaults to ``TEXT_COMPARISON_DIR``.
-        period: Optional period folder to include, for example
-            ``2025_t2_vs_2025_t1``. When provided, only that comparison
-            period is collected across banks.
-        include_unchanged: Whether unchanged blocks should be indexed.
+        root_dir: Répertoire racine optionnel contenant les dossiers de résultat
+            ``<banque>/<période>``. Utilise ``TEXT_COMPARISON_DIR`` par défaut.
+        period: Dossier de période optionnel, par exemple
+            ``2025_t2_vs_2025_t1``. S'il est fourni, seule cette période est
+            collectée pour l'ensemble des banques.
+        include_unchanged: Indique si les blocs inchangés doivent être indexés.
 
     Returns:
-        Sorted list of atomic change records.
+        Liste triée des changements atomiques normalisés.
     """
     root = Path(root_dir) if root_dir else TEXT_COMPARISON_DIR
     normalized_period = normalize_changements_communs_period(period)
@@ -168,7 +168,7 @@ def collect_changements_communs_records(
 
 
 def normalize_changements_communs_period(period: str | None) -> str | None:
-    """Normalize a period folder name supplied by CLI/UI."""
+    """Normalise un nom de dossier de période fourni par la CLI ou l'interface."""
     text = str(period or "").strip().lower()
     if not text:
         return None
@@ -180,7 +180,7 @@ def changements_communs_output_path(
     *,
     base_dir: Path | str | None = None,
 ) -> Path:
-    """Return the default period-scoped common-changes artifact path."""
+    """Retourne le chemin par défaut de l'artéfact associé à une période."""
     normalized_period = normalize_changements_communs_period(period)
     if not normalized_period:
         return DEFAULT_CHANGEMENTS_COMMUNS_PATH
@@ -191,7 +191,7 @@ def changements_communs_output_path(
 def latest_changements_communs_report_path(
     base_dir: Path | str | None = None,
 ) -> Path | None:
-    """Return the most recently modified period-scoped report path."""
+    """Retourne le rapport par période modifié le plus récemment."""
     root = Path(base_dir) if base_dir else DEFAULT_CHANGEMENTS_COMMUNS_DIR
     candidates = [path for path in root.glob("*/changements_communs_banques.json") if path.is_file()]
     if not candidates:
@@ -200,7 +200,7 @@ def latest_changements_communs_report_path(
 
 
 def build_changements_communs_source_stats(records: list[ChangementCommunRecord]) -> dict[str, Any]:
-    """Summarize source records available for common-change generation."""
+    """Synthétise les sources disponibles pour générer les changements communs."""
     bank_counts: dict[str, int] = {}
     period_counts: dict[str, int] = {}
     impact_counts: dict[str, int] = {}
@@ -238,7 +238,7 @@ def build_changements_communs_source_stats(records: list[ChangementCommunRecord]
 
 
 def build_changements_communs_discovery_queries(topic: str) -> list[str]:
-    """Build the semantic search queries used for broad per-period discovery."""
+    """Construit les requêtes de découverte sémantique appliquées à une période."""
     queries: list[str] = []
     analyst_topic = str(topic or "").strip()
     if analyst_topic:
@@ -317,26 +317,25 @@ def generate_changements_communs_report(
     embedding_model: str = DEFAULT_EMBEDDING_MODEL,
     client: Any | None = None,
 ) -> dict[str, Any]:
-    """Generate common cross-bank changes with RAG retrieval and an LLM judge.
+    """Génère les changements interbanques par recherche RAG et arbitrage LLM.
 
     Args:
-        topic: Analyst topic or free-form question.
-        min_banks: Minimum distinct banks required for a consensus signal.
-        period: Optional comparison period. This is the main business mode:
-            compare all available banks for the same period only.
-        root_dir: Optional result root.
-        max_candidates: Maximum retrieved records sent to the LLM judge.
-        candidates_per_query: Maximum records retrieved per discovery theme.
-        model: Optional chat model override.
-        embedding_model: Embedding model used for RAG retrieval.
-        client: Optional OpenAI client, useful for tests.
+        topic: Thème analyste ou question libre.
+        min_banks: Nombre minimal de banques distinctes pour un consensus.
+        period: Période de comparaison optionnelle. Le mode métier principal
+            compare toutes les banques disponibles sur une même période.
+        root_dir: Racine optionnelle des résultats.
+        max_candidates: Nombre maximal d'enregistrements soumis à l'arbitre LLM.
+        candidates_per_query: Nombre maximal de candidats par thème de découverte.
+        model: Surcharge optionnelle du modèle conversationnel.
+        embedding_model: Modèle d'embedding utilisé pour la recherche RAG.
+        client: Client OpenAI optionnel, notamment utile pour les tests.
 
     Returns:
-        JSON-serializable common-changes report.
+        Rapport de changements communs sérialisable en JSON.
 
     Raises:
-        RuntimeError: If no OpenAI API key is configured and no client is
-            injected.
+        RuntimeError: Si aucune clé OpenAI ni aucun client injecté n'est disponible.
     """
     normalized_period = normalize_changements_communs_period(period)
     records = collect_changements_communs_records(
@@ -395,7 +394,7 @@ def build_changements_communs_judge_messages(
     candidates: list[ChangementCommunRecord],
     min_banks: int = 3,
 ) -> list[dict[str, str]]:
-    """Build chat messages for the LLM common-changes judge."""
+    """Construit les messages transmis à l'arbitre LLM interbanques."""
     candidate_payload = [record.prompt_dict() for record in candidates]
     system = (
         "Tu es un analyste senior en divulgation bancaire et gestion integree "
@@ -470,7 +469,7 @@ def load_changements_communs_report(
     *,
     period: str | None = None,
 ) -> dict[str, Any] | None:
-    """Load a previously generated common-changes artifact if it exists."""
+    """Charge un artéfact de changements communs existant, s'il est lisible."""
     report_path = Path(path) if path else changements_communs_output_path(period)
     if not report_path.exists():
         return None
@@ -547,6 +546,12 @@ def _record_from_block(
     section_title: str,
     index: int,
 ) -> ChangementCommunRecord | None:
+    """Convertit un bloc comparé en enregistrement interbanques normalisé.
+
+    Le bloc est ignoré s'il ne contient ni texte ni résumé. Les autres champs
+    sont harmonisés avec des valeurs explicites afin que la découverte et la
+    présentation consomment un contrat stable malgré les anciens schémas.
+    """
     change_id = str(block.get("change_id") or f"change_{index:04d}").strip()
     block_t1 = block.get("block_t1") if isinstance(block.get("block_t1"), dict) else {}
     block_t2 = block.get("block_t2") if isinstance(block.get("block_t2"), dict) else {}
@@ -614,6 +619,12 @@ def _normalize_llm_report(
     candidates: list[ChangementCommunRecord],
     discovery_queries: list[str],
 ) -> dict[str, Any]:
+    """Valide les preuves du rapport LLM et reconstruit l'artéfact canonique.
+
+    Seules les preuves qui référencent un candidat réel sont conservées. Un
+    signal doit couvrir au moins deux banques; le seuil ``min_banks`` distingue
+    ensuite les consensus des signaux mineurs avant le tri déterministe.
+    """
     by_id = {record.record_id: record for record in candidates}
     normalized_signals: list[dict[str, Any]] = []
     for raw_signal in payload.get("signals", []) or []:

@@ -58,7 +58,11 @@ logger = logging.getLogger(__name__)
     Input("current-quarter", "value"),
 )
 def sync_quarter_context(year_value, current_quarter):
-    """Deriver le trimestre precedent a partir du trimestre courant selectionne."""
+    """Dérive les périodes courante et précédente choisies pour l'analyse.
+
+    L'année et le trimestre sélectionnés produisent le contexte trimestriel
+    partagé par la bibliothèque, la détection et l'analyse.
+    """
     ctx = build_quarter_context(current_quarter or "T2", year=year_value or 2025)
     previous_label = str(ctx["previous"].get("display_label") or ctx["previous"]["label"])
     current_label = str(ctx["current"].get("display_label") or ctx["current"]["label"])
@@ -78,7 +82,11 @@ def sync_quarter_context(year_value, current_quarter):
     State("upload-t1", "filename"),
 )
 def on_upload_t1(content, filename):
-    """Stocker l'upload T1."""
+    """Valide et stocke le rapport de la période précédente téléversé.
+
+    Le contenu encodé et son nom produisent le chemin temporaire, le libellé et
+    l'état visuel retournés aux composants Dash.
+    """
     if not content:
         return None, ""
     default_name = "rapport_precedent.pdf"
@@ -95,7 +103,11 @@ def on_upload_t1(content, filename):
     State("upload-t2", "filename"),
 )
 def on_upload_t2(content, filename):
-    """Stocker l'upload T2."""
+    """Valide et stocke le rapport de la période courante téléversé.
+
+    Le contenu encodé et son nom produisent le chemin temporaire, le libellé et
+    l'état visuel retournés aux composants Dash.
+    """
     if not content:
         return None, ""
     default_name = "rapport_courant.pdf"
@@ -111,7 +123,11 @@ def on_upload_t2(content, filename):
     Input("data-source-type", "value"),
 )
 def toggle_data_source(source_type):
-    """Afficher soit la bibliothèque locale, soit la section de téléversement."""
+    """Bascule entre la bibliothèque locale et le téléversement manuel.
+
+    Le type de source sélectionné produit les styles de visibilité des deux
+    panneaux sans modifier les fichiers déjà choisis.
+    """
     if source_type == "saved":
         return {"display": "none"}, {"display": "block"}
     return {"display": "block"}, {"display": "none"}
@@ -126,7 +142,11 @@ def toggle_data_source(source_type):
     Input("current-quarter", "value"),
 )
 def populate_saved_runs(source_type, bank_code, year, current_quarter):
-    """Remplir le menu déroulant des analyses enregistrées locales."""
+    """Liste les analyses locales compatibles avec le contexte sélectionné.
+
+    La source, la banque et la période produisent les options du menu ainsi que
+    sa sélection par défaut et son état d'activation.
+    """
     if source_type != "saved" or not bank_code or not year or not current_quarter:
         return [], None
 
@@ -167,7 +187,11 @@ def populate_saved_runs(source_type, bank_code, year, current_quarter):
     prevent_initial_call=True,
 )
 def load_saved_comparison(n_clicks, run_file):
-    """Charger une analyse enregistrée depuis la bibliothèque locale."""
+    """Charge une analyse choisie dans la bibliothèque locale.
+
+    Le clic et le fichier sélectionné restaurent les stores métier, les chemins,
+    le contexte de revue et le message de chargement retournés à Dash.
+    """
     from vigie.interface.services.review_persistence import (
         _persist_review_state,
         _stored_review_items_from_state,
@@ -331,7 +355,11 @@ def load_saved_comparison(n_clicks, run_file):
     prevent_initial_call=True,
 )
 def on_detect(n_clicks, upl_t1, upl_t2, quarter_context, bank_code):
-    """Détecter les sections sur le couple courant/précédent."""
+    """Détecte les sections comparables dans les deux rapports sélectionnés.
+
+    Le clic, les chemins PDF, la période et la banque produisent les bornes de
+    sections, les chemins normalisés et le statut présenté avant validation.
+    """
     import base64
     import tempfile
 
@@ -433,7 +461,11 @@ def on_detect(n_clicks, upl_t1, upl_t2, quarter_context, bank_code):
     Input("store-adjusted-sections", "data"),
 )
 def render_validation_sections(detection, paths, adjusted_sections):
-    """Afficher les sections detectees avec inputs d'ajustement et preview PDF."""
+    """Construit l'écran de validation des bornes de sections détectées.
+
+    La détection, les chemins et les ajustements produisent les champs début/fin,
+    les aperçus PDF et les avertissements à vérifier avant l'analyse.
+    """
     if not detection:
         return html.Div("Aucune détection.")
 
@@ -544,7 +576,11 @@ def render_validation_sections(detection, paths, adjusted_sections):
     Input("store-detection", "data"),
 )
 def update_adjusted_indicator(adjusted_sections, detection):
-    """Afficher le nombre de sections ajustees pres du bouton Analyser."""
+    """Compte les bornes modifiées par rapport à la détection initiale.
+
+    Les stores de détection et d'ajustement produisent le libellé et la
+    visibilité de l'indicateur affiché près du bouton d'analyse.
+    """
     if not adjusted_sections or not detection:
         return None
     t1_orig = detection.get("detection_t1", {}).get("sections", [])
@@ -575,7 +611,11 @@ def update_adjusted_indicator(adjusted_sections, detection):
     prevent_initial_call=True,
 )
 def toggle_section_preview(n_clicks, is_open):
-    """Basculer l'affichage du preview PDF d'une section."""
+    """Ouvre ou ferme l'aperçu PDF d'une section détectée.
+
+    Le clic du bouton associé inverse l'état d'ouverture retourné au composant
+    repliable, sans relancer la détection.
+    """
     if n_clicks:
         return not is_open
     return no_update
@@ -591,7 +631,11 @@ def toggle_section_preview(n_clicks, is_open):
     prevent_initial_call=True,
 )
 def compile_adjusted_sections(starts, ends, ids_start, ids_end, detection):
-    """Compiler les valeurs Debut/Fin dans store-adjusted-sections."""
+    """Compile les bornes éditées dans le store des sections ajustées.
+
+    Les valeurs et identifiants des champs début/fin sont validés face à la
+    détection, puis regroupés selon le contrat attendu par l'analyse.
+    """
     if not detection:
         raise PreventUpdate
 
@@ -669,7 +713,12 @@ def on_analyze(
     force_reextract_opt,
     validation_start_ms,
 ):
-    """Valider et lancer l'analyse."""
+    """Valide le contexte puis orchestre l'analyse complète des deux rapports.
+
+    Le clic, les chemins, les sections ajustées et les options métier produisent
+    les résultats de comparaison, d'indicateurs et de texte, leurs artéfacts et
+    les états Dash qui ouvrent le tableau de bord.
+    """
     import os
 
     from vigie.interface.ui_config import INDICATOR_COMPARISON_DIR

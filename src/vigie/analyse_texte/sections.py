@@ -1,4 +1,9 @@
-"""Composants modulaires du pipeline texte."""
+"""Résolution et ordonnancement des sections narratives ciblées.
+
+Le module traduit les résultats du localisateur en clés textuelles stables,
+selon la banque et le trimestre, puis détermine les plages de pages à traiter.
+Il ne réalise ni extraction ni classification du contenu.
+"""
 
 from __future__ import annotations
 

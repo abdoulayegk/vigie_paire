@@ -1,4 +1,9 @@
-"""Composants modulaires du pipeline texte."""
+"""Extraction et classification des blocs narratifs provenant des PDF.
+
+Le module coordonne les moteurs d'extraction, applique les filtres de mise en
+page et construit les audits de section consommés par la suite du pipeline. Il
+ne porte pas la logique de comparaison sémantique.
+"""
 
 from __future__ import annotations
 

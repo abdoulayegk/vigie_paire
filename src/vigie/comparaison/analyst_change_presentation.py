@@ -370,6 +370,7 @@ def _normalize_subject_verb(value: str, *, subject: str) -> str:
 
 
 def _nature_label(change: dict[str, Any], summary: str) -> str:
+    """Déduit un libellé de changement depuis le résumé, puis depuis le diff."""
     normalized = summary.casefold()
     for needle, label in (
         (" ajoute ", "Ajout qualitatif"),

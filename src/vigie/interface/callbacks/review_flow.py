@@ -95,7 +95,11 @@ def update_review_queue(
     show_results,
     filters,
 ):
-    """Mettre a jour la file de revue laterale gauche et les KPIs en haut de page."""
+    """Reconstruit la file latérale et les KPI de revue.
+
+    Les données, filtres et sélection Dash produisent les lignes visibles, les
+    compteurs, les styles et l'état de navigation sans perdre la position active.
+    """
     if not show_results:
         raise PreventUpdate
 
@@ -161,7 +165,11 @@ def update_review_queue(
     prevent_initial_call=True,
 )
 def sync_review_selection(queue, filters, selection, last_positions):
-    """Garder la selection stable lors du rafraichissement de la file ou du changement de filtres."""
+    """Stabilise la sélection après un rafraîchissement ou un filtrage.
+
+    La file visible et les dernières positions produisent un identifiant de
+    tableau et de changement toujours valide pour les callbacks dépendants.
+    """
     if queue is None:
         raise PreventUpdate
     resolved_selection, _, change_idx = _resolve_selection(queue or [], selection, filters, last_positions)
@@ -177,7 +185,11 @@ def sync_review_selection(queue, filters, selection, last_positions):
     prevent_initial_call=True,
 )
 def remember_review_position_v2(selection, last_positions):
-    """Memoriser le dernier changement visite pour chaque tableau dans la revue active."""
+    """Mémorise le dernier changement visité pour chaque tableau.
+
+    La sélection courante met à jour le store des positions, ce qui permet de
+    retrouver le contexte analyste lors d'un retour sur le tableau.
+    """
     updated = _remember_selection(last_positions, selection)
     if updated == _normalize_last_positions(last_positions):
         raise PreventUpdate
@@ -191,7 +203,11 @@ def remember_review_position_v2(selection, last_positions):
     prevent_initial_call=True,
 )
 def on_filter_section(n_clicks, current_filters):
-    """Mettre a jour le filtre de section quand un bouton de filtre est clique."""
+    """Applique le filtre de section correspondant au bouton déclencheur.
+
+    Les clics et les filtres courants produisent un nouveau store de filtrage;
+    les données de revue restent inchangées.
+    """
     if not ctx.triggered_id:
         raise PreventUpdate
 
@@ -235,7 +251,11 @@ def on_validate_change_v2(
     notes,
     indicator_meta,
 ):
-    """Appliquer la validation au changement courant de la file V2 et avancer automatiquement."""
+    """Enregistre la décision du changement courant et avance la revue.
+
+    L'action déclenchée, la file, la sélection et le commentaire mettent à jour
+    les stores de décisions et de navigation ainsi que le retour utilisateur.
+    """
     from datetime import datetime, timezone
 
     if not ctx.triggered_id or not queue:
@@ -317,7 +337,11 @@ def on_validate_change_v2(
     prevent_initial_call=True,
 )
 def on_reset_change_decision(n_clicks, queue, selection, filters, last_positions, indicator_meta):
-    """Reinitialiser un changement valide a l'etat en attente pour permettre a l'analyste de re-decider."""
+    """Replace une décision validée dans l'état en attente.
+
+    Le clic agit sur le changement sélectionné et retourne la file, les
+    métadonnées et la position nécessaires pour permettre une nouvelle décision.
+    """
     if not ctx.triggered_id or not queue:
         raise PreventUpdate
     if not any(nc for nc in (n_clicks or [])):
@@ -385,7 +409,11 @@ def on_reset_change_decision(n_clicks, queue, selection, filters, last_positions
     prevent_initial_call=True,
 )
 def on_navigate_change_v2(prev, next_c, queue, selection, filters, last_positions):
-    """Naviguer precedent/suivant parmi les changements du tableau courant (V2)."""
+    """Déplace la sélection parmi les changements visibles du tableau courant.
+
+    Les boutons précédent/suivant et les filtres déterminent la nouvelle
+    sélection et actualisent la dernière position mémorisée.
+    """
     if not ctx.triggered_id or not queue:
         raise PreventUpdate
 
@@ -435,7 +463,11 @@ def on_navigate_change_v2(prev, next_c, queue, selection, filters, last_position
     prevent_initial_call=True,
 )
 def on_change_row_click(n_clicks, queue, selection, filters, last_positions):
-    """Selectionner une ligne de changement specifique par son change_id stable."""
+    """Sélectionne une ligne de revue depuis son identifiant de changement.
+
+    Les clics de ligne sont résolus dans la file filtrée; la sortie met à jour la
+    sélection et la position mémorisée avec un identifiant stable.
+    """
     if not ctx.triggered_id or not queue:
         raise PreventUpdate
     if not any(nc for nc in (n_clicks or [])):
@@ -483,7 +515,11 @@ def on_change_row_click(n_clicks, queue, selection, filters, last_positions):
     prevent_initial_call=True,
 )
 def on_navigate_table_v2(prev, next_t, clicks, queue, selection, filters, last_positions):
-    """Naviguer entre les tableaux ou sauter directement depuis la file de revue."""
+    """Navigue entre les tableaux visibles ou rejoint une ligne de la file.
+
+    Le déclencheur Dash et l'état de revue déterminent le prochain tableau et
+    restaurent son dernier changement visité dans les stores de sélection.
+    """
     if not queue:
         raise PreventUpdate
 
@@ -547,7 +583,11 @@ def on_navigate_table_v2(prev, next_t, clicks, queue, selection, filters, last_p
     Input("store-review-filters", "data"),
 )
 def block_table_navigation_v2(queue, selection, filters):
-    """Desactiver les boutons de navigation entre tableaux aux limites visibles."""
+    """Désactive la navigation aux limites de la liste de tableaux visible.
+
+    La file, la sélection et les filtres produisent les états ``disabled`` des
+    boutons précédent et suivant.
+    """
     if not queue:
         return True, True
 

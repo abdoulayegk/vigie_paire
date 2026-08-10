@@ -218,7 +218,7 @@ def _deterministic_bank_specific_exclusion(change: dict[str, Any]) -> str | None
 
 
 def _deterministic_cosmetic_exclusion(change: dict[str, Any]) -> str | None:
-    """Return an exclusion reason when the change is manifestly cosmetic."""
+    """Retourne un motif si le changement est manifestement cosmétique."""
     if _is_semantic_text_move(change):
         return "deplacement_texte"
     if str(change.get("alignment_type") or "").strip().lower() in {

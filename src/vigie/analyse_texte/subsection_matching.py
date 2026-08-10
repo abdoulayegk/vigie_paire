@@ -1,4 +1,9 @@
-"""Composants modulaires du pipeline texte."""
+"""Appariement des sous-sections et récupération des éléments orphelins.
+
+Les titres, le contenu et les embeddings servent à présélectionner les paires
+entre trimestres; un arbitrage structuré traite les cas ambigus et les
+changements synthétiques. La stratégie privilégie les correspondances sûres.
+"""
 
 from __future__ import annotations
 
