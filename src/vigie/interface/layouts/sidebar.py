@@ -5,7 +5,7 @@ from __future__ import annotations
 import dash_bootstrap_components as dbc
 from dash import dcc, html
 
-from vigie.interface import validator_config
+from vigie.interface import review_runtime
 from vigie.support.i18n import t
 from vigie.interface.ui_config import AVAILABLE_BANKS, bank_option_label
 
@@ -32,9 +32,9 @@ def build_sidebar() -> dbc.Col:
         {"label": "T4", "value": "T4"},
     ]
 
-    validator_mode = validator_config.is_validator_mode()
-    hide_in_validator = {"display": "none"} if validator_mode else None
-    analyst_value = validator_config.current_username() if validator_mode else None
+    review_mode = review_runtime.is_review_mode()
+    hide_in_review = {"display": "none"} if review_mode else None
+    analyst_value = review_runtime.current_analyst() if review_mode else None
 
     return dbc.Col(
         [
@@ -69,7 +69,7 @@ def build_sidebar() -> dbc.Col:
                         placeholder="ex: Jean Dupont",
                         className="mb-3",
                         value=analyst_value,
-                        readonly=validator_mode,
+                        readonly=review_mode,
                     ),
                     # 2. Bank & Year
                     dbc.Row(
@@ -244,7 +244,7 @@ def build_sidebar() -> dbc.Col:
                         id="upload-source-container",
                         style={"display": "none"},
                     ),
-                    # 7. Options (masquees dans le validateur sans pipeline)
+                    # 7. Options masquées pendant la revue analyste sans pipeline.
                     html.Div(
                         [
                             dbc.Button(
@@ -298,7 +298,7 @@ def build_sidebar() -> dbc.Col:
                             ),
                         ],
                         id="advanced-options-wrapper",
-                        style=hide_in_validator,
+                        style=hide_in_review,
                     ),
                 ],
                 id="analysis-sidebar-body",

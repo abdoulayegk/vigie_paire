@@ -92,9 +92,12 @@ Le paquet PDF attendu est `PyMuPDF` et le namespace utilise par le projet est
 `pymupdf`. Ne pas installer le paquet PyPI distinct nomme `fitz` : il est sans
 lien avec PyMuPDF et entre en conflit avec son ancien alias de compatibilite.
 
-Les postes qui consultent et valident uniquement des resultats existants peuvent
-utiliser `requirements-validateur.txt`. Ce profil leger n'installe ni Docling ni
+Les postes qui consultent et révisent uniquement des résultats existants peuvent
+utiliser `requirements-interface.txt`. Ce profil léger n'installe ni Docling ni
 le client OpenAI et ne peut donc pas lancer d'extraction ou d'appel LLM.
+
+Pour les deux profils sous Windows, voir le
+[guide d'installation détaillé](INSTALLATION_WINDOWS.md).
 
 ---
 
@@ -248,7 +251,8 @@ outputs/resultats/{banque}/{annee_q}_vs_{annee_prev_q}/comparison.json
 outputs/resultats/{banque}/{annee_q}_vs_{annee_prev_q}/text_comparison.json
 ```
 
-Les comparaisons indicateurs et texte partagent la même racine `outputs/resultats/`, ce que lit aussi l’interface Dash. Si vous avez d’anciens dossiers sous `outputs/comparisons/` ou `outputs/text_comparisons/`, fusionnez-les vers `outputs/resultats/` (mêmes sous-dossiers `banque/année_q_vs_année_q`). Un script automatise la fusion : `python scripts/migrate_outputs_to_resultats.py --dry-run` ou `uv run python scripts/migrate_outputs_to_resultats.py --dry-run`.
+Les comparaisons indicateurs et texte partagent la même racine
+`outputs/resultats/`, qui constitue l'unique dossier lu par l'interface.
 
 ---
 
@@ -273,12 +277,12 @@ bash scripts/run_dash.sh
 uv run python -m vigie.interface.app
 ```
 
-### Validateur leger sans LLM — Windows, macOS et Linux
+### Revue analyste sans LLM — Windows, macOS et Linux
 
-Le validateur sert aux analystes qui consultent les fichiers deja produits dans
-`outputs/resultats` ou dans un dossier synchronise. Il ne lance ni extraction,
-ni comparaison, ni appel LLM. Il s'execute avec Python directement : aucun
-`.exe` et aucun packaging PyInstaller ne sont utilises.
+Le Comparateur Bancaire utilise le même point d'entrée pour les développeurs et
+les analystes. En mode revue, il consulte les fichiers déjà produits dans
+`outputs/resultats` ou dans un dossier synchronisé, sans lancer d'extraction,
+de comparaison ni d'appel LLM.
 
 ```bash
 python -m venv .venv
@@ -300,33 +304,31 @@ Installation et lancement, identiques sur les trois plateformes :
 
 ```bash
 python -m pip install --upgrade pip
-python -m pip install -r requirements-validateur.txt
+python -m pip install -r requirements-interface.txt
 python -m pip install -e . --no-deps
-python -m vigie.interface.validator --resultats /chemin/vers/resultats
+python -m vigie.interface.app
 ```
 
-Sous Windows, un chemin peut par exemple etre fourni ainsi :
+L'installation légère est détectée automatiquement et le nom d'utilisateur du
+poste sert d'identifiant de revue. Pour lire un autre dossier sous Windows :
 
 ```powershell
-python -m vigie.interface.validator --resultats "C:\Users\analyste\Vigie\resultats"
+python -m vigie.interface.app --resultats "C:\Users\analyste\vigie_paire\outputs\resultats"
 ```
 
-Le dossier peut aussi etre defini avec `VIGIE_RESULTATS_DIR`. Sans argument ni
-variable, un selecteur de dossier est affiche et le choix est memorise dans le
-dossier de configuration standard de l'OS : `%APPDATA%` sous Windows,
-`~/Library/Application Support` sous macOS et `$XDG_CONFIG_HOME` ou `~/.config`
-sous Linux.
+Le dossier peut aussi être défini avec `VIGIE_RESULTATS_DIR`. Sans argument ni
+variable, l'application utilise directement `outputs/resultats` dans le dépôt.
+Le terminal affiche au démarrage le chemin utilisé et le nombre d'analyses
+détectées.
 
 Options utiles :
 
 ```text
---analyste NOM       identifiant du fichier de validation individuel
---port PORT          port Dash prefere
---sans-navigateur    ne pas ouvrir le navigateur automatiquement
+--revue              force la revue analyste sans pipeline
+--analyste NOM       remplace l'identifiant détecté automatiquement
+--resultats DOSSIER  racine des résultats existants
+--port PORT          port de l'interface
 ```
-
-La commande console `vigie-validateur` est equivalente a
-`python -m vigie.interface.validator`.
 
 ### Dash complet — Avec `pip`
 

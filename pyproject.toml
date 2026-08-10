@@ -32,7 +32,6 @@ vigie-run-extract-report = "vigie.cli.run_extract_report:main"
 vigie-run-compare-gpt4o = "vigie.cli.run_compare_gpt4o:main"
 vigie-run-changements-communs = "vigie.cli.run_changements_communs:main"
 vigie-run = "vigie.pipelines.complet:main"
-vigie-validateur = "vigie.interface.validator:main"
 
 [tool.setuptools]
 package-dir = {"" = "src"}

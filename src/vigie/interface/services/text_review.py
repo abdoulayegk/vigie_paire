@@ -8,9 +8,9 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from vigie.comparaison.io import _atomic_write_json
 from vigie.support.quarter_utils import get_payload_quarter_context
 from vigie.analyse_texte.text_comparison.text_comparison_excel import generate_text_comparison_excel
+from vigie.interface.services.json_io import atomic_write_json
 from vigie.interface.ui_config import TEXT_COMPARISON_DIR
 
 logger = logging.getLogger(__name__)
@@ -101,7 +101,7 @@ def write_text_review_to_disk(
         return False
 
     try:
-        _atomic_write_json(path, text_data)
+        atomic_write_json(path, text_data)
         if regenerate_excel:
             generate_text_comparison_excel(text_data, path.with_suffix(".xlsx"))
     except Exception:
