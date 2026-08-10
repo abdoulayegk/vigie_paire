@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
-from vigie.interface import validator_config
+from vigie.interface import review_runtime
 from vigie.interface.services.comparison_store import build_file_comparison_store
 from vigie.interface.services.comparison_context import _comparison_path_from_meta
 from vigie.interface.services.export_helpers import _review_items_from_v2_queue
-from vigie.interface.services.review_writeback import write_back_to_disk
 
 
 def _persist_review_state(
@@ -43,7 +42,7 @@ def _persist_review_state(
     run_id = ""
     if indicator_meta:
         run_id = str(indicator_meta.get("run_id", ""))
-    username = validator_config.current_username()
+    username = review_runtime.current_analyst()
     store = build_file_comparison_store()
     store.save_review_state(
         compare_path,
@@ -60,9 +59,11 @@ def _persist_review_state(
     )
     # Mandat : propager la decision analyste dans comparison.json + comparison.xlsx
     # sur disque. Non-fatal — le review_state.json reste la source durable.
-    # Le validateur partage uniquement un sidecar par analyste. Le pipeline
-    # complet conserve la propagation vers comparison.json et Excel.
-    if not validator_config.is_validator_mode():
+    # La revue partage uniquement un sidecar par analyste. Le pipeline complet
+    # conserve la propagation vers comparison.json et Excel.
+    if not review_runtime.is_review_mode():
+        from vigie.interface.services.review_writeback import write_back_to_disk
+
         write_back_to_disk(compare_path, review_queue)
 
 
@@ -84,7 +85,7 @@ def _load_review_state_for_comparison(
     if not compare_path:
         return None
     store = build_file_comparison_store()
-    username = validator_config.current_username()
+    username = review_runtime.current_analyst()
     if username:
         per_user_state = store.load_review_state(compare_path, username=username)
         if per_user_state is not None:

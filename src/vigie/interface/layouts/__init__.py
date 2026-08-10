@@ -1,4 +1,4 @@
-"""Sous-paquet des layouts Dash pour l'interface utilisateur Vigilance."""
+"""Mises en page Dash du Comparateur Bancaire."""
 
 from .page_load import build_page_load
 from .page_results import build_page_results

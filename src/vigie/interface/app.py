@@ -1,15 +1,107 @@
-"""Application Dash - Comparateur de Rapports Bancaires.
+"""Application Dash unifiée du Comparateur Bancaire.
 
 Pour lancer:
     uv run python -m vigie.interface.app
-    ou: uv run dash run vigie.interface.app --port 8050
+    python -m vigie.interface.app --revue --analyste NOM
 """
 
 from __future__ import annotations
 
+import argparse
 import logging
+import os
+from pathlib import Path
+import sys
 
 logger = logging.getLogger(__name__)
+
+from vigie.interface import review_runtime
+
+DEFAULT_PORT = 8050
+
+
+class _FrenchArgumentParser(argparse.ArgumentParser):
+    """Présente l'aide et les erreurs de ligne de commande en français."""
+
+    def format_help(self) -> str:
+        """Traduit les en-têtes fixes produits par ``argparse``."""
+        return super().format_help().replace("usage:", "Utilisation :").replace("options:", "Options :")
+
+    def format_usage(self) -> str:
+        """Traduit l'en-tête de la ligne d'utilisation."""
+        return super().format_usage().replace("usage:", "Utilisation :")
+
+    def error(self, message: str) -> None:
+        """Affiche une erreur française et termine avec le code standard 2."""
+        self.print_usage(sys.stderr)
+        self.exit(2, f"{self.prog}: erreur : {message}\n")
+
+
+def build_parser() -> argparse.ArgumentParser:
+    """Construit les options françaises du point d'entrée unique."""
+    parser = _FrenchArgumentParser(
+        description="Lancer le Comparateur Bancaire.",
+        add_help=False,
+    )
+    parser.add_argument(
+        "-h",
+        "--help",
+        "--aide",
+        action="help",
+        help="Afficher cette aide et quitter",
+    )
+    parser.add_argument(
+        "--revue",
+        action="store_true",
+        help="Activer la revue analyste sans extraction ni appel LLM",
+    )
+    parser.add_argument(
+        "--resultats",
+        help="Dossier racine contenant les résultats existants",
+    )
+    parser.add_argument(
+        "--analyste",
+        help="Identifiant utilisé pour le fichier individuel de revue",
+    )
+    parser.add_argument(
+        "--port",
+        type=int,
+        default=int(os.environ.get("DASH_PORT", DEFAULT_PORT)),
+        help=f"Port de l'interface (défaut : {DEFAULT_PORT})",
+    )
+    return parser
+
+
+def _configure_startup(args: argparse.Namespace) -> None:
+    """Configure les résultats et la revue avant l'import des composants Dash."""
+    raw_resultats = str(args.resultats or os.environ.get("VIGIE_RESULTATS_DIR", "")).strip()
+    if raw_resultats:
+        resultats_dir = Path(raw_resultats).expanduser()
+        if not resultats_dir.is_dir():
+            raise ValueError(f"Dossier de résultats introuvable : {resultats_dir}")
+        os.environ["VIGIE_RESULTATS_DIR"] = str(resultats_dir.resolve())
+
+    analyst = str(args.analyste or os.environ.get("VIGIE_ANALYSTE", "")).strip()
+    if analyst:
+        os.environ["VIGIE_ANALYSTE"] = analyst
+
+    raw_review_mode = os.environ.get("VIGIE_MODE_REVUE", "").strip().lower()
+    review_mode = bool(args.revue or args.resultats or analyst) or raw_review_mode in {"1", "true", "yes", "on"}
+    os.environ["VIGIE_MODE_REVUE"] = "1" if review_mode else "0"
+    review_runtime.set_review_mode(review_mode)
+    review_runtime.set_analyst(analyst or None)
+
+
+_STARTUP_OPTIONS: argparse.Namespace | None = None
+if __name__ == "__main__":
+    _parser = build_parser()
+    _STARTUP_OPTIONS = _parser.parse_args()
+    try:
+        _configure_startup(_STARTUP_OPTIONS)
+    except ValueError as exc:
+        _parser.error(str(exc))
+else:
+    review_runtime.configure_from_environment()
 
 import dash_bootstrap_components as dbc
 from dash import (
@@ -26,6 +118,7 @@ from vigie.interface.layouts import (
     build_page_upload,
     build_sidebar,
 )
+from vigie.interface.ui_config import RESULTATS_DIR
 from vigie.support.quarter_utils import build_quarter_context
 
 # Theme Bootstrap
@@ -33,6 +126,7 @@ APP_THEME = dbc.themes.FLATLY
 
 app = Dash(
     __name__,
+    title="Comparateur Bancaire",
     external_stylesheets=[APP_THEME, dbc.icons.BOOTSTRAP],
     suppress_callback_exceptions=True,
     assets_folder="assets",
@@ -213,14 +307,29 @@ from vigie.interface.callbacks import register_all_callbacks  # noqa: E402
 register_all_callbacks()
 
 
-if __name__ == "__main__":
-    import os
-
+def _run_application() -> None:
+    """Démarre l'application et annonce clairement les résultats détectés."""
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    )
     debug = os.getenv("DASH_DEBUG", "0").strip().lower() in {
         "1",
         "true",
         "yes",
         "on",
     }
-    port = int(os.getenv("DASH_PORT", "8050"))
-    app.run(debug=debug, use_reloader=debug, port=port)
+    options = _STARTUP_OPTIONS or build_parser().parse_args([])
+    result_count = sum(1 for _path in RESULTATS_DIR.glob("*/*/comparison.json"))
+    logger.info("Application : Comparateur Bancaire")
+    logger.info("Dossier de résultats : %s", RESULTATS_DIR)
+    logger.info("Analyses détectées : %d", result_count)
+    if review_runtime.is_review_mode():
+        logger.info("Mode revue analyste : %s", review_runtime.current_analyst())
+    if result_count == 0:
+        logger.warning("Aucune analyse trouvée. Vérifiez le dossier fourni avec --resultats.")
+    app.run(host="127.0.0.1", debug=debug, use_reloader=debug, port=options.port)
+
+
+if __name__ == "__main__":
+    _run_application()

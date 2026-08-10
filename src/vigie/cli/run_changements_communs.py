@@ -50,7 +50,7 @@ def build_parser() -> argparse.ArgumentParser:
         type=Path,
         default=None,
         help=(
-            "Chemin JSON de sortie pour le validateur. Par defaut: "
+            "Chemin JSON de sortie pour l'interface de revue. Par defaut: "
             "outputs/resultats/changements_communs_banques/<periode>/"
             "changements_communs_banques.json."
         ),
