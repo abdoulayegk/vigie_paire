@@ -8,7 +8,6 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from ..extraction.section_taxonomy import canonicalize_section
 from vigie.support.models.table_models import (
     get_canonical_footnotes,
     get_comparison_indicators,
@@ -18,6 +17,8 @@ from vigie.support.utils.footnotes_utils import (
     count_stringified_dict_suspects,
     footnotes_list_to_dict,
 )
+
+from ..extraction.section_taxonomy import canonicalize_section
 
 logger = logging.getLogger(__name__)
 

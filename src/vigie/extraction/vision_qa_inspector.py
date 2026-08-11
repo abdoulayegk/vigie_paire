@@ -8,12 +8,13 @@ de bas de page manquante).
 
 from __future__ import annotations
 
+import base64
 import json
 import logging
 import time
 from typing import Any
 
-
+import openai
 from pydantic import BaseModel, ConfigDict, Field
 
 from vigie.support.utils.genai import get_openai_api_key
@@ -110,8 +111,6 @@ Respond STRICTLY using the required JSON schema format."""
 
         system_prompt = self._build_qa_prompt(json_str)
 
-        import base64
-
         base64_img = base64.b64encode(image_bytes).decode("utf-8")
 
         messages = [
@@ -136,9 +135,7 @@ Respond STRICTLY using the required JSON schema format."""
 
         logger.debug("Executing Deep QA Inspector on table crop using model %s", self.model)
 
-        from openai import OpenAI
-
-        client = OpenAI(
+        client = openai.OpenAI(
             api_key=self.api_key,
             timeout=OPENAI_VISION_QA_TIMEOUT_SECONDS,
         )

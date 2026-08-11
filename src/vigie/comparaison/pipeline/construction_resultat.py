@@ -22,7 +22,6 @@ from vigie.comparaison.pipeline.resultat_models import (
     ReferenceResolution,
 )
 
-
 logger = logging.getLogger(__name__)
 
 

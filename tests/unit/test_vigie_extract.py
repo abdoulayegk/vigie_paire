@@ -8,8 +8,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from vigie.support.report.vigie_extract_schema import (
-    SLUG_TO_CANONICAL,
     SCHEMA_VERSION,
+    SLUG_TO_CANONICAL,
     build_vigie_extract,
     canonical_to_slug,
     compute_features,
@@ -21,7 +21,6 @@ from vigie.support.report.vigie_extract_schema import (
     section_title_for_slug,
     write_vigie_extract,
 )
-
 
 # ------------------------------------------------------------------
 # normalize_text

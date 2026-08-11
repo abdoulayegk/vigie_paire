@@ -10,11 +10,14 @@ import logging
 from dataclasses import dataclass
 from pathlib import Path
 
+import pdfplumber
+
 logger = logging.getLogger(__name__)
 
 # Import conditionnel de PyMuPDF
 try:
     import pymupdf
+
     from vigie.support.utils.pymupdf_utils import configure_mupdf_runtime
 
     PYMUPDF_AVAILABLE = True
@@ -190,8 +193,6 @@ def extract_text_from_pages(pdf_path: str | Path, start_page: int, end_page: int
     if not PYMUPDF_AVAILABLE:
         # Fallback vers pdfplumber
         try:
-            import pdfplumber
-
             text_parts = []
             with pdfplumber.open(str(pdf_path)) as pdf:
                 for page_num in range(start_page - 1, min(end_page, len(pdf.pages))):
@@ -231,8 +232,6 @@ def get_pdf_info(pdf_path: str | Path) -> dict:
     """
     if not PYMUPDF_AVAILABLE:
         try:
-            import pdfplumber
-
             with pdfplumber.open(str(pdf_path)) as pdf:
                 return {
                     "total_pages": len(pdf.pages),

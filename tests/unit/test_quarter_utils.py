@@ -5,8 +5,8 @@ import pytest
 from vigie.support.quarter_utils import (
     build_quarter_context,
     format_quarter_display_label,
-    quarter_label_from_payload,
     parse_quarter_ref,
+    quarter_label_from_payload,
 )
 
 

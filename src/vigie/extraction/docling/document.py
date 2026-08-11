@@ -15,6 +15,8 @@ from typing import Any
 import pymupdf
 
 from vigie.support.utils.footnotes_utils import normalize_footnotes_to_canonical
+from vigie.support.utils.pattern_loader import get_patterns
+
 from ..docling_bbox_helpers import _coerce_pdf_path
 from .config import _resolve_vision_extraction_enabled
 from .models import ExtractedDocument, ExtractedSection, ExtractedTable
@@ -47,9 +49,12 @@ class DocumentExtractionMixin:
             return
 
         try:
-            from docling.datamodel.base_models import InputFormat
-            from docling.datamodel.pipeline_options import PdfPipelineOptions
-            from docling.document_converter import DocumentConverter, PdfFormatOption
+            from docling.datamodel.base_models import InputFormat  # noqa: PLC0415 - initialisation Docling couteuse
+            from docling.datamodel.pipeline_options import PdfPipelineOptions  # noqa: PLC0415 - chargement differe
+            from docling.document_converter import (  # noqa: PLC0415 - chargement differe
+                DocumentConverter,
+                PdfFormatOption,
+            )
 
             pipeline_options = PdfPipelineOptions()
             pipeline_options.do_ocr = self.use_ocr
@@ -62,7 +67,7 @@ class DocumentExtractionMixin:
             device_str = os.environ.get("DOCLING_DEVICE", default_device)
 
             try:
-                from docling.datamodel.accelerator_options import (
+                from docling.datamodel.accelerator_options import (  # noqa: PLC0415 - API optionnelle selon version Docling
                     AcceleratorDevice,
                     AcceleratorOptions,
                 )
@@ -140,8 +145,6 @@ class DocumentExtractionMixin:
         # Charger les patterns spécifiques à la banque si nécessaire
         if bank_code != self.bank_code_for_patterns and self.extraction_patterns:
             try:
-                from vigie.support.utils.pattern_loader import get_patterns
-
                 self.extraction_patterns = get_patterns(bank_code=bank_code)
                 self.bank_code_for_patterns = bank_code
                 logger.debug(f"Patterns rechargés pour banque: {bank_code}")

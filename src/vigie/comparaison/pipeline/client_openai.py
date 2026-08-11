@@ -6,9 +6,10 @@ import json
 import time
 from typing import Any
 
+import openai
+
 from vigie.comparaison.io import _extract_usage_metrics
 from vigie.support.utils.genai import get_openai_api_key
-
 
 OPENAI_COMPARISON_TIMEOUT_SECONDS = 120.0
 
@@ -38,9 +39,7 @@ def _call_openai_json(
     if not api_key:
         raise RuntimeError("OPENAI_API_KEY is not configured")
 
-    from openai import OpenAI
-
-    client = OpenAI(
+    client = openai.OpenAI(
         api_key=api_key,
         timeout=OPENAI_COMPARISON_TIMEOUT_SECONDS,
         # Les retries sont geres par la boucle applicative ci-dessous afin
@@ -123,9 +122,7 @@ def _call_openai_embeddings(
     if not api_key:
         raise RuntimeError("OPENAI_API_KEY is not configured")
 
-    from openai import OpenAI
-
-    client = OpenAI(
+    client = openai.OpenAI(
         api_key=api_key,
         timeout=OPENAI_COMPARISON_TIMEOUT_SECONDS,
     )

@@ -7,6 +7,8 @@ from __future__ import annotations
 
 import logging
 
+from vigie.extraction.section_taxonomy import canonicalize_section
+
 from .models import LocatedSection, TocEntry
 
 # Nom de logger conservé à l'identique après le découpage, pour ne pas invalider
@@ -30,8 +32,6 @@ def assess_target_section_health(sections: list[LocatedSection]) -> dict:
     confiances. Il ne déclenche aucune action : il est joint au mapping pour
     remonter jusqu'au manifeste.
     """
-    from vigie.extraction.section_taxonomy import canonicalize_section
-
     by_concept: dict[str, float] = {}
     for section in sections:
         concept = canonicalize_section(section.section_type)

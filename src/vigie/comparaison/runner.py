@@ -15,13 +15,14 @@ from vigie.comparaison.canonical import (
     new_empty_ui_comparison_payload,
     to_canonical_payload,
 )
-from vigie.support.quarter_utils import format_quarter_label
-from vigie.interface.ui_config import OUTPUT_DIR, RESULTATS_DIR
 from vigie.comparaison.io import normalize_quarter, resolve_reference_period
 from vigie.comparaison.pipeline.construction_resultat import REFERENCE_RESOLUTION_RULE
 from vigie.comparaison.pipeline.orchestration import compare_reports_gpt4o
+from vigie.extraction.docling import extract_tables_docling_by_sections
 from vigie.extraction.section_taxonomy import canonicalize_section
 from vigie.extraction.vision_extraction_writer import write_compact_report_artifacts
+from vigie.interface.ui_config import OUTPUT_DIR, RESULTATS_DIR
+from vigie.support.quarter_utils import format_quarter_label
 from vigie.support.utils.genai import get_openai_api_key
 from vigie.support.utils.model_cost import estimate_openai_cost_usd
 
@@ -181,10 +182,6 @@ def _extract_tables(
     return_provenance: bool = False,
 ) -> Any:
     """Extraire les tableaux d'un rapport, avec support du cache stocke."""
-    from vigie.extraction.docling import (
-        extract_tables_docling_by_sections,
-    )
-
     extraction_started_at = time.monotonic()
     quarter_code = normalize_quarter(quarter)
     out_dir = EXTRACTION_ROOT / str(bank_code).lower() / str(int(year)) / quarter_code

@@ -15,7 +15,6 @@ from vigie.analyse_texte.openai_client import (
     _embed_texts,
 )
 
-
 _SENTENCE_BOUNDARY_RE = re.compile(r"(?<=[.!?])\s+(?=[A-ZÀ-ÖØ-Þ])")
 _NUMBER_RE = re.compile(
     r"(?<!\w)(?:\(?[-+]?\d[\d\s.,]*(?:\s*(?:%|\$|€|£|M\$|G\$))?\)?)(?!\w)",

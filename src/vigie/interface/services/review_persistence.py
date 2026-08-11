@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 from vigie.interface import review_runtime
-from vigie.interface.services.comparison_store import build_file_comparison_store
 from vigie.interface.services.comparison_context import _comparison_path_from_meta
+from vigie.interface.services.comparison_store import build_file_comparison_store
 from vigie.interface.services.export_helpers import _review_items_from_v2_queue
 
 
@@ -62,7 +62,9 @@ def _persist_review_state(
     # La revue partage uniquement un sidecar par analyste. Le pipeline complet
     # conserve la propagation vers comparison.json et Excel.
     if not review_runtime.is_review_mode():
-        from vigie.interface.services.review_writeback import write_back_to_disk
+        from vigie.interface.services.review_writeback import (  # noqa: PLC0415 - exclu du mode revue minimal
+            write_back_to_disk,
+        )
 
         write_back_to_disk(compare_path, review_queue)
 

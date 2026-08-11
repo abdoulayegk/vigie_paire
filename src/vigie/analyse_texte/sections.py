@@ -9,9 +9,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from vigie.support.batch_quarter import normalize_quarter
-from vigie.extraction.localisation_sections import locate_sections_in_pdf
-from vigie.extraction.section_taxonomy import canonicalize_section
 from vigie.analyse_texte.constants import (
     _CANONICAL_TO_TEXT_KEY,
     _SECTION_LABELS,
@@ -19,6 +16,9 @@ from vigie.analyse_texte.constants import (
     _TARGET_SECTIONS_BY_BANK,
 )
 from vigie.analyse_texte.models import ResolvedSection, SectionAudit
+from vigie.extraction.localisation_sections import locate_sections_in_pdf
+from vigie.extraction.section_taxonomy import canonicalize_section
+from vigie.support.batch_quarter import normalize_quarter
 
 
 def _pdf_section_order_key(

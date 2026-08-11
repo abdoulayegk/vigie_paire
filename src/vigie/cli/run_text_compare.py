@@ -12,6 +12,11 @@ import logging
 import sys
 from pathlib import Path
 
+from vigie.analyse_texte.models import TextAnalysisQualityError
+from vigie.analyse_texte.pipeline import run_text_analysis_pipeline
+from vigie.analyse_texte.text_comparison import generate_text_comparison_excel
+from vigie.support.batch_quarter import find_pdf_pair, normalize_quarter, resolve_previous_quarter
+
 logger = logging.getLogger(__name__)
 
 DEFAULT_OUT_ROOT_EXTRACTIONS = "outputs/text_extractions"
@@ -69,14 +74,6 @@ def main(argv: list[str] | None = None) -> int:
         datefmt="%H:%M:%S",
     )
 
-    from vigie.support.batch_quarter import (
-        find_pdf_pair,
-        normalize_quarter,
-        resolve_previous_quarter,
-    )
-    from vigie.analyse_texte.models import TextAnalysisQualityError
-    from vigie.analyse_texte.pipeline import run_text_analysis_pipeline
-
     bank_code = args.banque.lower()
     year_t2 = args.annee
     quarter_t2 = normalize_quarter(args.trimestre)
@@ -115,8 +112,6 @@ def main(argv: list[str] | None = None) -> int:
             exc,
         )
         return 1
-
-    from vigie.analyse_texte.text_comparison import generate_text_comparison_excel
 
     try:
         allowed_section_keys = None

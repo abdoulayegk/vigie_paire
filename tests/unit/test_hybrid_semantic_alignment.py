@@ -10,10 +10,10 @@ from vigie.analyse_texte.chunk_alignment import (
 )
 from vigie.analyse_texte.chunking import _chunk_subsection_text
 from vigie.analyse_texte.global_reconciliation import (
-    _ReconciliationResponse,
     _components,
     _one_sided_nodes,
     _pair_retrieval_scores,
+    _ReconciliationResponse,
     reconcile_global_change_fragments,
 )
 from vigie.analyse_texte.summary import _build_semantic_quality_metrics

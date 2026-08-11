@@ -12,9 +12,9 @@ from vigie.analyse_texte.chunk_alignment import (
 )
 from vigie.analyse_texte.chunking import TextChunk, _chunk_subsection_text
 from vigie.analyse_texte.comparaison_sections.modeles import (
-    ComparisonBatch,
     _COMPARISON_BATCH_SIZES,
     _EXACT_DIFF_STRONG_SEQUENCE_THRESHOLD,
+    ComparisonBatch,
 )
 from vigie.analyse_texte.constants import _SECTION_LABELS
 from vigie.analyse_texte.normalization import _sanitize_semantic_text

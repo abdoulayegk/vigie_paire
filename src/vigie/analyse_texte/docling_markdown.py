@@ -938,7 +938,9 @@ def _build_text_extraction_markdown_from_docling(
             len(missing),
             ", ".join(f"{block.block_id}:pdf.{block.page}" for block in missing),
         )
-        from vigie.analyse_texte.markdown import _build_text_extraction_markdown_from_blocks
+        from vigie.analyse_texte.markdown import (  # noqa: PLC0415 - repli local pour rompre le cycle Markdown
+            _build_text_extraction_markdown_from_blocks,
+        )
 
         return _build_text_extraction_markdown_from_blocks(section_audits)
     return rendered

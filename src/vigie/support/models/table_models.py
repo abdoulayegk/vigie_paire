@@ -5,6 +5,8 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
+from vigie.support.utils.footnotes_utils import normalize_footnotes_to_canonical
+
 # Canonical footnote format: [{"id": str, "text": str}, ...]
 # Legacy list[str] payloads are normalized at ingestion boundaries.
 FootnoteList = list[dict[str, str]]
@@ -163,8 +165,6 @@ def get_canonical_footnotes(table: Any) -> FootnoteList:
         values = getattr(table, "footnotes", None)
     if not values:
         return []
-    from vigie.support.utils.footnotes_utils import normalize_footnotes_to_canonical
-
     return normalize_footnotes_to_canonical(list(values))
 
 

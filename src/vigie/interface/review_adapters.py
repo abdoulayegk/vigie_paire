@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from typing import Any
 
-from vigie.support.i18n import t
 from vigie.interface.review_models import (
     CHANGE_TYPE_ADDED,
     CHANGE_TYPE_FOOTNOTE,
@@ -21,6 +20,7 @@ from vigie.interface.review_models import (
     EVENT_TYPE_TABLE_REMOVED,
     ReviewItem,
 )
+from vigie.support.i18n import t
 
 
 def _make_change_id(prefix: str, index: int) -> str:

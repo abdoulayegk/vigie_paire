@@ -8,10 +8,10 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from vigie.support.quarter_utils import get_payload_quarter_context
 from vigie.analyse_texte.text_comparison.text_comparison_excel import generate_text_comparison_excel
 from vigie.interface.services.json_io import atomic_write_json
 from vigie.interface.ui_config import TEXT_COMPARISON_DIR
+from vigie.support.quarter_utils import get_payload_quarter_context
 
 logger = logging.getLogger(__name__)
 

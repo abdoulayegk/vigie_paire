@@ -21,6 +21,12 @@ import logging
 from dataclasses import replace
 from pathlib import Path
 
+import pdfplumber
+
+from vigie.extraction.localisation_sections.boundary_resolver import resolve_t4_section_bounds
+from vigie.extraction.localisation_sections.toc_locator import locate_toc_structure
+from vigie.extraction.section_taxonomy import canonicalize_section
+
 from .annual_t4 import AnnualT4Mixin
 from .bank_config import (
     BankConfigMixin,
@@ -38,7 +44,6 @@ from .title_scan import TitleScanMixin
 from .toc_parser import TocParserMixin
 from .validation import ValidationMixin, assess_target_section_health
 from .visual_layout import VisualLayoutMixin
-from vigie.extraction.section_taxonomy import canonicalize_section
 
 # Nom de logger conservé à l'identique après le découpage, pour ne pas invalider
 # une configuration de logging qui filtrerait sur ce nom.
@@ -226,9 +231,6 @@ class SectionLocator(
         # Les titres hardcodes restent un prior/repli si la TDM est incomplete.
         toc_structure = None
         if self._is_t4_quarter():
-            from vigie.extraction.localisation_sections.boundary_resolver import resolve_t4_section_bounds
-            from vigie.extraction.localisation_sections.toc_locator import locate_toc_structure
-
             try:
                 configured_offset = self._get_page_number_offset()
                 toc_structure = locate_toc_structure(
@@ -336,7 +338,9 @@ class SectionLocator(
         boundary_validation: dict = {}
         if self._is_t4_quarter():
             try:
-                from vigie.extraction.annual_section_boundary_validator import AnnualSectionBoundaryValidator
+                from vigie.extraction.annual_section_boundary_validator import (  # noqa: PLC0415 - Docling charge seulement pour T4
+                    AnnualSectionBoundaryValidator,
+                )
 
                 front_pages = list(range(1, min(31, total_pages + 1)))
                 # Preferer la page RG structurelle quand elle est connue.
@@ -454,12 +458,6 @@ class SectionLocator(
         Returns:
             Dict {page_number: texte}
         """
-        try:
-            import pdfplumber
-        except ImportError:
-            logger.error("pdfplumber non installe")
-            return {}
-
         text_by_page = {}
 
         with pdfplumber.open(pdf_path) as pdf:

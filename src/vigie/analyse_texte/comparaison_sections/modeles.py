@@ -9,7 +9,6 @@ from pydantic import BaseModel, ConfigDict, field_validator, model_validator
 
 from vigie.analyse_texte.chunk_alignment import ChunkAlignment
 
-
 _MAX_COMPARISON_LLM_WORKERS = 6
 
 

@@ -10,6 +10,8 @@ import re
 from dataclasses import replace
 from pathlib import Path
 
+import pdfplumber
+
 from .models import (
     SHARED_PAGE_TOP_THRESHOLD,
     LocatedSection,
@@ -41,12 +43,6 @@ class VisualLayoutMixin:
         Returns:
             Dict {page_number: liste de VisualTextElement}
         """
-        try:
-            import pdfplumber
-        except ImportError:
-            logger.error("pdfplumber non installe pour detection visuelle")
-            return {}
-
         visual_elements: dict[int, list[VisualTextElement]] = {}
 
         try:

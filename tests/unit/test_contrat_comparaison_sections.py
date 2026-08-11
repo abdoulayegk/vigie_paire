@@ -6,9 +6,9 @@ from vigie.analyse_texte.comparaison_sections import (
     _build_comparison_batches,
     _compare_section_texts,
     _compare_texts_single_call,
+    preparation_lots,
+    resolution_alignements,
 )
-from vigie.analyse_texte.comparaison_sections import preparation_lots
-from vigie.analyse_texte.comparaison_sections import resolution_alignements
 from vigie.analyse_texte.comparaison_sections.comparaison_section import (
     _compare_section_texts as compare_section_impl,
 )

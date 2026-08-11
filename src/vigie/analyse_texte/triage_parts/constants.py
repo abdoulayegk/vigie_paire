@@ -1,19 +1,29 @@
 """Constantes et expressions regulieres du triage.
 
-Extrait de ``triage.py`` sans modification NI REORDONNANCEMENT : l'import de
-``triage_formatting_rules`` est place au milieu du bloc car il masque
-volontairement deux seuils definis plus haut. Deplacer cet import changerait
-les valeurs effectives.
+Les seuils de formatage ont une source unique dans
+``triage_formatting_rules`` et sont reexportes ici pour compatibilite.
 """
 
 from __future__ import annotations
 
 import re
 
+from vigie.analyse_texte.triage_formatting_rules import (  # noqa: F401 - re-export
+    _BANK_NOISE_SEQUENCE_THRESHOLD,
+    _BANK_OPERATION_RE,
+    _CALENDAR_UPDATE_RE,
+    _COSMETIC_SEQUENCE_THRESHOLD,
+    _GOVERNANCE_SIGNAL_RE,
+    _ISOLATED_DATE_RE,
+    _METHODOLOGY_SIGNAL_RE,
+    _NEW_REGULATORY_SIGNAL_RE,
+    _PROCESS_SIGNAL_RE,
+    _VOLATILE_TOKEN_RE,
+    is_governance_protected_edit,
+)
+
 _MAX_TRIAGE_LLM_WORKERS = 6
 _SEMANTIC_ALIGNMENT_DECISIONS = frozenset({"same_disclosure", "distinct_disclosures", "moved_text", "uncertain"})
-_COSMETIC_SEQUENCE_THRESHOLD = 0.985
-_BANK_NOISE_SEQUENCE_THRESHOLD = 0.92
 _TRIAGE_DEDUP_EMBEDDING_THRESHOLD = 0.92
 _TRIAGE_EMBEDDING_TRUNCATE_CHARS = 1800
 _DEFAULT_EMBEDDING_MODEL = "text-embedding-3-small"
@@ -34,20 +44,6 @@ _SEMANTIC_REASON_FIELDS = (
     "motif_non_pertinence",
 )
 _ANALYST_FIELD_END_RE = re.compile(r"[.!?]+[\u00bb\u201d\"')\]]*$")
-from vigie.analyse_texte.triage_formatting_rules import (  # noqa: F401 - re-export
-    _BANK_NOISE_SEQUENCE_THRESHOLD,
-    _BANK_OPERATION_RE,
-    _CALENDAR_UPDATE_RE,
-    _COSMETIC_SEQUENCE_THRESHOLD,
-    _GOVERNANCE_SIGNAL_RE,
-    _ISOLATED_DATE_RE,
-    _METHODOLOGY_SIGNAL_RE,
-    _NEW_REGULATORY_SIGNAL_RE,
-    _PROCESS_SIGNAL_RE,
-    _VOLATILE_TOKEN_RE,
-    is_governance_protected_edit,
-)
-
 _CALENDAR_SUBJECT_RE = re.compile(
     r"(?:"
     r"coefficient\s+de\s+plancher|plancher\s+des?\s+fonds\s+propres|"

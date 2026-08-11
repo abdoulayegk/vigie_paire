@@ -11,6 +11,7 @@ from vigie.comparaison.canonical import (
     to_canonical_payload,
 )
 from vigie.interface.layouts import build_page_results
+from vigie.interface.services import text_comparison_store
 from vigie.interface.services.comparison_store import (
     build_file_comparison_store,
 )
@@ -83,12 +84,8 @@ def on_load_comparison(n_clicks, filename):
     warning = str(loaded["warning"] or "")
 
     # Charger le text_comparison.json correspondant (silencieux si absent)
-    from vigie.interface.services.text_comparison_store import (
-        resolve_text_comparison_from_payload,
-    )
-
     canonical_for_text = to_canonical_payload(data) if data else {}
-    text_comparison_data = resolve_text_comparison_from_payload(canonical_for_text)
+    text_comparison_data = text_comparison_store.resolve_text_comparison_from_payload(canonical_for_text)
 
     if data.get("result_type") == "metier_tableaux":
         return (

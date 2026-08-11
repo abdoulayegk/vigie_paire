@@ -5,13 +5,15 @@ from __future__ import annotations
 from dash import ALL, Input, Output, State, callback, ctx, dcc
 from dash.exceptions import PreventUpdate
 
-from vigie.interface.services.text_review import (
-    apply_text_review_decision,
-    write_text_review_to_disk,
-)
+from vigie.analyse_texte import text_comparison
 from vigie.interface.layouts.text_analysis import (
     build_filtered_text_cards,
     build_text_analysis_tab,
+)
+from vigie.interface.services import text_comparison_store
+from vigie.interface.services.text_review import (
+    apply_text_review_decision,
+    write_text_review_to_disk,
 )
 from vigie.support.quarter_utils import quarter_label_from_payload
 
@@ -185,20 +187,17 @@ def download_text_excel(n_clicks, text_data):
     if not n_clicks or not text_data:
         raise PreventUpdate
 
-    from vigie.interface.services.text_comparison_store import load_text_comparison_for_dash
-    from vigie.analyse_texte.text_comparison import generate_text_comparison_excel
-
     bank_code = str(text_data.get("bank_code", "banque")).lower()
     quarter_current = str(text_data.get("quarter_current", "")).lower()
     quarter_previous = str(text_data.get("quarter_previous", "")).lower()
-    latest_text_data = load_text_comparison_for_dash(
+    latest_text_data = text_comparison_store.load_text_comparison_for_dash(
         bank_code=bank_code,
         quarter_current=quarter_current,
         quarter_previous=quarter_previous,
     )
     payload = latest_text_data or text_data
 
-    excel_bytes = generate_text_comparison_excel(payload, output_path=None)
+    excel_bytes = text_comparison.generate_text_comparison_excel(payload, output_path=None)
     bank = str(payload.get("bank_code", "banque")).upper()
     q_cur = _filename_period(quarter_label_from_payload(payload, "current"))
     filename = f"veille_textuelle_{bank}_{q_cur}.xlsx"

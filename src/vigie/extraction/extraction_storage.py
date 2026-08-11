@@ -4,10 +4,16 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from vigie.extraction.vision_extraction_writer import (
+    write_compact_footnotes_json,
+    write_compact_indicators_json,
+    write_compact_report_artifacts,
+)
 from vigie.support.models.table_models import TableArtifact, infer_content_source
 from vigie.support.utils.indicator_cleaner import (
     normalize_indicator_for_comparison,
@@ -28,8 +34,6 @@ def _normalize_storage_quarter(quarter: str) -> str:
     value = str(quarter or "").strip().lower()
     match = None
     if value:
-        import re
-
         match = re.search(r"([qt])\s*([1-4])", value, flags=re.IGNORECASE)
     if match:
         return f"t{match.group(2)}"
@@ -158,11 +162,6 @@ def _ensure_projection_artifacts(target_dir: Path) -> None:
     footnotes_path = target_dir / REPORT_FOOTNOTES_FILENAME
     if indicators_path.exists() and footnotes_path.exists():
         return
-    from vigie.extraction.vision_extraction_writer import (
-        write_compact_footnotes_json,
-        write_compact_indicators_json,
-    )
-
     if not indicators_path.exists():
         write_compact_indicators_json(tables_json_path, target_dir)
     if not footnotes_path.exists():
@@ -205,8 +204,6 @@ def save_extraction(
     meta_payload.setdefault("quarter", quarter_norm)
     meta_payload.setdefault("extracted_at", datetime.now(timezone.utc).isoformat())
     meta_payload.setdefault("created_at", meta_payload.get("extracted_at"))
-    from vigie.extraction.vision_extraction_writer import write_compact_report_artifacts
-
     write_compact_report_artifacts(
         tables=tables,
         out_dir=target_dir,

@@ -14,10 +14,8 @@ from typing import Any
 
 from tqdm import tqdm
 
-from vigie.support.batch_quarter import normalize_quarter, resolve_previous_quarter
-from vigie.support.config import get_text_extraction_config
 from vigie.analyse_texte.comparaison_sections import _compare_section_texts
-from vigie.analyse_texte.constants import UNIFIED_TEXT_SCHEMA_VERSION, _SECTION_LABELS, _T4_TEXT_TARGET_SECTIONS
+from vigie.analyse_texte.constants import _SECTION_LABELS, _T4_TEXT_TARGET_SECTIONS, UNIFIED_TEXT_SCHEMA_VERSION
 from vigie.analyse_texte.extraction import _extract_audits_for_pdf
 from vigie.analyse_texte.global_reconciliation import reconcile_global_change_fragments
 from vigie.analyse_texte.markdown import (
@@ -32,13 +30,21 @@ from vigie.analyse_texte.markdown import (
 from vigie.analyse_texte.models import TextAnalysisQualityError
 from vigie.analyse_texte.openai_client import _build_openai_client
 from vigie.analyse_texte.sections import _allowed_target_sections, _resolve_sections
-from vigie.analyse_texte.summary import _build_global_summary, _is_non_cosmetic_change, _retained_change_sort_key
-from vigie.analyse_texte.summary import _build_semantic_quality_metrics
-from vigie.analyse_texte.triage_parts import _triage_section_changes
+from vigie.analyse_texte.summary import (
+    _build_global_summary,
+    _build_semantic_quality_metrics,
+    _is_non_cosmetic_change,
+    _retained_change_sort_key,
+)
 from vigie.analyse_texte.text_comparison.text_comparison_writer import (
     deduplicate_and_group_section_changes,
     get_text_comparison_path,
     write_text_comparison,
+)
+from vigie.analyse_texte.text_extraction.text_extraction_audit_writer import (
+    TEXT_EXTRACTION_AUDIT_SCHEMA_VERSION,
+    get_canonical_text_extraction_audit_path,
+    write_text_extraction_audit,
 )
 from vigie.analyse_texte.text_extraction.text_extraction_markdown_writer import (
     get_canonical_text_extraction_md_path,
@@ -48,12 +54,10 @@ from vigie.analyse_texte.text_extraction.text_extraction_markdown_writer import 
     stamp_text_extraction_cache_schema,
     write_text_extraction_markdown,
 )
-from vigie.analyse_texte.text_extraction.text_extraction_audit_writer import (
-    TEXT_EXTRACTION_AUDIT_SCHEMA_VERSION,
-    get_canonical_text_extraction_audit_path,
-    write_text_extraction_audit,
-)
+from vigie.analyse_texte.triage_parts import _triage_section_changes
 from vigie.analyse_texte.vision_boundary_validator import build_text_boundary_validator
+from vigie.support.batch_quarter import normalize_quarter, resolve_previous_quarter
+from vigie.support.config import get_text_extraction_config
 
 logger = logging.getLogger(__name__)
 

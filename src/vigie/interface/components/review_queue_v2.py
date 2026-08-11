@@ -12,9 +12,8 @@ from dash import html
 
 from vigie.interface.components.review_display_shared import section_display_label
 from vigie.interface.components.table_title_resolver import resolve_display_table_title
-from vigie.support.i18n import t
 from vigie.interface.review_models_v2 import ChangeType
-
+from vigie.support.i18n import t
 
 _ACTION_DISPLAY = {
     "revue_prioritaire": ("Revue prioritaire", "danger"),

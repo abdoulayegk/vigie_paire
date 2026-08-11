@@ -8,6 +8,10 @@ import re
 from pathlib import Path
 from typing import Any
 
+from openpyxl import Workbook
+from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
+from openpyxl.utils import get_column_letter
+
 from vigie.support.i18n.fr import impact_label_fr, sanitize_analyst_french
 from vigie.support.vigie_columns import build_text_vigie_display_row
 
@@ -246,10 +250,6 @@ def generate_text_comparison_excel(
     Returns:
         Path du fichier créé, ou bytes si output_path est None.
     """
-    from openpyxl import Workbook
-    from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
-    from openpyxl.utils import get_column_letter
-
     wb = Workbook()
     ws = wb.active
     ws.title = "Analyse complète"

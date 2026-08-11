@@ -14,7 +14,6 @@ from dash.exceptions import PreventUpdate
 
 from vigie.interface.layouts import build_page_upload
 
-
 # -- Sidebar ------------------------------------------------------------------
 
 

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-
 from vigie.extraction.vision_full import (
     VisionFullExtractor,
     VisionFullResult,

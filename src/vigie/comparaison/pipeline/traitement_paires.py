@@ -14,7 +14,8 @@ from vigie.comparaison.noise_filter import (
 )
 from vigie.comparaison.pipeline.ancrages_visuels import _visual_sanity_meta
 from vigie.comparaison.pipeline.evenements_tableaux import _pire_statut_rendu
-
+from vigie.extraction.vision_t1_anchor import anchor_against_previous
+from vigie.support.config.loader import load_config
 
 logger = logging.getLogger(__name__)
 
@@ -152,8 +153,6 @@ def traiter_paires(
 def appliquer_ancrage_t1(pair_comparisons: list[dict[str, Any]]) -> None:
     """Signaler les derives de lignes probablement dues a l'extraction T2."""
     try:
-        from vigie.support.config.loader import load_config
-
         anchor_cfg = load_config("configs/bank_profiles.yaml")
         vision_cfg = anchor_cfg.get("vision_extraction", {})
         anchor_enabled = bool(vision_cfg.get("vision_t1_anchor_enabled", False))
@@ -165,8 +164,6 @@ def appliquer_ancrage_t1(pair_comparisons: list[dict[str, Any]]) -> None:
     if not anchor_enabled:
         return
     try:
-        from vigie.extraction.vision_t1_anchor import anchor_against_previous
-
         for pair_comp in pair_comparisons:
             prev_table = pair_comp.get("previous_table", {})
             curr_table = pair_comp.get("current_table", {})

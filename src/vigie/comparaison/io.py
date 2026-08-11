@@ -137,7 +137,7 @@ def json_sanitize(obj: Any) -> Any:
 
 def _is_ghost_table(entry: dict[str, Any]) -> bool:
     """Retourne True si le tableau n'a aucune ligne structurelle ni en-tete."""
-    from vigie.extraction.vision_full import (
+    from vigie.extraction.vision_full import (  # noqa: PLC0415 - evite de charger Vision dans le mode revue
         VisionFullResult,
         _structural_indicator_count,
     )

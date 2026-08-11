@@ -12,10 +12,11 @@ from __future__ import annotations
 import io
 import logging
 import os
-from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from PIL.Image import Image
+import numpy as np
+from PIL import Image as PILImage
+from PIL import ImageFilter, ImageOps
+from PIL.Image import Image
 
 logger = logging.getLogger(__name__)
 
@@ -59,12 +60,10 @@ def preprocess_for_vision(image_bytes: bytes, *, enabled: bool | None = None) ->
         return image_bytes
 
     try:
-        from PIL import Image, ImageFilter, ImageOps
-
-        src: Image = Image.open(io.BytesIO(image_bytes))
+        src: Image = PILImage.open(io.BytesIO(image_bytes))
 
         if src.mode == "RGBA":
-            background: Image = Image.new("RGB", src.size, (255, 255, 255))
+            background: Image = PILImage.new("RGB", src.size, (255, 255, 255))
             background.paste(src, mask=src.split()[3])
             src = background
         elif src.mode != "RGB":
@@ -89,11 +88,7 @@ def preprocess_for_vision(image_bytes: bytes, *, enabled: bool | None = None) ->
 
 def _normalize_background(img: Image, threshold: int = 240) -> Image:
     """Remplacer les pixels quasi-blancs par du blanc pur pour supprimer les fonds gris."""
-    import numpy as np
-
     arr = np.array(img)
     mask = np.all(arr >= threshold, axis=-1)
     arr[mask] = 255
-    from PIL import Image
-
-    return Image.fromarray(arr)
+    return PILImage.fromarray(arr)

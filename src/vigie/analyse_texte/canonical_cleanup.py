@@ -6,7 +6,6 @@ import html
 import re
 from dataclasses import dataclass
 
-
 _SPACE_RE = re.compile(r"[ \t\f\v]+")
 _SPACE_BEFORE_PUNCTUATION_RE = re.compile(r"\s+([,.;:!?])")
 _SPACE_AFTER_OPENING_RE = re.compile(r"([«(\[])\s+")

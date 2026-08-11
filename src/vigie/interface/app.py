@@ -11,12 +11,12 @@ import argparse
 import importlib.util
 import logging
 import os
-from pathlib import Path
 import sys
-
-logger = logging.getLogger(__name__)
+from pathlib import Path
 
 from vigie.interface import review_runtime
+
+logger = logging.getLogger(__name__)
 
 DEFAULT_PORT = 8050
 PIPELINE_DEPENDENCIES = ("docling", "openai")
@@ -120,8 +120,8 @@ if __name__ == "__main__":
 else:
     review_runtime.configure_from_environment()
 
-import dash_bootstrap_components as dbc
-from dash import (
+import dash_bootstrap_components as dbc  # noqa: E402 - configuration requise avant le chargement de Dash
+from dash import (  # noqa: E402 - configuration requise avant le chargement de Dash
     Dash,
     Input,
     Output,
@@ -131,12 +131,12 @@ from dash import (
     html,
 )
 
-from vigie.interface.layouts import (
+from vigie.interface.layouts import (  # noqa: E402 - les layouts lisent la configuration de demarrage
     build_page_upload,
     build_sidebar,
 )
-from vigie.interface.ui_config import RESULTATS_DIR
-from vigie.support.quarter_utils import build_quarter_context
+from vigie.interface.ui_config import RESULTATS_DIR  # noqa: E402 - configuration de demarrage deja appliquee
+from vigie.support.quarter_utils import build_quarter_context  # noqa: E402 - voir initialisation ci-dessus
 
 # Theme Bootstrap
 APP_THEME = dbc.themes.FLATLY

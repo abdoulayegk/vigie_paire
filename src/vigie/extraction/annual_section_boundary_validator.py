@@ -21,6 +21,12 @@ from difflib import SequenceMatcher
 from pathlib import Path
 from typing import Callable
 
+from docling.datamodel.base_models import InputFormat
+from docling.datamodel.pipeline_options import PdfPipelineOptions
+from docling.document_converter import DocumentConverter, PdfFormatOption
+
+from vigie.support.config import resolve_openai_model
+
 from .genai_toc_detector import (
     AnnualTOCAnalysis,
     GenAITOCDetector,
@@ -275,8 +281,6 @@ class AnnualSectionBoundaryValidator:
         self.year = int(year)
         if detector is None:
             try:
-                from vigie.support.config import resolve_openai_model
-
                 model = resolve_openai_model("default_genai")
             except Exception:
                 model = "gpt-4o"
@@ -293,10 +297,6 @@ class AnnualSectionBoundaryValidator:
     ) -> list[StructuredTOCEntry]:
         """Convertir uniquement la page TDM avec Docling et lire son tableau."""
         try:
-            from docling.datamodel.base_models import InputFormat
-            from docling.datamodel.pipeline_options import PdfPipelineOptions
-            from docling.document_converter import DocumentConverter, PdfFormatOption
-
             options = PdfPipelineOptions()
             options.do_ocr = False
             options.do_table_structure = True

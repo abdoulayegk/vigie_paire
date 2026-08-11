@@ -4,11 +4,11 @@ from __future__ import annotations
 
 from typing import Any
 
-from vigie.comparaison.io import _coerce_float, _require_string
+from vigie.comparaison.io import _coerce_float, _require_string, table_view_as_dict
 from vigie.comparaison.rapprochement.contrats import (
     _CURRENT_ID_PREFIX,
-    _MatchingValidationError,
     _PREVIOUS_ID_PREFIX,
+    _MatchingValidationError,
 )
 from vigie.comparaison.rapprochement.etat import MatchedPair, MatchingResult, TableRef
 
@@ -49,8 +49,6 @@ def _decode_current_alias(value: Any) -> str:
 
 def _alias_table_card(card: Any, *, previous: bool) -> dict[str, Any]:
     """Copie une fiche de tableau en remplacant son ID par un alias PQ/CQ."""
-    from vigie.comparaison.io import table_view_as_dict
-
     aliased = table_view_as_dict(card)
     table_id = str(aliased.get("table_id", "") or "")
     aliased["table_id"] = _previous_alias(table_id) if previous else _current_alias(table_id)

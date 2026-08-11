@@ -21,6 +21,7 @@ from vigie.interface.services.review_navigation import (
     _table_to_proof_item,
 )
 from vigie.support.quarter_utils import quarter_label_from_payload
+from vigie.support.utils.pdf_highlight import find_text_bboxes_in_region
 
 logger = logging.getLogger(__name__)
 
@@ -124,8 +125,6 @@ def update_review_proofs(
     all_changes = table.get("changes") or []
 
     if all_changes and (pdf_path_t1 or pdf_path_t2):
-        from vigie.support.utils.pdf_highlight import find_text_bboxes_in_region
-
         _FOOTNOTE_CHANGE_TYPES = {
             "footnote_added",
             "FOOTNOTE_ADDED",

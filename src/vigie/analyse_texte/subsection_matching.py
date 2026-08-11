@@ -7,11 +7,11 @@ changements synthétiques. La stratégie privilégie les correspondances sûres.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from difflib import SequenceMatcher
 import logging
 import math
 import re
+from dataclasses import dataclass
+from difflib import SequenceMatcher
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, field_validator

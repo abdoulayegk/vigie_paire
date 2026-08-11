@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import os
-from argparse import Namespace
-from pathlib import Path
 import subprocess
 import sys
+from argparse import Namespace
+from pathlib import Path
 
 from vigie.interface import review_runtime
 

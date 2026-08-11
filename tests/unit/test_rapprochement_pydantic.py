@@ -12,6 +12,7 @@ from vigie.comparaison.pipeline.resultat_models import (
     MatchingBlock,
     ReferenceResolution,
 )
+from vigie.comparaison.rapprochement.contrats import _MatchingValidationError
 from vigie.comparaison.rapprochement.etat import (
     MatchedPair,
     MatchingResult,
@@ -21,7 +22,6 @@ from vigie.comparaison.rapprochement.etat import (
 from vigie.comparaison.rapprochement.normalisation_reponses import (
     _normalize_matching_response,
 )
-from vigie.comparaison.rapprochement.contrats import _MatchingValidationError
 from vigie.support.models.comparison_models import (
     MatchingDecision,
     PrimaryMatchResponse,

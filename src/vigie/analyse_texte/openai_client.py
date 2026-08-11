@@ -12,6 +12,7 @@ import logging
 import time
 from typing import Any, TypeVar
 
+import openai
 from pydantic import BaseModel, ValidationError
 
 from vigie.analyse_texte.constants import (
@@ -48,12 +49,10 @@ def _build_openai_client():
     Lève ``RuntimeError`` si la clé est absente — le pipeline texte ne peut pas
     fonctionner sans accès à l'API OpenAI.
     """
-    from openai import OpenAI
-
     api_key = get_openai_api_key()
     if not api_key:
         raise RuntimeError("OPENAI_API_KEY absent: le pipeline texte GPT-first ne peut pas s'exécuter.")
-    return OpenAI(api_key=api_key, timeout=_OPENAI_TIMEOUT_SECONDS, max_retries=1)
+    return openai.OpenAI(api_key=api_key, timeout=_OPENAI_TIMEOUT_SECONDS, max_retries=1)
 
 
 def _strip_markdown_fences(text: str) -> str:

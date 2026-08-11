@@ -10,20 +10,20 @@ from typing import Any
 import dash_bootstrap_components as dbc
 from dash import dcc, html
 
+from vigie.analyse_texte.text_comparison.justification import build_text_triage_justification
+from vigie.comparaison.analyst_change_presentation import (
+    build_analyst_narrative,
+    build_change_presentation,
+    canonicalize_analyst_narrative,
+)
 from vigie.comparaison.triage.amf_taxonomy import (
     IMPACT_IT_DETAIL_LABELS,
     POSTURE_DETAIL_LABELS,
     _compact_complete_sentence_parts,
     extract_labeled_analysis,
 )
-from vigie.comparaison.analyst_change_presentation import (
-    build_analyst_narrative,
-    build_change_presentation,
-    canonicalize_analyst_narrative,
-)
 from vigie.interface.components.text_change_presentation import build_source_evidence_details
 from vigie.support.i18n.fr import sanitize_analyst_french
-from vigie.analyse_texte.text_comparison.justification import build_text_triage_justification
 
 from .highlight import (
     _HIGHLIGHT_ADDED_STYLE,

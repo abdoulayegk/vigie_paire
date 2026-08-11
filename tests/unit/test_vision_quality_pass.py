@@ -5,11 +5,11 @@ from pathlib import Path
 import pytest
 
 from vigie.extraction.vision_full import (
+    _PROMPT_BASE,
+    _PROMPT_BASE_PRECISION,
     OPENAI_VISION_TIMEOUT_SECONDS,
     VisionFullExtractor,
     VisionFullResult,
-    _PROMPT_BASE,
-    _PROMPT_BASE_PRECISION,
     _normalize_footnote_marker_id,
     _select_targeted_rescue_variant,
 )

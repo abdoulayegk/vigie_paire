@@ -5,6 +5,10 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
+import pymupdf
+
+from vigie.extraction.pdf_preview import render_pdf_page
+
 from .pymupdf_utils import configure_mupdf_runtime
 
 logger = logging.getLogger(__name__)
@@ -34,11 +38,6 @@ def crop_table_image(
     if not _validate_bbox(bbox_norm):
         return False
 
-    try:
-        import pymupdf
-    except ImportError:
-        logger.debug("PyMuPDF not available for crop_table_image")
-        return False
     configure_mupdf_runtime(pymupdf)
 
     try:
@@ -222,11 +221,6 @@ def crop_table_region_to_bytes(
     if not _validate_bbox(bbox_norm):
         return b""
 
-    try:
-        import pymupdf
-    except ImportError:
-        logger.debug("PyMuPDF not available for crop_table_region_to_bytes")
-        return b""
     configure_mupdf_runtime(pymupdf)
 
     try:
@@ -308,20 +302,12 @@ def render_page_with_bbox_highlight_to_bytes(
     Returns:
         Octets PNG de la page complete avec un rectangle rouge, ou page normale si bbox invalide.
     """
-    from vigie.extraction.pdf_preview import render_pdf_page
-
     zoom = (dpi / 72.0) if dpi is not None else scale
 
     if not _validate_bbox(bbox_norm):
         full = render_pdf_page(pdf_path, page_number, scale=zoom, format="png")
         return full if full else b""
 
-    try:
-        import pymupdf
-    except ImportError:
-        logger.debug("PyMuPDF not available for render_page_with_bbox_highlight_to_bytes")
-        full = render_pdf_page(pdf_path, page_number, scale=zoom, format="png")
-        return full if full else b""
     configure_mupdf_runtime(pymupdf)
 
     try:
@@ -384,8 +370,6 @@ def crop_footnote_region_to_bytes(
     Returns:
         Octets PNG de la region de notes sous le tableau.
     """
-    from vigie.extraction.pdf_preview import render_pdf_page
-
     zoom = (dpi / 72.0) if dpi is not None else scale
     secondary_color = secondary_highlight_color or highlight_color
 
@@ -393,12 +377,6 @@ def crop_footnote_region_to_bytes(
         full = render_pdf_page(pdf_path, page_number, scale=zoom, format="png")
         return full if full else b""
 
-    try:
-        import pymupdf
-    except ImportError:
-        logger.debug("PyMuPDF not available for crop_footnote_region_to_bytes")
-        full = render_pdf_page(pdf_path, page_number, scale=zoom, format="png")
-        return full if full else b""
     configure_mupdf_runtime(pymupdf)
 
     try:
@@ -484,8 +462,6 @@ def crop_page_region_bytes(
         # Import paresseux : render_pdf_page etait appele sans etre importe, ce qui
         # levait NameError sur cette branche. Charge ici pour eviter tout cycle
         # entre vigie.support.utils et vigie.extraction.
-        from vigie.extraction.pdf_preview import render_pdf_page
-
         return render_pdf_page(pdf_path, page_number, scale=dpi / 72, format="png") or b""
 
     return crop_table_region_to_bytes(

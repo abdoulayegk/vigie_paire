@@ -12,8 +12,11 @@ from typing import Any
 
 import pymupdf
 
+from vigie.extraction.extraction_debug_writer import write_extraction_debug
+from vigie.support.utils.pattern_loader import get_patterns
 from vigie.support.utils.pymupdf_utils import configure_mupdf_runtime
 from vigie.support.utils.table_page_structure import derive_page_local_structure
+
 from .docling_pass import DoclingPassMixin
 from .document import DocumentExtractionMixin
 from .models import (
@@ -75,8 +78,6 @@ class DoclingProcessor(
         self.bank_code_for_patterns: str | None = None  # Sera set lors de extract_document
         self.extraction_patterns = None
         try:
-            from vigie.support.utils.pattern_loader import get_patterns
-
             self.extraction_patterns = get_patterns()  # Chargement par defaut
             logger.debug("Patterns d'extraction charges")
         except Exception as e:
@@ -281,11 +282,9 @@ def extract_tables_docling_by_sections(
                     break
 
     try:
-        from .extraction_debug_writer import write_extraction_debug
-
         write_extraction_debug(bank=bank_code, quarter=quarter, year=year, tables=tables)
-    except Exception:
-        pass
+    except (OSError, TypeError, ValueError) as exc:
+        logger.warning("Impossible d'ecrire le diagnostic d'extraction: %s", exc)
 
     logger.info(
         "extraction_docling_tables pdf=%s bank=%s quarter=%s year=%s tables_count=%d page_ranges=%s",

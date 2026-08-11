@@ -10,17 +10,38 @@ from vigie.analyse_texte.chunk_alignment import (
     ChunkCandidate,
     _align_chunks_tfidf,
     _format_alignments_for_prompt,
+    _reassemble_adjacent_one_to_many,
+    _tfidf_similarity_matrix_from_texts,
 )
-from vigie.analyse_texte.chunking import _chunk_subsection_text
+from vigie.analyse_texte.chunking import TextChunk, _chunk_subsection_text
 from vigie.analyse_texte.comparaison_sections import (
+    ChunkComparisonLLMResponse,
+    _attach_alignment_metadata,
     _build_comparison_batches,
     _compare_section_texts,
+    _materialize_semantic_alignment_decisions,
+)
+from vigie.analyse_texte.docling_markdown import (
+    DoclingSegment,
+    _assign_segments_to_sections,
+    _build_text_extraction_markdown_from_docling,
+    _matchable_section_segments,
+    _parse_docling_markdown,
+    _should_keep_docling_segment,
 )
 from vigie.analyse_texte.extraction import (
+    _augment_table_regions_with_composite_grids,
     _build_section_audit,
     _classify_block_type,
+    _docling_page_batches,
     _extract_audits_for_pdf,
     _text_docling_ocr_enabled,
+)
+from vigie.analyse_texte.global_reconciliation import (
+    _components,
+    _one_sided_nodes,
+    _ReconciliationResponse,
+    reconcile_global_change_fragments,
 )
 from vigie.analyse_texte.markdown import (
     _build_text_extraction_markdown,
@@ -28,6 +49,7 @@ from vigie.analyse_texte.markdown import (
     _extract_section_text_from_markdown,
     _first_page_marker,
     _format_page_suffix,
+    _is_out_of_scope_accounting_heading,
     _parse_page_index_from_markdown,
 )
 from vigie.analyse_texte.models import (
@@ -37,7 +59,10 @@ from vigie.analyse_texte.models import (
     TextAnalysisQualityError,
 )
 from vigie.analyse_texte.normalization import (
+    _infer_table_footnote_bboxes,
+    _is_running_report_chrome,
     _looks_like_footnote,
+    _sanitize_explanation,
     _sanitize_semantic_text,
 )
 from vigie.analyse_texte.openai_client import (
@@ -50,7 +75,10 @@ from vigie.analyse_texte.sections import (
     _resolve_sections,
     _section_window_for_page,
 )
+from vigie.analyse_texte.semantic_chunking import SemanticChunkingError
 from vigie.analyse_texte.subsection_matching import (
+    OrphanMatchLLMResponse,
+    OrphanSubsection,
     _gpt_match_orphan_headings,
     _normalize_heading,
     _pair_subsections,
@@ -61,55 +89,16 @@ from vigie.analyse_texte.summary import (
     _is_new_major_or_allowed_moderate,
     _is_non_cosmetic_change,
 )
-from vigie.analyse_texte.triage_parts import (
-    _FEW_SHOT_TRIAGE_AMF,
-    _default_triage,
-    _derive_legacy_fields,
-)
-from vigie.analyse_texte.chunk_alignment import (
-    _reassemble_adjacent_one_to_many,
-    _tfidf_similarity_matrix_from_texts,
-)
-from vigie.analyse_texte.chunking import TextChunk
-from vigie.analyse_texte.semantic_chunking import SemanticChunkingError
-from vigie.analyse_texte.comparaison_sections import (
-    ChunkComparisonLLMResponse,
-    _attach_alignment_metadata,
-    _materialize_semantic_alignment_decisions,
-)
-from vigie.analyse_texte.global_reconciliation import (
-    _ReconciliationResponse,
-    _components,
-    _one_sided_nodes,
-    reconcile_global_change_fragments,
-)
-from vigie.analyse_texte.subsection_matching import (
-    OrphanMatchLLMResponse,
-    OrphanSubsection,
-)
 from vigie.analyse_texte.text_extraction.text_extraction_markdown_writer import (
     get_raw_docling_markdown_path,
     has_current_text_extraction_cache_schema,
     stamp_text_extraction_cache_schema,
 )
-from vigie.analyse_texte.docling_markdown import (
-    DoclingSegment,
-    _assign_segments_to_sections,
-    _build_text_extraction_markdown_from_docling,
-    _matchable_section_segments,
-    _parse_docling_markdown,
-    _should_keep_docling_segment,
+from vigie.analyse_texte.triage_parts import (
+    _FEW_SHOT_TRIAGE_AMF,
+    _default_triage,
+    _derive_legacy_fields,
 )
-from vigie.analyse_texte.extraction import (
-    _augment_table_regions_with_composite_grids,
-    _docling_page_batches,
-)
-from vigie.analyse_texte.normalization import (
-    _infer_table_footnote_bboxes,
-    _is_running_report_chrome,
-    _sanitize_explanation,
-)
-from vigie.analyse_texte.markdown import _is_out_of_scope_accounting_heading
 
 
 class _FakeChoice:
@@ -6319,20 +6308,19 @@ def test_td_future_capital_disclosures_are_not_merged_only_for_similar_boilerpla
 
 from pydantic import ValidationError as _PydValidationError
 
-from vigie.comparaison.triage.amf_taxonomy import (
-    TriageAMFCompactLLMBatch,
-    TriageAMFCompactLLMResultWithIndex,
-    TriageAMFBatch,
-    TriageAMFResult,
-    TriageAMFResultWithIndex,
-    TriageValidationError,
-)
 from vigie.analyse_texte.openai_client import (
     _call_structured_completion,
     _call_structured_completion_with_correction,
 )
-from vigie.analyse_texte.triage_parts import _triage_section_changes
-from vigie.analyse_texte.triage_parts import _deterministic_cosmetic_exclusion
+from vigie.analyse_texte.triage_parts import _deterministic_cosmetic_exclusion, _triage_section_changes
+from vigie.comparaison.triage.amf_taxonomy import (
+    TriageAMFBatch,
+    TriageAMFCompactLLMBatch,
+    TriageAMFCompactLLMResultWithIndex,
+    TriageAMFResult,
+    TriageAMFResultWithIndex,
+    TriageValidationError,
+)
 
 
 def _valid_explanation() -> str:

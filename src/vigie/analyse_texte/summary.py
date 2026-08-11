@@ -11,7 +11,6 @@ from typing import Any
 
 from vigie.comparaison.analyst_change_presentation import build_change_presentation
 
-
 _STRONG_AMF_THEMES_FOR_MODERE_RETENTION: frozenset[str] = frozenset(
     {
         "MODIFICATION_METHODOLOGIE",

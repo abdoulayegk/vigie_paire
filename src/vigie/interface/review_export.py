@@ -8,8 +8,11 @@ from collections import Counter, defaultdict
 from datetime import datetime
 from typing import Any, Iterator
 
-from vigie.support.quarter_utils import quarter_label_from_payload
+from openpyxl import Workbook
+from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
+
 from vigie.interface.review_models import ReviewItem
+from vigie.support.quarter_utils import quarter_label_from_payload
 
 CSV_SCHEMA_VERSION = "csv_review_v1"
 CSV_SEPARATOR = ";"
@@ -526,8 +529,6 @@ def _append_summary_sheet(
 
 def _style_expert_workbook(wb: Any) -> None:
     """Applique un formatage riche aligne sur comparison_excel.py."""
-    from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
-
     review_ws = wb[EXPERT_EXCEL_SHEET_REVIEW]
     summary_ws = wb[EXPERT_EXCEL_SHEET_SUMMARY]
 
@@ -836,8 +837,6 @@ def generate_validation_excel(
     Returns:
         Contenu binaire du fichier XLSX.
     """
-    from openpyxl import Workbook
-
     wb = Workbook()
     expert_rows = list(_iter_expert_excel_rows(review_items, indicator_result))
     _append_summary_sheet(wb, expert_rows, indicator_result)

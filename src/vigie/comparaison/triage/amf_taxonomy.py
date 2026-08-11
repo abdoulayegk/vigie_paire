@@ -440,7 +440,7 @@ class _TriageAMFResultBase(BaseModel):
 
         normalized = dict(data)
         justification = str(normalized.get("nouvelle_idee_justification") or "").strip()
-        from vigie.analyse_texte.text_comparison.justification import (
+        from vigie.analyse_texte.text_comparison.justification import (  # noqa: PLC0415 - cycle de validation Pydantic
             is_structured_text_triage_justification,
             synthesize_triage_justification_from_payload,
         )

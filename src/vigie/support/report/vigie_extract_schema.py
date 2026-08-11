@@ -14,6 +14,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, TypedDict
 
+import docling
+
 from vigie.support.models.table_models import (
     TABLE_EXTRACTION_STATUS_OK,
     VISION_CONTENT_SOURCE,
@@ -363,8 +365,6 @@ def compute_pdf_hash(pdf_path: str | Path) -> str:
 def get_docling_version() -> str:
     """Retourne la version de docling installee, ou ``"unknown"``."""
     try:
-        import docling
-
         return getattr(docling, "__version__", "unknown")
     except ImportError:
         return "unknown"

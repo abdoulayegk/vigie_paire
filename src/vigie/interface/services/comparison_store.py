@@ -18,15 +18,15 @@ from vigie.comparaison.canonical import (
     new_empty_ui_comparison_payload,
     to_canonical_payload,
 )
+from vigie.interface.review_storage import load_review_state, save_review_state
 from vigie.interface.services.comparison_context import (
     _missing_pdf_warning,
     _normalize_pdf_paths_store,
     _pdf_paths_from_comparison_meta,
 )
-from vigie.support.quarter_utils import build_quarter_context
-from vigie.interface.review_storage import load_review_state, save_review_state
 from vigie.interface.ui_config import INDICATOR_COMPARISON_DIR, bank_short_name
 from vigie.interface.ui_io import load_comparison_result
+from vigie.support.quarter_utils import build_quarter_context
 
 
 def _text_only_ui_payload(text_payload: dict[str, Any], compare_path: Path) -> dict[str, Any]:

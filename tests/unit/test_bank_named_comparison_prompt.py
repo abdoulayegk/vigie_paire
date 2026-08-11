@@ -8,9 +8,9 @@ from vigie.analyse_texte.comparaison_sections import (
     ChunkComparisonLLMResponse,
     _compare_section_texts,
     _compare_texts_single_call,
+    comparaison_section,
+    execution_llm,
 )
-from vigie.analyse_texte.comparaison_sections import comparaison_section
-from vigie.analyse_texte.comparaison_sections import execution_llm
 
 
 def test_single_call_names_bank_and_forbids_period_labels_as_subject(

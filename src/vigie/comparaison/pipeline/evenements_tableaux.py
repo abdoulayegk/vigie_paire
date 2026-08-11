@@ -18,7 +18,6 @@ from vigie.comparaison.pipeline.ancrages_visuels import (
     _visual_sanity_meta,
 )
 
-
 logger = logging.getLogger(__name__)
 
 

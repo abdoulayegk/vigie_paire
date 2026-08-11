@@ -7,7 +7,6 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Iterable
 
-
 _TERMINAL_PUNCTUATION_RE = re.compile(r"""[.!?…][»"')\]]*\s*$""")
 _LEADING_LETTER_RE = re.compile(r"""^[\s«"'(\[]*([A-Za-zÀ-ÖØ-öø-ÿ])""")
 _TRAILING_INCOMPLETE_WORD_RE = re.compile(

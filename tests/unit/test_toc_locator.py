@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 from vigie.extraction.localisation_sections.toc_locator import (
+    TocStructureEntry,
     apply_offset_to_entries,
     find_management_report_opening_page,
     is_edtf_decoy_page,
     locate_toc_structure,
     parse_toc_entries_from_text,
     resolve_printed_to_physical_offset,
-    TocStructureEntry,
 )
 
 

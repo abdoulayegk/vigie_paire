@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
-
 from vigie.extraction.vision_t1_anchor import (
     anchor_against_previous,
 )

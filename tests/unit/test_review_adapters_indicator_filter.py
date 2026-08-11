@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-
 from vigie.interface.review_adapters import build_review_items_from_indicator_result
 from vigie.interface.review_models import (
     CHANGE_TYPE_TABLE_ADDED,

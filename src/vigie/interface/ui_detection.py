@@ -7,6 +7,7 @@ import re
 from pathlib import Path
 from typing import Any
 
+from vigie.extraction.localisation_sections import locate_sections_in_pdf
 from vigie.extraction.pdf_preview import (
     get_pdf_info,
     render_pdf_page,
@@ -76,8 +77,6 @@ def _detect_sections_core(pdf_path: str | Path, bank_code: str | None = None) ->
     total_pages = int(info.get("total_pages", 0) or 0)
 
     try:
-        from vigie.extraction.localisation_sections import locate_sections_in_pdf
-
         mapping = locate_sections_in_pdf(path, bank_code=bank_code, quarter="dash")
         sections: list[dict[str, Any]] = []
         for item in getattr(mapping, "sections", []) or []:

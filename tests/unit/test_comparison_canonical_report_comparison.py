@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from copy import deepcopy
 import logging
+from copy import deepcopy
 
 from vigie.comparaison import canonical as cc
 from vigie.interface.review_adapters import build_review_items_from_indicator_result
