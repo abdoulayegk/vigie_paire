@@ -10,7 +10,10 @@ import logging
 import re
 from pathlib import Path
 
+import pdfplumber
+
 from vigie.support.utils.matching_normalizer import strip_temporal_expressions
+
 from ..docling_normalization import _extract_table_context_split
 from ..table_title_resolver import (
     extract_table_number_and_inline_title,
@@ -185,11 +188,6 @@ class TableTitleMixin:
         Returns:
             Liste des tableaux avec titres enrichis
         """
-        try:
-            import pdfplumber
-        except ImportError:
-            return tables
-
         tables_by_page: dict[int, list[ExtractedTable]] = {}
         for table in tables:
             tables_by_page.setdefault(table.page_number, []).append(table)
@@ -299,11 +297,6 @@ class TableTitleMixin:
         Returns:
             Liste des tableaux avec ``context_before`` et ``context_after`` renseignes.
         """
-        try:
-            import pdfplumber
-        except ImportError:
-            return tables
-
         if not pdf_path or not str(pdf_path) or not Path(pdf_path).exists():
             return tables
 

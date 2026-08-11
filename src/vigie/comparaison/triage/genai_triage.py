@@ -19,6 +19,7 @@ import time
 from pathlib import Path
 from typing import Any
 
+import openai
 from tqdm import tqdm
 
 from vigie.comparaison.triage.prompts import (
@@ -31,6 +32,7 @@ from vigie.comparaison.triage.validation import (
     VALID_RELEVANCE,
     _validate_triage_response,
 )
+from vigie.support.utils import genai
 
 logger = logging.getLogger(__name__)
 
@@ -321,16 +323,12 @@ async def _triage_all_changes(
     max_concurrency: int = 20,
 ) -> dict[str, Any]:
     """Execute le triage LLM sur chaque changement de la comparaison, enrichit en place et retourne le resume."""
-    from openai import AsyncOpenAI
-
-    from vigie.support.utils.genai import get_openai_api_key
-
-    api_key = get_openai_api_key()
+    api_key = genai.get_openai_api_key()
     if not api_key:
         logger.warning("GenAI triage: OPENAI_API_KEY non définie, passage au mode heuristique.")
         return _fallback_enrich(comparison)
 
-    client = AsyncOpenAI(api_key=api_key)
+    client = openai.AsyncOpenAI(api_key=api_key)
     semaphore = asyncio.Semaphore(max_concurrency)
     bank_code = str(comparison.get("bank_code") or "")
 

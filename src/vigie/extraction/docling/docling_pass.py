@@ -11,6 +11,18 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any
 
+from vigie.extraction.page_table_locator import (
+    PageTableLocator,
+    build_near_full_page_crop_plan,
+    build_page_table_crop_plan,
+)
+from vigie.extraction.pdf_preview import render_pdf_page
+from vigie.extraction.vision_cache import compute_pdf_sha256
+from vigie.extraction.vision_full import VisionFullExtractor, VisionSchemaContractError
+from vigie.support.config import get_vision_extraction_config, resolve_openai_model
+from vigie.support.utils import page_layout_context, pdf_crop
+from vigie.support.utils.genai import get_openai_api_key
+
 from ..docling_bbox_helpers import _build_indicator_reference_text
 from ..locator_merge_reconciliation import (
     _bbox_overlap_ratio,
@@ -65,9 +77,7 @@ class DoclingPassMixin:
             def _get_vision_extraction_config(bank: str) -> dict:
                 """Charger la configuration d'extraction Vision pour une banque."""
                 try:
-                    from vigie.support.config import get_vision_extraction_config as _gvec
-
-                    return _gvec(bank_code=bank) or {}
+                    return get_vision_extraction_config(bank_code=bank) or {}
                 except Exception:
                     return {}
 
@@ -98,15 +108,6 @@ class DoclingPassMixin:
                         "degrade_to_docling",
                     }:
                         schema_failure_policy = "fail_fast"
-                    from vigie.support.config import resolve_openai_model
-                    from vigie.support.utils.genai import get_openai_api_key
-                    from vigie.extraction.page_table_locator import PageTableLocator
-                    from vigie.extraction.vision_cache import compute_pdf_sha256
-                    from vigie.extraction.vision_full import (
-                        VisionFullExtractor,
-                        VisionSchemaContractError,
-                    )
-
                     pdf_sha = compute_pdf_sha256(str(pdf_path))
                     api_key = self.openai_api_key or get_openai_api_key()
                     vision_model_name = resolve_openai_model("extraction_primary")
@@ -180,18 +181,12 @@ class DoclingPassMixin:
             # une seule region Vision fiable est corrigee, sinon le candidat
             # est conserve et marque comme suspect.
             if page_table_locator is not None:
-                from vigie.support.utils.pdf_crop import is_bbox_sane
-                from vigie.extraction.page_table_locator import (
-                    build_near_full_page_crop_plan,
-                )
-                from ..pdf_preview import render_pdf_page
-
                 near_full_positions_by_page: dict[int, list[int]] = {}
                 for position, item in enumerate(vision_items):
                     _item_idx, item_page, item_bbox, _item_id, _item_reference = item
                     if not item_bbox:
                         continue
-                    sane, reject_reason, _profile = is_bbox_sane(
+                    sane, reject_reason, _profile = pdf_crop.is_bbox_sane(
                         item_bbox,
                         vision_extraction_cfg,
                     )
@@ -238,7 +233,7 @@ class DoclingPassMixin:
                     )
                     plan_reject_reason = None
                     if plan is not None:
-                        plan_sane, plan_reject_reason, _plan_profile = is_bbox_sane(
+                        plan_sane, plan_reject_reason, _plan_profile = pdf_crop.is_bbox_sane(
                             list(plan.bbox_norm),
                             vision_extraction_cfg,
                         )
@@ -293,9 +288,6 @@ class DoclingPassMixin:
                     False,
                 )
             ):
-                from vigie.extraction.page_table_locator import build_page_table_crop_plan
-                from ..pdf_preview import render_pdf_page
-
                 inventory_page_padding = max(
                     0,
                     int(
@@ -549,9 +541,7 @@ class DoclingPassMixin:
                 )
 
             # Build page-level layout context for dynamic crop extensions
-            from vigie.support.utils.page_layout_context import build_page_table_map
-
-            page_table_map = build_page_table_map(vision_items)
+            page_table_map = page_layout_context.build_page_table_map(vision_items)
 
             all_tables = []
             tables_by_page: dict[int, int] = {}

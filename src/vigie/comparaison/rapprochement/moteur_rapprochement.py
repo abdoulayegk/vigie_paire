@@ -8,16 +8,12 @@ from typing import Any, Callable
 
 from vigie.comparaison.inspector import _inspect_matched_pairs
 from vigie.comparaison.io import _coerce_int, table_view_as_dict
-from vigie.comparaison.rbc_hybrid_matching import (
-    partition_trusted_rbc_primary_pairs,
-    run_rbc_hybrid_recovery,
-)
 from vigie.comparaison.rapprochement.contrats import (
+    _MATCHING_VALIDATION_ATTEMPTS,
     MATCHING_ADJUDICATOR_SYSTEM_PROMPT,
     MATCHING_REPAIR_SYSTEM_PROMPT,
     PRIMARY_MATCH_SYSTEM_PROMPT,
     RECOVERY_MATCH_SYSTEM_PROMPT,
-    _MATCHING_VALIDATION_ATTEMPTS,
     _MatchingValidationError,
 )
 from vigie.comparaison.rapprochement.correction_reponses import (
@@ -27,6 +23,7 @@ from vigie.comparaison.rapprochement.correction_reponses import (
     _build_matching_repair_response_model,
     _merge_matching_repair_response,
 )
+from vigie.comparaison.rapprochement.etat import MatchingResult, MatchingState
 from vigie.comparaison.rapprochement.normalisation_reponses import (
     _empty_matching_result,
     _matching_decisions_to_pairs,
@@ -37,7 +34,10 @@ from vigie.comparaison.rapprochement.normalisation_reponses import (
     _refs_from_dicts,
     _sort_matched_pairs,
 )
-from vigie.comparaison.rapprochement.etat import MatchingResult, MatchingState
+from vigie.comparaison.rbc_hybrid_matching import (
+    partition_trusted_rbc_primary_pairs,
+    run_rbc_hybrid_recovery,
+)
 from vigie.support.models.comparison_models import (
     PrimaryMatchResponse,
     RecoveryMatchResponse,

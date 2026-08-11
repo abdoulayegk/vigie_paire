@@ -7,6 +7,8 @@ de methodes. Mixin consomme par ``VisionFullExtractor``.
 from __future__ import annotations
 
 import logging
+import statistics
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import replace
 from typing import Any
 
@@ -66,8 +68,6 @@ class ConsensusMixin:
                 rescue_instruction=rescue_instruction,
                 temperature=temps[0],
             )
-
-        from concurrent.futures import ThreadPoolExecutor, as_completed
 
         def _shot(variant: str) -> VisionFullResult | None:
             """Exécute un tir d'extraction Vision pour une variante de prompt donnée."""
@@ -136,8 +136,6 @@ class ConsensusMixin:
            des votes pour ses indicateurs (popularite des libelles).
         4. Retourne le resultat avec le score composite le plus eleve.
         """
-        import statistics
-
         counts = [_count_real_indicators(r.indicators or []) for r in results]
         median_count = statistics.median(counts)
 

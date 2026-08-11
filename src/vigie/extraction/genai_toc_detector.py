@@ -14,6 +14,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal, TypeVar
 
+import openai
+import pdfplumber
 from pydantic import BaseModel, ConfigDict, Field
 
 from vigie.support.utils.genai import get_openai_api_key
@@ -179,9 +181,7 @@ Réponds strictement selon le schéma structuré fourni."""
         """Client OpenAI (chargement paresseux)."""
         if self._client is None:
             try:
-                from openai import OpenAI
-
-                self._client = OpenAI(
+                self._client = openai.OpenAI(
                     api_key=self.api_key,
                     timeout=120.0,
                     max_retries=1,
@@ -202,8 +202,6 @@ Réponds strictement selon le schéma structuré fourni."""
             Image encodée en base64 ou None
         """
         try:
-            import pdfplumber
-
             with pdfplumber.open(pdf_path) as pdf:
                 if page_num < 1 or page_num > len(pdf.pages):
                     return None

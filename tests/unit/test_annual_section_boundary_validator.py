@@ -15,7 +15,6 @@ from vigie.extraction.genai_toc_detector import (
 )
 from vigie.extraction.localisation_sections import LocatedSection
 
-
 BNC_TOC_MARKDOWN = """
 | Analyse financière | 25 | Gestion du capital | 53 |
 |---|---|---|---|

@@ -1,20 +1,20 @@
 from __future__ import annotations
 
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
-from types import SimpleNamespace
 
 from vigie.comparaison.canonical import to_canonical_payload
 from vigie.interface.callbacks import dashboard_flow as dashboard_mod
 from vigie.interface.callbacks import review_flow as review_mod
-from vigie.interface.services.export_helpers import _review_items_from_v2_queue
-from vigie.support.quarter_utils import quarter_label_from_payload
 from vigie.interface.review_adapters import build_review_items_from_indicator_result
 from vigie.interface.review_models import ReviewItem
 from vigie.interface.review_queue_normalizer import build_normalized_review_queue
 from vigie.interface.review_storage import load_review_state, save_review_state
+from vigie.interface.services.export_helpers import _review_items_from_v2_queue
 from vigie.interface.ui_io import load_comparison_result
+from vigie.support.quarter_utils import quarter_label_from_payload
 
 
 class _FakeTable:

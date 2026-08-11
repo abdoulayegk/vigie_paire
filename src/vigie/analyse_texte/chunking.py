@@ -16,7 +16,6 @@ from vigie.analyse_texte.semantic_chunking import (
     _semantic_partition_paragraphs,
 )
 
-
 _HEADING_LINE_RE = re.compile(r"^\s*#{2,6}\s+")
 _MARKDOWN_TABLE_DIVIDER_RE = re.compile(r"^\s*\|?\s*:?-{3,}:?\s*(?:\|\s*:?-{3,}:?\s*)+\|?\s*$")
 _MARKDOWN_TABLE_ROW_RE = re.compile(r"^\s*\|.+\|\s*$")

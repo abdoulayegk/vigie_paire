@@ -6,6 +6,7 @@ import re
 from typing import Any
 
 from vigie.comparaison.analyst_change_presentation import build_analyst_narrative
+from vigie.support.i18n.fr import sanitize_analyst_french
 
 _REQUIRED_JUSTIFICATION_MARKERS = (
     "Nouvel élément à surveiller :",
@@ -31,7 +32,10 @@ def is_structured_text_triage_justification(value: Any) -> bool:
 
 def synthesize_triage_justification_from_payload(triage: dict[str, Any]) -> str:
     """Reconstruit une justification AMF structurée à partir des champs de triage."""
-    from vigie.comparaison.triage.amf_taxonomy import EXCLUSION_REASONS_DESCRIPTIONS, THEMES_AMF_ANALYST_SUBJECTS
+    from vigie.comparaison.triage.amf_taxonomy import (  # noqa: PLC0415 - cycle taxonomie/justification
+        EXCLUSION_REASONS_DESCRIPTIONS,
+        THEMES_AMF_ANALYST_SUBJECTS,
+    )
 
     nouvelle_idee = bool(triage.get("nouvelle_idee", False))
     is_relevant = bool(triage.get("is_relevant", False))
@@ -155,7 +159,9 @@ def _infer_subject(change: dict[str, Any], triage: dict[str, Any]) -> str:
 
 def _first_complete_sentence(text: str) -> str:
     """Retourne la première phrase complète ponctuée, ou le texte nettoyé."""
-    from vigie.comparaison.triage.amf_taxonomy import _compact_complete_sentence_parts
+    from vigie.comparaison.triage.amf_taxonomy import (  # noqa: PLC0415 - cycle taxonomie/justification
+        _compact_complete_sentence_parts,
+    )
 
     normalized = _clean(text)
     if not normalized:
@@ -168,8 +174,6 @@ def _first_complete_sentence(text: str) -> str:
 
 def _change_sentence(change: dict[str, Any]) -> str:
     """Formule une phrase « Ce qui change » à partir des diff_type et extraits sources."""
-    from vigie.support.i18n.fr import sanitize_analyst_french
-
     diff_type = str(change.get("diff_type") or "").lower()
     summary = _clean(change.get("change_summary"))
     source_t1 = _clean(change.get("source_text_t1") or change.get("semantic_text_t1"))
@@ -299,8 +303,9 @@ def build_compact_triage_justification(
     triage: dict[str, Any],
 ) -> str:
     """Construit localement le format historique depuis le triage compact."""
-    from vigie.comparaison.triage.amf_taxonomy import THEMES_AMF_ANALYST_SUBJECTS
-    from vigie.support.i18n.fr import sanitize_analyst_french
+    from vigie.comparaison.triage.amf_taxonomy import (  # noqa: PLC0415 - cycle taxonomie/justification
+        THEMES_AMF_ANALYST_SUBJECTS,
+    )
 
     nouvelle_idee = bool(triage.get("nouvelle_idee", False))
     prefix = "OUI" if nouvelle_idee else "NON"

@@ -10,6 +10,11 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass
 
+import openai
+from pydantic import BaseModel, ConfigDict, Field
+
+from vigie.support.utils.genai import get_openai_api_key
+
 logger = logging.getLogger(__name__)
 
 _ROW_COUNT_DIFF_THRESHOLD = 0.20  # 20% triggers GPT check
@@ -92,7 +97,6 @@ def anchor_against_previous(
 
     # GPT-based judgment
     try:
-        from pydantic import BaseModel, ConfigDict, Field
 
         class AnchorJudgment(BaseModel):
             """Sortie GPT validée : décision sur la nature d'une divergence d'ancrage."""
@@ -108,13 +112,9 @@ def anchor_against_previous(
             )
 
         if api_key is None:
-            from vigie.support.utils.genai import get_openai_api_key
-
             api_key = get_openai_api_key()
 
-        from openai import OpenAI
-
-        client = OpenAI(api_key=api_key)
+        client = openai.OpenAI(api_key=api_key)
 
         # Build concise indicator lists for GPT
         prev_sample = previous_indicators[:30]

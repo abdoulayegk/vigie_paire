@@ -33,6 +33,8 @@ import re
 from pathlib import Path
 from typing import Any
 
+from vigie.extraction.localisation_sections.section_locator import locate_sections_in_pdf
+from vigie.extraction.section_taxonomy import canonicalize_section
 from vigie.support.config.loader import get_bank_cfg, load_config
 from vigie.support.models.section_models import SectionRange, SectionRangesResult
 from vigie.support.report.export_json import write_section_ranges
@@ -50,13 +52,7 @@ def _canonicalize_section(raw: str) -> str:
 
     Exemple : ``"Gestion du Capital"`` → ``"gestion_capital"``
     """
-    try:
-        from vigie.extraction.section_taxonomy import canonicalize_section
-
-        return canonicalize_section(raw)
-    except Exception:
-        fallback = re.sub(r"[^a-z0-9]+", "_", (raw or "").lower()).strip("_")
-        return fallback
+    return canonicalize_section(raw)
 
 
 def _is_t4(quarter: str) -> bool:
@@ -178,13 +174,6 @@ def main(argv: list[str] | None = None) -> None:
     args = build_parser().parse_args(argv)
     cfg = load_config(args.config)
     get_bank_cfg(cfg, args.banque)
-
-    try:
-        from vigie.extraction.localisation_sections.section_locator import locate_sections_in_pdf
-    except Exception as exc:
-        raise NotImplementedError(
-            "Section detection backend from extraction/ is not importable in this environment."
-        ) from exc
 
     mapping = locate_sections_in_pdf(args.pdf, bank_code=args.banque, quarter=args.trimestre)
     result = _to_result(mapping, bank_code=args.banque, quarter=args.trimestre, pdf_path=args.pdf)

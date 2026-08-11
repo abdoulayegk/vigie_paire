@@ -8,9 +8,9 @@ import dash_bootstrap_components as dbc
 from dash import Input, Output, State, callback, html
 from dash.exceptions import PreventUpdate
 
+from vigie.interface.review_export import generate_validation_excel
 from vigie.interface.services.export_helpers import _resolve_export_review_items
 from vigie.support.quarter_utils import quarter_label_from_payload
-from vigie.interface.review_export import generate_validation_excel
 
 
 def _filename_period(label: str) -> str:

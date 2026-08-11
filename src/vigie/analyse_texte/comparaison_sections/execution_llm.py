@@ -5,13 +5,12 @@ from __future__ import annotations
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Any
 
-from vigie.comparaison.analyst_change_presentation import bank_subject
 from vigie.analyse_texte.chunk_alignment import _format_alignments_for_prompt
 from vigie.analyse_texte.comparaison_sections.modeles import (
-    ChunkComparisonLLMResponse,
-    ComparisonBatch,
     _CHUNK_COMPARISON_VALIDATION_RETRY_MESSAGE,
     _MAX_COMPARISON_LLM_WORKERS,
+    ChunkComparisonLLMResponse,
+    ComparisonBatch,
 )
 from vigie.analyse_texte.comparaison_sections.resolution_alignements import (
     _attach_alignment_metadata,
@@ -24,6 +23,7 @@ from vigie.analyse_texte.normalization import (
 from vigie.analyse_texte.openai_client import (
     _call_structured_completion_with_correction,
 )
+from vigie.comparaison.analyst_change_presentation import bank_subject
 
 
 def _compare_alignment_batch(

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-
 from vigie.support.utils.table_page_structure import derive_page_local_structure
 
 

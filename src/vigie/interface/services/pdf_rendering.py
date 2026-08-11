@@ -9,14 +9,16 @@ from pathlib import Path
 from typing import Any
 
 from vigie.extraction.table_annotator import annotate_table_with_changes
-from vigie.interface.ui_detection import get_pdf_preview
-from vigie.support.utils.indicator_cleaner import normalize_indicator_for_comparison
-
 from vigie.interface.services.comparison_context import _normalize_pdf_paths_store
+from vigie.interface.ui_detection import get_pdf_preview
+from vigie.support.utils import pdf_crop
+from vigie.support.utils.indicator_cleaner import normalize_indicator_for_comparison
 from vigie.support.utils.proof_rendering import (
     PROOF_RENDER_DPI,
-    normalize_proof_bbox as _shared_normalize_proof_bbox,
     render_full_proof_bytes,
+)
+from vigie.support.utils.proof_rendering import (
+    normalize_proof_bbox as _shared_normalize_proof_bbox,
 )
 
 logger = logging.getLogger(__name__)
@@ -41,11 +43,6 @@ def _cached_render_or_crop(
     highlight_color: tuple[float, float, float] = PROOF_HIGHLIGHT_COLOR_T2,
 ) -> bytes:
     """Retourne les octets PNG selon le mode d'affichage : crop, full ou footnote."""
-    from vigie.support.utils.pdf_crop import (
-        crop_footnote_region_to_bytes,
-        crop_table_region_to_bytes,
-    )
-
     bbox: list[float] | None = None
     if bbox_key:
         try:
@@ -70,7 +67,7 @@ def _cached_render_or_crop(
 
     try:
         if display_mode == "footnote":
-            return crop_footnote_region_to_bytes(
+            return pdf_crop.crop_footnote_region_to_bytes(
                 pdf_path,
                 page,
                 bbox,
@@ -81,7 +78,7 @@ def _cached_render_or_crop(
                 secondary_highlight_color=highlight_color,
             )
         else:  # "crop" (default)
-            return crop_table_region_to_bytes(
+            return pdf_crop.crop_table_region_to_bytes(
                 pdf_path,
                 page,
                 bbox,
@@ -331,8 +328,6 @@ def _get_proof_image_b64_for_item(
 
 def _get_proof_image_b64(item_dict: dict, side: str, paths: dict) -> str | None:
     """Obtient l'image base64 simplifiee pour T1 ou T2 (PDF page ou fichier PNG)."""
-    import base64 as _base64
-
     proof_image_path = item_dict.get("proof_image_path", "") or ""
     if (
         side == "t1"
@@ -343,7 +338,7 @@ def _get_proof_image_b64(item_dict: dict, side: str, paths: dict) -> str | None:
         try:
             with open(proof_image_path, "rb") as f:
                 raw = f.read()
-            return _base64.b64encode(raw).decode("ascii")
+            return base64.b64encode(raw).decode("ascii")
         except Exception:
             pass
     if side == "t2" and proof_image_path:
@@ -364,7 +359,7 @@ def _get_proof_image_b64(item_dict: dict, side: str, paths: dict) -> str | None:
         try:
             with open(ref, "rb") as f:
                 raw = f.read()
-            return _base64.b64encode(raw).decode("ascii")
+            return base64.b64encode(raw).decode("ascii")
         except Exception:
             pass
 
@@ -372,5 +367,5 @@ def _get_proof_image_b64(item_dict: dict, side: str, paths: dict) -> str | None:
         page_effective = max(1, int(page))
         raw = get_pdf_preview(pdf_path, page_effective, scale=PROOF_RENDER_DPI / 72.0)
         if raw:
-            return _base64.b64encode(raw).decode("ascii")
+            return base64.b64encode(raw).decode("ascii")
     return None

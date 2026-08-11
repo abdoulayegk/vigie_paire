@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from vigie.comparaison.devil_advocate import _devil_advocate_review
+from vigie.comparaison.differences.comparaison_paire import diff_table_pair_gpt
 from vigie.comparaison.io import (
     _clean_title_for_bank,
     _coerce_pathlike,
@@ -17,15 +18,6 @@ from vigie.comparaison.io import (
     _table_detail,
     _table_snapshot,
 )
-from vigie.comparaison.differences.comparaison_paire import diff_table_pair_gpt
-from vigie.comparaison.rapprochement.contrats import _MATCHING_VALIDATION_ATTEMPTS
-from vigie.comparaison.rapprochement.moteur_rapprochement import _run_table_matching
-from vigie.comparaison.visual_sanity import (
-    render_visual_sanity_proof,
-    visual_sanity_check,
-    visual_sanity_check_table_event,
-)
-from vigie.support.config import get_matching_thresholds, resolve_openai_model
 from vigie.comparaison.pipeline.client_openai import (
     _call_openai_embeddings,
     _call_openai_json,
@@ -43,6 +35,14 @@ from vigie.comparaison.pipeline.traitement_paires import (
     appliquer_ancrage_t1,
     traiter_paires,
 )
+from vigie.comparaison.rapprochement.contrats import _MATCHING_VALIDATION_ATTEMPTS
+from vigie.comparaison.rapprochement.moteur_rapprochement import _run_table_matching
+from vigie.comparaison.visual_sanity import (
+    render_visual_sanity_proof,
+    visual_sanity_check,
+    visual_sanity_check_table_event,
+)
+from vigie.support.config import get_matching_thresholds, resolve_openai_model
 
 logger = logging.getLogger(__name__)
 

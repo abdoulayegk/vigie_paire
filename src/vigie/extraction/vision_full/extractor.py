@@ -12,9 +12,14 @@ import time
 from dataclasses import replace
 from typing import Any
 
+import openai
+
+from vigie.extraction.vision_cache import cache_get, cache_put, get_vision_cache_dir, make_cache_key
+from vigie.extraction.vision_image_preprocessor import preprocess_for_vision
 from vigie.support.config import resolve_openai_model
 from vigie.support.utils.genai import get_openai_api_key
-from vigie.extraction.vision_cache import cache_get, cache_put, get_vision_cache_dir, make_cache_key
+
+from .consensus import ConsensusMixin
 from .constants import (
     _DEFAULT_MAX_COMPLETION_TOKENS,
     _MAX_COMPLETION_TOKENS_API_LIMIT,
@@ -22,7 +27,6 @@ from .constants import (
     _MODEL_ROLE,
     OPENAI_VISION_TIMEOUT_SECONDS,
 )
-from .consensus import ConsensusMixin
 from .errors import _classify_openai_error
 from .parsing import (
     _extract_usage_metrics,
@@ -138,11 +142,9 @@ class VisionFullExtractor(ConsensusMixin, QualityPassMixin):
         if self._client is not None:
             return
         try:
-            from openai import OpenAI
-
             if not self._api_key:
                 raise ValueError("OPENAI_API_KEY required for Vision extraction")
-            self._client = OpenAI(
+            self._client = openai.OpenAI(
                 api_key=self._api_key,
                 timeout=OPENAI_VISION_TIMEOUT_SECONDS,
             )
@@ -239,8 +241,6 @@ class VisionFullExtractor(ConsensusMixin, QualityPassMixin):
             return None
 
         try:
-            from .vision_image_preprocessor import preprocess_for_vision
-
             preprocess_flag = vision_cfg.get("vision_preprocess")
             preprocess_enabled: bool | None = None
             if preprocess_flag is not None:

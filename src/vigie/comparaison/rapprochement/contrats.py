@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from vigie.comparaison.rapprochement.etat import MatchedPair, MatchingResult, MatchingState, TableRef
 
 _MATCHING_VALIDATION_ATTEMPTS = 3
 
@@ -167,14 +168,6 @@ class _MatchingValidationError(ValueError):
         self.duplicate_count = int(max(0, duplicate_count))
         self.validation_failures = int(max(1, validation_failures))
 
-
-# Re-export des modeles d'etat Pydantic (anciens TypedDict retires).
-from vigie.comparaison.rapprochement.etat import (  # noqa: E402
-    MatchedPair,
-    MatchingResult,
-    MatchingState,
-    TableRef,
-)
 
 __all__ = [
     "MATCHING_ADJUDICATOR_SYSTEM_PROMPT",

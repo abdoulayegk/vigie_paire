@@ -10,6 +10,10 @@ import logging
 import re
 from pathlib import Path
 
+import yaml
+
+from vigie.support.config.loader import load_config
+
 from ..section_taxonomy import canonicalize_section
 from .models import normalize_text
 from .patterns import FOLLOWING_SECTION_PATTERNS, SECTION_PATTERNS, TOC_PATTERNS
@@ -22,8 +26,6 @@ logger = logging.getLogger("vigie.extraction.section_locator")
 def _load_bank_config() -> dict:
     """Charge la configuration des banques (YAML ou JSON)."""
     try:
-        from vigie.support.config.loader import load_config
-
         return load_config("configs/bank_profiles.yaml")
     except Exception as e:
         if "beyond top-level package" in str(e):
@@ -38,8 +40,6 @@ def _load_bank_config() -> dict:
 
     if yaml_path.exists():
         try:
-            import yaml
-
             data = yaml.safe_load(yaml_path.read_text(encoding="utf-8"))
             if isinstance(data, dict):
                 return data

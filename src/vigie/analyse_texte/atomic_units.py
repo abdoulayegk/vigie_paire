@@ -7,7 +7,6 @@ from dataclasses import dataclass
 
 from vigie.analyse_texte.list_items import parse_list_item_line
 
-
 _INLINE_MARKER_RE = re.compile(
     r"(?<![\w])"
     r"(?P<marker>"

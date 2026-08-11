@@ -37,11 +37,16 @@ le fichier ``section_ranges.json`` (rétrocompatibilité) :
 from __future__ import annotations
 
 import argparse
+import importlib
 import json
 import re
 from pathlib import Path
 from typing import Any
 
+from dotenv import load_dotenv
+
+from vigie.extraction.extraction_storage import get_extraction_artifact_paths, save_extraction
+from vigie.extraction.section_taxonomy import canonicalize_section
 from vigie.support.config.loader import get_bank_cfg, load_config
 from vigie.support.models.table_models import (
     VISION_CONTENT_SOURCE,
@@ -49,6 +54,7 @@ from vigie.support.models.table_models import (
     infer_content_source,
 )
 from vigie.support.report.export_json import write_tables_docling
+from vigie.support.report.vigie_extract_schema import build_vigie_extract, write_vigie_extract
 from vigie.support.utils.footnotes_utils import normalize_footnotes_to_canonical
 from vigie.support.utils.indicator_cleaner import (
     dedupe_indicators,
@@ -75,13 +81,7 @@ def _canonicalize_section(raw: str | None) -> str | None:
     """
     if raw is None:
         return None
-    try:
-        from vigie.extraction.section_taxonomy import canonicalize_section
-
-        return canonicalize_section(raw)
-    except Exception:
-        fallback = re.sub(r"[^a-z0-9]+", "_", raw.lower()).strip("_")
-        return fallback or None
+    return canonicalize_section(raw)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -347,8 +347,6 @@ def main(argv: list[str] | None = None) -> None:
         Liste d'arguments CLI. Si ``None``, utilise ``sys.argv[1:]``.
     """
     try:
-        from dotenv import load_dotenv
-
         load_dotenv()
     except ImportError:
         pass
@@ -357,15 +355,8 @@ def main(argv: list[str] | None = None) -> None:
     cfg = load_config(args.config)
     get_bank_cfg(cfg, args.banque)
     section_ranges = _load_section_ranges(args.ranges_json)
-
-    try:
-        from vigie.extraction.docling.processor import (
-            extract_tables_docling_by_sections,
-        )
-    except Exception as exc:
-        raise NotImplementedError(
-            "Docling extraction backend from extraction/ is not importable in this environment."
-        ) from exc
+    processor_module = importlib.import_module("vigie.extraction.docling.processor")
+    extract_tables_docling_by_sections = processor_module.extract_tables_docling_by_sections
 
     year = _infer_year(args.trimestre)
     raw_tables = extract_tables_docling_by_sections(
@@ -381,11 +372,6 @@ def main(argv: list[str] | None = None) -> None:
     print(out_path)
 
     if args.vigie_extract:
-        from vigie.support.report.vigie_extract_schema import (
-            build_vigie_extract,
-            write_vigie_extract,
-        )
-
         payload = build_vigie_extract(
             pdf_path=args.pdf,
             bank_code=args.banque,
@@ -399,11 +385,6 @@ def main(argv: list[str] | None = None) -> None:
         print(vigie_path)
 
     if args.save_extraction:
-        from vigie.extraction.extraction_storage import (
-            get_extraction_artifact_paths,
-            save_extraction,
-        )
-
         extraction_root = Path(args.racine_extraction)
         extraction_method = "docling"
         for art in artifacts:

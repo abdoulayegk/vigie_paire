@@ -10,7 +10,6 @@ from difflib import SequenceMatcher
 
 from dash import html
 
-
 # Styles inline pour les highlights — couleurs métier banque
 # (ambre=retiré, vert=ajouté).
 _HIGHLIGHT_REMOVED_STYLE = {

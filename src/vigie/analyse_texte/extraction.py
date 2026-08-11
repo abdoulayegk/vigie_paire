@@ -14,7 +14,13 @@ import re
 from pathlib import Path
 from typing import Any
 
+import pymupdf
+from docling.datamodel.base_models import InputFormat
+from docling.datamodel.pipeline_options import PdfPipelineOptions
+from docling.document_converter import DocumentConverter, PdfFormatOption
+
 from vigie.analyse_texte.constants import _MULTISPACE_RE
+from vigie.analyse_texte.markdown import _is_docling_heading_block
 from vigie.analyse_texte.models import PDFBlock, ResolvedSection, SectionAudit
 from vigie.analyse_texte.normalization import (
     _bbox_overlap_ratio,
@@ -97,11 +103,6 @@ def _extract_pymupdf_fallback_blocks(
     PDF et sert ici uniquement de filet de sécurité : les blocs qui chevauchent
     déjà un bloc Docling ne seront pas ajoutés.
     """
-    try:
-        import pymupdf
-    except Exception:
-        return {}
-
     fallback: dict[int, list[PDFBlock]] = {page: [] for page in page_numbers}
     try:
         with pymupdf.open(str(pdf_path)) as doc:
@@ -305,10 +306,6 @@ def _extract_docling_page_blocks(
     Returns:
         Tuple ``(page_blocks, table_bboxes_by_page, footnote_bboxes_by_page, raw_docling_markdown)``.
     """
-    from docling.datamodel.base_models import InputFormat
-    from docling.datamodel.pipeline_options import PdfPipelineOptions
-    from docling.document_converter import DocumentConverter, PdfFormatOption
-
     if not page_numbers:
         return {}, {}, {}, ""
 
@@ -424,8 +421,6 @@ def _classify_block_type(
     """
     if block.block_type == "table":
         return "table"
-
-    from vigie.analyse_texte.markdown import _is_docling_heading_block
 
     text = block.text.strip()
     table_bboxes = table_bboxes or []

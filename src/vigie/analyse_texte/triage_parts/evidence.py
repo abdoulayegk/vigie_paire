@@ -9,11 +9,11 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from vigie.comparaison.analyst_change_presentation import bank_subject as analyst_bank_subject
 from vigie.analyse_texte.constants import _TRIAGE_SOURCE_SNIPPET_LIMIT
 from vigie.analyse_texte.normalization import _json_dumps
 from vigie.analyse_texte.openai_client import _call_structured_completion_with_correction
 from vigie.analyse_texte.text_comparison.change_segments import build_change_segments
+from vigie.comparaison.analyst_change_presentation import bank_subject as analyst_bank_subject
 
 from .analyst_copy import _secondary_analyst_justification, _semantic_reason_payload
 from .constants import _FULL_EVIDENCE_FACT_MAX_TOKENS, _FULL_EVIDENCE_PACKET_LIMIT

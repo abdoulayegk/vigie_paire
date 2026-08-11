@@ -7,6 +7,7 @@ from pathlib import Path
 import pymupdf
 import pytest
 
+from vigie.analyse_texte.extraction import _extract_pymupdf_fallback_blocks
 from vigie.extraction.pdf_preview import (
     create_thumbnail,
     extract_text_from_pages,
@@ -14,7 +15,6 @@ from vigie.extraction.pdf_preview import (
     render_pdf_page,
     render_pdf_pages,
 )
-from vigie.analyse_texte.extraction import _extract_pymupdf_fallback_blocks
 from vigie.support.utils.pdf_crop import (
     crop_footnote_region_to_bytes,
     crop_page_region_bytes,

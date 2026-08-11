@@ -21,7 +21,6 @@ from vigie.analyse_texte.atomic_alignment import (
 from vigie.analyse_texte.chunking import TextChunk
 from vigie.analyse_texte.openai_client import _embed_texts
 
-
 logger = logging.getLogger(__name__)
 
 _DEFAULT_TOP_K = 5

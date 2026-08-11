@@ -9,10 +9,11 @@ import logging
 from pathlib import Path
 from typing import Any, Literal
 
+import openai
 from pydantic import BaseModel, ConfigDict, Field
 
-from vigie.support.config import resolve_openai_model
 from vigie.extraction.vision_cache import compute_pdf_sha256
+from vigie.support.config import resolve_openai_model
 from vigie.support.utils.genai import get_openai_api_key
 from vigie.support.utils.proof_rendering import render_full_proof_bytes
 
@@ -262,9 +263,7 @@ def build_text_boundary_validator(
         logger.info("Vision des frontières désactivée: OPENAI_API_KEY absente.")
         return None
     if client is None:
-        from openai import OpenAI
-
-        client = OpenAI(api_key=api_key, timeout=float(config.get("boundary_vision_timeout_sec", 120)))
+        client = openai.OpenAI(api_key=api_key, timeout=float(config.get("boundary_vision_timeout_sec", 120)))
     model = str(config.get("boundary_vision_model") or resolve_openai_model("default_genai"))
     return OpenAITextBoundaryValidator(
         pdf_path=pdf_path,

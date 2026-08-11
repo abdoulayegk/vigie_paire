@@ -21,19 +21,15 @@ import sys
 import time
 from pathlib import Path
 
-# ---------------------------------------------------------------------------
-# Racine du depot (src/vigie/pipelines/ -> 3 niveaux au-dessus).
-# ---------------------------------------------------------------------------
-_PROJECT_ROOT = Path(__file__).resolve().parents[3]
-_SRC = _PROJECT_ROOT / "src"
-if str(_SRC) not in sys.path:
-    sys.path.insert(0, str(_SRC))
-
+from vigie.analyse_texte import pipeline as text_pipeline
+from vigie.analyse_texte.text_comparison.text_comparison_excel import generate_text_comparison_excel
 from vigie.support.batch_quarter import (
     find_pdf_pair,
     normalize_quarter,
     resolve_previous_quarter,
 )
+
+_PROJECT_ROOT = Path(__file__).resolve().parents[3]
 
 DEFAULT_INPUTS_ROOT = "Inputs"
 DEFAULT_LEGACY_DATA_ROOT = "data"
@@ -110,10 +106,7 @@ def _step_compare_text(
     force_extraction: bool,
 ) -> Path:
     """Lance l'analyse texte canonique. Retourne le chemin text_comparison.json."""
-    from vigie.analyse_texte.pipeline import run_text_analysis_pipeline
-    from vigie.analyse_texte.text_comparison.text_comparison_excel import generate_text_comparison_excel
-
-    payload, out_path = run_text_analysis_pipeline(
+    payload, out_path = text_pipeline.run_text_analysis_pipeline(
         bank_code=bank,
         year_current=year_current,
         quarter_current=quarter_current,
@@ -139,9 +132,7 @@ def _step_extract_text(
     force_extraction: bool,
 ) -> dict[str, object]:
     """Lance l'extraction texte seule et retourne le manifeste d'artefacts."""
-    from vigie.analyse_texte.pipeline import run_text_extraction_pipeline
-
-    return run_text_extraction_pipeline(
+    return text_pipeline.run_text_extraction_pipeline(
         bank_code=bank,
         year_current=year_current,
         quarter_current=quarter_current,

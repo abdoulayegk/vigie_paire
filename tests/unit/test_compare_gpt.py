@@ -6,7 +6,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from vigie.comparaison.io import normalize_quarter, resolve_reference_period
+from vigie.comparaison.io import _is_boundary_inventory_candidate, normalize_quarter, resolve_reference_period
 from vigie.comparaison.pipeline.ancrages_visuels import (
     _infer_opposite_page_from_matched_pairs,
     _resolve_visual_table_anchor,
@@ -21,7 +21,6 @@ from vigie.comparaison.pipeline.construction_resultat import (
     MATCH_PROMPT_VERSION,
 )
 from vigie.comparaison.pipeline.orchestration import compare_reports_gpt4o
-from vigie.comparaison.io import _is_boundary_inventory_candidate
 
 
 def _table(

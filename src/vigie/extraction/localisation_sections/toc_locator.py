@@ -12,7 +12,10 @@ import re
 from dataclasses import dataclass, field
 from pathlib import Path
 
+import pdfplumber
+
 from vigie.extraction.localisation_sections.models import normalize_text
+from vigie.extraction.localisation_sections.patterns import SECTION_TITLE_ALIASES, T4_SECTION_TITLE_PROFILES
 
 logger = logging.getLogger(__name__)
 
@@ -174,10 +177,6 @@ def _rehydrate_compact_title(text: str) -> str:
     compact = _compact_norm(body)
     if len(compact) < 8:
         return text
-    try:
-        from vigie.extraction.localisation_sections.patterns import SECTION_TITLE_ALIASES, T4_SECTION_TITLE_PROFILES
-    except Exception:
-        return text
     candidates: list[str] = []
     for titles in SECTION_TITLE_ALIASES.values():
         candidates.extend(titles)
@@ -253,12 +252,6 @@ def _split_multi_toc_segments(line: str) -> list[str]:
 
 def parse_toc_entries_geometric(pdf_path: Path, page_num: int) -> list[TocStructureEntry]:
     """Lire une page TDM via pdfplumber en regroupant par colonnes puis lignes."""
-    try:
-        import pdfplumber
-    except ImportError:
-        logger.warning("pdfplumber indisponible pour parse geometrique TDM")
-        return []
-
     entries: list[TocStructureEntry] = []
     try:
         with pdfplumber.open(str(pdf_path)) as pdf:
@@ -489,8 +482,6 @@ def locate_toc_structure(
     entries = _dedupe_entries(entries)
     if len(entries) < 3:
         anomalies.append("toc_entries_sparse")
-
-    from vigie.extraction.localisation_sections.patterns import SECTION_TITLE_ALIASES, T4_SECTION_TITLE_PROFILES
 
     preferred_titles: list[str] = []
     for section_key in ("gestion_capital", "gestion_risques"):

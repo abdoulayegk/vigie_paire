@@ -14,7 +14,11 @@ from vigie.comparaison.canonical import (
 from vigie.interface.components.review_display_shared import (
     section_display_label,
 )
-from vigie.interface.layouts.page_results import build_analyst_kpi_card
+from vigie.interface.layouts.page_results import build_analyst_kpi_card, build_section_accordion_item
+from vigie.interface.review_adapters import build_review_items_from_indicator_result
+from vigie.interface.review_priority import sort_review_items_by_priority
+from vigie.interface.review_queue_normalizer import build_normalized_review_queue
+from vigie.interface.review_storage import is_review_state_compatible
 from vigie.interface.services.comparison_context import (
     _pdf_paths_from_comparison_meta,
 )
@@ -34,13 +38,9 @@ from vigie.interface.services.review_persistence import (
     _persist_review_state,
     _stored_review_items_from_state,
 )
+from vigie.interface.ui_indicators import build_indicator_change_rows
 from vigie.support.i18n import t
 from vigie.support.quarter_utils import quarter_label_from_payload
-from vigie.interface.review_adapters import build_review_items_from_indicator_result
-from vigie.interface.review_priority import sort_review_items_by_priority
-from vigie.interface.review_queue_normalizer import build_normalized_review_queue
-from vigie.interface.review_storage import is_review_state_compatible
-from vigie.interface.ui_indicators import build_indicator_change_rows
 
 logger = logging.getLogger(__name__)
 
@@ -351,8 +351,6 @@ def render_sections_tab(indicator_result, show_results):
     """
     if not show_results:
         raise PreventUpdate
-    from vigie.interface.layouts.page_results import build_section_accordion_item
-
     if not indicator_result:
         return html.Div("Aucun resultat disponible.", className="text-muted")
 

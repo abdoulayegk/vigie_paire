@@ -17,16 +17,14 @@ Toutes les sorties sont consolidees dans un dossier unique :
 from __future__ import annotations
 
 import argparse
-import sys
 import time
 from pathlib import Path
 
-_PROJECT_ROOT = Path(__file__).resolve().parents[3]
-_SRC = _PROJECT_ROOT / "src"
-if str(_SRC) not in sys.path:
-    sys.path.insert(0, str(_SRC))
-
 from vigie.interface.ui_config import RESULTATS_DIR
+from vigie.pipelines.indicateurs import main as indicateurs_main
+from vigie.pipelines.texte import main as texte_main
+
+_PROJECT_ROOT = Path(__file__).resolve().parents[3]
 
 try:
     DEFAULT_OUT_ROOT = str(RESULTATS_DIR.relative_to(_PROJECT_ROOT))
@@ -99,8 +97,6 @@ def _run_pipeline_indicateurs(
     sans_comparaison: bool,
 ) -> int:
     """Lance le pipeline indicateurs et retourne le code de sortie."""
-    from vigie.pipelines.indicateurs import main as indicateurs_main
-
     argv = [
         "--banque",
         banque,
@@ -127,8 +123,6 @@ def _run_pipeline_texte(
     forcer_extraction: bool,
 ) -> int:
     """Lance le pipeline texte et retourne le code de sortie."""
-    from vigie.pipelines.texte import main as texte_main
-
     argv = [
         "--banque",
         banque,

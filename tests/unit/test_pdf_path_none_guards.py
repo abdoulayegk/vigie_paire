@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+from vigie.extraction.vision_cache import compute_pdf_sha256
 from vigie.interface.ui_detection import _detect_sections_core
 from vigie.interface.ui_io import load_comparison_result
-from vigie.extraction.vision_cache import compute_pdf_sha256
 
 
 def test_load_comparison_result_returns_none_for_missing_path() -> None:

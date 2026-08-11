@@ -5,6 +5,11 @@ from vigie.extraction.localisation_sections.bank_config import (
     _get_bank_section_names,
     _load_bank_config,
 )
+from vigie.extraction.localisation_sections.boundary_resolver import (
+    BoundaryResolveResult,
+    map_toc_title_to_concept,
+    resolve_t4_section_bounds,
+)
 from vigie.extraction.localisation_sections.models import (
     SHARED_PAGE_TOP_THRESHOLD,
     LocatedSection,
@@ -28,11 +33,6 @@ from vigie.extraction.localisation_sections.section_locator import (
 from vigie.extraction.localisation_sections.toc_locator import (
     TocStructure,
     locate_toc_structure,
-)
-from vigie.extraction.localisation_sections.boundary_resolver import (
-    BoundaryResolveResult,
-    map_toc_title_to_concept,
-    resolve_t4_section_bounds,
 )
 
 __all__ = [

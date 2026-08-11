@@ -16,9 +16,11 @@ import threading
 from dataclasses import dataclass
 from typing import Any
 
+import openai
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from vigie.support.utils.openai_schema import build_strict_openai_response_format
+
 from .vision_cache import cache_get, cache_put, get_vision_cache_dir
 
 logger = logging.getLogger(__name__)
@@ -498,9 +500,7 @@ class PageTableLocator:
             return self._client
         with self._client_lock:
             if self._client is None:
-                from openai import OpenAI
-
-                self._client = OpenAI(
+                self._client = openai.OpenAI(
                     api_key=self._api_key,
                     timeout=OPENAI_PAGE_LOCATOR_TIMEOUT_SECONDS,
                 )

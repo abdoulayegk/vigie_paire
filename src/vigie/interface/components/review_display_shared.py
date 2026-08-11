@@ -5,7 +5,6 @@ from __future__ import annotations
 import dash_bootstrap_components as dbc
 from dash import html
 
-from vigie.support.i18n import t
 from vigie.interface.review_models import (
     CHANGE_TYPE_ADDED,
     CHANGE_TYPE_MODIFIED,
@@ -14,6 +13,7 @@ from vigie.interface.review_models import (
     CHANGE_TYPE_TABLE_ADDED,
     CHANGE_TYPE_TABLE_REMOVED,
 )
+from vigie.support.i18n import t
 from vigie.support.utils.indicator_cleaner import strip_dates_from_table_title
 
 _CHANGE_TYPES_WITH_VISUAL_FLAG = frozenset(

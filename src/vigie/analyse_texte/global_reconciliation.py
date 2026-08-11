@@ -22,7 +22,6 @@ from vigie.analyse_texte.openai_client import (
     _embed_texts,
 )
 
-
 logger = logging.getLogger(__name__)
 
 _MIN_FRAGMENT_CHARS = 80

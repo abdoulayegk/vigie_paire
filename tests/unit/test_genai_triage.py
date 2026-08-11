@@ -6,10 +6,10 @@ import json
 from unittest.mock import patch
 
 from vigie.comparaison.triage.genai_triage import (
+    _TRIAGE_SYSTEM_PROMPT,
     _build_change_prompt,
     _fallback_enrich,
     _has_meaningful_diff,
-    _TRIAGE_SYSTEM_PROMPT,
     _validate_summary_response,
     _validate_triage_response,
     enrich_comparison_with_genai_triage,

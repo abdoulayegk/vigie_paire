@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
+from datetime import datetime, timezone
 
 from dash import ALL, Input, Output, State, callback, ctx, html
 from dash.exceptions import PreventUpdate
@@ -256,8 +257,6 @@ def on_validate_change_v2(
     L'action déclenchée, la file, la sélection et le commentaire mettent à jour
     les stores de décisions et de navigation ainsi que le retour utilisateur.
     """
-    from datetime import datetime, timezone
-
     if not ctx.triggered_id or not queue:
         raise PreventUpdate
 

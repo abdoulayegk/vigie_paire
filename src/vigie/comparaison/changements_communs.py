@@ -17,9 +17,14 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+try:
+    import openai
+except ImportError:  # Le mode revue Dash reste disponible sans le pipeline LLM.
+    openai = None  # type: ignore[assignment]
+
 from vigie.comparaison.analyst_change_presentation import build_change_presentation
-from vigie.support.config import resolve_openai_model
 from vigie.interface.ui_config import RESULTATS_DIR, TEXT_COMPARISON_DIR
+from vigie.support.config import resolve_openai_model
 from vigie.support.utils.genai import get_openai_api_key
 
 logger = logging.getLogger(__name__)
@@ -349,9 +354,9 @@ def generate_changements_communs_report(
             raise RuntimeError(
                 "OPENAI_API_KEY absent: la generation LLM des changements communs entre banques ne peut pas s'executer."
             )
-        from openai import OpenAI
-
-        client = OpenAI(api_key=api_key)
+        if openai is None:
+            raise RuntimeError("La dependance OpenAI est requise pour generer les changements communs.")
+        client = openai.OpenAI(api_key=api_key)
 
     candidates, discovery_queries = retrieve_changements_communs_discovery_candidates(
         topic,

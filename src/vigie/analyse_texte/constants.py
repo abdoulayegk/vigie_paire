@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import re
 
-
 UNIFIED_TEXT_SCHEMA_VERSION = 3
 
 

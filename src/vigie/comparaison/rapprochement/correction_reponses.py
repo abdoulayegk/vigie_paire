@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import Any, Literal
 
+from pydantic import ConfigDict, Field, create_model
+
 from vigie.comparaison.rapprochement.normalisation_reponses import (
     _alias_table_card,
     _canonical_matching_item,
@@ -125,8 +127,6 @@ def _build_matching_repair_response_model(
     allowed_decisions: set[str],
 ) -> type:
     """Construit un schema OpenAI dont les IDs sont des enums fermes PQ/CQ."""
-    from pydantic import ConfigDict, Field, create_model
-
     current_id_type = Literal.__getitem__(tuple(current_aliases))
     previous_id_type = Literal.__getitem__(tuple(["", *previous_aliases]))
     decision_type = Literal.__getitem__(tuple(sorted(allowed_decisions)))

@@ -17,7 +17,6 @@ from vigie.support.models.comparison_models import (
     IndicatorDiffResponse,
 )
 
-
 INDICATOR_DIFF_SYSTEM_PROMPT = """
 You are a precision-first banking table indicator diff engine.
 

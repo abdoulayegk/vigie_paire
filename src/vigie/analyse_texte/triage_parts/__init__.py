@@ -22,11 +22,11 @@ from vigie.analyse_texte.triage_parts.dedup import (
     _propagate_triage_to_group,
 )
 from vigie.analyse_texte.triage_parts.evidence import (
-    _EvidencePacketCoherenceCheck,
-    _EvidencePacketObservation,
     _build_full_evidence_packets,
     _collect_full_evidence_observations,
     _evidence_read_review_triage,
+    _EvidencePacketCoherenceCheck,
+    _EvidencePacketObservation,
     _requires_full_evidence_packets,
 )
 from vigie.analyse_texte.triage_parts.exclusions import (

@@ -9,8 +9,12 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+from vigie.extraction.page_table_locator import build_page_table_crop_plan
+from vigie.extraction.pdf_preview import render_pdf_page
+from vigie.support.utils import page_layout_context, pdf_crop
 from vigie.support.utils.indicator_cleaner import normalize_indicator_for_comparison
 from vigie.support.utils.rbc_table_signals import classify_rbc_title_reliability
+
 from .models import ExtractedTable
 
 logger = logging.getLogger("vigie.extraction.docling_processor")
@@ -85,17 +89,15 @@ class VisionPassMixin:
         if vision_extractor and table_bbox and len(table_bbox) == 4:
             vision_extraction_attempted = True
             try:
-                from vigie.support.utils.pdf_crop import crop_table_region_to_bytes
-
                 if schema_failure_flag[0]:
                     vision_extraction_attempted = False
                     vision_schema_contract_failed = True
                     warnings_list = ["Vision disabled after schema contract failure"]
                     vision_extraction_disabled_reason = shared.get("vision_extraction_disabled_reason")
                 else:
-                    from vigie.support.utils.pdf_crop import is_bbox_sane
-
-                    sane, crop_reject_reason, bbox_sanity_profile = is_bbox_sane(table_bbox, vision_extraction_cfg)
+                    sane, crop_reject_reason, bbox_sanity_profile = pdf_crop.is_bbox_sane(
+                        table_bbox, vision_extraction_cfg
+                    )
                     if not sane:
                         vision_extraction_attempted = True
                         vision_status_str = "failed"
@@ -110,10 +112,8 @@ class VisionPassMixin:
                             )
                     else:
                         # Dynamic crop extensions based on page layout context
-                        from vigie.support.utils.page_layout_context import compute_dynamic_extensions
-
                         page_table_map = shared.get("page_table_map", {})
-                        dyn_top, dyn_bottom = compute_dynamic_extensions(
+                        dyn_top, dyn_bottom = page_layout_context.compute_dynamic_extensions(
                             table_idx=idx,
                             page_num=page_num,
                             table_bbox=table_bbox,
@@ -126,7 +126,7 @@ class VisionPassMixin:
 
                         def _recrop(ext: float) -> bytes:
                             """Re-crope la région du tableau avec une extension verticale ajustée."""
-                            return crop_table_region_to_bytes(
+                            return pdf_crop.crop_table_region_to_bytes(
                                 str(pdf_path),
                                 page_num,
                                 table_bbox,
@@ -143,11 +143,7 @@ class VisionPassMixin:
                             top_extension: float | None = None,
                         ) -> tuple[bytes, list[float], float, float]:
                             """Rendre une variante et retourner sa geometrie effective."""
-                            from vigie.support.utils.page_layout_context import (
-                                clamp_variant_crop_to_neighbors,
-                            )
-
-                            safe_bbox, safe_bottom, safe_top = clamp_variant_crop_to_neighbors(
+                            safe_bbox, safe_bottom, safe_top = page_layout_context.clamp_variant_crop_to_neighbors(
                                 table_idx=idx,
                                 page_num=page_num,
                                 table_bbox=table_bbox,
@@ -158,7 +154,7 @@ class VisionPassMixin:
                                 ),
                                 top_extension=(top_extension_title if top_extension is None else float(top_extension)),
                             )
-                            rendered = crop_table_region_to_bytes(
+                            rendered = pdf_crop.crop_table_region_to_bytes(
                                 str(pdf_path),
                                 page_num,
                                 safe_bbox,
@@ -192,9 +188,6 @@ class VisionPassMixin:
                                 == "page_context_inventory_conflict_preserved_docling"
                             ):
                                 return None
-                            from vigie.extraction.page_table_locator import build_page_table_crop_plan
-                            from ..pdf_preview import render_pdf_page
-
                             page_image = render_pdf_page(
                                 str(pdf_path),
                                 page_num,

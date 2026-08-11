@@ -6,8 +6,8 @@ import dash_bootstrap_components as dbc
 from dash import dcc, html
 
 from vigie.interface import review_runtime
-from vigie.support.i18n import t
 from vigie.interface.ui_config import AVAILABLE_BANKS, bank_option_label
+from vigie.support.i18n import t
 
 
 def build_sidebar() -> dbc.Col:

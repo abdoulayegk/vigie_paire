@@ -5,7 +5,6 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
-
 _UNICODE_BULLET_CHARS = "•◦▪‣⁃∙●○◉■□◆◇►▸▹‰\x81"
 _UNICODE_BULLET_CLASS = re.escape(_UNICODE_BULLET_CHARS)
 _LIST_ITEM_RE = re.compile(

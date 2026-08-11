@@ -9,6 +9,8 @@ import logging
 import os
 from typing import Any
 
+from vigie.support.config import get_vision_extraction_config
+
 # _ENV_TRUE / _ENV_FALSE etaient utilises sans etre importes dans le module
 # d'origine : _env_bool levait NameError des qu'une variable d'environnement
 # etait reellement positionnee. L'import manquant est retabli ici.
@@ -41,8 +43,6 @@ def _resolve_vision_extraction_enabled(bank_code: str, explicit: bool | None) ->
         return env_choice
 
     try:
-        from vigie.support.config import get_vision_extraction_config
-
         cfg = get_vision_extraction_config(bank_code=bank_code) or {}
         if "enabled" in cfg:
             return bool(cfg.get("enabled"))

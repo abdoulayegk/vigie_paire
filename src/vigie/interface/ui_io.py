@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from vigie.comparaison.pipeline.resultat_models import ComparisonRunResult
 from vigie.interface.ui_config import INDICATOR_COMPARISON_DIR
 
 
@@ -67,8 +68,6 @@ def load_comparison_result(path: str | Path) -> dict | None:
         "matching" in raw and "pair_comparisons" in raw and "summary" in raw
     ):
         try:
-            from vigie.comparaison.pipeline.resultat_models import ComparisonRunResult
-
             ComparisonRunResult.model_validate(raw)
         except Exception:
             return raw

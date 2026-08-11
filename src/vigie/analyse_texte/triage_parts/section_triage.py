@@ -8,13 +8,6 @@ from typing import Any
 
 from pydantic import ValidationError
 
-from vigie.comparaison.triage.amf_taxonomy import (
-    THEMES_AMF_DESCRIPTIONS,
-    THEMES_AMF_PIPELINE_2,
-    TriageAMFCompactLLMBatch,
-    TriageValidationError,
-)
-from vigie.comparaison.analyst_change_presentation import bank_subject as analyst_bank_subject
 from vigie.analyse_texte.constants import _TRIAGE_BATCH_SIZE, _TRIAGE_SOURCE_SNIPPET_LIMIT
 from vigie.analyse_texte.normalization import _json_dumps
 from vigie.analyse_texte.openai_client import (
@@ -22,6 +15,13 @@ from vigie.analyse_texte.openai_client import (
     _truncate_prompt_text,
 )
 from vigie.analyse_texte.text_comparison.change_segments import build_change_segments
+from vigie.comparaison.analyst_change_presentation import bank_subject as analyst_bank_subject
+from vigie.comparaison.triage.amf_taxonomy import (
+    THEMES_AMF_DESCRIPTIONS,
+    THEMES_AMF_PIPELINE_2,
+    TriageAMFCompactLLMBatch,
+    TriageValidationError,
+)
 
 from .alignment import (
     _alignment_review_result,
@@ -64,7 +64,6 @@ from .themes import (
     _candidate_themes_for_change,
     _normalize_themes_amf,
 )
-
 
 logger = logging.getLogger("vigie.analyse_texte.triage")
 

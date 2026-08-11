@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from vigie.support.config import get_matching_thresholds
 from vigie.extraction.docling_normalization import _is_footnote_row
+from vigie.support.config import get_matching_thresholds
 from vigie.support.utils.indicator_cleaner import (
     is_header_footer_table_title,
     strip_note_refs_from_title,

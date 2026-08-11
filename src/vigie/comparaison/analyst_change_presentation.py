@@ -660,7 +660,9 @@ def build_analyst_narrative(
         if not legacy_relevance:
             exclusion_code = str(triage.get("exclusion_reason") or "").strip()
             if exclusion_code:
-                from vigie.comparaison.triage.amf_taxonomy import EXCLUSION_REASONS_DESCRIPTIONS
+                from vigie.comparaison.triage.amf_taxonomy import (  # noqa: PLC0415 - evite le cycle de presentation
+                    EXCLUSION_REASONS_DESCRIPTIONS,
+                )
 
                 legacy_relevance = sanitize_analyst_french(
                     EXCLUSION_REASONS_DESCRIPTIONS.get(

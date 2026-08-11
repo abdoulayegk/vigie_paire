@@ -14,6 +14,10 @@ import logging
 from pathlib import Path
 from typing import Any
 
+from openpyxl import Workbook
+from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
+from openpyxl.utils import get_column_letter
+
 from vigie.support.i18n.fr import sanitize_analyst_french
 
 logger = logging.getLogger(__name__)
@@ -374,10 +378,6 @@ def generate_comparison_excel(
     Returns:
         Path du fichier créé, ou bytes si output_path est None.
     """
-    from openpyxl import Workbook
-    from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
-    from openpyxl.utils import get_column_letter
-
     wb = Workbook()
     ws = wb.active
     ws.title = "Changements détectés"

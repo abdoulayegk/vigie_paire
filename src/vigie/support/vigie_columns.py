@@ -16,7 +16,6 @@ from vigie.comparaison.analyst_change_presentation import (
 )
 from vigie.comparaison.triage.amf_taxonomy import THEMES_AMF_ANALYST_SUBJECTS
 
-
 _CATEGORY_LABELS: dict[str, str] = {
     "reglementation": "1 — Changements réglementaires",
     "cadre_risques": "2 — Cadre de gestion des risques",

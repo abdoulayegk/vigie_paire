@@ -64,11 +64,10 @@ target-version = "py310"
 line-length = 120
 
 [tool.ruff.lint]
-# D : docstrings. F : erreurs Pyflakes (noms non definis, imports morts,
-# variables locales inutilisees, redefinitions). F attrape des defauts que la
-# suite de tests ne voit pas — un appel a une fonction non importee ne casse
-# qu'a l'execution de la branche concernee.
-select = ["D", "F"]
+# D : docstrings. F : erreurs Pyflakes. I : tri des imports.
+# E402 et PLC0415 imposent les imports en tete de module, hors exceptions
+# documentees liees aux cycles, a Dash et aux chargements reellement differes.
+select = ["D", "E402", "F", "I", "PLC0415"]
 ignore = [
     "D105",
     "D107",
@@ -80,4 +79,4 @@ ignore = [
 convention = "google"
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["D"]
+"tests/**" = ["D", "E402", "PLC0415"]

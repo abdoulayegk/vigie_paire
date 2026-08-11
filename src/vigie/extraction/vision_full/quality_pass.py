@@ -6,9 +6,12 @@ de methodes. Mixin consomme par ``VisionFullExtractor``.
 
 from __future__ import annotations
 
+import dataclasses
 import logging
 from dataclasses import replace
 from typing import Any
+
+from vigie.extraction.vision_qa_inspector import VisionTableInspector
 
 from ..page_table_locator import should_use_page_context_rescue
 from ..vision_cache import cache_get, cache_put, get_vision_cache_dir, make_cache_key
@@ -286,12 +289,6 @@ class QualityPassMixin:
         passed_qa = False
         if first is not None and not initial_is_suspect:
             try:
-                import dataclasses
-
-                from vigie.extraction.vision_qa_inspector import (
-                    VisionTableInspector,
-                )
-
                 first_dict = dataclasses.asdict(first)
 
                 inspector = VisionTableInspector(model="gpt-4o")
@@ -628,14 +625,8 @@ class QualityPassMixin:
             # been QA-verified.  Run a targeted QA pass now and, if it finds
             # missing elements, do one additional rescue with a precise instruction.
             try:
-                import dataclasses as _dataclasses
-
-                from vigie.extraction.vision_qa_inspector import (
-                    VisionTableInspector as _VisionTableInspector,
-                )
-
-                _best_dict = _dataclasses.asdict(best_result)
-                _post_qa_inspector = _VisionTableInspector(model="gpt-4o")
+                _best_dict = dataclasses.asdict(best_result)
+                _post_qa_inspector = VisionTableInspector(model="gpt-4o")
                 _post_qa_result = _post_qa_inspector.inspect_extraction(
                     best_crop_bytes,
                     _best_dict,

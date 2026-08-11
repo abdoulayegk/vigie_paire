@@ -17,24 +17,22 @@ Ce script :
 from __future__ import annotations
 
 import argparse
-import sys
+import json
 import time
 from pathlib import Path
 
-# ---------------------------------------------------------------------------
-# Racine du depot (src/vigie/pipelines/ -> 3 niveaux au-dessus).
-# ---------------------------------------------------------------------------
-_PROJECT_ROOT = Path(__file__).resolve().parents[3]
-_SRC = _PROJECT_ROOT / "src"
-if str(_SRC) not in sys.path:
-    sys.path.insert(0, str(_SRC))
-
 from vigie.cli.output_builder import write_run_manifest
+from vigie.cli.run_compare_gpt4o import main as compare_main
+from vigie.cli.run_extract_report import main as extract_main
+from vigie.comparaison.excel import generate_comparison_excel
+from vigie.comparaison.triage.genai_triage import enrich_comparison_with_genai_triage, inject_llm_resume_metier
 from vigie.support.batch_quarter import (
     find_pdf_pair,
     normalize_quarter,
     resolve_previous_quarter,
 )
+
+_PROJECT_ROOT = Path(__file__).resolve().parents[3]
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -99,8 +97,6 @@ def _step_extract(
     extraction_root: Path,
 ) -> Path:
     """Step 1: Run extraction on a single PDF and return the tables.json path."""
-    from vigie.cli.run_extract_report import main as extract_main
-
     extract_main(
         [
             "--banque",
@@ -153,8 +149,6 @@ def _step_compare(
         pdf_previous: PDF du trimestre de reference, optionnel.
         pdf_current: PDF du trimestre courant, optionnel.
     """
-    from vigie.cli.run_compare_gpt4o import main as compare_main
-
     cmd = [
         "--banque",
         bank,
@@ -291,14 +285,10 @@ def main(argv: list[str] | None = None) -> int:
         print("ÉTAPE 2.5 — Analyse GenAI (Triage de pertinence)")
         print("─" * 70)
 
-        from vigie.comparaison.triage.genai_triage import enrich_comparison_with_genai_triage, inject_llm_resume_metier
-
         t0 = time.time()
         enrich_comparison_with_genai_triage(comparison_path)
         # Injection du résumé LLM dans genai_analysis["resume_metier"]
         # Charger, modifier, puis réécrire comparison.json
-        import json
-
         comparison = json.loads(comparison_path.read_text(encoding="utf-8"))
         comparison = inject_llm_resume_metier(comparison)
         comparison_path.write_text(json.dumps(comparison, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -307,8 +297,6 @@ def main(argv: list[str] | None = None) -> int:
         print(f"   Triage GenAI terminé en {elapsed:.1f}s")
 
         # Export Excel avec justifications IA à côté de comparison.json
-        from vigie.comparaison.excel import generate_comparison_excel
-
         excel_path = comparison_path.with_suffix(".xlsx")
         generate_comparison_excel(comparison, excel_path)
         print(f"   comparison.xlsx → {excel_path}")

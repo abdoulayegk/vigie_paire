@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
+import base64
 import logging
+import os
+import tempfile
+import time
 from pathlib import Path
 
 import dash_bootstrap_components as dbc
@@ -31,6 +35,9 @@ from vigie.interface.layouts import (
     build_page_upload,
     build_page_validation,
 )
+from vigie.interface.review_adapters import build_review_items_from_indicator_result
+from vigie.interface.review_queue_normalizer import build_normalized_review_queue
+from vigie.interface.review_storage import is_review_state_compatible, is_review_state_stale
 from vigie.interface.services.comparison_context import (
     _normalize_pdf_paths_store,
     _quarter_context_from_store,
@@ -38,12 +45,16 @@ from vigie.interface.services.comparison_context import (
 from vigie.interface.services.comparison_store import (
     build_file_comparison_store,
 )
-from vigie.support.quarter_utils import build_quarter_context
+from vigie.interface.services.review_persistence import _persist_review_state, _stored_review_items_from_state
+from vigie.interface.services.text_comparison_store import resolve_text_comparison_from_payload
+from vigie.interface.ui_config import INDICATOR_COMPARISON_DIR
 from vigie.interface.ui_detection import (
     _detect_sections_core,
     get_section_preview_images,
 )
 from vigie.interface.ui_io import save_pdfs_to_temp
+from vigie.support.config import get_vision_extraction_config
+from vigie.support.quarter_utils import build_quarter_context, quarter_label_from_payload
 
 logger = logging.getLogger(__name__)
 
@@ -150,8 +161,6 @@ def populate_saved_runs(source_type, bank_code, year, current_quarter):
     if source_type != "saved" or not bank_code or not year or not current_quarter:
         return [], None
 
-    from vigie.interface.ui_config import INDICATOR_COMPARISON_DIR
-
     store = build_file_comparison_store(root_dir=INDICATOR_COMPARISON_DIR)
     filtered_options = store.list_saved_run_options(
         bank_code=str(bank_code),
@@ -192,19 +201,6 @@ def load_saved_comparison(n_clicks, run_file):
     Le clic et le fichier sélectionné restaurent les stores métier, les chemins,
     le contexte de revue et le message de chargement retournés à Dash.
     """
-    from vigie.interface.services.review_persistence import (
-        _persist_review_state,
-        _stored_review_items_from_state,
-    )
-    from vigie.support.quarter_utils import quarter_label_from_payload
-    from vigie.interface.review_adapters import build_review_items_from_indicator_result
-    from vigie.interface.review_queue_normalizer import build_normalized_review_queue
-    from vigie.interface.review_storage import (
-        is_review_state_compatible,
-        is_review_state_stale,
-    )
-    from vigie.interface.ui_config import INDICATOR_COMPARISON_DIR
-
     if not n_clicks or not run_file:
         raise PreventUpdate
 
@@ -299,10 +295,6 @@ def load_saved_comparison(n_clicks, run_file):
             source="load_from_saved",
         )
 
-        from vigie.interface.services.text_comparison_store import (
-            resolve_text_comparison_from_payload,
-        )
-
         canonical_for_text = to_canonical_payload(data) if data else {}
         text_comparison_data = resolve_text_comparison_from_payload(canonical_for_text)
 
@@ -360,9 +352,6 @@ def on_detect(n_clicks, upl_t1, upl_t2, quarter_context, bank_code):
     Le clic, les chemins PDF, la période et la banque produisent les bornes de
     sections, les chemins normalisés et le statut présenté avant validation.
     """
-    import base64
-    import tempfile
-
     if not n_clicks:
         raise PreventUpdate
 
@@ -432,8 +421,6 @@ def on_detect(n_clicks, upl_t1, upl_t2, quarter_context, bank_code):
         )
 
     detection = {"detection_t1": mapping_t1, "detection_t2": mapping_t2}
-    import time
-
     validation_start_ms = int(time.time() * 1000)
     return (
         paths,
@@ -719,10 +706,6 @@ def on_analyze(
     les résultats de comparaison, d'indicateurs et de texte, leurs artéfacts et
     les états Dash qui ouvrent le tableau de bord.
     """
-    import os
-
-    from vigie.interface.ui_config import INDICATOR_COMPARISON_DIR
-
     if not n_clicks or not detection or not paths or not bank_code:
         return None, None, None, False, build_page_validation(), None, None, False, None
 
@@ -748,8 +731,6 @@ def on_analyze(
     use_genai = bool(api_key)
 
     try:
-        from vigie.support.config import get_vision_extraction_config
-
         cfg = get_vision_extraction_config(bank_code=bank_code) or {}
         use_vision_extraction = bool(cfg.get("enabled", False))
     except Exception:
@@ -759,7 +740,9 @@ def on_analyze(
     use_stored_extraction = not bool(force_reextract_opt and "reextract" in (force_reextract_opt or []))
 
     try:
-        from vigie.comparaison.runner import run_comparison_with_sections
+        from vigie.comparaison.runner import (  # noqa: PLC0415 - pipeline lourd charge a la demande
+            run_comparison_with_sections,
+        )
 
         result = run_comparison_with_sections(
             pdf_path_previous=path_t1,
@@ -834,16 +817,10 @@ def on_analyze(
             color="success",
         )
 
-    import time
-
     validation_duration_sec = None
     if validation_start_ms:
         validation_end_ms = int(time.time() * 1000)
         validation_duration_sec = max(0, (validation_end_ms - validation_start_ms) // 1000)
-
-    from vigie.interface.services.text_comparison_store import (
-        resolve_text_comparison_from_payload,
-    )
 
     canonical_for_text = to_canonical_payload(indicator_result) if indicator_result else {}
     text_comparison_data = resolve_text_comparison_from_payload(canonical_for_text)

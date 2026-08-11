@@ -28,7 +28,6 @@ from vigie.analyse_texte.constants import (
 )
 from vigie.analyse_texte.models import PDFBlock
 
-
 _NOT_APPLICABLE_MARKER_RE = re.compile(
     r"^\s*(?:(?:\[\s*(?:x|X)?\s*\]|[-*•‰])\s*)?s\.?\s*o\.?\s*$",
     flags=re.IGNORECASE,

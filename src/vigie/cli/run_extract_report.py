@@ -9,16 +9,17 @@ Ce point d'entree preserve le pipeline d'extraction existant :
 from __future__ import annotations
 
 import argparse
+import importlib
 import re
 from pathlib import Path
 from typing import Any
 
-from vigie.support.config import resolve_openai_model
-from vigie.support.config.loader import get_bank_cfg, load_config
 from vigie.extraction.section_taxonomy import canonicalize_section
 from vigie.extraction.vision_extraction_writer import (
     write_compact_report_artifacts,
 )
+from vigie.support.config import resolve_openai_model
+from vigie.support.config.loader import get_bank_cfg, load_config
 
 DEFAULT_CONFIG = "configs/bank_profiles.yaml"
 DEFAULT_OUT_ROOT = "outputs/extractions"
@@ -86,13 +87,10 @@ def main(argv: list[str] | None = None) -> None:
     cfg = load_config(args.config)
     get_bank_cfg(cfg, args.banque)
 
-    try:
-        from vigie.extraction.docling.processor import (
-            extract_tables_docling_by_sections,
-        )
-        from vigie.extraction.localisation_sections.section_locator import locate_sections_in_pdf
-    except Exception as exc:
-        raise NotImplementedError("Extraction backends are not importable in this environment.") from exc
+    processor_module = importlib.import_module("vigie.extraction.docling.processor")
+    locator_module = importlib.import_module("vigie.extraction.localisation_sections.section_locator")
+    extract_tables_docling_by_sections = processor_module.extract_tables_docling_by_sections
+    locate_sections_in_pdf = locator_module.locate_sections_in_pdf
 
     quarter_norm = _normalize_storage_quarter(args.trimestre)
     mapping = locate_sections_in_pdf(

@@ -2,11 +2,6 @@
 
 from __future__ import annotations
 
-from vigie.interface.services.review_navigation import (
-    _review_id,
-    _table_decision_bucket,
-)
-from vigie.support.quarter_utils import quarter_label_from_payload
 from vigie.interface.review_adapters import build_review_items_from_indicator_result
 from vigie.interface.review_models import (
     CHANGE_TYPE_ADDED,
@@ -24,6 +19,11 @@ from vigie.interface.review_models import (
     ReviewItem,
 )
 from vigie.interface.review_models_v2 import ChangeType
+from vigie.interface.services.review_navigation import (
+    _review_id,
+    _table_decision_bucket,
+)
+from vigie.support.quarter_utils import quarter_label_from_payload
 
 
 def _indicator_change_total(comp: dict) -> int:

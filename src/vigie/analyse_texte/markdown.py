@@ -11,8 +11,6 @@ import logging
 import re
 from typing import Any
 
-from vigie.support.batch_quarter import normalize_quarter
-from vigie.support.config.loader import load_config
 from vigie.analyse_texte.constants import _OUT_OF_SCOPE_ACCOUNTING_HEADING_PATTERNS, _SECTION_LABELS
 from vigie.analyse_texte.list_items import format_list_item_markdown, parse_list_item_line
 from vigie.analyse_texte.models import PDFBlock, SectionAudit
@@ -22,6 +20,8 @@ from vigie.analyse_texte.normalization import (
     _normalized_block_text,
 )
 from vigie.analyse_texte.sections import _sorted_section_audits
+from vigie.support.batch_quarter import normalize_quarter
+from vigie.support.config.loader import load_config
 
 logger = logging.getLogger(__name__)
 
@@ -236,7 +236,9 @@ def _build_text_extraction_markdown(
     et ordre) provient du markdown natif Docling. Sinon, repli sur les blocs PDF.
     """
     if raw_docling_markdown and raw_docling_markdown.strip():
-        from vigie.analyse_texte.docling_markdown import _build_text_extraction_markdown_from_docling
+        from vigie.analyse_texte.docling_markdown import (  # noqa: PLC0415 - import reciproque limite a ce chemin
+            _build_text_extraction_markdown_from_docling,
+        )
 
         return _build_text_extraction_markdown_from_docling(
             section_audits,

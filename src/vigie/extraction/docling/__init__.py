@@ -1,6 +1,5 @@
 """Moteur d'extraction Docling du pipeline."""
 
-from vigie.extraction.docling_bbox_helpers import _build_indicator_reference_text
 from vigie.extraction.docling.models import (
     ExtractedDocument,
     ExtractedSection,
@@ -14,6 +13,7 @@ from vigie.extraction.docling.processor import (
     extract_tables_docling_by_sections,
     extract_tables_docling_priority,
 )
+from vigie.extraction.docling_bbox_helpers import _build_indicator_reference_text
 
 __all__ = [
     "DoclingProcessor",

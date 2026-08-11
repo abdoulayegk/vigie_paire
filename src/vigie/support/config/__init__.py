@@ -26,7 +26,6 @@ from typing import Any
 
 from vigie.support.config.loader import _resolve_config_path, get_bank_cfg, load_config
 
-
 _DEFAULT_OPENAI_MODELS: dict[str, str] = {
     "extraction_primary": "gpt-5.4",
     "default_genai": "gpt-4o",
