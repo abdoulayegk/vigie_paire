@@ -26,6 +26,7 @@ import pdfplumber
 from vigie.extraction.localisation_sections.boundary_resolver import resolve_t4_section_bounds
 from vigie.extraction.localisation_sections.toc_locator import locate_toc_structure
 from vigie.extraction.section_taxonomy import canonicalize_section
+from vigie.support.utils.genai import get_openai_api_key
 
 from .annual_t4 import AnnualT4Mixin
 from .bank_config import (
@@ -40,6 +41,8 @@ from .models import (
     TocEntry,
     VisualTextElement,
 )
+from .page_offsets import infer_page_offset
+from .semantic_locator import merge_semantic_sections, resolve_semantic_toc_sections
 from .title_scan import TitleScanMixin
 from .toc_parser import TocParserMixin
 from .validation import ValidationMixin, assess_target_section_health
@@ -89,16 +92,17 @@ class SectionLocator(
         self.quarter = quarter
         self.year = year
         self.bank_config = _load_bank_config()
+        self._resolved_page_number_offset: int | None = None
         self._compile_patterns()
         self._load_following_patterns()
 
     def locate_sections(self, pdf_path: str | Path) -> SectionMapping:
         """Localise les sections cibles dans un PDF.
 
-        Stratégie hybride à 3 niveaux :
-        1. Vérifier les overrides manuels (configuration)
-        2. Parser la TDM complète pour les limites exactes
-        3. Scanner le PDF et détecter les sections suivantes
+        Stratégie hybride : TDM, overrides de garde-fou, scan de titres,
+        structure visuelle, classification sémantique et validation Vision.
+        Les méthodes historiques restent prioritaires; l'IA complète les
+        sections absentes ou faibles et expose explicitement les ambiguïtés.
 
         Args:
             pdf_path: Chemin vers le fichier PDF
@@ -114,6 +118,10 @@ class SectionLocator(
         if not pdf_path.exists():
             raise FileNotFoundError(f"PDF non trouve: {pdf_path}")
 
+        # Une instance peut être réutilisée pour plusieurs PDF. L'offset inféré
+        # appartient toujours au document courant.
+        self._resolved_page_number_offset = None
+
         logger.info(f"Localisation des sections dans: {pdf_path}")
 
         # Extraire le texte du PDF
@@ -123,6 +131,25 @@ class SectionLocator(
         # ETAPE 1: Parser la TDM complete
         toc_entries = self._parse_full_toc(text_by_page)
         logger.info(f"TDM: {len(toc_entries)} entrees trouvees")
+
+        semantic_config = self.bank_config.get("section_semantic_localization", {})
+        configured_offset = self._get_configured_page_number_offset()
+        offset_resolution = infer_page_offset(
+            text_by_page,
+            toc_entries,
+            configured_offset=configured_offset,
+            max_offset=int(semantic_config.get("page_offset_max", 20)),
+            min_consensus_anchors=int(semantic_config.get("page_offset_min_consensus_anchors", 2)),
+        )
+        self._resolved_page_number_offset = offset_resolution.offset
+        boundary_validation: dict = {"page_offset": offset_resolution.to_dict()}
+        if offset_resolution.status == "inferred_override":
+            logger.info(
+                "Offset PDF recalculé par consensus: configuré=%d, résolu=%d, confiance=%.2f",
+                configured_offset,
+                offset_resolution.offset,
+                offset_resolution.confidence,
+            )
 
         toc_sections = []
         toc_score = 0.0
@@ -199,6 +226,12 @@ class SectionLocator(
         # Ensuite scanner le PDF pour les sections non trouvees dans la TDM
         scanned_sections = self._scan_section_titles(text_by_page)
         for scanned in scanned_sections:
+            if scanned.section_type == "gestion_reglementation" and not self._bank_has_regulatory_section():
+                # Un titre réglementaire peut être une sous-section interne à
+                # capital, risques ou comptabilité. Seule la couche sémantique
+                # peut découvrir un nouveau grand chapitre pour une banque qui
+                # n'en possède pas dans son profil.
+                continue
             if scanned.section_type not in found_types:
                 # Valider que la page est raisonnable (pas dans les 5 premieres pages)
                 if scanned.start_page > 5:
@@ -207,7 +240,8 @@ class SectionLocator(
 
         # NOUVEAU: Detection visuelle (pdfplumber) pour les sections non encore trouvees
         # Utilise taille de police, gras, position pour identifier les titres
-        if len(found_types) < 2:
+        target_types = {"gestion_capital", "gestion_risques"}
+        if not target_types.issubset(found_types):
             logger.info("Detection visuelle activee pour sections manquantes...")
             visual_elements = self._extract_visual_elements(pdf_path)
             if visual_elements:
@@ -227,16 +261,118 @@ class SectionLocator(
                                 f"page {visual_section.start_page} (conf={visual_section.confidence:.2f})"
                             )
 
+        # Renforcement sémantique de la TDM. Il complète une cible absente ou
+        # remplace seulement une détection faible; un désaccord avec une
+        # détection forte est conservé comme ambiguïté d'audit.
+        semantic_outcome = resolve_semantic_toc_sections(
+            toc_entries,
+            bank_code=self.bank_code or "",
+            config=self.bank_config,
+        )
+        semantic_candidates = list(semantic_outcome.sections)
+        semantic_vision: list[dict] = []
+        if semantic_candidates and semantic_config.get("vision_validation_enabled", True):
+            current_by_concept = {canonicalize_section(section.section_type): section for section in sections}
+            replace_threshold = float(semantic_config.get("replace_below_confidence", 0.7))
+            candidates_requiring_vision = [
+                candidate
+                for candidate in semantic_candidates
+                if candidate.semantic_status == "vision_required"
+                or canonicalize_section(candidate.section_type) not in current_by_concept
+                or current_by_concept[canonicalize_section(candidate.section_type)].confidence < replace_threshold
+            ]
+            max_calls = int(semantic_config.get("vision_max_calls_per_report", 3))
+            required = bool(semantic_config.get("vision_required_for_new_titles", True))
+            validated_candidates: list[LocatedSection] = []
+            detector = None
+            if candidates_requiring_vision and get_openai_api_key():
+                from vigie.extraction.genai_toc_detector import (  # noqa: PLC0415 - dépendance OpenAI optionnelle
+                    GenAITOCDetector,
+                )
+
+                detector = GenAITOCDetector(model=str(semantic_config.get("vision_model", "gpt-4o")))
+
+            for candidate in semantic_candidates:
+                if candidate not in candidates_requiring_vision:
+                    validated_candidates.append(candidate)
+                    continue
+                if detector is None or len(semantic_vision) >= max_calls:
+                    candidate.semantic_status = "ambiguous" if required else "vision_skipped"
+                    semantic_vision.append(
+                        {
+                            "section_type": canonicalize_section(candidate.section_type),
+                            "status": "unavailable",
+                            "printed_page": candidate.start_page,
+                        }
+                    )
+                    if not required:
+                        validated_candidates.append(candidate)
+                    continue
+
+                physical_page = candidate.start_page + self._get_page_number_offset()
+                validation = detector.validate_section_transition(
+                    pdf_path,
+                    max(1, physical_page - 1),
+                    physical_page,
+                    section_type=canonicalize_section(candidate.section_type),
+                    expected_title=candidate.title_found,
+                )
+                confirmed = bool(
+                    validation.confirmed
+                    and validation.candidate_page_starts_expected_section
+                    and validation.confidence >= float(semantic_config.get("vision_confidence_min", 0.88))
+                )
+                semantic_vision.append(
+                    {
+                        "section_type": canonicalize_section(candidate.section_type),
+                        "status": "confirmed" if confirmed else "rejected",
+                        "printed_page": candidate.start_page,
+                        "physical_page": physical_page,
+                        "confidence": round(validation.confidence, 3),
+                        "observed_title": validation.observed_title,
+                        "reason": validation.reason,
+                    }
+                )
+                if confirmed:
+                    candidate.confidence = min(1.0, candidate.confidence + 0.08)
+                    candidate.semantic_status = "vision_confirmed"
+                    validated_candidates.append(candidate)
+                elif not required:
+                    candidate.semantic_status = "vision_unconfirmed"
+                    validated_candidates.append(candidate)
+                else:
+                    candidate.semantic_status = "ambiguous"
+            semantic_candidates = validated_candidates
+        elif semantic_candidates:
+            # Un candidat sous le seuil fort n'est jamais promu sans Vision,
+            # même si cette validation a été désactivée par configuration.
+            semantic_candidates = [
+                candidate for candidate in semantic_candidates if candidate.semantic_status != "vision_required"
+            ]
+
+        sections, semantic_merge_warnings = merge_semantic_sections(
+            sections,
+            semantic_candidates,
+            replace_below_confidence=float(semantic_config.get("replace_below_confidence", 0.7)),
+            conflict_page_gap=int(semantic_config.get("conflict_page_gap", 3)),
+        )
+        found_types = {section.section_type for section in sections}
+        semantic_diagnostics = dict(semantic_outcome.diagnostics)
+        semantic_diagnostics["vision"] = semantic_vision
+        semantic_diagnostics.setdefault("warnings", []).extend(semantic_merge_warnings)
+        if semantic_merge_warnings or any(item.get("status") == "rejected" for item in semantic_vision):
+            semantic_diagnostics["status"] = "ambiguous"
+        boundary_validation["semantic_localization"] = semantic_diagnostics
+
         # T4 annuel: TDM structurelle (Rapport de gestion) avant le rebase titres.
         # Les titres hardcodes restent un prior/repli si la TDM est incomplete.
         toc_structure = None
         if self._is_t4_quarter():
             try:
-                configured_offset = self._get_page_number_offset()
                 toc_structure = locate_toc_structure(
                     text_by_page,
                     pdf_path=pdf_path,
-                    configured_offset=configured_offset,
+                    configured_offset=self._get_page_number_offset(),
                 )
                 resolve_outcome = resolve_t4_section_bounds(
                     toc_structure,
@@ -335,7 +471,6 @@ class SectionLocator(
 
         # ETAPE 4.75: Pour les rapports annuels, valider la TDM et les
         # transitions physiques avec la couche Docling + Vision indépendante.
-        boundary_validation: dict = {}
         if self._is_t4_quarter():
             try:
                 from vigie.extraction.annual_section_boundary_validator import (  # noqa: PLC0415 - Docling charge seulement pour T4
@@ -371,7 +506,16 @@ class SectionLocator(
                     candidate_pages,
                 )
                 sections = outcome.sections
-                boundary_validation = outcome.diagnostics
+                # La validation annuelle possède elle aussi un champ
+                # ``page_offset`` (entier historique). Ne pas l'aplatir dans
+                # le diagnostic global : cela écraserait la résolution
+                # documentée ci-dessus, qui est un dictionnaire auditable.
+                annual_diagnostics = dict(outcome.diagnostics)
+                boundary_validation["annual_t4"] = annual_diagnostics
+                boundary_validation.update(
+                    {key: value for key, value in annual_diagnostics.items() if key != "page_offset"}
+                )
+                boundary_validation["annual_page_offset"] = annual_diagnostics.get("page_offset")
                 if outcome.toc_entries:
                     toc_entries = [
                         TocEntry(
@@ -385,17 +529,19 @@ class SectionLocator(
                     toc_sections = self._detect_sections_from_full_toc(toc_entries)
                     toc_score = self._assess_toc_quality(toc_entries, toc_sections, total_pages)
                     toc_reliable = toc_score >= 0.6
-                    toc_used = toc_used or boundary_validation.get("status") in {
+                    toc_used = toc_used or annual_diagnostics.get("status") in {
                         "verified",
                         "partial",
                     }
             except Exception as exc:
                 logger.warning("Validation annuelle Docling + Vision indisponible: %s", exc)
-                boundary_validation = {
+                annual_diagnostics = {
                     "enabled": True,
                     "status": "error",
                     "warnings": [str(exc)],
                 }
+                boundary_validation["annual_t4"] = annual_diagnostics
+                boundary_validation.update(annual_diagnostics)
 
         # ETAPE 4.8: Normaliser la taxonomie des sections en sortie.
         for section in sections:
@@ -420,7 +566,18 @@ class SectionLocator(
         # Constat de fiabilité des deux concepts cibles, joint au diagnostic.
         # Il ne déclenche aucune action de repli : il rend visible une section
         # cible absente ou faible, ce qu'aucune étape ne signalait auparavant.
-        boundary_validation["target_sections"] = assess_target_section_health(sections)
+        target_health = assess_target_section_health(sections)
+        ambiguity_reasons: list[str] = []
+        if boundary_validation.get("page_offset", {}).get("status") == "ambiguous":
+            ambiguity_reasons.append("page_offset")
+        if boundary_validation.get("semantic_localization", {}).get("status") == "ambiguous":
+            ambiguity_reasons.append("semantic_localization")
+        if any(section.semantic_status == "ambiguous" for section in sections):
+            ambiguity_reasons.append("section_conflict")
+        if ambiguity_reasons:
+            target_health["status"] = "ambiguous"
+            target_health["ambiguity_reasons"] = sorted(set(ambiguity_reasons))
+        boundary_validation["target_sections"] = target_health
 
         # Creer le mapping
         mapping = SectionMapping(

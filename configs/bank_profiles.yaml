@@ -4,6 +4,30 @@ llm_models:
   extraction_primary: gpt-5.4
   default_genai: gpt-4o
 
+# Renforcement de la localisation des grands chapitres. Les méthodes
+# déterministes restent prioritaires; cette couche complète les titres
+# renommés et arbitre grand chapitre / sous-section / mention.
+section_semantic_localization:
+  enabled: true
+  embedding_model: text-embedding-3-large
+  llm_model: gpt-5.4
+  timeout_sec: 120
+  shortlist_per_concept: 6
+  max_candidates: 48
+  min_llm_candidate_confidence: 0.70
+  min_llm_confidence: 0.82
+  ambiguous_margin: 0.04
+  replace_below_confidence: 0.70
+  conflict_page_gap: 3
+  allow_regulatory_discovery: true
+  vision_validation_enabled: true
+  vision_model: gpt-4o
+  vision_confidence_min: 0.88
+  vision_required_for_new_titles: true
+  vision_max_calls_per_report: 3
+  page_offset_max: 20
+  page_offset_min_consensus_anchors: 2
+
 text_extraction:
   boundary_vision_enabled: true
   boundary_vision_confidence_min: 0.90

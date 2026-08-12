@@ -224,6 +224,13 @@ class BankConfigMixin:
         Returns:
             Offset (ex. 3 pour CIBC) ou 0 si pas de decalage.
         """
+        resolved = getattr(self, "_resolved_page_number_offset", None)
+        if resolved is not None:
+            return max(0, int(resolved))
+        return self._get_configured_page_number_offset()
+
+    def _get_configured_page_number_offset(self) -> int:
+        """Lire l'offset statique configuré sans consulter la résolution du PDF."""
         if not self.bank_code or not self.bank_config:
             return 0
         bank_data = self.bank_config.get("banks", {}).get(self.bank_code, {})

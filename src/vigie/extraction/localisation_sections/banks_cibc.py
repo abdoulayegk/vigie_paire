@@ -6,6 +6,7 @@ Mixin consommé par ``SectionLocator``.
 from __future__ import annotations
 
 import logging
+from dataclasses import replace
 
 from .models import LocatedSection
 
@@ -65,21 +66,7 @@ class CibcRefinementMixin:
                 detection_method = f"{section.detection_method}_cibc_recalibrated"
                 logger.info(f"[CIBC] Recalage {section.section_type}: p.{section.start_page} -> p.{found_start}")
 
-            adjusted.append(
-                LocatedSection(
-                    section_type=section.section_type,
-                    title_found=section.title_found,
-                    start_page=new_start,
-                    end_page=section.end_page,
-                    confidence=section.confidence,
-                    detection_method=detection_method,
-                    end_detection_method=section.end_detection_method,
-                    detected_span=section.detected_span,
-                    final_span=section.final_span,
-                    constraint_applied=section.constraint_applied,
-                    constraint_reason=section.constraint_reason,
-                )
-            )
+            adjusted.append(replace(section, start_page=new_start, detection_method=detection_method))
 
         # Enchainement explicite des 2 sections cibles (si presentes)
         by_type = {s.section_type: s for s in adjusted}
