@@ -14,7 +14,6 @@ from vigie.analyse_texte.docling_segment_repair import (
     _repair_nonadjacent_dangling_boundaries,
     _segment_audit_text,
 )
-from vigie.analyse_texte.figure_narrative import render_figure_narrative
 from vigie.analyse_texte.list_items import (
     format_list_item_markdown,
     parse_list_item_line,
@@ -40,10 +39,7 @@ logger = logging.getLogger(__name__)
 
 _HEADING_LINE_RE = re.compile(r"^(#{1,6})\s+(.+)$")
 _TABLE_ROW_RE = re.compile(r"^\|.+\|$")
-_DOCLING_IMAGE_MARKER_RE = re.compile(
-    r'^<!--\s*image(?:\s+page="(?P<page>\d+)"\s+bbox="(?P<bbox>[0-9.,\s-]+)")?\s*-->$',
-    flags=re.IGNORECASE,
-)
+_DOCLING_IMAGE_MARKER_RE = re.compile(r"^<!--\s*image\s*-->$", flags=re.IGNORECASE)
 _EXPLICIT_FOOTNOTE_MARKER_RE = re.compile(
     r"^\s*(?:\(?\d{1,2}\)|[¹²³⁴⁵⁶⁷⁸⁹]+|[*†‡]{1,3}|"
     r"(?:note|source|s\.?\s*o\.?|n\.?\s*s\.?)\b)",
@@ -153,29 +149,11 @@ def _parse_docling_markdown(md_content: str) -> list[DoclingSegment]:
             follows_table = False
             visual_note_context = False
             continue
-        image_match = _DOCLING_IMAGE_MARKER_RE.fullmatch(line)
-        if image_match:
+        if _DOCLING_IMAGE_MARKER_RE.fullmatch(line):
             # Les graphiques Docling sont exportés comme images. Les lignes
             # numérotées qui les suivent sont des notes visuelles au même titre
             # que les notes sous une table Markdown.
-            page_text = image_match.group("page")
-            bbox_text = image_match.group("bbox")
-            bbox = None
-            if bbox_text:
-                try:
-                    values = [float(value.strip()) for value in bbox_text.split(",")]
-                    bbox = values if len(values) == 4 else None
-                except ValueError:
-                    bbox = None
-            segments.append(
-                DoclingSegment(
-                    kind="visual" if page_text and bbox else "table",
-                    text="[visual]",
-                    page=int(page_text) if page_text else None,
-                    bbox_norm=bbox,
-                    source_block_type="visual" if page_text and bbox else None,
-                )
-            )
+            segments.append(DoclingSegment(kind="table", text="[visual]"))
             in_table = False
             follows_table = True
             visual_note_context = True
@@ -505,7 +483,7 @@ def _audit_blocks(audit: SectionAudit) -> list[PDFBlock]:
         # Ces décisions spatiales sont définitives. Une étiquette Docling
         # ``section_header`` ne doit pas réadmettre un numéro de page, un pied
         # de page ou un titre situé dans une grille.
-        if block.block_type in {"table", "visual", "table_footnote", "header_footer"}:
+        if block.block_type in {"table", "table_footnote", "header_footer"}:
             continue
         if block.exclusion_reason in {
             "table_like_block",
@@ -658,16 +636,7 @@ def _assign_segments_to_sections(
             current_section = None
             continue
 
-        if segment.kind in {"table", "visual"}:
-            if segment.kind == "visual" and current_section is None and segment.page is not None:
-                page_candidates = [
-                    audit.section_key
-                    for audit in audits_by_start
-                    if audit.section_key not in stopped_sections
-                    and int(audit.start_page) <= int(segment.page) <= int(audit.end_page)
-                ]
-                if len(page_candidates) == 1:
-                    current_section = page_candidates[0]
+        if segment.kind == "table":
             if current_section is not None and current_section not in stopped_sections:
                 assigned[current_section].append(segment)
             continue
@@ -730,7 +699,7 @@ def _filter_reinserted_section_segments(
         if event.get("action") == "remove" and event.get("text")
     }
     for segment in segments:
-        if segment.kind in {"table", "visual"}:
+        if segment.kind == "table":
             filtered.append(segment)
             continue
         source_text = _segment_audit_text(segment)
@@ -856,7 +825,6 @@ def _build_text_extraction_markdown_from_docling(
     *,
     raw_docling_markdown: str,
     boundary_validator: Any | None = None,
-    figure_narrator: Any | None = None,
     audit_events: list[dict[str, Any]] | None = None,
 ) -> str:
     """Construit le markdown filtré en s'alignant sur la structure Docling."""
@@ -907,67 +875,12 @@ def _build_text_extraction_markdown_from_docling(
         lines.append("")
 
         last_page: int | None = audit.start_page
-        for segment_index, segment in enumerate(section_segments):
+        for segment in section_segments:
             if segment.kind == "table":
                 continue
             page = _page_for_segment(segment, page_lookup=page_lookup, fallback_page=last_page)
             if page is not None:
                 last_page = page
-
-            if segment.kind == "visual":
-                nearby_before = [
-                    item.text
-                    for item in section_segments[max(0, segment_index - 3) : segment_index]
-                    if item.kind in {"heading", "paragraph", "list_item"}
-                ]
-                nearby_after = [
-                    item.text
-                    for item in section_segments[segment_index + 1 : segment_index + 4]
-                    if item.kind in {"heading", "paragraph", "list_item"}
-                ]
-                narrative = None
-                if figure_narrator is not None and page is not None and segment.bbox_norm:
-                    narrative = figure_narrator.describe(
-                        page=page,
-                        bbox_norm=segment.bbox_norm,
-                        section_title=audit.section_title,
-                        context_before="\n".join(nearby_before),
-                        context_after="\n".join(nearby_after),
-                    )
-                if narrative is None:
-                    if audit_events is not None:
-                        audit_events.append(
-                            {
-                                "action": "skip",
-                                "reason": "visual_narrative_unavailable",
-                                "kind": "visual",
-                                "page": page,
-                            }
-                        )
-                    continue
-                preceding_heading = bool(
-                    segment_index > 0
-                    and section_segments[segment_index - 1].kind == "heading"
-                    and _normalized_block_text(section_segments[segment_index - 1].text) != section_title_norm
-                )
-                lines.extend(
-                    render_figure_narrative(
-                        narrative,
-                        page=page,
-                        preceding_heading=preceding_heading,
-                    )
-                )
-                if audit_events is not None:
-                    audit_events.append(
-                        {
-                            "action": "enrich",
-                            "reason": "visual_narrative_inserted",
-                            "kind": narrative.visual_type,
-                            "page": page,
-                            "confidence": narrative.confidence,
-                        }
-                    )
-                continue
 
             if segment.kind == "heading":
                 heading_text = segment.text.strip()

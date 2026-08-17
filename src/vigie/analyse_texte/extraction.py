@@ -52,11 +52,6 @@ _COMPOSITE_GRID_CAPTION_RE = re.compile(
     flags=re.IGNORECASE,
 )
 _COMPOSITE_GRID_NUMERIC_CELL_RE = re.compile(r"^\s*\(?\s*-?\d[\d\s.,]*\s*\)?\s*%?\s*$")
-_DOCLING_IMAGE_MARKER_RE = re.compile(r"<!--\s*image\s*-->", flags=re.IGNORECASE)
-_ANNOTATED_IMAGE_MARKER_RE = re.compile(
-    r'<!--\s*image\s+page="\d+"\s+bbox="[0-9.,\s-]+"\s*-->',
-    flags=re.IGNORECASE,
-)
 
 
 def _docling_bbox_to_norm(docling_doc: Any, prov: Any) -> list[float] | None:
@@ -87,46 +82,6 @@ def _export_docling_markdown(docling_doc: Any) -> str:
         value = export_to_markdown()
         return str(value or "")
     return ""
-
-
-def _annotate_docling_image_markers(markdown: str, docling_doc: Any) -> str:
-    """Ajoute la géométrie Docling aux marqueurs image, dans leur ordre natif."""
-    regions: list[tuple[int, list[float]]] = []
-    for picture in getattr(docling_doc, "pictures", []) or []:
-        provs = list(getattr(picture, "prov", []) or [])
-        if not provs:
-            continue
-        page = int(getattr(provs[0], "page_no", 0) or 0)
-        bbox = _docling_bbox_to_norm(docling_doc, provs[0])
-        if page > 0 and bbox:
-            regions.append((page, bbox))
-    if not regions:
-        return markdown
-    marker_count = len(_DOCLING_IMAGE_MARKER_RE.findall(markdown))
-    if marker_count != len(regions):
-        logger.warning(
-            "Association images Docling ignorée: %d marqueurs pour %d régions",
-            marker_count,
-            len(regions),
-        )
-        return markdown
-
-    region_iter = iter(regions)
-
-    def _replace(match: re.Match[str]) -> str:
-        try:
-            page, bbox = next(region_iter)
-        except StopIteration:
-            return match.group(0)
-        bbox_text = ",".join(f"{value:.6f}" for value in bbox)
-        return f'<!-- image page="{page}" bbox="{bbox_text}" -->'
-
-    return _DOCLING_IMAGE_MARKER_RE.sub(_replace, markdown)
-
-
-def _native_docling_markdown(markdown: str) -> str:
-    """Retire les coordonnées internes avant d'écrire l'export Docling brut."""
-    return _ANNOTATED_IMAGE_MARKER_RE.sub("<!-- image -->", markdown)
 
 
 def _text_docling_ocr_enabled() -> bool:
@@ -190,19 +145,12 @@ def _extract_pymupdf_fallback_blocks(
 def _merge_missing_fallback_blocks(
     page_blocks: dict[int, list[PDFBlock]],
     fallback_blocks: dict[int, list[PDFBlock]],
-    *,
-    excluded_bboxes_by_page: dict[int, list[list[float]]] | None = None,
 ) -> None:
     """Ajoute les blocs PyMuPDF qui ne sont pas déjà couverts par Docling."""
-    excluded_bboxes_by_page = excluded_bboxes_by_page or {}
     for page, candidates in fallback_blocks.items():
         existing = page_blocks.setdefault(page, [])
         existing_norms = [_normalized_block_text(block.text) for block in existing]
         for candidate in candidates:
-            if any(
-                _bbox_overlap_ratio(candidate.bbox_norm, bbox) >= 0.50 for bbox in excluded_bboxes_by_page.get(page, [])
-            ):
-                continue
             cand_norm = _normalized_block_text(candidate.text)
             if len(cand_norm) < 20:
                 continue
@@ -349,8 +297,7 @@ def _extract_docling_page_blocks(
     - ``page_blocks`` : liste de PDFBlock triés par position (y, x)
     - ``table_bboxes_by_page`` : bounding boxes des tableaux détectés
     - ``footnote_bboxes_by_page`` : zones de notes inférées sous les tableaux
-    - ``raw_docling_markdown`` : markdown Docling dont les marqueurs image
-      portent temporairement leur page et leur bbox pour construire le canonique
+    - ``raw_docling_markdown`` : markdown natif Docling sans marqueurs maison
 
     Args:
         pdf_path: Chemin vers le fichier PDF source.
@@ -358,8 +305,6 @@ def _extract_docling_page_blocks(
 
     Returns:
         Tuple ``(page_blocks, table_bboxes_by_page, footnote_bboxes_by_page, raw_docling_markdown)``.
-        L'artefact Docling brut écrit sur disque reste inchangé; les coordonnées
-        temporaires sont consommées uniquement par le Markdown canonique.
     """
     if not page_numbers:
         return {}, {}, {}, ""
@@ -369,7 +314,6 @@ def _extract_docling_page_blocks(
     converter = DocumentConverter(format_options={InputFormat.PDF: PdfFormatOption(pipeline_options=opts)})
     requested_pages = sorted({int(page) for page in page_numbers if int(page) > 0})
     table_bboxes_by_page: dict[int, list[list[float]]] = {}
-    picture_bboxes_by_page: dict[int, list[list[float]]] = {}
     page_blocks: dict[int, list[PDFBlock]] = {page: [] for page in requested_pages}
     line_numbers: dict[int, int] = {page: 0 for page in requested_pages}
     raw_markdown_parts: list[str] = []
@@ -379,20 +323,8 @@ def _extract_docling_page_blocks(
         result = converter.convert(str(pdf_path), page_range=(start_page, end_page))
         docling_doc = result.document
         raw_markdown = _export_docling_markdown(docling_doc)
-        raw_markdown = _annotate_docling_image_markers(raw_markdown, docling_doc)
         if raw_markdown.strip():
             raw_markdown_parts.append(raw_markdown.strip())
-
-        for picture in getattr(docling_doc, "pictures", []) or []:
-            try:
-                if not getattr(picture, "prov", None):
-                    continue
-                page = int(getattr(picture.prov[0], "page_no", 0) or 0)
-                bbox = _docling_bbox_to_norm(docling_doc, picture.prov[0])
-                if page in batch_pages and bbox:
-                    picture_bboxes_by_page.setdefault(page, []).append(bbox)
-            except Exception:
-                continue
 
         for table in getattr(docling_doc, "tables", []) or []:
             try:
@@ -431,11 +363,6 @@ def _extract_docling_page_blocks(
                     "page_footer": "header_footer",
                     "caption": "table",
                 }.get(label, "other")
-                if any(
-                    _bbox_overlap_ratio(bbox_norm, picture_bbox) >= 0.50
-                    for picture_bbox in picture_bboxes_by_page.get(page, [])
-                ):
-                    initial_block_type = "visual"
                 page_blocks[page].append(
                     PDFBlock(
                         block_id=f"p{page:03d}_d{line_numbers[page]:03d}",
@@ -456,11 +383,7 @@ def _extract_docling_page_blocks(
         del result
         gc.collect()
 
-    _merge_missing_fallback_blocks(
-        page_blocks,
-        _extract_pymupdf_fallback_blocks(pdf_path, requested_pages),
-        excluded_bboxes_by_page=picture_bboxes_by_page,
-    )
+    _merge_missing_fallback_blocks(page_blocks, _extract_pymupdf_fallback_blocks(pdf_path, requested_pages))
     for page in requested_pages:
         page_blocks[page].sort(key=lambda block: (round(block.y0, 4), round(block.bbox_norm[0], 4)))
     _augment_table_regions_with_composite_grids(page_blocks, table_bboxes_by_page)
@@ -496,8 +419,8 @@ def _classify_block_type(
         Chaîne parmi ``"narrative"``, ``"table"``, ``"table_footnote"``,
         ``"footnote"``, ``"header_footer"``, ``"not_applicable"`` ou ``"other"``.
     """
-    if block.block_type in {"table", "visual"}:
-        return block.block_type
+    if block.block_type == "table":
+        return "table"
 
     text = block.text.strip()
     table_bboxes = table_bboxes or []
@@ -577,7 +500,6 @@ def _exclusion_reason_for_block(block_type: str, in_window: bool) -> str:
         return "outside_target_section"
     return {
         "table": "table_like_block",
-        "visual": "visual_content",
         "table_footnote": "table_footnote",
         "not_applicable": "not_applicable",
         "header_footer": "running_header_footer",
@@ -690,7 +612,6 @@ def _build_section_audit(
             section_block.block_type = block_type
             section_block.included = in_window and block_type not in {
                 "table",
-                "visual",
                 "table_footnote",
                 "not_applicable",
                 "header_footer",
@@ -746,7 +667,7 @@ def _extract_audits_for_pdf(
     )
     if raw_docling_markdown_path is not None:
         raw_docling_markdown_path.parent.mkdir(parents=True, exist_ok=True)
-        raw_docling_markdown_path.write_text(_native_docling_markdown(raw_docling_markdown), encoding="utf-8")
+        raw_docling_markdown_path.write_text(raw_docling_markdown, encoding="utf-8")
     repeated_counts = _repeated_text_counts(page_blocks)
     audits: list[SectionAudit] = []
     for section in _sorted_sections(sections):

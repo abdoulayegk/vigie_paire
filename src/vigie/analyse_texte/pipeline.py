@@ -17,7 +17,6 @@ from tqdm import tqdm
 from vigie.analyse_texte.comparaison_sections import _compare_section_texts
 from vigie.analyse_texte.constants import _SECTION_LABELS, _T4_TEXT_TARGET_SECTIONS, UNIFIED_TEXT_SCHEMA_VERSION
 from vigie.analyse_texte.extraction import _extract_audits_for_pdf
-from vigie.analyse_texte.figure_narrative import build_figure_narrator
 from vigie.analyse_texte.global_reconciliation import reconcile_global_change_fragments
 from vigie.analyse_texte.markdown import (
     _build_block_page_index,
@@ -164,22 +163,16 @@ def _prepare_period_extraction(
         raw_docling_markdown_path=raw_docling_markdown_path,
     )
     audit_events: list[dict[str, Any]] = []
-    text_extraction_config = get_text_extraction_config(bank_code=bank_code)
     boundary_validator = build_text_boundary_validator(
         pdf_path=pdf_path,
         project_root=project_root,
-        config=text_extraction_config,
-    )
-    figure_narrator = build_figure_narrator(
-        pdf_path=pdf_path,
-        config=text_extraction_config,
+        config=get_text_extraction_config(bank_code=bank_code),
     )
     md = stamp_text_extraction_cache_schema(
         _build_text_extraction_markdown(
             audits,
             raw_docling_markdown=raw_docling_markdown,
             boundary_validator=boundary_validator,
-            figure_narrator=figure_narrator,
             audit_events=audit_events,
         )
     )
@@ -210,7 +203,6 @@ def _prepare_period_extraction(
                 "actions": action_counts,
                 "reasons": reason_counts,
                 "vision_calls": int(getattr(boundary_validator, "calls_made", 0)),
-                "figure_vision_calls": int(getattr(figure_narrator, "calls_made", 0)),
             },
             "events": audit_events,
         },
