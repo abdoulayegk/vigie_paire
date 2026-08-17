@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import logging
 import re
+from dataclasses import replace
 
 from .models import LocatedSection, TocEntry, normalize_text
 from .patterns import SECTION_PATTERNS
@@ -371,12 +372,10 @@ class BoundsMixin:
 
         if start_changed or end_changed:
             # Creer une copie corrigee
-            corrected = LocatedSection(
-                section_type=section.section_type,
-                title_found=section.title_found,
+            corrected = replace(
+                section,
                 start_page=corrected_start,
                 end_page=corrected_end,
-                confidence=section.confidence,
                 detection_method=f"{section.detection_method}_corrected",
                 end_detection_method=f"{section.end_detection_method}_corrected",
             )

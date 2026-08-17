@@ -2,6 +2,11 @@
 
 from __future__ import annotations
 
+import sys
+import types
+from pathlib import Path
+
+import vigie.extraction.localisation_sections.section_locator as section_locator_module
 from vigie.extraction.localisation_sections import (
     LocatedSection,
     SectionLocator,
@@ -107,6 +112,98 @@ def test_offset_applied_only_to_document_sections() -> None:
     assert toc_result.end_page == 27, "toc: document 24 + offset 3 = physique 27"
     assert scan_result.start_page == 25, "scan: deja physique, pas d'offset"
     assert scan_result.end_page == 45, "scan: deja physique, pas d'offset"
+
+
+def test_content_validation_reads_physical_pages_for_toc_section() -> None:
+    """La validation TDM lit la page physique après application de l'offset."""
+    locator = SectionLocator(bank_code="cibc", quarter="t1", year=2025)
+    section = LocatedSection(
+        section_type="gestion_capital",
+        title_found="Gestion des fonds propres",
+        start_page=20,
+        end_page=21,
+        detection_method="toc",
+    )
+    text_by_page = {
+        20: "mauvaise page imprimée",
+        23: "bonne page physique",
+        24: "suite physique",
+    }
+
+    assert locator._extract_section_text(section, text_by_page) == "bonne page physique\nsuite physique"
+
+
+def test_consensus_single_source_is_not_full_consensus() -> None:
+    locator = SectionLocator(bank_code="td", quarter="t2", year=2025)
+    section = LocatedSection("gestion_capital", "Situation des fonds propres", 20)
+
+    assert locator._calculate_consensus(section, [], []) == 0.55
+
+
+def test_consensus_strong_page_disagreement_can_trigger_correction() -> None:
+    locator = SectionLocator(bank_code="td", quarter="t2", year=2025)
+    section = LocatedSection("gestion_capital", "Situation des fonds propres", 20)
+    toc = [TocEntry("Situation des fonds propres", 20)]
+    scans = [LocatedSection("gestion_capital", "Situation des fonds propres", 40)]
+
+    assert locator._calculate_consensus(section, toc, scans) < 0.5
+
+
+def test_t4_annual_offset_diagnostic_does_not_overwrite_document_resolution(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    """Le page_offset entier historique T4 reste séparé du diagnostic global."""
+    pdf_path = tmp_path / "RBC_2024_T4.pdf"
+    pdf_path.write_bytes(b"%PDF-1.4")
+    locator = SectionLocator(bank_code="rbc", quarter="t4", year=2024)
+    locator.bank_config["section_semantic_localization"]["enabled"] = False
+    text_by_page = {page: "Contenu suffisamment long du rapport annuel" for page in range(1, 41)}
+    sections = [
+        LocatedSection("gestion_risques", "Gestion du risque", 10, 19, 0.9, "scan_exact"),
+        LocatedSection("gestion_capital", "Gestion des fonds propres", 20, 30, 0.9, "scan_exact"),
+    ]
+
+    monkeypatch.setattr(locator, "_extract_text_by_page", lambda _path: text_by_page)
+    monkeypatch.setattr(locator, "_parse_full_toc", lambda _pages: [])
+    monkeypatch.setattr(locator, "_scan_section_titles", lambda _pages: sections)
+    monkeypatch.setattr(locator, "_extract_visual_elements", lambda _path: {})
+    monkeypatch.setattr(locator, "_rebase_annual_t4_section_starts", lambda current, *_args: current)
+    monkeypatch.setattr(locator, "_determine_end_pages", lambda current, *_args: current)
+    monkeypatch.setattr(locator, "_validate_with_cross_reference", lambda current, *_args: current)
+    monkeypatch.setattr(locator, "_apply_section_length_constraints", lambda section, *_args, **_kwargs: section)
+    monkeypatch.setattr(locator, "_refine_cibc_target_sections", lambda current, *_args: current)
+    monkeypatch.setattr(
+        section_locator_module,
+        "locate_toc_structure",
+        lambda *_args, **_kwargs: (_ for _ in ()).throw(RuntimeError("fixture sans TDM structurelle")),
+    )
+
+    class FakeAnnualValidator:
+        def __init__(self, **_kwargs):
+            pass
+
+        def validate(self, _pdf_path, current, _pages, _candidates):
+            return types.SimpleNamespace(
+                sections=current,
+                toc_entries=[],
+                diagnostics={
+                    "enabled": True,
+                    "status": "verified",
+                    "page_offset": 2,
+                    "warnings": [],
+                },
+            )
+
+    fake_module = types.ModuleType("vigie.extraction.annual_section_boundary_validator")
+    fake_module.AnnualSectionBoundaryValidator = FakeAnnualValidator
+    monkeypatch.setitem(sys.modules, fake_module.__name__, fake_module)
+
+    mapping = locator.locate_sections(pdf_path)
+
+    assert isinstance(mapping.boundary_validation["page_offset"], dict)
+    assert mapping.boundary_validation["annual_page_offset"] == 2
+    assert mapping.boundary_validation["annual_t4"]["page_offset"] == 2
 
 
 def test_t4_toc_parser_scans_annual_report_front_matter() -> None:

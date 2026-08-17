@@ -84,6 +84,10 @@ class TocEntry:
     page: int
     level: int = 0  # 0 = section principale, 1+ = sous-section
     raw_line: str = ""
+    semantic_concept: str = ""
+    semantic_role: str = ""
+    semantic_confidence: float = 0.0
+    semantic_parent_title: str | None = None
 
     def __repr__(self):
         """Représentation textuelle courte de l'entrée TDM."""
@@ -112,6 +116,9 @@ class LocatedSection:
     end_anchor_page: int | None = None
     end_anchor_text: str | None = None
     end_anchor_bbox_norm: list[float] | None = None
+    semantic_role: str = ""
+    semantic_confidence: float = 0.0
+    semantic_status: str = ""
 
 
 SHARED_PAGE_TOP_THRESHOLD = 0.12
@@ -162,6 +169,9 @@ class SectionMapping:
                 "end_anchor_page": section.end_anchor_page,
                 "end_anchor_text": section.end_anchor_text,
                 "end_anchor_bbox_norm": section.end_anchor_bbox_norm,
+                "semantic_role": section.semantic_role,
+                "semantic_confidence": section.semantic_confidence,
+                "semantic_status": section.semantic_status,
             }
 
         return {

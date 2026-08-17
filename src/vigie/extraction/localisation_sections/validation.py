@@ -119,29 +119,36 @@ class ValidationMixin:
         # Calculer le consensus pour les pages de debut
         consensus_start = 0.0
         if start_pages:
-            # Calculer la mediane ponderee
-            sorted_starts = sorted(start_pages, key=lambda x: x[0])
-            total_weight = sum(w for _, w in sorted_starts)
+            if len(start_pages) == 1:
+                # Une source unique est une détection, pas un consensus.
+                consensus_start = 0.55
+            else:
+                sorted_starts = sorted(start_pages, key=lambda x: x[0])
+                total_weight = sum(w for _, w in sorted_starts)
 
-            if total_weight > 0:
-                # Calculer la variance ponderee (plus la variance est faible, plus le consensus est eleve)
-                weighted_mean = sum(page * weight for page, weight in sorted_starts) / total_weight
-                variance = sum(weight * (page - weighted_mean) ** 2 for page, weight in sorted_starts) / total_weight
+                if total_weight > 0:
+                    # Une divergence forte doit pouvoir descendre sous 0,5 afin
+                    # que la branche de correction soit réellement accessible.
+                    weighted_mean = sum(page * weight for page, weight in sorted_starts) / total_weight
+                    variance = (
+                        sum(weight * (page - weighted_mean) ** 2 for page, weight in sorted_starts) / total_weight
+                    )
 
-                # Score de consensus: 1.0 si toutes les pages sont identiques, diminue avec la variance
-                # Normaliser: variance de 0 = consensus 1.0, variance de 10+ = consensus ~0.5
-                consensus_start = max(0.0, 1.0 - min(variance / 10.0, 0.5))
+                    consensus_start = max(0.0, 1.0 - min(variance / 10.0, 1.0))
 
         # Calculer le consensus pour les pages de fin
         consensus_end = 0.0
         if end_pages:
-            sorted_ends = sorted(end_pages, key=lambda x: x[0])
-            total_weight = sum(w for _, w in sorted_ends)
+            if len(end_pages) == 1:
+                consensus_end = 0.55
+            else:
+                sorted_ends = sorted(end_pages, key=lambda x: x[0])
+                total_weight = sum(w for _, w in sorted_ends)
 
-            if total_weight > 0:
-                weighted_mean = sum(page * weight for page, weight in sorted_ends) / total_weight
-                variance = sum(weight * (page - weighted_mean) ** 2 for page, weight in sorted_ends) / total_weight
-                consensus_end = max(0.0, 1.0 - min(variance / 10.0, 0.5))
+                if total_weight > 0:
+                    weighted_mean = sum(page * weight for page, weight in sorted_ends) / total_weight
+                    variance = sum(weight * (page - weighted_mean) ** 2 for page, weight in sorted_ends) / total_weight
+                    consensus_end = max(0.0, 1.0 - min(variance / 10.0, 1.0))
 
         # Score de consensus global (moyenne ponderee)
         if start_pages and end_pages:
@@ -186,6 +193,42 @@ class ValidationMixin:
             toc_detections = [e for e in toc_entries if self._matches_section(e.title, section.section_type)]
 
             scan_detections = [s for s in scanned_sections if s.section_type == section.section_type]
+
+            # Comparer toutes les méthodes dans le même référentiel de pages.
+            # Les sections TDM/override sont encore en pages imprimées à cette
+            # étape, tandis que le scan parcourt déjà les pages physiques.
+            offset = self._get_page_number_offset()
+            if offset and self._uses_document_page_numbers(section.detection_method):
+                aligned_scans = []
+                for scan in scan_detections:
+                    aligned_start = max(1, scan.start_page - offset)
+                    aligned_end = max(aligned_start, scan.end_page - offset) if scan.end_page else None
+                    aligned_scans.append(
+                        LocatedSection(
+                            section_type=scan.section_type,
+                            title_found=scan.title_found,
+                            start_page=aligned_start,
+                            end_page=aligned_end,
+                            confidence=scan.confidence,
+                            detection_method=scan.detection_method,
+                            end_detection_method=scan.end_detection_method,
+                        )
+                    )
+                scan_detections = aligned_scans
+            elif offset and not self._uses_document_page_numbers(section.detection_method):
+                toc_detections = [
+                    TocEntry(
+                        title=entry.title,
+                        page=entry.page + offset,
+                        level=entry.level,
+                        raw_line=entry.raw_line,
+                        semantic_concept=entry.semantic_concept,
+                        semantic_role=entry.semantic_role,
+                        semantic_confidence=entry.semantic_confidence,
+                        semantic_parent_title=entry.semantic_parent_title,
+                    )
+                    for entry in toc_detections
+                ]
 
             # Calculer le score de consensus
             consensus_score = self._calculate_consensus(section, toc_detections, scan_detections)
@@ -322,18 +365,20 @@ class ValidationMixin:
             return ""
 
         section_text_parts = []
+        offset = self._get_page_number_offset() if self._uses_document_page_numbers(section.detection_method) else 0
+        physical_start_page = section.start_page + offset
 
         # Determiner la page de fin (ou utiliser une limite par defaut)
-        end_page = section.end_page
+        end_page = (section.end_page + offset) if section.end_page is not None else None
         if not end_page:
             # Si pas de page de fin, prendre les 20 pages suivantes
             end_page = min(
-                section.start_page + 20,
-                max(text_by_page.keys()) if text_by_page else section.start_page + 20,
+                physical_start_page + 20,
+                max(text_by_page.keys()) if text_by_page else physical_start_page + 20,
             )
 
         # Extraire le texte de chaque page
-        for page_num in range(section.start_page, end_page + 1):
+        for page_num in range(physical_start_page, end_page + 1):
             page_text = text_by_page.get(page_num, "")
             if page_text:
                 section_text_parts.append(page_text)

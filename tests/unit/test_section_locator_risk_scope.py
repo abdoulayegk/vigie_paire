@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+from pathlib import Path
 
 from vigie.extraction.localisation_sections import (
     RISK_SUBSECTIONS,
@@ -42,6 +43,100 @@ def test_data_cloud_and_resilience_are_known_risk_subsections() -> None:
     }
 
     assert expected.issubset(set(RISK_SUBSECTIONS))
+
+
+def test_scan_does_not_promote_optional_regulatory_subsection(tmp_path: Path, monkeypatch) -> None:
+    pdf_path = tmp_path / "TD_2025_T2.pdf"
+    pdf_path.write_bytes(b"%PDF-1.4")
+    locator = SectionLocator(bank_code="td", quarter="t2", year=2025)
+    locator.bank_config["section_semantic_localization"]["enabled"] = False
+    text_by_page = {
+        page: (
+            "Gestion du capital\nfonds propres ratio CET1"
+            if page == 10
+            else "Gestion des risques\nrisque de crédit risque de marché"
+            if page == 20
+            else "Faits nouveaux en matière de réglementation\nBSIF normes"
+            if page == 25
+            else "Contenu du rapport"
+        )
+        for page in range(1, 41)
+    }
+    monkeypatch.setattr(locator, "_extract_text_by_page", lambda _path: text_by_page)
+    monkeypatch.setattr(locator, "_parse_full_toc", lambda _pages: [])
+    monkeypatch.setattr(
+        locator,
+        "_scan_section_titles",
+        lambda _pages: [
+            LocatedSection("gestion_capital", "Gestion du capital", 10, 19, 0.9, "scan_exact"),
+            LocatedSection("gestion_risques", "Gestion des risques", 20, 30, 0.9, "scan_exact"),
+            LocatedSection(
+                "gestion_reglementation",
+                "Faits nouveaux en matière de réglementation",
+                25,
+                27,
+                0.9,
+                "scan_exact",
+            ),
+        ],
+    )
+    monkeypatch.setattr(locator, "_extract_visual_elements", lambda _path: {})
+
+    mapping = locator.locate_sections(pdf_path)
+
+    assert {section.section_type for section in mapping.sections} == {
+        "capital_management",
+        "risk_management",
+    }
+
+
+def test_regulatory_section_does_not_mask_missing_risk_visual_fallback(tmp_path: Path, monkeypatch) -> None:
+    pdf_path = tmp_path / "BMO_2025_T2.pdf"
+    pdf_path.write_bytes(b"%PDF-1.4")
+    locator = SectionLocator(bank_code="bmo", quarter="t2", year=2025)
+    locator.bank_config["section_semantic_localization"]["enabled"] = False
+    text_by_page = {
+        page: (
+            "Gestion globale du capital\nfonds propres ratio CET1"
+            if page == 10
+            else "Faits nouveaux en matière de réglementation\nBSIF normes"
+            if page == 20
+            else "Gestion globale des risques\nrisque de crédit risque de marché"
+            if page == 30
+            else "Contenu du rapport"
+        )
+        for page in range(1, 41)
+    }
+    visual_elements = {30: [_visual_title("Gestion globale des risques", 30)]}
+    monkeypatch.setattr(locator, "_extract_text_by_page", lambda _path: text_by_page)
+    monkeypatch.setattr(locator, "_parse_full_toc", lambda _pages: [])
+    monkeypatch.setattr(
+        locator,
+        "_scan_section_titles",
+        lambda _pages: [
+            LocatedSection("gestion_capital", "Gestion globale du capital", 10, 19, 0.9, "scan_exact"),
+            LocatedSection(
+                "gestion_reglementation",
+                "Faits nouveaux en matière de réglementation",
+                20,
+                25,
+                0.9,
+                "scan_exact",
+            ),
+        ],
+    )
+    monkeypatch.setattr(locator, "_extract_visual_elements", lambda _path: visual_elements)
+    monkeypatch.setattr(
+        locator,
+        "_detect_section_headers_visual",
+        lambda _elements, _pages: [
+            LocatedSection("gestion_risques", "Gestion globale des risques", 30, 39, 0.9, "visual")
+        ],
+    )
+
+    mapping = locator.locate_sections(pdf_path)
+
+    assert "risk_management" in {section.section_type for section in mapping.sections}
 
 
 def test_data_only_risk_section_passes_context_validation() -> None:
