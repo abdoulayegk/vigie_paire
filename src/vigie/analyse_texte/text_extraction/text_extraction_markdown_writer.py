@@ -6,7 +6,7 @@ import re
 from pathlib import Path
 
 CANONICAL_TEXT_EXTRACTIONS_DIR = "text_extractions"
-TEXT_EXTRACTION_CACHE_SCHEMA_VERSION = 8
+TEXT_EXTRACTION_CACHE_SCHEMA_VERSION = 9
 _CACHE_MARKER_PREFIX = "<!-- vigie-text-extraction-schema:"
 _CACHE_MARKER_PATTERN = re.compile(
     r"^<!-- [a-z][a-z0-9-]*-text-extraction-schema:\s*(\d+)\s*-->",

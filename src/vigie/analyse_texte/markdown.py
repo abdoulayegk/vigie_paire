@@ -228,6 +228,7 @@ def _build_text_extraction_markdown(
     *,
     raw_docling_markdown: str | None = None,
     boundary_validator: Any | None = None,
+    figure_narrator: Any | None = None,
     audit_events: list[dict[str, Any]] | None = None,
 ) -> str:
     """Convertit une liste d'audits de sections en markdown source de vérité.
@@ -244,6 +245,7 @@ def _build_text_extraction_markdown(
             section_audits,
             raw_docling_markdown=raw_docling_markdown,
             boundary_validator=boundary_validator,
+            figure_narrator=figure_narrator,
             audit_events=audit_events,
         )
 
