@@ -34,6 +34,11 @@ text_extraction:
   boundary_vision_max_calls_per_report: 12
   boundary_vision_timeout_sec: 120
   boundary_vision_dpi: 200
+  figure_vision_enabled: true
+  figure_vision_confidence_min: 0.75
+  figure_vision_max_calls_per_report: 20
+  figure_vision_timeout_sec: 120
+  figure_vision_dpi: 220
 
 vision_extraction:
   enabled: true

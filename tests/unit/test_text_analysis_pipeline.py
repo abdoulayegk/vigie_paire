@@ -1395,7 +1395,7 @@ def test_build_docling_markdown_keeps_narrative_around_bns_d22_figure() -> None:
 def test_text_extraction_cache_schema_invalidates_legacy_markdown() -> None:
     legacy = "## Gestion du capital\n\nTexte narratif.\n"
     previous_schema = "<!-- vigie-text-extraction-schema: 5 -->\n\n## Gestion du capital\n\nTexte narratif.\n"
-    compatible_brand_schema = "<!-- archived-text-extraction-schema: 8 -->\n\n" + legacy
+    compatible_brand_schema = "<!-- archived-text-extraction-schema: 9 -->\n\n" + legacy
 
     stamped = stamp_text_extraction_cache_schema(legacy)
     normalized = stamp_text_extraction_cache_schema(compatible_brand_schema)
@@ -1404,7 +1404,7 @@ def test_text_extraction_cache_schema_invalidates_legacy_markdown() -> None:
     assert has_current_text_extraction_cache_schema(previous_schema) is False
     assert has_current_text_extraction_cache_schema(compatible_brand_schema) is True
     assert has_current_text_extraction_cache_schema(stamped) is True
-    assert normalized.startswith("<!-- vigie-text-extraction-schema: 8 -->")
+    assert normalized.startswith("<!-- vigie-text-extraction-schema: 9 -->")
     assert "archived-text-extraction-schema" not in normalized
     assert stamped.endswith(legacy)
 

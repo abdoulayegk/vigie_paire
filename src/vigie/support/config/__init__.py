@@ -220,6 +220,11 @@ def get_text_extraction_config(
         "boundary_vision_max_calls_per_report": 12,
         "boundary_vision_timeout_sec": 120,
         "boundary_vision_dpi": 200,
+        "figure_vision_enabled": True,
+        "figure_vision_confidence_min": 0.75,
+        "figure_vision_max_calls_per_report": 20,
+        "figure_vision_timeout_sec": 120,
+        "figure_vision_dpi": 220,
     }
     path = _resolve_config_path(config_path)
     if not path.exists():
