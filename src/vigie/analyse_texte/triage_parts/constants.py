@@ -48,7 +48,7 @@ _CALENDAR_SUBJECT_RE = re.compile(
     r"(?:"
     r"coefficient\s+de\s+plancher|plancher\s+des?\s+fonds\s+propres|"
     r"entrée\s+en\s+vigueur|report\s+des?\s+exigences|"
-    r"calendrier\s+d['’]application|jusqu['’]à\s+nouvel\s+ordre"
+    r"calendrier\s+d['’]application"
     r")",
     flags=re.IGNORECASE,
 )

@@ -109,8 +109,8 @@ def deduplicate_and_group_section_changes(
 
         if term_pattern:
             key = (dt, f"term:{term_pattern}")
-        elif dt in ("added", "removed") and sub and sub != "__intro__":
-            key = (dt, f"sub:{sub}")
+        elif dt in ("added", "removed") and (t1 or t2):
+            key = (dt, f"{dt}:{sub}:{(t1 or t2)[:120].lower()}")
         elif summary:
             key = (dt, f"sum:{summary.lower()}")
         elif t1 and t2:

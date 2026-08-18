@@ -30,6 +30,10 @@ _IDEA_SHIFT_RE = re.compile(
     r"Le cadre réglementaire|La gouvernance|La politique)\b",
     flags=re.IGNORECASE,
 )
+_DEFINITION_OPENER_RE = re.compile(
+    r"\b(?:se définit comme(?:\s+étant)?|s['’]entend de|est défini[e]? comme(?:\s+étant)?)\b",
+    flags=re.IGNORECASE,
+)
 
 _MIN_COMPLEX_SENTENCES = 4
 _MIN_COMPLEX_WORDS = 150
@@ -75,6 +79,8 @@ def _requires_semantic_partition(text: str) -> bool:
     sentences = _split_sentences(text)
     if len(sentences) < 2:
         return False
+    if _DEFINITION_OPENER_RE.search(text):
+        return True
     return len(sentences) >= _MIN_COMPLEX_SENTENCES or _word_count(text) >= _MIN_COMPLEX_WORDS
 
 
@@ -128,6 +134,8 @@ def _continuity_scores(
             score += 0.08
         if _IDEA_SHIFT_RE.match(next_sentence):
             score -= 0.10
+        if _DEFINITION_OPENER_RE.search(sentences[index]) or _DEFINITION_OPENER_RE.search(next_sentence):
+            score -= 0.20
         scores.append(max(0.0, min(1.0, score)))
     return scores
 
@@ -186,6 +194,8 @@ def _partition_with_llm(
                 "Tu partitionnes un paragraphe financier en unités d'idée autonomes pour comparer deux rapports. "
                 "Chaque groupe doit être un intervalle contigu. Couvre chaque phrase exactement une fois, dans l'ordre. "
                 "Sépare un changement réel de sujet, de méthode, de règle, de politique ou de gouvernance. "
+                "Une phrase qui définit un concept prudentiel (se définit comme, s'entend de, est défini comme) "
+                "forme son propre groupe, même si la phrase suivante le reprend avec Il/Cette. "
                 "Regroupe les phrases qui décrivent les variantes, paramètres, conditions ou conséquences d'un même cadre. "
                 "Ne crée pas un groupe par phrase simplement parce que chaque phrase est grammaticalement complète. "
                 "Quand plusieurs phrases développent la même idée, vise généralement 80 à 180 mots par groupe. "
@@ -274,11 +284,15 @@ def _split_oversized_groups(
     return result
 
 
-def _deterministic_ranges(sentence_count: int, scores: list[float]) -> list[tuple[int, int]]:
+def _deterministic_ranges(sentences: list[str], scores: list[float]) -> list[tuple[int, int]]:
     starts = [0]
-    starts.extend(index + 1 for index, score in enumerate(scores) if score <= _SPLIT_SCORE)
-    starts.append(sentence_count)
-    return [(starts[index], starts[index + 1]) for index in range(len(starts) - 1)]
+    for index, score in enumerate(scores):
+        force_split = bool(_DEFINITION_OPENER_RE.search(sentences[index]))
+        if score <= _SPLIT_SCORE or force_split:
+            starts.append(index + 1)
+    starts.append(len(sentences))
+    unique_starts = sorted(dict.fromkeys(starts))
+    return [(unique_starts[index], unique_starts[index + 1]) for index in range(len(unique_starts) - 1)]
 
 
 def _semantic_partition_paragraphs(
@@ -312,7 +326,7 @@ def _semantic_partition_paragraphs(
     for sentences, normalized_sentences in zip(sentence_groups, normalized_groups, strict=True):
         embeddings = [embedding_by_text[text] for text in normalized_sentences]
         scores = _continuity_scores(sentences, normalized_sentences, embeddings)
-        deterministic_ranges = _deterministic_ranges(len(sentences), scores)
+        deterministic_ranges = _deterministic_ranges(sentences, scores)
         ambiguous = any(_SPLIT_SCORE < score < _JOIN_SCORE for score in scores)
         ambiguous = ambiguous or _ranges_are_overfragmented(deterministic_ranges, sentences)
         if ambiguous:

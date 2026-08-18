@@ -9,6 +9,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from vigie.analyse_texte.constants import _REGULATORY_REF_RE
+from vigie.analyse_texte.triage_parts.exclusions import _has_new_calendar_regime
 from vigie.comparaison.analyst_change_presentation import build_change_presentation
 
 _STRONG_AMF_THEMES_FOR_MODERE_RETENTION: frozenset[str] = frozenset(
@@ -16,6 +18,8 @@ _STRONG_AMF_THEMES_FOR_MODERE_RETENTION: frozenset[str] = frozenset(
         "MODIFICATION_METHODOLOGIE",
         "NOUVELLE_MENTION_REGLEMENTAIRE",
         "EXIGENCES_REGLEMENTAIRES",
+        "FONDS_PROPRES_REGLEMENTAIRES",
+        "DIVULGATION_RETRAIT",
         "FACTEUR_RISQUE_CHANGEMENT",
         "RISQUE_EMERGENT",
         "RISQUE_DONNEES",
@@ -45,9 +49,28 @@ def _is_new_major_or_allowed_moderate(triage: dict[str, Any]) -> bool:
     return bool(themes & _STRONG_AMF_THEMES_FOR_MODERE_RETENTION)
 
 
-def _is_non_cosmetic_change(triage: dict[str, Any]) -> bool:
-    """Retourne True si le triage retient le changement (pertinent et thématisé AMF)."""
-    return bool(triage.get("is_relevant")) and bool(triage.get("themes_amf"))
+def _is_non_cosmetic_change(triage: dict[str, Any], change: dict[str, Any] | None = None) -> bool:
+    """Retourne True si le triage retient le changement (pertinent et thématisé AMF).
+
+    Un ajout ou un retrait de paragraphe entier qui porte une référence
+    réglementaire reste retenu même si le modèle l'a jugé cosmétique. Un
+    ``modified`` qui introduit un nouveau régime calendaire réglementaire
+    (report indéfini, préavis, révision de ligne directrice) est traité de
+    la même façon.
+    """
+    if bool(triage.get("is_relevant")) and bool(triage.get("themes_amf")):
+        return True
+    if not change:
+        return False
+    text_t1 = str(change.get("source_text_t1") or "")
+    text_t2 = str(change.get("source_text_t2") or "")
+    if _has_new_calendar_regime(text_t1, text_t2):
+        return True
+    diff_type = str(change.get("diff_type") or "").strip().lower()
+    if diff_type not in {"added", "removed"}:
+        return False
+    text = text_t1 or text_t2
+    return bool(_REGULATORY_REF_RE.search(text))
 
 
 def _retained_change_sort_key(change: dict[str, Any]) -> tuple[int, int, int, str, str, str]:

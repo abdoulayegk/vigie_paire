@@ -157,6 +157,8 @@ _OUT_OF_SCOPE_ACCOUNTING_HEADING_PATTERN_SOURCES = [
     r"consolidation\s+des\s+entit",
     r"instruments\s+financiers",
     r"transactions?\s+entre\s+parties\s+li",
+    r"questions?\s+en\s+mati[eè]re\s+de\s+comptabilit",
+    r"questions?\s+comptables?",
     r"m[eé]thodes?\s+(et\s+)?estimations?\s+comptables?",
     r"m[eé]thodes?\s+comptables?",
     r"normes?\s+et\s+m[eé]thodes?\s+comptables?",

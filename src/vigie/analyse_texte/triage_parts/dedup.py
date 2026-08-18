@@ -148,8 +148,12 @@ Input : {"bank_subject": "BMO", "change_index": 1, "diff_type": "modified", "cha
 Output : {"change_index": 1, "is_relevant": false, "themes_amf": [], "nouvelle_idee": false, "changement_constate": "BMO fait passer son portefeuille hypothécaire de 287 G$ à 294 G$, sans modifier la méthode de calcul ni le périmètre présenté.", "signification_metier": "", "comparaison_interbanques": "", "limite_interpretation": "", "motif_non_pertinence": "Cette variation reflète l’évolution normale des activités et n’apporte aucun nouvel élément sur les pratiques de gestion des risques à comparer entre les banques."}
 
 Exemple 3 — calendrier d’application non pertinent
-Input : {"bank_subject": "RBC", "change_index": 1, "diff_type": "modified", "change_summary": "Le BSIF reporte l’augmentation du coefficient de plancher jusqu’à nouvel ordre plutôt que jusqu’en 2027."}
+Input : {"bank_subject": "RBC", "change_index": 1, "diff_type": "modified", "change_summary": "Le BSIF reporte l’augmentation du coefficient de plancher de 2026 à 2027."}
 Output : {"change_index": 1, "is_relevant": false, "themes_amf": [], "nouvelle_idee": false, "changement_constate": "RBC actualise uniquement le calendrier d’application du coefficient de plancher annoncé par le BSIF, sans changer la nature de l’exigence.", "signification_metier": "", "comparaison_interbanques": "", "limite_interpretation": "", "motif_non_pertinence": "Cette mise à jour d’échéances n’apporte aucun élément nouveau pour comparer les pratiques de gestion des fonds propres entre les banques."}
+
+Exemple 3b — report indéfini et préavis pertinent
+Input : {"bank_subject": "RBC", "change_index": 1, "diff_type": "modified", "change_summary": "Le 12 février 2025, le BSIF a annoncé un report indéfini du plancher, avec un préavis d’au moins deux ans."}
+Output : {"change_index": 1, "is_relevant": true, "themes_amf": ["EXIGENCES_REGLEMENTAIRES"], "nouvelle_idee": true, "changement_constate": "RBC divulgue le report indéfini du coefficient de plancher annoncé par le BSIF et le préavis d’au moins deux ans avant toute nouvelle hausse.", "signification_metier": "Ce report indéfini et ce préavis changent le régime d’application de l’exigence, pas seulement une date.", "comparaison_interbanques": "Ils permettent de comparer le calendrier prudentiel et le préavis réglementaire entre les banques.", "limite_interpretation": "La divulgation ne précise pas si d’autres paramètres du plancher ont aussi changé.", "motif_non_pertinence": ""}
 
 Exemple 4 — acquisition interne non pertinente
 Input : {"bank_subject": "BNC", "change_index": 1, "diff_type": "added", "change_summary": "Inclusion de CWB dans le calcul du risque opérationnel à la suite de l’acquisition."}

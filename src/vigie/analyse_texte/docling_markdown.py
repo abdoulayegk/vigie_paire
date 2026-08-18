@@ -64,6 +64,8 @@ _END_BOUNDARY_HEADING_PATTERNS = [
     re.compile(r"normes\s+et\s+m[eé]thodes\s+comptables", re.IGNORECASE),
     re.compile(r"m[eé]thodes\s+et\s+estimations\s+comptables", re.IGNORECASE),
     re.compile(r"m[eé]thodes\s+comptables\s+significatives", re.IGNORECASE),
+    re.compile(r"questions?\s+en\s+mati[eè]re\s+de\s+comptabilit", re.IGNORECASE),
+    re.compile(r"questions?\s+comptables?", re.IGNORECASE),
     re.compile(r"[eé]tats?\s+financiers?", re.IGNORECASE),
 ]
 _INTERNAL_RISK_ACCOUNTING_HEADING_RE = re.compile(

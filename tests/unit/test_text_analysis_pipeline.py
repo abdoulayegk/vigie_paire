@@ -357,15 +357,16 @@ def test_triage_few_shots_request_structured_analyst_fields() -> None:
     assert "relevance_reason" not in _FEW_SHOT_TRIAGE_AMF
     assert "impact_it" not in _FEW_SHOT_TRIAGE_AMF
     assert "justification_posture" not in _FEW_SHOT_TRIAGE_AMF
-    assert _FEW_SHOT_TRIAGE_AMF.count("Exemple ") == 10
+    assert _FEW_SHOT_TRIAGE_AMF.count("Exemple ") == 11
     assert "transfert de responsabilité de gouvernance" in _FEW_SHOT_TRIAGE_AMF
     assert "comité renommé ciblé de gouvernance pertinent" in _FEW_SHOT_TRIAGE_AMF
+    assert "report indéfini et préavis pertinent" in _FEW_SHOT_TRIAGE_AMF
     outputs = [
         json.loads(line.removeprefix("Output : "))
         for line in _FEW_SHOT_TRIAGE_AMF.splitlines()
         if line.startswith("Output : ")
     ]
-    assert len(outputs) == 10
+    assert len(outputs) == 11
     for output in outputs:
         validated = TriageAMFCompactLLMResultWithIndex(**output)
         assert validated.changement_constate

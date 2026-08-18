@@ -217,6 +217,13 @@ FOLLOWING_SECTION_PATTERNS = {
         r"facteurs?\s+de\s+risque",
         r"r[eé]sultats?\s+consolid[eé]s?",
         r"analyse\s+des?\s+r[eé]sultats?",
+        r"questions?\s+en\s+mati[eè]re\s+de\s+comptabilit",
+        r"questions?\s+comptables?",
+        r"normes\s+et\s+m[eé]thodes\s+comptables",
+        r"m[eé]thodes\s+et\s+estimations\s+comptables",
+        r"m[eé]thodes\s+comptables\s+significatives",
+        r"[eé]tats?\s+financiers?",
+        r"contr[oô]les?\s+et\s+proc[eé]dures",
     ],
     "gestion_risques": [
         r"normes\s+et\s+m[eé]thodes\s+comptables",

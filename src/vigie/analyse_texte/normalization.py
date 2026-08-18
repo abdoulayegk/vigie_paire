@@ -104,9 +104,10 @@ def _json_dumps(data: Any) -> str:
 def _sanitize_semantic_text(text: str) -> str:
     """Normalise un texte pour la comparaison sémantique inter-trimestrielle.
 
-    Supprime les éléments non sémantiques — chiffres, pourcentages, points de base,
-    références réglementaires, numéros romains — afin que deux paragraphes exprimant
-    la même idée avec des valeurs différentes soient reconnus comme identiques.
+    Remplace les éléments non sémantiques — chiffres, pourcentages, points de base,
+    références réglementaires — par des placeholders afin que deux paragraphes
+    exprimant la même idée avec des valeurs différentes soient reconnus comme
+    identiques, sans casser la grammaire du squelette (« le BSIF a annoncé »).
     Utilisée pour peupler ``semantic_text_t1`` / ``semantic_text_t2`` dans les changements.
     """
     value = (text or "").strip()
@@ -114,8 +115,8 @@ def _sanitize_semantic_text(text: str) -> str:
         return ""
     for pattern, replacement in _SEMANTIC_REPLACEMENTS:
         value = pattern.sub(replacement, value)
-    value = _REGULATORY_REF_RE.sub("", value)
-    value = _NUMERIC_TOKEN_RE.sub("", value)
+    value = _REGULATORY_REF_RE.sub("<regulateur>", value)
+    value = _NUMERIC_TOKEN_RE.sub("<nombre>", value)
     value = _ROMAN_NUMERAL_RE.sub("", value)
     value = _PERCENT_RE.sub("", value)
     value = _BPS_RE.sub("", value)

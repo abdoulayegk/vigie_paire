@@ -25,6 +25,13 @@ from vigie.analyse_texte.openai_client import (
 logger = logging.getLogger(__name__)
 
 _MIN_FRAGMENT_CHARS = 80
+_TERMINOLOGY_SWAP_PAIRS = (
+    (re.compile(r"\besg\b", flags=re.IGNORECASE), re.compile(r"durabilit", flags=re.IGNORECASE)),
+    (
+        re.compile(r"environnement(?:al(?:e|aux)?|aux)?(?:\s+et\s+sociaux?)?", flags=re.IGNORECASE),
+        re.compile(r"durabilit", flags=re.IGNORECASE),
+    ),
+)
 _MIN_TOKEN_OVERLAP = 0.24
 _MIN_EMBEDDING_SCORE = 0.72
 _MAX_COMPONENT_NODES = 48
@@ -414,6 +421,8 @@ def _component_prompt(component: list[_Node], section_key: str) -> str:
         "- uncertain : impossible de trancher avec confiance.\n\n"
         "Pour chaque portion que tu déclares commune, ajoute un match entre un node T1 et un node T2. "
         "`text_t1` et `text_t2` doivent être des extraits EXACTS, copiés verbatim des textes fournis. "
+        "Les extraits communs doivent être identiques au mot près : un changement de terminologie "
+        "(par exemple ESG vers durabilité) n'est pas une portion commune, c'est un résidu modifié. "
         "Un même node peut avoir plusieurs matches : c'est nécessaire lorsqu'un gros bloc est devenu plusieurs fragments. "
         "Ne fais aucun triage AMF et ne déduis pas une pertinence métier.\n\n"
         f"Section: {section_key}\nCandidats:\n{_json_dumps(records)}"
@@ -461,6 +470,56 @@ def _residual_text(text: str, fragments: list[str]) -> str:
     if cursor < len(text):
         pieces.append(text[cursor:])
     return " ".join(piece.strip() for piece in pieces if piece.strip()).strip()
+
+
+def _normalized_span(text: str) -> str:
+    """Compare two match spans after collapsing whitespace."""
+    return re.sub(r"\s+", " ", str(text or "")).strip().lower()
+
+
+def _has_terminology_swap(text_t1: str, text_t2: str) -> bool:
+    """True when a regulatory term is replaced by a near-synonym across periods."""
+    for left, right in _TERMINOLOGY_SWAP_PAIRS:
+        if (left.search(text_t1) and right.search(text_t2)) or (right.search(text_t1) and left.search(text_t2)):
+            return True
+    return False
+
+
+def _modified_replacement_from_pair(
+    previous: _Node,
+    current: _Node,
+    text_t1: str,
+    text_t2: str,
+    response: _ReconciliationResponse,
+) -> dict[str, Any]:
+    """Construit un changement modified à partir d'une paire T1/T2 réconciliée."""
+    replacement = dict(previous.change)
+    replacement.update(
+        {
+            "diff_type": "modified",
+            "alignment_id": f"global_{previous.node_id}_{current.node_id}",
+            "alignment_type": "global_reconciled_modified",
+            "alignment_decision": "terminology_change"
+            if _has_terminology_swap(text_t1, text_t2)
+            else "same_disclosure",
+            "alignment_confidence": response.confidence,
+            "alignment_rationale": _sanitize_explanation(response.rationale),
+            "source_text_t1": text_t1,
+            "source_text_t2": text_t2,
+            "semantic_text_t1": _sanitize_semantic_text(text_t1),
+            "semantic_text_t2": _sanitize_semantic_text(text_t2),
+            "evidence_t1": {
+                "pages": previous.change.get("pages_t1") or [],
+                "snippet": text_t1[:400],
+            },
+            "evidence_t2": {
+                "pages": current.change.get("pages_t2") or [],
+                "snippet": text_t2[:400],
+            },
+            "change_summary": _sanitize_explanation(response.rationale),
+        }
+    )
+    return replacement
 
 
 def _update_one_sided_residual(
@@ -529,34 +588,56 @@ def _reconcile_component(
         if len(previous_with_residual) == 1 and len(current_with_residual) == 1:
             previous = previous_with_residual[0]
             current = current_with_residual[0]
-            replacement = dict(previous.change)
-            replacement.update(
-                {
-                    "diff_type": "modified",
-                    "alignment_id": f"global_{previous.node_id}_{current.node_id}",
-                    "alignment_type": "global_reconciled_modified",
-                    "alignment_decision": "same_disclosure",
-                    "alignment_confidence": response.confidence,
-                    "alignment_rationale": _sanitize_explanation(response.rationale),
-                    "source_text_t1": residuals[previous.node_id],
-                    "source_text_t2": residuals[current.node_id],
-                    "semantic_text_t1": _sanitize_semantic_text(residuals[previous.node_id]),
-                    "semantic_text_t2": _sanitize_semantic_text(residuals[current.node_id]),
-                    "evidence_t1": {
-                        "pages": previous.change.get("pages_t1") or [],
-                        "snippet": residuals[previous.node_id][:400],
-                    },
-                    "evidence_t2": {
-                        "pages": current.change.get("pages_t2") or [],
-                        "snippet": residuals[current.node_id][:400],
-                    },
-                    "change_summary": _sanitize_explanation(response.rationale),
-                }
+            replacement = _modified_replacement_from_pair(
+                previous,
+                current,
+                residuals[previous.node_id],
+                residuals[current.node_id],
+                response,
             )
             replacements = {node.node_id: None for node in component}
             replacements[previous.node_id] = replacement
             audit["applied"] = bool(matches)
             return replacements, audit
+        if not previous_with_residual and not current_with_residual:
+            differing_matches = [
+                match for match in matches if _normalized_span(match.text_t1) != _normalized_span(match.text_t2)
+            ]
+            previous_nodes = [node for node in component if node.side == "t1"]
+            current_nodes = [node for node in component if node.side == "t2"]
+            if differing_matches and previous_nodes and current_nodes:
+                match = differing_matches[0]
+                previous = nodes_by_id[match.t1_node_id]
+                current = nodes_by_id[match.t2_node_id]
+                replacement = _modified_replacement_from_pair(
+                    previous,
+                    current,
+                    match.text_t1,
+                    match.text_t2,
+                    response,
+                )
+                replacements = {node.node_id: None for node in component}
+                replacements[previous.node_id] = replacement
+                audit["applied"] = True
+                return replacements, audit
+            if (
+                previous_nodes
+                and current_nodes
+                and _has_terminology_swap(previous_nodes[0].text, current_nodes[0].text)
+            ):
+                previous = previous_nodes[0]
+                current = current_nodes[0]
+                replacement = _modified_replacement_from_pair(
+                    previous,
+                    current,
+                    previous.text,
+                    current.text,
+                    response,
+                )
+                replacements = {node.node_id: None for node in component}
+                replacements[previous.node_id] = replacement
+                audit["applied"] = True
+                return replacements, audit
         replacements = {
             node.node_id: _update_one_sided_residual(node.change, node.side, residuals[node.node_id])
             for node in component
