@@ -204,7 +204,6 @@ def test_run_comparison_with_sections_returns_dash_canonical(
         sections_current=[{"section": "capital", "start_page": 1, "end_page": 2}],
         current_quarter="Q1-2026",
         current_year=2026,
-        api_key="test-key",
     )
 
     assert result["bank_code"] == "bnc"

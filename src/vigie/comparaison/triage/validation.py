@@ -68,43 +68,6 @@ def _has_required_justification_sections(text: str) -> bool:
     return True
 
 
-def _empty_triage_skeleton(*, source: str = "fallback") -> dict[str, Any]:
-    """Retourne un dictionnaire de triage par defaut (non pertinent)."""
-    return {
-        "is_relevant": False,
-        "themes_amf": [],
-        "nouvelle_idee": False,
-        "nouvelle_idee_justification": (
-            "NON — Nouvel élément à surveiller : Non.\n\n"
-            "Sujet détecté : Information secondaire.\n\n"
-            "Ce qui change : Ce changement constitue un ajustement mineur sans "
-            "nouveauté sémantique.\n\n"
-            "Pertinence métier : Ce changement met l'accent sur une variation non-substantielle du texte. "
-            "Il n'impacte ni la structure des risques ni les exigences prudentielles. "
-            "La lisibilité globale reste inchangée par rapport aux trimestres précédents.\n\n"
-            "Point de surveillance : Aucun suivi requis."
-        ),
-        "category": "NON_PERTINENT",
-        "relevance_score": "FAIBLE",
-        "risk_level": "FAIBLE",
-        "impact_level": "MINEUR",
-        "impact_it": "INDETERMINE",
-        "impact_it_justification": "",
-        "changement_posture": "AUCUN",
-        "justification_posture": "",
-        "statut_mise_en_oeuvre": "INDETERMINE",
-        "confiance_posture": "INDETERMINE",
-        "confidence": 0.0,
-        "explanation": f"Triage non effectue ({source}).",
-        "impact_type": "non_substantif",
-        "project_phase": "autre",
-        "action_requise": "aucune",
-        "reference_reglementaire": "",
-        "impact_description": "",
-        "source": source,
-    }
-
-
 def _validate_amf_invariants(
     *,
     is_relevant: bool,
@@ -147,7 +110,7 @@ def _validate_amf_invariants(
 def _validate_triage_response(data: dict[str, Any] | None) -> dict[str, Any]:
     """Valide et normalise une reponse LLM de triage individuelle."""
     if not data or not isinstance(data, dict):
-        return _empty_triage_skeleton(source="heuristic")
+        raise ValueError("GenAI triage response is empty or invalid")
 
     is_relevant = bool(data.get("is_relevant", False))
 
@@ -272,11 +235,7 @@ def _validate_triage_response(data: dict[str, Any] | None) -> dict[str, Any]:
         action_requise=action_requise,
     )
     if invariant_error:
-        logger.warning(
-            "Invariants AMF violés dans la sortie LLM (%s) — triage forcé en NON_PERTINENT",
-            invariant_error,
-        )
-        return _empty_triage_skeleton(source="invariant_violation")
+        raise ValueError(f"GenAI triage response violates AMF invariants: {invariant_error}")
 
     return {
         "is_relevant": is_relevant,

@@ -283,7 +283,7 @@ class AnnualSectionBoundaryValidator:
             try:
                 model = resolve_openai_model("default_genai")
             except Exception:
-                model = "gpt-4o"
+                model = "gpt-5.4"
             detector = GenAITOCDetector(model=model)
         self.detector = detector
         self.docling_reader = docling_reader or self._read_toc_with_docling

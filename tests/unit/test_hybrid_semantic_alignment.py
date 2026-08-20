@@ -253,7 +253,7 @@ def test_global_reconciliation_uses_embedding_scores_in_audit(monkeypatch) -> No
 
     reconciled, audit = reconcile_global_change_fragments(
         client=object(),
-        model="gpt-4o",
+        model="gpt-5.4",
         changes=changes,
     )
     assert reconciled == []
@@ -452,7 +452,7 @@ def test_global_reconciliation_keeps_real_unilateral_when_embeddings_weak(monkey
     )
     reconciled, audit = reconcile_global_change_fragments(
         client=object(),
-        model="gpt-4o",
+        model="gpt-5.4",
         changes=changes,
     )
     assert reconciled == changes
@@ -510,7 +510,7 @@ def test_global_reconciliation_does_not_mix_capital_and_risks(monkeypatch) -> No
     )
     reconciled, audit = reconcile_global_change_fragments(
         client=object(),
-        model="gpt-4o",
+        model="gpt-5.4",
         changes=changes,
     )
     assert reconciled == changes
@@ -779,7 +779,7 @@ def test_triage_section_changes_applies_cosmetic_prefilter(monkeypatch) -> None:
     )
     result = _triage_section_changes(
         client=object(),
-        model="gpt-4o",
+        model="gpt-5.4",
         section_key="gestion_risques",
         changes=[
             {

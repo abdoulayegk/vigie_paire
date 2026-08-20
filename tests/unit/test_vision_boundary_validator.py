@@ -23,7 +23,7 @@ def _validator(tmp_path) -> OpenAITextBoundaryValidator:
         pdf_path=pdf_path,
         cache_dir=tmp_path / "cache",
         client=object(),
-        model="gpt-4o",
+        model="gpt-5.4",
         confidence_threshold=0.90,
         max_calls=2,
     )

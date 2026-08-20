@@ -69,8 +69,8 @@ def build_parser() -> argparse.ArgumentParser:
     )
     p.add_argument(
         "--model",
-        default="gpt-4o",
-        help="Modele OpenAI (defaut: gpt-4o)",
+        default="gpt-5.4",
+        help="Modele OpenAI (defaut: gpt-5.4)",
     )
     p.add_argument(
         "--sans-comparaison",

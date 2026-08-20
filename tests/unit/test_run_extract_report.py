@@ -48,6 +48,7 @@ def test_run_extract_report_writes_compact_artifacts(tmp_path: Path, monkeypatch
         year: int,
         section_ranges: list[dict],
         use_vision_extraction: object = None,
+        force_extraction: bool = False,
     ) -> list[SimpleNamespace]:
         assert pdf_path == "dummy.pdf"
         assert bank_code == "bnc"
@@ -115,3 +116,71 @@ def test_run_extract_report_writes_compact_artifacts(tmp_path: Path, monkeypatch
     assert indicators_payload["tables"][0]["title"] == "Table risque"
     assert indicators_payload["tables"][0]["indicators"] == ["Pertes attendues"]
     assert footnotes_payload["tables"][0]["footnotes"] == [{"id": "1", "text": "Footnote de test"}]
+
+
+def test_run_extract_report_forcer_extraction_passes_force_flag(tmp_path: Path, monkeypatch) -> None:
+    cfg_path = tmp_path / "bank_profiles.yaml"
+    cfg_path.write_text(
+        yaml.safe_dump({"version": "1.0", "banks": {"bnc": {"name": "BNC"}}}),
+        encoding="utf-8",
+    )
+
+    locator_module = types.ModuleType("vigie.extraction.localisation_sections.section_locator")
+    processor_module = types.ModuleType("vigie.extraction.docling.processor")
+    captured: dict[str, bool] = {}
+
+    def fake_locate_sections_in_pdf(*args, **kwargs) -> SimpleNamespace:
+        return SimpleNamespace(
+            sections=[
+                SimpleNamespace(
+                    section_type="Gestion des risques",
+                    start_page=12,
+                    end_page=14,
+                )
+            ]
+        )
+
+    def fake_extract_tables_docling_by_sections(**kwargs) -> list[SimpleNamespace]:
+        captured["force_extraction"] = bool(kwargs.get("force_extraction"))
+        return [
+            SimpleNamespace(
+                table_id="tbl_p012_i01",
+                page_number=12,
+                section="risk_management",
+                title="Table risque",
+                table_summary="Resume",
+                title_clean=None,
+                headers=["Indicator", "Value"],
+                rows=[["Pertes attendues", "100"]],
+                first_column_indicators_raw=["Pertes attendues"],
+                first_column_indicators=["pertes attendues"],
+                footnotes=[],
+                table_index_on_page=1,
+            )
+        ]
+
+    locator_module.locate_sections_in_pdf = fake_locate_sections_in_pdf
+    processor_module.extract_tables_docling_by_sections = fake_extract_tables_docling_by_sections
+    monkeypatch.setitem(sys.modules, "vigie.extraction.localisation_sections.section_locator", locator_module)
+    monkeypatch.setitem(sys.modules, "vigie.extraction.docling.processor", processor_module)
+
+    out_root = tmp_path / "outputs"
+    main(
+        [
+            "--banque",
+            "bnc",
+            "--pdf",
+            "dummy.pdf",
+            "--annee",
+            "2025",
+            "--trimestre",
+            "T1",
+            "--config",
+            str(cfg_path),
+            "--sortie",
+            str(out_root),
+            "--forcer-extraction",
+        ]
+    )
+
+    assert captured["force_extraction"] is True

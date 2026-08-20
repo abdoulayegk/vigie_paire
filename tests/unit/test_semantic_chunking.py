@@ -165,7 +165,7 @@ def test_llm_overfragmentation_is_corrected_once(monkeypatch: pytest.MonkeyPatch
 
     ranges = _partition_with_llm(
         client=object(),
-        model="gpt-4o",
+        model="gpt-5.4",
         sentences=sentences,
         scores=[0.78] * 5,
     )
@@ -188,7 +188,7 @@ def test_llm_repeated_overfragmentation_fails_without_fallback(
     with pytest.raises(SemanticChunkingError, match="toujours sur-fragmentée"):
         _partition_with_llm(
             client=object(),
-            model="gpt-4o",
+            model="gpt-5.4",
             sentences=sentences,
             scores=[0.78] * 5,
         )

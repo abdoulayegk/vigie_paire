@@ -300,7 +300,7 @@ def _semantic_partition_paragraphs(
     *,
     client: Any,
     embedding_model: str = "text-embedding-3-small",
-    semantic_model: str = "gpt-4o",
+    semantic_model: str = "gpt-5.4",
 ) -> list[list[str]]:
     """Partitionne tous les paragraphes complexes avec un seul lot d'embeddings.
 

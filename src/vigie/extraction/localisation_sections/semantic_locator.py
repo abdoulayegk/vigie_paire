@@ -16,7 +16,7 @@ from typing import Any, Callable, Literal, Sequence
 from pydantic import BaseModel, ConfigDict, Field
 
 from vigie.extraction.section_taxonomy import canonicalize_section
-from vigie.support.utils.genai import get_openai_api_key
+from vigie.llm import embed, get_client, require_configured, resolve_model, structured_completions_parse
 
 from .models import LocatedSection, TocEntry, normalize_text
 
@@ -123,28 +123,20 @@ def _candidate_view(entries: list[TocEntry], index: int) -> str:
     )
 
 
-def _default_embedding_provider(api_key: str, timeout: float) -> EmbeddingProvider:
+def _default_embedding_provider(timeout: float) -> EmbeddingProvider:
     """Créer le transport embeddings OpenAI par lots."""
-    import openai  # noqa: PLC0415 - dépendance optionnelle chargée à l'exécution
-
-    client = openai.OpenAI(api_key=api_key, timeout=timeout, max_retries=1)
+    client = get_client(timeout=timeout, max_retries=1)
 
     def _embed(texts: list[str], model: str) -> list[list[float]]:
-        vectors: list[list[float]] = []
-        for start in range(0, len(texts), 96):
-            response = client.embeddings.create(model=model, input=texts[start : start + 96])
-            ordered = sorted(response.data, key=lambda item: item.index)
-            vectors.extend([list(item.embedding) for item in ordered])
-        return vectors
+        role = "embedding_large" if "large" in model else "embedding_small"
+        return embed(texts, role=role, client=client)
 
     return _embed
 
 
-def _default_decision_provider(api_key: str, timeout: float) -> DecisionProvider:
+def _default_decision_provider(timeout: float) -> DecisionProvider:
     """Créer le transport LLM à sortie Pydantic structurée."""
-    import openai  # noqa: PLC0415 - dépendance optionnelle chargée à l'exécution
-
-    client = openai.OpenAI(api_key=api_key, timeout=timeout, max_retries=1)
+    client = get_client(timeout=timeout, max_retries=1)
 
     def _decide(candidates: list[dict[str, Any]], model: str) -> SemanticDecisionBatch:
         prompt = """Tu classes des entrées ordonnées de la table des matières d'un rapport bancaire canadien.
@@ -164,23 +156,17 @@ RÈGLES
 
 CANDIDATS
 """
-        response = client.beta.chat.completions.parse(
+        return structured_completions_parse(
+            client,
             model=model,
             messages=[
                 {"role": "system", "content": "Tu es un classificateur documentaire bancaire précis et conservateur."},
                 {"role": "user", "content": prompt + json.dumps(candidates, ensure_ascii=False, indent=2)},
             ],
             response_format=SemanticDecisionBatch,
-            temperature=0.0,
-            max_completion_tokens=7000,
+            profile="default",
+            max_tokens=7000,
         )
-        choice = response.choices[0]
-        if getattr(choice, "finish_reason", None) == "length":
-            raise RuntimeError("semantic_section_llm_truncated")
-        parsed = getattr(choice.message, "parsed", None)
-        if parsed is None:
-            raise RuntimeError("semantic_section_llm_empty")
-        return parsed
 
     return _decide
 
@@ -297,19 +283,14 @@ def resolve_semantic_toc_sections(
     if not toc_entries:
         return SemanticTocResolution(status="no_toc", diagnostics={"status": "no_toc"})
 
-    api_key = get_openai_api_key()
     if embedding_provider is None or decision_provider is None:
-        if not api_key:
-            return SemanticTocResolution(
-                status="unavailable",
-                diagnostics={"status": "unavailable", "warnings": ["openai_api_key_missing"]},
-            )
+        require_configured()
         timeout = float(semantic_config.get("timeout_sec", 120))
-        embedding_provider = embedding_provider or _default_embedding_provider(api_key, timeout)
-        decision_provider = decision_provider or _default_decision_provider(api_key, timeout)
+        embedding_provider = embedding_provider or _default_embedding_provider(timeout)
+        decision_provider = decision_provider or _default_decision_provider(timeout)
 
     embedding_model = str(semantic_config.get("embedding_model", "text-embedding-3-large"))
-    llm_model = str(semantic_config.get("llm_model", config.get("llm_models", {}).get("default_genai", "gpt-4o")))
+    llm_model = str(semantic_config.get("llm_model", config.get("llm_models", {}).get("chat", resolve_model("chat"))))
     min_llm_candidate_confidence = float(semantic_config.get("min_llm_candidate_confidence", 0.7))
     min_llm_confidence = float(semantic_config.get("min_llm_confidence", 0.82))
     ambiguous_margin = float(semantic_config.get("ambiguous_margin", 0.04))
@@ -357,11 +338,7 @@ def resolve_semantic_toc_sections(
 
         batch = decision_provider(payload, llm_model)
     except Exception as exc:
-        logger.warning("Localisation sémantique indisponible: %s", exc)
-        return SemanticTocResolution(
-            status="error",
-            diagnostics={"status": "error", "warnings": [f"{type(exc).__name__}:{exc}"]},
-        )
+        raise RuntimeError(f"Semantic section localization LLM call failed: {exc}") from exc
 
     allowed_ids = set(id_to_entry)
     decisions_by_id: dict[str, SemanticEntryDecision] = {}

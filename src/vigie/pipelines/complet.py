@@ -68,7 +68,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument(
         "--forcer-extraction",
         action="store_true",
-        help="Forcer la re-extraction texte meme si les text_extraction.md existent deja",
+        help="Forcer la re-extraction (indicateurs: ignore cache Vision; texte: ignore text_extraction.md)",
     )
     p.add_argument(
         "--sans-comparaison",
@@ -95,6 +95,7 @@ def _run_pipeline_indicateurs(
     out_root: str,
     sans_extraction: bool,
     sans_comparaison: bool,
+    forcer_extraction: bool,
 ) -> int:
     """Lance le pipeline indicateurs et retourne le code de sortie."""
     argv = [
@@ -110,6 +111,8 @@ def _run_pipeline_indicateurs(
         argv.append("--sans-extraction")
     if sans_comparaison:
         argv.append("--sans-comparaison")
+    if forcer_extraction:
+        argv.append("--forcer-extraction")
 
     return indicateurs_main(argv)
 
@@ -176,6 +179,7 @@ def main(argv: list[str] | None = None) -> int:
                 out_root=out_root,
                 sans_extraction=args.sans_extraction,
                 sans_comparaison=args.sans_comparaison,
+                forcer_extraction=args.forcer_extraction,
             )
             elapsed = time.time() - t0
             if rc == 0:

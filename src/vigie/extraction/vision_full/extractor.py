@@ -12,12 +12,10 @@ import time
 from dataclasses import replace
 from typing import Any
 
-import openai
-
 from vigie.extraction.vision_cache import cache_get, cache_put, get_vision_cache_dir, make_cache_key
 from vigie.extraction.vision_image_preprocessor import preprocess_for_vision
+from vigie.llm import chat_completions_create, get_client, is_configured
 from vigie.support.config import resolve_openai_model
-from vigie.support.utils.genai import get_openai_api_key
 
 from .consensus import ConsensusMixin
 from .constants import (
@@ -26,6 +24,7 @@ from .constants import (
     _MAX_COMPLETION_TOKENS_SAFE_FALLBACK,
     _MODEL_ROLE,
     OPENAI_VISION_TIMEOUT_SECONDS,
+    resolve_vision_timeout,
 )
 from .errors import _classify_openai_error
 from .parsing import (
@@ -79,7 +78,6 @@ class VisionFullExtractor(ConsensusMixin, QualityPassMixin):
 
     def __init__(
         self,
-        api_key: str | None = None,
         model: str | None = None,
         max_retries_json: int = 2,
         use_cache: bool = False,
@@ -87,19 +85,17 @@ class VisionFullExtractor(ConsensusMixin, QualityPassMixin):
         """Prépare le client d'extraction Vision et ses paramètres d'exécution.
 
         Args:
-            api_key: Clé OpenAI à utiliser. Si absente, elle est lue depuis la
-                configuration locale.
             model: Nom du modèle à utiliser. Si absent, il est résolu depuis le
                 rôle logique de l'extracteur.
             max_retries_json: Nombre maximal de reprises quand la réponse JSON
                 n'est pas exploitable.
             use_cache: Active la lecture et l'écriture du cache d'extraction.
         """
-        self._api_key = api_key or get_openai_api_key()
         self._model = str(model or "").strip() or resolve_openai_model(_MODEL_ROLE)
         self._max_retries_json = max_retries_json
         self._use_cache = use_cache
         self._client: Any = None
+        self._client_timeout: float | None = None
         self._disabled_reason: str | None = None
         self._schema_contract_checked: set[str] = set()
         self._schema_contract_error_logged = False
@@ -137,17 +133,16 @@ class VisionFullExtractor(ConsensusMixin, QualityPassMixin):
         """Pre-valide le schema OpenAI Structured Outputs. Raises VisionSchemaContractError si invalide."""
         self._ensure_schema_validated()
 
-    def _ensure_client(self) -> None:
+    def _ensure_client(self, timeout: float | None = None) -> None:
         """Initialise le client OpenAI si pas encore cree."""
-        if self._client is not None:
+        effective_timeout = float(timeout if timeout is not None else OPENAI_VISION_TIMEOUT_SECONDS)
+        if self._client is not None and self._client_timeout == effective_timeout:
             return
         try:
-            if not self._api_key:
-                raise ValueError("OPENAI_API_KEY required for Vision extraction")
-            self._client = openai.OpenAI(
-                api_key=self._api_key,
-                timeout=OPENAI_VISION_TIMEOUT_SECONDS,
-            )
+            if not is_configured():
+                raise ValueError("LLM provider not configured for Vision extraction")
+            self._client = get_client(timeout=effective_timeout, max_retries=1)
+            self._client_timeout = effective_timeout
         except ImportError as e:
             raise ImportError("openai package required: pip install openai") from e
 
@@ -164,7 +159,6 @@ class VisionFullExtractor(ConsensusMixin, QualityPassMixin):
         max_completion_tokens_override: int | None = None,
         rescue_mode: bool = False,
         rescue_instruction: str = "",
-        temperature: float = 0.0,
         prompt_override: str | None = None,
     ) -> VisionFullResult | None:
         """Extrait les indicateurs et notes de bas de page d'un recadrage de tableau.
@@ -181,7 +175,6 @@ class VisionFullExtractor(ConsensusMixin, QualityPassMixin):
             max_completion_tokens_override: Budget de sortie explicite pour cette passe d'extraction.
             rescue_mode: Activer le mode de sauvetage pour les extractions echouees.
             rescue_instruction: Instruction specifique pour le mode de sauvetage.
-            temperature: Temperature de generation du modele.
             prompt_override: Prompt complet a utiliser a la place du prompt par defaut (optionnel).
 
         Returns:
@@ -231,7 +224,7 @@ class VisionFullExtractor(ConsensusMixin, QualityPassMixin):
                         return cached_result
 
         try:
-            self._ensure_client()
+            self._ensure_client(resolve_vision_timeout(vision_cfg))
         except (ImportError, ValueError) as e:
             logger.warning("VisionFullExtractor: client init failed: %s", e)
             return None
@@ -298,7 +291,8 @@ class VisionFullExtractor(ConsensusMixin, QualityPassMixin):
                     response_format: dict[str, Any] = (
                         openai_schema_full if local_use_structured else {"type": "json_object"}
                     )
-                    response = client.chat.completions.create(
+                    response = chat_completions_create(
+                        client,
                         model=self._model,
                         messages=[
                             {
@@ -306,8 +300,8 @@ class VisionFullExtractor(ConsensusMixin, QualityPassMixin):
                                 "content": _build_content(prompt_text, image_b64),
                             }
                         ],
+                        profile="extraction",
                         response_format=response_format,
-                        temperature=temperature,
                         max_completion_tokens=effective_max,
                     )
                     prompt_tokens, completion_tokens, total_tokens = _extract_usage_metrics(response)

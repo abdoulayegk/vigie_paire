@@ -13,6 +13,7 @@ from vigie.extraction.vision_full import (
     _normalize_footnote_marker_id,
     _select_targeted_rescue_variant,
 )
+from vigie.extraction.vision_full.constants import resolve_vision_timeout
 from vigie.extraction.vision_qa_inspector import QAResult
 from vigie.support.utils.page_layout_context import clamp_variant_crop_to_neighbors
 
@@ -57,29 +58,53 @@ def test_vision_client_uses_direct_120_second_timeout(monkeypatch) -> None:
         def __init__(self, **kwargs) -> None:
             captured.append(kwargs)
 
-    monkeypatch.setattr("openai.OpenAI", FakeOpenAI)
+    monkeypatch.setattr("vigie.llm.is_configured", lambda *args, **kwargs: True)
+    monkeypatch.setattr(
+        "vigie.extraction.vision_full.extractor.get_client",
+        lambda **kwargs: captured.append(kwargs) or object(),
+    )
 
-    extractor = VisionFullExtractor(api_key="test-key", model="gpt-4o-test")
+    extractor = VisionFullExtractor(model="gpt-5.4-test")
     extractor._ensure_client()
 
     assert captured == [
         {
-            "api_key": "test-key",
             "timeout": OPENAI_VISION_TIMEOUT_SECONDS,
+            "max_retries": 1,
         }
     ]
     assert OPENAI_VISION_TIMEOUT_SECONDS == 120.0
 
 
-def test_vision_extractor_exposes_model_metadata() -> None:
-    extractor = VisionFullExtractor(api_key="test-key", model="gpt-4o-test")
+def test_vision_client_uses_configured_timeout_from_vision_cfg(monkeypatch) -> None:
+    captured: list[dict] = []
 
-    assert extractor.model_name == "gpt-4o-test"
+    monkeypatch.setattr("vigie.llm.is_configured", lambda *args, **kwargs: True)
+    monkeypatch.setattr(
+        "vigie.extraction.vision_full.extractor.get_client",
+        lambda **kwargs: captured.append(kwargs) or object(),
+    )
+
+    extractor = VisionFullExtractor(model="gpt-5.4-test")
+    extractor._ensure_client(resolve_vision_timeout({"api_timeout_sec": 240}))
+
+    assert captured == [{"timeout": 240.0, "max_retries": 1}]
+
+
+def test_resolve_vision_timeout_falls_back_to_default() -> None:
+    assert resolve_vision_timeout(None) == OPENAI_VISION_TIMEOUT_SECONDS
+    assert resolve_vision_timeout({}) == OPENAI_VISION_TIMEOUT_SECONDS
+
+
+def test_vision_extractor_exposes_model_metadata() -> None:
+    extractor = VisionFullExtractor(model="gpt-5.4-test")
+
+    assert extractor.model_name == "gpt-5.4-test"
     assert extractor.model_role == "extraction_primary"
 
 
 def test_vision_schema_validation_is_callable_and_idempotent(monkeypatch) -> None:
-    extractor = VisionFullExtractor(api_key="test-key", model="gpt-4o-test")
+    extractor = VisionFullExtractor(model="gpt-5.4-test")
     validated_schemas: list[dict] = []
 
     monkeypatch.setattr(
@@ -118,7 +143,8 @@ def test_targeted_rescue_router_selects_one_relevant_variant(
 def test_quality_pass_uses_only_bottom_extension_for_missing_footnote(
     monkeypatch,
 ) -> None:
-    extractor = VisionFullExtractor(api_key="test-key", model="gpt-4o-test")
+    extractor = VisionFullExtractor(model="gpt-5.4-test")
+    recrop_calls: list[float] = []
     variant_calls: list[dict] = []
     inspected_images: list[bytes] = []
 
@@ -135,9 +161,13 @@ def test_quality_pass_uses_only_bottom_extension_for_missing_footnote(
         fake_inspect,
     )
 
+    def fake_recrop(extension: float) -> bytes:
+        recrop_calls.append(extension)
+        return b"bottom_extended"
+
     def fake_variant_crop(**kwargs) -> bytes:
         variant_calls.append(kwargs)
-        return b"bottom_extended"
+        return b"clamped_bottom"
 
     def fake_extract(**kwargs):
         if kwargs["crop_bytes"] == b"bottom_extended":
@@ -163,19 +193,21 @@ def test_quality_pass_uses_only_bottom_extension_for_missing_footnote(
         bbox_norm=[0.1, 0.2, 0.9, 0.8],
         vision_cfg={"expected_markers": ["(1)"]},
         initial_bottom_extension=0.02,
+        get_recrop_fn=fake_recrop,
         get_variant_crop_fn=fake_variant_crop,
     )
 
     assert result is not None
     assert result.selected_candidate_name == "bottom_extended"
-    assert variant_calls == [{"bottom_extension": 0.08}]
+    assert recrop_calls == [0.08]
+    assert variant_calls == []
     assert inspected_images == [b"initial", b"bottom_extended"]
 
 
 def test_quality_pass_uses_page_context_after_incomplete_targeted_rescue(
     monkeypatch,
 ) -> None:
-    extractor = VisionFullExtractor(api_key="test-key", model="gpt-4o-test")
+    extractor = VisionFullExtractor(model="gpt-5.4-test")
     page_context_calls: list[bool] = []
 
     def fake_variant_crop(**kwargs) -> bytes:
@@ -236,7 +268,7 @@ def test_quality_pass_uses_page_context_after_incomplete_targeted_rescue(
 def test_quality_pass_uses_page_context_when_targeted_pass_returns_none(
     monkeypatch,
 ) -> None:
-    extractor = VisionFullExtractor(api_key="test-key", model="gpt-4o-test")
+    extractor = VisionFullExtractor(model="gpt-5.4-test")
     page_context_calls: list[bool] = []
 
     def fake_extract(**kwargs):
@@ -278,7 +310,7 @@ def test_quality_pass_uses_page_context_when_targeted_pass_returns_none(
 def test_quality_pass_accepts_compact_two_row_table_without_self_healing(
     monkeypatch,
 ) -> None:
-    extractor = VisionFullExtractor(api_key="test-key", model="gpt-4o-test")
+    extractor = VisionFullExtractor(model="gpt-5.4-test")
     extraction_calls: list[bytes] = []
 
     def fake_extract(**kwargs):
@@ -319,7 +351,7 @@ def test_prompts_keep_dates_when_they_are_body_row_labels() -> None:
 def test_quality_pass_recovers_date_labeled_horizontal_rows_from_page_context(
     monkeypatch,
 ) -> None:
-    extractor = VisionFullExtractor(api_key="test-key", model="gpt-4o-test")
+    extractor = VisionFullExtractor(model="gpt-5.4-test")
     rescue_instructions: list[str] = []
 
     def fake_extract(**kwargs):
@@ -375,7 +407,7 @@ def test_quality_pass_recovers_date_labeled_horizontal_rows_from_page_context(
 def test_quality_pass_preserves_three_generic_rows_without_summary(
     monkeypatch,
 ) -> None:
-    extractor = VisionFullExtractor(api_key="test-key", model="gpt-4o-test")
+    extractor = VisionFullExtractor(model="gpt-5.4-test")
 
     monkeypatch.setattr(
         extractor,
@@ -424,7 +456,7 @@ def test_variant_crop_is_clamped_before_a_close_following_table() -> None:
 
 
 def test_quality_pass_accepts_complete_initial_result(monkeypatch) -> None:
-    extractor = VisionFullExtractor(api_key="test-key", model="gpt-4o-test")
+    extractor = VisionFullExtractor(model="gpt-5.4-test")
     calls: list[tuple[bytes, bool]] = []
 
     def fake_extract(**kwargs):
@@ -460,7 +492,7 @@ def test_footnote_marker_id_normalizes_parenthetical_and_superscript_forms() -> 
 
 
 def test_expected_marker_catalog_does_not_force_absent_markers(monkeypatch) -> None:
-    extractor = VisionFullExtractor(api_key="test-key", model="gpt-4o-test")
+    extractor = VisionFullExtractor(model="gpt-5.4-test")
     calls: list[tuple[bytes, bool]] = []
 
     def fake_extract(**kwargs):
@@ -488,7 +520,7 @@ def test_expected_marker_catalog_does_not_force_absent_markers(monkeypatch) -> N
 
 
 def test_observed_markers_accept_mixed_footnote_id_formats(monkeypatch) -> None:
-    extractor = VisionFullExtractor(api_key="test-key", model="gpt-4o-test")
+    extractor = VisionFullExtractor(model="gpt-5.4-test")
     calls: list[tuple[bytes, bool]] = []
 
     def fake_extract(**kwargs):
@@ -521,7 +553,7 @@ def test_observed_markers_accept_mixed_footnote_id_formats(monkeypatch) -> None:
 
 
 def test_observed_missing_marker_still_forces_rescue(monkeypatch) -> None:
-    extractor = VisionFullExtractor(api_key="test-key", model="gpt-4o-test")
+    extractor = VisionFullExtractor(model="gpt-5.4-test")
     calls: list[bool] = []
 
     def fake_extract(**kwargs):
@@ -551,7 +583,7 @@ def test_observed_missing_marker_still_forces_rescue(monkeypatch) -> None:
 
 
 def test_quality_pass_forces_rescue_when_summary_missing(monkeypatch) -> None:
-    extractor = VisionFullExtractor(api_key="test-key", model="gpt-4o-test")
+    extractor = VisionFullExtractor(model="gpt-5.4-test")
 
     def fake_extract(**kwargs):
         if kwargs.get("rescue_mode"):
@@ -587,7 +619,7 @@ def test_quality_pass_forces_rescue_when_summary_missing(monkeypatch) -> None:
 def test_quality_pass_allows_rescue_without_summary_when_structure_is_strong(
     monkeypatch,
 ) -> None:
-    extractor = VisionFullExtractor(api_key="test-key", model="gpt-4o-test")
+    extractor = VisionFullExtractor(model="gpt-5.4-test")
 
     def fake_extract(**kwargs):
         return _result(
@@ -620,7 +652,7 @@ def test_quality_pass_allows_rescue_without_summary_when_structure_is_strong(
 def test_quality_pass_marks_confirmed_no_table_after_repeated_no_table_evidence(
     monkeypatch,
 ) -> None:
-    extractor = VisionFullExtractor(api_key="test-key", model="gpt-4o-test")
+    extractor = VisionFullExtractor(model="gpt-5.4-test")
 
     def fake_extract(**kwargs):
         return _result(
@@ -649,7 +681,7 @@ def test_quality_pass_marks_confirmed_no_table_after_repeated_no_table_evidence(
 def test_quality_pass_marks_suspect_when_no_summary_and_structure_remains_weak(
     monkeypatch,
 ) -> None:
-    extractor = VisionFullExtractor(api_key="test-key", model="gpt-4o-test")
+    extractor = VisionFullExtractor(model="gpt-5.4-test")
 
     def fake_extract(**kwargs):
         return _result(
@@ -678,7 +710,7 @@ def test_quality_pass_marks_suspect_when_no_summary_and_structure_remains_weak(
 def test_quality_pass_rejects_non_empty_summary_with_weak_indicator_only(
     monkeypatch,
 ) -> None:
-    extractor = VisionFullExtractor(api_key="test-key", model="gpt-4o-test")
+    extractor = VisionFullExtractor(model="gpt-5.4-test")
 
     def fake_extract(**kwargs):
         return _result(
@@ -706,7 +738,7 @@ def test_quality_pass_rejects_non_empty_summary_with_weak_indicator_only(
 def test_quality_pass_rejects_generic_title_contamination_even_with_summary(
     monkeypatch,
 ) -> None:
-    extractor = VisionFullExtractor(api_key="test-key", model="gpt-4o-test")
+    extractor = VisionFullExtractor(model="gpt-5.4-test")
 
     def fake_extract(**kwargs):
         return _result(
@@ -747,7 +779,7 @@ class TestDataRichnessOverrideGuardrail:
 
     def test_single_indicator_prevents_confirmed_no_table(self, monkeypatch) -> None:
         """Meme 1 seul indicator suffit a empecher confirmed_no_table."""
-        extractor = VisionFullExtractor(api_key="test-key", model="gpt-4o-test")
+        extractor = VisionFullExtractor(model="gpt-5.4-test")
 
         def fake_extract(**kwargs):
             return _result(
@@ -775,7 +807,7 @@ class TestDataRichnessOverrideGuardrail:
 
     def test_single_header_prevents_confirmed_no_table(self, monkeypatch) -> None:
         """Meme 1 seul header suffit a empecher confirmed_no_table."""
-        extractor = VisionFullExtractor(api_key="test-key", model="gpt-4o-test")
+        extractor = VisionFullExtractor(model="gpt-5.4-test")
 
         def fake_extract(**kwargs):
             return _result(
@@ -804,7 +836,7 @@ class TestDataRichnessOverrideGuardrail:
     def test_rich_table_rescued_not_discarded(self, monkeypatch) -> None:
         """Simule un tableau riche (24 indicators, 3 headers) comme le
         TABLEAU 12 de BMO — doit etre rescued, jamais confirmed_no_table."""
-        extractor = VisionFullExtractor(api_key="test-key", model="gpt-4o-test")
+        extractor = VisionFullExtractor(model="gpt-5.4-test")
 
         def fake_extract(**kwargs):
             return _result(
@@ -834,7 +866,7 @@ class TestDataRichnessOverrideGuardrail:
     def test_truly_empty_table_remains_confirmed_no_table(self, monkeypatch) -> None:
         """Contre-test: une table VIDE (0 indicators, 0 headers) doit rester
         confirmed_no_table. Le garde-fou ne doit pas tout laisser passer."""
-        extractor = VisionFullExtractor(api_key="test-key", model="gpt-4o-test")
+        extractor = VisionFullExtractor(model="gpt-5.4-test")
 
         def fake_extract(**kwargs):
             return _result(
@@ -862,7 +894,7 @@ class TestDataRichnessOverrideGuardrail:
 
     def test_whitespace_only_indicators_count_as_empty(self, monkeypatch) -> None:
         """Des indicators qui ne contiennent que des espaces = vide."""
-        extractor = VisionFullExtractor(api_key="test-key", model="gpt-4o-test")
+        extractor = VisionFullExtractor(model="gpt-5.4-test")
 
         def fake_extract(**kwargs):
             return _result(
@@ -900,7 +932,7 @@ class TestDataRichnessOverrideGuardrail:
     )
     def test_any_non_empty_data_is_never_confirmed_no_table(self, monkeypatch, indicators, headers) -> None:
         """Parametrise: toute combinaison non-vide doit survivre au garde-fou."""
-        extractor = VisionFullExtractor(api_key="test-key", model="gpt-4o-test")
+        extractor = VisionFullExtractor(model="gpt-5.4-test")
 
         def fake_extract(**kwargs):
             return _result(
@@ -931,7 +963,7 @@ class TestDataRichnessOverrideGuardrail:
 def test_quality_pass_prefers_top_trim_candidate_with_summary_over_noisier_candidate(
     monkeypatch,
 ) -> None:
-    extractor = VisionFullExtractor(api_key="test-key", model="gpt-4o-test")
+    extractor = VisionFullExtractor(model="gpt-5.4-test")
 
     def fake_variant_crop(
         *, bbox_override: list[float] | None = None, bottom_extension: float | None = None
@@ -1006,8 +1038,7 @@ def test_extract_cache_hit_preserves_decision_metadata(
     monkeypatch,
 ) -> None:
     extractor = VisionFullExtractor(
-        api_key="test-key",
-        model="gpt-4o-test",
+        model="gpt-5.4-test",
         use_cache=True,
     )
     monkeypatch.setattr(
@@ -1063,8 +1094,7 @@ def test_extract_ignores_cached_result_without_structural_rows(
     monkeypatch,
 ) -> None:
     extractor = VisionFullExtractor(
-        api_key="test-key",
-        model="gpt-4o-test",
+        model="gpt-5.4-test",
         use_cache=True,
     )
     monkeypatch.setattr(
@@ -1080,7 +1110,7 @@ def test_extract_ignores_cached_result_without_structural_rows(
     )
     attempted: list[bool] = []
 
-    def fake_ensure_client() -> None:
+    def fake_ensure_client(_timeout: float | None = None) -> None:
         attempted.append(True)
         extractor._client = None
 
@@ -1104,8 +1134,7 @@ def test_quality_pass_cache_preserves_final_self_healing_decision(
     monkeypatch,
 ) -> None:
     extractor = VisionFullExtractor(
-        api_key="test-key",
-        model="gpt-4o-test",
+        model="gpt-5.4-test",
         use_cache=True,
     )
     monkeypatch.setattr(
@@ -1150,8 +1179,7 @@ def test_quality_pass_does_not_cache_unresolved_empty_candidate(
     monkeypatch,
 ) -> None:
     extractor = VisionFullExtractor(
-        api_key="test-key",
-        model="gpt-4o-test",
+        model="gpt-5.4-test",
         use_cache=True,
     )
     monkeypatch.setattr(

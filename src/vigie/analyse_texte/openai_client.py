@@ -12,7 +12,6 @@ import logging
 import time
 from typing import Any, TypeVar
 
-import openai
 from pydantic import BaseModel, ValidationError
 
 from vigie.analyse_texte.constants import (
@@ -21,7 +20,12 @@ from vigie.analyse_texte.constants import (
     _TRIAGE_LENGTH_RETRIES,
     _TRIAGE_TRANSPORT_RETRIES,
 )
-from vigie.support.utils.genai import get_openai_api_key
+from vigie.llm import (
+    ReasoningProfile,
+    build_completion_kwargs,
+    get_client,
+    structured_completions_parse,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -49,10 +53,7 @@ def _build_openai_client():
     Lève ``RuntimeError`` si la clé est absente — le pipeline texte ne peut pas
     fonctionner sans accès à l'API OpenAI.
     """
-    api_key = get_openai_api_key()
-    if not api_key:
-        raise RuntimeError("OPENAI_API_KEY absent: le pipeline texte GPT-first ne peut pas s'exécuter.")
-    return openai.OpenAI(api_key=api_key, timeout=_OPENAI_TIMEOUT_SECONDS, max_retries=1)
+    return get_client(timeout=_OPENAI_TIMEOUT_SECONDS, max_retries=1)
 
 
 def _strip_markdown_fences(text: str) -> str:
@@ -165,6 +166,7 @@ def _call_json_completion(
     model: str,
     messages: list[dict[str, Any]],
     max_tokens: int | None = None,
+    profile: ReasoningProfile | str = "default",
 ) -> dict[str, Any]:
     """Execute un appel JSON OpenAI robuste pour le flux texte.
 
@@ -186,7 +188,7 @@ def _call_json_completion(
         request_kwargs: dict[str, Any] = {
             "model": model,
             "messages": request_messages,
-            "temperature": 0.0,
+            **build_completion_kwargs(model=model, profile=profile),
             "response_format": {"type": "json_object"},
         }
         if token_budget is not None:
@@ -282,11 +284,12 @@ def _call_structured_completion(
     messages: list[dict[str, Any]],
     response_format: type[_T_StructuredModel],
     max_tokens: int | None = None,
+    profile: ReasoningProfile | str = "default",
 ) -> _T_StructuredModel:
     """Appel OpenAI à sortie structurée garantie par schéma Pydantic.
 
     Utilise ``client.beta.chat.completions.parse()`` qui fournit la sortie
-    GPT-4o conforme au schéma JSON dérivé du modèle Pydantic passé en
+    conforme au schéma JSON dérivé du modèle Pydantic passé en
     ``response_format``. La désérialisation et les ``model_validator`` de
     Pydantic s'exécutent côté SDK : si un invariant transversal du modèle
     est violé, ``parse()`` lève directement.
@@ -296,36 +299,14 @@ def _call_structured_completion(
     erreurs de validation Pydantic remontent en ``pydantic.ValidationError``
     (à attraper par l'appelant qui souhaite faire un retry correctif).
     """
-    request_kwargs: dict[str, Any] = {
-        "model": model,
-        "messages": messages,
-        "response_format": response_format,
-        "temperature": 0.0,
-    }
-    if max_tokens is not None:
-        request_kwargs["max_completion_tokens"] = int(max_tokens)
-
-    response = client.beta.chat.completions.parse(**request_kwargs)
-    choice = response.choices[0]
-    message = choice.message
-
-    refusal = getattr(message, "refusal", None)
-    if refusal:
-        raise RuntimeError(f"OpenAI structured completion refused by model: {refusal}")
-
-    finish_reason = getattr(choice, "finish_reason", None)
-    if finish_reason == "length":
-        raise RuntimeError(
-            f"OpenAI structured completion truncated (finish_reason=length, max_completion_tokens={max_tokens})"
-        )
-
-    parsed = getattr(message, "parsed", None)
-    if parsed is None:
-        raise RuntimeError(
-            f"OpenAI structured completion returned no parsed payload (finish_reason={finish_reason or 'unknown'})"
-        )
-
-    return parsed
+    return structured_completions_parse(
+        client,
+        model=model,
+        messages=messages,
+        response_format=response_format,
+        max_tokens=max_tokens,
+        profile=profile,
+    )
 
 
 def _call_structured_completion_with_correction(
@@ -340,6 +321,7 @@ def _call_structured_completion_with_correction(
     max_length_retries: int = _TRIAGE_LENGTH_RETRIES,
     validation_retry_message: str | None = None,
     length_retry_message: str | None = None,
+    profile: ReasoningProfile | str = "default",
 ) -> _T_StructuredModel:
     """Appel structuré avec retry correctif borné sur ``ValidationError``.
 
@@ -371,6 +353,7 @@ def _call_structured_completion_with_correction(
                 messages=current_messages,
                 response_format=response_format,
                 max_tokens=max_tokens,
+                profile=profile,
             )
         except RuntimeError as exc:
             err_kind = _classify_openai_transport_error(exc)

@@ -9,12 +9,11 @@ import logging
 from pathlib import Path
 from typing import Any, Literal
 
-import openai
 from pydantic import BaseModel, ConfigDict, Field
 
 from vigie.extraction.vision_cache import compute_pdf_sha256
+from vigie.llm import get_client, is_configured, structured_completions_parse
 from vigie.support.config import resolve_openai_model
-from vigie.support.utils.genai import get_openai_api_key
 from vigie.support.utils.proof_rendering import render_full_proof_bytes
 
 logger = logging.getLogger(__name__)
@@ -196,16 +195,13 @@ class OpenAITextBoundaryValidator:
                 "content": [{"type": "text", "text": prompt}, *image_parts],
             },
         ]
-        response = self.client.beta.chat.completions.parse(
+        return structured_completions_parse(
+            self.client,
             model=self.model,
             messages=messages,
             response_format=VisionBoundaryAssessment,
-            temperature=0.0,
+            profile="extraction",
         )
-        parsed = response.choices[0].message.parsed
-        if parsed is None:
-            raise ValueError("réponse structurée Vision vide")
-        return parsed
 
     def validate(self, previous: Any, current: Any) -> VisionBoundaryDecision:
         """Retourne une décision; toute incertitude conserve la frontière."""
@@ -258,12 +254,11 @@ def build_text_boundary_validator(
     """Construit le validateur optionnel lorsque Vision et la clé sont disponibles."""
     if not bool(config.get("boundary_vision_enabled", True)):
         return None
-    api_key = get_openai_api_key()
-    if client is None and not api_key:
-        logger.info("Vision des frontières désactivée: OPENAI_API_KEY absente.")
+    if client is None and not is_configured():
+        logger.info("Vision des frontières désactivée: provider LLM non configuré.")
         return None
     if client is None:
-        client = openai.OpenAI(api_key=api_key, timeout=float(config.get("boundary_vision_timeout_sec", 120)))
+        client = get_client(timeout=float(config.get("boundary_vision_timeout_sec", 120)))
     model = str(config.get("boundary_vision_model") or resolve_openai_model("default_genai"))
     return OpenAITextBoundaryValidator(
         pdf_path=pdf_path,

@@ -182,7 +182,7 @@ def _unmatched_subsection_chunk_changes(
     idx_offset: int,
     client: Any,
     embedding_model: str = "text-embedding-3-small",
-    semantic_model: str = "gpt-4o",
+    semantic_model: str = "gpt-5.4",
 ) -> list[dict[str, Any]]:
     """Produit des ajouts/retraits par chunk pour une sous-section sans paire."""
     chunks = _chunk_subsection_bodies(

@@ -10,10 +10,9 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass
 
-import openai
 from pydantic import BaseModel, ConfigDict, Field
 
-from vigie.support.utils.genai import get_openai_api_key
+from vigie.llm import get_client, resolve_model, structured_completions_parse
 
 logger = logging.getLogger(__name__)
 
@@ -40,8 +39,8 @@ def anchor_against_previous(
     table_title: str,
     current_indicators: list[str],
     previous_indicators: list[str],
-    model: str = "gpt-4o",
-    api_key: str | None = None,
+    model: str | None = None,
+    api_key: str | None = None,  # noqa: ARG001 - compat ; auth via llm.get_client
     diff_threshold: float = _ROW_COUNT_DIFF_THRESHOLD,
 ) -> AnchorResult:
     """Compare current indicators against T-1 and flag likely extraction errors.
@@ -111,10 +110,8 @@ def anchor_against_previous(
                 description="Brief explanation of why this is or is not an extraction error.",
             )
 
-        if api_key is None:
-            api_key = get_openai_api_key()
-
-        client = openai.OpenAI(api_key=api_key)
+        client = get_client(timeout=120.0, max_retries=1)
+        model_name = str(model or "").strip() or resolve_model("chat")
 
         # Build concise indicator lists for GPT
         prev_sample = previous_indicators[:30]
@@ -137,17 +134,16 @@ def anchor_against_previous(
             "Missing section headers, duplicate group headings, or absent sub-items suggest extraction error."
         )
 
-        response = client.beta.chat.completions.parse(
-            model=model,
+        parsed = structured_completions_parse(
+            client,
+            model=model_name,
             messages=[
                 {"role": "system", "content": "You are a financial data quality auditor."},
                 {"role": "user", "content": prompt},
             ],
             response_format=AnchorJudgment,
-            temperature=0.0,
+            profile="extraction",
         )
-
-        parsed = response.choices[0].message.parsed
         if parsed is None:
             return AnchorResult(
                 table_id=table_id,

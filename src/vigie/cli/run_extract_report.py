@@ -78,6 +78,11 @@ def build_parser() -> argparse.ArgumentParser:
         default=DEFAULT_OUT_ROOT,
         help="Racine des sorties (defaut: outputs/extractions)",
     )
+    parser.add_argument(
+        "--forcer-extraction",
+        action="store_true",
+        help="Ignorer le cache Vision et re-extraire tous les tableaux",
+    )
     return parser
 
 
@@ -109,6 +114,7 @@ def main(argv: list[str] | None = None) -> None:
         quarter=quarter_norm,
         year=int(args.annee),
         section_ranges=section_ranges,
+        force_extraction=args.forcer_extraction,
     )
 
     out_dir = Path(args.sortie) / str(args.banque).lower() / str(args.annee) / quarter_norm

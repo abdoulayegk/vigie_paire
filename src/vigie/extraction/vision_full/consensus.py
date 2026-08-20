@@ -40,34 +40,17 @@ class ConsensusMixin:
         max_completion_tokens_override: int | None = None,
         rescue_mode: bool = False,
         rescue_instruction: str = "",
-        temperatures: tuple[float, ...] | None = None,
     ) -> VisionFullResult | None:
         """Extraction multi-tir avec vote par consensus.
 
         Lance 2 extractions paralleles avec variantes de prompt
-        (exhaustive et precision) a temperature 0.0, puis selectionne
-        le resultat avec le meilleur consensus sur le nombre
-        d'indicateurs et le recouvrement des libelles.
+        (exhaustive et precision), puis selectionne le resultat avec le
+        meilleur consensus sur le nombre d'indicateurs et le recouvrement
+        des libelles.
 
         Se rabat sur une extraction unique lorsque le consensus
         est unanime ou qu'un seul tir reussit.
         """
-        temps = temperatures or self._CONSENSUS_TEMPERATURES
-        if len(temps) <= 1:
-            return self.extract(
-                crop_bytes=crop_bytes,
-                bank_code=bank_code,
-                pdf_sha=pdf_sha,
-                page_number=page_number,
-                bbox_norm=bbox_norm,
-                vision_cfg=vision_cfg,
-                bottom_extension_used=bottom_extension_used,
-                reference_text=reference_text,
-                max_completion_tokens_override=max_completion_tokens_override,
-                rescue_mode=rescue_mode,
-                rescue_instruction=rescue_instruction,
-                temperature=temps[0],
-            )
 
         def _shot(variant: str) -> VisionFullResult | None:
             """Exécute un tir d'extraction Vision pour une variante de prompt donnée."""
@@ -91,7 +74,6 @@ class ConsensusMixin:
                 max_completion_tokens_override=max_completion_tokens_override,
                 rescue_mode=rescue_mode,
                 rescue_instruction=rescue_instruction,
-                temperature=0.0,
                 prompt_override=prompt_override,
             )
 

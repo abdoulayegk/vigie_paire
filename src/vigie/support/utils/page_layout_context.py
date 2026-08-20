@@ -8,6 +8,7 @@ avec les tableaux voisins tout en capturant titres et notes de bas de page.
 from __future__ import annotations
 
 import logging
+from dataclasses import dataclass
 
 logger = logging.getLogger(__name__)
 
@@ -16,6 +17,16 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 PageBboxEntry = tuple[int, list[float]]  # (table_index, [l, t, r, b])
+
+
+@dataclass(frozen=True)
+class DynamicCropExtensions:
+    """Extensions de recadrage calculees pour un tableau sur une page."""
+
+    top_extension: float
+    bottom_extension: float
+    inter_table_gap: float | None
+    tight_inter_table_gap: bool
 
 
 def build_page_table_map(
@@ -114,7 +125,9 @@ def compute_dynamic_extensions(
     page_bottom_margin: float = 0.05,
     title_proximity_threshold: float = 0.08,
     min_gap_for_footnotes: float = 0.02,
-) -> tuple[float, float]:
+    tight_gap_threshold: float = 0.03,
+    tight_gap_footnote_margin: float = 0.005,
+) -> DynamicCropExtensions:
     """Calcule les extensions dynamiques haut et bas pour un recadrage de tableau.
 
     Args:
@@ -126,10 +139,12 @@ def compute_dynamic_extensions(
         default_top: Extension haut par defaut (config).
         page_bottom_margin: Marge de securite depuis le bas de la page (normalisee).
         title_proximity_threshold: Ecart maximal au-dessus du tableau pour chercher un titre.
-        min_gap_for_footnotes: Ecart minimal a laisser entre les tableaux.
+        min_gap_for_footnotes: Ecart minimal a laisser entre les tableaux (gap normal).
+        tight_gap_threshold: Seuil en dessous duquel le gap inter-table est considere serré.
+        tight_gap_footnote_margin: Marge reduite pour capturer les notes dans un gap serré.
 
     Returns:
-        ``(top_extension, bottom_extension)`` en unites de page normalisees.
+        :class:`DynamicCropExtensions` avec extensions et metadonnees de gap.
     """
     _l, t, _r, b = table_bbox
     page_tables = page_table_map.get(page_num, [])
@@ -143,7 +158,15 @@ def compute_dynamic_extensions(
 
     if current_pos is None:
         # Table not found in map (shouldn't happen), use defaults
-        return default_top, default_bottom
+        return DynamicCropExtensions(
+            top_extension=default_top,
+            bottom_extension=default_bottom,
+            inter_table_gap=None,
+            tight_inter_table_gap=False,
+        )
+
+    inter_table_gap: float | None = None
+    tight_inter_table_gap = False
 
     # ---------------------------------------------------------------------------
     # BOTTOM EXTENSION — capture footnotes
@@ -152,18 +175,21 @@ def compute_dynamic_extensions(
         # There is a table below: extend down to just before the next table's top
         next_table_top = page_tables[current_pos + 1][1][1]  # next bbox's t
         available_gap = max(0.0, next_table_top - b)
+        inter_table_gap = available_gap
+        tight_inter_table_gap = available_gap < tight_gap_threshold
 
-        if available_gap < 0.03:
+        if tight_inter_table_gap:
             logger.warning(
                 "Table %s on page %s is very close to the next table (gap %.1f%%). "
-                "Footnotes or titles might be squeezed or misattributed.",
+                "Footnotes or titles might be squeezed or misattributed. "
+                "tight_inter_table_gap=True",
                 table_idx,
                 page_num,
                 available_gap * 100,
             )
 
-        # Leave a small safety margin so we don't bleed into the next table
-        bottom_ext = max(0.0, available_gap - min_gap_for_footnotes)
+        footnote_margin = tight_gap_footnote_margin if tight_inter_table_gap else min_gap_for_footnotes
+        bottom_ext = max(0.0, available_gap - footnote_margin)
     else:
         # Last table on the page: extend to bottom of page minus margin
         bottom_ext = max(0.0, (1.0 - page_bottom_margin) - b)
@@ -204,7 +230,8 @@ def compute_dynamic_extensions(
 
     logger.debug(
         "dynamic_crop page=%s table_idx=%s tables_on_page=%s "
-        "top_ext=%.3f (default=%.3f) bottom_ext=%.3f (default=%.3f)",
+        "top_ext=%.3f (default=%.3f) bottom_ext=%.3f (default=%.3f) "
+        "inter_table_gap=%s tight=%s",
         page_num,
         table_idx,
         len(page_tables),
@@ -212,6 +239,13 @@ def compute_dynamic_extensions(
         default_top,
         bottom_ext,
         default_bottom,
+        f"{inter_table_gap:.3f}" if inter_table_gap is not None else "None",
+        tight_inter_table_gap,
     )
 
-    return top_ext, bottom_ext
+    return DynamicCropExtensions(
+        top_extension=top_ext,
+        bottom_extension=bottom_ext,
+        inter_table_gap=inter_table_gap,
+        tight_inter_table_gap=tight_inter_table_gap,
+    )

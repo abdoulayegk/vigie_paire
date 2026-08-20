@@ -26,7 +26,7 @@ import pdfplumber
 from vigie.extraction.localisation_sections.boundary_resolver import resolve_t4_section_bounds
 from vigie.extraction.localisation_sections.toc_locator import locate_toc_structure
 from vigie.extraction.section_taxonomy import canonicalize_section
-from vigie.support.utils.genai import get_openai_api_key
+from vigie.llm import require_configured
 
 from .annual_t4 import AnnualT4Mixin
 from .bank_config import (
@@ -285,12 +285,13 @@ class SectionLocator(
             required = bool(semantic_config.get("vision_required_for_new_titles", True))
             validated_candidates: list[LocatedSection] = []
             detector = None
-            if candidates_requiring_vision and get_openai_api_key():
+            if candidates_requiring_vision:
+                require_configured()
                 from vigie.extraction.genai_toc_detector import (  # noqa: PLC0415 - dépendance OpenAI optionnelle
                     GenAITOCDetector,
                 )
 
-                detector = GenAITOCDetector(model=str(semantic_config.get("vision_model", "gpt-4o")))
+                detector = GenAITOCDetector(model=str(semantic_config.get("vision_model", "gpt-5.4")))
 
             for candidate in semantic_candidates:
                 if candidate not in candidates_requiring_vision:

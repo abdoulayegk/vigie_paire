@@ -39,3 +39,9 @@ def test_complet_parser_accepts_sans_extraction() -> None:
     assert args.banque == "BNC"
     assert args.sans_extraction is True
     assert args.forcer_extraction is False
+
+
+def test_complet_parser_accepts_forcer_extraction() -> None:
+    parser = complet.build_parser()
+    args = parser.parse_args(["--banque", "BNC", "--annee", "2025", "--T2", "--forcer-extraction"])
+    assert args.forcer_extraction is True

@@ -51,6 +51,7 @@ _T4_TEXT_TARGET_SECTIONS = {"gestion_capital", "gestion_risques"}
 
 
 _MODEL_MAX_OUTPUT_TOKENS: list[tuple[re.Pattern[str], int]] = [
+    (re.compile(r"^gpt-5(?:\.|$|-)", flags=re.IGNORECASE), 128_000),
     (re.compile(r"^gpt-4o(?:$|-)", flags=re.IGNORECASE), 16_384),
     (re.compile(r"^gpt-4\.1(?:$|-)", flags=re.IGNORECASE), 32_768),
     (re.compile(r"^gpt-4(?:$|-)", flags=re.IGNORECASE), 8_192),

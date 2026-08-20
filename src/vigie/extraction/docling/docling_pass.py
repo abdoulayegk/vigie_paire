@@ -19,9 +19,9 @@ from vigie.extraction.page_table_locator import (
 from vigie.extraction.pdf_preview import render_pdf_page
 from vigie.extraction.vision_cache import compute_pdf_sha256
 from vigie.extraction.vision_full import VisionFullExtractor, VisionSchemaContractError
+from vigie.llm import require_configured
 from vigie.support.config import get_vision_extraction_config, resolve_openai_model
 from vigie.support.utils import page_layout_context, pdf_crop
-from vigie.support.utils.genai import get_openai_api_key
 
 from ..docling_bbox_helpers import _build_indicator_reference_text
 from ..locator_merge_reconciliation import (
@@ -48,6 +48,7 @@ class DoclingPassMixin:
         *,
         labels_only: bool = False,
         use_vision_extraction: bool = False,
+        force_extraction: bool = False,
     ) -> ExtractedDocument:
         """Extraire en utilisant la bibliotheque Docling avec pipeline de pretraitement.
 
@@ -59,6 +60,7 @@ class DoclingPassMixin:
             page_ranges: Plages de pages optionnelles pour extraction ciblee.
             labels_only: Si True, ne stocker que la premiere colonne.
             use_vision_extraction: Si True, utiliser Vision GPT-4o pour le contenu.
+            force_extraction: Si True, ignorer le cache Vision (re-extraction complete).
 
         Returns:
             ExtractedDocument contenant les tableaux et metadonnees extraits.
@@ -96,6 +98,15 @@ class DoclingPassMixin:
             if use_vision_extraction:
                 try:
                     vision_extraction_cfg = _get_vision_extraction_config(bank_code)
+                    if force_extraction:
+                        vision_extraction_cfg = {
+                            **vision_extraction_cfg,
+                            "vision_cache_enabled": False,
+                        }
+                        logger.info(
+                            "force_extraction active: cache Vision desactive pour %s",
+                            bank_code,
+                        )
                     bottom_extension_footnotes = float(vision_extraction_cfg.get("bottom_extension_footnotes", 0.12))
                     top_extension_title = float(vision_extraction_cfg.get("top_extension_title", 0.03))
                     horizontal_padding = float(vision_extraction_cfg.get("horizontal_padding", 0.02))
@@ -109,33 +120,26 @@ class DoclingPassMixin:
                     }:
                         schema_failure_policy = "fail_fast"
                     pdf_sha = compute_pdf_sha256(str(pdf_path))
-                    api_key = self.openai_api_key or get_openai_api_key()
                     vision_model_name = resolve_openai_model("extraction_primary")
                     vision_cache_enabled = bool(vision_extraction_cfg.get("vision_cache_enabled", True))
-                    if api_key:
-                        vision_extractor = VisionFullExtractor(
-                            api_key=api_key,
-                            model=vision_model_name,
-                            use_cache=vision_cache_enabled,
-                        )
-                        page_table_locator = PageTableLocator(
-                            api_key=api_key,
-                            model=vision_model_name,
-                            min_confidence=float(
-                                vision_extraction_cfg.get(
-                                    "page_context_min_confidence",
-                                    0.85,
-                                )
-                            ),
-                            use_cache=vision_cache_enabled,
-                        )
-                    else:
-                        logger.warning("Vision extraction: OPENAI_API_KEY absente, desactivation")
-                        use_vision_extraction = False
+                    require_configured()
+                    vision_extractor = VisionFullExtractor(
+                        model=vision_model_name,
+                        use_cache=vision_cache_enabled,
+                    )
+                    page_table_locator = PageTableLocator(
+                        model=vision_model_name,
+                        min_confidence=float(
+                            vision_extraction_cfg.get(
+                                "page_context_min_confidence",
+                                0.85,
+                            )
+                        ),
+                        use_cache=vision_cache_enabled,
+                    )
                     vision_schema_error_cls = VisionSchemaContractError
                 except Exception as e:
-                    logger.warning("Vision extraction init failed: %s", e)
-                    use_vision_extraction = False
+                    raise RuntimeError(f"Vision extraction init failed: {e}") from e
 
             # ---------------------------------------------------------------------------
             # Steps 2+3: Docling = structure only. Vision = single content source.

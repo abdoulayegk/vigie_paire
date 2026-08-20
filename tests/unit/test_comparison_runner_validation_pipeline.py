@@ -117,7 +117,6 @@ def test_run_comparison_with_sections_propagates_prompt_versions_to_dash_meta(
         sections_current=[{"section": "capital_management", "start_page": 1, "end_page": 2}],
         current_quarter="Q1-2026",
         current_year=2026,
-        api_key="test-key",
     )
 
     assert result["meta"]["source_format"] == "report_comparison"
@@ -160,7 +159,6 @@ def test_run_comparison_with_sections_propagates_compare_path_reference_and_run_
         sections_current=[{"section": "capital_management", "start_page": 1, "end_page": 2}],
         current_quarter="Q1-2026",
         current_year=2026,
-        api_key="test-key",
     )
 
     assert result["meta"]["compare_path"].endswith("2026_t1_vs_2025_t3/20260325_143000/comparison.json")

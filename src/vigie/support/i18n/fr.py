@@ -172,7 +172,7 @@ def reason_fr(code: str) -> str:
 SOURCE_METHOD_MAP: dict[str, str] = {
     "docling": "Extraction Docling",
     "vision_fallback_gpt4o": "Extraction vision (GPT-4o)",
-    "vision_fallback_gpt-4o": "Extraction vision (GPT-4o)",
+    "vision_fallback_gpt-5.4": "Extraction vision (GPT-5.4)",
     "vision_fallback": "Extraction vision (GPT-4o)",
     "vector": "Extraction vectorielle",
 }

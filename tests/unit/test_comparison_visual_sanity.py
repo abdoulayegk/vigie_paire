@@ -40,7 +40,7 @@ def test_visual_sanity_filters_indicator_and_footnote_rejections() -> None:
         b"pq-proof",
         b"cq-proof",
         diff_result,
-        model="gpt-4o-test",
+        model="gpt-5.4-test",
         call_openai_json=fake_call_openai_json,
     )
 
@@ -75,7 +75,7 @@ def test_visual_sanity_table_event_rejects_false_positive_table() -> None:
         event_type="table_added",
         table_id="tbl_1",
         table_title="Tableau de liquidité",
-        model="gpt-4o-test",
+        model="gpt-5.4-test",
         call_openai_json=fake_call_openai_json,
     )
 
@@ -146,7 +146,7 @@ def test_visual_sanity_check_skips_when_no_visual_items() -> None:
         b"pq-proof",
         b"cq-proof",
         diff_result,
-        model="gpt-4o-test",
+        model="gpt-5.4-test",
         call_openai_json=lambda **kwargs: {},
     )
 

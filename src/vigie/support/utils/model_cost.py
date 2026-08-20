@@ -22,7 +22,7 @@ def estimate_openai_cost_usd(
     sure meme lorsque le modele actif n'est pas encore tarifie localement.
 
     Args:
-        model: Nom du modele OpenAI (ex. ``"gpt-4o"``).
+        model: Nom du modele OpenAI (ex. ``"gpt-5.4"``).
         prompt_tokens: Nombre de tokens en entree.
         completion_tokens: Nombre de tokens en sortie.
 

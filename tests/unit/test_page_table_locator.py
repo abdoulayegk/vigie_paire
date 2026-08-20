@@ -6,6 +6,7 @@ import pytest
 
 from vigie.extraction.page_table_locator import (
     OPENAI_PAGE_LOCATOR_TIMEOUT_SECONDS,
+    PAGE_LOCATOR_MAX_COMPLETION_TOKENS,
     PageTableLocator,
     _parse_page_layout,
     build_near_full_page_crop_plan,
@@ -134,7 +135,7 @@ def test_invalid_title_and_footnote_associations_are_not_used() -> None:
 
 
 def test_page_locator_cache_reuses_one_call_for_tables_on_same_page(monkeypatch) -> None:
-    locator = PageTableLocator(api_key="test-key", model="gpt-4o-test")
+    locator = PageTableLocator(model="gpt-5.4-test")
     calls: list[bytes] = []
     expected = _parse_page_layout(_layout_payload(), page_number=30)
 
@@ -158,8 +159,7 @@ def test_page_locator_persistent_cache_stabilizes_separate_runs(
 ) -> None:
     expected = _parse_page_layout(_layout_payload(), page_number=30)
     first_locator = PageTableLocator(
-        api_key="test-key",
-        model="gpt-4o-test",
+        model="gpt-5.4-test",
         use_cache=True,
         cache_dir=str(tmp_path),
     )
@@ -173,8 +173,7 @@ def test_page_locator_persistent_cache_stabilizes_separate_runs(
     first = first_locator.locate_page(b"page-image", 30, pdf_sha="same-pdf")
 
     second_locator = PageTableLocator(
-        api_key="test-key",
-        model="gpt-4o-test",
+        model="gpt-5.4-test",
         use_cache=True,
         cache_dir=str(tmp_path),
     )
@@ -201,15 +200,17 @@ def test_page_locator_client_has_direct_120_second_timeout(monkeypatch) -> None:
         def __init__(self, **kwargs) -> None:
             captured.append(kwargs)
 
-    monkeypatch.setattr("openai.OpenAI", FakeOpenAI)
-    locator = PageTableLocator(api_key="test-key", model="gpt-4o-test")
+    monkeypatch.setattr(
+        "vigie.extraction.page_table_locator.get_client", lambda **kwargs: captured.append(kwargs) or object()
+    )
+    locator = PageTableLocator(model="gpt-5.4-test")
 
     locator._ensure_client()
 
     assert captured == [
         {
-            "api_key": "test-key",
             "timeout": OPENAI_PAGE_LOCATOR_TIMEOUT_SECONDS,
+            "max_retries": 1,
         }
     ]
     assert OPENAI_PAGE_LOCATOR_TIMEOUT_SECONDS == 120.0
@@ -222,3 +223,63 @@ def test_page_context_trigger_accepts_missing_targeted_result() -> None:
     )
     assert should_use_page_context_rescue(False, ["missing_result"])
     assert not should_use_page_context_rescue(True, ["missing_table_summary"])
+
+
+def test_page_locator_retries_with_json_object_on_empty_structured_response(
+    monkeypatch,
+) -> None:
+    import json
+
+    calls: list[dict] = []
+
+    class FakeMessage:
+        def __init__(self, content: str) -> None:
+            self.content = content
+
+    class FakeChoice:
+        def __init__(self, content: str, finish_reason: str = "stop") -> None:
+            self.message = FakeMessage(content)
+            self.finish_reason = finish_reason
+
+    class FakeResponse:
+        def __init__(self, content: str) -> None:
+            self.choices = [FakeChoice(content)]
+
+    responses = ["", json.dumps(_layout_payload())]
+
+    def fake_chat_completions_create(_client, **kwargs) -> FakeResponse:
+        calls.append(kwargs)
+        return FakeResponse(responses[len(calls) - 1])
+
+    monkeypatch.setattr(
+        "vigie.extraction.page_table_locator.get_client",
+        lambda **_kwargs: object(),
+    )
+    monkeypatch.setattr(
+        "vigie.extraction.page_table_locator.chat_completions_create",
+        fake_chat_completions_create,
+    )
+
+    locator = PageTableLocator(model="gpt-5.4-test")
+    layout = locator._locate_uncached(b"page-image", 34)
+
+    assert layout is not None
+    assert len(layout.tables) == 2
+    assert len(calls) == 2
+    assert calls[0]["profile"] == "locator"
+    assert calls[0]["max_completion_tokens"] == PAGE_LOCATOR_MAX_COMPLETION_TOKENS
+    assert PAGE_LOCATOR_MAX_COMPLETION_TOKENS == 128_000
+    assert calls[1]["response_format"] == {"type": "json_object"}
+    assert calls[1]["profile"] == "locator"
+    assert calls[1]["max_completion_tokens"] == PAGE_LOCATOR_MAX_COMPLETION_TOKENS
+
+
+def test_parse_page_layout_accepts_tables_without_table_count() -> None:
+    payload = _layout_payload()
+    del payload["table_count"]
+
+    layout = _parse_page_layout(payload, page_number=33)
+
+    assert layout is not None
+    assert len(layout.tables) == 2
+    assert layout.tables[0].title_text == "Ratios de fonds propres"

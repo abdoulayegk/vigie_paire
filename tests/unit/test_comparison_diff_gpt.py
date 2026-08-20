@@ -41,7 +41,7 @@ def test_diff_table_pair_gpt_skips_footnote_call_when_both_tables_have_no_footno
     result = diff_table_pair_gpt(
         _table(table_id="prev", indicators=["Ratio CET1"]),
         _table(table_id="curr", indicators=["Ratio CET1"]),
-        model="gpt-4o-test",
+        model="gpt-5.4-test",
         call_openai_json=fake_call_openai_json,
     )
 
@@ -76,7 +76,7 @@ def test_diff_table_pair_gpt_structurally_classifies_one_sided_footnotes_without
             indicators=["Ratio CET1"],
             footnotes=[{"id": "1", "text": "Nouvelle note"}],
         ),
-        model="gpt-4o-test",
+        model="gpt-5.4-test",
         call_openai_json=fake_call_openai_json,
     )
 
@@ -145,7 +145,7 @@ def test_diff_table_pair_gpt_calls_both_gpt_specialists_when_footnotes_exist_on_
             indicators=["Ratio CET1", "Ratio de levier"],
             footnotes=[{"id": "2", "text": "Note A mise à jour"}],
         ),
-        model="gpt-4o-test",
+        model="gpt-5.4-test",
         call_openai_json=fake_call_openai_json,
     )
 
@@ -179,7 +179,7 @@ def test_diff_table_pair_gpt_retries_malformed_indicator_response() -> None:
     result = diff_table_pair_gpt(
         _table(table_id="prev", indicators=["Ratio CET1"]),
         _table(table_id="curr", indicators=["Ratio CET1"]),
-        model="gpt-4o-test",
+        model="gpt-5.4-test",
         call_openai_json=fake_call_openai_json,
     )
 
@@ -217,7 +217,7 @@ def test_diff_table_pair_gpt_retries_malformed_footnote_response() -> None:
             indicators=["Ratio CET1"],
             footnotes=[{"id": "1", "text": "Note A"}],
         ),
-        model="gpt-4o-test",
+        model="gpt-5.4-test",
         call_openai_json=fake_call_openai_json,
     )
 
