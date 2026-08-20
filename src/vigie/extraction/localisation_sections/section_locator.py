@@ -471,10 +471,12 @@ class SectionLocator(
         sections = self._refine_cibc_target_sections(sections, text_by_page, total_pages)
 
         # ETAPE 4.75: Pour les rapports annuels, valider la TDM et les
-        # transitions physiques avec la couche Docling + Vision indépendante.
-        if self._is_t4_quarter():
+        # transitions physiques avec la couche pdfplumber + Vision indépendante.
+        boundary_cfg = self.bank_config.get("section_boundary_detection", {}) or {}
+        annual_validator_enabled = bool(boundary_cfg.get("annual_boundary_validator_enabled", True))
+        if self._is_t4_quarter() and annual_validator_enabled:
             try:
-                from vigie.extraction.annual_section_boundary_validator import (  # noqa: PLC0415 - Docling charge seulement pour T4
+                from vigie.extraction.annual_section_boundary_validator import (  # noqa: PLC0415 - validateur T4 optionnel
                     AnnualSectionBoundaryValidator,
                 )
 
@@ -535,7 +537,7 @@ class SectionLocator(
                         "partial",
                     }
             except Exception as exc:
-                logger.warning("Validation annuelle Docling + Vision indisponible: %s", exc)
+                logger.warning("Validation annuelle pdfplumber + Vision indisponible: %s", exc)
                 annual_diagnostics = {
                     "enabled": True,
                     "status": "error",
@@ -543,6 +545,14 @@ class SectionLocator(
                 }
                 boundary_validation["annual_t4"] = annual_diagnostics
                 boundary_validation.update(annual_diagnostics)
+        elif self._is_t4_quarter() and not annual_validator_enabled:
+            boundary_validation["annual_t4"] = {
+                "enabled": False,
+                "status": "skipped",
+                "toc_entry_count": 0,
+                "docling_entry_count": 0,
+                "warnings": ["annual_boundary_validator_disabled"],
+            }
 
         # ETAPE 4.8: Normaliser la taxonomie des sections en sortie.
         for section in sections:

@@ -38,6 +38,7 @@ TD_TOC_MARKDOWN = """
 
 
 def test_parse_docling_toc_markdown_preserves_bnc_columns() -> None:
+    """Le parseur Markdown de fixtures reste utilisable sans runtime Docling."""
     entries = parse_docling_toc_markdown(BNC_TOC_MARKDOWN, max_pages=240)
 
     assert ("Gestion du capital", 53) in {(entry.title, entry.page) for entry in entries}
@@ -48,7 +49,7 @@ def test_parse_docling_toc_markdown_preserves_bnc_columns() -> None:
     ) in {(entry.title, entry.page) for entry in entries}
 
 
-def test_docling_reconciles_incorrect_vision_page_numbers() -> None:
+def test_toc_entries_reconcile_incorrect_vision_page_numbers() -> None:
     roles = [
         TOCBoundaryRole(
             section_type="risk_management",
@@ -59,9 +60,9 @@ def test_docling_reconciles_incorrect_vision_page_numbers() -> None:
             confidence=0.95,
         )
     ]
-    docling_entries = parse_docling_toc_markdown(BNC_TOC_MARKDOWN, max_pages=240)
+    toc_entries = parse_docling_toc_markdown(BNC_TOC_MARKDOWN, max_pages=240)
 
-    resolved, warnings = reconcile_boundary_roles(roles, docling_entries, [])
+    resolved, warnings = reconcile_boundary_roles(roles, toc_entries, [])
 
     assert resolved[0].start_page == 62
     assert resolved[0].successor_page == 107
@@ -69,7 +70,7 @@ def test_docling_reconciles_incorrect_vision_page_numbers() -> None:
     assert "risk_management:vision_start_page_56_reconciled_to_62" in warnings
 
 
-def test_docling_infers_group_start_from_first_numbered_child() -> None:
+def test_markdown_fixture_infers_group_start_from_first_numbered_child() -> None:
     entries = parse_docling_toc_markdown(TD_TOC_MARKDOWN, max_pages=150)
 
     assert (
@@ -84,7 +85,7 @@ def test_docling_infers_group_start_from_first_numbered_child() -> None:
     ) in {(entry.title, entry.page, entry.source) for entry in entries}
 
 
-def test_reconciliation_falls_back_to_vision_for_docling_merged_cell() -> None:
+def test_reconciliation_falls_back_to_vision_for_merged_toc_cell() -> None:
     roles = [
         TOCBoundaryRole(
             "capital_management",
@@ -103,7 +104,7 @@ def test_reconciliation_falls_back_to_vision_for_docling_merged_cell() -> None:
             0.95,
         ),
     ]
-    docling_entries = parse_docling_toc_markdown(TD_TOC_MARKDOWN, max_pages=150)
+    toc_entries = parse_docling_toc_markdown(TD_TOC_MARKDOWN, max_pages=150)
     vision_entries = [
         StructuredTOCEntry("Situation des fonds propres", 75, source="vision"),
         StructuredTOCEntry(
@@ -116,7 +117,7 @@ def test_reconciliation_falls_back_to_vision_for_docling_merged_cell() -> None:
 
     resolved, _warnings = reconcile_boundary_roles(
         roles,
-        docling_entries,
+        toc_entries,
         vision_entries,
     )
     by_type = {role.section_type: role for role in resolved}
@@ -190,7 +191,7 @@ class FakeDetector:
         )
 
 
-def _docling_reader(
+def _toc_reader(
     _pdf_path: Path,
     _toc_page: int,
     _total_pages: int,
@@ -204,7 +205,7 @@ def test_validator_corrects_bnc_2023_risk_boundary_to_page_108() -> None:
         "bnc",
         2023,
         detector=detector,
-        docling_reader=_docling_reader,
+        toc_reader=_toc_reader,
     )
     sections = [
         LocatedSection(
@@ -251,6 +252,8 @@ def test_validator_corrects_bnc_2023_risk_boundary_to_page_108() -> None:
     assert outcome.diagnostics["page_offset"] == 2
     assert outcome.diagnostics["offset_votes"] == [2, 2]
     assert outcome.diagnostics["status"] == "verified"
+    assert outcome.diagnostics["toc_entry_count"] == outcome.diagnostics["docling_entry_count"]
+    assert outcome.diagnostics["toc_entry_count"] > 0
     assert len(detector.transition_calls) == 3
 
 
@@ -261,7 +264,7 @@ def test_validator_preserves_existing_bounds_without_openai() -> None:
         "bnc",
         2023,
         detector=detector,
-        docling_reader=_docling_reader,
+        toc_reader=_toc_reader,
     )
     section = LocatedSection(
         section_type="risk_management",
@@ -283,3 +286,27 @@ def test_validator_preserves_existing_bounds_without_openai() -> None:
     assert outcome.sections[0].end_page == 183
     assert outcome.diagnostics["status"] == "not_validated"
     assert "openai_vision_unavailable" in outcome.diagnostics["warnings"]
+
+
+def test_validator_module_does_not_import_docling() -> None:
+    """Importer le validateur T4 ne doit plus charger le paquet Docling."""
+    import vigie.extraction.annual_section_boundary_validator as module
+
+    source = Path(module.__file__).read_text(encoding="utf-8")
+    assert "from docling" not in source
+    assert "import docling" not in source
+    assert "DocumentConverter" not in source
+    assert "parse_toc_entries_geometric" in source
+    assert callable(module.AnnualSectionBoundaryValidator._read_toc_with_pdfplumber)
+
+
+def test_docling_reader_alias_still_accepted() -> None:
+    """Compatibilité temporaire: docling_reader injecte toujours le toc_reader."""
+    detector = FakeDetector()
+    validator = AnnualSectionBoundaryValidator(
+        "bnc",
+        2023,
+        detector=detector,
+        docling_reader=_toc_reader,
+    )
+    assert validator.toc_reader is _toc_reader

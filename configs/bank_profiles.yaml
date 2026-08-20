@@ -667,6 +667,8 @@ section_boundary_detection:
   default_section_length: 20
   min_section_length: 3
   max_section_length: 50
+  # Validateur T4 Vision + pdfplumber (pas de Docling / Hugging Face).
+  annual_boundary_validator_enabled: true
   section_length_overrides:
     gestion_reglementation:
       min_pages: 1

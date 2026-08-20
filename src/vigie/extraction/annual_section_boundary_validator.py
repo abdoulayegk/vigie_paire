@@ -3,7 +3,7 @@
 Cette couche complète ``SectionLocator`` sans dupliquer son moteur historique :
 
 1. OpenAI Vision confirme la vraie table des matières.
-2. Docling en relit la structure et les numéros de page.
+2. pdfplumber en relit la structure et les numéros de page.
 3. Les numéros imprimés sont rapprochés des pages physiques.
 4. Vision confirme les transitions sur les pages complètes.
 
@@ -21,10 +21,12 @@ from difflib import SequenceMatcher
 from pathlib import Path
 from typing import Callable
 
-from docling.datamodel.base_models import InputFormat
-from docling.datamodel.pipeline_options import PdfPipelineOptions
-from docling.document_converter import DocumentConverter, PdfFormatOption
+import pdfplumber
 
+from vigie.extraction.localisation_sections.toc_locator import (
+    parse_toc_entries_from_text,
+    parse_toc_entries_geometric,
+)
 from vigie.support.config import resolve_openai_model
 
 from .genai_toc_detector import (
@@ -44,7 +46,7 @@ _MIN_TRANSITION_CONFIDENCE = 0.80
 
 @dataclass(frozen=True)
 class StructuredTOCEntry:
-    """Entrée de TDM indépendante du format de sortie Docling/Vision."""
+    """Entrée de TDM indépendante du format de sortie pdfplumber/Vision."""
 
     title: str
     page: int
@@ -102,7 +104,10 @@ def _title_similarity(left: str, right: str) -> float:
 
 
 def parse_docling_toc_markdown(markdown: str, max_pages: int) -> list[StructuredTOCEntry]:
-    """Extraire les couples titre/page des tableaux Markdown produits par Docling."""
+    """Extraire les couples titre/page des tableaux Markdown (fixtures de tests).
+
+    Conservé pour alimenter les cas BNC/TD sans dépendre du runtime Docling.
+    """
     entries: list[StructuredTOCEntry] = []
     pending_titles: dict[int, str] = {}
     for raw_line in str(markdown or "").splitlines():
@@ -188,14 +193,14 @@ def _best_entry_match(
 
 def reconcile_boundary_roles(
     roles: list[TOCBoundaryRole],
-    docling_entries: list[StructuredTOCEntry],
+    toc_entries: list[StructuredTOCEntry],
     vision_entries: list[StructuredTOCEntry],
 ) -> tuple[list[TOCBoundaryRole], list[str]]:
-    """Corriger les lectures Vision des pages à partir de la structure Docling."""
+    """Corriger les lectures Vision des pages à partir de la structure TDM (pdfplumber)."""
     resolved: list[TOCBoundaryRole] = []
     warnings: list[str] = []
     for role in roles:
-        start_match = _best_entry_match(role.title_found, docling_entries)
+        start_match = _best_entry_match(role.title_found, toc_entries)
         if start_match is None:
             start_match = _best_entry_match(role.title_found, vision_entries)
         if start_match is None:
@@ -205,7 +210,7 @@ def reconcile_boundary_roles(
                 source="vision_boundary_unreconciled",
             )
             warnings.append(f"{role.section_type}:start_uses_vision_boundary")
-        successor_match = _best_entry_match(role.successor_title, docling_entries)
+        successor_match = _best_entry_match(role.successor_title, toc_entries)
         if successor_match is None:
             successor_match = _best_entry_match(role.successor_title, vision_entries)
         if successor_match is None:
@@ -218,12 +223,12 @@ def reconcile_boundary_roles(
         if role.section_type == "capital_management":
             # Le modèle peut sauter des chapitres pairs intercalés entre le
             # capital et les risques (titrisation, instruments financiers,
-            # contrôles...). La première entrée Docling postérieure au capital
+            # contrôles...). La première entrée TDM postérieure au capital
             # prévaut alors comme candidat de transition; Vision vérifiera
             # ensuite sa page physique complète.
             earlier_successors = [
                 entry
-                for entry in docling_entries
+                for entry in toc_entries
                 if start_match.page < entry.page < successor_match.page
                 and _title_similarity(entry.title, start_match.title) < 0.72
             ]
@@ -266,7 +271,7 @@ def _heading_similarity(page_text: str, expected_title: str) -> float:
 
 
 class AnnualSectionBoundaryValidator:
-    """Orchestrateur Docling + Vision pour les bornes annuelles T4."""
+    """Orchestrateur pdfplumber + Vision pour les bornes annuelles T4."""
 
     def __init__(
         self,
@@ -274,9 +279,14 @@ class AnnualSectionBoundaryValidator:
         year: int,
         *,
         detector: GenAITOCDetector | None = None,
+        toc_reader: Callable[[Path, int, int], list[StructuredTOCEntry]] | None = None,
         docling_reader: Callable[[Path, int, int], list[StructuredTOCEntry]] | None = None,
     ):
-        """Configure le contexte bancaire et les stratégies de lecture des bornes."""
+        """Configure le contexte bancaire et les stratégies de lecture des bornes.
+
+        ``docling_reader`` est un alias temporaire de ``toc_reader`` pour les
+        appels historiques (tests / injection).
+        """
         self.bank_code = str(bank_code or "").strip().lower()
         self.year = int(year)
         if detector is None:
@@ -286,30 +296,46 @@ class AnnualSectionBoundaryValidator:
                 model = "gpt-5.4"
             detector = GenAITOCDetector(model=model)
         self.detector = detector
-        self.docling_reader = docling_reader or self._read_toc_with_docling
+        self.toc_reader = toc_reader or docling_reader or self._read_toc_with_pdfplumber
         self._transition_cache: dict[tuple[int, str], PageTransitionValidation] = {}
 
     @staticmethod
-    def _read_toc_with_docling(
+    def _read_toc_with_pdfplumber(
         pdf_path: Path,
         toc_page: int,
         total_pages: int,
     ) -> list[StructuredTOCEntry]:
-        """Convertir uniquement la page TDM avec Docling et lire son tableau."""
+        """Lire uniquement la page TDM via pdfplumber (géométrie + texte)."""
         try:
-            options = PdfPipelineOptions()
-            options.do_ocr = False
-            options.do_table_structure = True
-            converter = DocumentConverter(
-                format_options={
-                    InputFormat.PDF: PdfFormatOption(pipeline_options=options),
-                }
-            )
-            result = converter.convert(pdf_path, page_range=(toc_page, toc_page))
-            markdown = result.document.export_to_markdown()
-            return parse_docling_toc_markdown(markdown, max_pages=total_pages)
+            geometric = parse_toc_entries_geometric(pdf_path, toc_page)
+            page_text = ""
+            with pdfplumber.open(str(pdf_path)) as pdf:
+                if 1 <= toc_page <= len(pdf.pages):
+                    page_text = pdf.pages[toc_page - 1].extract_text() or ""
+            text_entries = parse_toc_entries_from_text(page_text)
+
+            merged: list[StructuredTOCEntry] = []
+            seen: set[tuple[str, int]] = set()
+            for entry in [*geometric, *text_entries]:
+                page = int(entry.printed_page)
+                if page < 3 or (total_pages > 0 and page > total_pages):
+                    continue
+                key = (_normalize(entry.title), page)
+                if key in seen:
+                    continue
+                seen.add(key)
+                source = "pdfplumber_geometric" if entry.source == "geometric" else "pdfplumber"
+                merged.append(
+                    StructuredTOCEntry(
+                        title=entry.title,
+                        page=page,
+                        level=0,
+                        source=source,
+                    )
+                )
+            return merged
         except Exception as exc:
-            logger.warning("Lecture Docling de la TDM impossible p.%s: %s", toc_page, exc)
+            logger.warning("Lecture pdfplumber de la TDM impossible p.%s: %s", toc_page, exc)
             return []
 
     @property
@@ -444,7 +470,8 @@ class AnnualSectionBoundaryValidator:
             "toc_page": None,
             "toc_confidence": 0.0,
             "vision_available": self._vision_available,
-            "docling_entry_count": 0,
+            "toc_entry_count": 0,
+            "docling_entry_count": 0,  # alias historique
             "vision_entry_count": 0,
             "page_offset": None,
             "offset_confidence": 0.0,
@@ -466,14 +493,15 @@ class AnnualSectionBoundaryValidator:
         diagnostics["warnings"].extend(analysis.warnings)
 
         total_pages = max(text_by_page, default=0)
-        docling_entries = self.docling_reader(path, analysis.page_number, total_pages)
+        toc_entries = self.toc_reader(path, analysis.page_number, total_pages)
         vision_entries = _vision_entries(analysis, total_pages)
-        diagnostics["docling_entry_count"] = len(docling_entries)
+        diagnostics["toc_entry_count"] = len(toc_entries)
+        diagnostics["docling_entry_count"] = diagnostics["toc_entry_count"]
         diagnostics["vision_entry_count"] = len(vision_entries)
 
         roles, reconciliation_warnings = reconcile_boundary_roles(
             analysis.boundaries,
-            docling_entries,
+            toc_entries,
             vision_entries,
         )
         diagnostics["warnings"].extend(reconciliation_warnings)
@@ -481,7 +509,7 @@ class AnnualSectionBoundaryValidator:
             diagnostics["warnings"].append("target_boundaries_not_reconciled")
             return AnnualBoundaryValidationOutcome(
                 sections,
-                docling_entries or vision_entries,
+                toc_entries or vision_entries,
                 diagnostics,
             )
 
@@ -493,7 +521,7 @@ class AnnualSectionBoundaryValidator:
             diagnostics["warnings"].append("physical_page_offset_ambiguous")
             return AnnualBoundaryValidationOutcome(
                 sections,
-                docling_entries or vision_entries,
+                toc_entries or vision_entries,
                 diagnostics,
             )
 
@@ -593,6 +621,6 @@ class AnnualSectionBoundaryValidator:
             diagnostics["warnings"].append(f"verified_boundaries_{verified_count}_of_4")
         return AnnualBoundaryValidationOutcome(
             updated,
-            docling_entries or vision_entries,
+            toc_entries or vision_entries,
             diagnostics,
         )
