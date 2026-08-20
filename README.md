@@ -8,7 +8,7 @@
 [![Pillow](https://img.shields.io/badge/Pillow-Image%20Processing-yellow.svg)](https://python-pillow.org/)
 [![Tests](https://img.shields.io/badge/Tests-33%20passing-brightgreen.svg)](./tests/)
 [![CI/CD](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-blue.svg)](./.github/workflows/ci.yml)
-[![OpenAI](https://img.shields.io/badge/OpenAI-GPT--4o%20Vision-black.svg)](https://openai.com/)
+[![OpenAI](https://img.shields.io/badge/OpenAI-GPT--5.4%20Vision-black.svg)](https://openai.com/)
 
 </div>
 
@@ -120,11 +120,17 @@ Variables disponibles :
 
 | Variable                 | Requis | Défaut | Description                    |
 | ------------------------ | ------ | ------ | ------------------------------ |
-| `OPENAI_API_KEY`         | Oui    | —      | Clé API OpenAI                 |
+| `OPENAI_API_KEY`         | Oui*   | —      | Clé API OpenAI (mode `openai`) |
+| `LLM_PROVIDER`           | Non    | `openai` | `openai` ou `azure`          |
+| `AZURE_OPENAI_API_KEY`   | Oui**  | —      | Clé Azure (mode `azure`)       |
+| `AZURE_OPENAI_ENDPOINT`  | Oui**  | —      | Endpoint Azure OpenAI          |
+| `AZURE_OPENAI_DEPLOYMENT_CHAT` | Oui** | — | Déploiement chat/vision gpt-5.4 |
 | `DASH_PORT`              | Non    | `8050` | Port de l'interface Dash       |
 | `DASH_DEBUG`             | Non    | `0`    | Mode debug Dash (1 = activé)   |
 | `DOCLING_NUM_THREADS`    | Non    | `4`    | Parallélisme extraction PDF    |
 | `ENABLE_TABLE_CROP_DUMP` | Non    | `0`    | Dump images de crop (débogage) |
+
+\* Requis en mode OpenAI public. \*\* Requis en mode Azure (`LLM_PROVIDER=azure`).
 
 > Le fichier `.env` est dans `.gitignore` — ne jamais le commiter.
 

@@ -1,8 +1,25 @@
 version: "1.0"
 
+llm:
+  provider: openai
+  api_version: "2024-10-21"
+
 llm_models:
+  chat: gpt-5.4
   extraction_primary: gpt-5.4
-  default_genai: gpt-4o
+  default_genai: gpt-5.4
+  embedding_small: text-embedding-3-small
+  embedding_large: text-embedding-3-large
+
+llm_reasoning:
+  extraction: high
+  default: medium
+  locator: low
+
+llm_azure_deployments:
+  chat: ""
+  embedding_small: ""
+  embedding_large: ""
 
 # Renforcement de la localisation des grands chapitres. Les méthodes
 # déterministes restent prioritaires; cette couche complète les titres
@@ -21,7 +38,7 @@ section_semantic_localization:
   conflict_page_gap: 3
   allow_regulatory_discovery: true
   vision_validation_enabled: true
-  vision_model: gpt-4o
+  vision_model: gpt-5.4
   vision_confidence_min: 0.88
   vision_required_for_new_titles: true
   vision_max_calls_per_report: 3
@@ -62,7 +79,9 @@ vision_extraction:
   # max_vision_calls_per_run: 200
   api_retry_max: 3
   api_retry_backoff_ms: 1000
-  api_timeout_sec: 120
+  api_timeout_sec: 240
+  tight_table_gap_threshold: 0.03
+  tight_table_gap_footnote_margin: 0.005
   # Single pipeline: one max_completion_tokens budget for all Vision table extraction (no full/lean).
   # Default to 120k for large tables, with an optional 128k rescue pass when truncation is detected.
   vision_max_completion_tokens: 120000
@@ -880,7 +899,7 @@ filtering_rules:
   min_indicators_for_structural_change: 2
 
 genai_settings:
-  genai_model: "gpt-4o"
+  genai_model: "gpt-5.4"
   genai_timeout_s: 60
   genai_max_tables: 50
 
