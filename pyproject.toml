@@ -15,6 +15,7 @@ dependencies = [
     "dash>=4.0.0",
     "dash-bootstrap-components>=2.0.4",
     "pymupdf>=1.27.1",
+    "pymupdf-layout>=1.28.2",
     "pillow>=10.0.0",
     "docling>=2.73.1",
     "python-dotenv>=1.2.1",
