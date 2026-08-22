@@ -25,6 +25,10 @@ logger = logging.getLogger(__name__)
 _TARGET_KEYS = ("gestion_capital", "gestion_risques")
 _AMBIGUITY_PAGE_GAP = 3
 _MIN_TOC_CONFIDENCE = 0.55
+_NESTED_REGULATORY_TITLE_RE = re.compile(
+    r"faits?\s+nouveaux?\s+en\s+mati[eè]re\s+de\s+r[eé]glementation",
+    flags=re.IGNORECASE,
+)
 
 
 def _compact_norm(text: str) -> str:
@@ -67,6 +71,11 @@ def _prototype_titles(bank_code: str, section_key: str) -> list[str]:
         seen.add(key)
         deduped.append(title)
     return deduped
+
+
+def _is_nested_regulatory_title(title: str) -> bool:
+    """True for an in-section regulatory heading that must not close capital or risk."""
+    return bool(_NESTED_REGULATORY_TITLE_RE.search(normalize_text(title)))
 
 
 def map_toc_title_to_concept(title: str, bank_code: str = "") -> str | None:
@@ -244,6 +253,8 @@ def _bounds_from_hits(
                     continue
                 other_norm = normalize_text(other.title)
                 if re.match(r"^risque\s+", other_norm):
+                    continue
+                if _is_nested_regulatory_title(other.title):
                     continue
                 other_concept = map_toc_title_to_concept(other.title, bank_code)
                 if other_concept == concept:

@@ -65,7 +65,8 @@ _NEW_REGULATORY_SIGNAL_RE = re.compile(
     r"\b(?:"
     r"b-15|ligne\s+directrice|tlac|bâle\s+iii|nouvelle\s+exigence|"
     r"entrée\s+en\s+vigueur|exigence\s+additionnelle|"
-    r"cadre\s+réglementaire|avis\s+du\s+bsif"
+    r"cadre\s+réglementaire|avis\s+du\s+bsif|"
+    r"préavis|report\s+indéfini|révisions?\s+à\s+la\s+ligne\s+directrice|ctap"
     r")\b",
     flags=re.IGNORECASE,
 )

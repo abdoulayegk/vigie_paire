@@ -359,8 +359,6 @@ class VisualLayoutMixin:
         """Localise le titre de la section suivante sur une page partagée."""
         matches: list[VisualTextElement] = []
         for elem in visual_elements.get(page, []):
-            if not elem.is_likely_header:
-                continue
             if not self._matches_boundary_title(elem.text, patterns, title_candidates):
                 continue
             bbox = elem.bbox_norm
@@ -369,7 +367,9 @@ class VisualLayoutMixin:
             matches.append(elem)
         if not matches:
             return None
-        return max(matches, key=lambda elem: float(elem.y0))
+        headed = [elem for elem in matches if elem.is_likely_header]
+        pool = headed or matches
+        return max(pool, key=lambda elem: float(elem.y0))
 
     def _refine_shared_page_boundaries(
         self,
@@ -378,7 +378,7 @@ class VisualLayoutMixin:
         visual_elements: dict[int, list[VisualTextElement]],
     ) -> list[LocatedSection]:
         """Étend end_page à la page partagée quand la section suivante ne commence pas en haut."""
-        if not sections or not visual_elements:
+        if not sections:
             return sections
 
         refined: list[LocatedSection] = []
@@ -389,42 +389,61 @@ class VisualLayoutMixin:
 
             boundary_page = int(section.end_page) + 1
             patterns = self.following_patterns.get(section.section_type, [])
-            title_candidates = self._next_toc_boundary_title_candidates(section, toc_entries)
+            title_candidates = list(self._next_toc_boundary_title_candidates(section, toc_entries))
+            end_anchor = str(section.end_anchor_text or "").strip()
+            if end_anchor and end_anchor not in title_candidates:
+                title_candidates.insert(0, end_anchor)
             boundary = self._find_boundary_header_on_page(
                 boundary_page,
                 patterns,
                 title_candidates,
                 visual_elements,
             )
-            if boundary is None:
-                refined.append(section)
-                continue
-
-            bbox_norm = boundary.bbox_norm
-            if not bbox_norm:
-                refined.append(section)
-                continue
-
-            logger.info(
-                "Page partagée détectée pour %s: extension p.%s -> p.%s, frontière '%s' y=%.3f",
-                section.section_type,
-                section.end_page,
-                boundary_page,
-                boundary.text[:60],
-                float(bbox_norm[1]),
-            )
-            refined.append(
-                replace(
-                    section,
-                    end_page=boundary_page,
-                    end_anchor_page=boundary_page,
-                    end_anchor_text=boundary.text,
-                    end_anchor_bbox_norm=list(bbox_norm),
-                    end_detection_method=f"{section.end_detection_method}+shared_page"
-                    if section.end_detection_method
-                    else "shared_page",
+            bbox_norm = boundary.bbox_norm if boundary is not None else None
+            if boundary is not None and bbox_norm:
+                logger.info(
+                    "Page partagée détectée pour %s: extension p.%s -> p.%s, frontière '%s' y=%.3f",
+                    section.section_type,
+                    section.end_page,
+                    boundary_page,
+                    boundary.text[:60],
+                    float(bbox_norm[1]),
                 )
-            )
+                refined.append(
+                    replace(
+                        section,
+                        end_page=boundary_page,
+                        end_anchor_page=boundary_page,
+                        end_anchor_text=boundary.text,
+                        end_anchor_bbox_norm=list(bbox_norm),
+                        end_detection_method=f"{section.end_detection_method}+shared_page"
+                        if section.end_detection_method
+                        else "shared_page",
+                    )
+                )
+                continue
+
+            if end_anchor and int(section.end_anchor_page or 0) == boundary_page:
+                logger.info(
+                    "Page partagée TOC pour %s: extension p.%s -> p.%s sans bbox visuelle",
+                    section.section_type,
+                    section.end_page,
+                    boundary_page,
+                )
+                refined.append(
+                    replace(
+                        section,
+                        end_page=boundary_page,
+                        end_anchor_page=boundary_page,
+                        end_anchor_text=end_anchor,
+                        end_detection_method=f"{section.end_detection_method}+shared_page_toc"
+                        if section.end_detection_method
+                        else "shared_page_toc",
+                    )
+                )
+                continue
+
+            refined.append(section)
         return refined
 
     def _resolve_section_anchor(

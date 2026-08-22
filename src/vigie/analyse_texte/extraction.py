@@ -20,7 +20,7 @@ from docling.datamodel.pipeline_options import PdfPipelineOptions
 from docling.document_converter import DocumentConverter, PdfFormatOption
 
 from vigie.analyse_texte.constants import _MULTISPACE_RE
-from vigie.analyse_texte.markdown import _is_docling_heading_block
+from vigie.analyse_texte.markdown import _is_docling_heading_block, _is_out_of_scope_accounting_heading
 from vigie.analyse_texte.models import PDFBlock, ResolvedSection, SectionAudit
 from vigie.analyse_texte.normalization import (
     _bbox_overlap_ratio,
@@ -44,6 +44,8 @@ from vigie.analyse_texte.sections import (
 )
 
 _DOCLING_TEXT_PAGE_BATCH_SIZE = 2
+_VISUAL_DOCLING_LABELS = {"picture", "figure", "chart", "image", "graphic"}
+_VISUAL_FALLBACK_MIN_CHARS = 8
 logger = logging.getLogger(__name__)
 
 _COMPOSITE_GRID_ROW_LABELS = frozenset({"crédit", "marché", "opérationnel", "total"})
@@ -90,6 +92,24 @@ def _text_docling_ocr_enabled() -> bool:
     if raw is None:
         return False
     return str(raw).strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _is_visual_docling_label(label: str) -> bool:
+    """True when Docling tagged the item as a figure, picture or chart."""
+    value = str(label or "").strip().lower()
+    return any(token in value for token in _VISUAL_DOCLING_LABELS)
+
+
+def _block_overlaps_any_bbox(block: PDFBlock, bboxes: list[list[float]] | None, *, threshold: float = 0.30) -> bool:
+    """True if the block overlaps any of the supplied page regions."""
+    if not bboxes:
+        return False
+    return any(
+        _bbox_overlap_ratio(block.bbox_norm, bbox) >= threshold
+        or _bbox_overlap_ratio(bbox, block.bbox_norm) >= threshold
+        for bbox in bboxes
+        if bbox
+    )
 
 
 def _extract_pymupdf_fallback_blocks(
@@ -145,14 +165,19 @@ def _extract_pymupdf_fallback_blocks(
 def _merge_missing_fallback_blocks(
     page_blocks: dict[int, list[PDFBlock]],
     fallback_blocks: dict[int, list[PDFBlock]],
+    visual_bboxes_by_page: dict[int, list[list[float]]] | None = None,
 ) -> None:
     """Ajoute les blocs PyMuPDF qui ne sont pas déjà couverts par Docling."""
+    visual_bboxes_by_page = visual_bboxes_by_page or {}
     for page, candidates in fallback_blocks.items():
         existing = page_blocks.setdefault(page, [])
         existing_norms = [_normalized_block_text(block.text) for block in existing]
+        visual_bboxes = visual_bboxes_by_page.get(page, [])
         for candidate in candidates:
             cand_norm = _normalized_block_text(candidate.text)
-            if len(cand_norm) < 20:
+            overlaps_visual = _block_overlaps_any_bbox(candidate, visual_bboxes)
+            min_chars = _VISUAL_FALLBACK_MIN_CHARS if overlaps_visual else 20
+            if len(cand_norm) < min_chars:
                 continue
             if any(cand_norm == norm for norm in existing_norms if norm):
                 continue
@@ -162,6 +187,8 @@ def _merge_missing_fallback_blocks(
                 for block in existing
             ):
                 continue
+            if overlaps_visual:
+                candidate.source_label = "pymupdf_visual"
             existing.append(candidate)
             existing_norms.append(cand_norm)
 
@@ -314,6 +341,7 @@ def _extract_docling_page_blocks(
     converter = DocumentConverter(format_options={InputFormat.PDF: PdfFormatOption(pipeline_options=opts)})
     requested_pages = sorted({int(page) for page in page_numbers if int(page) > 0})
     table_bboxes_by_page: dict[int, list[list[float]]] = {}
+    visual_bboxes_by_page: dict[int, list[list[float]]] = {}
     page_blocks: dict[int, list[PDFBlock]] = {page: [] for page in requested_pages}
     line_numbers: dict[int, int] = {page: 0 for page in requested_pages}
     raw_markdown_parts: list[str] = []
@@ -343,8 +371,6 @@ def _extract_docling_page_blocks(
         for page in batch_pages:
             for item, _level in docling_doc.iterate_items(page_no=page, with_groups=False):
                 text = _MULTISPACE_RE.sub(" ", str(getattr(item, "text", "") or "").replace("\n", " ").strip()).strip()
-                if not text:
-                    continue
                 label = str(getattr(item, "label", "") or "").lower()
                 item_provs = [
                     prov
@@ -356,6 +382,12 @@ def _extract_docling_page_blocks(
                 bbox_norm = _docling_bbox_to_norm(docling_doc, item_provs[0])
                 if not bbox_norm:
                     continue
+                if not text:
+                    if _is_visual_docling_label(label):
+                        visual_bboxes_by_page.setdefault(page, []).append(bbox_norm)
+                    continue
+                if _is_visual_docling_label(label):
+                    visual_bboxes_by_page.setdefault(page, []).append(bbox_norm)
                 line_numbers[page] += 1
                 initial_block_type = {
                     "footnote": "footnote",
@@ -383,7 +415,11 @@ def _extract_docling_page_blocks(
         del result
         gc.collect()
 
-    _merge_missing_fallback_blocks(page_blocks, _extract_pymupdf_fallback_blocks(pdf_path, requested_pages))
+    _merge_missing_fallback_blocks(
+        page_blocks,
+        _extract_pymupdf_fallback_blocks(pdf_path, requested_pages),
+        visual_bboxes_by_page,
+    )
     for page in requested_pages:
         page_blocks[page].sort(key=lambda block: (round(block.y0, 4), round(block.bbox_norm[0], 4)))
     _augment_table_regions_with_composite_grids(page_blocks, table_bboxes_by_page)
@@ -463,6 +499,10 @@ def _classify_block_type(
     repeated = repeated_text_counts.get(norm, 0)
     if repeated >= 2 and (block.y1 <= 0.12 or block.y0 >= 0.88):
         return "header_footer"
+    if str(block.source_label or "") == "pymupdf_visual":
+        if _looks_like_table_or_financial_grid(text) or (digit_ratio >= 0.12 and len(words) <= 16):
+            return "table"
+        return "other"
     if _block_overlaps_table(block, table_bboxes):
         # Grilles narratives 2 colonnes (ex. Risques connus | Description) :
         # Docling pose une bbox TABLE, mais les cellules Description sont du prose.
@@ -559,6 +599,23 @@ def _repeated_text_counts(page_blocks: dict[int, list[PDFBlock]]) -> dict[str, i
     return counts
 
 
+def _inferred_end_anchor_y(blocks: list[PDFBlock], end_anchor_text: str | None) -> float | None:
+    """Infère le y de clip d'une page partagée quand l'ancre visuelle n'a pas de bbox."""
+    end_norm = _normalized_block_text(end_anchor_text or "")
+    candidates: list[float] = []
+    for block in blocks:
+        text = str(block.text or "").strip()
+        if not text:
+            continue
+        if _is_out_of_scope_accounting_heading(text):
+            candidates.append(float(block.y0))
+            continue
+        block_norm = _normalized_block_text(text)
+        if end_norm and (end_norm in block_norm or block_norm in end_norm):
+            candidates.append(float(block.y0))
+    return min(candidates) if candidates else None
+
+
 def _build_section_audit(
     *,
     section: ResolvedSection,
@@ -595,6 +652,10 @@ def _build_section_audit(
         page_tables = table_bboxes_by_page.get(page, [])
         page_footnotes = footnote_bboxes_by_page.get(page, [])
         top_cutoff, bottom_cutoff = _section_window_for_page(section, page, next_section)
+        if page == section.end_page == section.end_anchor_page and not section.end_anchor_bbox_norm:
+            inferred_y = _inferred_end_anchor_y(blocks, section.end_anchor_text)
+            if inferred_y is not None:
+                bottom_cutoff = min(bottom_cutoff, inferred_y)
         for block in blocks:
             section_block = PDFBlock(
                 block_id=block.block_id,

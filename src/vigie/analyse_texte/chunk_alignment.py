@@ -20,6 +20,7 @@ from vigie.analyse_texte.atomic_alignment import (
 )
 from vigie.analyse_texte.chunking import TextChunk
 from vigie.analyse_texte.openai_client import _embed_texts
+from vigie.analyse_texte.semantic_chunking import _DEFINITION_OPENER_RE
 
 logger = logging.getLogger(__name__)
 
@@ -468,6 +469,10 @@ def _reassemble_adjacent_one_to_many(alignments: list[ChunkAlignment]) -> list[C
                 if unmatched.chunk_t1.subsection_heading != matched.chunk_t1.subsection_heading:
                     continue
                 if abs(unmatched.chunk_t1.order - matched.chunk_t1.order) != 1:
+                    continue
+                if _DEFINITION_OPENER_RE.search(unmatched.chunk_t1.text) and not _DEFINITION_OPENER_RE.search(
+                    matched.chunk_t2.text
+                ):
                     continue
                 grouped_t1 = _group_adjacent_chunks([unmatched.chunk_t1, matched.chunk_t1])
                 score = _sequence_similarity(grouped_t1.text, matched.chunk_t2.text)

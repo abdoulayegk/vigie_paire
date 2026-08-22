@@ -329,6 +329,71 @@ def test_refine_shared_page_extends_end_when_boundary_not_at_top() -> None:
     assert refined[0].end_detection_method == "toc_next_section+shared_page"
 
 
+def test_refine_shared_page_matches_known_successor_without_header_styling() -> None:
+    locator = SectionLocator(bank_code="rbc", quarter="t4", year=2025)
+    sections = [
+        LocatedSection(
+            section_type="gestion_capital",
+            title_found="Gestion des fonds propres",
+            start_page=127,
+            end_page=139,
+            confidence=0.95,
+            detection_method="annual_t4_toc_structure",
+            end_detection_method="annual_t4_toc_successor",
+            end_anchor_page=140,
+            end_anchor_text="Questions en matière de comptabilité et de contrôle",
+        )
+    ]
+    visual_elements = {
+        140: [
+            VisualTextElement(
+                text="Questions en matière de comptabilité et de contrôle",
+                page=140,
+                x0=80.0,
+                y0=420.0,
+                x1=520.0,
+                y1=448.0,
+                font_size=10.0,
+                is_bold=False,
+                is_uppercase=False,
+                line_number=8,
+                page_width=600.0,
+                page_height=800.0,
+            )
+        ]
+    }
+
+    refined = locator._refine_shared_page_boundaries(sections, [], visual_elements)
+
+    assert refined[0].end_page == 140
+    assert refined[0].end_anchor_page == 140
+    assert "Questions" in (refined[0].end_anchor_text or "")
+    assert refined[0].end_anchor_bbox_norm is not None
+
+
+def test_refine_shared_page_extends_from_toc_anchor_without_visual_bbox() -> None:
+    locator = SectionLocator(bank_code="rbc", quarter="t4", year=2025)
+    sections = [
+        LocatedSection(
+            section_type="gestion_capital",
+            title_found="Gestion des fonds propres",
+            start_page=127,
+            end_page=139,
+            confidence=0.95,
+            detection_method="annual_t4_toc_structure",
+            end_detection_method="annual_t4_toc_successor",
+            end_anchor_page=140,
+            end_anchor_text="Questions en matière de comptabilité et de contrôle",
+        )
+    ]
+
+    refined = locator._refine_shared_page_boundaries(sections, [], {})
+
+    assert refined[0].end_page == 140
+    assert refined[0].end_anchor_page == 140
+    assert refined[0].end_detection_method == "annual_t4_toc_successor+shared_page_toc"
+
+
 def test_annual_t4_risk_boundary_uses_physical_successor_not_flat_toc() -> None:
     """Un sous-thème risque T4 ne peut pas raccourcir la section.
 

@@ -524,7 +524,7 @@ def run_text_analysis_pipeline(
         )
         all_changes = [dict(change) for change in enriched]
         all_changes.sort(key=_retained_change_sort_key)
-        retained = [change for change in enriched if _is_non_cosmetic_change(change["genai_triage"])]
+        retained = [change for change in enriched if _is_non_cosmetic_change(change["genai_triage"], change)]
         retained.sort(key=_retained_change_sort_key)
 
         retained_dedup = deduplicate_and_group_section_changes(retained)

@@ -92,6 +92,19 @@ def _has_new_regulatory_substance(text_t1: str, text_t2: str) -> bool:
     return bool(signals_t2 - signals_t1)
 
 
+_NEW_CALENDAR_REGIME_RE = re.compile(
+    r"préavis|preavis|report\s+indéfini|report\s+indefini|révisions?\s+à\s+la\s+ligne\s+directrice|\bctap\b",
+    flags=re.IGNORECASE,
+)
+
+
+def _has_new_calendar_regime(text_t1: str, text_t2: str) -> bool:
+    """True when T2 introduces an indefinite deferral, notice period or guideline revision."""
+    hits_t1 = {m.group(0).lower() for m in _NEW_CALENDAR_REGIME_RE.finditer(text_t1)}
+    hits_t2 = {m.group(0).lower() for m in _NEW_CALENDAR_REGIME_RE.finditer(text_t2)}
+    return bool(hits_t2 - hits_t1)
+
+
 def _shares_calendar_subject(text_t1: str, text_t2: str) -> bool:
     subjects_t1 = {m.group(0).lower() for m in _CALENDAR_SUBJECT_RE.finditer(text_t1)}
     subjects_t2 = {m.group(0).lower() for m in _CALENDAR_SUBJECT_RE.finditer(text_t2)}
@@ -194,10 +207,12 @@ def _deterministic_bank_specific_exclusion(change: dict[str, Any]) -> str | None
 
     # Calendar updates of a known requirement (e.g. BSIF floor deferral).
     if volatile_differ and _has_calendar_reschedule_context(text_t1, text_t2, combined):
-        if not _has_methodology_signal(text_t1, text_t2):
+        if not _has_methodology_signal(text_t1, text_t2) and not _has_new_calendar_regime(text_t1, text_t2):
             return "mise_a_jour_calendrier"
 
     if masked_ratio >= _BANK_NOISE_SEQUENCE_THRESHOLD and volatile_differ:
+        if _has_new_calendar_regime(text_t1, text_t2):
+            return None
         if _CALENDAR_UPDATE_RE.search(combined) and dates_differ:
             return "mise_a_jour_calendrier"
         if dates_differ and not numbers_differ:
@@ -212,6 +227,7 @@ def _deterministic_bank_specific_exclusion(change: dict[str, Any]) -> str | None
         and dates_differ
         and _has_calendar_reschedule_context(text_t1, text_t2, combined)
         and not _has_methodology_signal(text_t1, text_t2)
+        and not _has_new_calendar_regime(text_t1, text_t2)
     ):
         return "mise_a_jour_calendrier"
     return None
