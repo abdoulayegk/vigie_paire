@@ -14,6 +14,11 @@ from typing import Any
 
 import pymupdf
 
+from vigie.extraction.table_locator import (
+    ENGINE_DOCLING,
+    ENGINE_PYMUPDF_LAYOUT,
+    resolve_table_locator_engine,
+)
 from vigie.support.utils.footnotes_utils import normalize_footnotes_to_canonical
 from vigie.support.utils.pattern_loader import get_patterns
 
@@ -180,7 +185,11 @@ class DocumentExtractionMixin:
                 doc_data.setdefault("year", year)
                 return self._dict_to_extracted_document(doc_data)
 
-        self._initialize_docling()
+        locator_engine = resolve_table_locator_engine()
+        logger.info("Table locator engine: %s", locator_engine)
+
+        if locator_engine == ENGINE_DOCLING:
+            self._initialize_docling()
 
         # Determiner le nombre total de pages pour le traitement par chunks
         total_pages = self._get_page_count(pdf_path)
@@ -194,6 +203,17 @@ class DocumentExtractionMixin:
                 quarter,
                 year,
                 total_pages,
+                labels_only=labels_only,
+                use_vision_extraction=use_vision_extraction,
+                force_extraction=force_extraction,
+            )
+        elif locator_engine == ENGINE_PYMUPDF_LAYOUT:
+            result = self._extract_with_docling(
+                pdf_path,
+                bank_code,
+                quarter,
+                year,
+                page_ranges,
                 labels_only=labels_only,
                 use_vision_extraction=use_vision_extraction,
                 force_extraction=force_extraction,
@@ -319,7 +339,7 @@ class DocumentExtractionMixin:
             # Extraire ce chunk
             page_ranges = [(start_page, end_page)]
 
-            if self._converter is not None:
+            if self._converter is not None or resolve_table_locator_engine() == ENGINE_PYMUPDF_LAYOUT:
                 chunk_result = self._extract_with_docling(
                     pdf_path,
                     bank_code,

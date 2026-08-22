@@ -17,13 +17,19 @@ from vigie.extraction.page_table_locator import (
     build_page_table_crop_plan,
 )
 from vigie.extraction.pdf_preview import render_pdf_page
+from vigie.extraction.table_locator import (
+    ENGINE_DOCLING,
+    ENGINE_PYMUPDF_LAYOUT,
+    anchors_to_vision_items,
+    get_table_locator,
+    resolve_table_locator_engine,
+)
 from vigie.extraction.vision_cache import compute_pdf_sha256
 from vigie.extraction.vision_full import VisionFullExtractor, VisionSchemaContractError
 from vigie.llm import require_configured
 from vigie.support.config import get_vision_extraction_config, resolve_openai_model
 from vigie.support.utils import page_layout_context, pdf_crop
 
-from ..docling_bbox_helpers import _build_indicator_reference_text
 from ..locator_merge_reconciliation import (
     _bbox_overlap_ratio,
     _is_locator_merge_conflict,
@@ -65,16 +71,13 @@ class DoclingPassMixin:
         Returns:
             ExtractedDocument contenant les tableaux et metadonnees extraits.
         """
+        locator_engine = resolve_table_locator_engine()
         try:
             normalized_page_ranges = self._normalize_page_ranges(page_ranges)
             effective_page_ranges = normalized_page_ranges or None
-            docling_page_range = self._build_docling_page_range(effective_page_ranges)
-            convert_kwargs: dict = {}
-            if docling_page_range is not None:
-                convert_kwargs["page_range"] = docling_page_range
-
-            result = self._converter.convert(str(pdf_path), **convert_kwargs)
-            doc = result.document
+            docling_page_range = (
+                self._build_docling_page_range(effective_page_ranges) if locator_engine == ENGINE_DOCLING else None
+            )
 
             def _get_vision_extraction_config(bank: str) -> dict:
                 """Charger la configuration d'extraction Vision pour une banque."""
@@ -142,43 +145,31 @@ class DoclingPassMixin:
                     raise RuntimeError(f"Vision extraction init failed: {e}") from e
 
             # ---------------------------------------------------------------------------
-            # Steps 2+3: Docling = structure only. Vision = single content source.
+            # Structure = engine selectionne (tables_layout | docling). Vision = contenu.
             # ---------------------------------------------------------------------------
-            # Construire la liste des tableaux a traiter (dans les plages de pages).
-            vision_items: list[tuple[int, int, list[float] | None, str, str | None]] = []
+            ref_max_chars = int(vision_extraction_cfg.get("vision_reference_text_max_chars", 6000))
+            if locator_engine == ENGINE_DOCLING:
+                locator = get_table_locator(ENGINE_DOCLING, converter=self._converter)
+                location = locator.locate(
+                    pdf_path,
+                    effective_page_ranges,
+                    reference_text_max_chars=ref_max_chars,
+                    is_page_in_ranges=self._is_page_in_ranges,
+                    docling_page_range=docling_page_range,
+                )
+            else:
+                locator = get_table_locator(ENGINE_PYMUPDF_LAYOUT)
+                location = locator.locate(
+                    pdf_path,
+                    effective_page_ranges,
+                    reference_text_max_chars=ref_max_chars,
+                )
+
+            vision_items = anchors_to_vision_items(location.anchors)
             page_context_seed: dict[int, dict[str, Any]] = {}
-            for idx, table in enumerate(doc.tables):
-                page_num = table.prov[0].page_no if table.prov else 0
-                table_bbox: list[float] | None = None
-                try:
-                    if table.prov and hasattr(table.prov[0], "bbox") and table.prov[0].bbox is not None:
-                        raw_bbox = table.prov[0].bbox
-                        page_obj = doc.pages.get(page_num) if hasattr(doc, "pages") else None
-                        if page_obj and hasattr(page_obj, "size") and page_obj.size:
-                            norm = raw_bbox.to_top_left_origin(page_height=page_obj.size.height)
-                            norm = norm.normalized(page_obj.size)
-                            table_bbox = [norm.l, norm.t, norm.r, norm.b]
-                        elif hasattr(raw_bbox, "as_tuple"):
-                            table_bbox = list(raw_bbox.as_tuple())
-                except Exception:
-                    table_bbox = None
-                if not self._is_page_in_ranges(page_num, effective_page_ranges):
-                    continue
-                table_id = f"tableau_{idx}"
-                reference_text: str | None = None
-                try:
-                    if hasattr(table, "text") and table.text:
-                        _ref_raw = str(table.text).strip()
-                        if len(_ref_raw) > 20:
-                            ref_max_chars = int(vision_extraction_cfg.get("vision_reference_text_max_chars", 6000))
-                            if ref_max_chars > 0:
-                                reference_text = _build_indicator_reference_text(
-                                    _ref_raw,
-                                    max_chars=ref_max_chars,
-                                )
-                except Exception:
-                    pass
-                vision_items.append((idx, page_num, table_bbox, table_id, reference_text))
+            structure_inventory_pages = list(location.inventory_pages)
+            structure_text_content = location.text_content or ""
+            structure_total_pages = int(location.total_pages or 0)
 
             # Une bbox presque pleine page ne constitue pas une ancre fiable.
             # Faire verifier la page complete avant le garde-fou du worker :
@@ -306,18 +297,17 @@ class DoclingPassMixin:
                     inventory_page_padding,
                 )
                 page_numbers: list[int] = []
-                if hasattr(doc, "pages"):
-                    try:
-                        page_numbers = sorted(
-                            int(page_number)
-                            for page_number in doc.pages.keys()
-                            if self._is_page_in_ranges(
-                                int(page_number),
-                                inventory_page_ranges,
-                            )
+                try:
+                    page_numbers = sorted(
+                        int(page_number)
+                        for page_number in structure_inventory_pages
+                        if self._is_page_in_ranges(
+                            int(page_number),
+                            inventory_page_ranges,
                         )
-                    except Exception:
-                        page_numbers = []
+                    )
+                except Exception:
+                    page_numbers = []
                 max_inventory_pages = max(
                     1,
                     int(
@@ -676,7 +666,7 @@ class DoclingPassMixin:
                 logger.info("vision_extraction_quality_summary %s", _qsum)
 
             # Extraire le contenu textuel pour les sections
-            text_content = doc.export_to_markdown()
+            text_content = structure_text_content
 
             # Enrichir les titres manquants depuis le texte de la page (pdfplumber)
             # sans melanger contenu Docling/Vision : seul le champ titre est complete.
@@ -695,10 +685,11 @@ class DoclingPassMixin:
                 bank_code=bank_code,
                 quarter=quarter,
                 year=year,
-                total_pages=len(doc.pages) if hasattr(doc, "pages") else 0,
+                total_pages=structure_total_pages,
                 all_tables=all_tables,
                 metadata={
                     "extraction_method": "vision_full_gpt4o",
+                    "table_locator_engine": locator_engine,
                     "sections_detected": list(sections_found),
                     "page_ranges": page_ranges,
                     "text_content": text_content[:50000],
@@ -707,6 +698,14 @@ class DoclingPassMixin:
 
         except Exception as e:
             if "Vision schema contract invalid" in str(e):
+                raise
+            if locator_engine == ENGINE_PYMUPDF_LAYOUT:
+                logger.error(
+                    "Echec de l'extraction tables_layout (%s): %s",
+                    type(e).__name__,
+                    e,
+                    exc_info=True,
+                )
                 raise
             logger.error(
                 "Echec de l'extraction Docling (%s): %s",
