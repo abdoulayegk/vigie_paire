@@ -36,7 +36,7 @@ def test_annual_toc_schema_rejects_unknown_section_type() -> None:
 
 
 def test_call_vision_structured_returns_parsed_model() -> None:
-    detector = GenAITOCDetector(api_key="test-key")
+    detector = GenAITOCDetector()
     expected = PageTransitionLLM(
         confirmed=True,
         confidence=0.91,
@@ -61,12 +61,13 @@ def test_call_vision_structured_returns_parsed_model() -> None:
     parse.assert_called_once()
     kwargs = parse.call_args.kwargs
     assert kwargs["response_format"] is PageTransitionLLM
-    assert kwargs["temperature"] == 0.0
+    assert kwargs["reasoning_effort"] == "high"
+    assert "temperature" not in kwargs
     assert kwargs["max_completion_tokens"] == 1200
 
 
 def test_call_vision_structured_soft_fails_on_truncation() -> None:
-    detector = GenAITOCDetector(api_key="test-key")
+    detector = GenAITOCDetector()
     parse = MagicMock(
         return_value=_parsed_response(
             AnnualTocAnalysisLLM(
@@ -92,7 +93,7 @@ def test_call_vision_structured_soft_fails_on_truncation() -> None:
 
 
 def test_call_vision_structured_soft_fails_on_invalid_json_exception() -> None:
-    detector = GenAITOCDetector(api_key="test-key")
+    detector = GenAITOCDetector()
     parse = MagicMock(side_effect=ValueError("Expecting property name enclosed in double quotes"))
     detector._client = SimpleNamespace(
         beta=SimpleNamespace(chat=SimpleNamespace(completions=SimpleNamespace(parse=parse)))
@@ -107,7 +108,7 @@ def test_call_vision_structured_soft_fails_on_invalid_json_exception() -> None:
 
 
 def test_analyze_annual_toc_page_maps_structured_payload(monkeypatch: pytest.MonkeyPatch) -> None:
-    detector = GenAITOCDetector(api_key="test-key")
+    detector = GenAITOCDetector()
     monkeypatch.setattr(detector, "_page_to_base64", lambda *_args, **_kwargs: "img")
     structured = AnnualTocAnalysisLLM(
         is_master_toc=True,
@@ -149,7 +150,7 @@ def test_analyze_annual_toc_page_maps_structured_payload(monkeypatch: pytest.Mon
 def test_validate_section_transition_maps_structured_payload(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    detector = GenAITOCDetector(api_key="test-key")
+    detector = GenAITOCDetector()
     monkeypatch.setattr(detector, "_page_to_base64", lambda *_args, **_kwargs: "img")
     structured = PageTransitionLLM(
         confirmed=True,

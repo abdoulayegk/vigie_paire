@@ -14,11 +14,10 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal, TypeVar
 
-import openai
 import pdfplumber
 from pydantic import BaseModel, ConfigDict, Field
 
-from vigie.support.utils.genai import get_openai_api_key
+from vigie.llm import get_client, is_configured, resolve_model, structured_completions_parse
 
 logger = logging.getLogger(__name__)
 
@@ -162,32 +161,31 @@ clairement une transition sur la même page.
 
 Réponds strictement selon le schéma structuré fourni."""
 
-    def __init__(self, api_key: str | None = None, model: str = "gpt-4o"):
+    def __init__(self, model: str | None = None):
         """Initialiser le détecteur GenAI.
 
         Args:
-            api_key: Clé API OpenAI (ou depuis OPENAI_API_KEY)
-            model: Modèle à utiliser (default: gpt-4o)
+            model: Modèle à utiliser (default: chat resolu depuis la config).
         """
-        self.api_key = api_key or get_openai_api_key()
-        self.model = model
+        self.model = str(model or "").strip() or resolve_model("chat")
         self._client = None
 
-        if not self.api_key:
-            logger.warning("Clé API OpenAI non configurée pour GenAITOCDetector")
+        if not is_configured():
+            logger.warning("Provider LLM non configure pour GenAITOCDetector")
 
     @property
     def client(self):
         """Client OpenAI (chargement paresseux)."""
         if self._client is None:
             try:
-                self._client = openai.OpenAI(
-                    api_key=self.api_key,
-                    timeout=120.0,
-                    max_retries=1,
-                )
+                if not is_configured():
+                    return None
+                self._client = get_client(timeout=120.0, max_retries=1)
             except ImportError:
                 logger.error("openai non installé")
+                return None
+            except RuntimeError as exc:
+                logger.error("Provider LLM indisponible: %s", exc)
                 return None
         return self._client
 
@@ -252,34 +250,14 @@ Réponds strictement selon le schéma structuré fourni."""
             )
 
         try:
-            response = self.client.beta.chat.completions.parse(
+            return structured_completions_parse(
+                self.client,
                 model=self.model,
                 messages=[{"role": "user", "content": content}],
                 response_format=response_format,
-                temperature=0.0,
-                max_completion_tokens=max_completion_tokens,
+                profile="extraction",
+                max_tokens=max_completion_tokens,
             )
-            choice = response.choices[0]
-            finish_reason = getattr(choice, "finish_reason", None)
-            if finish_reason == "length":
-                logger.error(
-                    "Erreur API Vision multi-pages: sortie structurée tronquée "
-                    "(finish_reason=length, max_completion_tokens=%s)",
-                    max_completion_tokens,
-                )
-                return None
-
-            message = choice.message
-            refusal = getattr(message, "refusal", None)
-            if refusal:
-                logger.error("Erreur API Vision multi-pages: refus modèle: %s", refusal)
-                return None
-
-            parsed = getattr(message, "parsed", None)
-            if parsed is None:
-                logger.error("Erreur API Vision multi-pages: sortie structurée vide")
-                return None
-            return parsed
         except Exception as e:
             logger.error("Erreur API Vision multi-pages: %s", e)
             return None

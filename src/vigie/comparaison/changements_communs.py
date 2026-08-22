@@ -24,8 +24,8 @@ except ImportError:  # Le mode revue Dash reste disponible sans le pipeline LLM.
 
 from vigie.comparaison.analyst_change_presentation import build_change_presentation
 from vigie.interface.ui_config import RESULTATS_DIR, TEXT_COMPARISON_DIR
+from vigie.llm import chat_completions_create, get_client, is_configured
 from vigie.support.config import resolve_openai_model
-from vigie.support.utils.genai import get_openai_api_key
 
 logger = logging.getLogger(__name__)
 
@@ -349,14 +349,11 @@ def generate_changements_communs_report(
     )
     source_stats = build_changements_communs_source_stats(records)
     if client is None:
-        api_key = get_openai_api_key()
-        if not api_key:
+        if not is_configured():
             raise RuntimeError(
-                "OPENAI_API_KEY absent: la generation LLM des changements communs entre banques ne peut pas s'executer."
+                "Provider LLM absent: la generation LLM des changements communs entre banques ne peut pas s'executer."
             )
-        if openai is None:
-            raise RuntimeError("La dependance OpenAI est requise pour generer les changements communs.")
-        client = openai.OpenAI(api_key=api_key)
+        client = get_client(timeout=120.0, max_retries=1)
 
     candidates, discovery_queries = retrieve_changements_communs_discovery_candidates(
         topic,
@@ -372,10 +369,12 @@ def generate_changements_communs_report(
         candidates=candidates,
         min_banks=min_banks,
     )
-    response = client.chat.completions.create(
-        model=model or resolve_openai_model("default_genai"),
+    model_name = model or resolve_openai_model("default_genai")
+    response = chat_completions_create(
+        client,
+        model=model_name,
         messages=messages,
-        temperature=0,
+        profile="default",
         response_format={"type": "json_object"},
     )
     payload = _parse_chat_json_response(response)

@@ -197,7 +197,7 @@ def _chunk_subsection_text(
     min_chars: int = 0,
     client: Any | None = None,
     embedding_model: str = "text-embedding-3-small",
-    semantic_model: str = "gpt-4o",
+    semantic_model: str = "gpt-5.4",
 ) -> list[TextChunk]:
     """Découpe un corps en unités d'idée et listes cohérentes.
 

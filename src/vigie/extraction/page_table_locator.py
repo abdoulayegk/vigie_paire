@@ -16,9 +16,9 @@ import threading
 from dataclasses import dataclass
 from typing import Any
 
-import openai
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
+from vigie.llm import chat_completions_create, get_client
 from vigie.support.utils.openai_schema import build_strict_openai_response_format
 
 from .vision_cache import cache_get, cache_put, get_vision_cache_dir
@@ -27,6 +27,8 @@ logger = logging.getLogger(__name__)
 
 OPENAI_PAGE_LOCATOR_TIMEOUT_SECONDS = 120.0
 DEFAULT_PAGE_LOCATOR_MIN_CONFIDENCE = 0.85
+# Aligne sur le plafond de sortie gpt-5.x / Vision (_MAX_COMPLETION_TOKENS_API_LIMIT).
+PAGE_LOCATOR_MAX_COMPLETION_TOKENS = 128_000
 _PAGE_LOCATOR_CACHE_VERSION = "v2"
 _MAX_TABLES_PER_PAGE = 16
 _MIN_NEIGHBOR_GAP = 0.005
@@ -144,7 +146,23 @@ class PageTableLocatorResponseSchema(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     tables: list[PageTableRegionSchema] = Field(description="Tableaux visibles, ordonnes du haut vers le bas.")
-    table_count: int = Field(ge=0, le=_MAX_TABLES_PER_PAGE)
+    table_count: int | None = Field(
+        default=None,
+        ge=0,
+        le=_MAX_TABLES_PER_PAGE,
+        description="Nombre de tableaux; derive de len(tables) s'il est omis.",
+    )
+
+    @model_validator(mode="before")
+    @classmethod
+    def _default_table_count(cls, data: Any) -> Any:
+        """Completer table_count a partir de tables quand le modele l'omet."""
+        if not isinstance(data, dict):
+            return data
+        tables = data.get("tables")
+        if data.get("table_count") is None and isinstance(tables, list):
+            return {**data, "table_count": len(tables)}
+        return data
 
 
 @dataclass(frozen=True)
@@ -288,10 +306,11 @@ def _parse_page_layout(raw: str | dict[str, Any], page_number: int) -> PageTable
         )
 
     regions.sort(key=lambda region: (region.table_bbox[1], region.table_bbox[0]))
-    if response.table_count != len(response.tables):
+    declared_count = response.table_count
+    if declared_count is not None and declared_count != len(response.tables):
         logger.debug(
             "Page table locator: declared count=%s differs from returned count=%s on page %s",
-            response.table_count,
+            declared_count,
             len(response.tables),
             page_number,
         )
@@ -470,7 +489,6 @@ class PageTableLocator:
 
     def __init__(
         self,
-        api_key: str,
         model: str,
         *,
         min_confidence: float = DEFAULT_PAGE_LOCATOR_MIN_CONFIDENCE,
@@ -478,7 +496,6 @@ class PageTableLocator:
         cache_dir: str | None = None,
     ) -> None:
         """Configure le modèle, le seuil et les caches partagés par page."""
-        self._api_key = api_key
         self._model = model
         self._min_confidence = min_confidence
         self._use_cache = use_cache
@@ -500,10 +517,7 @@ class PageTableLocator:
             return self._client
         with self._client_lock:
             if self._client is None:
-                self._client = openai.OpenAI(
-                    api_key=self._api_key,
-                    timeout=OPENAI_PAGE_LOCATOR_TIMEOUT_SECONDS,
-                )
+                self._client = get_client(timeout=OPENAI_PAGE_LOCATOR_TIMEOUT_SECONDS, max_retries=1)
         return self._client
 
     def _locate_uncached(
@@ -521,34 +535,58 @@ class PageTableLocator:
             return None
         try:
             client = self._ensure_client()
-            response_format = build_strict_openai_response_format(
+            image_b64 = base64.standard_b64encode(page_image_bytes).decode("ascii")
+            messages = [
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": _PAGE_TABLE_LOCATOR_PROMPT},
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": f"data:image/png;base64,{image_b64}",
+                                "detail": "high",
+                            },
+                        },
+                    ],
+                }
+            ]
+            structured_format = build_strict_openai_response_format(
                 PageTableLocatorResponseSchema,
                 name="page_table_locator",
             )
-            image_b64 = base64.standard_b64encode(page_image_bytes).decode("ascii")
-            response = client.chat.completions.create(
-                model=self._model,
-                messages=[
-                    {
-                        "role": "user",
-                        "content": [
-                            {"type": "text", "text": _PAGE_TABLE_LOCATOR_PROMPT},
-                            {
-                                "type": "image_url",
-                                "image_url": {
-                                    "url": f"data:image/png;base64,{image_b64}",
-                                    "detail": "high",
-                                },
-                            },
-                        ],
-                    }
-                ],
-                response_format=response_format,
-                temperature=0,
-                max_completion_tokens=4096,
-            )
-            raw = response.choices[0].message.content or ""
-            return _parse_page_layout(raw, page_number)
+
+            for attempt, use_structured in enumerate((True, False)):
+                response_format = structured_format if use_structured else {"type": "json_object"}
+                response = chat_completions_create(
+                    client,
+                    model=self._model,
+                    messages=messages,
+                    profile="locator",
+                    response_format=response_format,
+                    max_completion_tokens=PAGE_LOCATOR_MAX_COMPLETION_TOKENS,
+                )
+                raw = response.choices[0].message.content or ""
+                layout = _parse_page_layout(raw, page_number)
+                if layout is not None:
+                    if not use_structured and attempt > 0:
+                        logger.info(
+                            "Page table locator: json_object fallback succeeded on page %s",
+                            page_number,
+                        )
+                    return layout
+                finish_reason = str(getattr(response.choices[0], "finish_reason", "") or "")
+                logger.warning(
+                    "Page table locator: invalid response on page %s (attempt %s/%s, "
+                    "structured=%s, finish_reason=%s, raw_len=%s)",
+                    page_number,
+                    attempt + 1,
+                    2,
+                    use_structured,
+                    finish_reason or "unknown",
+                    len(raw),
+                )
+            return None
         except Exception as exc:
             logger.warning(
                 "Page table locator failed on page %s (non-fatal): %s",

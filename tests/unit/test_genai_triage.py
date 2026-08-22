@@ -5,10 +5,11 @@ from __future__ import annotations
 import json
 from unittest.mock import patch
 
+import pytest
+
 from vigie.comparaison.triage.genai_triage import (
     _TRIAGE_SYSTEM_PROMPT,
     _build_change_prompt,
-    _fallback_enrich,
     _has_meaningful_diff,
     _validate_summary_response,
     _validate_triage_response,
@@ -159,27 +160,8 @@ class TestValidateTriageResponse:
         assert result["source"] == "llm"
 
     def test_none_response(self):
-        result = _validate_triage_response(None)
-        assert result["is_relevant"] is False
-        assert result["source"] == "heuristic"
-        assert result["themes_amf"] == []
-        assert result["nouvelle_idee"] is False
-        # Justification désormais OBLIGATOIRE même pour le squelette par défaut
-        assert result["nouvelle_idee_justification"].startswith("NON")
-        assert len(result["nouvelle_idee_justification"]) >= 200
-        assert result["category"] == "NON_PERTINENT"
-        assert result["risk_level"] == "FAIBLE"
-        assert result["confidence"] == 0.0
-        assert result["impact_type"] == "non_substantif"
-        assert result["impact_it"] == "INDETERMINE"
-        assert result["changement_posture"] == "AUCUN"
-        assert result["justification_posture"] == ""
-        assert result["statut_mise_en_oeuvre"] == "INDETERMINE"
-        assert result["confiance_posture"] == "INDETERMINE"
-        assert result["project_phase"] == "autre"
-        assert result["action_requise"] == "aucune"
-        assert result["reference_reglementaire"] == ""
-        assert result["impact_description"] == ""
+        with pytest.raises(ValueError, match="empty or invalid"):
+            _validate_triage_response(None)
 
     def _base_payload(self) -> dict:
         """Helper : payload minimal valide (non pertinent avec justification)."""
@@ -344,51 +326,47 @@ class TestValidateTriageResponse:
         assert result["impact_it"] == "INDETERMINE"
         assert result["impact_it_justification"] == ""
 
-    def test_relevant_without_themes_falls_back_to_skeleton(self):
-        """Invariant : is_relevant=True sans themes_amf → forcé en NON_PERTINENT."""
-        result = _validate_triage_response(
-            {
-                "is_relevant": True,
-                "themes_amf": [],
-                "nouvelle_idee": True,
-                "nouvelle_idee_justification": _valid_justification_oui(),
-                "action_requise": "revue_prioritaire",
-            }
-        )
-        assert result["is_relevant"] is False
-        assert result["source"] == "invariant_violation"
-        assert result["category"] == "NON_PERTINENT"
+    def test_relevant_without_themes_raises(self):
+        """Invariant : is_relevant=True sans themes_amf -> erreur."""
+        with pytest.raises(ValueError, match="AMF invariants"):
+            _validate_triage_response(
+                {
+                    "is_relevant": True,
+                    "themes_amf": [],
+                    "nouvelle_idee": True,
+                    "nouvelle_idee_justification": _valid_justification_oui(),
+                    "action_requise": "revue_prioritaire",
+                }
+            )
 
-    def test_short_justification_falls_back_to_skeleton(self):
-        """Invariant : justification < 2 phrases substantives → forcé en NON_PERTINENT."""
-        result = _validate_triage_response(
-            {
-                "is_relevant": True,
-                "themes_amf": ["DIVULGATION_AJOUT"],
-                "nouvelle_idee": True,
-                "nouvelle_idee_justification": "OUI ratio TLAC ajoute.",
-                "action_requise": "revue_prioritaire",
-            }
-        )
-        assert result["is_relevant"] is False
-        assert result["source"] == "invariant_violation"
+    def test_short_justification_raises(self):
+        """Invariant : justification trop courte -> erreur."""
+        with pytest.raises(ValueError, match="AMF invariants"):
+            _validate_triage_response(
+                {
+                    "is_relevant": True,
+                    "themes_amf": ["DIVULGATION_AJOUT"],
+                    "nouvelle_idee": True,
+                    "nouvelle_idee_justification": "OUI ratio TLAC ajoute.",
+                    "action_requise": "revue_prioritaire",
+                }
+            )
 
-    def test_justification_wrong_prefix_falls_back_to_skeleton(self):
-        """Invariant : nouvelle_idee=True mais justification commence par NON → forcé en skeleton."""
-        result = _validate_triage_response(
-            {
-                "is_relevant": True,
-                "themes_amf": ["DIVULGATION_AJOUT"],
-                "nouvelle_idee": True,
-                "nouvelle_idee_justification": (
-                    "NON le ratio CET1 existait deja au T1 et seule sa valeur a change. "
-                    "Variation chiffree propre a la banque."
-                ),
-                "action_requise": "revue_prioritaire",
-            }
-        )
-        assert result["is_relevant"] is False
-        assert result["source"] == "invariant_violation"
+    def test_justification_wrong_prefix_raises(self):
+        """Invariant : prefixe incoherent -> erreur."""
+        with pytest.raises(ValueError, match="AMF invariants"):
+            _validate_triage_response(
+                {
+                    "is_relevant": True,
+                    "themes_amf": ["DIVULGATION_AJOUT"],
+                    "nouvelle_idee": True,
+                    "nouvelle_idee_justification": (
+                        "NON le ratio CET1 existait deja au T1 et seule sa valeur a change. "
+                        "Variation chiffree propre a la banque."
+                    ),
+                    "action_requise": "revue_prioritaire",
+                }
+            )
 
 
 # ---------------------------------------------------------------------------
@@ -423,13 +401,9 @@ class TestValidateSummaryResponse:
         assert result["par_phase"]["rapport_gestion"]["count"] == 3
         assert result["par_action"]["revue_prioritaire"] == 1
 
-    def test_none_returns_defaults(self):
-        result = _validate_summary_response(None)
-        assert result["executive_overview"] == ""
-        assert result["pertinence_globale"] == "FAIBLE"
-        assert result["source"] == "heuristic"
-        assert result["par_phase"] == {}
-        assert result["par_action"] == {}
+    def test_none_raises(self):
+        with pytest.raises(ValueError, match="empty or invalid"):
+            _validate_summary_response(None)
 
     def test_invalid_par_phase_ignored(self):
         data = {
@@ -472,72 +446,24 @@ class TestBuildChangePrompt:
 
 
 # ---------------------------------------------------------------------------
-# _fallback_enrich
-# ---------------------------------------------------------------------------
-
-
-class TestFallbackEnrich:
-    def test_enriches_all_entries(self):
-        """Mode hors-ligne : tous les triages reçoivent le squelette neutre.
-
-        Sans clé API, on ne peut pas réellement classifier — on affiche un
-        squelette honnête (is_relevant=False, NON_PERTINENT) plutôt que de
-        deviner au risque d'induire l'analyste en erreur.
-        """
-        comparison = _make_comparison(
-            pairs=[_make_pair(added=[{"value": "X"}])],
-            added=[{"title": "New", "section": "risque"}],
-            removed=[{"title": "Old", "section": "capital"}],
-        )
-        result = _fallback_enrich(comparison)
-
-        pair_triage = result["pair_comparisons"][0]["genai_triage"]
-        assert pair_triage["source"] == "heuristic"
-        assert pair_triage["is_relevant"] is False
-        assert pair_triage["category"] == "NON_PERTINENT"
-        assert pair_triage["themes_amf"] == []
-        assert pair_triage["nouvelle_idee"] is False
-        # Justification désormais OBLIGATOIRE (≥ 200 chars, préfixe NON)
-        assert pair_triage["nouvelle_idee_justification"].startswith("NON")
-        assert len(pair_triage["nouvelle_idee_justification"]) >= 200
-        assert pair_triage["impact_type"] == "non_substantif"
-        assert pair_triage["action_requise"] == "aucune"
-        assert pair_triage["confidence"] == 0.0
-
-        added_triage = result["matching"]["tables_added"][0]["genai_triage"]
-        assert added_triage["source"] == "heuristic"
-        assert added_triage["is_relevant"] is False
-        assert added_triage["category"] == "NON_PERTINENT"
-
-        removed_triage = result["matching"]["tables_removed"][0]["genai_triage"]
-        assert removed_triage["source"] == "heuristic"
-        assert removed_triage["is_relevant"] is False
-        assert removed_triage["category"] == "NON_PERTINENT"
-
-        assert result["global_summary"]["source"] == "heuristic"
-        assert result["global_summary"]["par_phase"] == {}
-        assert result["global_summary"]["par_action"] == {}
-
-
-# ---------------------------------------------------------------------------
 # enrich_comparison_with_genai_triage (integration, mocked LLM)
 # ---------------------------------------------------------------------------
 
 
 class TestEnrichComparison:
-    def test_fallback_when_no_api_key(self, tmp_path):
+    def test_raises_when_llm_not_configured(self, tmp_path):
         comparison = _make_comparison(
             pairs=[_make_pair(added=[{"value": "CET1"}])],
         )
         path = tmp_path / "comparison.json"
         path.write_text(json.dumps(comparison), encoding="utf-8")
 
-        with patch("vigie.support.utils.genai.get_openai_api_key", return_value=None):
-            result_path = enrich_comparison_with_genai_triage(path)
-
-        enriched = json.loads(result_path.read_text(encoding="utf-8"))
-        assert "global_summary" in enriched
-        assert enriched["pair_comparisons"][0]["genai_triage"]["source"] == "heuristic"
+        with patch(
+            "vigie.comparaison.triage.genai_triage.require_configured",
+            side_effect=RuntimeError("OPENAI_API_KEY absent"),
+        ):
+            with pytest.raises(RuntimeError, match="OPENAI_API_KEY absent"):
+                enrich_comparison_with_genai_triage(path)
 
     def test_skips_unchanged_pairs(self, tmp_path):
         comparison = _make_comparison(
@@ -546,11 +472,11 @@ class TestEnrichComparison:
         path = tmp_path / "comparison.json"
         path.write_text(json.dumps(comparison), encoding="utf-8")
 
-        with patch("vigie.support.utils.genai.get_openai_api_key", return_value=None):
-            enrich_comparison_with_genai_triage(path)
+        with patch("vigie.comparaison.triage.genai_triage.require_configured"):
+            with patch("vigie.comparaison.triage.genai_triage.get_async_client"):
+                enrich_comparison_with_genai_triage(path)
 
         enriched = json.loads(path.read_text(encoding="utf-8"))
-        # Fallback mode marks unchanged pairs as not relevant with heuristic source
         triage = enriched["pair_comparisons"][0]["genai_triage"]
         assert triage["is_relevant"] is False
-        assert triage["source"] == "heuristic"
+        assert triage["source"] == "skip"

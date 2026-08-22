@@ -475,7 +475,7 @@ def test_call_json_completion_retries_with_larger_token_budget_after_truncation(
 
     payload = _call_json_completion(
         client,
-        model="gpt-4o",
+        model="gpt-5.4",
         messages=[{"role": "user", "content": "Compare"}],
         max_tokens=100,
     )
@@ -483,7 +483,7 @@ def test_call_json_completion_retries_with_larger_token_budget_after_truncation(
     assert payload["changes"][0]["text_t2"] == "texte complet"
     assert client.chat.completions.max_completion_tokens_seen == [
         100,
-        _max_output_tokens_for_model("gpt-4o"),
+        _max_output_tokens_for_model("gpt-5.4"),
     ]
 
 
@@ -492,7 +492,7 @@ def test_call_json_completion_uses_model_max_by_default() -> None:
 
     payload = _call_json_completion(
         client,
-        model="gpt-4o",
+        model="gpt-5.4",
         messages=[{"role": "user", "content": "Compare"}],
     )
 
@@ -511,7 +511,7 @@ def test_compare_section_texts_surfaces_section_key_on_json_failure(
     with pytest.raises(RuntimeError, match="gestion_risques"):
         _compare_section_texts(
             client=object(),
-            model="gpt-4o",
+            model="gpt-5.4",
             section_key="gestion_risques",
             text_t1="Texte T1",
             text_t2="Texte T2",
@@ -719,7 +719,7 @@ def test_pipeline_retains_non_cosmetic_changes_and_discards_cosmetic(monkeypatch
         pdf_previous=pdf_previous,
         pdf_current=pdf_current,
         out_root=tmp_path / "outputs",
-        model="gpt-4o",
+        model="gpt-5.4",
     )
 
     section_payload = payload["section_comparisons"][0]
@@ -2164,7 +2164,7 @@ def test_compare_section_texts_prompt_requests_all_observable_changes(
 
     _compare_section_texts(
         client=object(),
-        model="gpt-4o",
+        model="gpt-5.4",
         section_key="gestion_risques",
         text_t1="### Risque de stratégie\n\nLa banque surveille ce risque au premier trimestre.",
         text_t2="### Risque de stratégie\n\nCe risque est surveillé par la banque au deuxième trimestre.",
@@ -2510,7 +2510,7 @@ def test_compare_section_texts_accepts_french_bracketed_abbreviation(
 
     changes = _compare_section_texts(
         client=object(),
-        model="gpt-4o",
+        model="gpt-5.4",
         section_key="gestion_risques",
         text_t1=prose,
         text_t2=prose,
@@ -2523,7 +2523,7 @@ def test_compare_section_texts_rejects_leaked_page_marker() -> None:
     with pytest.raises(TextAnalysisQualityError) as excinfo:
         _compare_section_texts(
             client=object(),
-            model="gpt-4o",
+            model="gpt-5.4",
             section_key="gestion_risques",
             text_t1="### Cadre de gestion [pdf.82]\n\nCorps.",
             text_t2="### Cadre de gestion\n\nCorps.",
@@ -3675,7 +3675,7 @@ def test_compare_section_texts_skips_empty_orphan_headings(monkeypatch) -> None:
 
     changes = _compare_section_texts(
         client=object(),
-        model="gpt-4o",
+        model="gpt-5.4",
         section_key="gestion_risques",
         text_t1="### Header sans corps\n\n### Header apparié\n\nCorps T1.",
         text_t2="### Header apparié\n\nCorps T2.",
@@ -3692,7 +3692,7 @@ def test_compare_section_texts_skips_matched_table_only_subsection(monkeypatch) 
 
     changes = _compare_section_texts(
         client=object(),
-        model="gpt-4o",
+        model="gpt-5.4",
         section_key="gestion_capital",
         text_t1="### Répartition\n\n| Catégorie | Valeur |\n| --- | ---: |\n| Crédit | 395 |\n",
         text_t2="### Répartition\n\n| Catégorie | Valeur |\n| --- | ---: |\n| Crédit | 436 |\n",
@@ -3719,7 +3719,7 @@ def test_compare_section_texts_sends_financial_paragraphs_to_comparison(
     with pytest.raises(RuntimeError, match="comparison reached"):
         _compare_section_texts(
             client=object(),
-            model="gpt-4o",
+            model="gpt-5.4",
             section_key="gestion_capital",
             text_t1=("### Ratio CET1\n\nLe ratio CET1 atteint 13,8 % et les fonds propres totalisent 525 M$.\n"),
             text_t2=("### Ratio CET1\n\nLe ratio CET1 atteint 14,2 % et les fonds propres totalisent 540 M$.\n"),
@@ -3820,7 +3820,7 @@ def test_run_text_analysis_pipeline_writes_md_as_source_of_truth(monkeypatch, tm
         pdf_previous=pdf_previous,
         pdf_current=pdf_current,
         out_root=tmp_path / "outputs",
-        model="gpt-4o",
+        model="gpt-5.4",
     )
 
     # .md files are written and contain the right content
@@ -4287,7 +4287,7 @@ def test_global_reconciliation_removes_bnc_style_resegmented_fragments(
 
     reconciled, audit = reconcile_global_change_fragments(
         client=object(),
-        model="gpt-4o",
+        model="gpt-5.4",
         changes=changes,
     )
 
@@ -4319,7 +4319,7 @@ def test_global_reconciliation_keeps_a_genuine_unmatched_addition(monkeypatch) -
 
     reconciled, audit = reconcile_global_change_fragments(
         client=object(),
-        model="gpt-4o",
+        model="gpt-5.4",
         changes=changes,
     )
 
@@ -4534,7 +4534,7 @@ def test_compare_section_texts_rejects_non_empty_sections_without_subsections() 
     with pytest.raises(TextAnalysisQualityError, match="sans sous-sections ###"):
         _compare_section_texts(
             client=object(),
-            model="gpt-4o",
+            model="gpt-5.4",
             section_key="gestion_risques",
             text_t1="Texte T1 sans sous-sections.",
             text_t2="Texte T2 sans sous-sections.",
@@ -4545,7 +4545,7 @@ def test_compare_section_texts_marks_empty_matched_subsection_side_as_removed() 
     """Un heading apparié vide côté courant devient un retrait synthétique."""
     changes = _compare_section_texts(
         client=object(),
-        model="gpt-4o",
+        model="gpt-5.4",
         section_key="gestion_risques",
         text_t1="### Responsables\n\nAncien paragraphe présent uniquement dans le rapport précédent.",
         text_t2="### Responsables\n\n",
@@ -4588,7 +4588,7 @@ def test_compare_section_texts_calls_gpt_once_per_subsection_pair(monkeypatch) -
 
     _compare_section_texts(
         client=object(),
-        model="gpt-4o",
+        model="gpt-5.4",
         section_key="gestion_risques",
         text_t1=md_t1,
         text_t2=md_t2,
@@ -4638,7 +4638,7 @@ def test_compare_section_texts_sends_chunked_subsection_bodies(monkeypatch) -> N
 
     _compare_section_texts(
         client=object(),
-        model="gpt-4o",
+        model="gpt-5.4",
         section_key="gestion_risques",
         text_t1=f"### Risque de stratégie\n\n{paragraph_a}\n\n{paragraph_b_t1}",
         text_t2=f"### Risque de stratégie\n\n{paragraph_a}\n\n{paragraph_b_t2}",
@@ -4666,7 +4666,7 @@ def test_compare_section_texts_sends_tfidf_alignment_context(monkeypatch) -> Non
 
     changes = _compare_section_texts(
         client=object(),
-        model="gpt-4o",
+        model="gpt-5.4",
         section_key="gestion_risques",
         text_t1=f"### Risque de stratégie\n\n{previous}",
         text_t2=f"### Risque de stratégie\n\n{previous}\n\n{added}",
@@ -4727,7 +4727,7 @@ def test_compare_section_texts_chunk_change_carries_alignment_metadata(
 
     changes = _compare_section_texts(
         client=object(),
-        model="gpt-4o",
+        model="gpt-5.4",
         section_key="gestion_risques",
         text_t1="### Risque de stratégie\n\n" + "\n\n".join(paragraphs_t1),
         text_t2="### Risque de stratégie\n\n" + "\n\n".join(paragraphs_t2),
@@ -4786,7 +4786,7 @@ def test_compare_section_texts_chunk_change_never_keeps_full_multichunk_body(
 
     changes = _compare_section_texts(
         client=object(),
-        model="gpt-4o",
+        model="gpt-5.4",
         section_key="gestion_risques",
         text_t1=f"### Risque de stratégie\n\n{body_t1}",
         text_t2=f"### Risque de stratégie\n\n{body_t2}",
@@ -4861,7 +4861,7 @@ def test_compare_section_texts_splits_large_alignment_set_into_batches(
 
     _compare_section_texts(
         client=object(),
-        model="gpt-4o",
+        model="gpt-5.4",
         section_key="gestion_risques",
         text_t1=f"### Risque de stratégie\n\n{body_t1}",
         text_t2=f"### Risque de stratégie\n\n{body_t2}",
@@ -4951,7 +4951,7 @@ def test_compare_section_texts_merges_parallel_batch_results_in_source_order(
 
     changes = _compare_section_texts(
         client=object(),
-        model="gpt-4o",
+        model="gpt-5.4",
         section_key="gestion_risques",
         text_t1="### Risque de stratégie\n\n" + "\n\n".join(paragraphs_t1),
         text_t2="### Risque de stratégie\n\n" + "\n\n".join(paragraphs_t2),
@@ -4991,7 +4991,7 @@ def test_compare_section_texts_reports_batch_id_on_batch_failure(monkeypatch) ->
     with pytest.raises(RuntimeError, match="b00"):
         _compare_section_texts(
             client=object(),
-            model="gpt-4o",
+            model="gpt-5.4",
             section_key="gestion_risques",
             text_t1=f"### Risque de stratégie\n\n{paragraph_t1}",
             text_t2=f"### Risque de stratégie\n\n{paragraph_t2}",
@@ -5012,7 +5012,7 @@ def test_compare_section_texts_synthetic_change_for_removed_subsection(
 
     changes = _compare_section_texts(
         client=object(),
-        model="gpt-4o",
+        model="gpt-5.4",
         section_key="gestion_risques",
         text_t1=md_t1,
         text_t2=md_t2,
@@ -5039,7 +5039,7 @@ def test_compare_section_texts_synthetic_change_for_added_subsection(
 
     changes = _compare_section_texts(
         client=object(),
-        model="gpt-4o",
+        model="gpt-5.4",
         section_key="gestion_risques",
         text_t1=md_t1,
         text_t2=md_t2,
@@ -5064,7 +5064,7 @@ def test_compare_section_texts_chunks_unmatched_long_subsection(monkeypatch) -> 
 
     changes = _compare_section_texts(
         client=object(),
-        model="gpt-4o",
+        model="gpt-5.4",
         section_key="gestion_risques",
         text_t1="### Risque de marché\n\nCorps T1.",
         text_t2="### Risque de marché\n\nCorps T2.\n\n### Nouveau cadre\n\n" + "\n\n".join(paragraphs),
@@ -5163,7 +5163,7 @@ def test_compare_section_texts_rescues_cross_subsection_move(monkeypatch) -> Non
 
     changes = _compare_section_texts(
         client=object(),
-        model="gpt-4o",
+        model="gpt-5.4",
         section_key="gestion_risques",
         text_t1=(
             f"### Surveillance du Conseil\n\n{filler_a}\n\n{moved}\n\n### Cadre d'appétit pour le risque\n\n{filler_b}"
@@ -5219,7 +5219,7 @@ def test_compare_section_texts_keeps_true_addition_after_section_rescue(
 
     changes = _compare_section_texts(
         client=object(),
-        model="gpt-4o",
+        model="gpt-5.4",
         section_key="gestion_risques",
         text_t1=f"### Risque de marché\n\n{shared}",
         text_t2=f"### Risque de marché\n\n{shared}\n\n### Faits nouveaux\n\n{genuine_addition}",
@@ -5267,7 +5267,7 @@ def test_compare_section_texts_local_match_unchanged_same_subsection(
 
     changes = _compare_section_texts(
         client=object(),
-        model="gpt-4o",
+        model="gpt-5.4",
         section_key="gestion_capital",
         text_t1=f"### Cadre de gestion du capital\n\n{previous}",
         text_t2=f"### Cadre de gestion du capital\n\n{current}",
@@ -5308,7 +5308,7 @@ def test_compare_section_texts_deduplicates_multiple_llm_details_for_one_alignme
 
     changes = _compare_section_texts(
         client=object(),
-        model="gpt-4o",
+        model="gpt-5.4",
         section_key="gestion_risques",
         text_t1=f"### Risque de marché\n\n{previous}",
         text_t2=f"### Risque de marché\n\n{current}",
@@ -5323,7 +5323,7 @@ def test_gpt_match_orphan_headings_returns_empty_when_no_orphans() -> None:
     """Pas d'orphelins d'un côté → pas d'appel GPT, retourne []."""
     result = _gpt_match_orphan_headings(
         client=object(),
-        model="gpt-4o",
+        model="gpt-5.4",
         section_key="gestion_risques",
         orphans_t1=[],
         orphans_t2=["Incidence des tarifs douaniers"],
@@ -5373,7 +5373,7 @@ def test_gpt_match_orphan_headings_filters_low_confidence(monkeypatch) -> None:
 
     result = _gpt_match_orphan_headings(
         client=object(),
-        model="gpt-4o",
+        model="gpt-5.4",
         section_key="gestion_risques",
         orphans_t1=["Incidence des tarifs"],
         orphans_t2=["Incidence des tarifs douaniers"],
@@ -5407,7 +5407,7 @@ def test_gpt_match_orphan_headings_rejects_hallucinated_headings(monkeypatch) ->
 
     result = _gpt_match_orphan_headings(
         client=object(),
-        model="gpt-4o",
+        model="gpt-5.4",
         section_key="gestion_risques",
         orphans_t1=["Incidence des tarifs"],
         orphans_t2=["Incidence des tarifs douaniers"],
@@ -5437,7 +5437,7 @@ def test_gpt_match_orphan_headings_accepts_high_confidence(monkeypatch) -> None:
 
     result = _gpt_match_orphan_headings(
         client=object(),
-        model="gpt-4o",
+        model="gpt-5.4",
         section_key="gestion_risques",
         orphans_t1=["Incidence des tarifs"],
         orphans_t2=["Incidence des tarifs douaniers"],
@@ -5475,7 +5475,7 @@ def test_gpt_match_orphan_headings_enforces_1_to_1(monkeypatch) -> None:
 
     result = sm._gpt_match_orphan_headings(
         client=object(),
-        model="gpt-4o",
+        model="gpt-5.4",
         section_key="gestion_risques",
         orphans_t1=["Risque de marché"],
         orphans_t2=["Risque de marché amplifié", "Risque de marché étendu"],
@@ -5539,7 +5539,7 @@ def test_compare_section_texts_resolves_renamed_subsection(monkeypatch) -> None:
 
     changes = _compare_section_texts(
         client=object(),
-        model="gpt-4o",
+        model="gpt-5.4",
         section_key="gestion_risques",
         text_t1=md_t1,
         text_t2=md_t2,
@@ -5628,7 +5628,7 @@ def test_resolve_orphan_subsections_embedding_strong_matches_without_gpt(
 
     matches = resolve_direct(
         client=object(),
-        model="gpt-4o",
+        model="gpt-5.4",
         section_key="gestion_risques",
         orphans_t1=orphans_t1,
         orphans_t2=orphans_t2,
@@ -5696,7 +5696,7 @@ def test_resolve_orphan_subsections_embedding_strong_match_when_llm_confirms(
 
     matches = resolve_direct(
         client=object(),
-        model="gpt-4o",
+        model="gpt-5.4",
         section_key="gestion_risques",
         orphans_t1=orphans_t1,
         orphans_t2=orphans_t2,
@@ -5769,7 +5769,7 @@ def test_resolve_orphan_subsections_llm_arbitration_when_embedding_weak(
 
     matches = resolve_direct(
         client=object(),
-        model="gpt-4o",
+        model="gpt-5.4",
         section_key="gestion_risques",
         orphans_t1=orphans_t1,
         orphans_t2=orphans_t2,
@@ -5829,7 +5829,7 @@ def test_compare_section_texts_orphan_match_avoids_duplicate_synthetics(
 
     changes = _compare_section_texts(
         client=object(),
-        model="gpt-4o",
+        model="gpt-5.4",
         section_key="gestion_risques",
         text_t1=md_t1,
         text_t2=md_t2,
@@ -5923,7 +5923,7 @@ def test_compare_section_texts_td_renamed_orphans_avoid_duplicate_synthetics(
 
     changes = _compare_section_texts(
         client=object(),
-        model="gpt-4o",
+        model="gpt-5.4",
         section_key="gestion_risques",
         text_t1=md_t1,
         text_t2=md_t2,
@@ -6019,7 +6019,7 @@ def test_resolve_orphan_subsections_gpt_failure_keeps_deterministic_matches(
 
     matches = resolve_direct(
         client=object(),
-        model="gpt-4o",
+        model="gpt-5.4",
         section_key="gestion_risques",
         orphans_t1=orphans_t1,
         orphans_t2=orphans_t2,
@@ -6100,7 +6100,7 @@ def test_resolve_orphan_subsections_ambiguous_still_calls_gpt(monkeypatch) -> No
 
     matches = resolve_direct(
         client=object(),
-        model="gpt-4o",
+        model="gpt-5.4",
         section_key="gestion_risques",
         orphans_t1=orphans_t1,
         orphans_t2=orphans_t2,
@@ -6143,7 +6143,7 @@ def test_resolve_orphan_subsections_embedding_failure_falls_back_to_llm(
 
     matches = resolve_direct(
         client=object(),
-        model="gpt-4o",
+        model="gpt-5.4",
         section_key="gestion_risques",
         orphans_t1=orphans_t1,
         orphans_t2=orphans_t2,
@@ -6181,7 +6181,7 @@ def test_resolve_orphan_subsections_short_body_uses_title_only_fallback(
 
     matches = resolve_direct(
         client=object(),
-        model="gpt-4o",
+        model="gpt-5.4",
         section_key="capital",
         orphans_t1=orphans_t1,
         orphans_t2=orphans_t2,
@@ -6889,7 +6889,7 @@ def test_call_structured_completion_raises_runtime_error_on_refusal() -> None:
     with pytest.raises(RuntimeError, match="refused"):
         _call_structured_completion(
             client,
-            model="gpt-4o",
+            model="gpt-5.4",
             messages=[{"role": "user", "content": "x"}],
             response_format=TriageAMFBatch,
         )
@@ -6901,7 +6901,7 @@ def test_call_structured_completion_raises_runtime_error_on_truncation() -> None
     with pytest.raises(RuntimeError, match="truncated"):
         _call_structured_completion(
             client,
-            model="gpt-4o",
+            model="gpt-5.4",
             messages=[{"role": "user", "content": "x"}],
             response_format=TriageAMFBatch,
         )
@@ -6913,7 +6913,7 @@ def test_call_structured_completion_raises_runtime_error_on_empty_payload() -> N
     with pytest.raises(RuntimeError, match="no parsed payload"):
         _call_structured_completion(
             client,
-            model="gpt-4o",
+            model="gpt-5.4",
             messages=[{"role": "user", "content": "x"}],
             response_format=TriageAMFBatch,
         )
@@ -6937,7 +6937,7 @@ def test_correction_retry_succeeds_on_second_attempt() -> None:
 
     result = _call_structured_completion_with_correction(
         client,
-        model="gpt-4o",
+        model="gpt-5.4",
         messages=[{"role": "user", "content": "x"}],
         response_format=TriageAMFBatch,
         max_retries=1,
@@ -6962,7 +6962,7 @@ def test_correction_retry_accepts_custom_validation_message() -> None:
 
     result = _call_structured_completion_with_correction(
         client,
-        model="gpt-4o",
+        model="gpt-5.4",
         messages=[{"role": "user", "content": "x"}],
         response_format=TriageAMFBatch,
         max_retries=1,
@@ -6987,7 +6987,7 @@ def test_correction_retry_propagates_after_exhaustion() -> None:
     with pytest.raises(_PydValidationError):
         _call_structured_completion_with_correction(
             client,
-            model="gpt-4o",
+            model="gpt-5.4",
             messages=[{"role": "user", "content": "x"}],
             response_format=TriageAMFBatch,
             max_retries=1,
@@ -7008,7 +7008,7 @@ def test_correction_retry_does_not_retry_runtime_errors() -> None:
     with pytest.raises(RuntimeError, match="refused"):
         _call_structured_completion_with_correction(
             client,
-            model="gpt-4o",
+            model="gpt-5.4",
             messages=[{"role": "user", "content": "x"}],
             response_format=TriageAMFBatch,
             max_retries=1,
@@ -7033,7 +7033,7 @@ def test_correction_retry_retries_transient_timeout(monkeypatch) -> None:
 
     result = _call_structured_completion_with_correction(
         client,
-        model="gpt-4o",
+        model="gpt-5.4",
         messages=[{"role": "user", "content": "x"}],
         response_format=TriageAMFBatch,
         max_retries=1,
@@ -7055,7 +7055,7 @@ def test_correction_retry_exhausts_transient_timeout(monkeypatch) -> None:
     with pytest.raises(TimeoutError, match="timed out"):
         _call_structured_completion_with_correction(
             client,
-            model="gpt-4o",
+            model="gpt-5.4",
             messages=[{"role": "user", "content": "x"}],
             response_format=TriageAMFBatch,
             max_retries=1,
@@ -7079,7 +7079,7 @@ def test_correction_retry_retries_length_limit_once() -> None:
 
     result = _call_structured_completion_with_correction(
         client,
-        model="gpt-4o",
+        model="gpt-5.4",
         messages=[{"role": "user", "content": "x"}],
         response_format=TriageAMFBatch,
         max_retries=1,
@@ -7118,7 +7118,7 @@ def test_triage_section_changes_converts_validation_error_to_triage_validation_e
     with pytest.raises(TriageValidationError) as exc_info:
         _triage_section_changes(
             client=client,
-            model="gpt-4o",
+            model="gpt-5.4",
             section_key="gestion_risques",
             changes=changes,
         )
@@ -7157,7 +7157,7 @@ def test_triage_section_changes_length_retry_repeats_structured_contract() -> No
     client = _FakeStructuredClient(length_then_success)
     result = _triage_section_changes(
         client=client,
-        model="gpt-4o",
+        model="gpt-5.4",
         section_key="gestion_risques",
         changes=[
             {
@@ -7196,7 +7196,7 @@ def test_triage_section_changes_propagates_runtime_error_unwrapped() -> None:
     with pytest.raises(RuntimeError, match="refused"):
         _triage_section_changes(
             client=client,
-            model="gpt-4o",
+            model="gpt-5.4",
             section_key="gestion_risques",
             changes=changes,
         )
@@ -7237,7 +7237,7 @@ def test_triage_section_changes_processes_changes_one_by_one() -> None:
 
     enriched = _triage_section_changes(
         client=client,
-        model="gpt-4o",
+        model="gpt-5.4",
         section_key="gestion_risques",
         changes=changes,
     )
@@ -7256,7 +7256,7 @@ def test_triage_section_changes_requires_exactly_one_result_per_change() -> None
     with pytest.raises(TriageValidationError, match="exactement les change_index"):
         _triage_section_changes(
             client=client,
-            model="gpt-4o",
+            model="gpt-5.4",
             section_key="gestion_risques",
             changes=[
                 {
@@ -7307,7 +7307,7 @@ def test_triage_section_changes_batches_two_sides_of_one_semantic_distinct_decis
 
     enriched = _triage_section_changes(
         client=client,
-        model="gpt-4o",
+        model="gpt-5.4",
         section_key="gestion_capital",
         changes=changes,
     )
@@ -7360,7 +7360,7 @@ def test_triage_section_changes_reads_long_sources_as_full_evidence_packets() ->
 
     _triage_section_changes(
         client=client,
-        model="gpt-4o",
+        model="gpt-5.4",
         section_key="gestion_risques",
         changes=[
             {
@@ -7449,7 +7449,7 @@ def test_full_evidence_invalid_response_is_corrected_then_pipeline_continues() -
     client = _FakeStructuredClient(response_with_corrected_evidence)
     result = _triage_section_changes(
         client=client,
-        model="gpt-4o",
+        model="gpt-5.4",
         section_key="gestion_risques",
         bank_code="bmo",
         changes=[
@@ -7492,7 +7492,7 @@ def test_full_evidence_persistent_failure_marks_only_change_for_review() -> None
     client = _FakeStructuredClient(response_with_invalid_evidence)
     result = _triage_section_changes(
         client=client,
-        model="gpt-4o",
+        model="gpt-5.4",
         section_key="gestion_risques",
         bank_code="bmo",
         changes=[
@@ -7535,7 +7535,7 @@ def test_triage_section_changes_attaches_deterministic_change_segments() -> None
 
     result = _triage_section_changes(
         client=client,
-        model="gpt-4o",
+        model="gpt-5.4",
         section_key="gestion_risques",
         changes=changes,
     )
@@ -7571,7 +7571,7 @@ def test_governance_new_idea_receives_major_priority() -> None:
 
     result = _triage_section_changes(
         client=client,
-        model="gpt-4o",
+        model="gpt-5.4",
         section_key="gestion_risques",
         changes=[
             {
@@ -7630,7 +7630,7 @@ def test_real_methodology_or_process_change_receives_major_priority(
 
     result = _triage_section_changes(
         client=client,
-        model="gpt-4o",
+        model="gpt-5.4",
         section_key="gestion_risques",
         changes=[
             {
@@ -7713,7 +7713,7 @@ def test_committee_rename_stays_relevant_without_becoming_a_new_idea() -> None:
     client = _FakeStructuredClient(_make_parsed_response(parsed))
     result = _triage_section_changes(
         client=client,
-        model="gpt-4o",
+        model="gpt-5.4",
         section_key="gestion_risques",
         changes=[change],
     )
@@ -7751,7 +7751,7 @@ def test_triage_section_changes_holds_unresolved_alignment_for_analyst_review() 
 
     result = _triage_section_changes(
         client=client,
-        model="gpt-4o",
+        model="gpt-5.4",
         section_key="gestion_risques",
         changes=changes,
     )
@@ -7799,7 +7799,7 @@ def test_triage_section_changes_accepts_gpt_confirmed_semantic_alignment() -> No
 
     result = _triage_section_changes(
         client=client,
-        model="gpt-4o",
+        model="gpt-5.4",
         section_key="gestion_risques",
         changes=changes,
     )
@@ -7833,7 +7833,7 @@ def test_triage_section_changes_does_not_request_posture_or_it_impact() -> None:
 
     result = _triage_section_changes(
         client=client,
-        model="gpt-4o",
+        model="gpt-5.4",
         section_key="gestion_risques",
         bank_code="bmo",
         changes=changes,
@@ -7915,7 +7915,7 @@ def test_triage_accepts_amf_theme_outside_candidate_shortlist(monkeypatch) -> No
 
     result = _triage_section_changes(
         client=client,
-        model="gpt-4o",
+        model="gpt-5.4",
         section_key="gestion_risques",
         changes=changes,
     )

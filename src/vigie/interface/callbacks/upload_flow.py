@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import base64
 import logging
-import os
 import tempfile
 import time
 from pathlib import Path
@@ -53,6 +52,7 @@ from vigie.interface.ui_detection import (
     get_section_preview_images,
 )
 from vigie.interface.ui_io import save_pdfs_to_temp
+from vigie.llm import is_configured
 from vigie.support.config import get_vision_extraction_config
 from vigie.support.quarter_utils import build_quarter_context, quarter_label_from_payload
 
@@ -727,8 +727,7 @@ def on_analyze(
         path_t2,
     )
 
-    api_key = (os.environ.get("OPENAI_API_KEY") or "").strip() or None
-    use_genai = bool(api_key)
+    use_genai = is_configured()
 
     try:
         cfg = get_vision_extraction_config(bank_code=bank_code) or {}
@@ -736,7 +735,9 @@ def on_analyze(
     except Exception:
         use_vision_extraction = False
     include_footnotes = bool(footnotes_opt and "footnotes" in footnotes_opt)
-    include_genai_classification = bool(genai_classification_opt and "classify" in genai_classification_opt and api_key)
+    include_genai_classification = bool(
+        genai_classification_opt and "classify" in genai_classification_opt and use_genai
+    )
     use_stored_extraction = not bool(force_reextract_opt and "reextract" in (force_reextract_opt or []))
 
     try:
@@ -755,7 +756,6 @@ def on_analyze(
             current_year=int(quarter_context["current"]["year"]),
             previous_year=int(quarter_context["previous"]["year"]),
             use_genai=use_genai,
-            api_key=api_key,
             use_vision_extraction=use_vision_extraction,
             include_footnotes=include_footnotes,
             include_genai_classification=include_genai_classification,

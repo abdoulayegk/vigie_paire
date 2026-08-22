@@ -371,7 +371,7 @@ def run_text_analysis_pipeline(
     pdf_previous: Path,
     pdf_current: Path,
     out_root: Path,
-    model: str = "gpt-4o",
+    model: str = "gpt-5.4",
     allowed_section_keys: set[str] | None = None,
     project_root: Path | None = None,
     force_extraction: bool = False,

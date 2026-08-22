@@ -220,7 +220,7 @@ def test_compare_excludes_unmatched_boundary_candidates_from_change_counts(
         previous_dir=previous_dir,
         current_dir=current_dir,
         out_root=tmp_path / "comparisons",
-        model="gpt-4o-test",
+        model="gpt-5.4-test",
     )
 
     payload = json.loads(comparison_path.read_text(encoding="utf-8"))
@@ -305,8 +305,7 @@ def test_comparison_openai_clients_use_direct_120_second_timeout(monkeypatch) ->
     client_kwargs: list[dict] = []
 
     class FakeOpenAI:
-        def __init__(self, **kwargs) -> None:
-            client_kwargs.append(kwargs)
+        def __init__(self, **_kwargs) -> None:
             self.chat = SimpleNamespace(
                 completions=SimpleNamespace(
                     create=lambda **_kwargs: SimpleNamespace(
@@ -322,8 +321,12 @@ def test_comparison_openai_clients_use_direct_120_second_timeout(monkeypatch) ->
                 create=lambda **_kwargs: SimpleNamespace(data=[SimpleNamespace(index=0, embedding=[0.25, 0.75])])
             )
 
-    monkeypatch.setattr("vigie.comparaison.pipeline.client_openai.get_openai_api_key", lambda: "test-key")
-    monkeypatch.setattr("openai.OpenAI", FakeOpenAI)
+    def fake_get_client(**kwargs):
+        client_kwargs.append(kwargs)
+        return FakeOpenAI()
+
+    monkeypatch.setattr("vigie.llm.is_configured", lambda *args, **kwargs: True)
+    monkeypatch.setattr("vigie.llm.get_client", fake_get_client)
 
     assert _call_openai_json(model="gpt-test", messages=[]) == {}
     assert _call_openai_embeddings(model="embedding-test", inputs=["table"]) == [[0.25, 0.75]]
@@ -502,7 +505,7 @@ def test_compare_reports_gpt4o_uses_canonical_prompt_cards_and_gpt_diff(
         previous_dir=previous_dir,
         current_dir=current_dir,
         out_root=tmp_path / "comparisons",
-        model="gpt-4o-test",
+        model="gpt-5.4-test",
     )
 
     payload = json.loads(comparison_path.read_text(encoding="utf-8"))
@@ -654,7 +657,7 @@ def test_compare_reports_gpt4o_allows_cross_section_matching_in_single_pass(
         previous_dir=previous_dir,
         current_dir=current_dir,
         out_root=tmp_path / "comparisons",
-        model="gpt-4o-test",
+        model="gpt-5.4-test",
     )
 
     payload = json.loads(comparison_path.read_text(encoding="utf-8"))
@@ -762,7 +765,7 @@ def test_compare_reports_gpt4o_retries_invalid_matching_output(
         previous_dir=previous_dir,
         current_dir=current_dir,
         out_root=tmp_path / "comparisons",
-        model="gpt-4o-test",
+        model="gpt-5.4-test",
     )
 
     payload = json.loads(comparison_path.read_text(encoding="utf-8"))
@@ -885,7 +888,7 @@ def test_compare_reports_gpt4o_rejects_duplicate_pairs_without_local_scoring(
         previous_dir=previous_dir,
         current_dir=current_dir,
         out_root=tmp_path / "comparisons",
-        model="gpt-4o-test",
+        model="gpt-5.4-test",
     )
 
     payload = json.loads(comparison_path.read_text(encoding="utf-8"))
@@ -1005,7 +1008,7 @@ def test_compare_reports_gpt4o_recovers_unresolved_pairs_in_second_matching_stag
         previous_dir=previous_dir,
         current_dir=current_dir,
         out_root=tmp_path / "comparisons",
-        model="gpt-4o-test",
+        model="gpt-5.4-test",
     )
 
     payload = json.loads(comparison_path.read_text(encoding="utf-8"))
@@ -1150,7 +1153,7 @@ def test_compare_reports_gpt4o_retries_incomplete_matching_coverage(
         previous_dir=previous_dir,
         current_dir=current_dir,
         out_root=tmp_path / "comparisons",
-        model="gpt-4o-test",
+        model="gpt-5.4-test",
     )
 
     payload = json.loads(comparison_path.read_text(encoding="utf-8"))
@@ -1277,7 +1280,7 @@ def test_compare_reports_gpt4o_separates_artifacts_and_extraction_suspects(
         previous_dir=previous_dir,
         current_dir=current_dir,
         out_root=tmp_path / "comparisons",
-        model="gpt-4o-test",
+        model="gpt-5.4-test",
     )
 
     payload = json.loads(comparison_path.read_text(encoding="utf-8"))
@@ -1351,7 +1354,7 @@ def test_compare_reports_gpt4o_preclassifies_artifacts_and_suspects_before_audit
         previous_dir=previous_dir,
         current_dir=current_dir,
         out_root=tmp_path / "comparisons",
-        model="gpt-4o-test",
+        model="gpt-5.4-test",
     )
 
     payload = json.loads(comparison_path.read_text(encoding="utf-8"))
@@ -1408,7 +1411,7 @@ def test_compare_reports_gpt4o_sends_trivial_ok_tables_to_business_matching(
         previous_dir=previous_dir,
         current_dir=current_dir,
         out_root=tmp_path / "comparisons",
-        model="gpt-4o-test",
+        model="gpt-5.4-test",
     )
 
     payload = json.loads(comparison_path.read_text(encoding="utf-8"))
@@ -1512,7 +1515,7 @@ def test_compare_reports_gpt4o_always_uses_gpt_for_unchanged_diff(
         previous_dir=previous_dir,
         current_dir=current_dir,
         out_root=tmp_path / "comparisons",
-        model="gpt-4o-test",
+        model="gpt-5.4-test",
     )
 
     payload = json.loads(comparison_path.read_text(encoding="utf-8"))
@@ -1667,7 +1670,7 @@ def test_compare_reports_gpt4o_runs_visual_sanity_for_footnote_only_diff(
         previous_dir=previous_dir,
         current_dir=current_dir,
         out_root=tmp_path / "comparisons",
-        model="gpt-4o-test",
+        model="gpt-5.4-test",
         source_pdf_previous=str(source_pdf_previous),
         source_pdf_current=str(source_pdf_current),
     )
@@ -1799,7 +1802,7 @@ def test_compare_reports_gpt4o_filters_table_added_removed_with_visual_sanity(
         previous_dir=previous_dir,
         current_dir=current_dir,
         out_root=tmp_path / "comparisons",
-        model="gpt-4o-test",
+        model="gpt-5.4-test",
         source_pdf_previous=str(source_pdf_previous),
         source_pdf_current=str(source_pdf_current),
     )
@@ -1911,7 +1914,7 @@ def test_compare_reports_gpt4o_skips_table_visual_sanity_without_anchor(
         previous_dir=previous_dir,
         current_dir=current_dir,
         out_root=tmp_path / "comparisons",
-        model="gpt-4o-test",
+        model="gpt-5.4-test",
         source_pdf_previous=str(source_pdf_previous),
         source_pdf_current=str(source_pdf_current),
     )
@@ -2031,7 +2034,7 @@ def test_compare_reports_gpt4o_recomputes_table_level_change_after_noise_filter(
         previous_dir=previous_dir,
         current_dir=current_dir,
         out_root=tmp_path / "comparisons",
-        model="gpt-4o-test",
+        model="gpt-5.4-test",
     )
 
     payload = json.loads(comparison_path.read_text(encoding="utf-8"))
@@ -2070,5 +2073,5 @@ def test_compare_reports_gpt4o_rejects_non_schema_7_tables_json(tmp_path: Path) 
             previous_dir=previous_dir,
             current_dir=current_dir,
             out_root=tmp_path / "comparisons",
-            model="gpt-4o-test",
+            model="gpt-5.4-test",
         )

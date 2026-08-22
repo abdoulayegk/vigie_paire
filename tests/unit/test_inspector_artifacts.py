@@ -53,7 +53,7 @@ class TestInspectDiffArtifactsGpt:
             diff,
             _table(table_id="prev", indicators=["A"]),
             _table(table_id="curr", indicators=["A"]),
-            model="gpt-4o-test",
+            model="gpt-5.4-test",
             call_openai_json=fake_call_openai_json,
         )
         assert calls == []  # No GPT call
@@ -87,7 +87,7 @@ class TestInspectDiffArtifactsGpt:
             diff,
             _table(table_id="prev", indicators=["A"]),
             _table(table_id="curr", indicators=["B"]),
-            model="gpt-4o-test",
+            model="gpt-5.4-test",
             call_openai_json=fake_call_openai_json,
         )
         assert result["indicators_renamed"] == []
@@ -130,7 +130,7 @@ class TestInspectDiffArtifactsGpt:
             diff,
             _table(table_id="prev", indicators=["31 octobre 2025 – Total"]),
             _table(table_id="curr", indicators=["Total (bloc 2)"]),
-            model="gpt-4o-test",
+            model="gpt-5.4-test",
             call_openai_json=fake_call_openai_json,
         )
         assert result["indicators_added"] == []
@@ -174,7 +174,7 @@ class TestInspectDiffArtifactsGpt:
             diff,
             _table(table_id="prev", indicators=["Ratio CET1"]),
             _table(table_id="curr", indicators=["Ratio CET1", "Ratio de levier"]),
-            model="gpt-4o-test",
+            model="gpt-5.4-test",
             call_openai_json=fake_call_openai_json,
         )
         assert len(result["indicators_added"]) == 1
@@ -228,7 +228,7 @@ class TestInspectDiffArtifactsGpt:
             diff,
             _table(table_id="prev", indicators=["Goodwill", "Ratio CET1"]),
             _table(table_id="curr", indicators=["Goodwill³", "Ratio CET1", "Ratio AT1"]),
-            model="gpt-4o-test",
+            model="gpt-5.4-test",
             call_openai_json=fake_call_openai_json,
         )
         assert len(result["indicators_added"]) == 1
@@ -251,7 +251,7 @@ class TestInspectDiffArtifactsGpt:
             diff,
             _table(table_id="prev", indicators=["Y"]),
             _table(table_id="curr", indicators=["X"]),
-            model="gpt-4o-test",
+            model="gpt-5.4-test",
             call_openai_json=fake_call_openai_json,
         )
         # No filtering happened — original items preserved
@@ -324,7 +324,7 @@ class TestDiffTablePairGptWithInspector:
                 indicators=["Ratio CET1", "Total (bloc 2)"],
                 footnotes=[{"id": "1", "text": "Note A"}],
             ),
-            model="gpt-4o-test",
+            model="gpt-5.4-test",
             call_openai_json=fake_call_openai_json,
         )
 
@@ -353,7 +353,7 @@ class TestDiffTablePairGptWithInspector:
         result = diff_table_pair_gpt(
             _table(table_id="prev", indicators=["Ratio CET1"]),
             _table(table_id="curr", indicators=["Ratio CET1"]),
-            model="gpt-4o-test",
+            model="gpt-5.4-test",
             call_openai_json=fake_call_openai_json,
         )
 
@@ -403,7 +403,7 @@ class TestDiffTablePairGptWithInspector:
         result = diff_table_pair_gpt(
             _table(table_id="prev", indicators=["Cr\u00e9dit d'imp\u00f4t"]),
             _table(table_id="curr", indicators=["Cr\u00e9dit d\u2019imp\u00f4t"]),
-            model="gpt-4o-test",
+            model="gpt-5.4-test",
             call_openai_json=fake_call_openai_json,
         )
 

@@ -22,8 +22,8 @@ from vigie.extraction.docling import extract_tables_docling_by_sections
 from vigie.extraction.section_taxonomy import canonicalize_section
 from vigie.extraction.vision_extraction_writer import write_compact_report_artifacts
 from vigie.interface.ui_config import OUTPUT_DIR, RESULTATS_DIR
+from vigie.llm import is_configured
 from vigie.support.quarter_utils import format_quarter_label
-from vigie.support.utils.genai import get_openai_api_key
 from vigie.support.utils.model_cost import estimate_openai_cost_usd
 
 EXTRACTION_ROOT = OUTPUT_DIR / "extractions"
@@ -376,8 +376,10 @@ def run_comparison_with_sections(
 
     if api_key:
         os.environ["OPENAI_API_KEY"] = str(api_key).strip()
-    if use_genai and not get_openai_api_key():
-        raise RuntimeError("OPENAI_API_KEY absente. Ajouter la clé dans .env avant de lancer l'analyse.")
+    if use_genai and not is_configured():
+        raise RuntimeError(
+            "Provider LLM absent. Configurer OPENAI_API_KEY ou Azure OpenAI dans .env avant de lancer l'analyse."
+        )
 
     current_quarter_value = current_quarter or "T2"
     current_year_value = int(current_year or _extract_year(current_quarter_value) or datetime.now().year)

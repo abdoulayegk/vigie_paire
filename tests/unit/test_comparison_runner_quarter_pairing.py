@@ -107,7 +107,6 @@ def test_run_comparison_uses_current_vs_previous_quarter_context(
         sections_current=[{"section": "capital_management", "start_page": 1, "end_page": 2}],
         current_quarter="Q1-2026",
         current_year=2026,
-        api_key="test-key",
     )
 
     assert len(extraction_calls) == 2
@@ -175,7 +174,6 @@ def test_run_comparison_includes_extraction_source_provenance(
         sections_current=[{"section": "capital_management", "start_page": 1, "end_page": 2}],
         current_quarter="Q1-2026",
         current_year=2026,
-        api_key="test-key",
     )
 
     prev = result["meta"]["extraction_sources"]["previous"]

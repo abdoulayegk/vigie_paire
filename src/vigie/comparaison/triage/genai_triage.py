@@ -19,7 +19,6 @@ import time
 from pathlib import Path
 from typing import Any
 
-import openai
 from tqdm import tqdm
 
 from vigie.comparaison.triage.prompts import (
@@ -32,9 +31,16 @@ from vigie.comparaison.triage.validation import (
     VALID_RELEVANCE,
     _validate_triage_response,
 )
-from vigie.support.utils import genai
+from vigie.llm import complete_json_async, get_async_client, require_configured, resolve_model
 
 logger = logging.getLogger(__name__)
+
+# Plafonds post-validation du resume global (apres reponse LLM complete).
+# L'appel API n'impose pas max_completion_tokens : le modele s'arrete naturellement.
+_SUMMARY_OVERVIEW_MAX_CHARS = 8000
+_SUMMARY_HIGHLIGHT_MAX_CHARS = 500
+_SUMMARY_PHASE_RESUME_MAX_CHARS = 500
+_SUMMARY_MAX_HIGHLIGHTS = 10
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -86,42 +92,18 @@ async def _call_openai_json_async(
     *,
     system: str,
     user: str,
-    model: str = "gpt-4o",
-    temperature: float = 0.1,
+    model: str | None = None,
     max_tokens: int | None = None,
-) -> dict[str, Any] | None:
-    """Appel asynchrone unique a OpenAI retournant du JSON parse.
-
-    Args:
-        client: Instance ``AsyncOpenAI``.
-        system: Contenu du message systeme.
-        user: Contenu du message utilisateur.
-        model: Identifiant du modele OpenAI.
-        temperature: Temperature d'echantillonnage.
-        max_tokens: Nombre maximal de tokens de completion. ``None`` laisse le
-            modele s'arreter naturellement — preferer la qualite complete.
-
-    Returns:
-        Dictionnaire JSON parse ou ``None`` en cas d'echec.
-    """
-    try:
-        kwargs: dict[str, Any] = {
-            "model": model,
-            "messages": [
-                {"role": "system", "content": system},
-                {"role": "user", "content": user},
-            ],
-            "temperature": temperature,
-            "response_format": {"type": "json_object"},
-        }
-        if max_tokens is not None:
-            kwargs["max_tokens"] = max_tokens
-        response = await client.chat.completions.create(**kwargs)
-        raw = response.choices[0].message.content or ""
-        return json.loads(raw)
-    except Exception as exc:
-        logger.warning("GenAI triage call failed: %s", exc)
-        return None
+) -> dict[str, Any]:
+    """Appel asynchrone unique a OpenAI retournant du JSON parse."""
+    return await complete_json_async(
+        client,
+        system=system,
+        user=user,
+        model=model,
+        profile="default",
+        max_tokens=max_tokens,
+    )
 
 
 def _empty_triage_skeleton(*, source: str = "heuristic") -> dict[str, Any]:
@@ -228,21 +210,14 @@ def _validate_summary_response(data: dict[str, Any] | None) -> dict[str, Any]:
         ``key_highlights``, ``pertinence_globale``, ``par_phase``, ``par_action``.
     """
     if not data or not isinstance(data, dict):
-        return {
-            "executive_overview": "",
-            "key_highlights": [],
-            "pertinence_globale": "FAIBLE",
-            "par_phase": {},
-            "par_action": {},
-            "source": "heuristic",
-        }
+        raise ValueError("GenAI summary response is empty or invalid")
 
-    overview = str(data.get("executive_overview") or "")[:2000]
+    overview = str(data.get("executive_overview") or "")[:_SUMMARY_OVERVIEW_MAX_CHARS]
 
     highlights = data.get("key_highlights")
     if not isinstance(highlights, list):
         highlights = []
-    highlights = [str(h)[:300] for h in highlights if h][:10]
+    highlights = [str(h)[:_SUMMARY_HIGHLIGHT_MAX_CHARS] for h in highlights if h][:_SUMMARY_MAX_HIGHLIGHTS]
 
     overall = str(data.get("pertinence_globale") or "FAIBLE").upper()
     if overall not in VALID_RELEVANCE:
@@ -261,7 +236,7 @@ def _validate_summary_response(data: dict[str, Any] | None) -> dict[str, Any]:
                     count = 0
                 par_phase[phase] = {
                     "count": count,
-                    "resume": str(entry.get("resume") or "")[:300],
+                    "resume": str(entry.get("resume") or "")[:_SUMMARY_PHASE_RESUME_MAX_CHARS],
                 }
             else:
                 par_phase[phase] = {"count": 0, "resume": ""}
@@ -319,21 +294,19 @@ def _has_meaningful_diff(pair: dict[str, Any]) -> bool:
 async def _triage_all_changes(
     comparison: dict[str, Any],
     *,
-    model: str = "gpt-4o",
+    model: str | None = None,
     max_concurrency: int = 20,
 ) -> dict[str, Any]:
     """Execute le triage LLM sur chaque changement de la comparaison, enrichit en place et retourne le resume."""
-    api_key = genai.get_openai_api_key()
-    if not api_key:
-        logger.warning("GenAI triage: OPENAI_API_KEY non définie, passage au mode heuristique.")
-        return _fallback_enrich(comparison)
+    require_configured()
 
-    client = openai.AsyncOpenAI(api_key=api_key)
+    model_name = str(model or resolve_model("chat"))
+    client = get_async_client(timeout=120.0, max_retries=1)
     semaphore = asyncio.Semaphore(max_concurrency)
     bank_code = str(comparison.get("bank_code") or "")
 
     # -- Collect all tasks ------------------------------------------------
-    tasks: list[tuple[str, int, str, asyncio.Task[dict[str, Any] | None]]] = []
+    tasks: list[tuple[str, int, str, asyncio.Task[dict[str, Any]]]] = []
 
     pair_comparisons = comparison.get("pair_comparisons") or []
     tables_added = comparison.get("matching", {}).get("tables_added") or []
@@ -346,14 +319,14 @@ async def _triage_all_changes(
 
         prompt = _build_change_prompt(pair, "pair", bank_code=bank_code)
 
-        async def _run(p: str = prompt) -> dict[str, Any] | None:
+        async def _run(p: str = prompt) -> dict[str, Any]:
             """Tâche async qui appelle le triage GPT pour un changement de paire."""
             async with semaphore:
                 return await _call_openai_json_async(
                     client,
                     system=_TRIAGE_SYSTEM_PROMPT,
                     user=p,
-                    model=model,
+                    model=model_name,
                 )
 
         task = asyncio.create_task(_run())
@@ -362,14 +335,14 @@ async def _triage_all_changes(
     for idx, tbl in enumerate(tables_added):
         prompt = _build_change_prompt(tbl, "added", bank_code=bank_code)
 
-        async def _run_added(p: str = prompt) -> dict[str, Any] | None:
+        async def _run_added(p: str = prompt) -> dict[str, Any]:
             """Tâche async qui appelle le triage GPT pour un tableau ajouté."""
             async with semaphore:
                 return await _call_openai_json_async(
                     client,
                     system=_TRIAGE_SYSTEM_PROMPT,
                     user=p,
-                    model=model,
+                    model=model_name,
                 )
 
         task = asyncio.create_task(_run_added())
@@ -378,14 +351,14 @@ async def _triage_all_changes(
     for idx, tbl in enumerate(tables_removed):
         prompt = _build_change_prompt(tbl, "removed", bank_code=bank_code)
 
-        async def _run_removed(p: str = prompt) -> dict[str, Any] | None:
+        async def _run_removed(p: str = prompt) -> dict[str, Any]:
             """Tâche async qui appelle le triage GPT pour un tableau retiré."""
             async with semaphore:
                 return await _call_openai_json_async(
                     client,
                     system=_TRIAGE_SYSTEM_PROMPT,
                     user=p,
-                    model=model,
+                    model=model_name,
                 )
 
         task = asyncio.create_task(_run_removed())
@@ -399,18 +372,12 @@ async def _triage_all_changes(
             unit="tableau",
         )
         for fut in asyncio.as_completed([t[3] for t in tasks]):
-            try:
-                await fut
-            except Exception:
-                pass
+            await fut
             pbar.update(1)
         pbar.close()
 
     for kind, idx, _, task in tasks:
-        try:
-            raw = task.result()
-        except Exception:
-            raw = None
+        raw = task.result()
         validated = _validate_triage_response(raw)
 
         if kind == "pair":
@@ -453,8 +420,7 @@ async def _triage_all_changes(
             client,
             system=_SUMMARY_SYSTEM_PROMPT,
             user=summary_prompt,
-            model=model,
-            max_tokens=2000,
+            model=model_name,
         )
         global_summary = _validate_summary_response(summary_raw)
     else:
@@ -474,37 +440,6 @@ async def _triage_all_changes(
     return comparison
 
 
-def _fallback_enrich(comparison: dict[str, Any]) -> dict[str, Any]:
-    """Enrichissement heuristique de repli lorsqu'aucune cle API n'est disponible.
-
-    Args:
-        comparison: Dictionnaire de comparaison a enrichir en place.
-
-    Returns:
-        Le meme dictionnaire ``comparison``, enrichi avec des valeurs heuristiques.
-    """
-    for pair in comparison.get("pair_comparisons") or []:
-        if not pair.get("genai_triage"):
-            pair["genai_triage"] = _empty_triage_skeleton(source="heuristic")
-    for tbl in comparison.get("matching", {}).get("tables_added") or []:
-        if not tbl.get("genai_triage"):
-            tbl["genai_triage"] = _empty_triage_skeleton(source="heuristic")
-    for tbl in comparison.get("matching", {}).get("tables_removed") or []:
-        if not tbl.get("genai_triage"):
-            tbl["genai_triage"] = _empty_triage_skeleton(source="heuristic")
-    comparison["global_summary"] = {
-        "executive_overview": "",
-        "key_highlights": [],
-        "pertinence_globale": "FAIBLE",
-        "par_phase": {},
-        "par_action": {},
-        "source": "heuristic",
-        "total_changes_analysed": 0,
-        "total_relevant": 0,
-    }
-    return comparison
-
-
 # ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
@@ -513,7 +448,7 @@ def _fallback_enrich(comparison: dict[str, Any]) -> dict[str, Any]:
 def enrich_comparison_with_genai_triage(
     comparison_path: str | Path,
     *,
-    model: str = "gpt-4o",
+    model: str | None = None,
     max_concurrency: int = 20,
 ) -> Path:
     """Lit un comparison.json, l'enrichit avec le triage GenAI et le reecrit.
@@ -522,7 +457,7 @@ def enrich_comparison_with_genai_triage(
 
     Args:
         comparison_path: Chemin vers le fichier comparison.json sur disque.
-        model: Modele OpenAI a utiliser pour les appels de triage.
+        model: Modele OpenAI a utiliser pour les appels de triage (defaut: chat resolu).
         max_concurrency: Nombre maximal de requetes LLM en parallele.
 
     Returns:

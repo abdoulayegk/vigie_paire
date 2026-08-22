@@ -26,7 +26,7 @@ import pdfplumber
 from vigie.extraction.localisation_sections.boundary_resolver import resolve_t4_section_bounds
 from vigie.extraction.localisation_sections.toc_locator import locate_toc_structure
 from vigie.extraction.section_taxonomy import canonicalize_section
-from vigie.support.utils.genai import get_openai_api_key
+from vigie.llm import require_configured
 
 from .annual_t4 import AnnualT4Mixin
 from .bank_config import (
@@ -285,12 +285,13 @@ class SectionLocator(
             required = bool(semantic_config.get("vision_required_for_new_titles", True))
             validated_candidates: list[LocatedSection] = []
             detector = None
-            if candidates_requiring_vision and get_openai_api_key():
+            if candidates_requiring_vision:
+                require_configured()
                 from vigie.extraction.genai_toc_detector import (  # noqa: PLC0415 - dépendance OpenAI optionnelle
                     GenAITOCDetector,
                 )
 
-                detector = GenAITOCDetector(model=str(semantic_config.get("vision_model", "gpt-4o")))
+                detector = GenAITOCDetector(model=str(semantic_config.get("vision_model", "gpt-5.4")))
 
             for candidate in semantic_candidates:
                 if candidate not in candidates_requiring_vision:
@@ -470,10 +471,12 @@ class SectionLocator(
         sections = self._refine_cibc_target_sections(sections, text_by_page, total_pages)
 
         # ETAPE 4.75: Pour les rapports annuels, valider la TDM et les
-        # transitions physiques avec la couche Docling + Vision indépendante.
-        if self._is_t4_quarter():
+        # transitions physiques avec la couche pdfplumber + Vision indépendante.
+        boundary_cfg = self.bank_config.get("section_boundary_detection", {}) or {}
+        annual_validator_enabled = bool(boundary_cfg.get("annual_boundary_validator_enabled", True))
+        if self._is_t4_quarter() and annual_validator_enabled:
             try:
-                from vigie.extraction.annual_section_boundary_validator import (  # noqa: PLC0415 - Docling charge seulement pour T4
+                from vigie.extraction.annual_section_boundary_validator import (  # noqa: PLC0415 - validateur T4 optionnel
                     AnnualSectionBoundaryValidator,
                 )
 
@@ -534,7 +537,7 @@ class SectionLocator(
                         "partial",
                     }
             except Exception as exc:
-                logger.warning("Validation annuelle Docling + Vision indisponible: %s", exc)
+                logger.warning("Validation annuelle pdfplumber + Vision indisponible: %s", exc)
                 annual_diagnostics = {
                     "enabled": True,
                     "status": "error",
@@ -542,6 +545,14 @@ class SectionLocator(
                 }
                 boundary_validation["annual_t4"] = annual_diagnostics
                 boundary_validation.update(annual_diagnostics)
+        elif self._is_t4_quarter() and not annual_validator_enabled:
+            boundary_validation["annual_t4"] = {
+                "enabled": False,
+                "status": "skipped",
+                "toc_entry_count": 0,
+                "docling_entry_count": 0,
+                "warnings": ["annual_boundary_validator_disabled"],
+            }
 
         # ETAPE 4.8: Normaliser la taxonomie des sections en sortie.
         for section in sections:

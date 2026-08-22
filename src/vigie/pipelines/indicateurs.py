@@ -76,6 +76,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="Sauter l'etape d'extraction (si les tables.json existent deja)",
     )
     p.add_argument(
+        "--forcer-extraction",
+        action="store_true",
+        help="Ignorer le cache Vision et re-extraire les tableaux",
+    )
+    p.add_argument(
         "--sans-comparaison",
         action="store_true",
         help="Sauter l'etape de comparaison (utile pour reextraire sans recomparer)",
@@ -95,24 +100,26 @@ def _step_extract(
     quarter: str,
     config: str,
     extraction_root: Path,
+    force_extraction: bool = False,
 ) -> Path:
     """Step 1: Run extraction on a single PDF and return the tables.json path."""
-    extract_main(
-        [
-            "--banque",
-            bank,
-            "--pdf",
-            str(pdf_path),
-            "--annee",
-            str(year),
-            "--trimestre",
-            quarter,
-            "--config",
-            config,
-            "--sortie",
-            str(extraction_root),  # extraction writes {root}/{bank}/{year}/{quarter}/
-        ]
-    )
+    cmd = [
+        "--banque",
+        bank,
+        "--pdf",
+        str(pdf_path),
+        "--annee",
+        str(year),
+        "--trimestre",
+        quarter,
+        "--config",
+        config,
+        "--sortie",
+        str(extraction_root),  # extraction writes {root}/{bank}/{year}/{quarter}/
+    ]
+    if force_extraction:
+        cmd.append("--forcer-extraction")
+    extract_main(cmd)
 
     # The extraction writes into {out_root}/{bank}/{year}/{quarter}/
     extraction_dir = extraction_root / bank.lower() / str(year) / quarter
@@ -191,6 +198,9 @@ def main(argv: list[str] | None = None) -> int:
     """Executer le pipeline indicateurs de bout en bout."""
     args = build_parser().parse_args(argv)
 
+    if args.sans_extraction and args.forcer_extraction:
+        raise SystemExit("--sans-extraction et --forcer-extraction sont incompatibles.")
+
     bank = args.banque.upper()
     year_current = args.annee
     q_current = normalize_quarter(args.trimestre)
@@ -240,11 +250,27 @@ def main(argv: list[str] | None = None) -> int:
 
         t0 = time.time()
         print(f"\n   Extraction du rapport courant ({q_current.upper()}-{year_current})…")
-        _step_extract(current_pdf, bank.lower(), year_current, q_current, config, extraction_root)
+        _step_extract(
+            current_pdf,
+            bank.lower(),
+            year_current,
+            q_current,
+            config,
+            extraction_root,
+            force_extraction=args.forcer_extraction,
+        )
         print(f"   tables.json → {cur_extraction_dir}")
 
         print(f"\n   Extraction du rapport précédent ({q_previous.upper()}-{year_previous})…")
-        _step_extract(previous_pdf, bank.lower(), year_previous, q_previous, config, extraction_root)
+        _step_extract(
+            previous_pdf,
+            bank.lower(),
+            year_previous,
+            q_previous,
+            config,
+            extraction_root,
+            force_extraction=args.forcer_extraction,
+        )
         print(f"   tables.json → {prev_extraction_dir}")
 
         elapsed = time.time() - t0

@@ -113,16 +113,23 @@ class VisionPassMixin:
                     else:
                         # Dynamic crop extensions based on page layout context
                         page_table_map = shared.get("page_table_map", {})
-                        dyn_top, dyn_bottom = page_layout_context.compute_dynamic_extensions(
+                        tight_gap_threshold = float(vision_extraction_cfg.get("tight_table_gap_threshold", 0.03))
+                        tight_gap_footnote_margin = float(
+                            vision_extraction_cfg.get("tight_table_gap_footnote_margin", 0.005)
+                        )
+                        dyn_crop = page_layout_context.compute_dynamic_extensions(
                             table_idx=idx,
                             page_num=page_num,
                             table_bbox=table_bbox,
                             page_table_map=page_table_map,
                             default_bottom=bottom_extension_footnotes,
                             default_top=top_extension_title,
+                            tight_gap_threshold=tight_gap_threshold,
+                            tight_gap_footnote_margin=tight_gap_footnote_margin,
                         )
-                        initial_bottom_ext = dyn_bottom
-                        top_extension_title = dyn_top
+                        initial_bottom_ext = dyn_crop.bottom_extension
+                        top_extension_title = dyn_crop.top_extension
+                        tight_inter_table_gap = dyn_crop.tight_inter_table_gap
 
                         def _recrop(ext: float) -> bytes:
                             """Re-crope la région du tableau avec une extension verticale ajustée."""
@@ -253,7 +260,44 @@ class VisionPassMixin:
                                 "table_count": plan.table_count,
                             }
 
-                        crop_bytes = _recrop(initial_bottom_ext)
+                        effective_bbox = list(table_bbox)
+                        effective_bottom_ext = initial_bottom_ext
+                        effective_top_ext = top_extension_title
+                        crop_bytes: bytes | None = None
+
+                        if tight_inter_table_gap and page_table_locator is not None:
+                            proactive_context = _page_context_crop()
+                            if isinstance(proactive_context, dict):
+                                proactive_confidence = float(proactive_context.get("confidence", 0.0) or 0.0)
+                                proactive_crop = proactive_context.get("crop_bytes")
+                                if (
+                                    proactive_confidence >= page_table_locator.min_confidence
+                                    and isinstance(proactive_crop, bytes)
+                                    and proactive_crop
+                                ):
+                                    crop_bytes = proactive_crop
+                                    proactive_bbox = proactive_context.get("bbox_norm")
+                                    if isinstance(proactive_bbox, (list, tuple)) and len(proactive_bbox) == 4:
+                                        effective_bbox = [float(value) for value in proactive_bbox]
+                                    effective_bottom_ext = float(
+                                        proactive_context.get("bottom_extension", initial_bottom_ext)
+                                        or initial_bottom_ext
+                                    )
+                                    effective_top_ext = float(
+                                        proactive_context.get("top_extension", top_extension_title)
+                                        or top_extension_title
+                                    )
+                                    page_context_observation.setdefault("bbox_source", "page_context_locator")
+                                    logger.info(
+                                        "Vision proactive page-context crop page=%s table=%s "
+                                        "confidence=%.2f tight_inter_table_gap=True",
+                                        page_num,
+                                        idx,
+                                        proactive_confidence,
+                                    )
+
+                        if crop_bytes is None:
+                            crop_bytes = _recrop(initial_bottom_ext)
                         if not crop_bytes:
                             vision_extraction_attempted = True
                             vision_status_str = "failed"
@@ -266,10 +310,10 @@ class VisionPassMixin:
                                 bank_code=bank_code,
                                 pdf_sha=pdf_sha,
                                 page_number=page_num,
-                                bbox_norm=table_bbox,
+                                bbox_norm=effective_bbox,
                                 vision_cfg=vision_extraction_cfg,
-                                initial_bottom_extension=initial_bottom_ext,
-                                initial_top_extension=top_extension_title,
+                                initial_bottom_extension=effective_bottom_ext,
+                                initial_top_extension=effective_top_ext,
                                 get_recrop_fn=_recrop,
                                 get_variant_crop_fn=_variant_crop,
                                 get_page_context_crop_fn=_page_context_crop,

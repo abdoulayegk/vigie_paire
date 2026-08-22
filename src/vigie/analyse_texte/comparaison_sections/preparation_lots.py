@@ -29,7 +29,7 @@ def _prepare_subsection_alignments(
     body_t2: str,
     client: Any | None = None,
     embedding_model: str = "text-embedding-3-small",
-    semantic_model: str = "gpt-4o",
+    semantic_model: str = "gpt-5.4",
 ) -> list[ChunkAlignment]:
     """Prépare une paire de sous-sections en alignements hybrides locaux."""
     section_title = _SECTION_LABELS.get(section_key, section_key)

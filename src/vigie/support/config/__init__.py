@@ -20,20 +20,25 @@ tels quels.
 
 from __future__ import annotations
 
-import os
 from pathlib import Path
 from typing import Any
 
 from vigie.support.config.loader import _resolve_config_path, get_bank_cfg, load_config
 
 _DEFAULT_OPENAI_MODELS: dict[str, str] = {
+    "chat": "gpt-5.4",
     "extraction_primary": "gpt-5.4",
-    "default_genai": "gpt-4o",
+    "default_genai": "gpt-5.4",
+    "embedding_small": "text-embedding-3-small",
+    "embedding_large": "text-embedding-3-large",
 }
 
 _MODEL_ENV_OVERRIDES: dict[str, str] = {
+    "chat": "OPENAI_MODEL_CHAT",
     "extraction_primary": "OPENAI_MODEL_EXTRACTION_PRIMARY",
     "default_genai": "OPENAI_MODEL_DEFAULT_GENAI",
+    "embedding_small": "OPENAI_MODEL_EMBEDDING_SMALL",
+    "embedding_large": "OPENAI_MODEL_EMBEDDING_LARGE",
 }
 
 
@@ -274,6 +279,11 @@ def get_llm_model_config(
         value = raw.get(role)
         if isinstance(value, str) and value.strip():
             base[role] = value.strip()
+    chat_value = raw.get("chat")
+    if isinstance(chat_value, str) and chat_value.strip():
+        for alias in ("extraction_primary", "default_genai", "vision_qa", "vision_toc"):
+            if alias in base:
+                base[alias] = chat_value.strip()
     return base
 
 
@@ -283,37 +293,21 @@ def resolve_openai_model(
 ) -> str:
     """Resoudre le modele OpenAI pour un role donne avec support des surcharges.
 
-    Ordre de resolution : (1) variable d'environnement, (2) bloc llm_models
-    dans la configuration, (3) valeur par defaut integree.
-    Roles supportes : extraction_primary, default_genai.
+    Delegue a ``vigie.llm.resolve_model`` (OpenAI public ou deploiement Azure).
 
     Args:
-        role: Role du modele (ex. extraction_primary, default_genai).
-            Normalise en minuscule. Doit etre un role connu.
+        role: Role du modele (ex. extraction_primary, default_genai, chat).
         config_path: Chemin vers le fichier YAML pour le bloc llm_models.
 
     Returns:
-        Identifiant du modele (ex. gpt-5.4, gpt-4o).
+        Identifiant du modele (ex. gpt-5.4) ou nom de deploiement Azure.
 
     Raises:
         ValueError: Si le role n'est pas dans les roles connus.
     """
-    key = str(role or "").strip().lower()
-    if key not in _DEFAULT_OPENAI_MODELS:
-        known = ", ".join(sorted(_DEFAULT_OPENAI_MODELS))
-        raise ValueError(f"Unknown OpenAI model role '{role}'. Known roles: {known}")
+    from vigie.llm import resolve_model  # noqa: PLC0415 - evite import circulaire au chargement
 
-    env_name = _MODEL_ENV_OVERRIDES.get(key)
-    if env_name:
-        env_value = os.getenv(env_name)
-        if isinstance(env_value, str) and env_value.strip():
-            return env_value.strip()
-
-    cfg = get_llm_model_config(config_path=config_path)
-    value = cfg.get(key)
-    if isinstance(value, str) and value.strip():
-        return value.strip()
-    return _DEFAULT_OPENAI_MODELS[key]
+    return resolve_model(role, config_path=config_path)
 
 
 def get_validation_config(

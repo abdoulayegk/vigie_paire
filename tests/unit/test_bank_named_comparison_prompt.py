@@ -52,7 +52,7 @@ def test_single_call_names_bank_and_forbids_period_labels_as_subject(
 
     _compare_texts_single_call(
         client=object(),
-        model="gpt-4o",
+        model="gpt-5.4",
         section_key="gestion_risques",
         heading_label="Gestion des risques",
         heading_slug="gestion_des_risques",
@@ -130,7 +130,7 @@ def test_compare_section_texts_propagates_bank_code_through_internal_chain(
 
     result = _compare_section_texts(
         client=object(),
-        model="gpt-4o",
+        model="gpt-5.4",
         section_key="gestion_risques",
         text_t1="### Risque opérationnel\n\nVersion précédente du cadre de risque.",
         text_t2="### Risque opérationnel\n\nVersion courante du cadre de risque.",

@@ -55,7 +55,6 @@ class DoclingProcessor(
         self,
         use_ocr: bool = False,
         enhance_images: bool = True,
-        openai_api_key: str | None = None,
         use_cache: bool = False,
         cache_dir: str | None = None,
     ):
@@ -64,13 +63,11 @@ class DoclingProcessor(
         Args:
             use_ocr: Active l'OCR Docling pour les PDF numerises.
             enhance_images: Applique une amelioration d'image avant traitement.
-            openai_api_key: Cle API OpenAI pour l'extraction Vision GPT-4o.
             use_cache: Active le cache des extractions.
             cache_dir: Repertoire du cache (defaut : repertoire systeme).
         """
         self.use_ocr = use_ocr
         self.enhance_images = enhance_images
-        self.openai_api_key = openai_api_key
         self._converter = None
         self._initialized = False
 
@@ -100,6 +97,7 @@ def extract_pdf(
     enhance_images: bool = True,
     page_ranges: list[tuple[int, int]] | None = None,
     use_vision_extraction: bool | None = None,
+    force_extraction: bool = False,
 ) -> ExtractedDocument:
     """Extraire un PDF complet en combinant structure Docling et contenu Vision par tableau.
 
@@ -125,8 +123,10 @@ def extract_pdf(
         Liste de tuples ``(start, end)`` pour limiter l'extraction à des pages
         spécifiques. ``None`` = tout le document.
     use_vision_extraction:
-        Force l'activation/désactivation de Vision GPT-4o. ``None`` = résolution
+        Force l'activation/désactivation de l'extraction Vision LLM. ``None`` = résolution
         automatique depuis la config et l'environnement.
+    force_extraction:
+        Si True, ignore le cache Vision pour forcer une re-extraction complete.
     """
     processor = DoclingProcessor(
         use_ocr=use_ocr,
@@ -139,6 +139,7 @@ def extract_pdf(
         year,
         page_ranges=page_ranges,
         use_vision_extraction=use_vision_extraction,
+        force_extraction=force_extraction,
     )
 
 
@@ -220,6 +221,7 @@ def extract_tables_docling_by_sections(
     year: int,
     section_ranges: list[dict[str, Any]] | None = None,
     use_vision_extraction: bool | None = None,
+    force_extraction: bool = False,
 ) -> list[ExtractedTable]:
     """Extraire les tableaux sur des plages de sections et les annoter avec leur section.
 
@@ -239,8 +241,10 @@ def extract_tables_docling_by_sections(
         Liste de dictionnaires ``{section: str, start: int, end: int}`` définissant
         les plages de pages à extraire. Si ``None`` ou vide, extrait tout le document.
     use_vision_extraction:
-        Force l'activation/désactivation de Vision GPT-4o. ``None`` = résolution
+        Force l'activation/désactivation de l'extraction Vision LLM. ``None`` = résolution
         automatique.
+    force_extraction:
+        Si True, ignore le cache Vision pour forcer une re-extraction complete.
 
     Retourne
     --------
@@ -268,6 +272,7 @@ def extract_tables_docling_by_sections(
         year=year,
         page_ranges=page_ranges or None,
         use_vision_extraction=use_vision_extraction,
+        force_extraction=force_extraction,
     )
     _assign_canonical_table_ids(tables)
 
@@ -364,6 +369,7 @@ def extract_tables_docling_priority(
     year: int,
     page_ranges: list[tuple[int, int]] | None = None,
     use_vision_extraction: bool | None = None,
+    force_extraction: bool = False,
 ) -> list[ExtractedTable]:
     """Extraire uniquement les tableaux d'un PDF (structure Docling + contenu Vision).
 
@@ -378,5 +384,6 @@ def extract_tables_docling_priority(
         year,
         page_ranges=page_ranges,
         use_vision_extraction=use_vision_extraction,
+        force_extraction=force_extraction,
     )
     return doc.all_tables

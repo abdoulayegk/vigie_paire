@@ -22,7 +22,6 @@ class TestAnchorBelowThreshold:
             table_title="Test Table",
             current_indicators=curr,
             previous_indicators=prev,
-            api_key="test-key",
         )
 
         assert result.skipped is True
@@ -37,7 +36,6 @@ class TestAnchorBelowThreshold:
             table_title="Test Table",
             current_indicators=curr,
             previous_indicators=prev,
-            api_key="test-key",
         )
 
         assert result.skipped is True
@@ -49,7 +47,6 @@ class TestAnchorBelowThreshold:
             table_title="Test Table",
             current_indicators=[],
             previous_indicators=[],
-            api_key="test-key",
         )
 
         assert result.skipped is True
@@ -61,7 +58,6 @@ class TestAnchorBelowThreshold:
             table_title="Test Table",
             current_indicators=["A", "B"],
             previous_indicators=[],
-            api_key="test-key",
         )
 
         assert result.skipped is True
@@ -89,13 +85,18 @@ class TestAnchorAboveThreshold:
         mock_client = MagicMock()
         mock_client.beta.chat.completions.parse.return_value = mock_response
 
-        with patch("openai.OpenAI", return_value=mock_client):
+        with (
+            patch("vigie.extraction.vision_t1_anchor.get_client", return_value=mock_client),
+            patch(
+                "vigie.extraction.vision_t1_anchor.structured_completions_parse",
+                return_value=mock_parsed,
+            ),
+        ):
             result = anchor_against_previous(
                 table_id="tbl_test",
                 table_title="Test Table",
                 current_indicators=curr,
                 previous_indicators=prev,
-                api_key="test-key",
             )
 
         assert result.skipped is False
@@ -109,13 +110,12 @@ class TestAnchorAboveThreshold:
         prev = [f"ind_{i}" for i in range(10)]
         curr = [f"ind_{i}" for i in range(20)]  # 50% diff
 
-        with patch("openai.OpenAI", side_effect=RuntimeError("API down")):
+        with patch("vigie.extraction.vision_t1_anchor.get_client", side_effect=RuntimeError("API down")):
             result = anchor_against_previous(
                 table_id="tbl_test",
                 table_title="Test Table",
                 current_indicators=curr,
                 previous_indicators=prev,
-                api_key="test-key",
             )
 
         assert result.skipped is True
@@ -128,14 +128,13 @@ class TestAnchorAboveThreshold:
 
         # With 5% threshold, this should trigger GPT (10% > 5%)
         # We patch GPT to fail, so we get a skipped result with exception, not below_threshold
-        with patch("openai.OpenAI", side_effect=RuntimeError("mock")):
+        with patch("vigie.extraction.vision_t1_anchor.get_client", side_effect=RuntimeError("mock")):
             result = anchor_against_previous(
                 table_id="tbl_test",
                 table_title="Test Table",
                 current_indicators=curr,
                 previous_indicators=prev,
                 diff_threshold=0.05,
-                api_key="test-key",
             )
 
         # With 0.05 threshold, 10% diff should NOT be skipped due to below_threshold

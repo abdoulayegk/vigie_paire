@@ -111,6 +111,7 @@ class DocumentExtractionMixin:
         section: str | None = None,
         labels_only: bool = False,
         use_vision_extraction: bool | None = None,
+        force_extraction: bool = False,
     ) -> ExtractedDocument:
         """Extraire tout le contenu d'un document PDF.
 
@@ -132,6 +133,7 @@ class DocumentExtractionMixin:
             section: Nom de la section pour le cache (optionnel)
             use_vision_extraction: Si True, Vision (GPT-4o) comme source contenu pour tous les tableaux.
                 Si None, lu depuis config vision_extraction.enabled.
+            force_extraction: Si True, ignorer le cache Vision (re-extraction complete).
 
         Returns:
             ExtractedDocument avec tout le contenu extrait
@@ -194,6 +196,7 @@ class DocumentExtractionMixin:
                 total_pages,
                 labels_only=labels_only,
                 use_vision_extraction=use_vision_extraction,
+                force_extraction=force_extraction,
             )
         elif self._converter is not None:
             result = self._extract_with_docling(
@@ -204,6 +207,7 @@ class DocumentExtractionMixin:
                 page_ranges,
                 labels_only=labels_only,
                 use_vision_extraction=use_vision_extraction,
+                force_extraction=force_extraction,
             )
         else:
             result = self._docling_unavailable_document(pdf_path, bank_code, quarter, year, page_ranges)
@@ -282,6 +286,7 @@ class DocumentExtractionMixin:
         *,
         labels_only: bool = False,
         use_vision_extraction: bool = False,
+        force_extraction: bool = False,
     ) -> ExtractedDocument:
         """Extraction par chunks pour gros documents.
 
@@ -295,6 +300,7 @@ class DocumentExtractionMixin:
             total_pages: Nombre total de pages
             labels_only: Extraire uniquement les etiquettes sans valeurs.
             use_vision_extraction: Utiliser l'extraction par vision (OCR avance).
+            force_extraction: Si True, ignorer le cache Vision (re-extraction complete).
 
         Returns:
             ExtractedDocument avec tout le contenu
@@ -322,6 +328,7 @@ class DocumentExtractionMixin:
                     page_ranges,
                     labels_only=labels_only,
                     use_vision_extraction=use_vision_extraction,
+                    force_extraction=force_extraction,
                 )
             else:
                 chunk_result = self._docling_unavailable_document(pdf_path, bank_code, quarter, year, page_ranges)

@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
+
 from vigie.extraction.docling import (
     DoclingProcessor,
     ExtractedTable,
@@ -13,6 +15,7 @@ from vigie.extraction.locator_merge_reconciliation import (
     _reconcile_on_demand_locator_merges,
 )
 from vigie.extraction.vision_full import VisionFullResult
+from vigie.support.utils import page_layout_context
 
 
 def test_page_context_inventory_padding_includes_section_boundaries() -> None:
@@ -211,7 +214,12 @@ def test_page_context_bbox_replaces_docling_bbox_and_preserves_suspect_status(
     )
     monkeypatch.setattr(
         "vigie.support.utils.page_layout_context.compute_dynamic_extensions",
-        lambda **_kwargs: (0.0, 0.0),
+        lambda **_kwargs: page_layout_context.DynamicCropExtensions(
+            top_extension=0.0,
+            bottom_extension=0.0,
+            inter_table_gap=None,
+            tight_inter_table_gap=False,
+        ),
     )
 
     class FakeVisionExtractor:
@@ -323,3 +331,99 @@ def test_unresolved_near_full_page_bbox_is_preserved_as_suspect(
     assert table.debug_metrics["bbox_verified"] is False
     assert table.debug_metrics["page_context_table_count"] == 2
     assert table.debug_metrics["bbox_verification_reason"] == "near_full_page_multiple_regions"
+
+
+def test_proactive_page_context_crop_used_when_tight_inter_table_gap(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    table_bbox = [0.05, 0.20, 0.95, 0.387]
+    proactive_bbox = [0.08, 0.18, 0.92, 0.42]
+    received: dict = {}
+
+    monkeypatch.setattr(
+        "vigie.support.utils.pdf_crop.is_bbox_sane",
+        lambda *_args, **_kwargs: (True, None, {}),
+    )
+    monkeypatch.setattr(
+        "vigie.support.utils.pdf_crop.crop_table_region_to_bytes",
+        lambda *_args, **_kwargs: b"docling-crop",
+    )
+    monkeypatch.setattr(
+        "vigie.extraction.docling.vision_pass.render_pdf_page",
+        lambda *_args, **_kwargs: b"page-image",
+    )
+    monkeypatch.setattr(
+        "vigie.support.utils.page_layout_context.compute_dynamic_extensions",
+        lambda **_kwargs: page_layout_context.DynamicCropExtensions(
+            top_extension=0.03,
+            bottom_extension=0.008,
+            inter_table_gap=0.013,
+            tight_inter_table_gap=True,
+        ),
+    )
+
+    class FakePageTableLocator:
+        min_confidence = 0.85
+
+        def locate_page(self, *_args, **_kwargs):
+            from vigie.extraction.page_table_locator import _parse_page_layout
+
+            payload = {
+                "tables": [
+                    {
+                        "table_bbox": proactive_bbox,
+                        "title_bbox": [0.08, 0.14, 0.70, 0.17],
+                        "footnotes_bbox": [0.08, 0.43, 0.90, 0.48],
+                        "title_text": "Ratios",
+                        "continuation": False,
+                        "confidence": 0.96,
+                    }
+                ],
+                "table_count": 1,
+            }
+            return _parse_page_layout(payload, 29)
+
+    class FakeVisionExtractor:
+        def extract_with_quality_pass(self, **kwargs) -> VisionFullResult:
+            received.update(kwargs)
+            return VisionFullResult(
+                table_title="Ratios",
+                table_summary="",
+                headers=[],
+                indicators=["CET1"],
+                footnotes_content=[{"id": "1", "text": "(1) Note"}],
+                extraction_status="ok",
+            )
+
+    processor = DoclingProcessor()
+    _, table, _ = processor._vision_extract_one_table(
+        (7, 29, table_bbox, "tableau_7", None),
+        {
+            "pdf_path": tmp_path / "report.pdf",
+            "bank_code": "bnc",
+            "quarter": "t1",
+            "year": 2025,
+            "pdf_sha": "pdf-sha",
+            "vision_extraction_cfg": {},
+            "bottom_extension_footnotes": 0.12,
+            "top_extension_title": 0.03,
+            "horizontal_padding": 0.02,
+            "vision_extractor": FakeVisionExtractor(),
+            "page_table_locator": FakePageTableLocator(),
+            "schema_failure_flag": [False],
+            "vision_schema_error_cls": RuntimeError,
+            "schema_failure_policy": "fail_fast",
+            "labels_only": False,
+            "page_table_map": {29: [(7, table_bbox), (8, [0.05, 0.40, 0.95, 0.55])]},
+            "page_context_seed": {},
+        },
+    )
+
+    assert received["crop_bytes"] == b"docling-crop"
+    assert received["bbox_norm"] != table_bbox
+    assert received["bbox_norm"][1] == pytest.approx(0.18)
+    assert received["bbox_norm"][3] > table_bbox[3]
+    assert table.extraction_status == "ok"
+    assert table.first_column_indicators == ["cet1"]
+    assert table.title == "Ratios"

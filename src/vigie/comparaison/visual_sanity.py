@@ -280,7 +280,6 @@ def _call_visual_sanity_llm(
         return call_openai_json(
             model=model,
             messages=messages,
-            temperature=0.0,
             usage_recorder=usage_recorder,
             call_kind="visual_sanity_check",
             response_model=VisualSanityCheckResponse,

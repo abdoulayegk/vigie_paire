@@ -291,7 +291,7 @@ class QualityPassMixin:
             try:
                 first_dict = dataclasses.asdict(first)
 
-                inspector = VisionTableInspector(model="gpt-4o")
+                inspector = VisionTableInspector()
                 qa_result = inspector.inspect_extraction(crop_bytes, first_dict)
 
                 if not qa_result.is_perfect:
@@ -409,23 +409,31 @@ class QualityPassMixin:
             if name == "same_crop_rescue":
                 return crop_bytes, initial_bottom_extension, bbox_norm
 
-            if get_variant_crop_fn is None or not bbox_norm or len(bbox_norm) < 4:
-                if name == "bottom_extended" and get_recrop_fn is not None:
-                    extension = initial_bottom_extension + _RECROP_EXTENSION_INCREMENT
+            # Footnotes: re-crop bas NON clampé (ancien comportement quality).
+            # get_variant_crop_fn est borné par le voisin et annule +0.06 sur gap serré.
+            if name == "bottom_extended":
+                extension = initial_bottom_extension + _RECROP_EXTENSION_INCREMENT
+                if get_recrop_fn is not None:
+                    logger.info(
+                        "Vision footnote_recrop bottom_ext=%.3f -> %.3f (unclamped)",
+                        initial_bottom_extension,
+                        extension,
+                    )
                     return get_recrop_fn(extension), extension, bbox_norm
+                if get_variant_crop_fn is not None and bbox_norm and len(bbox_norm) >= 4:
+                    return (
+                        get_variant_crop_fn(bottom_extension=extension),
+                        extension,
+                        bbox_norm,
+                    )
+                return None, initial_bottom_extension, bbox_norm
+
+            if get_variant_crop_fn is None or not bbox_norm or len(bbox_norm) < 4:
                 return None, initial_bottom_extension, bbox_norm
 
             left, top, right, bottom = [float(v) for v in bbox_norm[:4]]
             height = max(0.0, bottom - top)
             width = max(0.0, right - left)
-
-            if name == "bottom_extended":
-                extension = initial_bottom_extension + _RECROP_EXTENSION_INCREMENT
-                return (
-                    get_variant_crop_fn(bottom_extension=extension),
-                    extension,
-                    bbox_norm,
-                )
 
             if name == "top_extended":
                 return (
@@ -626,7 +634,7 @@ class QualityPassMixin:
             # missing elements, do one additional rescue with a precise instruction.
             try:
                 _best_dict = dataclasses.asdict(best_result)
-                _post_qa_inspector = VisionTableInspector(model="gpt-4o")
+                _post_qa_inspector = VisionTableInspector()
                 _post_qa_result = _post_qa_inspector.inspect_extraction(
                     best_crop_bytes,
                     _best_dict,

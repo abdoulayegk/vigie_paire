@@ -14,10 +14,9 @@ import logging
 import time
 from typing import Any
 
-import openai
 from pydantic import BaseModel, ConfigDict, Field
 
-from vigie.support.utils.genai import get_openai_api_key
+from vigie.llm import get_client, resolve_model, structured_completions_parse
 
 logger = logging.getLogger(__name__)
 OPENAI_VISION_QA_TIMEOUT_SECONDS = 120.0
@@ -53,18 +52,22 @@ class QAResult(BaseModel):
 
 
 class VisionTableInspector:
-    """Inspecteur QA intransigeant pour les extractions GPT-4o Vision."""
+    """Inspecteur QA intransigeant pour les extractions Vision GPT."""
 
-    def __init__(self, model: str = "gpt-4o") -> None:
+    def __init__(self, model: str | None = None) -> None:
         """Initialiser l'inspecteur QA.
 
         Args:
-            model: Modele OpenAI a utiliser. ``gpt-4o`` par defaut pour une
-                fiabilite maximale ; peut etre ``gpt-4o-mini`` pour reduire
-                les couts.
+            model: Modele OpenAI a utiliser. Par defaut, le modele chat resolu
+                depuis la configuration (gpt-5.4).
         """
-        self.model = model
-        self.api_key = get_openai_api_key()
+        self.model = str(model or "").strip() or resolve_model("chat")
+        self._client: Any | None = None
+
+    def _ensure_client(self) -> Any:
+        if self._client is None:
+            self._client = get_client(timeout=OPENAI_VISION_QA_TIMEOUT_SECONDS, max_retries=1)
+        return self._client
 
     def _build_qa_prompt(self, extracted_json: str) -> str:
         """Construire le prompt systeme pour l'audit QA."""
@@ -106,11 +109,8 @@ Respond STRICTLY using the required JSON schema format."""
         Raises:
             Exception: Si l'appel OpenAI echoue apres toutes les tentatives.
         """
-        # Convert JSON structure to a clean string for the prompt
         json_str = json.dumps(extracted_json, ensure_ascii=False, indent=2)
-
         system_prompt = self._build_qa_prompt(json_str)
-
         base64_img = base64.b64encode(image_bytes).decode("utf-8")
 
         messages = [
@@ -135,22 +135,17 @@ Respond STRICTLY using the required JSON schema format."""
 
         logger.debug("Executing Deep QA Inspector on table crop using model %s", self.model)
 
-        client = openai.OpenAI(
-            api_key=self.api_key,
-            timeout=OPENAI_VISION_QA_TIMEOUT_SECONDS,
-        )
+        client = self._ensure_client()
         last_exc: Exception | None = None
         for attempt in range(3):
             try:
-                response = client.beta.chat.completions.parse(
+                parsed = structured_completions_parse(
+                    client,
                     model=self.model,
                     messages=messages,
                     response_format=QAResult,
-                    temperature=0.0,
+                    profile="extraction",
                 )
-                parsed = response.choices[0].message.parsed
-                if parsed is None:
-                    raise ValueError("Structured Output parsing returned None")
                 if not parsed.is_perfect:
                     logger.info(
                         "QA INSPECTOR ALERT: Missing elements detected: %s",
@@ -169,5 +164,4 @@ Respond STRICTLY using the required JSON schema format."""
                     exc,
                 )
                 time.sleep(0.5 * (attempt + 1))
-        # unreachable — last iteration always raises — but keeps type-checker happy
         raise last_exc  # type: ignore[misc]

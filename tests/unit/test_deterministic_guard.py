@@ -181,7 +181,7 @@ class TestPostGPTGuard:
         diff_table_pair_gpt(
             _table(table_id="prev", indicators=["Série 1", "Série 5", "Série 9", "Total"]),
             _table(table_id="curr", indicators=["Série 1", "Série 5", "Total"]),
-            model="gpt-4o-test",
+            model="gpt-5.4-test",
             call_openai_json=fake_call,
         )
 
@@ -241,7 +241,7 @@ class TestPostGPTGuard:
         result = diff_table_pair_gpt(
             _table(table_id="prev", indicators=["Série 1", "Série 9", "Goodwill"]),
             _table(table_id="curr", indicators=["Série 1", "Goodwill³"]),
-            model="gpt-4o-test",
+            model="gpt-5.4-test",
             call_openai_json=fake_call,
         )
 
@@ -279,7 +279,7 @@ class TestPostGPTGuard:
         result = diff_table_pair_gpt(
             _table(table_id="prev", indicators=["Old"]),
             _table(table_id="curr", indicators=["New"]),
-            model="gpt-4o-test",
+            model="gpt-5.4-test",
             call_openai_json=fake_call,
         )
 
@@ -308,7 +308,7 @@ class TestPostGPTGuard:
         result = diff_table_pair_gpt(
             _table(table_id="prev", indicators=["A", "B", "C"]),
             _table(table_id="curr", indicators=["A", "B", "C²"]),
-            model="gpt-4o-test",
+            model="gpt-5.4-test",
             call_openai_json=fake_call,
         )
 

@@ -51,8 +51,8 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--model",
-        default="gpt-4o",
-        help="Modele OpenAI (defaut: gpt-4o)",
+        default="gpt-5.4",
+        help="Modele OpenAI (defaut: gpt-5.4)",
     )
     parser.add_argument("--verbose", "-v", action="store_true", help="Activer les logs detailles")
     parser.add_argument(

@@ -111,7 +111,6 @@ def _devil_advocate_review(
                     "content": json.dumps(json_sanitize(user_payload), ensure_ascii=False),
                 },
             ],
-            temperature=0.0,
             usage_recorder=usage_recorder,
             call_kind="devil_advocate",
             response_model=DevilAdvocateResponse,

@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from types import SimpleNamespace
-
 import pytest
 
 from vigie.extraction.docling import _build_indicator_reference_text
@@ -35,7 +33,7 @@ def _result(
 
 
 def test_qa_prompt_limits_indicator_audit_to_leftmost_column() -> None:
-    inspector = VisionTableInspector(model="gpt-4o-test")
+    inspector = VisionTableInspector(model="gpt-5.4-test")
 
     prompt = inspector._build_qa_prompt('{"indicators":["Programme A"]}')
 
@@ -68,7 +66,7 @@ def test_indicator_reference_text_keeps_single_column_content() -> None:
 def test_quality_pass_prefers_initial_candidate_when_rescue_adds_right_column_noise(
     monkeypatch,
 ) -> None:
-    extractor = VisionFullExtractor(api_key="test-key", model="gpt-4o-test")
+    extractor = VisionFullExtractor(model="gpt-5.4-test")
     clean_indicators = [
         "Titres de fiducie",
         "Billets moyen terme",
@@ -115,34 +113,29 @@ def test_quality_pass_prefers_initial_candidate_when_rescue_adds_right_column_no
 def test_qa_inspector_uses_openai_compatible_strict_schema(monkeypatch) -> None:
     captured: dict[str, object] = {}
 
-    class FakeParseCompletions:
-        def parse(self, **kwargs):
-            captured["model"] = kwargs["model"]
-            captured["messages"] = kwargs["messages"]
-            captured["response_format"] = kwargs["response_format"]
-            return SimpleNamespace(
-                choices=[
-                    SimpleNamespace(
-                        message=SimpleNamespace(
-                            parsed=QAResult(
-                                is_perfect=True,
-                                missing_elements=[],
-                                justification="ok",
-                            )
-                        )
-                    )
-                ]
-            )
+    def fake_structured_completions_parse(client, **kwargs):
+        captured["model"] = kwargs["model"]
+        captured["messages"] = kwargs["messages"]
+        captured["response_format"] = kwargs["response_format"]
+        captured["profile"] = kwargs.get("profile")
+        return QAResult(
+            is_perfect=True,
+            missing_elements=[],
+            justification="ok",
+        )
 
-    class FakeOpenAI:
-        def __init__(self, **kwargs) -> None:
-            captured["client_kwargs"] = kwargs
-            self.beta = SimpleNamespace(chat=SimpleNamespace(completions=FakeParseCompletions()))
+    def fake_get_client(**kwargs):
+        captured["client_kwargs"] = kwargs
+        return object()
 
     monkeypatch.setenv("OPENAI_API_KEY", "test-key")
-    monkeypatch.setattr("openai.OpenAI", FakeOpenAI)
+    monkeypatch.setattr("vigie.llm.is_configured", lambda *args, **kwargs: True)
+    monkeypatch.setattr("vigie.extraction.vision_qa_inspector.get_client", fake_get_client)
+    monkeypatch.setattr(
+        "vigie.extraction.vision_qa_inspector.structured_completions_parse", fake_structured_completions_parse
+    )
 
-    inspector = VisionTableInspector(model="gpt-4o-test")
+    inspector = VisionTableInspector(model="gpt-5.4-test")
     result = inspector.inspect_extraction(b"fake-image", {"indicators": ["Programme A"]})
 
     assert result == QAResult(
@@ -150,12 +143,13 @@ def test_qa_inspector_uses_openai_compatible_strict_schema(monkeypatch) -> None:
         missing_elements=[],
         justification="ok",
     )
-    assert captured["model"] == "gpt-4o-test"
+    assert captured["model"] == "gpt-5.4-test"
     assert captured["response_format"] is QAResult
+    assert captured["profile"] == "extraction"
     assert isinstance(captured["messages"], list)
     assert captured["client_kwargs"] == {
-        "api_key": "test-key",
         "timeout": OPENAI_VISION_QA_TIMEOUT_SECONDS,
+        "max_retries": 1,
     }
     assert OPENAI_VISION_QA_TIMEOUT_SECONDS == 120.0
 
